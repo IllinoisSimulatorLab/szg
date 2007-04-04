@@ -199,7 +199,8 @@ excessive noise:
       initTrackerCalibration
       initIIRFilter
 
-      /* Define stuff to rotate & remap positional coordinates and rotate orientation by 135 degrees around Y */
+      /* Define stuff to rotate & remap positional coordinates
+         and rotate orientation by 135 degrees around Y */
       matrix yTransRotMatrix
       -45. yaxis yTransRotMatrix rotationMatrix
 
@@ -260,7 +261,8 @@ excessive noise:
         inputMatrix setCurrentEventMatrix
       enddef
 
-      /* Fix rotational matrix components (depends on how sensors are mounted) */
+      /* Fix rotational matrix components
+         (depends on how sensors are mounted) */
       matrix headZRotMatrix
       matrix wandZRotMatrix
       matrix wandTweakMatrix
@@ -271,8 +273,9 @@ excessive noise:
       /* Wand sensor is mounted upside-down */
       -180 zaxis wandZRotMatrix rotationMatrix
 
-      /* Wand sensor points upwards by about 20 degrees with gamepad held
-         subjectively level (actually tilted up slightly, but it feels right) */
+      /* Wand sensor points upwards by about 20 degrees
+         with gamepad held subjectively level (actually
+         tilted up slightly, but it feels right) */
       -20. xaxis wandTweakMatrix rotationMatrix
 
       matrix wandRotMatrix

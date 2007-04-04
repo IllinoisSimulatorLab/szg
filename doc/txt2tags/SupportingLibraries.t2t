@@ -5,6 +5,8 @@ Header2 %%mtime(%m/%d/%Y)
 
 Header3
 
+%%toc
+
 
 Syzygy's build system is designed to let you compile your software using
 the optional supporting libraries but without installing them in a standard

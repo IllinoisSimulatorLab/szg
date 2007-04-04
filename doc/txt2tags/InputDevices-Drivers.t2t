@@ -90,11 +90,16 @@ and two boolean-valued buttons.
 For a host connected to an Ascension SpacePad motion tracker.
 
 
-``` HOST SZG_TRACKER transmitter_offset 0.97/0.20/0.12/0/-0.05/0.7/-0.72/0/-0.22/0.69/0.69/0/0.09/6.71/-2.72/1
+```
+HOST SZG_TRACKER transmitter_offset
+  0.97/0.20/0.12/0/-0.05/0.7/-0.72/0/-0.22/0.69/0.69/0/0.09/6.71/-2.72/1
+```
   Matrix (16 floats in OpenGL order) by which we post-multiply the device's matrix.
 Corrects for angled transmitter antenna.
 
-``` HOST SZG_TRACKER sensor1_rot 0/0/1/-90
+```
+HOST SZG_TRACKER sensor1_rot 0/0/1/-90
+```
   A rotation by which we pre-multiply the device's matrix.
 Corrects for sensors mounted at an angle.  Here, sensor 1 (wand) has been
 rolled 90 degrees to the left about the vector (0,0,1), i.e., the z-axis.

@@ -7,6 +7,8 @@ Header3
 
 Thanks to Jim Crowell for creating the Syzygy PForth support.
 
+%%toc
+
 
 =PForth Documentation=
 
@@ -75,7 +77,8 @@ example of an event-filtering program that swaps matrices 0 and 1:
 
 ```
 <pforth>
-  define filter_matrix_0     /* Each time we come across a matrix event with index 0... */
+  define filter_matrix_0     /* Each time we come across a
+                                matrix event with index 0... */
     1 setCurrentEventIndex   /* ...change its index to 1 */
   enddef
   define filter_matrix_1
@@ -96,25 +99,32 @@ emulate a VR controller (to some degree).
 ```
 <pforth>
   matrix temp                         /* Declare a matrix variable */
-  0 5 0 temp translationMatrix        /* ... and store a +5 y-translation matrix in it */
+  0 5 0 temp translationMatrix        /* ... and store a +5 y-translation
+                                             matrix in it */
 
   define filter_axis_0
-    getCurrentEventAxis 0.000031 * setCurrentEventAxis  /* rescale axis value */
+    getCurrentEventAxis 0.000031 * setCurrentEventAxis 
+                                      /* rescale axis value */
   enddef
   define filter_axis_1
-    temp 0 insertMatrixEvent          /* Create new matrix event with index 0 and value from temp */
-    getCurrentEventAxis -0.000031 * setCurrentEventAxis  /* ...and rescale this axis event */
+    temp 0 insertMatrixEvent          /* Create new matrix event with
+                                         index 0 and value from temp */
+    getCurrentEventAxis -0.000031 * setCurrentEventAxis 
+                                     /* ...and rescale this axis event */
   enddef
   define filter_axis_2
-    getCurrentEventAxis -32768 + -0.000031 *   /* Get axis value, rescale, leave on stack */
+    getCurrentEventAxis -32768 + -0.000031 *   /* Get axis value, rescale,
+                                                  leave on stack */
     deleteCurrentEvent                         /* Delete current event */
-    3 insertAxisEvent                          /* Insert stack value as new axis event #3 */
+    3 insertAxisEvent                          /* Insert stack value as
+                                                  new axis event #3 */
   enddef
   define filter_axis_3
     4 setCurrentEventIndex                     /* Change event index to 4 */
   enddef
   define filter_axis_5
-    getCurrentEventAxis -32768 + 0.000031 *    /* Treat as axis event #2, except insert as new #2 */
+    getCurrentEventAxis -32768 + 0.000031 *    /* Treat as axis event #2,
+                                                  except insert as new #2 */
     deleteCurrentEvent
     2 insertAxisEvent
   enddef

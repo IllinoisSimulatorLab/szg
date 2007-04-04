@@ -62,7 +62,6 @@ through these devices can be filtered arbitrarily.
 
 =Distributed Operating System=[DistributedOS]
 
-% Note renaming of Phleet.html
 One program, szgserver, manages basic services of a distributed operating
 system. One instance of this program runs per Syzygy installation. All
 Syzygy programs connect to it. To avoid bottlenecks, it only sets up
@@ -92,75 +91,4 @@ information from the network into sensory events.
 
 =Application Frameworks=[Frameworks]
 
-Authors of distributed applications need a variety of tools and approaches.
-For example, a distributed-graphics application can distribute either
-the executable itself or its data (
-geometrical primitives, scene graph changes, or pixel data).
-Syzygy's distributed scene graph can
-replicate itself on dumb rendering clients, allowing synchronized
-display across multiple networks. An API for building such applications
-is encapsulated in arDistSceneGraphFramework. Syzygy also lets you
-distribute the application: arMasterSlaveFramework lets you change an existing application so
-multiple synchronized copies can run.
-Syzygy also offers functions for VR-specific problems like calculating projection matrices,
-managing motion trackers, and 3D navigation.
-
-Application frameworks share features from their parent class, arFrameworkObject:
-
-```
-bool configure(arSZGClient&);
-  Reads in parameters from the Syzygy database and uses them to configure
-  the object.
-```
-
-Note that this is different from the init/start/stop associated with
-"active objects".
-
-- arHead: stores data for a viewer's head.  Contains:
-  - a 4x4 head matrix, the head's rotation and translation.
-      This is supplied by the application program.IS THIS A GOOD IDEA?
-      WOULD IT NOT BE BETTER TO USE THE MATRIX HIERARCHY?
-  - mid-eye offset, a vector from tracker-reported head position
-      to the point midway between the eyes. Has a reasonable default.
-  - eye direction, a vector from the mid-eye offset to the
-      right eye. Has a reasonable default.
-  - eye spacing, interocular distance in feet.
-  - default eye, right, left, or center, for monoscopic display.
-      Defaults to center.
-
-- arScreen: used to store data about a screen.  Contains:
-  - screen center, the center of the screen in tracked
-      coordinates.
-  - screen normal, the direction of a vector heading outward
-      from the screen center.
-  - screen up, the up direction.
-  - screen dim, the size of the screen in tracked coordinates.
-
-- arTile: used to store data about a tile. This is useful if we are using
-    a tiled-display wall or other such thing.  Contains:
-    - number of tiles in the X and Y directions
-    - tile (X,Y) coordinate
-
-- arCamera: specifies the projection from the virtual world into ours.
-  - Owns: arScreenObject, arHeadObject, arTile
-
-- arViewport: a viewport inside a window (we may want to have multiple
-    views inside a window to support passive stereo output on dual output
-    graphics cards).
-  - Owns: a camera.
-  - Contains: Viewport coordinates, in window-relative not pixel units.
-      This remaps the window coordinates to (0,0) to (1,1), lower left to upper right.
-      This simplifies defining viewports that resize with the window.
-      For instance, two viewports horizontally tiling the window would be
-      (0,0) to (0.5,1) and (0.5,0) to (1,1).
-
-- arWindow: a graphical window.
-  - Owns: a collection of viewports, a draw callback, a draw-init
-      callback (which defaults to glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT)).
-  - Contains: size in pixels (0/0 is full-screen).
-      The owning application handles window resizing to update this size.
-  - Contains: position, pixel screen coordinates of upper left corner.
-  - Contains: video mode (mono, anaglyph, active stereo).
-  - Has code for drawing the scene: clears
-      the window (user-defined or a default glClear()),
-      then calls the user-supplied draw callback appropriate to the video mode.
+See [Programming and Application Frameworks Programming.html]

@@ -11,6 +11,65 @@ and then covers the internals of Syzygy's input framework.
 %%toc
 
 
+=Overview=[Overview]
+
+Input data in Syzygy comes as three types of ``arInputEvents``.
+
+1. A //matrix event//, a 4x4 matrix, usually represents the position and
+orientation (referred to in combination as the placement) of a tracking
+sensor.
+
+2. An //axis event// contains a floating-point
+number representing the state of a scalar input (a slider, or one axis of a joystick).
+
+3. A //button event// contains an integer, often boolean in meaning (1 or 0).
+
+Within each class,
+events are identified by a zero-based index.  In applications, a particular
+event type and index is generally associated with a particular
+function.  For example, matrix 0 often represents the placement
+of the user's head, matrix 1 that of the wand.
+All event types have a default value reported for exceptional cases like
+disconnected sensors or out-of-bound indices.  These are the identity
+matrix, 0.0, and 0 respectively.
+
+``arInputEvents`` can be packed into ``arStructuredData`` records.  These records
+can be either the native binary format for fast transmission, or ASCII
+XML for disk storage.  Syzygy provides functions for converting between
+``arInputEvents`` and ``arStructuredData``, and for reading/writing such XML files.
+
+Input events are organized into trees by
+[input object classes InputClasses.html].
+Input events from devices on separate branches can combine
+into a single event stream, corresponding to a compound
+virtual input device.  For example, a motion-tracked gamepad can start out
+as two separate <input_sources> streams of data (from different computers)
+and then combine into a single stream.
+
+Events can also be transformed, added, or
+deleted by [filters InputFilters.html] at tree nodes.
+These filters are usually written in [PForth PForth.html],
+but C++ offers more flexibility and pain.
+
+Each computer with input hardware runs its own DeviceServer.
+Each DeviceServer has a //service name//
+corresponding to a group of Syzygy database parameters,
+determined by the device driver it is running.
+To listen to that device through a particular IP address and port,
+an application checks this group of database parameters.
+Here is a list
+of [supported input devices InputDevices-Drivers.html].
+
+The input framework includes standard
+[navigation methods Navigation.html] that work with both
+Syzygy [application frameworks Programming.html].
+
+Finally, there are classes and functions for how the user
+[interacts Interaction.html] with objects in the
+virtual world: grabbing, various kinds of dragging, and
+hooks for implementing other user-initiated object manipulation.
+
+
 =Examples=[Practical]
 
 The input framework has two programs that produce input events.
@@ -180,62 +239,3 @@ lookup table):
   </value>
   </param>
 ```
-
-
-=Overview=[Overview]
-
-Input data in Syzygy comes as three types of ``arInputEvents``.
-
-1. A //matrix event//, a 4x4 matrix, usually represents the position and
-orientation (referred to in combination as the placement) of a tracking
-sensor.
-
-2. An //axis event// contains a floating-point
-number representing the state of a scalar input (a slider, or one axis of a joystick).
-
-3. A //button event// contains an integer, often boolean in meaning (1 or 0).
-
-Within each class,
-events are identified by a zero-based index.  In applications, a particular
-event type and index is generally associated with a particular
-function.  For example, matrix 0 often represents the placement
-of the user's head, matrix 1 that of the wand.
-All event types have a default value reported for exceptional cases like
-disconnected sensors or out-of-bound indices.  These are the identity
-matrix, 0.0, and 0 respectively.
-
-``arInputEvents`` can be packed into ``arStructuredData`` records.  These records
-can be either the native binary format for fast transmission, or ASCII
-XML for disk storage.  Syzygy provides functions for converting between
-``arInputEvents`` and ``arStructuredData``, and for reading/writing such XML files.
-
-Input events are organized into trees by
-[input object classes InputClasses.html].
-Input events from devices on separate branches can combine
-into a single event stream, corresponding to a compound
-virtual input device.  For example, a motion-tracked gamepad can start out
-as two separate <input_sources> streams of data (from different computers)
-and then combine into a single stream.
-
-Events can also be transformed, added, or
-deleted by [filters InputFilters.html] at tree nodes.
-These filters are usually written in [PForth PForth.html],
-but C++ offers more flexibility and pain.
-
-Each computer with input hardware runs its own DeviceServer.
-Each DeviceServer has a //service name//
-corresponding to a group of Syzygy database parameters,
-determined by the device driver it is running.
-To listen to that device through a particular IP address and port,
-an application checks this group of database parameters.
-Here is a list
-of [supported input devices InputDevices-Drivers.html].
-
-The input framework includes standard
-[navigation methods Navigation.html] that work with both
-Syzygy [application frameworks Programming.html].
-
-Finally, there are classes and functions for how the user
-[interacts Interaction.html] with objects in the
-virtual world: grabbing, various kinds of dragging, and
-hooks for implementing other user-initiated object manipulation.

@@ -5,6 +5,8 @@ Header2 %%mtime(%m/%d/%Y)
 
 Header3
 
+%%toc
+
 
 =Objects?=
 

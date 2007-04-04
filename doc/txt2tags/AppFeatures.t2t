@@ -1,11 +1,9 @@
 Header1 Application Features
 Header2 %%mtime(%m/%d/%Y)
 
-%!options: --headers --toc --toc-level=1
+%!options: --headers
 
 Header3
-
-%%toc
 
 
 =Miscellaneous Application Features=[Misc]

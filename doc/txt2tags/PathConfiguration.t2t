@@ -1,12 +1,9 @@
 Header1 Specifying Resource Paths
 Header2 %%mtime(%m/%d/%Y)
 
-%!options: --headers --toc
+%!options: --headers
 
 Header3
-
-% Table of Contents
-%%toc
 
 
 =Resource Path Specification=
@@ -22,12 +19,19 @@ programs need backward ones. Not our fault. Sorry.)
 
 **IMPORTANT**: Syzygy 1.1 changes how
 applications are searched for and where they may look for their data.
+Also, szgd now has a 'base paths' argument that limits where
+programs can be launched from. This argument is a semicolon-delimited
+list of absolute directory paths; and directory paths listed in 
+SZG_EXEC/path, SZG_PYTHON/executable, SZG_PYTHON/path, and
+SZG_PYTHON/lib_path must fall inside/below one of the directories
+listed in the 'base paths' argument. See
+[Creating a Cluster: The Remote Execution Daemon DistributedOS.html#szgd].
 
 + Executables:
 ```
 SZG_EXEC path directory_path_1;directory_path_2;...
 ```
-  In cluster mode, this it tells the remote execution
+  In cluster mode, this tells the remote execution
   daemon szgd where to look for programs. Before Syzygy 1.1, szgd would only look in
   directories on the search path, and applications had to look
   for their data files in directories on the SZG_DATA path, below. Now szgd
@@ -37,13 +41,74 @@ SZG_EXEC path directory_path_1;directory_path_2;...
   a program and its data share the same directory, enabling conventional
   file-reading relative to the program's path.
 
+  All directories listed in this path are also added to the Python
+  module import path before a Python program is launched. They are
+  added //after// any directories specified in the PYTHONPATH
+  environment variable, SZG_PYTHON/path, and SZG_PYTHON/lib_path.
+
+  All directory paths listed must be contained within a directory path in
+  szgd's 'base paths' argument, mentioned above.
+
++ Python executable:
+```
+SZG_PYTHON executable executable_path_1
+```
+  In cluster mode, this tells the remote execution
+  daemon szgd where to look for the Python executable. It should be the
+  complete path to the executable, but should not include the '.exe'
+  suffix on Windows. If special command line arguments (to the Python
+  executable itself, not the Python program you are running) are
+  required, delimit them with vertical bars: For example, if you were
+  using Movable Python and wanted to pass the '-o' argument, you
+  might set it to the following:
+```
+SZG_PYTHON executable C:\movpy-2.0.0-py2.4.4\movpy\movpy|-o
+```
+  All directory paths listed must be contained within a directory path in
+  szgd's 'base paths' argument, mentioned above.
+
++ Python programs:
+```
+SZG_PYTHON path directory_path_1;directory_path_2;...
+```
+  In cluster mode, this tells the remote execution
+  daemon szgd where to look for Python programs. szgd
+  looks in the immediate subdirectories
+  of directories on the path.  When szgd finds the program, it sets the
+  current directory to the directory containing the program. This lets
+  a program and its data share the same directory, enabling conventional
+  file-reading relative to the program's path.
+
+  All directories listed in this path are also added to the Python
+  module import path before a Python program is launched. They are
+  added //after// any directories specified in the PYTHONPATH
+  environment variable, but //before// directories in SZG_PYTHON/lib_path
+  and SZG_EXEC/path.
+
+  All directory paths listed must be contained within a directory path in
+  szgd's 'base paths' argument, mentioned above.
+
++ Python modules:
+```
+SZG_PYTHON lib_path directory_path_1;directory_path_2;...
+```
+  In cluster mode, all directories listed in this path are added to the Python
+  module import path before a Python program is launched. They are
+  added //after// any directories specified in the PYTHONPATH
+  environment variable and in SZG_PYTHON/lib_path,
+  but //before// directories in SZG_EXEC/path.
+
+  All directory paths listed must be contained within a directory path in
+  szgd's 'base paths' argument, mentioned above.
+
 + Data:
 ```
 SZG_DATA path directory_path_1;directory_path_2;...
 ```
   Data files to be found by programs using the ar_fileFind() function
-  should be placed in a directory on this path. This is no longer
-  necessary, however.
+  should be placed in a directory on this path.
+  This is no longer necessary, however: See
+  [Accessing data in Cluster Mode Programming.html#toc3].
 
 + Sound files:
 ```

@@ -94,7 +94,6 @@ Header2 %%mtime(%m/%d/%Y)
 
 - [Architecture.html Architecture.html]: Overall design.
 - [Goals.html Goals.html]: Goals.
-- [Future.html Future.html]: Where Syzygy is going; what's likely to change.
 - [ChangeLog.html ChangeLog.html]: Changes between versions, since the beginning.
 - [Testing.html Testing.html]: Tested configurations and testing procedures.
 - [Bugs.html Bugs.html]: Known bugs, problems, and issues with the current version.

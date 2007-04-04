@@ -5,6 +5,8 @@ Header2 %%mtime(%m/%d/%Y)
 
 Header3
 
+%%toc
+
 
 =Application Frameworks=
 
@@ -148,6 +150,7 @@ Two examples:
 ```
   framework.setDataBundlePath( "SZG_PYTHON", "my_app" )
 ```
+
 
 ==Input Events==[InputEvents]
 
@@ -421,7 +424,8 @@ void arMasterSlaveFramework::setDrawCallback(
                            arViewport& vp )
               );
 
-virtual void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp );
+virtual void arMasterSlaveFramework::onDraw( arGraphicsWindow& win,
+                                             arViewport& vp );
 ```
 Called possibly multiple times/frame (actually, once/viewport) to draw a viewport.
 Note that a Syzygy viewport is a bit more than an OpenGL viewport; for example,
@@ -470,10 +474,12 @@ Called before the application exits.
 
 ```
 void setUserMessageCallback(
-              void (*userMessageCallback)( arMasterSlaveFramework&, const std::string& messageBody )
+        void (*userMessageCallback)( arMasterSlaveFramework&,
+                                     const std::string& messageBody )
               );
 
-virtual void arMasterSlaveFramework::onUserMessage( const string& messageBody );
+virtual void arMasterSlaveFramework::onUserMessage(
+                                          const string& messageBody );
 ```
 Called whenever the application receives a user message (sent from e.g. the dmsg commandline
 program--see the [Distributed Operating System DistributedOS.html] chapter. The ``message_type`` should
@@ -644,16 +650,18 @@ framework.addTransferField("manipulation matrix", void* floatPtr,
 
 Framework-managed shared memory is registered in a similar way:
 ```
-bool arMasterSlaveFramework::addInternalTransferField( std::string fieldName,
-                                                       arDataType dataType,
-                                                       int numElements );
+bool arMasterSlaveFramework::addInternalTransferField(
+                                  std::string fieldName,
+                                  arDataType dataType,
+                                  int numElements );
 ```
 The pointer argument is omitted, and the ``numElements`` argument now denotes
 the initial size. The size can be changed by calling:
 ```
-bool arMasterSlaveFramework::setInternalTransferFieldSize( std::string fieldName,
-                                                           arDataType dataType,
-                                                           int newSize );
+bool arMasterSlaveFramework::setInternalTransferFieldSize(
+                                  std::string fieldName,
+                                  arDataType dataType,
+                                  int newSize );
 ```
 One then gets a pointer to the memory, on either master or slave, using:
 ```
@@ -828,7 +836,8 @@ void arDistSceneGraphFramework::setViewer()
   Polls the input device and sets the viewing transform accordingly.
 
 void arDistSceneGraphFramework::setPlayer()
-  Polls the input device and sets the play transform accordingly (for spatialized sound).
+  Polls the input device and sets the play transform accordingly
+  (for spatialized sound).
 
 ```
 

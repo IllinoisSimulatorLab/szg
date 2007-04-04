@@ -11,7 +11,6 @@ Header3
 =Documentation Errors=[DocErrors]
 
 - Need to emphasize that shared libs must be copied into the exe directory!
-- Should explain about "data bundles" and how this is related to good programming practices.
 - Should explain how to use the ar_log() API (and why to use it instead of cout/cerr).
 - Should explain how to use arTexFont (and especially how to make the fonts).
 
@@ -90,12 +89,6 @@ they do not use prtIn.
 element, which means only a single material). Very bad!
 
 
-=Python=[Python]
-
-- Must deal with the python examples (i.e. make them fit into the
-pattern...)
-
-
 =Miscellaneous=[Miscellaneous]
 
 - On OS X (at least on 10.3), there is a strange memory leak. Specifically, the statement
@@ -106,7 +99,6 @@ pattern...)
 
 causes a memory leak!
 - q33 does NOT run successfully when built with Visual Studio 6 on Win32. Visual Studio 7 is needed.
-- cubecake will NOT run on Xandros Linux (complains about glXGetProcAddress not being present).
 - jpeglib gotcha. IMPORTANT. On the Windows side, it seems that the jpeglib MUST be compiled by the
 same version of Visual Studio that you are using to compile your executables. Otherwise, the first
 call to the library will produce a segfault. Why this should be for a C library is unclear.
@@ -128,8 +120,6 @@ landspeeder), if the pforth filter is in the old style
 (PForth_programs.xml) instead of the new style (*.pf in PForth) then the
 program segfaults with an error message "arSyncDataServer error: start
 called before init".
-- Fix documentation to show how to use meshes (.obj and .3ds files) in
-master/slave framework apps.
 
 
 

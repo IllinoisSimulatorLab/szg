@@ -73,9 +73,11 @@ parameter values varies slightly between platforms.
 
 Construct an ``arRS232Port`` without any arguments. To open it, call:
 ```
-bool arRS232Port::ar_open( const int portNumber, const unsigned long baudRate,
-            const unsigned int dataBits, const float stopBits,
-            const string& parity );
+bool arRS232Port::ar_open( const int portNumber,
+                            const unsigned long baudRate,
+                            const unsigned int dataBits,
+                            const float stopBits,
+                            const string& parity );
 ```
 
 Port numbers start with 1 on both platforms, i.e. under Linux /dev/ttyS0 is port 1.
@@ -149,7 +151,8 @@ newer, object-oriented ``arLock`` class is easier to use:
 ```
 arLock myLock;
 myLock.lock();                  // block until you get ownership.
-bool isMine = myLock.tryLock(); // try to get ownership, but return immediately.
+bool isMine = myLock.tryLock(); // try to get ownership, but
+                                // return immediately.
 myLock.unlock();                // release the lock.
 ```
 

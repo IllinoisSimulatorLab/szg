@@ -13,7 +13,7 @@
 
 % Tweaks to conform to the liblueen stylesheet template better.
 %!postproc: <BODY> '<BODY>\n<DIV id="container">\n<div id="logo">\n<a title="University of Illinois at Urbana-Champaign" href="http://www.uiuc.edu/">\n<img alt="U. of I. logo" src="images/uilogo_black38.gif" />\n</a>\n</div>'
-%!postproc: </BODY> '<DIV id="footer">\nBy the <a href="http://www.isl.uiuc.edu">Integrated Systems Lab</a>. &copy; University of Illinois Board of Trustees. Page design based on <A href="http://www.oswd.org/design/preview/id/2704">liblueen</A> by <A href="http://nicolas.freezee.org">Nicolas Fafchamps</A></DIV></DIV>\n</BODY>'
+%!postproc: </BODY> '<DIV id="footer">\n<p>By the <a href="http://www.isl.uiuc.edu">Integrated Systems Lab</a>. &copy; University of Illinois Board of Trustees.</p>\n<p>Page design based on <a href="http://www.oswd.org/design/preview/id/2704">liblueen</a> by <a href="http://nicolas.freezee.org">Nicolas Fafchamps</a>. Page generated using <a href="http://txt2tags.sourceforge.net/">txt2tags</a>.</p></DIV></DIV>\n</BODY>'
 %!postproc: '<DIV CLASS="body"' '<div id="high">\n<ul class="menuhigh">\n<li><a href="index.html">Table of Contents</a></li>\n<li><a href="http://www.isl.uiuc.edu/syzygy.htm">Syzygy Home</a></li>\n<li><a href="http://www.isl.uiuc.edu/">ISL Home</a></li>\n</ul>\n</div>\n\n<DIV CLASS="body"'
 
 %!postproc: '<DIV CLASS="toc" ID="toc">' '<DIV CLASS="toc" ID="toc">\n<H1>Page Contents:</H1>\n'

@@ -788,7 +788,9 @@ dex will interpret the "user" and "server" arguments, allowing you to launch
 applications as a different user or even on a different cluster from those
 specified in the login file. For example:
 ```
-  dex vc_far_away my_app -szg server=faraway_IP_address/faraway_port -szg user=somebody_else
+  dex vc_far_away my_app
+         -szg server=faraway_IP_address/faraway_port
+         -szg user=somebody_else
 ```
 
 
