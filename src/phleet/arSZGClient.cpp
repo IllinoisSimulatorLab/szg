@@ -134,7 +134,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     }
   }
 
-  // The phleet config file lists networks through which
+  // The parameter file lists networks through which
   // we can communicate. various programs will wish to obtain a list
   // of networks to communicate in a uniform way. The list may need to
   // be altered from the default (all of them) to shape network traffic
@@ -424,24 +424,24 @@ string arSZGClient::getAllAttributes(const string& substring) {
 // Called only when parsing assign blocks in dbatch files.
 bool arSZGClient::parseAssignmentString(const string& text) {
   stringstream parsingStream(text);
-  string param1, param2, param3, param4;
+  string computer, group, name, value;
   while (true) {
     // Will skip whitespace(this is a default)
-    parsingStream >> param1;
+    parsingStream >> computer;
     if (parsingStream.fail()) {
       if (parsingStream.eof()) {
-	// End of assignment block, so it's okay.
-	return true;
+        // End of assignment block, so it's okay.
+        return true;
       }
       goto LFail;
     }
-    parsingStream >> param2;
+    parsingStream >> group;
     if (parsingStream.fail())
       goto LFail;
-    parsingStream >> param3;
+    parsingStream >> name;
     if (parsingStream.fail())
       goto LFail;
-    parsingStream >> param4;
+    parsingStream >> value;
     if (parsingStream.fail()) {
 LFail:
       ar_log_error() << _exeName << " malformed assignment string '" <<
@@ -449,10 +449,22 @@ LFail:
       return false;
     }
 
-    if (param2.substr(0,10) == "SZG_SCREEN") {
+    if (_userName != "NULL") {
+      string::size_type index;
+      unsigned int count(0);
+      while ((index = value.find("USER_NAME")) != string::npos) {
+        value.replace( index, 9, _userName );
+        ++count;
+      }
+      if (count > 0) {
+        ar_log_warning() << "Replaced " << count << " occurrences of USER_NAME with "
+                         << _userName << " in assign block.\n";
+      }
+    }
+    if (group.substr(0,10) == "SZG_SCREEN") {
       ar_log_warning() << _exeName << ": SZG_SCREEN parameters are deprecated.\n";
     }
-    setAttribute(param1, param2, param3, param4);
+    setAttribute(computer, group, name, value);
   }
 }
 
@@ -462,7 +474,7 @@ inline bool arSZGClient::_parseTag(arFileTextStream& fs,
   if (tag == tagExpect)
     return true;
 
-  ar_log_warning() << _exeName << ": phleet config file expected '" <<
+  ar_log_warning() << _exeName << ": parameter file expected '" <<
     tagExpect << "', not '" << tag << "'.\n";
   fs.ar_close();
   return false;
@@ -473,7 +485,7 @@ inline bool arSZGClient::_parseBetweenTags(arFileTextStream& fs,
   if (ar_getTextBeforeTag(&fs, buf))
     return true;
 
-  ar_log_warning() << _exeName << ": incomplete " << warning << " in phleet config file.\n";
+  ar_log_warning() << _exeName << ": incomplete " << warning << " in parameter file.\n";
   fs.ar_close();
   return false;
 }
@@ -536,77 +548,71 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
       tagText = ar_getTagText(&fileStream, &buffer);
 
       if (tagText == "comment") {
-	// Get and discard the comment text.
-	if (!_parseBetweenTags(fileStream, &buffer, "comment"))
-	  return false;
-	if (!_parseTag(fileStream, &buffer, "/comment"))
-	  return false;
-      }
-
-      else if (tagText == "include") {
-	// Get and discard the comment text.
+        // Get and discard the comment text.
+        if (!_parseBetweenTags(fileStream, &buffer, "comment"))
+          return false;
+        if (!_parseTag(fileStream, &buffer, "/comment"))
+          return false;
+      } else if (tagText == "include") {
+        // Get and discard the comment text.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-	  ar_log_warning() << _exeName <<
-	    ": phleet config file had incomplete include.\n";
-	  fileStream.ar_close();
-	  return false;
-	}
+          ar_log_warning() << _exeName <<
+            ": parameter file had incomplete include.\n";
+          fileStream.ar_close();
+          return false;
+        }
         stringstream includeText(buffer.data);
         string include;
-	includeText >> include;
-	if (!_parseTag(fileStream, &buffer, "/include"))
-	  return false;
+        includeText >> include;
+        if (!_parseTag(fileStream, &buffer, "/include"))
+          return false;
         if (!parseParameterFile(include)) {
-	  ar_log_warning() << _exeName << ": include directive '"
-	                 << include << "' failed in parsing parameter file.\n";
-	  return false;
-	}
+          ar_log_warning() << _exeName << ": include directive '"
+                           << include << "' failed in parsing parameter file.\n";
+          return false;
+        }
       }
 
       else if (tagText == "param") {
-	if (!_parseTag(fileStream, &buffer, "name"))
+        if (!_parseTag(fileStream, &buffer, "name"))
+                return false;
+        if (!_parseBetweenTags(fileStream, &buffer, "parameter name"))
           return false;
-	if (!_parseBetweenTags(fileStream, &buffer, "parameter name"))
-	  return false;
         stringstream nameText(buffer.data);
         string name;
         nameText >> name;
         if (name == "") {
-          ar_log_warning() << _exeName << ": phleet config file had empty name.\n";
-	  fileStream.ar_close();
-          return false;
-	}
-	if (!_parseTag(fileStream, &buffer, "/name"))
-          return false;
-	if (!_parseTag(fileStream, &buffer, "value"))
-          return false;
+          ar_log_warning() << _exeName << ": parameter file had empty name.\n";
+          fileStream.ar_close();
+                return false;
+        }
+        if (!_parseTag(fileStream, &buffer, "/name"))
+                return false;
+        if (!_parseTag(fileStream, &buffer, "value"))
+                return false;
         if (!ar_getTextUntilEndTag(&fileStream, "value", &buffer)) {
-          ar_log_warning() << _exeName <<
-	    ": phleet config file had incomplete parameter value.\n";
-	  fileStream.ar_close();
-	  return false;
-	}
-        setGlobalAttribute(name, buffer.data);
-	if (!_parseTag(fileStream, &buffer, "/param"))
+          ar_log_warning() << _exeName
+                           << ": parameter file had incomplete parameter value.\n";
+          fileStream.ar_close();
           return false;
-      }
+        }
+        setGlobalAttribute(name, buffer.data);
+        if (!_parseTag(fileStream, &buffer, "/param"))
+                return false;
 
-      else if (tagText == "assign") {
-	if (!_parseBetweenTags(fileStream, &buffer, "assignment"))
-	  return false;
+      } else if (tagText == "assign") {
+        if (!_parseBetweenTags(fileStream, &buffer, "assignment"))
+          return false;
         parseAssignmentString(buffer.data);
-	if (!_parseTag(fileStream, &buffer, "/assign"))
-	  return false;
-      }
+        if (!_parseTag(fileStream, &buffer, "/assign"))
+          return false;
 
-      else if (tagText == "/szg_config") {
-	// Finished.
+      } else if (tagText == "/szg_config") {
+        // Finished.
         break;
-      }
-
-      else{
-        ar_log_warning() << _exeName <<
-	  ": phleet config file had unrecognized XML tag '" << tagText << "'.\n";
+      } else {
+        ar_log_warning() << _exeName << ": parameter file has illegal XML tag '"
+	                       << tagText << "'.\n";
         fileStream.ar_close();
         return false;
       }
@@ -2329,7 +2335,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
 // Return the networks on which this component should operate.
 // Used as an arg for discoverService().
 // Networks can be set in 3 ways: by increasing precedence,
-// the phleet config file, the phleet command line args, and the context.
+// the parameter file, the phleet command line args, and the context.
 // @param channel Should be either default, graphics, sound, or input.
 // This lets network traffic be routed independently for various
 // traffic types.
