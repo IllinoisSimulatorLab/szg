@@ -32,7 +32,7 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
     glPushMatrix();
       glTranslatef(0,1,0);
       glColor3f(1,1,1);
-      glutSolidSphere(0.05,8,8);
+      glutSolidSphere(0.1,8,8);
     glPopMatrix();
 
   glPopMatrix();
@@ -126,31 +126,39 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
   glPopMatrix();
 }
 
-// copied from arInputSimulator::_drawHead()
-// bug: glDisable(GL_DEPTH_TEST) destroys pupil-eyeball-head occlusion
-//      but it's needed for drawing flat on the front wall.
-// ?workaround: glScalef(1,1,.001)  ;;;;
+// derived from arInputSimulator::_drawHead()
 void drawHead() {
   glPushMatrix();
     glScalef(1.5,1.5,1.5); // larger for visibility
     glColor3f(1,1,0);
-    glutWireSphere(1,10,10);
+    glutSolidSphere(1,10,10);
     // two eyes
     glColor3f(0,1,1);
     glPushMatrix();
       glTranslatef(0.5,0,-0.8);
       glutSolidSphere(0.4,8,8);
-      glTranslatef(0,0,-0.4);
+      glTranslatef(0,0,-0.34);
       glColor3f(1,0,0);
       glutSolidSphere(0.15,5,5);
     glPopMatrix();
       glTranslatef(-0.5,0,-0.8);
       glColor3f(0,1,1);
       glutSolidSphere(0.4,8,8);
-      glTranslatef(0,0,-0.4);
+      glTranslatef(0,0,-0.34);
       glColor3f(1,0,0);
       glutSolidSphere(0.15,5,5);
   glPopMatrix();
+}
+
+void bluesquare() {
+    glColor3f(.1,.1,.4);
+    glBegin(GL_POLYGON);
+      glVertex3f( 1,  1, -.02);
+      glVertex3f( 1, -1, -.02);
+      glVertex3f(-1, -1, -.02);
+      glVertex3f(-1,  1, -.02);
+    glEnd();
+    glScalef(1,1,.001); // flatten onto front screen
 }
 
 static bool fComplained = false;
@@ -226,25 +234,15 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   glutEyeglasses( .7, 0,     1+.5, iEye, 0, -90);
 
   // Maya-style cross sections, pasted to front wall.
-  glutPrintf(-4, 8.2, -5, "top" ); // xz
-  glutPrintf(-1, 8.2, -5, "side"); // yz
-  glutPrintf( 2, 8.2, -5, "back"); // xy
-
-  glDisable(GL_DEPTH_TEST);
+  glColor3f( .4, .4, .8 );
+  glutPrintf(-3.95, 7.45, -5.01, "Floor" ); // xz
+  glutPrintf(-0.95, 7.45, -5.01, "Left"); // yz
+  glutPrintf( 2.05, 7.45, -5.01, "Front"); // xy
 
   // top view
   glPushMatrix();
     glTranslatef(-3, 7, -5);
-    glScalef(1, 1, 0); // flatten onto front screen
-
-    glColor3f(.1,.1,.4);
-    glBegin(GL_POLYGON);
-      glVertex3f( 1,  1, 0);
-      glVertex3f( 1, -1, 0);
-      glVertex3f(-1, -1, 0);
-      glVertex3f(-1,  1, 0);
-    glEnd();
-
+    bluesquare();
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
@@ -259,14 +257,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   // side view
   glPushMatrix();
     glTranslatef(0, 7, -5);
-    glScalef(1, 1, 0); // flatten onto front screen
-    glColor3f(.1,.1,.4);
-    glBegin(GL_POLYGON);
-      glVertex3f( 1,  1, 0);
-      glVertex3f( 1, -1, 0);
-      glVertex3f(-1, -1, 0);
-      glVertex3f(-1,  1, 0);
-    glEnd();
+    bluesquare();
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
@@ -281,14 +272,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   // back view
   glPushMatrix();
     glTranslatef(3, 7, -5);
-    glScalef(1, 1, 0); // flatten onto front screen
-    glColor3f(.1,.1,.4);
-    glBegin(GL_POLYGON);
-      glVertex3f( 1,  1, 0);
-      glVertex3f( 1, -1, 0);
-      glVertex3f(-1, -1, 0);
-      glVertex3f(-1,  1, 0);
-    glEnd();
+    bluesquare();
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glTranslatef(0, -5, 0); // correct y coord
@@ -300,7 +284,6 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   glPopMatrix();
 
   glDisable(GL_LIGHTING);
-  glEnable(GL_DEPTH_TEST);
   glLineWidth(3);
 
   // Head display, to verify orientation.
@@ -370,6 +353,6 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 int main(int argc, char** argv){
   arMasterSlaveFramework fw;
   fw.setDrawCallback(callbackDraw);
-  fw.setClipPlanes(.2, 20.);
+  fw.setClipPlanes(.5, 20.);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
