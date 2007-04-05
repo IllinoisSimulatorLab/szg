@@ -6,17 +6,12 @@
 #include "arPrecompiled.h"
 #include "arGlut.h"
 #include "arMasterSlaveFramework.h"
-#include "arMath.h"
 
 void drawWand(const arMatrix4& m, const float large = 1.0) {
   glPushMatrix();
-    if (large != 1.0)
-      glScalef(large, large, large); // larger for visibility
+    glScalef(large, large, large); // larger for visibility
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
-      glColor3f(1,1,0);
-        glVertex3f(0,0,1);
-        glVertex3f(0,0,-1);
       glColor3f(0,1,1);
         glVertex3f(1,0,0);
         glVertex3f(-1,0,0);
@@ -27,16 +22,17 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
 
     // Forward
     glPushMatrix();
-      glTranslatef(0,0,-1);
+      glTranslatef(0,0,1);
+      glScalef(1,1,-1);
       glColor3f(1,1,0);
-      glutSolidSphere(0.09,10,10);
+      glutWireCone(0.12,2,8,2);
     glPopMatrix();
 
     // Up
     glPushMatrix();
       glTranslatef(0,1,0);
       glColor3f(1,1,1);
-      glutSolidSphere(0.05,4,4);
+      glutSolidSphere(0.05,8,8);
     glPopMatrix();
 
   glPopMatrix();
@@ -311,27 +307,9 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   glPushMatrix();
     glMultMatrixf(headMatrix.v);
     glTranslatef(0,0,-3); // in front of your eyes
-    glColor3f(.7,.3,.2);
+    glColor3f(.4,.22,.15);
     glScalef(4.,1.,9.); // monolith
     glutWireCube(.3);
-    /*
-    glBegin(GL_LINES);
-      glColor3f(1,1,0);
-        glVertex3f(0,0,1);
-        glVertex3f(0,0,-1);
-      glColor3f(0,1,1);
-        glVertex3f(1,0,0);
-        glVertex3f(-1,0,0);
-      glColor3f(1,0,1);
-        glVertex3f(0,1,0);
-        glVertex3f(0,-1,0);
-    glEnd();
-    glPushMatrix();
-      glTranslatef(0,0,-1);
-      glColor3f(0,1,1);
-      glutSolidSphere(0.07,10,10);
-    glPopMatrix();
-    */
   glPopMatrix();
 
   for (i=1; i<cm; ++i)
@@ -363,10 +341,11 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     }
 
     // Box for the wand's joystick, in a square.
+    const float joy=0.28;
     glLineWidth(3);
-    glTranslatef(0.0 ,0.2, 0.0);
-    glScalef(.2, .2, .2);
-    glColor3f(1,1,.3);
+    glTranslatef(0.0 ,joy, 0.0);
+    glScalef(joy, joy, joy);
+    glColor3f(1,.5,.3);
     glBegin(GL_LINE_LOOP);
       glVertex3f( 1,  1, 0);
       glVertex3f( 1, -1, 0);
@@ -382,7 +361,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glColor3f(0.3,.9,0);
     glPushMatrix();
       glTranslatef(caveJoystickX, caveJoystickY, 0);
-      glutSolidCube(0.35);
+      glutSolidCube(0.4);
     glPopMatrix();
 
   glPopMatrix();
