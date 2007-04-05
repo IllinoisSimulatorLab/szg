@@ -539,13 +539,14 @@ void arGUIWindowManager::setTitle( const int windowID, const std::string& title 
 
 void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwrite )
 {
-  ostringstream os;
-  WindowIterator iter;
-  for (iter = _windows.begin(); iter != _windows.end(); ++iter) {
-    int ID = iter->first;
-    os.str(""); // clear it.
-    os << ID;
-    std::string title = baseTitle + " #" + os.str();
+  const bool fOneWindow = _windows.size() == 1;
+  for (WindowIterator iter = _windows.begin(); iter != _windows.end(); ++iter) {
+    std::string title = baseTitle;
+    if (!fOneWindow) {
+      ostringstream os;
+      os << iter->first;
+      title += " #" + os.str();
+    }
     arGUIWindow* win = iter->second;
     if (overwrite || win->getTitle() == "SyzygyWindow") {
       win->setTitle( title );
