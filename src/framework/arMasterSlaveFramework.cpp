@@ -1804,8 +1804,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   }
   if (_standaloneControlMode == "simulator") {
     _simPtr->registerInputNode( _inputDevice );
-  }
-  else {
+  } else {
     // the joystick is the only other option so far
     arSharedLib* joystickObject = new arSharedLib();
     string sharedLibLoadPath = _SZGClient.getAttribute( "SZG_EXEC", "path" );
@@ -1824,20 +1823,18 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     _inputDevice->addInputSource( driver, false );
     if( pforthProgramName == "NULL" ) {
       ar_log_remark() << _label << ": no pforth program for standalone joystick.\n";
-    }
-    else {
+    } else {
       string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
       if( pforthProgram == "NULL" ) {
         ar_log_remark() << _label << ": no pforth program for '"
 		        << pforthProgramName << "'.\n";
-      }
-      else {
+      } else {
         arPForthFilter* filter = new arPForthFilter();
         ar_PForthSetSZGClient( &_SZGClient );
 
         if( !filter->loadProgram( pforthProgram ) ) {
-	  ar_log_remark() << _label <<
-	    " failed to configure pforth filter with program '" << pforthProgram << "'.\n";
+          ar_log_remark() << _label <<
+            " failed to configure pforth filter with program '" << pforthProgram << "'.\n";
           return false;
         }
 
