@@ -9,28 +9,27 @@
 
 void drawWand(const arMatrix4& m, const float large = 1.0) {
   glPushMatrix();
-    glScalef(large, large, large); // larger for visibility
+    glScalef(large, large, large);
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
       glColor3f(0,1,1);
-        glVertex3f(1,0,0);
-        glVertex3f(-1,0,0);
-      glColor3f(1,0,1);
-        glVertex3f(0,1,0);
-        glVertex3f(0,-1,0);
+        glVertex3f(.5,0,0);
+        glVertex3f(-.5,0,0);
+        glVertex3f(0,.5,0);
+        glVertex3f(0,-.5,0);
     glEnd();
 
     // Forward
     glPushMatrix();
       glTranslatef(0,0,1);
       glScalef(1,1,-1);
-      glColor3f(1,1,0);
+      glColor3f(1,0,1);
       glutWireCone(0.12,2,8,2);
     glPopMatrix();
 
     // Up
     glPushMatrix();
-      glTranslatef(0,1,0);
+      glTranslatef(0,.6,0);
       glColor3f(1,1,1);
       glutSolidSphere(0.1,8,8);
     glPopMatrix();
