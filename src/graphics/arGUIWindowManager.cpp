@@ -548,7 +548,7 @@ void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwr
       title += " #" + os.str();
     }
     arGUIWindow* win = iter->second;
-    if (overwrite || win->getTitle() == "SyzygyWindow") {
+    if (overwrite || win->untitled()) {
       win->setTitle( title );
     }
   }

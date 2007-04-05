@@ -12,7 +12,7 @@
 #define _AR_GUI_WINDOW_H_
 
 #if defined( AR_USE_WIN_32 )
-  #ifndef CDS_FULLSCREEN     // CDS_FULLSCREEN is not defined by some compilers
+  #ifndef CDS_FULLSCREEN
     #define CDS_FULLSCREEN 4
  #endif
 #endif
@@ -240,6 +240,7 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
  */
 class SZG_CALL arGUIWindowConfig
 {
+
   public:
 
     /**
@@ -266,7 +267,7 @@ class SZG_CALL arGUIWindowConfig
                        int bpp = 16, int Hz = 0, bool decorate = true,
                        arZOrder zorder = AR_ZORDER_TOP,
                        bool fullscreen = false, bool stereo = false,
-                       const std::string& title = "SyzygyWindow",
+                       const std::string& title = _titleDefault,
                        const std::string& XDisplay = ":0.0",
                        arCursor cursor = AR_CURSOR_ARROW );
 
@@ -308,22 +309,20 @@ class SZG_CALL arGUIWindowConfig
     bool getZOrder( void ) const { return _zorder; }
     std::string getTitle( void ) const { return _title; }
     std::string getXDisplay( void ) const { return _XDisplay; }
+    bool untitled( void ) const { return getTitle() == _titleDefault; }
     arCursor getCursor( void ) const { return _cursor; }
     //@}
 
   private:
 
     int _x, _y, _width, _height, _bpp, _Hz;
-
     bool _decorate, _fullscreen, _stereo;
-
     arZOrder _zorder;
-
     std::string _title, _XDisplay;
-
     arCursor _cursor;
-
+    static const std::string _titleDefault;
 };
+
 
 /**
  * A handle to a window manager event.
@@ -714,6 +713,7 @@ class SZG_CALL arGUIWindow
 
     std::string getTitle( void ) const {  return _windowConfig.getTitle(); }
     void setTitle( const std::string& title );
+    bool untitled() const { return _windowConfig.untitled(); }
 
     int getID( void ) const { return _ID; }
 

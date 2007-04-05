@@ -56,6 +56,8 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, a
   }
 }
 
+const std::string arGUIWindowConfig::_titleDefault("SyzygyWindow");
+
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
                                       int bpp, int hz,
                                       bool decorate, arZOrder zorder,
