@@ -32,6 +32,75 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
   glPopMatrix();
 }
 
+void glArc(const float y, const float z, const float r) {
+  glBegin(GL_LINE_STRIP);
+  const float cStep = 60;
+  for (float a=0.; a<M_PI*.75; a+=2*M_PI/cStep)
+    glVertex3f(0., y + r * cos(a), z + r * sin(a));
+  glEnd();
+}
+
+void glCircle(const float x, const float y, const float r) {
+  glBegin(GL_LINE_LOOP);
+  const float cStep = 60;
+  for (float a=0.; a<2*M_PI; a+=2*M_PI/cStep)
+    glVertex3f(x + r * cos(a), y + r * sin(a), 0.);
+  glEnd();
+}
+
+void glutEyeglasses(float x, float y, float z, const int i,
+    const float rotY, const float rotX) {
+  // i==0/1/2: left/both/right eye.
+
+  const float dz = 1.25;
+  const float r = 0.24;
+  const float xNose = 0.04;
+  const float xPupil = xNose + r;
+  const float xEar = xNose + 2*r;
+
+  glLineWidth(2);
+  glPushMatrix();
+    glTranslatef(x, y, z);
+    glRotatef(rotY, 0, -1, 0);
+    glRotatef(rotX, 1,  0, 0);
+
+    // nosepiece and temples
+    glBegin(GL_LINES);
+    glVertex3f(-xNose,0,0);
+    glVertex3f( xNose,0,0);
+    glVertex3f(-xEar,0,0);
+    glVertex3f(-xEar,0,dz);
+    glVertex3f( xEar,0,0);
+    glVertex3f( xEar,0,dz);
+    glEnd();
+
+    // earpieces
+    glPushMatrix();
+      glTranslatef( xEar,-r,dz);
+      glArc(0,0,r);
+    glPopMatrix();
+    glPushMatrix();
+      glTranslatef(-xEar,-r,dz);
+      glArc(0,0,r);
+    glPopMatrix();
+
+    if (i < 2) {
+      // left lens
+      glPushMatrix();
+	glTranslatef(-xPupil,0,0);
+	glCircle(0,0,r);
+      glPopMatrix();
+    }
+    if (i > 0) {
+      // right lens
+      glPushMatrix();
+	glTranslatef( xPupil,0,0);
+	glCircle(0,0,r);
+      glPopMatrix();
+    }
+  glPopMatrix();
+}
+
 void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float rotX=0.) {
   glPushMatrix();
 #ifdef using_bitmap_fonts
@@ -42,7 +111,7 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
     // Thick huge font for dim projectors.
     glLineWidth(3);
     glTranslatef(x, y, z);
-    glScalef(.0042, .0042, .0042);
+    glScalef(.004, .004, .004);
     glRotatef(rotY, 0, -1, 0);
     glRotatef(rotX, 1,  0, 0);
     for (const char* c = sz; *c; ++c)
@@ -78,19 +147,18 @@ void drawHead() {
   glPopMatrix();
 }
 
+static bool fComplained = false;
 void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&){
-  unsigned i;
-  static bool fComplained = false;
-
-  const unsigned cmMax = 20;
-  arMatrix4 rgm[cmMax];
   unsigned cm = fw.getNumberMatrices();
   if (!fComplained && cm < 2)
     ar_log_warning() << "cubevars: expect at least a head and wand matrix.\n";
+  const unsigned cmMax = 10;
   if (!fComplained && cm > cmMax) {
     cm = cmMax;
     ar_log_warning() << "cubevars: too many matrices.\n";
   }
+  unsigned i;
+  arMatrix4 rgm[cmMax];
   for (i=0; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
   const arMatrix4& headMatrix = rgm[0];
@@ -132,23 +200,24 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   glPopMatrix();
 
   // Labels on walls.
-  const int iEye = 1 + int(gw.getCurrentEyeSign());
-  const char* rgszEye[3] = { "Left eye", "Both eyes", "Right eye" };
-  const char* szEye = rgszEye[iEye];
   glColor3f( 1, 1, 1 );
-    glutPrintf(0,  2, -5, "Front wall");
-    glutPrintf(-5, 5,  0, "Left wall",  -90);
-    glutPrintf( 5, 5,  0, "Right wall",  90);
-    glutPrintf(0,  5,  5, "Back wall",  180);
-    glutPrintf(0,  10,  0, "Top wall", 0, 90);
-    glutPrintf(0,  0,  0, "Bottom wall", 0, -90);
 
-    glutPrintf(0,  0.5 + iEye*.5, -5, szEye);
-    glutPrintf(-5, 3.5 + iEye*.5,  0, szEye, -90);
-    glutPrintf( 5, 3.5 + iEye*.5,  0, szEye,  90);
-    glutPrintf(0,  3.5 + iEye*.5,  5, szEye, 180);
-    glutPrintf(0,  10,   -1 - iEye*.5, szEye, 0, 90);
-    glutPrintf(0,  0,     1 + iEye*.5, szEye, 0, -90);
+  glutPrintf(0,  2, -5, "Front");
+  glutPrintf(-5, 5,  0, "Left",  -90);
+  glutPrintf( 5, 5,  0, "Right",  90);
+  glutPrintf(0,  5,  5, "Back",  180);
+  glutPrintf(0,  10,  0, "Ceiling", 0, 90);
+  glutPrintf(0,  0,  0, "Floor", 0, -90);
+
+  const int iEye = 1 + int(gw.getCurrentEyeSign());
+  glColor3f(.2,.8,0);
+
+  glutEyeglasses( .7, 0.5+.5,  -5, iEye, 0, 0);
+  glutEyeglasses( -5, 3.5+.5, -.7, iEye, -90, 0);
+  glutEyeglasses(  5, 3.5+.5,  .7, iEye,  90, 0);
+  glutEyeglasses(-.7, 3.5+.5,   5, iEye, 180, 0);
+  glutEyeglasses( .7, 10,   -1-.5, iEye, 0, 90);
+  glutEyeglasses( .7, 0,     1+.5, iEye, 0, -90);
 
   // Maya-style cross sections, pasted to front wall.
   glutPrintf(-4, 8.2, -5, "top" ); // xz
