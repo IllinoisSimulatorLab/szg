@@ -24,11 +24,21 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
         glVertex3f(0,1,0);
         glVertex3f(0,-1,0);
     glEnd();
+
+    // Forward
     glPushMatrix();
       glTranslatef(0,0,-1);
-      glColor3f(1,0,1);
-      glutSolidSphere(0.07,10,10);
+      glColor3f(1,1,0);
+      glutSolidSphere(0.09,10,10);
     glPopMatrix();
+
+    // Up
+    glPushMatrix();
+      glTranslatef(0,1,0);
+      glColor3f(1,1,1);
+      glutSolidSphere(0.05,4,4);
+    glPopMatrix();
+
   glPopMatrix();
 }
 
@@ -300,7 +310,11 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   // Head display, to verify orientation.
   glPushMatrix();
     glMultMatrixf(headMatrix.v);
-    glTranslatef(0,0,-2); // in front of your eyes
+    glTranslatef(0,0,-3); // in front of your eyes
+    glColor3f(.7,.3,.2);
+    glScalef(4.,1.,9.); // monolith
+    glutWireCube(.3);
+    /*
     glBegin(GL_LINES);
       glColor3f(1,1,0);
         glVertex3f(0,0,1);
@@ -317,9 +331,9 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
       glColor3f(0,1,1);
       glutSolidSphere(0.07,10,10);
     glPopMatrix();
+    */
   glPopMatrix();
 
-  // Wand(s)
   for (i=1; i<cm; ++i)
     drawWand(rgm[i]);
 
