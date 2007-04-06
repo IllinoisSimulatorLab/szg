@@ -1023,6 +1023,7 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "-", new Subtract() ) &&
     pf->addSimpleActionWord( "*", new Multiply() ) &&
     pf->addSimpleActionWord( "/", new Divide() ) &&
+    pf->addSimpleActionWord( "divide", new Divide() ) &&
     pf->addSimpleActionWord( "fetch", new Fetch() ) &&
     pf->addSimpleActionWord( "store", new Store() ) &&
     pf->addSimpleActionWord( "dup", new Duplicate() ) &&

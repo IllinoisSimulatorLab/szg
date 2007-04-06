@@ -1418,7 +1418,9 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     while self.data.has_key( self.pushKey ):
       self.pushKey += 1
     self[self.pushKey] = object
+    key = self.pushKey
     self.pushKey += 1
+    return key
   def clear(self):
     self.data.clear()
   def copy(self):

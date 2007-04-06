@@ -302,7 +302,14 @@ around this problem. Thus, the following four words are currently unusable:
 
 ***** ``( x1 x2 -- x1*x2 )``
 
+//KnownBug//: TinyXML also barfs when you give it a '/', so
+you must now use 'divide' instead of '/' for division:
+
 **/** ``( x1 x2 -- x1/x2 )``
+
+**divide** ``( x1 x2 -- x1/x2 )``
+
+
 
 **dup** ``( x1 -- x1 x1 )`` Duplicates top number on the stack.
 
