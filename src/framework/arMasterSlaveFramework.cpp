@@ -598,8 +598,7 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
   }
   
   // Create the windows if "using windowing", else just create placeholders.
-  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(),
-                          useWindowing ) < 0 ) {
+  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(), useWindowing ) < 0 ) {
     ar_log_warning() << _label << " failed to create windows.\n";
 #ifdef AR_USE_DARWIN
     ar_log_warning() << "  (Check that X11 is running.)\n";
@@ -620,7 +619,7 @@ void arMasterSlaveFramework::loopQuantum(){
   // Synchronize.
   swap();
 
-  // Process keyboard events, events from the window manager, etc.
+  // Process events from keyboard, window manager, etc.
   _wm->processWindowEvents();
 }
 
@@ -630,8 +629,7 @@ void arMasterSlaveFramework::exitFunction(){
   _wm->deactivateFramelock();
   _wm->deleteAllWindows();
 
-  // Guaranteed to get here--user-defined cleanup will be called
-  // at the right time
+  // Guaranteed to get here--user-defined cleanup will be called at the right time
   onCleanup();
 
   // Now it's safe for other threads, like message thread, to exit.
@@ -641,7 +639,7 @@ void arMasterSlaveFramework::exitFunction(){
   // exit immediately (_blockUntilDisplayExit will be false).
   // Otherwise, wait for the message thread to exit.
   arSleepBackoff a(70, 120, 1.1);
-  while(_blockUntilDisplayExit)
+  while (_blockUntilDisplayExit)
     a.sleep();
 }
 
@@ -1181,7 +1179,6 @@ void arMasterSlaveFramework::usePredeterminedHarmony() {
 }
 
 int arMasterSlaveFramework::getNumberSlavesExpected() {
-  static int totalSlaves = -1;
   if (getStandalone())
     return 0;
 
@@ -1190,6 +1187,7 @@ int arMasterSlaveFramework::getNumberSlavesExpected() {
     return 0;
   }
 
+  static int totalSlaves = -1; // todo: member not static
   if (totalSlaves == -1) {
     totalSlaves = getAppLauncher()->getNumberScreens() - 1;
     ar_log_remark() << _label << " expects " << totalSlaves << " slaves.\n";
