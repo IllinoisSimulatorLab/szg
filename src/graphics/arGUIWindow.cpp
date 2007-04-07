@@ -1017,9 +1017,7 @@ int arGUIWindow::_setupWindowCreation( void )
   windowClass.hCursor       = LoadCursor( NULL, IDC_ARROW );
   windowClass.hIcon         = LoadIcon( NULL, IDI_WINLOGO );
   windowClass.lpszMenuName  = NULL;
-  // NOTE: classname's *must* be unique to each window, if two windows are
-  // created with the same title, it will cause problems, _className mitigates
-  // this issue
+  // Each window has its own _className, to avoid identically named windows.
   windowClass.lpszClassName = _className.c_str();
 
   if( !RegisterClassEx( &windowClass ) ) {

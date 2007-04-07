@@ -541,18 +541,22 @@ void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwr
 {
   const bool fOneWindow = _windows.size() == 1;
   for (WindowIterator iter = _windows.begin(); iter != _windows.end(); ++iter) {
+    arGUIWindow* win = iter->second;
+    if (!overwrite && !win->untitled())
+      continue;
+
     std::string title = baseTitle;
     if (!fOneWindow) {
       ostringstream os;
       os << iter->first;
       title += " #" + os.str();
     }
-    arGUIWindow* win = iter->second;
-    if (overwrite || win->untitled()) {
-      win->setTitle( title );
-    }
+    win->setTitle( title );
   }
 }
+
+// How is this used?  why not return arVector2 instead?
+// better yet, return bool, and stuff x and y passed by reference.
 
 arVector3 arGUIWindowManager::getWindowSize( const int windowID )
 {
