@@ -10,8 +10,8 @@
 
 #include "arDriversCalling.h"
 
-/// Driver for SGI shared-memory segments emulating "trackd" mocap data.
-/// Collect data from various other things.
+// Driver for SGI shared-memory segments emulating "trackd" mocap data.
+// Collect data from whatever slot arAppLauncher assigns to the DeviceServer
 
 class SZG_CALL arSharedMemSinkDriver: public arInputSink {
     friend void ar_ShmDriverDataTask(void*);
@@ -32,7 +32,9 @@ class SZG_CALL arSharedMemSinkDriver: public arInputSink {
     void* _shmFoB;
     void* _shmWand;
     arMutex _lockShm;
-    int _buttonPrev[10];
+    arInputNode _node;
+    arNetInputSource _source;
+    int _buttonPrev[256];
     arThread _eventThread;
 };
 
