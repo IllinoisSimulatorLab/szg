@@ -9,7 +9,7 @@
 void ar_netInputSinkConnectionTask(void* sink){
   arNetInputSink* s = (arNetInputSink*) sink;
   while (s->_dataServer.acceptConnection() != NULL) {
-    ar_log_debug() << "arnetInputSink's arInputServer got a connection.\n";
+    ar_log_debug() << "arNetInputSink's arInputServer got a connection.\n";
   }
 }
 
