@@ -17,35 +17,37 @@ enum {
 };
 
 void dump( arInputState& inp ) {
-  const unsigned cb = inp.getNumberButtons();
-  const unsigned ca = inp.getNumberAxes();
   const unsigned cm = inp.getNumberMatrices();
-  if (cb == 0 && ca == 0 && cm == 0)
+  const unsigned ca = inp.getNumberAxes();
+  const unsigned cb = inp.getNumberButtons();
+  if (cm == 0 && ca == 0 && cb == 0)
     return;
 
-  unsigned int i;
-  if (cb > 0) {
-    cout << "buttons (" << cb << ")  : ";
-    for (i=0; i<cb; i++)
-      cout << inp.getButton(i) << " ";
-  }
-  if (ca > 0) {
-    cout << "\naxes (" << ca << ")     : ";
-    for (i=0; i<ca; i++)
-      cout << inp.getAxis(i) << " ";
-  }
+  unsigned i;
   if (cm > 0) {
-    cout << "\nmatrices (" << cm << ") :\n\n";
+    cout << "\nmatrices (" << cm << ") :\n";
     for (i=0; i<cm; i++)
       cout << inp.getMatrix(i) << "\n";
   }
-  cout << "____\n\n";
+  if (ca > 0) {
+    cout << "axes (" << ca << ")     : ";
+    for (i=0; i<ca; i++)
+      printf(" %.3g ", inp.getAxis(i)); // more readable than cout
+  }
+  if (cb > 0) {
+    cout << "\nbuttons (" << cb << ")  : ";
+    for (i=0; i<cb; i++)
+      cout << inp.getButton(i) << " ";
+  }
+  cout << "\n____\n";
 
+#if 0
+  // another mode: dump prints headmatrix decomposed into xlat and euler angles
   const arMatrix4 m(inp.getMatrix(0));
   const arVector3 xlat(ar_extractTranslation(m).round());
   const arVector3 rot((180./M_PI * ar_extractEulerAngles(m, AR_YXZ)).round());
-  cout << "\t\t\thead xyz " << xlat << ",  roll ele azi " << rot << "\n"
-       << "____\n\n";
+  cout << "\t\t\thead xyz " << xlat << ",  roll ele azi " << rot << "\n____\n\n";
+#endif
 }
 
 class FilterOnButton : public arIOFilter {
@@ -175,13 +177,7 @@ LAbort:
   while (szgClient.connected()){
     if (mode == CONTINUOUS_DUMP && src.connected())
       dump(inputNode._inputState);
-    ar_usleep(200000);
+    ar_usleep(150000);
   }
   return 0;
 }
-
-/*
-another mode:
-dump prints matrix decomposed into xlat and euler angles
-head only, special.
-*/
