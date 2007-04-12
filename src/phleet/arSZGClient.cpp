@@ -83,11 +83,11 @@ arSZGClient::~arSZGClient() {
 // Iff simple handshaking has been disabled (by passing "false" before init),
 // call sendInitResponse and sendStartResponse (the final response in this case),
 // to forward init and start diagnostics to the the spawning dex for printing.
-void arSZGClient::simpleHandshaking(bool state) {
-  if (!state) {
+void arSZGClient::simpleHandshaking(bool fSimple) {
+  if (!fSimple) {
     ar_log().setStream(initResponse());
   }
-  _simpleHandshaking = state;
+  _simpleHandshaking = fSimple;
 }
 
 // Most components should not see the
@@ -3033,16 +3033,16 @@ void arSZGClient::_serverResponseThread() {
 void arSZGClient::_timerThread() {
   while (_keepRunning) {
     ar_mutex_lock(&_queueLock);
-    while (!_beginTimer) {
-      _timerCondVar.wait(&_queueLock);
-    }
-    _beginTimer = false;
+      while (!_beginTimer) {
+	_timerCondVar.wait(&_queueLock);
+      }
+      _beginTimer = false;
     ar_mutex_unlock(&_queueLock);
-    // a long time-out is desirable here... what if the network
-    // infrastructure is unreliable or flaky?
-    ar_usleep(2000000); // 2 second time-out
+
+    ar_usleep(1500000); // Long, for slow or flaky networks.
+
     ar_mutex_lock(&_queueLock);
-    _dataCondVar.signal();
+      _dataCondVar.signal();
     ar_mutex_unlock(&_queueLock);
   }
 }
@@ -3068,7 +3068,7 @@ void arSZGClient::_dataThread() {
       ar_log_error() << _exeName << ": szgserver forcibly disconnected.\n";
       break;
     }
-    else{
+    else {
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
       _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
     }
@@ -3077,21 +3077,17 @@ void arSZGClient::_dataThread() {
   // Interrupt any waiting messages, and forbid any future ones.
   _dataParser->clearQueues();
 
-  // should the below go inside a LOCK?
-  _connected = false;
+  _connected = false; // inside a lock?
 }
 
-// The format of the discovery and response packets is described in
-// szgserver.cpp.
-// 4620 is the magic port upon which the szgserver listens for discovery
-// packets. 4621 is the magic port upon which the response returns.
+// szgserver.cpp describes the format of the discovery and response packets.
+// szgserver listens on port 4620 for discovery packets, and responds on port 4621.
 void arSZGClient::_sendDiscoveryPacket(const string& name,
                                        const string& broadcast) {
-  char buf[200] = {0};
-
   // Magic version number: first 3 bytes are 0, 4th is version number.
-  buf[3] = SZG_VERSION_NUMBER;
   // Since the 5th byte is 0, this is a discovery packet.
+  char buf[200] = {0};
+  buf[3] = SZG_VERSION_NUMBER;
 
   ar_stringToBuffer(name, buf+5, 127);
   arSocketAddress broadcastAddress;
@@ -3166,6 +3162,7 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
     vector<string> tmp;
     return tmp;
   }
+
   _bufferResponse = true;
   ar_mutex_lock(&_queueLock);
   _foundServers.clear();
@@ -3216,18 +3213,21 @@ bool arSZGClient::logout() {
 // Default message task which handles "quit" and nothing else.
 void ar_messageTask(void* pClient) {
   if (!pClient) {
-    ar_log_warning() << "ar_messageTask: no syzygy client, dkill disabled.\n";
+    ar_log_warning() << "ar_messageTask: no Syzygy client, dkill disabled.\n";
     return;
   }
 
-  arSZGClient* cli = (arSZGClient*)pClient;
-  while (true) {
-    string messageType, messageBody;
-    cli->receiveMessage(&messageType, &messageBody);
-    if (messageType == "quit") {
-      cli->closeConnection();
-      // Do this?  But it's private.  cli->_keepRunning = false;
-      exit(0);
-    }
-  }
+  ((arSZGClient*)pClient)->messageTask();
+}
+
+void arSZGClient::messageTask() {
+  string messageType, messageBody;
+  do {
+    receiveMessage(&messageType, &messageBody);
+  } while (messageType != "quit");
+
+  closeConnection();
+  _keepRunning = false;
+  ar_usleep(50000); // let other threads exit cleanly
+  exit(0);
 }

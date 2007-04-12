@@ -236,6 +236,7 @@ class SZG_CALL arSZGClient{
   bool connected() const { return _connected; }
   operator bool() const { return _connected; }
   const string& getServerName();
+  void messageTask();
 
  private:
   arPhleetConfig       _config;
