@@ -13,7 +13,8 @@ enum {
   CONTINUOUS_DUMP = 0,
   ON_BUTTON_DUMP,
   EVENT_STREAM,
-  BUTTON_STREAM
+  BUTTON_STREAM,
+  COMPACT_STREAM
 };
 
 void dump( arInputState& inp ) {
@@ -89,7 +90,6 @@ class FilterEventStream : public arIOFilter {
     virtual ~FilterEventStream() {}
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );
-  private:
     int _printEventType;
 };
 bool FilterEventStream::_processEvent( arInputEvent& event ) {
@@ -99,8 +99,40 @@ bool FilterEventStream::_processEvent( arInputEvent& event ) {
   return true;
 }
 
+class CompactFilterEventStream : public FilterEventStream {
+  public:
+    CompactFilterEventStream() : FilterEventStream( AR_EVENT_GARBAGE ) {}
+    virtual ~CompactFilterEventStream() {}
+  protected:
+    virtual bool _processEvent( arInputEvent& inputEvent );
+};
+bool CompactFilterEventStream::_processEvent( arInputEvent& event ) {
+  if (_printEventType==AR_EVENT_GARBAGE || _printEventType==event.getType()) {
+    switch (event.getType()) {
+      case AR_EVENT_BUTTON:
+        cout << "button|" << event.getIndex() << "|" << event.getButton() << endl;
+        break;
+      case AR_EVENT_AXIS:
+        cout << "axis|" << event.getIndex() << "|" << event.getAxis() << endl;
+        break;
+      case AR_EVENT_MATRIX:
+        arMatrix4 m = event.getMatrix();
+        float *ptr = m.v;
+        cout << "matrix|" << event.getIndex() << "|";
+        for (int i=0; i<16; ++i) {
+          if (i != 0) {
+            cout << ",";
+          }
+          cout << *ptr++;
+        }
+        cout << endl;
+    }
+  }
+  return true;
+}
 
-int main(int argc, char** argv){
+
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   const bool fInit = szgClient.init(argc, argv);
@@ -108,10 +140,11 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc != 2 && argc != 3) {
-    ar_log_error() << "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream]\n";
+    ar_log_error() << "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream | -compactstream]\n";
 LAbort:
-    if (!szgClient.sendInitResponse(false))
-     cerr << "DeviceClient error: maybe szgserver died.\n";
+    if (!szgClient.sendInitResponse(false)) {
+      cerr << "DeviceClient error: maybe szgserver died.\n";
+    }
     return 1;
   }
 
@@ -124,6 +157,8 @@ LAbort:
       mode = EVENT_STREAM;
     } else if (!strcmp(argv[2], "-buttonstream")) {
       mode = BUTTON_STREAM;
+    } else if (!strcmp(argv[2], "-compactstream")) {
+      mode = COMPACT_STREAM;
     }
   }
 
@@ -139,12 +174,16 @@ LAbort:
   FilterOnButton filterOnButton;
   FilterEventStream filterEventStream;
   FilterEventStream filterButtonStream( AR_EVENT_BUTTON );
+  CompactFilterEventStream compactFilterEventStream;
+
   if (mode == ON_BUTTON_DUMP) {
     inputNode.addFilter( &filterOnButton, false );
   } else if (mode == EVENT_STREAM) {
     inputNode.addFilter( &filterEventStream, false );
   } else if (mode == BUTTON_STREAM) {
     inputNode.addFilter( &filterButtonStream, false );
+  } else if (mode == COMPACT_STREAM) {
+    inputNode.addFilter( &compactFilterEventStream, false );
   }
 
   if (!inputNode.init(szgClient)) {

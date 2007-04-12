@@ -175,14 +175,14 @@ void arSharedMemSinkDriver::_dataThread() {
     // Send data to shm
     ar_mutex_lock(&_lockShm);
 
-      for (int i=0; i<cb; i++){
-	rgbutton[i] = aIS.getButton(i);
-	const int button = rgbutton[i];
-	// send only state changes
-	if (button != _buttonPrev[i]){
-	  setButton(i, _shmWand, button);
-	  _buttonPrev[i] = button;
-	}
+    for (i=0; i<cb; ++i) {
+        rgbutton[i] = aIS.getButton(i);
+        const int button = rgbutton[i];
+        // send only state changes
+        if (button != _buttonPrev[i]){
+          setButton(i, _shmWand, button);
+          _buttonPrev[i] = button;
+        }
       }
 
     ar_mutex_unlock(&_lockShm);
