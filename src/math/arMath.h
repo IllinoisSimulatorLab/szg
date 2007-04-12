@@ -102,7 +102,7 @@ class SZG_CALL arVector4{
  public:
   float v[4];
 
-  arVector4() { memset(v, 0, 4*sizeof(float)); }
+  arVector4() { memset(v, 0, 4*sizeof(float)); } // identity matrix instead?
   arVector4(const float* p){ set(p[0], p[1], p[2], p[3]); }
   arVector4(float x, float y, float z, float w){ set(x,y,z,w); }
   arVector4(const arVector3& vec, float w) { set(vec.v[0],vec.v[1],vec.v[2],w); }
