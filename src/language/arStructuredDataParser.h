@@ -20,54 +20,51 @@ using namespace std;
 
 class SZG_CALL arStructuredDataSynchronizer{
  public:
-  arStructuredDataSynchronizer(){}
-  ~arStructuredDataSynchronizer(){}
-
+  bool exitFlag;
+  int tag;
+  int refCount;
   arMutex lock;
   arConditionVar var;
-  int tag;
-  bool exitFlag;
-  int refCount;
 };
 
 class SZG_CALL arMessageQueueByID{
  public:
-  arMessageQueueByID(){}
-  ~arMessageQueueByID(){}
-
-  list<arStructuredData*> messages;
+  bool exitFlag;
   arMutex lock;
   arConditionVar var;
-  bool exitFlag;
+  list<arStructuredData*> messages;
 };
 
-typedef map<int,list<arStructuredData*>*,less<int> > SZGrecycler;
+typedef list<arStructuredData*> SZGdatalist;
+typedef map<int,SZGdatalist*,less<int> > SZGrecycler;
 typedef map<int,arMessageQueueByID*,less<int> > SZGmessageQueue;
 typedef map<int,list<arStructuredData*>,less<int> > SZGtaggedMessageQueue;
 typedef map<int,arStructuredDataSynchronizer*,less<int> > SZGtaggedMessageSync;
 typedef list<arStructuredDataSynchronizer*> SZGunusedMessageSync;
 
 // This class converts a byte-stream or text-stream into a sequence of 
-// arStructuredData objects. It encapsulates some of the commonly used 
-// functions in a parser. For instance, one can read data from a source in a 
+// arStructuredData objects. It encapsulates some commonly used parsing
+// functions. For instance, one can read data from a source in a 
 // dedicated thread, which goes into internal storage. A response handler in 
 // another thread can then block until a record of a certain type is read 
 // (and receive that record). Furthermore, records can be stored internally 
-// via an application-defined tag (instead of via record type). This 
-// facilitates building asynchronous rpc type calls, for instance. Memory 
-// management is also added, which created arStructuredData records being re-used.
+// via an application-defined tag (instead of via record type), e.g. for
+// building asynchronous rpc type calls.
+// Memory management lets arStructuredData records be reused.
 
 class SZG_CALL arStructuredDataParser{
  // Needs assignment operator and copy constructor,
  // for pointer member _dictionary (unless that's fine, in which case
  // make that explicit).
+
  public:
   arStructuredDataParser(arTemplateDictionary*);
   ~arStructuredDataParser();
 
   arStructuredData* getStorage(int ID);
   arBuffer<char>*   getTranslationBuffer();
-  void              recycleTranslationBuffer(arBuffer<char>*);
+  void recycleTranslationBuffer(arBuffer<char>*);
+
   // AARGH! THIS IS ALL A MESS! The parse command needs a better model...
   // To be provided eventually...
   arStructuredData* parse(ARchar*,int&);
@@ -79,14 +76,11 @@ class SZG_CALL arStructuredDataParser{
   bool parseIntoInternal(arTextStream*);
   bool pushIntoInternalTagged(arStructuredData*, int);
   arStructuredData* getNextInternal(int ID);
-  int getNextTaggedMessage(arStructuredData*& message,
-                           list<int> tags,
-                           int dataID = -1,
-                           int timeout = -1);
-  
+  int getNextTaggedMessage(arStructuredData*&, list<int>, int dataID=-1, int timeout=-1);
   void recycle(arStructuredData*);
   void clearQueues();
   void activateQueues();
+
  private:
   SZGrecycler recycling;
   SZGmessageQueue       _messageQueue;
@@ -96,13 +90,13 @@ class SZG_CALL arStructuredDataParser{
   arTemplateDictionary* _dictionary;
   list<arBuffer<char>*> _translationBuffers;
 
-  // Serialize access to the complex message storage structures
+  // Serialize access to complex message storage
   arMutex _globalLock; 
-  // Serialize access to the store of unused message storage
+  // Serialize access to unused message storage
   arMutex _recycleLock;
-  // Deals with the clearQueues/activateQueues calls
+  // For clearQueues/activateQueues
   arMutex _activationLock;
-  // Should we be allowing "clients" to grab data from the various queues?
+  // true iff "clients" may grab data from queues
   bool _activated;
   // Serialize access to the list of translation buffers
   arMutex _translationBufferListLock; 
@@ -110,6 +104,8 @@ class SZG_CALL arStructuredDataParser{
   void _pushOntoQueue(arStructuredData* theData);
   void _pushOntoTaggedQueue(int tag, arStructuredData* theData);
   void _cleanupSynchronizers(list<int> tags);
+  void _deletelist(const SZGdatalist& p);
+  void _recyclelist(const SZGdatalist& p);
 };
 
 #endif
