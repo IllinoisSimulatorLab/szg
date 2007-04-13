@@ -149,6 +149,69 @@ void drawHead() {
   glPopMatrix();
 }
 
+const unsigned cmMax = 10;
+const unsigned caMax = 20;
+const unsigned cbMax = 250;
+
+unsigned cSig[3];
+unsigned& cb = cSig[0];
+unsigned& ca = cSig[1];
+unsigned& cm = cSig[2];
+ARint rgButton[cbMax+1] = {0};
+ARfloat rgAxis[caMax] = {0};
+ARfloat& joystickX = rgAxis[0];
+ARfloat& joystickY = rgAxis[1];
+arMatrix4 rgm[cmMax];
+bool fjoy32k = false;
+
+
+static bool fComplained = false;
+
+void callbackPreEx(arMasterSlaveFramework& fw) {
+  cm = fw.getNumberMatrices();
+  if (!fComplained && cm < 2)
+    ar_log_warning() << "cubevars: expect at least a head and wand matrix.\n";
+  cb = fw.getNumberButtons();
+  if (!fComplained && cm > cmMax) {
+    cm = cmMax;
+    ar_log_warning() << "cubevars: too many matrices.\n";
+  }
+  unsigned i;
+  for (i=0; i<cm; ++i)
+    rgm[i] = fw.getMatrix(i);
+
+  //;;;; todo: >2 axes.
+  ca = fw.getNumberAxes();
+  if (!fComplained && ca != 2)
+    ar_log_warning() << "cubevars expected 2 axes.\n";
+  joystickX = fw.getAxis(0);
+  joystickY = fw.getAxis(1);
+  if (fabs(joystickX) > 15000.) {
+    fjoy32k = true;
+  }
+  if (fjoy32k) {
+    joystickX /= 32768.;
+    joystickY /= 32768.;
+  }
+
+  if (!fComplained && cb < 3)
+    ar_log_warning() << "cubevars expected at least 3 buttons.\n";
+  if (!fComplained && cb > cbMax) {
+    cb = cbMax;
+    ar_log_warning() << "cubevars: too many buttons.\n";
+  }
+  for (i=0; i < cb; ++i)
+    rgButton[i] = fw.getButton(i);
+
+  fComplained = true;
+
+  // pack data to send to slaves
+}
+
+void callbackPostEx(arMasterSlaveFramework& fw) {
+  // unpack data from master
+}
+
 void bluesquare() {
     glColor3f(.1,.1,.4);
     glBegin(GL_POLYGON);
@@ -160,45 +223,17 @@ void bluesquare() {
     glScalef(1,1,.001); // flatten onto front screen
 }
 
-static bool fComplained = false;
-void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&){
-  unsigned cm = fw.getNumberMatrices();
-  if (!fComplained && cm < 2)
-    ar_log_warning() << "cubevars: expect at least a head and wand matrix.\n";
-  const unsigned cmMax = 10;
-  if (!fComplained && cm > cmMax) {
-    cm = cmMax;
-    ar_log_warning() << "cubevars: too many matrices.\n";
-  }
-  unsigned i;
-  arMatrix4 rgm[cmMax];
-  for (i=0; i<cm; ++i)
-    rgm[i] = fw.getMatrix(i);
-  const arMatrix4& headMatrix = rgm[0];
-  const arMatrix4& wandMatrix = rgm[1];
+void headwands() {
+  glTranslatef(0, -5, 0); // correct y coord
+  for (unsigned i=1; i<cm; ++i)
+    drawWand(rgm[i], 1.5);
+  glMultMatrixf(rgm[0].v);
+  drawHead();
+}
 
-  const unsigned ca = fw.getNumberAxes();
-  if (!fComplained && ca != 2)
-    ar_log_warning() << "cubevars expected 2 axes.\n";
-  const float caveJoystickX = fw.getAxis(0);
-  const float caveJoystickY = fw.getAxis(1);
-
-  unsigned cb = fw.getNumberButtons();
-  // wall-dependent.  Camille doesn't know why, 2006-06-12.
-  // ?workaround -- only master calls this, in preexchange.
-
-  if (!fComplained && cb < 3)
-    ar_log_warning() << "cubevars expected at least 3 buttons.\n";
-  const unsigned cbMax = 250;
-  if (!fComplained && cb > cbMax) {
-    cb = cbMax;
-    ar_log_warning() << "cubevars: too many buttons.\n";
-  }
-  int rgButton[cbMax+1];
-  for (i=0; i < cb; ++i)
-    rgButton[i] = fw.getButton(i);
-
-  fComplained = true;
+void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
+  if (cm <= 0 || ca <= 0 || cb <= 0)
+    return;
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
@@ -245,11 +280,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
-      glTranslatef(0, -5, 0); // correct y coord
-      for (i=1; i<cm; ++i)
-	drawWand(rgm[i], 1.5);
-      glMultMatrixf(headMatrix.v);
-      drawHead();
+      headwands();
     glPopMatrix();
   glPopMatrix();
 
@@ -260,11 +291,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
-      glTranslatef(0, -5, 0); // correct y coord
-      for (i=1; i<cm; ++i)
-	drawWand(rgm[i], 1.5);
-      glMultMatrixf(headMatrix.v);
-      drawHead();
+      headwands();
     glPopMatrix();
   glPopMatrix();
 
@@ -274,11 +301,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     bluesquare();
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-      glTranslatef(0, -5, 0); // correct y coord
-      for (i=1; i<cm; ++i)
-	drawWand(rgm[i], 1.5);
-      glMultMatrixf(headMatrix.v);
-      drawHead();
+      headwands();
     glPopMatrix();
   glPopMatrix();
 
@@ -287,20 +310,20 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 
   // Head display, to verify orientation.
   glPushMatrix();
-    glMultMatrixf(headMatrix.v);
+    glMultMatrixf(rgm[0].v);
     glTranslatef(0,0,-3); // in front of your eyes
-    glColor3f(.4,.22,.15);
-    glScalef(4.,1.,9.); // monolith
+    glColor3f(.5,.22,.15);
+    glScalef(4.,1.,9.); // The Monolith
     glutWireCube(.3);
   glPopMatrix();
 
+  unsigned i;
   for (i=1; i<cm; ++i)
     drawWand(rgm[i]);
 
   glLineWidth(1);
 
-  const arMatrix4 m(ar_extractTranslationMatrix(wandMatrix));
-  glMultMatrixf(m.v);
+  glMultMatrixf(ar_ETM(rgm[1]).v);
 
   glPushMatrix();
     glTranslatef(0.5 ,0.0, -1.5);
@@ -341,17 +364,31 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
       glVertex3f(-1,  0, 0);
     glEnd();
     glColor3f(0.3,.9,0);
+    if (fjoy32k)
+      glutPrintf(-1, 1.1, 0, "32K" );
     glPushMatrix();
-      glTranslatef(caveJoystickX, caveJoystickY, 0);
+      glTranslatef(joystickX, joystickY, 0);
       glutSolidCube(0.4);
     glPopMatrix();
 
   glPopMatrix();
 }
 
+bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
+  fw.addTransferField("a", cSig, AR_INT, 3);
+  fw.addTransferField("b", rgButton, AR_INT, sizeof(rgButton)/sizeof(ARint));
+  fw.addTransferField("c", rgAxis, AR_FLOAT, sizeof(rgAxis)/sizeof(ARfloat));
+  fw.addTransferField("d", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
+  fw.addTransferField("e", &fjoy32k, AR_INT, 1);
+  return true;
+}
+
 int main(int argc, char** argv){
   arMasterSlaveFramework fw;
+  fw.setStartCallback(callbackStart);
   fw.setDrawCallback(callbackDraw);
+  fw.setPreExchangeCallback(callbackPreEx);
+  fw.setPostExchangeCallback(callbackPostEx);
   fw.setClipPlanes(.5, 20.);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
