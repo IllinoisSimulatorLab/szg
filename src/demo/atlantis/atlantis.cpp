@@ -310,7 +310,7 @@ void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
 }
 
 
-bool init( arMasterSlaveFramework& fw, arSZGClient& /*SZGClient*/ ) {
+bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   //  setAnaglyphMode(fw, anaglyphMode);
   initFishs();
 
@@ -637,7 +637,7 @@ void exitCallback( arMasterSlaveFramework& ) {
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
 
-  framework.setStartCallback(init);
+  framework.setStartCallback(start);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(display);
