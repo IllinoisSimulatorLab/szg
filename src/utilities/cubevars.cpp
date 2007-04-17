@@ -13,10 +13,10 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
       glColor3f(0,1,1);
-        glVertex3f(.5,0,0);
-        glVertex3f(-.5,0,0);
+        glVertex3f(.25,0,0);
+        glVertex3f(-.25,0,0);
         glVertex3f(0,.5,0);
-        glVertex3f(0,-.5,0);
+        glVertex3f(0,-.25,0);
     glEnd();
 
     // Forward
@@ -30,8 +30,8 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
     // Up
     glPushMatrix();
       glTranslatef(0,.6,0);
-      glColor3f(1,1,1);
-      glutSolidSphere(0.1,8,8);
+      glColor3f(.8,.8,.8);
+      glutWireSphere(0.07,5,5);
     glPopMatrix();
 
   glPopMatrix();
@@ -129,18 +129,18 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
 void drawHead() {
   glPushMatrix();
     glScalef(1.5,1.5,1.5); // larger for visibility
-    glColor3f(1,1,0);
-    glutSolidSphere(1,10,10);
+    glColor3f(.8,.8,0);
+    glutSolidSphere(1,16,16);
     // two eyes
     glColor3f(0,1,1);
     glPushMatrix();
-      glTranslatef(0.5,0,-0.8);
+      glTranslatef(0.5,0,-0.7);
       glutSolidSphere(0.4,8,8);
       glTranslatef(0,0,-0.34);
       glColor3f(1,0,0);
       glutSolidSphere(0.15,5,5);
     glPopMatrix();
-      glTranslatef(-0.5,0,-0.8);
+      glTranslatef(-0.5,0,-0.7);
       glColor3f(0,1,1);
       glutSolidSphere(0.4,8,8);
       glTranslatef(0,0,-0.34);
@@ -248,7 +248,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
   glPopMatrix();
 
   // Labels on walls.
-  glColor3f( 1, 1, 1 );
+  glColor3f( .7, .7, .7 );
 
   glutPrintf(0,  2, -5, "Front");
   glutPrintf(-5, 5,  0, "Left",  -90);
@@ -268,54 +268,105 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
   glutEyeglasses( .7, 0,     1+.5, iEye, 0, -90);
 
   // Maya-style cross sections, pasted to front wall.
+
   glColor3f( .4, .4, .8 );
-  glutPrintf(-3.95, 7.45, -5.01, "Floor" ); // xz
-  glutPrintf(-0.95, 7.45, -5.01, "Left"); // yz
-  glutPrintf( 2.05, 7.45, -5.01, "Front"); // xy
 
-  // top view
-  glPushMatrix();
-    glTranslatef(-3, 7, -5);
-    bluesquare();
-    glPushMatrix();
-      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-      glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
-      headwands();
-    glPopMatrix();
-  glPopMatrix();
+    glutPrintf(-3.95, 7.45, -5.01, "Floor" ); // xz
+    glutPrintf(-0.95, 7.45, -5.01, "Left"); // yz
+    glutPrintf( 2.05, 7.45, -5.01, "Front"); // xy
 
-  // side view
-  glPushMatrix();
-    glTranslatef(0, 7, -5);
-    bluesquare();
+    // top view
     glPushMatrix();
-      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-      glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
-      headwands();
+      glTranslatef(-3, 7, -5);
+      bluesquare();
+      glPushMatrix();
+	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+	glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
+	headwands();
+      glPopMatrix();
     glPopMatrix();
-  glPopMatrix();
 
-  // back view
-  glPushMatrix();
-    glTranslatef(3, 7, -5);
-    bluesquare();
+    // side view
     glPushMatrix();
-      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-      headwands();
+      glTranslatef(0, 7, -5);
+      bluesquare();
+      glPushMatrix();
+	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+	glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
+	headwands();
+      glPopMatrix();
     glPopMatrix();
-  glPopMatrix();
+
+    // back view
+    glPushMatrix();
+      glTranslatef(3, 7, -5);
+      bluesquare();
+      glPushMatrix();
+	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+	headwands();
+      glPopMatrix();
+    glPopMatrix();
 
   glDisable(GL_LIGHTING);
   glLineWidth(3);
 
-  // Head display, to verify orientation.
+  // Reticle to verify head orientation.
   glPushMatrix();
     glMultMatrixf(rgm[0].v);
     glTranslatef(0,0,-3); // in front of your eyes
-    glColor3f(.5,.22,.15);
+    glColor3f(.75,.33,.22);
     glScalef(4.,1.,9.); // The Monolith
     glutWireCube(.3);
   glPopMatrix();
+
+  // Head, projected onto all walls except front.  "Behind" other stuff.
+    arVector3 xyz(ar_ET(rgm[0]));
+    const arMatrix4 mRot(ar_ERM(rgm[0]));
+
+    // floor
+    glPushMatrix();
+      glTranslatef(xyz[0], -.1, xyz[2]); // project
+      glScalef(1, 0.01, 1); // squash
+      glScalef(.4,.4,.4);
+      glMultMatrixf(mRot.v);
+      drawHead();
+    glPopMatrix();
+
+    // ceiling
+    glPushMatrix();
+      glTranslatef(xyz[0], 10.1, xyz[2]); // project
+      glScalef(1, 0.01, 1); // squash
+      glScalef(.4,.4,.4);
+      glMultMatrixf(mRot.v);
+      drawHead();
+    glPopMatrix();
+
+    // left
+    glPushMatrix();
+      glTranslatef(-5.1, xyz[1], xyz[2]); // project
+      glScalef(0.01, 1, 1); // squash
+      glScalef(.4,.4,.4);
+      glMultMatrixf(mRot.v);
+      drawHead();
+    glPopMatrix();
+
+    // right
+    glPushMatrix();
+      glTranslatef(5.1, xyz[1], xyz[2]); // project
+      glScalef(0.01, 1, 1); // squash
+      glScalef(.4,.4,.4);
+      glMultMatrixf(mRot.v);
+      drawHead();
+    glPopMatrix();
+
+    // back
+    glPushMatrix();
+      glTranslatef(xyz[0], xyz[1], 5.1); // project
+      glScalef(1, 1, 0.01); // squash
+      glScalef(.4,.4,.4);
+      glMultMatrixf(mRot.v);
+      drawHead();
+    glPopMatrix();
 
   unsigned i;
   for (i=1; i<cm; ++i)
@@ -389,6 +440,6 @@ int main(int argc, char** argv){
   fw.setDrawCallback(callbackDraw);
   fw.setPreExchangeCallback(callbackPreEx);
   fw.setPostExchangeCallback(callbackPostEx);
-  fw.setClipPlanes(.5, 20.);
+  fw.setClipPlanes(.15, 20.);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
