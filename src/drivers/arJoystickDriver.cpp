@@ -36,13 +36,13 @@ void arJoystickDriver::_eventTask() {
 
 #ifdef AR_USE_WIN_32
 // Poll pStick.
+  memset(&_jsPrev, 0, sizeof(_jsPrev));
   while (!_shutdown){
     ar_usleep(10000); // 100 Hz
     if (FAILED(_pStick->Poll())){
       cerr << "DirectInput poll failed.\n";
       break;
     }
-    memset(&_jsPrev, 0, sizeof(_jsPrev));
     _fFirst = true;
     DIJOYSTATE2	js;
     int rc = _pStick->GetDeviceState(sizeof(js), &js);
