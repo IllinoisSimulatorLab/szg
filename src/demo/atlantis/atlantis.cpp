@@ -37,13 +37,12 @@
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arMasterSlaveFramework.h"
-#include "arDataUtilities.h"
-#include "arNavigationUtilities.h"
-#include "arInteractionUtilities.h"
+
 #include "arCallbackInteractable.h"
+#include "arInteractionUtilities.h"
+#include "arMasterSlaveFramework.h"
+
 #include "atlantis.h"
 
 // Syzygy conversion-specific parameters (give or take a string constant).
@@ -83,8 +82,6 @@ int gDrawSpearTip = 0;
 
 arTimer tipTimer;
 
-static float lightPosition[] =
-    {0.0, 1.0, 0.0, 0.0};
 
 // atlantis-specific stuff.
 fishRec sharks[NUM_SHARKS];
@@ -256,7 +253,7 @@ void initFishs(void) {
     babyWhale.htail = 45.0;
 }
 
-void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
+void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
   static float ambient[] = {0.1, 0.1, 0.1, 1.0};
   static float diffuse[] = {1.0, 1.0, 1.0, 1.0};
 	static float position[] =	{0.0, 1.0, 0.0, 0.0};
@@ -290,10 +287,9 @@ void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
 
   std::string dataPath = fw.getSZGClient()->getAttribute("SZG_DATA","path");
   if (!seaTexture.readJPEG( "sea-texture.jpg", "atlantis", dataPath )) {
-    cerr << "atlantis error: failed to read sea-texture.jpg.\n";
+    ar_log_warning() << "atlantis failed to read sea-texture.jpg.\n";
     useTexture = 0;
   } else {
-    // cerr << "atlantis remark: activating texture in init.\n";
     seaTexture.activate();
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -417,7 +413,7 @@ void preExchange(arMasterSlaveFramework& fw) {
     spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
     gDrawSpearTip = 1;
     tipTimer.start( 1.e6 ); // 1 sec.
-    cerr << "atlantis remark: target radius set to " << gSpearRadius << endl;
+    ar_log_remark() << "atlantis: target radius set to " << gSpearRadius << "\n";
   }
   if ((gDrawSpearTip)&&tipTimer.done())
     gDrawSpearTip = 0;
@@ -599,20 +595,21 @@ void display(arMasterSlaveFramework& fw)
     glClearColor(0.0, 0.6, 1., 1.0);
   }
   fw.loadNavMatrix(); // drive around.
+  static const float lightPosition[] = {0.0, 1.0, 0.0, 0.0};
   glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
   drawFishies();
   drawSpear( gSpearBaseMatrix );
 }
 
-void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
-  if( !windowInfo ) {
+void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* wI ) {
+  if( !wI ) {
     return;
   }
 
-  switch( windowInfo->getState() ) {
+  switch( wI->getState() ) {
     case AR_WINDOW_RESIZE:
-      fw.getWindowManager()->setWindowViewport( windowInfo->getWindowID(),
-                                                0, 0, windowInfo->getSizeX(), windowInfo->getSizeY() );
+      fw.getWindowManager()->setWindowViewport(
+        wI->getWindowID(), 0, 0, wI->getSizeX(), wI->getSizeY() );
     break;
 
     case AR_WINDOW_CLOSE:
@@ -624,40 +621,22 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
   }
 }
 
-/*
-void reshape(arMasterSlaveFramework&, int width, int height) {
-  glViewport(0,0,width,height);
-}
-*/
-
-void exitCallback( arMasterSlaveFramework& ) {
-  cerr << "atlantis remark: exiting.\n";
-}
-
 int main(int argc, char** argv){
-  arMasterSlaveFramework framework;
+  arMasterSlaveFramework fw;
+  fw.setStartCallback(start);
+  fw.setPreExchangeCallback(preExchange);
+  fw.setPostExchangeCallback(postExchange);
+  fw.setDrawCallback(display);
+  fw.setWindowEventCallback( windowEvent );
+  fw.setWindowStartGLCallback( initGL );
+  fw.setClipPlanes(nearClipDistance, farClipDistance);
+  // Do this before fw.init() if we use framework-based navigation.
+  fw.setUnitConversion(FEET_TO_AU); // half-millimeter units
 
-  framework.setStartCallback(start);
-  framework.setPreExchangeCallback(preExchange);
-  framework.setPostExchangeCallback(postExchange);
-  framework.setDrawCallback(display);
-  // framework.setReshapeCallback(reshape);
-  framework.setWindowEventCallback( windowEvent );
-  framework.setWindowStartGLCallback( initGL );
-  framework.setClipPlanes(nearClipDistance, farClipDistance);
-  framework.setExitCallback( exitCallback );
-  // Tell the framework that we're using half-millimeter units.
-  // Do this before framework.init() if we use framework-based navigation.
-  framework.setUnitConversion(FEET_TO_AU);
-
-  if (!framework.init(argc, argv)){
+  if (!fw.init(argc, argv)){
     return 1;
   }
-  framework.setDataBundlePath("SZG_DATA", "atlantis");
+  fw.setDataBundlePath("SZG_DATA", "atlantis");
 
-  if (!framework.start()){
-    return 1;
-  }
-  // Never get here.
-  return 0;
+  return fw.start() ? 0 : 1;
 }
