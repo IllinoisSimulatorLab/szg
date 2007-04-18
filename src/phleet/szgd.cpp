@@ -566,7 +566,7 @@ LDone:
   const string tradingKey(SZGClient->getComputerName() + "/" 
                           + tradingNumStream.str() + "/"
 	                  + symbolicCommand);
-  ar_log_remark() << "szgd trading key = " << tradingKey << ".\n";
+  ar_log_debug() << "szgd trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
 
   // Two dynamic search paths (as embodied in environment variables) need
@@ -602,7 +602,7 @@ LDone:
   //      must be in the same directory and on the PYTHONPATH).
   //   4. PYTHONPATH, as held by the user running the szgd.
 
-  string dynamicLibraryPathVar =
+  const string envDLLPath =
 #ifdef AR_USE_LINUX
     "LD_LIBRARY_PATH";
 #endif
@@ -616,18 +616,14 @@ LDone:
     "DYLD_LIBRARY_PATH";
 #endif
 
-  // Do not warn again here if SZG_EXEC/path is NULL. Said warning has 
-  // already occured.
-  const string szgExecPath =
-                 SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path","");
-  const string oldDynamicLibraryPath = ar_getenv(dynamicLibraryPathVar.c_str());
-  const string nativeLibPath =
-                 SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
+  const string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path","");
+  const string DLLPathPrev = ar_getenv(envDLLPath.c_str());
+  const string nativeLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
   // Construct the new dynamic library path.
-  string dynamicLibraryPath;
+  string DLLPath;
   string appPath = ar_exePath(newCommand);
   if (appPath != "") {
-    dynamicLibraryPath = appPath;
+    DLLPath = appPath;
   }
   // If parent directory is in SZG_EXEC/path, append it.
   if (szgExecPath != "NULL") {
@@ -641,19 +637,19 @@ LDone:
       arSemicolonString szgExecPathString( szgExecPath );
       for (j=0; j<szgExecPathString.size(); ++j) {
         if (parDirString == szgExecPathString[j]) {
-          dynamicLibraryPath += ";" + parDirString;
+          DLLPath += ";" + parDirString;
           break;
         }
       }
     }
   }
   if (nativeLibPath != "NULL") {
-    dynamicLibraryPath += ";" + nativeLibPath;
+    DLLPath += ";" + nativeLibPath;
   }
-  if (oldDynamicLibraryPath != "" && oldDynamicLibraryPath != "NULL") {
-    dynamicLibraryPath += ";" + oldDynamicLibraryPath;
+  if (DLLPathPrev != "" && DLLPathPrev != "NULL") {
+    DLLPath += ";" + DLLPathPrev;
   }
-  TweakPath(dynamicLibraryPath);
+  TweakPath(DLLPath);
 
   // Deal with python
   string pythonPath;
@@ -791,8 +787,8 @@ LDone:
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  ar_log_remark() << "szgd libpath =\n  " << dynamicLibraryPath << "\n";
-  ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
+  ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
+  ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
     ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
@@ -890,8 +886,8 @@ LDone:
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
 
-  ar_log_remark() << "szgd libpath =\n  " << dynamicLibraryPath << "\n";
-  ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
+  ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
+  ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
     ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
@@ -922,16 +918,15 @@ LDone:
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
-  ar_log_remark() << "szgd cmd  = " << command
-                << "\n     args = " << argsBuffer << "\n";
+  ar_log_remark() << "szgd cmd  = " << command << "\n     args = " << argsBuffer << "\n";
   // The spawnee might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,
 		     NORMAL_PRIORITY_CLASS, NULL, NULL, 
 		     &si, &theInfo);
 
-  // Restore the variables before unlocking the mutex.
-  ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
+  // Restore variables before unlocking.
+  ar_setenv(envDLLPath, DLLPathPrev);
   if (execInfo->fPython())
     ar_setenv( "PYTHONPATH", oldPythonPath );
   ar_mutex_unlock(&processCreationLock);
