@@ -55,7 +55,6 @@ arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
 void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
   const unsigned eventIndex = inputEvent.getIndex();
   const arInputEventType eventType = inputEvent.getType();
-  //;;;; cout << "dis is da drum dat brings da bad increment, dis is da drum\n";
   switch (eventType) {
     case AR_EVENT_BUTTON:
       _numButtons++;
@@ -78,7 +77,7 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
 	<< eventType << ".\n";
       return;
   }
-//ar_log_warning() << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
+  //ar_log_debug() << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
   _queue.push_back( inputEvent );
 }
 
