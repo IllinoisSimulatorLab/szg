@@ -55,11 +55,12 @@ arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
 void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
   const unsigned eventIndex = inputEvent.getIndex();
   const arInputEventType eventType = inputEvent.getType();
+  //;;;; cout << "dis is da drum dat brings da bad increment, dis is da drum\n";
   switch (eventType) {
     case AR_EVENT_BUTTON:
       _numButtons++;
       if (eventIndex >= _buttonSignature) {
-        setSignature( eventIndex+1, _axisSignature, _matrixSignature );
+	setSignature( eventIndex+1, _axisSignature, _matrixSignature );
       }
       break;
     case AR_EVENT_AXIS:

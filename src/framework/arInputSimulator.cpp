@@ -217,14 +217,27 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
     ++numRows;
   switch (key) {
   case ' ':
+    {
     if (rowLength == 0 || numRows == 0) {
       ar_log_warning() << "arInputSimulator: no buttons in keyboard().\n";
-      return;
+      break;
     }
-    ++_buttonSelector;
-    if (_buttonSelector >= numRows)
+    bool fAllUp = true;
+    for (unsigned i=0; i<_newButtonEvents.size(); ++i) {
+      if (_newButtonEvents[i] != 0) {
+        fAllUp = false;
+	break;
+      }
+    }
+    if (!fAllUp) {
+      // Better might be to reset all buttons.
+      ar_log_warning() << "arInputSimulator ignoring spacebar while button(s) are held down.\n";
+      break;
+    }
+    if (++_buttonSelector >= numRows)
       _buttonSelector = 0;
     break;
+    }
   case '1':
     _interfaceState = AR_SIM_HEAD_TRANSLATE;
     break;

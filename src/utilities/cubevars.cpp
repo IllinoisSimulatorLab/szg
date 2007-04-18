@@ -200,7 +200,8 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
       rgAxis[i] /= 32768.;
     clamp(rgAxis[i], -1.5, 1.5);
   }
-  for (i=0; i<cm; ++i)
+  rgm[0] = fw.getMidEyeMatrix();
+  for (i=1; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
 }
 
