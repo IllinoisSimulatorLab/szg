@@ -140,7 +140,6 @@ bool getBasePaths( const char* const arg ) {
 string getAppPath( const string& userName, const string& groupName, const string& appFile, 
     ostringstream& errStream ) {
   const string appPath = SZGClient->getAttribute( userName, "NULL", groupName, "path", "");
-  string errMsg;
   if (appPath == "NULL") {
     warnTwice( errStream, "no " + groupName + "/path." );
     return "NULL";
@@ -153,40 +152,37 @@ string getAppPath( const string& userName, const string& groupName, const string
   string actualDirectory("NULL");
   list<string> dirsToSearch;
   list<string>::const_iterator dirIter;
-  // Construct a list of directories to search depth-first.
+  // Depth-first search a list of directories.
   for (int i=0; i<appSearchPath.size(); ++i) {
-    string currPathElement = appSearchPath[i];
-    if (!comparePathToBases( currPathElement, groupName+"/path", errStream )) {
+    string dir(appSearchPath[i]);
+    if (!comparePathToBases( dir, groupName+"/path", errStream )) {
       return "NULL";
     }
 
-    bool dirExists;
-    bool isDirectory;
+    bool dirExists = false;
+    bool isDirectory = false;
+
     // If return value is false, 2nd & 3rd args are invalid.
     // If item does not exist (2nd arg == false), 3rd is invalid
     // If item exists, 3rd arg indicates whether or not it is a directory
-    if (!ar_directoryExists( currPathElement, dirExists, isDirectory )) {
-      errMsg = "error composing " + groupName + "/path: ar_directoryExists() internal error for directory "+currPathElement + ".\n";
-      warnTwice( errStream, errMsg );
+    if (!ar_directoryExists( dir, dirExists, isDirectory )) {
+      warnTwice( errStream, "internal error composing " + groupName +
+        "/path: ar_directoryExists() for directory " + dir + ".\n");
       return "NULL";
     }
 
     if (!dirExists) {
-      errMsg = "error composing "+groupName+"/path:\n"
-                 + "  directory " +currPathElement+" does not exist.";
-      warnTwice( errStream, errMsg );
+      warnTwice( errStream, "composing " + groupName + "/path: nonexistent " + dir + ".\n");
       return "NULL";
     }
 
     if (!isDirectory) {
-      errMsg = "error composing "+groupName+"/path:\n"
-                 + "  "+currPathElement+" exists, but is not a directory.";
-      warnTwice( errStream, errMsg );
+      warnTwice( errStream, "composing " + groupName + "/path: nondirectory " + dir + ".\n");
       return "NULL";
     }
 
-    dirsToSearch.push_back( currPathElement );
-    list<string> contents = ar_listDirectory( currPathElement );
+    dirsToSearch.push_back( dir );
+    list<string> contents = ar_listDirectory( dir );
     for (dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
       string itemPath = *dirIter;
       if (ar_isDirectory( itemPath.c_str() )) {
@@ -206,12 +202,8 @@ string getAppPath( const string& userName, const string& groupName, const string
     bool fileExists;
     bool isFile;
     if (!ar_fileExists( potentialFile, fileExists, isFile )) {
-      errMsg = "error scanning "+groupName+"/path:\n"
-                + "ar_FileExists() failed for file "+potentialFile
-                + ".\n  This does not mean that the file "
-                + "does not exist;\n  it means that a system error occurred while "
-                + "checking its existence.\n";
-      warnTwice( errStream, errMsg );
+      warnTwice( errStream, "while scanning " + groupName +
+        "/path: ar_FileExists() problem with " + potentialFile + ".\n" );
       return "NULL";
     }
     if (fileExists && isFile) {
@@ -231,12 +223,11 @@ string getAppPath( const string& userName, const string& groupName, const string
   }
 
   if (actualDirectory == "NULL") {
-    errMsg = "No file '"+appFile+"' on user "+userName+"'s "+groupName
-           +"/path '"+appPath+"'.\n";
-    warnTwice( errStream, errMsg );
+    warnTwice( errStream, "No file '" + appFile + "' on user " + userName + "'s " +
+      groupName + "/path '" + appPath+"'.\n");
   } else {
-    ar_log_remark() << "szgd: app dir for " << userName << "/" << groupName
-         << "/path is '" << actualDirectory << "'.\n";
+    ar_log_remark() << "szgd: app dir for " << userName << "/" << groupName <<
+      "/path is '" << actualDirectory << "'.\n";
   }
   return actualDirectory;
 }
