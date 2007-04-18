@@ -40,6 +40,7 @@ class SZG_CALL arLock {
     virtual void lock();
     virtual bool tryLock();
     virtual void unlock();
+    bool valid() const;
   protected:
 #ifdef AR_USE_WIN_32
     HANDLE _mutex;

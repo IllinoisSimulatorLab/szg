@@ -43,33 +43,62 @@ void ar_mutex_unlock(arMutex* theMutex){
 }
 
 // Originally from Walmsley, "Multi-threaded Programming in C++", class MUTEX.
-// A (non-NULL) name makes the lock system-wide in Windows.
+// In Windows, a (non-NULL) name starting with Global\ makes the lock system-wide.
+// In Vista that fails because users don't login as "Session 0", which is required.
 #ifdef AR_USE_WIN_32
 arLock::arLock(const char* name) {
   _mutex = CreateMutex(NULL, FALSE, name);
-  if (!_mutex && !name) {
+
+  if (!_mutex) {
     const DWORD e = GetLastError();
-    cerr << "arLock error: CreateMutex failed, GetLastError() == " << e << ".\n";
-  }
-  if (!_mutex && name) {
-    const DWORD e = GetLastError();
-    if (e == ERROR_ALREADY_EXISTS) {
-      cerr << "\n\n\n\t\t\tfyi, another app has this.  Dude.\n\n\n\n";
+    if (!name) {
+      cerr << "arLock error: CreateMutex failed, GetLastError() == " << e << ".\n";
+      return;
     }
-    if (e == ERROR_ACCESS_DENIED) {
-      cerr << "\n\n\n\t\t\tfyi, another app has this.  Dude.\n\n\n\n";
-      _mutex = OpenMutex(SYNCHRONIZE, FALSE, name);
+
+    // name != NULL.
+
+    if (e == ERROR_ALREADY_EXISTS) {
+      // Another app has this.  This SHOULD happen.  Why doesn't it?
+    }
+    else if (e == ERROR_ACCESS_DENIED) {
+      cerr << "arLock warning: CreateMutex('" << name <<
+        "') failed (access denied); backing off.\n";
+LBackoff:
+      // _mutex = OpenMutex(SYNCHRONIZE, FALSE, name);
+      // Fall back to a mutex of scope "app" not "the entire PC".
+      _mutex = CreateMutex(NULL, FALSE, NULL);
       if (!_mutex) {
-	cerr << "\n\n\n\t\t\targh, giving up.\n\n\n\n";
+	cerr << "arLock warning: failed to create mutex.\n";
       }
     }
+    else if (e == ERROR_PATH_NOT_FOUND) {
+      cerr << "arLock warning: CreateMutex('" << name <<
+        "') failed (backslash?); backing off.\n";
+      goto LBackoff;
+    }
+    else {
+      cerr << "arLock warning: CreateMutex('" << name <<
+        "') failed; backing off.\n";
+      goto LBackoff;
+    }
   }
+
+  // if (name) printf("arLock debug: constructed! '%s' %x\n", name, int(&_mutex));
 }
 #else
 arLock::arLock(const char*) {
   pthread_mutex_init( &_mutex, NULL );
 }
 #endif
+
+bool arLock::valid() const {
+#ifdef AR_USE_WIN_32
+  return _mutex != NULL;
+#else
+  return true;
+#endif
+}
 
 arLock::~arLock() {
 #ifdef AR_USE_WIN_32

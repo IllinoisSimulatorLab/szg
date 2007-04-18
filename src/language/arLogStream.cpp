@@ -57,8 +57,10 @@ arLogStream::arLogStream():
   _maxLineLength(200),
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
-  _l("GLOBAL\\szgLog"),
+  _l("Global\\szgLog"),
   _fLocked(false){
+  if (!_l.valid())
+    cerr << "arLogStream warning: no locks. Expect interleaving.\n";
 }
 
 void arLogStream::setStream(ostream& externalStream){
@@ -229,7 +231,7 @@ arLogStream& arLogStream::operator<<(arLogStream& (*func)(arLogStream& logStream
 }
 
 void arLogStream::_preAppend(){
-  // Ensure atomic access.
+  // Serialize.
   _lock();
 }
 
@@ -247,7 +249,7 @@ void arLogStream::_finish(){
 }
 
 void arLogStream::_flush(const bool addNewline){
-  if (!_fLocked)
+  if (!_fLocked && _l.valid())
     cerr << "arLogStream warning: internal lock mismatch.\n";
   if (_buffer.str().empty())
     return;
