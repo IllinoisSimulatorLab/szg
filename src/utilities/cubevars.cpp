@@ -257,6 +257,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   const int iEye = 1 + int(gw.getCurrentEyeSign());
   glColor3f(.2,.8,0);
+  glLineWidth(3);
 
   glutEyeglasses( .7, 0.5+.5,  -5, iEye, 0, 0);
   glutEyeglasses( -5, 3.5+.5, -.7, iEye, -90, 0);
@@ -311,15 +312,15 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPopMatrix();
 
   glDisable(GL_LIGHTING);
-  glLineWidth(3);
 
   if (cm > 0) {
     // Reticle to show head orientation.
+    glLineWidth(2);
     glPushMatrix();
       glMultMatrixf(rgm[0].v);
       glTranslatef(0,0,-3); // in front of your eyes
       glColor3f(.6,.3,.9);
-      glScalef(4.,1.,9.); // The Monolith
+      glScalef(4.,1.,9.); // ratios of the Monolith
       glutWireCube(.3);
     glPopMatrix();
 
@@ -374,6 +375,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPopMatrix();
   }
 
+  glLineWidth(3);
   unsigned i;
   for (i=1; i<cm; ++i)
     drawWand(rgm[i]);
@@ -444,6 +446,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	glColor3f(.8,.4,.3);
       }
       glTranslatef(.5, 0, 0);
+      glLineWidth(2); // paranoid
       glBegin(GL_LINES);
 	glVertex3f( 0, -1, 0);
 	glVertex3f( 0,  1, 0);
