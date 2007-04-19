@@ -3,16 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-/**
- * @file arGUIWindowManager.h
- * Header file for the arGUIWindowManager class.
- */
 #ifndef _AR_GUI_WINDOW_MANAGER_H_
 #define _AR_GUI_WINDOW_MANAGER_H_
 
 #include <map>
 #include <vector>
-#include <string>
 
 #include "arThread.h"
 #include "arGUIDefines.h"
@@ -193,7 +188,7 @@ class SZG_CALL arGUIWindowManager
     /**
      * Register a draw callback with a window.
      *
-     * @param windowID     The window to register the callback with.
+     * @param ID     The window to register the callback with.
      * @param drawCallback The user-defined draw callback.
      *
      * @return <ul>
@@ -201,7 +196,7 @@ class SZG_CALL arGUIWindowManager
      *           <li>-1 if the window could not be found.
      *         </ul>
      */
-    int registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback );
+    int registerDrawCallback( const int ID, arGUIRenderCallback* drawCallback );
 
     /**
      * Process any pending window events.
@@ -235,7 +230,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @note The caller is responsible for deleting the returned pointer.
      *
-     * @param windowID The window for which to retrieve the next event.
+     * @param ID The window for which to retrieve the next event.
      *
      * @return <ul>
      *           <li>A pointer to the OS event on success.
@@ -245,7 +240,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see arGUIWindow::getNextGUIEvent
      */
-    arGUIInfo* getNextWindowEvent( const int windowID );
+    arGUIInfo* getNextWindowEvent( const int ID );
 
     /**
      * Issue a draw request to a single window.
@@ -255,7 +250,7 @@ class SZG_CALL arGUIWindowManager
      *       handler whereas if the window manager is in multi-threaded mode
      *       the draw request will be passed as a message to the window.
      *
-     * @param windowID The window for which to request the draw.
+     * @param ID The window for which to request the draw.
      * @param blocking Whether the window manager should wait for the request
      *                 to finish before returning (meaningless in single-
      *                 threaded mode).
@@ -267,7 +262,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see addWMEvent
      */
-    int drawWindow( const int windowID, bool blocking = false );
+    int drawWindow( const int ID, bool blocking = false );
 
     /**
      * Issue a draw request to every window.
@@ -298,7 +293,7 @@ class SZG_CALL arGUIWindowManager
      *          in single-threaded mode.  Appropriate checks that it is not
      *          otherwise called are in place.
      *
-     * @param windowID The window whose OS events should be consumed.
+     * @param ID The window whose OS events should be consumed.
      * @param blocking Meaningless.
      *
      * @return <ul>
@@ -309,7 +304,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see arGUIWindow::_consumeWindowEvents
      */
-    int consumeWindowEvents( const int windowID, bool blocking = false );
+    int consumeWindowEvents( const int ID, bool blocking = false );
 
     /**
      * Consume every window's pending OS events.
@@ -340,7 +335,7 @@ class SZG_CALL arGUIWindowManager
      *       whereas if the window manager is in multi-threaded mode the swap
      *       request will be passed as a message to the window.
      *
-     * @param windowID The window for which to request the swap.
+     * @param ID The window for which to request the swap.
      * @param blocking Whether the window manager should wait for the request
      *                 to finish before returning (meaningless in single-
      *                 threaded mode).
@@ -354,7 +349,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @todo properly implement windows having different _Hz's.
      */
-    int swapWindowBuffer( const int windowID, bool blocking = false );
+    int swapWindowBuffer( const int ID, bool blocking = false );
 
     /**
      * Issue a swap request to every window.
@@ -380,7 +375,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @note Sets the window's <b>client area</b> width and height.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param width    The new width.
      * @param height   The new height.
      *
@@ -393,7 +388,7 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::resize
      */
-    int resizeWindow( const int windowID, int width, int height );
+    int resizeWindow( const int ID, int width, int height );
 
     /**
      * Move a window to a new location.
@@ -401,7 +396,7 @@ class SZG_CALL arGUIWindowManager
      * @note The upper-left corner of the window's screen (not client area)
      *       will be moved to the new location.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param x        The new x coordinate.
      * @param y        The new y coordinate.
      *
@@ -414,12 +409,12 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::move
      */
-    int moveWindow( const int windowID, int x, int y );
+    int moveWindow( const int ID, int x, int y );
 
     /**
      * Sets the window's OpenGL viewport.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param x        The left corner x coordinate.
      * @param y        The bottom corner y coordinate.
      * @param width    The width of the viewport.
@@ -434,10 +429,10 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::setViewport
      */
-    int setWindowViewport( const int windowID, int x, int y, int width, int height );
+    int setWindowViewport( const int ID, int x, int y, int width, int height );
 
     /**
-     * Put the window in fullscreen mode.
+     * Make the window fullscreen.
      *
      * @note Does not resize the desktop to the window's resolution, instead
      *       the window's resolution is changed to match that of the desktop.
@@ -445,7 +440,7 @@ class SZG_CALL arGUIWindowManager
      * @note Call \ref resizeWindow to restore the window to a non-fullscreen
      *       state.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      *
      * @return <ul>
      *           <li>0 on success.
@@ -456,7 +451,7 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::fullscreen
      */
-    int fullscreenWindow( const int windowID );
+    int fullscreenWindow( const int ID );
 
     /**
      * Set the state of the window's border decorations.
@@ -466,7 +461,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @note Has no effect if the window is in fullscreen mode.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param decorate A flag determining whether border decorations should be
      *                 turned on or off.
      * @return <ul>
@@ -478,12 +473,12 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::decorate
      */
-    int decorateWindow( const int windowID, bool decorate );
+    int decorateWindow( const int ID, bool decorate );
 
     /**
      * Set the state of the window's mouse cursor.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param cursor   The new cursor type of the window.
      *
      * @return <ul>
@@ -495,12 +490,12 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::setCursor
      */
-    int setWindowCursor( const int windowID, arCursor cursor );
+    int setWindowCursor( const int ID, arCursor cursor );
 
     /**
      * Set the state of the window's z order.
      *
-     * @param windowID The window to perform the operation on.
+     * @param ID The window to perform the operation on.
      * @param zorder   The new zorder of the window.
      *
      * @return <ul>
@@ -512,41 +507,38 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::raise
      */
-    int raiseWindow( const int windowID, arZOrder zorder );
+    int raiseWindow( const int ID, arZOrder zorder );
 
-    //@{
-    /** @name Window state accessors
-     *
-     * Retrieve or set a window's current state.
-     */
-    bool windowExists( const int windowID );
+    // Accessors.
 
-    arVector3 getWindowSize( const int windowID );
-    arVector3 getWindowPos( const int windowID );
-    arVector3 getMousePos( const int windowID );
+    // How are these used?  why not return arVector2 instead?
+    // Better yet, return bool, and stuff x and y passed by reference.
+    arVector3 getWindowSize( const int ID );
+    arVector3 getWindowPos( const int ID );
+    arVector3 getMousePos( const int ID );
 
-    arCursor getWindowCursor( const int windowID );
+    arCursor getWindowCursor( const int ID );
 
-    bool isStereo( const int windowID );
-    bool isFullscreen( const int windowID );
-    bool isDecorated( const int windowID );
+    bool isStereo( const int ID );
+    bool isFullscreen( const int ID );
+    bool isDecorated( const int ID );
+    bool windowExists( const int ID ) const { return _windows.find( ID ) != _windows.end(); }
 
-    arZOrder getZOrder( const int windowID );
+    arZOrder getZOrder( const int ID );
 
-    int getBpp( const int windowID );
-    std::string getTitle( const int windowID );
-    std::string getXDisplay( const int windowID );
+    int getBpp( const int ID );
+    std::string getTitle( const int ID );
+    std::string getXDisplay( const int ID );
 
-    void setTitle( const int windowID, const std::string& title );
+    void setTitle( const int ID, const std::string& title );
     void setAllTitles( const std::string& baseTitle, bool overwrite=true );
 
-    void* getUserData( const int windowID );
-    void setUserData( const int windowID, void* userData );
+    void* getUserData( const int ID );
+    void setUserData( const int ID, void* userData );
 
-    arGraphicsWindow* getGraphicsWindow( const int windowID );
-    void returnGraphicsWindow( const int windowID );
-    void setGraphicsWindow( const int windowID, arGraphicsWindow* graphicsWindow );
-    //@}
+    arGraphicsWindow* getGraphicsWindow( const int ID );
+    void returnGraphicsWindow( const int ID );
+    void setGraphicsWindow( const int ID, arGraphicsWindow* graphicsWindow );
 
     /**
      * Retrieve the current state of a keyboard key.
@@ -576,7 +568,7 @@ class SZG_CALL arGUIWindowManager
     int getNumWindows( void ) const { return _windows.size(); }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
 
-    bool isFirstWindow( const int windowID ) const { return( _windows.find( windowID ) == _windows.begin() ); }
+    bool isFirstWindow( const int ID ) const { return( _windows.find( ID ) == _windows.begin() ); }
     int getFirstWindowID( void ) const { return _windows.begin()->first; }
 
     bool isThreaded( void ) const { return _threaded; }
@@ -594,7 +586,7 @@ class SZG_CALL arGUIWindowManager
      *       multi-threaded mode the draw request will be passed as a blocking
      *       message to the window.
      *
-     * @param windowID The window for which to request the kill.
+     * @param ID The window for which to request the kill.
      *
      * @return <ul>
      *           <li>0 on success (with a guarantee that on return the window
@@ -605,7 +597,7 @@ class SZG_CALL arGUIWindowManager
      * @see addWMEvent
      * @see arGUIWindow::_killWindow
      */
-    int deleteWindow( const int windowID );
+    int deleteWindow( const int ID );
 
     /**
      * Issue a kill request to every window.
@@ -650,7 +642,7 @@ class SZG_CALL arGUIWindowManager
      *          It will be managed by the window itself.  The caller is also
      *          the one who should decide if this is a blocking call or not.
      *
-     * @param windowID The window to pass the message to.
+     * @param ID The window to pass the message to.
      * @param event    The message to pass to the window.
      *
      * @return A pointer to the event added by the window, necessary so that
@@ -658,7 +650,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see arGUIWindow::addWMEvent
      */
-    arWMEvent* addWMEvent( const int windowID, arGUIWindowInfo event );
+    arWMEvent* addWMEvent( const int ID, arGUIWindowInfo event );
 
     /**
      * Add a window manager message to every window.
@@ -686,9 +678,9 @@ class SZG_CALL arGUIWindowManager
      *
      * Organizes functionality common to both delete calls.
      *
-     * @param windowID The window to send the message to.
+     * @param ID The window to send the message to.
      */
-    void _sendDeleteEvent( const int windowID );
+    void _sendDeleteEvent( const int ID );
 
     //@{
     /** @name Wrappers for the keyboard, mouse, and window callbacks.
@@ -702,15 +694,16 @@ class SZG_CALL arGUIWindowManager
     virtual void _windowHandler( arGUIWindowInfo* windowInfo );
     //@}
 
-    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );              // The keyboard event callback
-    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );             // The mouse event callback
-    void (*_windowCallback)( arGUIWindowInfo* windowInfo );          // The window event callback
-    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    // The window opengl initialization callback
+    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );              // keyboard events
+    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );             // mouse events
+    void (*_windowCallback)( arGUIWindowInfo* windowInfo );          // window events
+    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    // opengl init
+    int _doEvent(const int ID, const arGUIWindowInfo& event);
 
     WindowMap _windows;       // A map of all the managed windows and their id's.
-    int _maxWindowID;         // The maximum window ID, used in creating new windows.
-    bool _threaded;           // The mode of operation for the window manager.
+    int _maxID;         // The maximum window ID, used in creating new windows.
+    bool _threaded;           // False iff windowmanager is singlethreaded.
     void* _userData;          // Default user defined data pointer passed to created windows.
 };
 
-#endif  // header guard
+#endif

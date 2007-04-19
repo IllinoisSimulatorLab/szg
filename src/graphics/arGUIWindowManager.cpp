@@ -1,8 +1,5 @@
-/**
- * @file arGUIWindowManager.cpp
- * Implementation of class arGUIWindowManager.
- */
 #include "arPrecompiled.h"
+
 #include "arStructuredData.h"
 #include "arMath.h"
 #include "arDataUtilities.h"
@@ -17,17 +14,12 @@
 void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki){
   if (!ki)
     return;
-  if ( ki->getState() == AR_KEY_DOWN ){
-    switch( ki->getKey() ){
-    case AR_VK_ESC:
-      if (ki->getWindowManager()){
-        ki->getWindowManager()->deleteWindow(ki->getWindowID());
-      }
-      break;
-  default:
-    // avoid compiler warning
-    break;
-    }
+  if ( ki->getState() != AR_KEY_DOWN )
+    return;
+  if (ki->getKey() == AR_VK_ESC) {
+    arGUIWindowManager* wm = ki->getWindowManager();
+    if (wm)
+      wm->deleteWindow(ki->getWindowID());
   }
 }
 
@@ -37,10 +29,10 @@ void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ){
   arGUIWindowManager* wm = wi->getWindowManager();
   if (!wm)
     return;
+
   switch( wi->getState() ){
   case AR_WINDOW_RESIZE:
-    wm->setWindowViewport(
-      wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY() );
+    wm->setWindowViewport(wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
     wm->deleteWindow(wi->getWindowID());
@@ -60,7 +52,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   _mouseCallback( mouseCB ),
   _windowCallback( windowCB ? windowCB : ar_windowManagerDefaultWindowFunction),
   _windowInitGLCallback( windowInitGLCB ),
-  _maxWindowID( 0 ),
+  _maxID( 0 ),
   _threaded( threaded )
 {
 #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -74,8 +66,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
 
 arGUIWindowManager::~arGUIWindowManager( void )
 {
-  WindowIterator witr;
-  for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
+  for( WindowIterator witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     delete witr->second;
   }
 }
@@ -157,13 +148,13 @@ int arGUIWindowManager::startWithoutSwap( void )
 int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
                                    bool useWindowing )
 {
-  arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
+  arGUIWindow* window = new arGUIWindow( _maxID, windowConfig,
                                          _windowInitGLCallback, _userData );
   // Tell the window who owns it... so events will include this info.
   // Let event processing callbacks refer to the window manager.
   window->setWindowManager( this );
 
-  _windows[ _maxWindowID ] = window;
+  _windows[ _maxID ] = window;
 
   // Make the OS window, if it was requested.
   if (useWindowing){
@@ -172,7 +163,7 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
       if( window->beginEventThread() < 0 ) {
         // Already printed warning.
         delete window;
-        _windows.erase( _maxWindowID );
+        _windows.erase( _maxID );
         return -1;
       }
     }
@@ -180,21 +171,21 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
       if( window->_performWindowCreation() < 0 ) {
         // Already printed warning.
         delete window;
-        _windows.erase( _maxWindowID );
+        _windows.erase( _maxID );
         return -1;
       }
     }
   }
 
-  return _maxWindowID++;
+  return _maxID++;
 }
 
-int arGUIWindowManager::registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback )
+int arGUIWindowManager::registerDrawCallback( const int ID, arGUIRenderCallback* drawCallback )
 {
-  if(!windowExists(windowID))
+  if (!windowExists(ID))
     return -1;
 
-  _windows[ windowID ]->registerDrawCallback( drawCallback );
+  _windows[ ID ]->registerDrawCallback( drawCallback );
   return 0;
 }
 
@@ -211,7 +202,7 @@ int arGUIWindowManager::processWindowEvents( void )
   // to push any pending gui events onto their stack since they are not doing
   // this in their own thread
   if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
-    ar_log_warning() << "arGUIWindowManager warning: processWindowEvents: consumeAllWindowEvents Error" << ar_endl;
+    ar_log_warning() << "arGUIWindowManager processWindowEvents consumeAllWindowEvents problem.\n";
   }
 
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
@@ -267,87 +258,82 @@ int arGUIWindowManager::processWindowEvents( void )
   return 0;
 }
 
-arGUIInfo* arGUIWindowManager::getNextWindowEvent( const int windowID )
+arGUIInfo* arGUIWindowManager::getNextWindowEvent( const int ID )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getNextGUIEvent() : NULL;
+  return windowExists(ID) ?  _windows[ ID ]->getNextGUIEvent() : NULL;
 }
 
-arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo event )
+arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
 {
-  if (!windowExists(windowID))
+  if (!windowExists(ID))
     return NULL;
 
   arWMEvent* eventHandle = NULL;
 
-  // ensure that the windowID is set correctly, some functions depend on it
-  // being present
-  event.setWindowID( windowID );
+  // Some functions need the correct windowID set.
+  e.setWindowID( ID );
+  arGUIWindow* w = _windows[ID];
 
-  // in single threaded mode, just execute this command directly, no need to
-  // do all the message passing
-  if( !_threaded ) {
-    switch( event.getState() ) {
+  if (_threaded) {
+    eventHandle = w->addWMEvent( e );
+  }
+  else {
+    // Don't pass a message. Just do the command.
+    switch( e.getState() ) {
       case AR_WINDOW_SWAP:
-        _windows[ windowID ]->swap();
+        w->swap();
       break;
 
       case AR_WINDOW_DRAW:
-        _windows[ windowID ]->_drawHandler();
+        w->_drawHandler();
       break;
 
       case AR_WINDOW_RESIZE:
-        _windows[ windowID ]->resize( event.getSizeX(), event.getSizeY() );
+        w->resize( e.getSizeX(), e.getSizeY() );
       break;
 
       case AR_WINDOW_MOVE:
-        _windows[ windowID ]->move( event.getPosX(), event.getPosY() );
+        w->move( e.getPosX(), e.getPosY() );
       break;
 
       case AR_WINDOW_VIEWPORT:
-        _windows[ windowID ]->setViewport( event.getPosX(), event.getPosY(),
-                                           event.getSizeX(), event.getSizeY() );
+        w->setViewport( e.getPosX(), e.getPosY(), e.getSizeX(), e.getSizeY() );
       break;
 
       case AR_WINDOW_FULLSCREEN:
-        _windows[ windowID ]->fullscreen();
+        w->fullscreen();
       break;
 
       case AR_WINDOW_DECORATE:
-        _windows[ windowID ]->decorate( (event.getFlag() == 1) );
+        w->decorate( (e.getFlag() == 1) );
       break;
 
       case AR_WINDOW_RAISE:
-        _windows[ windowID ]->raise( arZOrder( event.getFlag() ) );
+        w->raise( arZOrder( e.getFlag() ) );
       break;
 
       case AR_WINDOW_CURSOR:
-        _windows[ windowID ]->setCursor( arCursor( event.getFlag() ) );
+        w->setCursor( arCursor( e.getFlag() ) );
       break;
 
       case AR_WINDOW_CLOSE:
-        // Does not seem to work in some situations on OS X. BUG BUG BUG BUG BUG BUG.
+        // bug: fails sometimes in OS X.
 #ifndef AR_USE_DARWIN
-        _windows[ windowID ]->_killWindow();
+        w->_killWindow();
 #endif
       break;
 
       default:
-        // print error/warning?
+        // warn?
       break;
     }
   }
-  else {
-    eventHandle = _windows[ windowID ]->addWMEvent( event );
-  }
 
-  // do not call wait on the eventHandle here, the caller is the one who
-  // decides whether this was a blocking request or not
+  // Do not wait on the eventHandle.  The caller decides if this request blocks.
   return eventHandle;
 }
 
-int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
-                                       bool blocking ){
+int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ){
   static bool warn = false;
   if( !warn && blocking && !_threaded ) {
     // Bugs in a syzygy framework might cause a deadlock here.
@@ -355,11 +341,9 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
     warn = true;
   }
 
+  // Pass the event to all windows so they can get started on it
   WindowIterator witr;
   EventVector eventHandles;
-  EventIterator eitr;
-
-  // Pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
     if( eventHandle ) {
@@ -371,24 +355,25 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
   }
 
   // Wait for the events to complete.
+  EventIterator eitr;
   for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ )
     (*eitr)->wait( blocking );
   return 0;
 }
 
-int arGUIWindowManager::swapWindowBuffer( const int windowID, bool blocking )
+int arGUIWindowManager::swapWindowBuffer( const int ID, bool blocking )
 {
   arWMEvent* eventHandle = addWMEvent(
-    windowID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_SWAP ) );
+    ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_SWAP ) );
   if( eventHandle )
     eventHandle->wait( blocking );
   return 0;
 }
 
-int arGUIWindowManager::drawWindow( const int windowID, bool blocking )
+int arGUIWindowManager::drawWindow( const int ID, bool blocking )
 {
   arWMEvent* eventHandle = addWMEvent(
-    windowID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ) );
+    ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ) );
   if( eventHandle )
     eventHandle->wait( blocking );
   return 0;
@@ -404,142 +389,99 @@ int arGUIWindowManager::drawAllWindows( bool blocking )
   return addAllWMEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ), blocking );
 }
 
-int arGUIWindowManager::consumeWindowEvents( const int windowID, bool /*blocking*/ )
+int arGUIWindowManager::consumeWindowEvents( const int ID, bool /*blocking*/ )
 {
-  if( _threaded || !windowExists(windowID))
-    return -1;
-
-  return _windows[ windowID ]->_consumeWindowEvents();
+  return (_threaded || !windowExists(ID)) ? -1 :
+    _windows[ ID ]->_consumeWindowEvents();
 }
-
 
 int arGUIWindowManager::consumeAllWindowEvents( bool /*blocking*/ )
 {
   if( _threaded )
     return -1;
 
-  bool allSuccess = 0;
+  bool ok = true;
   for( WindowIterator itr = _windows.begin(); itr != _windows.end(); itr++ ) {
-    if( itr->second->_consumeWindowEvents() < 0 ) {
-      allSuccess = -1;
-    }
+    ok &= itr->second->_consumeWindowEvents() >= 0;
   }
-  return allSuccess;
+  return ok ? 0 : -1;
 }
 
-int arGUIWindowManager::resizeWindow( const int windowID, int width, int height )
-{
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_RESIZE );
-  event.setSizeX( width );
-  event.setSizeY( height );
+int arGUIWindowManager::_doEvent(const int ID, const arGUIWindowInfo& event) {
+  arWMEvent* eventHandle = addWMEvent( ID, event );
+  if (eventHandle)
+    eventHandle->wait(false);
+  return 0;
+}
 
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
+int arGUIWindowManager::resizeWindow( const int ID, int width, int height )
+{
+  arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_RESIZE );
+  e.setSize(width, height);
   // call the user's window callback with a resize event?
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::moveWindow( const int windowID, int x, int y )
+int arGUIWindowManager::moveWindow( const int ID, int x, int y )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_MOVE );
-  event.setPosX( x );
-  event.setPosY( y );
-
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_MOVE, -1, 0, x, y );
   // call the user's window callback with a move event?
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::setWindowViewport( const int windowID, int x, int y, int width, int height )
+int arGUIWindowManager::setWindowViewport( const int ID, int x, int y, int width, int height )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT );
-  event.setPosX( x );
-  event.setPosY( y );
-  event.setSizeX( width );
-  event.setSizeY( height );
-
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT, -1, 0, x, y, width, height);
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::fullscreenWindow( const int windowID )
+int arGUIWindowManager::fullscreenWindow( const int ID )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_FULLSCREEN );
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_FULLSCREEN );
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
+int arGUIWindowManager::decorateWindow( const int ID, bool decorate )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_DECORATE );
-  event.setFlag( decorate ? 1 : 0 );
-
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_DECORATE, -1, decorate?1:0 );
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::raiseWindow( const int windowID, arZOrder zorder )
+int arGUIWindowManager::raiseWindow( const int ID, arZOrder zorder )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_RAISE );
-  event.setFlag( int( zorder ) );
-
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_RAISE, -1, int(zorder) );
+  return _doEvent(ID, e);
 }
 
-int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
+int arGUIWindowManager::setWindowCursor( const int ID, arCursor cursor )
 {
-  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_CURSOR );
-  event.setFlag( int( cursor ) );
-
-  arWMEvent* eventHandle = addWMEvent( windowID, event );
-  if( eventHandle )
-    eventHandle->wait( false );
-  return 0;
+  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_CURSOR, -1, int(cursor) );
+  return _doEvent(ID, e);
 }
 
-bool arGUIWindowManager::windowExists( const int windowID )
+int arGUIWindowManager::getBpp( const int ID )
 {
-  return _windows.find( windowID ) != _windows.end();
+  return windowExists(ID) ? _windows[ ID ]->getBpp() : 0;
 }
 
-int arGUIWindowManager::getBpp( const int windowID )
+std::string arGUIWindowManager::getTitle( const int ID )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getBpp() : 0;
+  return windowExists(ID) ? _windows[ ID ]->getTitle() : std::string( "" );
 }
 
-std::string arGUIWindowManager::getTitle( const int windowID )
+std::string arGUIWindowManager::getXDisplay( const int ID ){
+  return windowExists(ID) ? _windows[ ID ]->getXDisplay() : std::string( "" );
+}
+
+void arGUIWindowManager::setTitle( const int ID, const std::string& title )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getTitle() : std::string( "" );
-}
-
-std::string arGUIWindowManager::getXDisplay( const int windowID ){
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getXDisplay() : std::string( "" );
-}
-
-void arGUIWindowManager::setTitle( const int windowID, const std::string& title )
-{
-  if (windowExists(windowID))
-    _windows[ windowID ]->setTitle( title );
+  if (windowExists(ID))
+    _windows[ ID ]->setTitle( title );
 }
 
 void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwrite )
 {
-  const bool fOneWindow = _windows.size() == 1;
+  const bool fOneWindow = _windows.size() == 1; // bug? this is true more often than it should be?
   for (WindowIterator iter = _windows.begin(); iter != _windows.end(); ++iter) {
     arGUIWindow* win = iter->second;
     if (!overwrite && !win->untitled())
@@ -555,85 +497,80 @@ void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwr
   }
 }
 
-// How is this used?  why not return arVector2 instead?
-// better yet, return bool, and stuff x and y passed by reference.
-
-arVector3 arGUIWindowManager::getWindowSize( const int windowID )
+arVector3 arGUIWindowManager::getWindowSize( const int ID )
 {
-  return windowExists(windowID) ?
-    arVector3( float( _windows[ windowID ]->getWidth() ), float( _windows[ windowID ]->getHeight() ), 0.0f ) :
+  return windowExists(ID) ?
+    arVector3( _windows[ ID ]->getWidth(), _windows[ ID ]->getHeight(), 0.0f ) :
     arVector3( -1.0f, -1.0f, -1.0f );
 }
 
-arVector3 arGUIWindowManager::getWindowPos( const int windowID )
+arVector3 arGUIWindowManager::getWindowPos( const int ID )
 {
-  return windowExists(windowID) ?
-    arVector3( float( _windows[ windowID ]->getPosX() ), float( _windows[ windowID ]->getPosY() ), 0.0f ) :
+  return windowExists(ID) ?
+    arVector3( _windows[ ID ]->getPosX(), _windows[ ID ]->getPosY(), 0.0f ) :
     arVector3( -1.0f, -1.0f, -1.0f );
 }
 
-bool arGUIWindowManager::isStereo( const int windowID )
+bool arGUIWindowManager::isStereo( const int ID )
 {
-  return windowExists(windowID) && _windows[ windowID ]->isStereo();
+  return windowExists(ID) && _windows[ ID ]->isStereo();
 }
-bool arGUIWindowManager::isFullscreen( const int windowID )
+bool arGUIWindowManager::isFullscreen( const int ID )
 {
-  return windowExists(windowID) && _windows[ windowID ]->isFullscreen();
-}
-
-bool arGUIWindowManager::isDecorated( const int windowID )
-{
-  return windowExists(windowID) && _windows[ windowID ]->isDecorated();
+  return windowExists(ID) && _windows[ ID ]->isFullscreen();
 }
 
-arZOrder arGUIWindowManager::getZOrder( const int windowID )
+bool arGUIWindowManager::isDecorated( const int ID )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getZOrder() : AR_ZORDER_TOP /* default - no nil value? */;
+  return windowExists(ID) && _windows[ ID ]->isDecorated();
 }
 
-void* arGUIWindowManager::getUserData( const int windowID )
+arZOrder arGUIWindowManager::getZOrder( const int ID )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getUserData() : NULL;
+  return windowExists(ID) ?
+    _windows[ ID ]->getZOrder() : AR_ZORDER_TOP /* default - no nil value? */;
 }
 
-void arGUIWindowManager::setUserData( const int windowID, void* userData )
+void* arGUIWindowManager::getUserData( const int ID )
 {
-  if (windowExists(windowID))
-    _windows[ windowID ]->setUserData( userData );
+  return windowExists(ID) ?  _windows[ ID ]->getUserData() : NULL;
 }
 
-arGraphicsWindow* arGUIWindowManager::getGraphicsWindow( const int windowID )
+void arGUIWindowManager::setUserData( const int ID, void* userData )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getGraphicsWindow() : NULL;
+  if (windowExists(ID))
+    _windows[ ID ]->setUserData( userData );
 }
 
-void arGUIWindowManager::returnGraphicsWindow( const int windowID )
+arGraphicsWindow* arGUIWindowManager::getGraphicsWindow( const int ID )
 {
-  if (windowExists(windowID))
-    _windows[ windowID ]->returnGraphicsWindow();
+  return windowExists(ID) ? _windows[ ID ]->getGraphicsWindow() : NULL;
 }
 
-void arGUIWindowManager::setGraphicsWindow( const int windowID, arGraphicsWindow* graphicsWindow )
+void arGUIWindowManager::returnGraphicsWindow( const int ID )
 {
-  if (windowExists(windowID))
-    _windows[ windowID ]->setGraphicsWindow( graphicsWindow );
+  if (windowExists(ID))
+    _windows[ ID ]->returnGraphicsWindow();
 }
 
-arCursor arGUIWindowManager::getWindowCursor( const int windowID )
+void arGUIWindowManager::setGraphicsWindow( const int ID, arGraphicsWindow* graphicsWindow )
 {
-  return windowExists(windowID) ?
-    _windows[ windowID ]->getCursor() : AR_CURSOR_NONE;
+  if (windowExists(ID))
+    _windows[ ID ]->setGraphicsWindow( graphicsWindow );
 }
 
-arVector3 arGUIWindowManager::getMousePos( const int windowID )
+arCursor arGUIWindowManager::getWindowCursor( const int ID )
 {
-  if (!windowExists(windowID))
+  return windowExists(ID) ?
+    _windows[ ID ]->getCursor() : AR_CURSOR_NONE;
+}
+
+arVector3 arGUIWindowManager::getMousePos( const int ID )
+{
+  if (!windowExists(ID))
     return arVector3( -1.0f, -1.0f, -1.0f );
 
-  const arGUIMouseInfo mouseState = _windows[ windowID ]->getGUIEventManager()->getMouseState();
+  const arGUIMouseInfo mouseState = _windows[ ID ]->getGUIEventManager()->getMouseState();
   return arVector3( float( mouseState.getPosX() ), float( mouseState.getPosY() ), 0.0f );
 }
 
@@ -646,31 +583,29 @@ arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey /*key*/ )
 }
 
 void arGUIWindowManager::setThreaded( bool threaded ) {
-  // can't change threading mode once windows have been created
-  if (!_windows.size())
+  if (!hasActiveWindows())
     _threaded = threaded;
 }
 
-void arGUIWindowManager::_sendDeleteEvent( const int windowID )
+void arGUIWindowManager::_sendDeleteEvent( const int ID )
 {
-  arWMEvent* eventHandle = addWMEvent( windowID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE ) );
+  arWMEvent* eventHandle = addWMEvent( ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE ) );
   if( eventHandle ) {
-    // in multi-threading mode, wait until the window has processed the message
-    // before returning
+    // if _threaded, return only after the window has processed the message.
     eventHandle->wait( true );
   }
 }
 
-int arGUIWindowManager::deleteWindow( const int windowID )
+int arGUIWindowManager::deleteWindow( const int ID )
 {
-  _sendDeleteEvent( windowID );
-  if (!windowExists(windowID))
+  _sendDeleteEvent( ID );
+  if (!windowExists(ID))
     return -1;
 
   // Not sure why deleting this here causes crashes, etc.
-  //delete _windows[ windowID ];
+  //delete _windows[ ID ];
 
-  _windows.erase( windowID );
+  _windows.erase( ID );
 
   // call the user's window callback with a close event? (probably shouldn't,
   // the callback is most likely how we got here in the first place)
@@ -679,11 +614,10 @@ int arGUIWindowManager::deleteWindow( const int windowID )
 
 int arGUIWindowManager::deleteAllWindows( void )
 {
-  WindowIterator witr = _windows.begin();
-  while( witr != _windows.end() ) {
+  for (WindowIterator witr = _windows.begin(); witr != _windows.end(); ) {
     _sendDeleteEvent( witr->first );
     delete witr->second;
-    // Advance iterator so erase() doesn't invalidate it.
+    // Advance iterator "before" erase(), so erase() doesn't invalidate it.
     _windows.erase( witr++ );
   }
   return 0;
@@ -715,19 +649,19 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // Instead of invalidating iterators in the {add|delete}Window calls
   // in the loops below, iterate over a copy of all the window IDs.
 
-  std::vector< int > windowIDs;
+  std::vector< int > IDs;
   WindowIterator WItr;
   for( WItr = _windows.begin(); WItr != _windows.end(); WItr++ )
-    windowIDs.push_back( WItr->first );
+    IDs.push_back( WItr->first );
 
   std::vector< arGUIXMLWindowConstruct* >::const_iterator cItr;
   std::vector< int >::iterator wItr;
 
-  for( cItr = windowConstructs->begin(), wItr = windowIDs.begin();
-       (cItr != windowConstructs->end()) && (wItr != windowIDs.end());
+  for( cItr = windowConstructs->begin(), wItr = IDs.begin();
+       (cItr != windowConstructs->end()) && (wItr != IDs.end());
        cItr++, wItr++ ) {
     // Abbreviations.
-    const int windowID = *wItr;
+    const int ID = *wItr;
     const arGUIWindowConfig* config = (*cItr)->getWindowConfig();
 
     // Certain attributes cannot be tweaked during runtime.
@@ -737,11 +671,11 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     // window managers (like Xandros circa 2005) can't.
     // Since it doesn't hurt to remap the windows, recreate anyways,
     // even on OS's where it isn't necessary.
-    if( isStereo( windowID ) != config->getStereo() ||
-        getBpp( windowID ) != config->getBpp() ||
-        getXDisplay( windowID ) != config->getXDisplay() ||
-        isDecorated( windowID ) != config->getDecorate() ||
-        isFullscreen( windowID ) != config->getFullscreen() ) {
+    if( isStereo( ID ) != config->getStereo() ||
+        getBpp( ID ) != config->getBpp() ||
+        getXDisplay( ID ) != config->getXDisplay() ||
+        isDecorated( ID ) != config->getDecorate() ||
+        isFullscreen( ID ) != config->getFullscreen() ) {
       // Before deleting the current window, deactivate any framelocking.
       // When a new window has been mapped
       // and the first draw occurs, the user application will be responsible
@@ -749,7 +683,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       // do this).
       deactivateFramelock();
       // delete the current window.
-      deleteWindow( windowID );
+      deleteWindow( ID );
 
       // create the new window
       if ( addWindow( *config, useWindowing ) < 0 ){
@@ -758,24 +692,22 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     }
     else {
       // Tweak all the window's settings.
-      // The order of these tweaks matters.  If the current window
-      // is fullscreen, resize before move and decorate.
+      // If fullscreen, resize before move and decorate.
       // There may be other order interactions as well.
-      resizeWindow( windowID, config->getWidth(), config->getHeight() );
+      resizeWindow( ID, config->getWidth(), config->getHeight() );
 
-      // Since the decoration can affect the size of the window,
-      // re-resize to get our real requested size.
-      resizeWindow( windowID, config->getWidth(), config->getHeight() );
+      // Since decoration can change the window's size, re-resize.
+      resizeWindow( ID, config->getWidth(), config->getHeight() );
 
-      moveWindow( windowID, config->getPosX(), config->getPosY() );
-      setTitle( windowID, config->getTitle() );
-      setWindowCursor( windowID, config->getCursor() );
-      raiseWindow( windowID, config->getZOrder() );
+      moveWindow( ID, config->getPosX(), config->getPosY() );
+      setTitle( ID, config->getTitle() );
+      setWindowCursor( ID, config->getCursor() );
+      raiseWindow( ID, config->getZOrder() );
     }
   }
 
   // Delete any windows beyond what was parsed.
-  for( ; wItr != windowIDs.end(); wItr++ ) {
+  for( ; wItr != IDs.end(); wItr++ ) {
     if( deleteWindow( *wItr ) < 0 ) {
       ar_log_warning() << "arGUIWindowManager warning: failed to delete window: " << *wItr << ar_endl;
     }
