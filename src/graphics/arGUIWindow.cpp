@@ -397,10 +397,7 @@ arGUIInfo* arGUIWindow::getNextGUIEvent( void )
 
 bool arGUIWindow::eventsPending( void ) const
 {
-  if( !_running )
-    return false;
-
-  return _GUIEventManager->eventsPending();
+  return _running && _GUIEventManager->eventsPending();
 }
 
 arGraphicsWindow* arGUIWindow::getGraphicsWindow( void )
@@ -419,8 +416,7 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
   ar_mutex_lock(&_creationMutex);
   ar_mutex_lock(&_graphicsWindowMutex);
     if( _graphicsWindow ) {
-      // are we sure we own this graphics window?
-      delete _graphicsWindow;
+      delete _graphicsWindow; // do we really own this?
     }
     _graphicsWindow = graphicsWindow;
   ar_mutex_unlock(&_graphicsWindowMutex);
