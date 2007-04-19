@@ -3,10 +3,8 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-/**
- * @file arGUIInfo.h
- * Header file for the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
- */
+// Header file for the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
+
 #ifndef AR_GUI_INFO_H
 #define AR_GUI_INFO_H
 
@@ -18,50 +16,28 @@
 // it puts its pointer into all arGUIInfo events.
 class arGUIWindowManager;
 
-/**
- * Information about an OS event.
- *
- * 'Abstract' base class returned by arGUIEventManager to arWindow and
- * arWindowManager on requests for the next OS event.
- *
- * @see arWindowManager::getNextWindowEvent
- * @see arWindow::getNextGUIEvent
- */
+// Info about an OS event.
+//
+// 'Abstract' base class returned by arGUIEventManager to arWindow and
+// arWindowManager on requests for the next OS event.
+//
+// See arWindowManager::getNextWindowEvent, arWindow::getNextGUIEvent.
+
 class SZG_CALL arGUIInfo
 {
   public:
 
-    /**
-     * The arGUIInfo default constructor.
-     *
-     * @param eventType Which type of event this is.
-     * @param state     What state the event is in.
-     * @param windowID  Which window this event took place in.
-     * @param flag      Generic flag for function specific information.
-     * @param userData  User-defined data pointer.
-     */
+    // eventType Which type of event this is.
+    // state     What state the event is in.
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // userData  User-defined data pointer.
     arGUIInfo( arGUIEventType eventType = AR_GENERIC_EVENT,
                arGUIState state = AR_GENERIC_STATE,
                int windowID = -1, int flag = 0, void* userData = NULL );
-
-    /**
-     * An arGUIInfo constructor.
-     *
-     * @param data An arStructuredData record from which to create an arGUIInfo
-     *             object.
-     */
     arGUIInfo( arStructuredData& data );
 
-    /**
-     * The arGUIInfo destructor.
-     */
-    ~arGUIInfo( void );
-
-    //@{
-    /** @name arGUIInfo state accessors.
-     *
-     * Retrieve or set an arGUIInfo's state.
-     */
+    // Accessors.
     void setEventType( arGUIEventType eventType ) { _eventType = eventType; }
     arGUIEventType getEventType( void ) const { return _eventType; }
 
@@ -79,69 +55,38 @@ class SZG_CALL arGUIInfo
 
     void setWindowManager( arGUIWindowManager* wm) { _wm = wm; }
     arGUIWindowManager* getWindowManager( void ) const { return _wm; }
-    //@}
 
   private:
-    // variables common to all events
-
     arGUIEventType _eventType;    // The type of event.
     arGUIState _state;            // The state of the event.
-
     int _windowID;                // Identifier for the window this event took place in.
-
     int _flag;                    // A generic flag, use is defined on a per-function basis.
-
     void* _userData;              // A user-defined data pointer, defined on a per window basis.
-
     arGUIWindowManager* _wm;      // Points back to the window manager that generated this event.
 };
 
-/**
- * Information about a keyboard event.
- *
- * @see arGUIInfo
- * @see arGUIWindowManager::getKeyState
- * @see arGUIWindowManager::_keyboardHandler
- */
+// Info about a keyboard event.
+// See arGUIWindowManager::getKeyState, arGUIWindowManager::_keyboardHandler.
+
 class SZG_CALL arGUIKeyInfo : public arGUIInfo
 {
   public:
 
-    /**
-     * The arGUIKeyInfo default constructor.
-     *
-     * @param eventType Which type of event this is.
-     * @param state     What state the event is in
-     * @param windowID  Which window this event took place in.
-     * @param flag      Generic flag for function specific information.
-     * @param key       Which key was involved in this event.
-     * @param ctrl      The state of the ctrl modifier.
-     * @param alt       The state of the alt modifier.
-     */
+    // eventType Which type of event this is.
+    // state     What state the event is in
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // key       Which key was involved in this event.
+    // ctrl      The state of the ctrl modifier.
+    // alt       The state of the alt modifier.
     arGUIKeyInfo( arGUIEventType eventType = AR_KEY_EVENT,
                   arGUIState state = AR_GENERIC_STATE,
                   int windowID = -1, int flag = 0,
                   arGUIKey key = AR_VK_GARBAGE,
                   int ctrl = 0, int alt = 0 );
-
-    /**
-     * An arGUIKeyInfo constructor.
-     *
-     * @param data An arStructuredData record from which to create an
-     *             arGUIKeyInfo object.
-     */
     arGUIKeyInfo( arStructuredData& data );
 
-    /**
-     * The arGUIKeyInfo destructor.
-     */
-    ~arGUIKeyInfo( void );
-
-    //@{
-    /** @name arGUIKeyInfo state accessors.
-     *
-     * Retrieve or set an arGUIKeyInfo's state.
-     */
+    // Accessors.
     void setKey( arGUIKey key ) { _key = key; }
     arGUIKey getKey( void ) const { return _key; }
 
@@ -150,67 +95,39 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
 
     void setAlt( int alt ) { _alt = alt; }
     int getAlt( void ) const { return _alt; }
-    //@}
 
   private:
-
-    arGUIKey _key;      // The key involved in this event.
-
-    int _ctrl;          // The ctrl key modifier.
-    int _alt;           // The alt key modifier.
+    arGUIKey _key; // The key involved in this event.
+    int _ctrl;     // The ctrl key modifier.
+    int _alt;      // The alt key modifier.
 
     // Shift is not considered a modifier. All ascii
     // keypresses are translated to their shifted variants.
 };
 
-/**
- * Information about a mouse event.
- *
- * @see arGUIInfo
- * @see arGUIWindowManager::_mouseHandler
- */
+// Info about a mouse event.  See arGUIWindowManager::_mouseHandler.
+
 class SZG_CALL arGUIMouseInfo : public arGUIInfo
 {
   public:
-
-    /**
-     * The arGUIMouseInfo default constructor.
-     *
-     * @param eventType Which type of event this is.
-     * @param state     What state the event is in
-     * @param windowID  Which window this event took place in.
-     * @param flag      Generic flag for function specific information.
-     * @param button    Which mouse button was involved in this event.
-     * @param posX      The current x position of the mouse.
-     * @param posY      The current y position of the mouse.
-     * @param prevPosX  The previous x position of the mouse.
-     * @param prevPosY  The previous y position of the mouse.
-     */
+    // eventType Which type of event this is.
+    // state     What state the event is in
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // button    Which mouse button was involved in this event.
+    // posX      The current x position of the mouse.
+    // posY      The current y position of the mouse.
+    // prevPosX  The previous x position of the mouse.
+    // prevPosY  The previous y position of the mouse.
     arGUIMouseInfo( arGUIEventType eventType = AR_MOUSE_EVENT,
                     arGUIState state = AR_GENERIC_STATE,
                     int windowID = -1, int flag = 0,
                     arGUIButton button = AR_BUTTON_GARBAGE,
                     int posX = -1, int posY = -1,
                     int prevPosX = -1, int prevPosY = -1 );
-
-    /**
-     * An arGUIMouseInfo constructor.
-     *
-     * @param data An arStructuredData record from which to create an
-     *             arGUIMouseInfo object.
-     */
     arGUIMouseInfo( arStructuredData& data );
 
-    /**
-     * The arGUIMouseInfo destructor.
-     */
-    ~arGUIMouseInfo( void );
-
-    //@{
-    /** @name arGUIMouseInfo state accessors.
-     *
-     * Retrieve or set an arGUIMouseInfo's state.
-     */
+    // Accessors.
     void setButton( arGUIButton button ) { _button = button; }
     arGUIButton getButton( void ) const { return _button; }
 
@@ -228,10 +145,8 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
 
     int getPrevPosX( void ) const { return _prevPosX; }
     int getPrevPosY( void ) const { return _prevPosY; }
-    //@}
 
   private:
-
     arGUIButton _button;    // Mouse button involved in this event.
     int _posX;              // Current x position of the mouse.
     int _posY;              // Current y position of the mouse.
@@ -239,52 +154,29 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
     int _prevPosY;          // Previous y position of the mouse.
 };
 
-/**
- * Information about a window event.
- *
- * @see arGUIInfo
- * @see arGUIWindowManager::_windowHandler
- */
+// Info about a window event.  See arGUIWindowManager::_windowHandler.
+
 class SZG_CALL arGUIWindowInfo : public arGUIInfo
 {
   public:
 
-    /**
-     * The arGUIMouseInfo default constructor.
-     *
-     * @param eventType Which type of event this is.
-     * @param state     What state the event is in
-     * @param windowID  Which window this event took place in.
-     * @param flag      Generic flag for function specific information.
-     * @param posX      The x position of the window.
-     * @param posY      The y position of the window.
-     * @param sizeX     The width of the window.
-     * @param sizeY     The height of the window.
-     */
+    // eventType Which type of event this is.
+    // state     What state the event is in
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // posX      The x position of the window.
+    // posY      The y position of the window.
+    // sizeX     The width of the window.
+    // sizeY     The height of the window.
     arGUIWindowInfo( arGUIEventType eventType = AR_WINDOW_EVENT,
                      arGUIState state = AR_GENERIC_STATE,
                      int windowID = -1, int flag = 0,
                      int posX = -1, int posY = -1,
                      int sizeX = -1, int sizeY = -1 );
 
-    /**
-     * An arGUIWindowInfo constructor.
-     *
-     * @param data An arStructuredData record from which to create an
-     *             arGUIWindowInfo object.
-     */
     arGUIWindowInfo( arStructuredData& data );
 
-    /**
-     * The arGUIWindowInfo destructor.
-     */
-    ~arGUIWindowInfo( void );
-
-    //@{
-    /** @name arGUIWindowInfo state accessors.
-     *
-     * Retrieve or set an arGUIWindowInfo's state.
-     */
+    // Accessors.
     void setPosX( int posX ) { _posX = posX; }
     void setPosY( int posY ) { _posY = posY; }
     void setPos( int posX, int posY ) { _posX = posX; _posY = posY; }
@@ -298,7 +190,6 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
 
     int getSizeX( void ) const { return _sizeX; }
     int getSizeY( void ) const { return _sizeY; }
-    //@}
 
   private:
     int _posX;      // Window's x position.

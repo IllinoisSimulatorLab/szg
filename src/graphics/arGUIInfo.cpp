@@ -1,7 +1,10 @@
-/**
- * @file arGUIInfo.cpp
- * Implementation of the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
- */
+//********************************************************
+// Syzygy is licensed under the BSD license v2
+// see the file SZG_CREDITS for details
+//********************************************************
+
+// Implementation of the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
+
 #include "arPrecompiled.h"
 #include "arLogStream.h"
 #include "arGUIInfo.h"
@@ -24,11 +27,8 @@ arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
 arGUIInfo::arGUIInfo( arStructuredData& data )
 {
   _state = arGUIState( data.getDataInt( "state" ) );
-
   _eventType = arGUIEventType( data.getDataInt( "eventType" ) );
-
   _windowID = data.getDataInt( "windowID" );
-
   _flag = data.getDataInt( "flag" );
 
   // use getDataInt and <reinterpret_cast> instead?
@@ -37,10 +37,6 @@ arGUIInfo::arGUIInfo( arStructuredData& data )
   //data.dataOut( "userData", &_userData, AR_INT, 1 );
   _userData = NULL;
   _wm = NULL;
-}
-
-arGUIInfo::~arGUIInfo( void )
-{
 }
 
 arGUIKeyInfo::arGUIKeyInfo( arGUIEventType eventType, arGUIState state,
@@ -57,18 +53,13 @@ arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_KEY_EVENT ) {
-    std::cerr << "Cannot build arKeyInfo from this arStructuredData" << std::endl;
+    ar_log_warning() << "arGUIKeyInfo: not an AR_KEY_EVENT.\n";
     return;
   }
 
   _key = data.getDataInt( "key" );
-
   _ctrl = data.getDataInt( "ctrl" );
   _alt = data.getDataInt( "alt" );
-}
-
-arGUIKeyInfo::~arGUIKeyInfo( void )
-{
 }
 
 arGUIMouseInfo::arGUIMouseInfo( arGUIEventType eventType, arGUIState state,
@@ -87,7 +78,7 @@ arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_MOUSE_EVENT ) {
-    std::cerr << "Cannot build arMouseInfo from this arStructuredData" << std::endl;
+    ar_log_warning() << "arGUIMouseInfo: not an AR_MOUSE_EVENT.\n";
     return;
   }
 
@@ -99,10 +90,6 @@ arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
   _prevPosX = data.getDataInt( "prevPosX" );
   _prevPosY = data.getDataInt( "prevPosY" );
 
-}
-
-arGUIMouseInfo::~arGUIMouseInfo( void )
-{
 }
 
 arGUIWindowInfo::arGUIWindowInfo( arGUIEventType eventType, arGUIState state,
@@ -120,7 +107,7 @@ arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_WINDOW_EVENT ) {
-    std::cerr << "Cannot build arWindowInfo from this arStructuredData" << std::endl;
+    ar_log_warning() << "arGUIWindowInfo: not an AR_WINDOW_EVENT.\n";
     return;
   }
 
@@ -129,8 +116,4 @@ arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
 
   _sizeX = data.getDataInt( "sizeX" );
   _sizeY = data.getDataInt( "sizeY" );
-}
-
-arGUIWindowInfo::~arGUIWindowInfo( void )
-{
 }
