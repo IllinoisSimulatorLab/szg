@@ -39,9 +39,9 @@ int oldState = ROTATE;
 bool isPlaying = false;
 bool isModelSpinning = false;
 
-float bgColor = 0.0f;
-float _ratio = 1.0f;
-float frameRate = 0.0f;
+float bgColor = 0.;
+float _ratio = 1.;
+float frameRate = 0.;
 
 int sliderCenterX = -50;
 int sliderCenterY = 10; // slider position in pixels
@@ -52,9 +52,6 @@ arTexFont texFont;
 arGUIWindowManager* wm = NULL;
 arHead head; // not from a tracker
 
-// forward declaration
-void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
-
 // To use arGraphicsWindow::draw in the arGUIWindow as the draw callback
 class arSZGViewRenderCallback : public arGUIRenderCallback
 {
@@ -63,12 +60,12 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
     virtual ~arSZGViewRenderCallback( void ) {}
     virtual void operator()( arGraphicsWindow&, arViewport& ) {}
     virtual void operator()( arGUIWindowInfo* ) {}
-    virtual void operator()( arGUIWindowInfo* /*windowInfo*/, arGraphicsWindow* graphicsWindow ) {
-      if( graphicsWindow ) {
+    virtual void operator()( arGUIWindowInfo* /*wI*/, arGraphicsWindow* gW ) {
+      if( gW ) {
 #ifdef UNUSED
-        arVector3 size(wm->getWindowSize(windowInfo->getWindowID()));
+        arVector3 size(wm->getWindowSize(wI->getWindowID()));
 #endif
-        graphicsWindow->draw();
+        gW->draw();
       }
     }
 };
@@ -100,33 +97,33 @@ void drawHUD()
   // animation slider
   glColor3f( 0.9f, 0.9f, 0.9f );
   glBegin( GL_QUADS );  // draw box for slider et. al.
-  glVertex2f( 100.0f, 0.0f );
-  glVertex2f( 100.0f, 5.0f );
-  glVertex2f( 0.0f,   5.0f );
-  glVertex2f( 0.0f,   0.0f);
+  glVertex2f( 100., 0. );
+  glVertex2f( 100., 5. );
+  glVertex2f( 0.,   5. );
+  glVertex2f( 0.,   0.);
   glEnd();
 
   const float numFrames = theObject->numberOfFrames();
-  const float sliderStart = 5.0f;
-  const float sliderEnd   = 85.0f;
+  const float sliderStart = 5.;
+  const float sliderEnd   = 85.;
   const float sliderWidth = sliderEnd - sliderStart;
-  const float sliderMaxY  = 4.0f;
-  const float sliderMinY = 1.0f;
+  const float sliderMaxY  = 4.;
+  const float sliderMinY = 1.;
   float sliderSpacing = sliderWidth;
 
   glColor3f( 0.25f, 0.25f, 0.25f);
   glBegin( GL_LINES );  // draw slider bar
-  glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
-  glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
+  glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2. );
+  glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2. );
 
   // make each tick mark at least 10 px across onscreen, and geometric series
   // todo: once per window resize, not once per frame
-  float stepSize = 1.0f;
+  float stepSize = 1.;
   while ((sliderSpacing = sliderWidth / stepSize) > 10.)
     stepSize *= (int(stepSize) % 2 == 0) ? 2.5 : 2.0;
 
   // tick marks
-  for( float j = 0.0f; j <= sliderWidth; j += sliderSpacing ) {
+  for( float j = 0.; j <= sliderWidth; j += sliderSpacing ) {
     glVertex2f( sliderStart + j, sliderMaxY );
     glVertex2f( sliderStart + j, sliderMinY );
   }
@@ -164,8 +161,8 @@ void display( arGUIWindowInfo*, arGraphicsWindow* )
   }
 
   if( isModelSpinning ) {
-    mouseWorldMatrix = ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), 0.001f ) *
-    		       ar_rotationMatrix( arVector3( 1.0f, 0.0f, 0.0f ), 0.002f ) *
+    mouseWorldMatrix = ar_rotationMatrix( arVector3( 0., 1., 0. ), 0.001 ) *
+    		       ar_rotationMatrix( arVector3( 1., 0., 0. ), 0.002 ) *
 	    	       mouseWorldMatrix;
     dgTransform( mouseTransformID, mouseWorldMatrix );
   }
@@ -184,7 +181,7 @@ void display( arGUIWindowInfo*, arGraphicsWindow* )
   glLoadIdentity();
   glDisable( GL_LIGHTING );
   glDisable( GL_DEPTH_TEST );
-  glColor3f( 1.0f, 1.0f, 1.0f );
+  glColor3f( 1., 1., 1. );
   drawHUD();
 
 }
@@ -232,18 +229,18 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
     break;
 
     case AR_VK_APOST:
-      bgColor = ( bgColor > 0.99f ? 0.0f : bgColor + 0.25f );
-	    glClearColor( bgColor, bgColor, bgColor, 1.0f );
-	  break;
+      bgColor = ( bgColor > 0.99f ? 0. : bgColor + 0.25f );
+      glClearColor( bgColor, bgColor, bgColor, 1. );
+    break;
 
-	  case AR_VK_d:
-	  case AR_VK_o:
-	    theDatabase->printStructure();
-	  break;
+    case AR_VK_d:
+    case AR_VK_o:
+      theDatabase->printStructure();
+    break;
 
-	  case AR_VK_p:
-	    theDatabase->printStructure( 9 );
-	  break;
+    case AR_VK_p:
+      theDatabase->printStructure( 9 );
+    break;
 
     default:
     break;
@@ -270,21 +267,20 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
   }
 }
 
-
-void windowCB( arGUIWindowInfo* windowInfo )
+void windowCB( arGUIWindowInfo* wI )
 {
-  if( !windowInfo ) {
+  if( !wI ) {
     cerr << "NULL windowInfo in windowCB!" << endl;
     return;
   }
 
-  switch( windowInfo->getState() ) {
+  switch( wI->getState() ) {
     case AR_WINDOW_RESIZE:
-      wm->setWindowViewport( windowInfo->getWindowID(), 0, 0, windowInfo->getSizeX(), windowInfo->getSizeY() );
+      wm->setWindowViewport( wI->getWindowID(), 0, 0, wI->getSizeX(), wI->getSizeY() );
     break;
 
     case AR_WINDOW_CLOSE:
-      wm->deleteWindow( windowInfo->getWindowID() );
+      wm->deleteWindow( wI->getWindowID() );
 
       if( !wm->hasActiveWindows() ) {
         exit( 0 );
@@ -296,57 +292,48 @@ void windowCB( arGUIWindowInfo* windowInfo )
   }
 }
 
-void mouseCB( arGUIMouseInfo* mouseInfo )
+void mouseCB( arGUIMouseInfo* mI )
 {
-  arVector3 size = wm->getWindowSize( mouseInfo->getWindowID() );
-  int width = int( size[ 0 ] );
-  int height = int( size[ 1 ] );
+  const arVector3 size(wm->getWindowSize( mI->getWindowID() ));
+  const int width = int( size.v[ 0 ] );
+  const int height = int( size.v[ 1 ] );
 
-  if( mouseInfo->getState() == AR_MOUSE_DRAG ) {
-    const int deltaX = mouseInfo->getPosX() - mouseInfo->getPrevPosX();
-    const int deltaY = mouseInfo->getPosY() - mouseInfo->getPrevPosY();
+  if( mI->getState() == AR_MOUSE_DRAG ) {
+    const float deltaX = float(mI->getPosX() - mI->getPrevPosX());
+    const float deltaY = float(mI->getPosY() - mI->getPrevPosY());
 
     switch( mouseManipState ) {
       case SLIDER:
       {
-        arGUIMouseInfo* tMouseInfo = new arGUIMouseInfo( AR_MOUSE_EVENT, AR_GENERIC_STATE );
-        tMouseInfo->setButton( AR_LBUTTON );
-        tMouseInfo->setPosX( mouseInfo->getPosX() );
-        tMouseInfo->setPosY( mouseInfo->getPosY() );
-        tMouseInfo->setPrevPosX( mouseInfo->getPrevPosX() );
-        tMouseInfo->setPrevPosY( mouseInfo->getPrevPosY() );
-
-        mouseCB( tMouseInfo );
-
-        delete tMouseInfo;
+        arGUIMouseInfo tMouseInfo( AR_MOUSE_EVENT, AR_GENERIC_STATE,
+	  -1, 0, AR_LBUTTON, mI->getPosX(), mI->getPosY(),
+	  mI->getPrevPosX(), mI->getPrevPosY() );
+        mouseCB( &tMouseInfo );
         return;
       }
       break;
 
       case PAN:
-        mouseWorldMatrix = ar_translationMatrix( deltaX * 0.01f, deltaY * -0.01f, 0.0f ) *
-			                     mouseWorldMatrix;
+        mouseWorldMatrix = ar_TM( deltaX/100., deltaY/-100., 0. ) * mouseWorldMatrix;
       break;
 
       case ROTATE:
       {
-        arVector3 rotationAxis = arVector3( 0.0f, 0.0f, 1.0f ) * arVector3( float( deltaX ), float( deltaY ), 0 );
+        arVector3 rotationAxis(arVector3( 0., 0., 1. ) * arVector3( deltaX, deltaY, 0. ));
 
         if( ++rotationAxis > 0 ) {
           float mag = ++rotationAxis;
-          rotationAxis = rotationAxis / mag;
-
-          mouseWorldMatrix = ar_extractTranslationMatrix( mouseWorldMatrix ) *
-   		                       ar_rotationMatrix( arVector3( -1.0f, 0.0f, 0.0f ), float( -deltaY ) / 300.0f ) *
-   		                       ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), float( deltaX ) / 300.0f ) *
-  		                       ar_extractRotationMatrix( mouseWorldMatrix ) *
-  			               ar_extractScaleMatrix( mouseWorldMatrix );
+          rotationAxis /= mag;
+          mouseWorldMatrix = ar_ETM( mouseWorldMatrix ) *
+   	    ar_RM( arVector3( -1., 0., 0. ), -deltaY / 300. ) *
+   	    ar_RM( arVector3( 0., 1., 0. ), deltaX / 300. ) *
+  	    ar_ERM( mouseWorldMatrix ) * ar_ESM( mouseWorldMatrix );
         }
       break;
       }
 
       case ZOOM:
-        mouseWorldMatrix = mouseWorldMatrix * ar_scaleMatrix( 1.0f + 0.01f * float( deltaX ) );
+        mouseWorldMatrix = mouseWorldMatrix * ar_SM( 1. + deltaX/100. );
       break;
 
       default:
@@ -357,43 +344,41 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
   }
 
   // the rest is only applicable when the model supports animation
-  if( mouseInfo->getButton() != AR_LBUTTON || !theObject->supportsAnimation() ||
+  if( mI->getButton() != AR_LBUTTON || !theObject->supportsAnimation() ||
       ( theObject->numberOfFrames() < 1 ) ) {
     return;
   }
 
   // mouse down on the slider bar
-  if( mouseInfo->getPosY() > height - 20 && mouseInfo->getState() == AR_MOUSE_DOWN ) {
+  if( mI->getPosY() > height - 20 && mI->getState() == AR_MOUSE_DOWN ) {
     oldState = mouseManipState;
-    if( mouseInfo->getPosX() <= width - 57 && mouseInfo->getPosX() >= 20 ) {
-      mouseManipState = SLIDER;
-    }
-    else {
-      mouseManipState = NONE;
-    }
+    mouseManipState = ( mI->getPosX() <= width-57 && mI->getPosX() >= 20 ) ? SLIDER : NONE;
   }
 
   if( mouseManipState == SLIDER ) { // we're dragging
-    if( mouseInfo->getPosX() < 20 ) {
+    if( mI->getPosX() < 20 ) {
       theObject->setFrame( 0 );
     }
-    else if( mouseInfo->getPosX() > width - 57 ) {
+    else if( mI->getPosX() > width-57 ) {
       theObject->setFrame( theObject->numberOfFrames() - 1 );
     }
     else {
-      theObject->setFrame( int( float( mouseInfo->getPosX() - 20 ) / float( width - 77 ) *
+      theObject->setFrame( int( float( mI->getPosX()-20 ) / float( width-77 ) *
                                 float( theObject->numberOfFrames() ) ) );
 	  }
   }
 
-  if( mouseInfo->getState() == AR_MOUSE_UP ) {
+  if( mI->getState() == AR_MOUSE_UP ) {
     mouseManipState = oldState;	// done dragging bar
   }
 }
 
 int main( int argc, char** argv ){
   string fileName;
-  if (argc == 1){
+  if (argc > 1) {
+    fileName = string(argv[1]);
+  }
+  else {
     // Use local config file.
     FILE* configFile = fopen("szgview.txt", "r");
     if (!configFile){
@@ -401,15 +386,14 @@ int main( int argc, char** argv ){
       cout << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} [mesh.obj]\n";
       return 1;
     }
+
     char buf[1024];
     if (fscanf(configFile, "%s", buf) < 1){
       cout << "szgview error: config file szgview.txt is empty.\n";
       return 1;
     }
+
     fileName = string(buf);
-  }
-  else{
-    fileName = string(argv[1]);
   }
    
   theObject = ar_readObjectFromFile( fileName, "" );
@@ -429,9 +413,9 @@ int main( int argc, char** argv ){
   const string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
   theDatabase = new arGraphicsDatabase;
   char texPath[ 256 ] = {0};
-  #ifndef AR_USE_WIN_32
+#ifndef AR_USE_WIN_32
     getcwd( texPath, 256 );
-  #endif
+#endif
   theDatabase->setTexturePath( string( texPath ) );
 
   arMatrix4 worldMatrix( ar_translationMatrix( 0.0, 5.0, -5.0 ) );
@@ -466,15 +450,12 @@ int main( int argc, char** argv ){
   // Bad for a host with multiple graphics cards.
   wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, NULL, false );
 
-  // set up the head we'll use throughout
   head.setMatrix( ar_translationMatrix( 0.0, 5.0, 0.0 ) );
 
   const string whichDisplay = SZGClient.getMode( "graphics" );
   const string displayName = SZGClient.getAttribute( whichDisplay, "name" );
-  // cout << "Using display: " << displayName << endl;
 
-  arGUIXMLParser guiXMLParser(
-    &SZGClient, SZGClient.getGlobalAttribute( displayName ) );
+  arGUIXMLParser guiXMLParser( &SZGClient, SZGClient.getGlobalAttribute( displayName ) );
 
   if( guiXMLParser.parse() < 0 ) {
     return -1;
@@ -505,7 +486,7 @@ int main( int argc, char** argv ){
 
   string fontLocation = ar_fileFind( "courier-bold.ppm", "", textPath );
   if( fontLocation != "NULL" ) {
-    cout << "szgview remark: found szg system font.\n";
+    ar_log_remark() << "szgview found szg system font.\n";
   }
   else {
     fontLocation = "courier-bold.txf";
