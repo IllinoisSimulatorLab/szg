@@ -34,7 +34,7 @@ public:
 
 typedef map<string,PeerDescription,less<string> > PeerContainer;
 PeerContainer peers;
-arMutex peerLock;
+arLock peerLock;
 int xPos = 0;
 int yPos = 0;
 int xSize = 600;
@@ -138,10 +138,10 @@ string handleCreate(const string& messageBody){
     else{
       PeerDescription temp;
       temp.peer = peer;
-      ar_mutex_lock(&peerLock);
+      peerLock.lock();
 	// Lock, since another thread draws and uses this iterator.
 	peers.insert(PeerContainer::value_type(messageBody, temp));
-      ar_mutex_unlock(&peerLock);
+      peerLock.unlock();
       result << "szg-rp success: inserted peer " << messageBody << ".\n";
     }
   }
@@ -158,9 +158,9 @@ stringstream result;
     arGraphicsPeer* peer = i->second.peer;
     peer->closeAllAndReset();
     // Lock, since another thread draws and uses this iterator.
-    ar_mutex_lock(&peerLock);
+    peerLock.lock();
       peers.erase(i);
-    ar_mutex_unlock(&peerLock);
+    peerLock.unlock();
     // delete peer; // Memory leak: delete may be unsafe.
     result << "szg-rp success: deleted peer.\n";  
   }
@@ -348,7 +348,7 @@ void messageTask(void* pClient){
     }
     // This ends the messages specifically sent to the szg-rp.
     else{
-      ar_mutex_lock(&peerLock);
+      peerLock.lock();
       // By convention, the messageBody will be peer_name/stuff (though /stuff
       // is optional). The following call seperates out the peer name and
       // strips messageBody in place.
@@ -357,11 +357,11 @@ void messageTask(void* pClient){
       if (i == peers.end()){
         responseBody = string("szg-rp error: failed to find specified local ")
                        + string("peer.\n  (") + peerName + string(")\n");
-        ar_mutex_unlock(&peerLock);
+        peerLock.unlock();
       }
       else{
         arGraphicsPeer* temp = i->second.peer;
-        ar_mutex_unlock(&peerLock);
+        peerLock.unlock();
         responseBody = ar_graphicsPeerHandleMessage(temp, messageType, messageBody);
       }
     }
@@ -419,7 +419,7 @@ void display(){
   globalCamera.loadViewMatrices();
   arMatrix4 projectionCullMatrix(globalCamera.getProjectionMatrix());
   PeerContainer::iterator i;
-  ar_mutex_lock(&peerLock);
+  peerLock.lock();
   // first pass to draw the peers
   // Track how long it takes to read in the data, and draw that as well.
   double dataTime = 0;
@@ -479,7 +479,7 @@ void display(){
   if (showPerformance){
     framerateGraph.drawWithComposition();
   }
-  ar_mutex_unlock(&peerLock);
+  peerLock.unlock();
   // It seems like a good idea to throttle szg-rp artificially here.
   // After all, this workspace will be just *one* part of an overall
   // workflow. Whereas default throttling is bad in the dedicated 
@@ -503,18 +503,14 @@ void display(){
     frametime = int(ar_difftimeSafe(time1, temp));
   }
 
-  ar_mutex_lock(&peerLock);
+  peerLock.lock();
   for (i=peers.begin(); i!=peers.end(); i++){
     i->second.peer->broadcastFrameTime(averageFrameTime(frametime));
   }
-  arPerformanceElement* framerateElement 
-    = framerateGraph.getElement("framerate");
-  framerateElement->pushNewValue(1000000.0/frametime);
-  framerateElement = framerateGraph.getElement("consume");
-  framerateElement->pushNewValue(dataTime);
-  framerateElement = framerateGraph.getElement("bytes");
-  framerateElement->pushNewValue(dataAmount);
-  ar_mutex_unlock(&peerLock);
+  framerateGraph.getElement("framerate")->pushNewValue(1000000.0/frametime);
+  framerateGraph.getElement("consume")->pushNewValue(dataTime);
+  framerateGraph.getElement("bytes")->pushNewValue(dataAmount);
+  peerLock.unlock();
 }
 
 void keyboard(unsigned char key, int /*x*/, int /*y*/){
@@ -546,7 +542,6 @@ int main(int argc, char** argv){
   globalCamera.setUp(0,1,0);
 
   szgClient = new arSZGClient();
-  ar_mutex_init(&peerLock);
   szgClient->simpleHandshaking(false);
   const bool fInit = szgClient->init(argc, argv);
   if (!*szgClient){

@@ -25,10 +25,10 @@ void arGraphicsStateNode::draw(arGraphicsContext*){
 
 arStructuredData* arGraphicsStateNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r 
     = _dumpData(_stateName, _stateValueInt, _stateValueFloat, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -45,7 +45,7 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
          << " (" << _g->_stringFromID(data->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   _stateName = data->getDataString(_g->AR_GRAPHICS_STATE_STRING);
   _stateID = _convertStringToStateID(_stateName);
   int d[2]; 
@@ -53,30 +53,30 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
   _stateValueInt[0] = (arGraphicsStateValue) d[0];
   _stateValueInt[1] = (arGraphicsStateValue) d[1];
   data->dataOut(_g->AR_GRAPHICS_STATE_FLOAT, &_stateValueFloat, AR_FLOAT, 1);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 string arGraphicsStateNode::getStateName(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   string r = _stateName;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 arGraphicsStateID arGraphicsStateNode::getStateID(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arGraphicsStateID r = _stateID;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 bool arGraphicsStateNode::isFloatState(){
   // NOTE: _isFloatState is NOT thread-safe (since it uses the node's current
   // state).
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   bool r = _isFloatState();
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -86,14 +86,14 @@ bool arGraphicsStateNode::isFloatState(const string& stateName){
 
 bool arGraphicsStateNode::getStateValuesInt(arGraphicsStateValue& value1,
 		                            arGraphicsStateValue& value2){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   if (_isFloatState()){
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return false;
   }
   value1 = _stateValueInt[0];
   value2 = _stateValueInt[1];
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
@@ -128,13 +128,13 @@ string arGraphicsStateNode::getStateValueString(int i){
 }
 
 bool arGraphicsStateNode::getStateValueFloat(float& value){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   if (!_isFloatState()){
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return false;
   }
   value = _stateValueFloat;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
@@ -157,21 +157,21 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
     arGraphicsStateValue stateValueInt[2];
     stateValueInt[0] = value1;
     stateValueInt[1] = value2;
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(stateName, stateValueInt, 
                                     _stateValueFloat, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else {
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _stateValueFloat = -1.;
     _stateName = stateName;
     _stateID = id;
     _stateValueInt[0] = value1;
     _stateValueInt[1] = value2;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
   return true;
 }
@@ -193,21 +193,21 @@ bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
     return false;
   }
   if (_owningDatabase) {
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(stateName, NULL, stateValueFloat, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     delete r;
   }
   else {
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _stateName = stateName;
     _stateID = id;
     // Sensible defaults.
     _stateValueInt[0] = AR_G_FALSE;
     _stateValueInt[1] = AR_G_FALSE;
     _stateValueFloat = stateValueFloat;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
   return true;
 }

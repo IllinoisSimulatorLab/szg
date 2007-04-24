@@ -33,36 +33,36 @@ arGraphicsPluginNode::~arGraphicsPluginNode() {
 
 
 void arGraphicsPluginNode::draw(arGraphicsContext* context) {
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   if (!_object) {
     ar_log_debug() << "arGraphicsPluginNode draw() without valid plugin object." << ar_endl;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return;
   }
   arGraphicsWindow* win = context->getWindow();
   if (!win) {
     ar_log_error() << "arGraphicsPluginNode draw() not passed a valid arGraphicsWindow." << ar_endl;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return;
   }
   arViewport* vp = context->getViewport();
   if (!vp) {
     ar_log_error() << "arGraphicsPluginNode draw() not passed a valid arViewport." << ar_endl;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return;
   }
   _object->draw( *win, *vp );
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
 }
 
 
 arStructuredData* arGraphicsPluginNode::dumpData() {
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData( _fileName, _intData, _longData,
                                    _floatData, _doubleData, _stringData,
                                    false );
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -77,11 +77,11 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
          << data->getID() << " (" << _g->_stringFromID(data->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   std::string newFileName = data->getDataString( _g->AR_GRAPHICS_PLUGIN_NAME );
   if (!_object && (newFileName == "")) {
     ar_log_error() << "arGraphicsPluginNode got empty file name.\n";
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return false;
   }
   if (_object && (newFileName != _fileName)) {
@@ -95,7 +95,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   if (!_isGraphicsServer) {
     if (!_object) {
       if (_triedToLoad) {
-        ar_mutex_unlock(&_nodeLock);
+        _nodeLock.unlock();
         return true;
       }
       ar_log_debug() << "arGraphicsPluginNode attempting to create " << _fileName
@@ -104,7 +104,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
       if (!_object) {
         ar_log_error() << "arGraphicsPluginNode failed to create " << _fileName
                        << " object." << ar_endl;
-        ar_mutex_unlock(&_nodeLock);
+        _nodeLock.unlock();
         return true;
       }
       ar_log_debug() << "arGraphicsPluginNode successfully created "
@@ -121,7 +121,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
 
   if (numStrings == -1) {
     ar_log_error() << "arGraphicsPluginNode got numStrings==-1 in receiveData().\n";
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return false;
   }
 
@@ -154,7 +154,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
     stat = _object->setState( _intData, _longData, _floatData, _doubleData, _stringData );
   }
 
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return stat;
 }
 

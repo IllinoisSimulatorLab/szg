@@ -20,7 +20,6 @@ arSharedMemDriver::arSharedMemDriver() :
   _shmFoB(NULL),
   _shmWand(NULL)
 {
-  ar_mutex_init(&_lockShm);
 }
 
 arSharedMemDriver::~arSharedMemDriver() {
@@ -78,7 +77,7 @@ bool arSharedMemDriver::start() {
     return false;
   }
 
-  ar_mutex_lock(&_lockShm);
+  _l.lock();
   const int idFoB = shmget(4136, 0, 0666);
   if (idFoB < 0){
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
@@ -99,7 +98,7 @@ bool arSharedMemDriver::start() {
     perror("shmat failed for wand");
     return false;
   }
-  ar_mutex_unlock(&_lockShm);
+  _l.unlock();
 
   return _eventThread.beginThread(ar_ShmDriverDataTask,this);
 #endif
@@ -107,7 +106,7 @@ bool arSharedMemDriver::start() {
 
 void arSharedMemDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  ar_mutex_lock(&_lockShm);
+  _l.lock();
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
@@ -118,7 +117,7 @@ void arSharedMemDriver::_detachMemory() {
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
-  ar_mutex_unlock(&_lockShm);
+  _l.unlock();
 #endif
 }
 
@@ -143,7 +142,7 @@ void arSharedMemDriver::_dataThread() {
   _eventThreadRunning = true;
   memset(_buttonPrev, 0, sizeof(_buttonPrev));
   while (!_stopped && _eventThreadRunning) {
-    ar_mutex_lock(&_lockShm);
+    _l.lock();
     queueMatrix(0, generateMatrix(0, _shmFoB));
     queueMatrix(1, generateMatrix(1, _shmFoB));
     queueMatrix(2, generateMatrix(2, _shmFoB));
@@ -159,7 +158,7 @@ void arSharedMemDriver::_dataThread() {
 	}
     }
 
-    ar_mutex_unlock(&_lockShm);
+    _l.unlock();
     sendQueue();
     ar_usleep(10000); // throttle
   }

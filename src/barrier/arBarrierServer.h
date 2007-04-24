@@ -27,7 +27,7 @@ class SZG_CALL arBarrierServer{
   ~arBarrierServer();
 
   void setServiceName(string serviceName);
-  bool init(const string& serviceName, const string& channel, arSZGClient& client);
+  bool init(const string& serviceName, const string& channel, arSZGClient&);
   bool start();
   void stop();
   int getDrawTime() const { return _drawTime; }
@@ -56,9 +56,9 @@ class SZG_CALL arBarrierServer{
   arSZGClient*   _client;
   string         _serviceName;
   
-  int            _totalWaiting;
+  int            _totalWaiting; // too complicated for arIntAtom
   arConditionVar _waitingCondVar;
-  arMutex        _waitingLock; // Guards _totalWaiting and _waitingCondVar (?)
+  arMutex       _waitingLock; // with _waitingCondVar, guards _totalWaiting and _waitingCondVar (?)
 
   arThread _releaseThread;
   arThread _receiveThread;
@@ -70,11 +70,11 @@ class SZG_CALL arBarrierServer{
   arSignalObject* _signalObjectRelease;
 
   // internal storage for the tuning information
-  int _drawTime;        // time it took to execute the actual draw command
-  int _rcvTime;         // time it took to receive the data
-  int _procTime;        // time it took to process the data
-  int _frameNum;        // the ID of the frame last processed
-  int _serverSendSize;  // the amount of data the server sent
+  int _drawTime;        // duration of the actual draw command
+  int _rcvTime;         // time to receive the data
+  int _procTime;        // time to process the data
+  int _frameNum;        // ID of the frame last processed
+  int _serverSendSize;  // amount of data the server sent
 
   // stuff that's only pertinent to the TCP connection 
   // both checking the line and dealing with passive connection mode
@@ -93,11 +93,11 @@ class SZG_CALL arBarrierServer{
   int CLIENT_TUNING_DATA;
   int SERVER_TUNING_DATA;
   list< pair<int,int> > _activationSocketIDs;
-  arMutex _activationLock;
-  arMutex _queueActivationLock;
+  arMutex _activationLock; // with _activationVar
+  arConditionVar _activationVar;
+  arLock _queueActivationLock;
   bool _activationQueueLockedExternally;
   bool _activationResponse;
-  arConditionVar _activationVar;
 
   bool _pumpPrimingFlag;
 

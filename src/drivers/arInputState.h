@@ -101,8 +101,8 @@ class SZG_CALL arInputState {
 
   private:    
     void _init();
-    void _lock();
-    void _unlock();
+    void _lock() { _l.lock(); }
+    void _unlock() { _l.unlock(); }
     void _setSignatureNoLock( const unsigned maxButtons,
                               const unsigned maxAxes,
                               const unsigned maxMatrices,
@@ -130,8 +130,7 @@ class SZG_CALL arInputState {
     arInputDeviceMap<float> _axisInputMap;
     arInputDeviceMap<arMatrix4> _matrixInputMap;
 
-    // pretty much every operation on the input state had better be atomic
-    arMutex _accessLock;
+    arLock _l;
 };  
 
 ostream& operator<<(ostream& os, const arInputState& inp );

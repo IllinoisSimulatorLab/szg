@@ -73,7 +73,7 @@ class SZG_CALL arInputNode: public arInputSink {
     
     void (*_eventCallback)( arInputEvent& inputEvent );
     
-    arMutex _dataSerializationLock;
+    arLock _dataSerializationLock;
     std::list<arInputSource*> _sources;
     std::list<arIOFilter*> _filters;
     std::list<arInputSink*> _sinks;

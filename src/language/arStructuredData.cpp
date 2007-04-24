@@ -4,9 +4,11 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+
+#include "arDatabaseLanguage.h"
+#include "arDatabaseNode.h"
+#include "arLogStream.h"
 #include "arStructuredData.h"
-#include "arDatabaseLanguage.h" // for dataInMakenode()
-#include "arDatabaseNode.h"     // for dataInMakenode()
 
 static const char* debugTypename(int i){
   const char* internalTypeNames[7] = {
@@ -44,7 +46,6 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
   _fValid = true;
   if (!_fInitdumpLock) {
     _fInitdumpLock = true;
-    ar_mutex_init(&_dumpLock); // class-wide mutex
   }
   _dataID = theTemplate->getID();
   _name = theTemplate->getName();
@@ -128,7 +129,7 @@ int arDataTypeSize(arDataType theType){
 }
 
 bool arStructuredData::_fInitdumpLock = false;
-arMutex arStructuredData::_dumpLock;
+arLock arStructuredData::_dumpLock;
 
 #ifdef AR_USE_WIN_64
 
@@ -143,8 +144,8 @@ std::ostream& operator<<(std::ostream& os, __int64 i ) {
 
 void arStructuredData::dump(bool verbosity)
 {
-  // Lock, so multiple threads' dump-output won't interleave.
-  ar_mutex_lock(&_dumpLock);
+  // Don't interleave threads' output.
+  _dumpLock.lock();
 
   cout << "----arStructuredData----------------------------\n"
        << "dataID = " << _dataID << endl
@@ -192,7 +193,7 @@ void arStructuredData::dump(bool verbosity)
   }
 
   cout << "----\n";
-  ar_mutex_unlock(&_dumpLock);
+  _dumpLock.unlock();
 }
 
 void arStructuredData::copy(arStructuredData const& rhs){
@@ -880,8 +881,7 @@ bool arStructuredData::parse(ARchar* source){
 
 void arStructuredData::print(ostream& s){
   const int numbersInRow = 8;
-  // Lock, so multiple threads' output won't interleave.
-  ar_mutex_lock(&_dumpLock);
+  _dumpLock.lock();
   s << "<" << _name << ">\n";
   for (int i=0; i<_numberDataItems; i++){
     s << "  <" << _dataName[i] << ">";
@@ -926,21 +926,16 @@ void arStructuredData::print(ostream& s){
     s << "</" << _dataName[i] << ">\n";
   }
   s << "</" << _name << ">\n";
-  ar_mutex_unlock(&_dumpLock);
-}
-
-void arStructuredData::print(){
-  print(stdout);
+  _dumpLock.unlock();
 }
 
 void arStructuredData::print(FILE* theFile){
   if (!theFile){
-    cerr << "arStructuredData error: print to file failed.\n";
+    ar_log_warning() << "arStructuredData: no file to print to.\n";
     return;
   }
+  _dumpLock.lock();
   const int numbersInRow = 8;
-  // Lock, so multiple threads' output won't interleave.
-  ar_mutex_lock(&_dumpLock);
   fprintf(theFile, "<%s>\n", _name.c_str());
   for (int i=0; i<_numberDataItems; i++){
     int j;
@@ -986,7 +981,7 @@ void arStructuredData::print(FILE* theFile){
     fprintf(theFile, "</%s>\n", _dataName[i].c_str());
   }
   fprintf(theFile, "</%s>\n\n", _name.c_str());
-  ar_mutex_unlock(&_dumpLock);
+  _dumpLock.unlock();
 }
 
 bool ar_getStructuredDataStringField(

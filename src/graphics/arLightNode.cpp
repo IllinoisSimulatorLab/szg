@@ -19,9 +19,9 @@ arLightNode::~arLightNode(){
 
 arStructuredData* arLightNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_nodeLight, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -35,7 +35,7 @@ bool arLightNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   inData->dataOut(_g->AR_LIGHT_LIGHT_ID,&_nodeLight.lightID,AR_INT,1);
   inData->dataOut(_g->AR_LIGHT_POSITION,_nodeLight.position.v,AR_FLOAT,4);
   inData->dataOut(_g->AR_LIGHT_DIFFUSE,_nodeLight.diffuse.v,AR_FLOAT,3);
@@ -54,7 +54,7 @@ bool arLightNode::receiveData(arStructuredData* inData){
 
   // Register it with the database.
   _owningDatabase->registerLight(this,&_nodeLight);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
@@ -65,24 +65,24 @@ void arLightNode::deactivate(){
 
 
 arLight arLightNode::getLight(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arLight r = _nodeLight;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arLightNode::setLight(arLight& light){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(light, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _nodeLight = light;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

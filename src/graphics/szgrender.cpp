@@ -23,8 +23,8 @@ bool fDrawPerformance = false;
 bool fExit = false;
 bool fReload = false;
 bool fPause = false;
+arMutex pauseLock; // with pauseVar, around fPause, between message and draw threads.
 arConditionVar pauseVar;
-arMutex pauseLock; // around fPause and pauseVar, between message and draw threads.
 string dataPath("NULL");
 string textPath("NULL");
 

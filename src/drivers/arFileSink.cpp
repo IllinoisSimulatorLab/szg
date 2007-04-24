@@ -12,8 +12,7 @@ arFileSink::arFileSink() :
   _dataFile(NULL),
   _logging(false)
 {
-  _autoActivate = false; // parent class -- how do you do that with an initializer??
-  ar_mutex_init(&_logLock);
+  _autoActivate = false; // override parent's constructor
 }
 
 // todo: add set and get functions for _dataFileName
@@ -31,8 +30,8 @@ bool arFileSink::start(){
   }
 
   if (_dataFilePath == "NULL") {
-    // Only complain when it's about to get used.
-    ar_log_warning() << "arFileSink has undefined SZG_DATA/path.\n";
+    // Complain only when it's about to get used.
+    ar_log_warning() << "arFileSink has no SZG_DATA/path.\n";
     return false;
   }
 
@@ -53,18 +52,18 @@ bool arFileSink::stop(){
     return true;
   }
 
-  ar_mutex_lock(&_logLock);
+  _logLock.lock();
     _logging = false;
     if (_dataFile)
       fclose(_dataFile);
-  ar_mutex_unlock(&_logLock);
+  _logLock.unlock();
 
   return true;
 }
 
 void arFileSink::receiveData(int /*ID*/, arStructuredData* data){
-  ar_mutex_lock(&_logLock);
+  _logLock.lock();
   if (_logging)
     data->print(_dataFile);
-  ar_mutex_unlock(&_logLock);
+  _logLock.unlock();
 }

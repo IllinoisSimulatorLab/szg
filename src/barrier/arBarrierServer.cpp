@@ -15,10 +15,9 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
                                            arSocket* theSocket){
   const int id = data->getID();
   if (id == _handshakeData->getID()) {
-    ar_mutex_lock(&_queueActivationLock);
+    _queueActivationLock.lock();
     const int bondedSocketID = data->getDataInt(BONDED_ID);
-    _activationSocketIDs.push_back(
-                           pair<int,int>(theSocket->getID(),bondedSocketID));
+    _activationSocketIDs.push_back(pair<int,int>(theSocket->getID(),bondedSocketID));
     // If the signal object has been set and no one is connected yet,
     // send a signal here as well.
     if (getNumberConnectedActive()==0 && _pumpPrimingFlag){
@@ -27,7 +26,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
       }
       _pumpPrimingFlag = false;
     }
-    ar_mutex_unlock(&_queueActivationLock);
+    _queueActivationLock.unlock();
   }
   else if (id == _responseData->getID()) {
     ar_mutex_lock(&_activationLock);
@@ -122,10 +121,10 @@ void arBarrierServer::_barrierDisconnectFunction(){
   //********************************************************
   // there really is a bit of a race condition in the below
   //********************************************************
-  ar_mutex_lock(&_queueActivationLock);
+  _queueActivationLock.lock();
   if (getNumberConnected() <= 0)
     _pumpPrimingFlag = true;
-  ar_mutex_unlock(&_queueActivationLock);
+  _queueActivationLock.unlock();
 }
 
 arBarrierServer::arBarrierServer():
@@ -156,7 +155,6 @@ arBarrierServer::arBarrierServer():
 
   ar_mutex_init(&_waitingLock);
   ar_mutex_init(&_activationLock);
-  ar_mutex_init(&_queueActivationLock);
 
   // Set up the language.
   BONDED_ID = _handshakeTemplate.add("bonded ID",AR_INT);
@@ -286,7 +284,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   // get the third handshake round, which also must pass through that
   // API point, consequently blocking in _activationVar.wait() forever
   if (!_activationQueueLockedExternally){
-    ar_mutex_lock(&_queueActivationLock);
+    _queueActivationLock.lock();
   }
   list< pair<int,int> >::iterator iter;
   list< pair<int,int> > tmp;
@@ -298,7 +296,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   _activationSocketIDs.clear();
   // release the lock no matter what... also we set the shadow variable
   // saying we are holding the lock to false
-  ar_mutex_unlock(&_queueActivationLock);
+  _queueActivationLock.unlock();
   _activationQueueLockedExternally = false;
 
   // we want to change the number of active connections atomically
@@ -323,7 +321,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
     while (!_activationResponse){
       _activationVar.wait(&_activationLock);
     }
-    ar_mutex_unlock(&_activationLock); 
+    ar_mutex_unlock(&_activationLock);
 
     // Activate the sockets.
     _dataServer.activatePassiveSocket(iter->first);
@@ -341,12 +339,12 @@ bool arBarrierServer::checkWaitingSockets(){
 }
 
 void arBarrierServer::lockActivationQueue(){
-  ar_mutex_lock(&_queueActivationLock);
+  _queueActivationLock.lock();
   _activationQueueLockedExternally = true;
 }
 
 void arBarrierServer::unlockActivationQueue(){
-  ar_mutex_unlock(&_queueActivationLock);
+  _queueActivationLock.unlock();
   _activationQueueLockedExternally = false;
 }
 
@@ -355,7 +353,7 @@ list<arSocket*>* arBarrierServer::getWaitingBondedSockets
   list<arSocket*>* result = new list<arSocket*>;
 
   if (!_activationQueueLockedExternally)
-    ar_mutex_lock(&_queueActivationLock);
+    _queueActivationLock.lock();
 
   for (list< pair<int,int> >::iterator iter = _activationSocketIDs.begin();
        iter != _activationSocketIDs.end();
@@ -364,7 +362,7 @@ list<arSocket*>* arBarrierServer::getWaitingBondedSockets
   }
 
   if (!_activationQueueLockedExternally)
-    ar_mutex_unlock(&_queueActivationLock);
+    _queueActivationLock.unlock();
 
   return result;
 }

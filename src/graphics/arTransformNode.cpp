@@ -13,16 +13,16 @@ arTransformNode::arTransformNode(){
 }
 
 void arTransformNode::draw(arGraphicsContext*){ 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   glMultMatrixf(_transform.v);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
 }
 
 arStructuredData* arTransformNode::dumpData(){
   // It is the responsibility of the caller to delete this record.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_transform, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -39,31 +39,31 @@ bool arTransformNode::receiveData(arStructuredData* inData){
          << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 arMatrix4 arTransformNode::getTransform(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   const arMatrix4 result(_transform);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 
 void arTransformNode::setTransform(const arMatrix4& transform){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(transform, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _transform = transform;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

@@ -14,11 +14,11 @@ arBoundingSphereNode::arBoundingSphereNode(){
 }
 
 void arBoundingSphereNode::draw(arGraphicsContext*){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
     const bool vis = _boundingSphere.visibility;
     arVector3 p(_boundingSphere.position);
     const float r = _boundingSphere.radius;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   if (!vis)
     return;
 
@@ -33,22 +33,22 @@ void arBoundingSphereNode::draw(arGraphicsContext*){
 
 arStructuredData* arBoundingSphereNode::dumpData(){
   // This record will be deleted by the caller.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
     arStructuredData* r = _dumpData(_boundingSphere, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   if (inData->getID() == _g->AR_BOUNDING_SPHERE){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     const ARint vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY);
     _boundingSphere.visibility = vis ? true : false;
     inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
                     &_boundingSphere.radius, AR_FLOAT, 1);
     inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
                     _boundingSphere.position.v, AR_FLOAT, 3);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return true;
   }
 
@@ -62,24 +62,24 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData){
 
 
 arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arBoundingSphere result = _boundingSphere;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 
 void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
       arStructuredData* r = _dumpData(b, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
       _boundingSphere = b;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

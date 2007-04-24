@@ -87,24 +87,19 @@ arGUIWindowConfig::~arGUIWindowConfig( void )
 
 arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
   _event( event ),
-  _conditionFlag( false ),
-  _done( 0 )
+  _done( 0 ),
+  _conditionFlag( false )
 {
   ar_mutex_init( &_eventMutex );
-  ar_mutex_init( &_doneMutex );
 }
 
 void arWMEvent::reset( const arGUIWindowInfo& event )
 {
   _event = event;
-
+  _done = 0;
   ar_mutex_lock( &_eventMutex );
     _conditionFlag = false;
   ar_mutex_unlock( &_eventMutex );
-
-  ar_mutex_lock( &_doneMutex );
-    _done = 0;
-  ar_mutex_unlock( &_doneMutex );
 }
 
 void arWMEvent::wait( const bool blocking )
@@ -120,9 +115,7 @@ void arWMEvent::wait( const bool blocking )
   }
 
   // even if not blocking, update _done so this event may be reused.
-  ar_mutex_lock( &_doneMutex );
-    ++_done;
-  ar_mutex_unlock( &_doneMutex );
+  ++_done;
 }
 
 void arWMEvent::signal( void )
@@ -131,22 +124,11 @@ void arWMEvent::signal( void )
     _conditionFlag = true;
     _eventCond.signal();
   ar_mutex_unlock( &_eventMutex );
-
-  ar_mutex_lock( &_doneMutex );
-    ++_done;
-  ar_mutex_unlock( &_doneMutex );
-}
-
-arWMEvent::~arWMEvent( void )
-{
+  ++_done;
 }
 
 arGUIWindowBuffer::arGUIWindowBuffer( bool dblBuf ) :
   _dblBuf( dblBuf )
-{
-}
-
-arGUIWindowBuffer::~arGUIWindowBuffer( void )
 {
 }
 
@@ -212,10 +194,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _GUIEventManager = new arGUIEventManager( _userData );
   _lastFrameTime = ar_time();
   ar_mutex_init( &_WMEventsMutex );
-  ar_mutex_init( &_usableEventsMutex );
   ar_mutex_init( &_creationMutex );
-  ar_mutex_init( &_destructionMutex );
-  ar_mutex_init( &_graphicsWindowMutex );
 }
 
 arGUIWindow::~arGUIWindow( void )
@@ -332,9 +311,9 @@ int arGUIWindow::beginEventThread( void )
 
   _threaded = true;
 
-  // wait for the window to actually be created to avoid
-  // race conditions from window manager calls trying to operate on a
-  // half-baked window.  Give up after 5 seconds.
+  // wait for the window to actually be created, to avoid
+  // race conditions from window manager trying to modify a
+  // half-baked window.  Time out after 5 seconds.
   ar_mutex_lock( &_creationMutex );
     while( !_creationFlag ) {
       if( !_creationCond.wait( &_creationMutex, 5000 ) )
@@ -402,24 +381,24 @@ bool arGUIWindow::eventsPending( void ) const
 
 arGraphicsWindow* arGUIWindow::getGraphicsWindow( void )
 {
-  ar_mutex_lock( &_graphicsWindowMutex );
+  _graphicsWindowMutex.lock();
   return _graphicsWindow;
 }
 
 void arGUIWindow::returnGraphicsWindow( void )
 {
-  ar_mutex_unlock( &_graphicsWindowMutex );
+  _graphicsWindowMutex.unlock();
 }
 
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
   ar_mutex_lock(&_creationMutex);
-  ar_mutex_lock(&_graphicsWindowMutex);
+  _graphicsWindowMutex.lock();
     if( _graphicsWindow ) {
       delete _graphicsWindow; // do we really own this?
     }
     _graphicsWindow = graphicsWindow;
-  ar_mutex_unlock(&_graphicsWindowMutex);
+  _graphicsWindowMutex.unlock();
   ar_mutex_unlock(&_creationMutex);
 }
 
@@ -436,24 +415,21 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   EventIterator eitr;
 
-  ar_mutex_lock( &_usableEventsMutex );
-
-  // find an 'empty' event and recycle it
-  for( eitr = _usableEvents.begin(); eitr != _usableEvents.end(); eitr++ ) {
-    if( (*eitr)->getDone() == 2 ) {
-      event = *eitr;
-      event->reset( wmEvent );
-      break;
+  _usableEventsMutex.lock();
+    // find an 'empty' event and recycle it
+    for( eitr = _usableEvents.begin(); eitr != _usableEvents.end(); eitr++ ) {
+      if( (*eitr)->getDone() == 2 ) {
+	event = *eitr;
+	event->reset( wmEvent );
+	break;
+      }
     }
-  }
-
-  // no usable events found, need to create a new one
-  if( !event ) {
-    event = new arWMEvent( wmEvent );
-    _usableEvents.push_back( event );
-  }
-
-  ar_mutex_unlock( &_usableEventsMutex );
+    // no usable events found, need to create a new one
+    if( !event ) {
+      event = new arWMEvent( wmEvent );
+      _usableEvents.push_back( event );
+    }
+  _usableEventsMutex.unlock();
 
   ar_mutex_lock( &_WMEventsMutex );
     _WMEvents.push( event );
@@ -1934,11 +1910,11 @@ int arGUIWindow::_killWindow( void )
 
   _running = false;
 
-  // tell anybody who's listening that the window thread is exiting
-  ar_mutex_lock( &_destructionMutex );
+  // Report that the window thread is exiting.
+  _destructionMutex.lock();
   _destructionFlag = true;
   _destructionCond.signal();
-  ar_mutex_unlock( &_destructionMutex );
+  _destructionMutex.unlock();
 
   return 0;
 }

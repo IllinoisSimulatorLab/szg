@@ -16,7 +16,6 @@ arInputNode::arInputNode( bool bufferEvents ) :
   _initOK(false),
   _label("arInputNode")
 {
-  ar_mutex_init(&_dataSerializationLock);
 }
 
 arInputNode::~arInputNode() {
@@ -324,11 +323,11 @@ int arInputNode::getNumberMatrices() const {
 }
 
 void arInputNode::_lock() {
-  ar_mutex_lock( &_dataSerializationLock );
+  _dataSerializationLock.lock();
 }
 
 void arInputNode::_unlock() {
-  ar_mutex_unlock( &_dataSerializationLock );
+  _dataSerializationLock.unlock();
 }
 
 void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){

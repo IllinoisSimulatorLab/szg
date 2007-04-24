@@ -35,16 +35,16 @@ const float* arTex2Node::getTex2(int& number){
 
 void arTex2Node::setTex2(int number, float* tex2, int* IDs){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(number, tex2, IDs, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _mergeElements(number, tex2, IDs);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
@@ -55,14 +55,14 @@ void arTex2Node::setTex2(int number, float* tex2, int* IDs){
 vector<arVector2> arTex2Node::getTex2(){
   vector<arVector2> result;
   // Must be thread-safe.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   unsigned int num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
     result[i][0] = _commandBuffer.v[2*i];
     result[i][1] = _commandBuffer.v[2*i+1];
   }
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 

@@ -74,7 +74,7 @@ int getBytes(void* pb, int cb) {
 const int cbPlayMax = mySR*4*2; // 2 seconds is plenty
 char* bufPlay = NULL;
 int ibPlay = 0;
-arMutex lockPlay;
+arLock lockPlay;
 #ifdef EnableSound
 FMOD_DSP* Unit = NULL;
 #endif
@@ -128,7 +128,7 @@ FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
 
   // Do this on the playback side, to inject bytes into the playback buffers.
 
-  ar_mutex_lock(&lockPlay);
+  lockPlay.lock();
     if (ibPlay < cb) {
       // bufPlay needs more bytes than bufDst has, so pad it with zeros.
       memset((char*)bufPlay+cb, 0, cb-ibPlay);
@@ -137,7 +137,7 @@ FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
     // memset from bufPlay, then shrink bufPlay.
     memcpy(bufDst, bufPlay, cb);
     memmove(bufPlay, bufPlay+cb, ibPlay-=cb);
-  ar_mutex_unlock(&lockPlay);
+  lockPlay.unlock();
 
 #endif
 
@@ -168,12 +168,12 @@ void consumerTask(void*) {
   while (!fQuit) {
     ar_usleep(10000 * (1 + rand()%4)); // 10 to 40 msec, simulated entropy
 
-    ar_mutex_lock(&lockPlay);
+    lockPlay.lock();
       cbPlayed = getBytes(bufPlay+ibPlay, cbPlayMax-ibPlay);
       ibPlay += cbPlayed;
       if (ibPlay > cbPlayMax)
         ibPlay = 0; // paranoia, this should never happen.
-    ar_mutex_unlock(&lockPlay);
+    lockPlay.unlock();
   }
 }
 
@@ -313,7 +313,6 @@ LAbort:
     return 1;
 #endif
 
-  ar_mutex_init(&lockPlay);
   arThread dummy1(messageTask, &szgClient);
   arThread dummy2(consumerTask);
 

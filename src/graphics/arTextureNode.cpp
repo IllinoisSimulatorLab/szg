@@ -31,11 +31,11 @@ arTextureNode::~arTextureNode(){
 
 arStructuredData* arTextureNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_fileName, _alpha, _width, _height, 
                                   _texture ? _texture->getPixels() : NULL,
                                   false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -50,7 +50,7 @@ bool arTextureNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
   // NOTE: Here is the flag via which we determine if the texture is
   // based on a resource handle or is based on a bitmap.
@@ -77,7 +77,7 @@ bool arTextureNode::receiveData(arStructuredData* inData){
                   inData->getDataInt(_g->AR_TEXTURE_HEIGHT),
 		  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
   }
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
 
   return true;
 }
@@ -87,14 +87,14 @@ bool arTextureNode::receiveData(arStructuredData* inData){
 // as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
 void arTextureNode::setFileName(const string& fileName, int alpha){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _fileName = fileName;
     _alpha = alpha;
     if (_texture){
@@ -104,24 +104,24 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
     _texture = new arTexture();
     _texture->readImage(fileName.c_str(), _alpha, true);
     _locallyHeldTexture = true;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
 void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r =
       _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     // No other object will use this.
     _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

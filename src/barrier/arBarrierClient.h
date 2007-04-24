@@ -64,8 +64,8 @@ class SZG_CALL arBarrierClient{
   arDataClient _dataClient;
   ARchar* _dataBuffer;
   ARint   _bufferSize;
-  arMutex _activationLock;
   bool _activationResponse;
+  arMutex _activationLock; // with _activationVar
   arConditionVar _activationVar;
   int _bondedSocketID;
   int BONDED_ID;
@@ -84,7 +84,7 @@ class SZG_CALL arBarrierClient{
   bool _exitProgram;
   bool _connectionThreadRunning;
   bool _dataThreadRunning;
-  arMutex _sendLock;
+  arLock _sendLock;
   bool _finalSyncSent;
 
   void _connectionTask();

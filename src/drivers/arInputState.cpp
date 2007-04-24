@@ -13,7 +13,6 @@ void arInputState::_init() {
   _axes.reserve(32);
   _matrices.reserve(16);
   _lastButtons.reserve(32);
-  ar_mutex_init(&_accessLock);
 }
 
 arInputState::arInputState() {
@@ -23,7 +22,6 @@ arInputState::arInputState() {
 arInputState::arInputState( const arInputState& x ) {
   arInputState& y = const_cast<arInputState&>(x);
   _init();
-  _lock();
   y._lock();
     _buttons = y._buttons;
     _axes = y._axes;
@@ -33,14 +31,12 @@ arInputState::arInputState( const arInputState& x ) {
     _axisInputMap = y._axisInputMap;
     _matrixInputMap = y._matrixInputMap;
   y._unlock();
-  _unlock();
 }
 
 arInputState& arInputState::operator=( const arInputState& x ) {
   if (&x == this)
     return *this;
   arInputState& y = const_cast<arInputState&>(x);
-  ar_mutex_init(&_accessLock);
   _lock();
   y._lock();
   _buttons = y._buttons;
@@ -60,14 +56,6 @@ arInputState::~arInputState() {
   _axes.clear();
   _matrices.clear();
   _lastButtons.clear();
-}
-
-void arInputState::_lock() {
-  ar_mutex_lock( &_accessLock );
-}
-
-void arInputState::_unlock() {
-  ar_mutex_unlock( &_accessLock );
 }
 
 int arInputState::getButton( const unsigned int buttonNumber ){

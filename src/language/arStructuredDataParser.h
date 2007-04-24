@@ -23,14 +23,14 @@ class SZG_CALL arStructuredDataSynchronizer{
   bool exitFlag;
   int tag;
   int refCount;
-  arMutex lock;
+  arMutex lock; // with member "var"
   arConditionVar var;
 };
 
 class SZG_CALL arMessageQueueByID{
  public:
   bool exitFlag;
-  arMutex lock;
+  arMutex lock; // with member "var"
   arConditionVar var;
   list<arStructuredData*> messages;
 };
@@ -91,15 +91,15 @@ class SZG_CALL arStructuredDataParser{
   list<arBuffer<char>*> _translationBuffers;
 
   // Serialize access to complex message storage
-  arMutex _globalLock; 
+  arLock _globalLock; 
   // Serialize access to unused message storage
-  arMutex _recycleLock;
+  arLock _recycleLock;
   // For clearQueues/activateQueues
-  arMutex _activationLock;
+  arLock _activationLock;
   // true iff "clients" may grab data from queues
   bool _activated;
   // Serialize access to the list of translation buffers
-  arMutex _translationBufferListLock; 
+  arLock _translationBufferListLock; 
 
   void _pushOntoQueue(arStructuredData* theData);
   void _pushOntoTaggedQueue(int tag, arStructuredData* theData);

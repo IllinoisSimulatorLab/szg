@@ -26,7 +26,7 @@ class SZG_CALL arFileSink : public arInputSink{
   string _dataFileName;
   FILE* _dataFile;
   bool _logging;
-  arMutex _logLock;
+  arLock _logLock;
 };
 
 #endif 

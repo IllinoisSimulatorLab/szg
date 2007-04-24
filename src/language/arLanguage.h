@@ -7,15 +7,16 @@
 #define AR_LANGUAGE_H
 
 class arStructuredData;
+
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
+
 #include "arLanguageCalling.h"
 
 // Generic language.
 
 class SZG_CALL arLanguage{
  public:
-  arLanguage();
   virtual ~arLanguage(){}
 
   arTemplateDictionary* getDictionary();
@@ -25,7 +26,10 @@ class SZG_CALL arLanguage{
   arDataTemplate* find(int);
  protected:
   arTemplateDictionary _dictionary;
-  arMutex              _languageLock;
+ private:
+  arLock _l;
+  void _lock() { _l.lock(); }
+  void _unlock() { _l.unlock(); }
 };
 
 #endif

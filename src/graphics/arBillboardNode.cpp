@@ -19,10 +19,10 @@ arBillboardNode::arBillboardNode():
 
 void arBillboardNode::draw(arGraphicsContext*){
   // Copy _text and visibility for thread-safety.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
     const string text = _text;
     const bool visibility = _visibility;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   if (!visibility)
     return; 
 
@@ -69,19 +69,19 @@ void arBillboardNode::draw(arGraphicsContext*){
 
 arStructuredData* arBillboardNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_text, _visibility, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 bool arBillboardNode::receiveData(arStructuredData* inData){
   if (inData->getID() == _g->AR_BILLBOARD){
     int vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY);
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _visibility = vis ? true : false;
     _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     return true;
   }
 
@@ -94,24 +94,24 @@ bool arBillboardNode::receiveData(arStructuredData* inData){
 }
 
 string arBillboardNode::getText(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   string r = _text;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arBillboardNode::setText(const string& text){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(text, _visibility, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     getOwner()->alter(r);
     getOwner()->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _text = text;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

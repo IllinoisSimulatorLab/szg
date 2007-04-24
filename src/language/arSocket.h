@@ -10,10 +10,11 @@
 #include "arPrecompiled.h"
 #endif
 
-#include "arDataUtilities.h" // for ar_timeval
-#include "arLanguageCalling.h"
+#include "arDataUtilities.h"
 #include "arSocketAddress.h"
-#include "arThread.h" // for arMutex in arCommunicator
+#include "arThread.h"
+
+#include "arLanguageCalling.h"
 
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
@@ -40,7 +41,7 @@ public:
   virtual ~arCommunicator() {}
 };
 
-SZG_CALL enum arSocketType{AR_LISTENING_SOCKET=1, AR_STANDARD_SOCKET=2};
+SZG_CALL enum arSocketType { AR_LISTENING_SOCKET=1, AR_STANDARD_SOCKET=2 };
 
 // TCP socket.
 
@@ -88,8 +89,7 @@ private:
   // with reads and writes occuring in different threads
   // clean-up requires that we can keep track of the number of
   // active operations (ar_read or ar_write) on a given socket at a given time.
-  int     _usageCount;
-  arMutex _usageLock;
+  arIntAtom _usageCount;
 #ifdef AR_USE_WIN_32
   SOCKET _socketFD;
 #else

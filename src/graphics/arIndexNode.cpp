@@ -37,16 +37,16 @@ const int* arIndexNode::getIndices(int& number){
 
 void arIndexNode::setIndices(int number, int* indices, int* IDs){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(number, indices, IDs, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _mergeElements(number, indices, IDs);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
@@ -56,7 +56,7 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
 vector<int> arIndexNode::getIndices(){
   vector<int> result;
   // Must be thread-safe.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   unsigned int num = _commandBuffer.size()/_arrayStride;
   // BUG BUG BUG. Relying on the fact that sizeof(int) = sizeof(float)
   int* ptr = (int*) _commandBuffer.v;
@@ -64,7 +64,7 @@ vector<int> arIndexNode::getIndices(){
   for (unsigned int i = 0; i < num; i++){
     result[i] = ptr[i];
   }
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 

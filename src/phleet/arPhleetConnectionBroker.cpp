@@ -6,10 +6,8 @@
 #include "arPrecompiled.h"
 #include "arPhleetConnectionBroker.h"
 
-arPhleetConnectionBroker::arPhleetConnectionBroker(){
-  ar_mutex_init(&_brokerLock);
-  _releaseNotificationCallback = NULL;
-}
+arPhleetConnectionBroker::arPhleetConnectionBroker() :
+  _releaseNotificationCallback(NULL) {}
 
 // Requests allocation of a block of ports on a given computer for use
 // by a service. Returns an arPhleetService w/ valid field marked true
@@ -40,28 +38,24 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
                                                      int firstPort, 
                                                      int blockSize){
   arPhleetService result;
-  ar_mutex_lock(&_brokerLock);
-  // does the service already exist? if so, we fail.
+  _lock();
   if (_temporaryServices.find(serviceName) != _temporaryServices.end()){
-    // NOTE: this is not necessarily an error. For instance,
+    // Service already exists.  Not abnormal.
     // master/slave applications might see if they can get the master
     // service in order to determine who will be the master.
-    // DO NOT PRINT ANYTHING.
+LAbort:
     result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return result;
   }
   if (_usedServices.find(serviceName) != _usedServices.end()){
-    // DO NOT PRINT ANYTHING. (same reason as above)
-    result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
-    return result;
+    goto LAbort;
   }
   // has a computer record been created yet for this computer...
   // if not, create one
   if (_computerData.find(computer) == _computerData.end()){
     arBrokerComputerData temp;
-    // need to initialize the computer record
+    // todo: constructor for this initializing.
     temp.networks = networks;
     temp.addresses = addresses;
     temp.firstPort = firstPort;
@@ -90,21 +84,18 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
   for (int m=0; m<size; m++){
     if (i->second.availablePorts.empty()){
       cout << "arPhleetConnectionBroker error: computer "
-	   << i->first << " currently has no available ports.\n";
-      result.valid = false;
+	   << i->first << " has no available ports.\n";
       // HMMM... not sure that this really exits cleanly...
       // maybe we should release the ports that might have been
       // already assigned??
-      ar_mutex_unlock(&_brokerLock);
-      return result;
+      goto LAbort;
     }
-    int port = i->second.availablePorts.front();
+    const int port = i->second.availablePorts.front();
     i->second.availablePorts.pop_front();
     tempService.portIDs[m] = port;
     i->second.temporaryPorts.push_back(port);
   }
-  // does a record yet exist for this component? if not create. edit in 
-  // any case
+  // does a record yet exist for this component? if not create. edit in any case.
   if (_componentData.find(componentID) == _componentData.end()){
     arBrokerComponentData tempC;
     tempC.computer = computer;
@@ -117,10 +108,8 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
   }
   // put the phleet service record on the temporary service list and return
   // the assigned ports via an arPhleetService
-  _temporaryServices.insert(SZGServiceData::value_type(serviceName,
-						       tempService));
-  
-  ar_mutex_unlock(&_brokerLock);
+  _temporaryServices.insert(SZGServiceData::value_type(serviceName, tempService));
+  _unlock();
   return tempService;
 }
 
@@ -136,7 +125,7 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
 // @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
     int componentID, const string& serviceName){
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // the service should exist in the temporary service list (i.e. where
   // services go that have been temporarily registered, but have not had
   // there ports confirmed) and must be owned by the requesting component.
@@ -147,7 +136,7 @@ arPhleetService arPhleetConnectionBroker::retryPorts(
 LAbort:
       arPhleetService result;
       result.valid = false;
-      ar_mutex_unlock(&_brokerLock);
+      _unlock();
       return result;
   }
   if (i->second.componentID != componentID){
@@ -202,7 +191,7 @@ LAbort:
     k->second.temporaryPorts.push_back(port);
   }
   // return the altered service record
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return i->second;
 }
 
@@ -218,20 +207,18 @@ LAbort:
 // @param serviceName the name of the offered service
 bool arPhleetConnectionBroker::confirmPorts(int componentID, 
                                             const string& serviceName){
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // find the service on the temporary list. if it does not exist, or is
   // owned by a different component
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i == _temporaryServices.end()){
-    cout << "arPhleetConnectionBroker warning: confirmation invoked on\n"
-	 << "unknown service name.\n";
-    ar_mutex_unlock(&_brokerLock);
+    cout << "arPhleetConnectionBroker warning: confirmation invoked on unknown service name.\n";
+    _unlock();
     return false;
   }
   if (i->second.componentID != componentID){
-    cout << "arPhleetConnectionBroker error: confirmation invoked on\n"
-	 << "unowned service name.\n";
-    ar_mutex_unlock(&_brokerLock);
+    cout << "arPhleetConnectionBroker error: confirmation invoked on unowned service name.\n";
+    _unlock();
     return false;
   }
   // remove the service from the temporary list and place it on the active
@@ -240,26 +227,24 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   string computer = i->second.computer;
   SZGComputerData::iterator j = _computerData.find(computer);
   if (j == _computerData.end()){
-    cout << "arPhleetConnectionBroker error: computer record not found\n"
-	 << "on confirm ports request.\n";
-    ar_mutex_unlock(&_brokerLock);
+    cout << "arPhleetConnectionBroker error: component record not found on confirm ports request.\n";
+    _unlock();
     return false;
   }
   SZGComponentData::iterator k = _componentData.find(componentID);
   if (k == _componentData.end()){
-    cout << "arPhleetConnectionBroker error: component record not found\n"
-	 << "on confirm ports request.\n";
-    ar_mutex_unlock(&_brokerLock);
+    cout << "arPhleetConnectionBroker error: component record not found on confirm ports request.\n";
+    _unlock();
     return false;
   }
   arPhleetService tempService = i->second;
   _temporaryServices.erase(i);
   _usedServices.insert(SZGServiceData::value_type(serviceName, tempService));
   for (int nn=0; nn<tempService.numberPorts; nn++){
-    // deal with the computer data
+    // computer data
     j->second.temporaryPorts.remove(tempService.portIDs[nn]);
     j->second.usedPorts.push_back(tempService.portIDs[nn]);
-    // deal with the component data
+    // component data
     k->second.temporaryPorts.remove(tempService.portIDs[nn]);
     k->second.usedPorts.push_back(tempService.portIDs[nn]);
     k->second.temporaryTags.remove(serviceName);
@@ -270,7 +255,7 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   // that a compatible service has just been posted. The szgserver,
   // each time it calls this method, also calls getPendingRequests().
 
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return true;
 }
 
@@ -281,25 +266,24 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
 // (since the empty string is also a valid response!)
 // @param serviceName The full name of the service.
 string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
-  string result = string("");
-  // Must lock the data structure.
-  ar_mutex_lock(&_brokerLock);
-  SZGServiceData::iterator i = _temporaryServices.find(serviceName);
+  string result("");
+  _lock();
+  SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
   // Is the service on the temporary list?
   if (i != _temporaryServices.end()){
     result = i->second.info;
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return result;
   }
   i = _usedServices.find(serviceName);
   // Is the service on the used list?
   if (i != _usedServices.end()){
     result = i->second.info;
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return result;
   }
   // We haven't found the service.
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -316,19 +300,19 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
                                               const string& serviceName,
                                               const string& info){
   // Must lock the broker.
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   // Is the service on the temporary list?
   if (i != _temporaryServices.end()){
     // Does the component in question own it?
     if (i->second.componentID != componentID){
       // No. Return immediately.
-      ar_mutex_unlock(&_brokerLock);
+      _unlock();
       return false;
     }
     // Yes. Set and return.
     i->second.info = info;
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return true;
   }
   i = _usedServices.find(serviceName);
@@ -337,16 +321,16 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
     // Does the component in question own it?
     if (i->second.componentID != componentID){
       // No. Return immediately.
-      ar_mutex_unlock(&_brokerLock);
+      _unlock();
       return false;
     }
     // Yes. Set and return.
     i->second.info = info;
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return true;
   }
   // We haven't found the service.
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return false;
 }
 
@@ -354,20 +338,20 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
 // temporary list or the used list. If so, return true. Otherwise, false. 
 // @param serviceName Name of the service to be checked
 bool arPhleetConnectionBroker::checkService(const string& serviceName){
-  bool result = false;
-  ar_mutex_lock(&_brokerLock);
-  SZGServiceData::iterator i = _temporaryServices.find(serviceName);
+  bool ok = false;
+  _lock();
+  SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()){
-    result = true;
+    ok = true;
   }
   else{
     i = _usedServices.find(serviceName);
     if (i != _usedServices.end()){
-      result = true;
+      ok = true;
     }
   }
-  ar_mutex_unlock(&_brokerLock);
-  return result;
+  _unlock();
+  return ok;
 }
 
 // Used when a component requests a service. First, check to see if a service
@@ -397,29 +381,26 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
                                                  const arSlashString& networks,
                                                  bool   async){
   arPhleetAddress result;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // see if the service already exists on the active list
   // if not, we need to insert the service request into the notification 
   // queue. return arPhleetAddress with valid field set to false
-  const SZGServiceData::iterator i = _usedServices.find(serviceName);
+  const SZGServiceData::const_iterator i = _usedServices.find(serviceName);
   if ( i == _usedServices.end() ){
-    // DO NOT PRINT A WARNING/ERROR MESSAGE HERE! This is a normal
-    // turn of events that, for instance, might occur if a client starts
-    // before a server
+    // Maybe client started before server.
     result.valid = false;
-    if (async){
-      // must insert into the pending connections queue
+    if (async) {
+      // Insert into the pending connections queue
       arPhleetServiceRequest temp;
       temp.componentID = componentID;
       temp.computer = computer;
       temp.match = match;
       temp.serviceName = serviceName;
       temp.networks = networks;
-      _requestedServices.push_front(temp);// use LIFO under the assumption
-                                          // that service requests will be
-                                          // filled quickly 
+      _requestedServices.push_front(temp);
+      // LIFO, assuming that that service requests will be filled quickly.
     }
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return result;
   }
 
@@ -453,7 +434,7 @@ LFound:
       result.portIDs[nn] = i->second.portIDs[nn];
     }
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -467,7 +448,7 @@ LFound:
 SZGRequestList arPhleetConnectionBroker::getPendingRequests
                                            (const string& serviceName){
   SZGRequestList result;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // push service requests that match the service name onto the queue to
   // be returned
   SZGRequestList::iterator i = _requestedServices.begin();
@@ -482,7 +463,7 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
       i++;
     }
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -491,13 +472,13 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
   SZGRequestList result;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   SZGRequestList::iterator i = _requestedServices.begin();
   while (i != _requestedServices.end()){
     result.push_back(*i);
     i++;
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -506,12 +487,12 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
 // In other words, arSlashString's can't nest!
 string arPhleetConnectionBroker::getServiceNames(){
   arSemicolonString result;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   for (SZGServiceData::iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
       result /= i->first;
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -520,12 +501,12 @@ string arPhleetConnectionBroker::getServiceNames(){
 // getServiceNames(...)
 arSlashString arPhleetConnectionBroker::getServiceComputers(){
   arSlashString result;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   for (SZGServiceData::iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
     result /= i->second.computer;
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -535,7 +516,7 @@ arSlashString arPhleetConnectionBroker::getServiceComputers(){
 // arranged in the same order as getServiceNames(...)
 int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
   int result = 0;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   SZGServiceData::iterator i;
   // lame 2 pass algorithm
   // todo: STL length method here!
@@ -546,7 +527,7 @@ int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
   for (i=_usedServices.begin(); i!=_usedServices.end(); i++){
     IDs[which++] = i->second.componentID;
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -555,12 +536,12 @@ int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
 // @param serviceName the name of the service in which we are interested
 int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName){
   int result = -1;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   SZGServiceData::iterator i = _usedServices.find(serviceName);
   if (i != _usedServices.end()){
     result = i->second.componentID;
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
   return result;
 }
 
@@ -571,7 +552,7 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 						   int match,
                                                    const string& computer,
 						   const string& serviceName){
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // See if the service actually exists.
   SZGServiceData::iterator k = _usedServices.find(serviceName);
   if (k == _usedServices.end()){
@@ -593,7 +574,7 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
   notification.componentID = componentID;
   notification.match = match;
   k->second.notifications.push_back(notification);
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
 }
 
 // Called whenever a service is removed from the "used" pool OR
@@ -647,7 +628,7 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName){
 // for instance, that component might have been offering a service, which
 // now needs to be removed from the internal table of active services.
 void arPhleetConnectionBroker::removeComponent(int componentID){
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   // remove any service requests with this component ID
   SZGRequestList::iterator ii = _requestedServices.begin();
   while ( ii != _requestedServices.end() ){
@@ -665,7 +646,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
     // Do not print a diagnostic.  This will be called for
     // every component that leaves the system. It is normal for
     // a component to have no record in the connection broker (think dex).
-    ar_mutex_unlock(&_brokerLock);
+    _unlock();
     return;
   }
   // Remove all the owned stuff.
@@ -742,7 +723,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
 
   // finally, remove the component record
   _componentData.erase(i);
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
 }
 
 // print out the entire state of the connection broker. extremely verbose,
@@ -750,7 +731,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
 void arPhleetConnectionBroker::print(){
   list<int>::iterator nn;
   list<string>::iterator mm;
-  ar_mutex_lock(&_brokerLock);
+  _lock();
   cout << "***************************************************\n";
   for (SZGComputerData::iterator i = _computerData.begin();
        i != _computerData.end();
@@ -861,14 +842,13 @@ void arPhleetConnectionBroker::print(){
     cout << "    Service name = " << l->serviceName << "\n";
     cout << "    Networks = " << l->networks <<"\n";
   }
-  ar_mutex_unlock(&_brokerLock);
+  _unlock();
 }
 
 void arPhleetConnectionBroker::
   _resizeComputerPorts(arBrokerComputerData& computer,
                        int first, int size){
-  // do not lock this... since it is already called from inside
-  // a locked method
+  // already locked
   if (computer.firstPort != first ||
       computer.blockSize != size){
     list<int> temp;

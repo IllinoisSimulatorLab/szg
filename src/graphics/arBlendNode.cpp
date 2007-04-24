@@ -16,9 +16,9 @@ arBlendNode::arBlendNode(){
 
 arStructuredData* arBlendNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_blendFactor, false); 
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -32,31 +32,31 @@ bool arBlendNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   _blendFactor = inData->getDataFloat(_g->AR_BLEND_FACTOR);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 float arBlendNode::getBlend(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
     const float r = _blendFactor;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arBlendNode::setBlend(float blendFactor){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
       arStructuredData* r = _dumpData(blendFactor, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
       _blendFactor = blendFactor;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

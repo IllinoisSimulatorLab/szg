@@ -26,11 +26,11 @@ void arDrawableNode::draw(arGraphicsContext* context){
   if (!_firstMessageReceived)
     return;
 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   const ARint whatKind = _type;
   // This may change below as we check array bounds.
   ARint howMany = _number;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
 
   int numberPos = 0;
   // Compute maxNumber. Each vertex sent down the geometry pipeline
@@ -202,9 +202,9 @@ void arDrawableNode::draw(arGraphicsContext* context){
 
 arStructuredData* arDrawableNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_type, _number, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -222,17 +222,17 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
   _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 int arDrawableNode::getType(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   int r = _type;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -241,25 +241,25 @@ string arDrawableNode::getTypeAsString(){
 }
 
 int arDrawableNode::getNumber(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   int r = _number;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arDrawableNode::setDrawable(arDrawableType type, int number){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(type, number, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _type = type;
     _number = number;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

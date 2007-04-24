@@ -141,7 +141,6 @@ arBarrierClient::arBarrierClient(){
   _exitProgram = false;
   _connectionThreadRunning = false;
   _dataThreadRunning = false;
-  ar_mutex_init(&_sendLock);
   _finalSyncSent = false;
 }
 
@@ -166,9 +165,9 @@ bool arBarrierClient::requestActivation(){
   ar_mutex_unlock(&_activationLock);
 
   _handshakeData->dataIn(BONDED_ID,&_bondedSocketID,AR_INT,1);
-  ar_mutex_lock(&_sendLock);
+  _sendLock.lock();
   bool ok = _dataClient.sendData(_handshakeData);
-  ar_mutex_unlock(&_sendLock);
+  _sendLock.unlock();
   if (!ok){
     cerr << getLabel() << " error: requestActivation failed to send data.\n";
     return false;
@@ -189,9 +188,9 @@ bool arBarrierClient::requestActivation(){
   // send a response
   if (!_exitProgram){
     // send 3-way handshake completion
-    ar_mutex_lock(&_sendLock);
+    _sendLock.lock();
     _dataClient.sendData(_responseData);
-    ar_mutex_unlock(&_sendLock);
+    _sendLock.unlock();
   }
   // even if we got here because of stop()... we must pretend we are
   // activated... otherwise, arSyncDataCLient's read thread might block
@@ -251,16 +250,16 @@ void arBarrierClient::stop(){
   // after _exitProgram is set, there must be exactly one final sync send
   // so that readDataThread will not block.
   // _sendLock here avoids a race condition in sync().
-  ar_mutex_lock(&_sendLock);
+  _sendLock.lock();
   _exitProgram = true; 
-  ar_mutex_unlock(&_sendLock);
+  _sendLock.unlock();
 
   _activationResponse = true;
   _activationVar.signal();
   ar_mutex_unlock(&_activationLock);
   // Ping the server to avoid getting stuck in arDataClient's readData call.
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
-  ar_mutex_lock(&_sendLock);
+  _sendLock.lock();
   // If we have never connected,
   // _clientTuningData is uninitialized and doesn't need to be sent anyway.
   if (_clientTuningData){
@@ -274,7 +273,7 @@ void arBarrierClient::stop(){
   else{
     _finalSyncSent = true;
   }
-  ar_mutex_unlock(&_sendLock);
+  _sendLock.unlock();
   // Paranoid: make sure we are not blocking in the sync
   // call (it's likely though that sending to the server caused
   // this signal to be called anyway!)
@@ -305,7 +304,7 @@ bool arBarrierClient::sync(){
 
   // there are definitely race conditions here...
   // Pack the buffer with the tuning data.
-  ar_mutex_lock(&_sendLock);
+  _sendLock.lock();
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
   _clientTuningData->dataIn(CLIENT_TUNING_DATA,tuningData,AR_INT,4);
   bool ok = false;
@@ -321,7 +320,7 @@ bool arBarrierClient::sync(){
       _finalSyncSent = true;
     }
   }
-  ar_mutex_unlock(&_sendLock);
+  _sendLock.unlock();
   if (!ok){
     cerr << getLabel() << " error: sync failed.\n";
     return false;

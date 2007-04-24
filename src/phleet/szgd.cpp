@@ -13,16 +13,14 @@
   #include <windows.h>
   #include <cctype>
   #include "arSTLalgo.h"
+  arLock lockSpawn;
 #else
   #include <unistd.h>
   #include <errno.h>
   #include <signal.h>
 #endif
 
-// So every trading key is unique, increment tradingNum each time.
-int tradingNum = 0;
-arMutex tradingNumLock;
-arMutex processCreationLock;
+arIntAtom tradingNum = -1;
 string originalWorkingDirectory;
 
 arSZGClient* SZGClient = NULL;
@@ -559,12 +557,12 @@ LDone:
   // Invoke a message trade so the executee can respond.
   // Increment the "trading number" that makes this request unique.
   // Since many threads can execute this simultaneously, use a lock.
-  ar_mutex_lock(&tradingNumLock);
-    stringstream tradingNumStream;
-    tradingNumStream << ++tradingNum;
-  ar_mutex_unlock(&tradingNumLock);
+  // So every trading key is unique, increment tradingNum each time.
+  stringstream tradingNumStream;
+  tradingNumStream << ++tradingNum;
+  const string tradingStr(tradingNumStream.str());
   const string tradingKey(SZGClient->getComputerName() + "/" 
-                          + tradingNumStream.str() + "/"
+                          + tradingStr + "/"
 	                  + symbolicCommand);
   ar_log_debug() << "szgd trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
@@ -785,7 +783,7 @@ LDone:
   ar_setenv("SZGUSER", userName);
   ar_setenv("SZGCONTEXT", messageContext);
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
-  ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
+  ar_setenv("SZGTRADINGNUM", tradingStr);
   
   ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
@@ -859,7 +857,7 @@ LDone:
 
 #else // Win32
 
-  // Spawn a new process on Windows.
+  // Spawn a new process.
 
   PROCESS_INFORMATION theInfo;
   STARTUPINFO si = {0};
@@ -872,7 +870,7 @@ LDone:
   // (another solution: pass in an altered environment block)
   // (another solution: send the spawned process a message)
 
-  ar_mutex_lock(&processCreationLock);
+  lockSpawn.lock();
 
   // Set a few env vars for the child process.
   ar_setenv("SZGUSER",userName);
@@ -884,7 +882,7 @@ LDone:
   // The -1 guarantees that we aren't on the Unix side
   // (where this would be a file descriptor)
   ar_setenv("SZGPIPEID", -1);
-  ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
+  ar_setenv("SZGTRADINGNUM", tradingStr);
 
   ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
@@ -929,7 +927,7 @@ LDone:
   ar_setenv(envDLLPath, DLLPathPrev);
   if (execInfo->fPython())
     ar_setenv( "PYTHONPATH", oldPythonPath );
-  ar_mutex_unlock(&processCreationLock);
+  lockSpawn.unlock();
 
   if (!fCreated) {
     info << "szgd failed to exec '" << command << "' with args '" << argsBuffer
@@ -976,9 +974,6 @@ int main(int argc, char** argv) {
   // Kill zombie processes.
   signal(SIGCHLD,SIG_IGN);
 #endif
-
-  ar_mutex_init(&tradingNumLock);
-  ar_mutex_init(&processCreationLock);
 
   if (argc < 2) {
     printUsage();

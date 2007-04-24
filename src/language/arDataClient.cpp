@@ -16,7 +16,6 @@ arDataClient::arDataClient(const string& exeName) :
   _activeConnection(false) // disable closeConnection if there is no active connection
 {
   setLabel(exeName);
-  ar_mutex_init(&_sendLock);
 }
 
 arDataClient::~arDataClient(){
@@ -258,15 +257,15 @@ bool arDataClient::sendData(arStructuredData* theData){
     return false;
   }
 
-  ar_mutex_lock(&_sendLock);
   const int theSize = theData->size();
+  _lockSend.lock();
   if (!ar_growBuffer(_dataBuffer, _dataBufferSize, theSize)){
-    ar_mutex_unlock(&_sendLock);
+    _lockSend.unlock();
     return false;
   }
 
   theData->pack(_dataBuffer);
   bool ok = _socket->ar_safeWrite(_dataBuffer, theSize);
-  ar_mutex_unlock(&_sendLock);
+  _lockSend.unlock();
   return ok;
 }

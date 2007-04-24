@@ -34,7 +34,6 @@ arSharedMemSinkDriver::arSharedMemSinkDriver() :
   _shmFoB(NULL),
   _shmWand(NULL)
 {
-  ar_mutex_init(&_lockShm);
 }
 
 arSharedMemSinkDriver::~arSharedMemSinkDriver() {
@@ -79,7 +78,7 @@ bool arSharedMemSinkDriver::start() {
 
   // TrackerDaemonKey 4136
   // ControllerDaemonKey 4127
-  ar_mutex_lock(&_lockShm);
+  _l.lock();
   const int idFoB = shmget(4136, 0, 0666);
   if (idFoB < 0){
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
@@ -100,7 +99,7 @@ bool arSharedMemSinkDriver::start() {
     perror("shmat failed for wand");
     return false;
   }
-  ar_mutex_unlock(&_lockShm);
+  _l.unlock();
 
   if (!_node.start()) {
     return false;
@@ -112,7 +111,7 @@ bool arSharedMemSinkDriver::start() {
 
 void arSharedMemSinkDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  ar_mutex_lock(&_lockShm);
+  _l.lock();
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
@@ -123,7 +122,7 @@ void arSharedMemSinkDriver::_detachMemory() {
       ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
-  ar_mutex_unlock(&_lockShm);
+  _l.unlock();
 #endif
 }
 
@@ -173,7 +172,7 @@ void arSharedMemSinkDriver::_dataThread() {
     int rgbutton[256] = {0};
 
     // Send data to shm
-    ar_mutex_lock(&_lockShm);
+    _l.lock();
 
     for (i=0; i<cb; ++i) {
         rgbutton[i] = aIS.getButton(i);
@@ -185,7 +184,7 @@ void arSharedMemSinkDriver::_dataThread() {
         }
       }
 
-    ar_mutex_unlock(&_lockShm);
+    _l.unlock();
 
     // update state changes
     for (i=0; i<8; ++i) {

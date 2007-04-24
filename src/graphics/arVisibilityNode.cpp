@@ -16,9 +16,9 @@ arVisibilityNode::arVisibilityNode():
 
 arStructuredData* arVisibilityNode::dumpData(){
   // Responsibility of the caller to delete this message.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_visibility, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -33,31 +33,31 @@ bool arVisibilityNode::receiveData(arStructuredData* inData){
   }
 
   int vis = inData->getDataInt(_g->AR_VISIBILITY_VISIBILITY);
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   _visibility = vis ? true : false;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 bool arVisibilityNode::getVisibility(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   bool r= _visibility;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arVisibilityNode::setVisibility(bool visibility){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(visibility, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _visibility = visibility;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

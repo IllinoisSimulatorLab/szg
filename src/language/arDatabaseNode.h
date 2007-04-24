@@ -39,9 +39,6 @@ class SZG_CALL arDatabaseNode{
   void unref();
   int getRef();
 
-  void lock();
-  void unlock();
-
   string getName();
   void setName(const string& name);
   string getInfo();
@@ -98,11 +95,21 @@ class SZG_CALL arDatabaseNode{
   list<arDatabaseNode*> getChildrenRef();
   bool hasChildren() const;
 
-  arNodeLevel getNodeLevel();
+  arNodeLevel getNodeLevel() const;
   void setNodeLevel(arNodeLevel nodeLevel);
- protected:
+
+ private:
+  // Lock _info and _name (data i/o).
+  // Not thread-safe for changes to the database owner, children, and parent.
+  string _info;
+  arLock _lockInfo;
+  arLock _lockName;
   ARint  _ID;
+
+ protected:
   string _name;
+
+ protected:
   int    _typeCode;
   string _typeString;
 
@@ -110,31 +117,24 @@ class SZG_CALL arDatabaseNode{
   // both have a referenced owning database and language. Which is duplicated
   // here.... This will be solved once all the database operations are
   // made better unified.
-  arDatabase*         _databaseOwner;
-  arDatabaseLanguage* _dLang;
+  arDatabase*         _databaseOwner; // Who owns us.
+  arDatabaseLanguage* _dLang; // Language used to encode messages.
 
   arDatabaseNode* _parent;
   list<arDatabaseNode*> _children;
 
-  // This lock guards changes to the reference count and lets data go into
-  // and out of the node atomically. NOTE: it does not ensure total thread
-  // safety since changes to the database owner, children, and parent are not
-  // counted. Must be mutable since it is locked/unlocked in some const
-  // methods.
-  mutable arMutex _nodeLock;
+  // For derived classes.  Mutable because some const methods use it.
+  mutable arLock _nodeLock;
 
-  // Must keep a reference count.
-  int _refs;
+  // Reference count.
+  arIntAtom _refs;
 
   // Might be the case that we want to filter messages into the node based,
   // somehow, on certain known properties it has. For instance, the node
   // might just hold "transient data".
   arNodeLevel  _nodeLevel;
 
-  // The node is allowed to hold an "info" string.
-  string _info;
-
-  // Generic structure manipulation functions.
+  // Generic structure manipulation.
   void _setName(const string& name);
   void _setOwner(arDatabase* database);
   void _setID(int ID);
@@ -145,7 +145,7 @@ class SZG_CALL arDatabaseNode{
   void _removeAllChildren();
   void _stealChildren(arDatabaseNode* node);
   void _permuteChildren(list<arDatabaseNode*> childList);
-  // Helper function for serializing a generic node.
+  // Helper for serializing a generic node.
   void _dumpGenericNode(arStructuredData*, int);
   // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,

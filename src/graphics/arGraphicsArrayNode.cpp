@@ -10,11 +10,11 @@
 arStructuredData* arGraphicsArrayNode::dumpData(){
   // The call to _dumpData must take place within a locked section.
   // _commandBuffer.v can change as the result of a buffer resize.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   // The caller is responsible for deleting this record.
   arStructuredData* result = _dumpData(_commandBuffer.size()/_arrayStride,
                                        _commandBuffer.v, NULL, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 
@@ -41,7 +41,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   }
 
   // Must lock before data modification.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   if (theIDs[0] == -1){
     // Array elements are packed in order.
     _mergeElements(len, theData);
@@ -52,7 +52,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   
   // Bookkeeping.
   _commandBuffer.setType(_recordType);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 

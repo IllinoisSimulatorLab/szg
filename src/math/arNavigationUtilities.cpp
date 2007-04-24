@@ -9,9 +9,8 @@
 
 namespace arNavigationSpace {
   bool _navInverseDirty = false;
-  bool _mutexInited = false;
   bool _fBbox = false;
-  arMutex _navMutex;
+  arLock _l;
   arVector3 _vBboxMin, _vBboxMax;
   arMatrix4 _navMatrix;
   arMatrix4 _navInvMatrix;
@@ -22,15 +21,11 @@ namespace arNavigationSpace {
 };
 
 void arNavigationSpace::_lock() {
-  if (!arNavigationSpace::_mutexInited){
-    ar_mutex_init( &arNavigationSpace::_navMutex );
-    arNavigationSpace::_mutexInited = true;
-  }
-  ar_mutex_lock( &arNavigationSpace::_navMutex );
+  arNavigationSpace::_l.lock();
 }
 
 void arNavigationSpace::_unlock() {
-  ar_mutex_unlock( &arNavigationSpace::_navMutex );
+  arNavigationSpace::_l.unlock();
 }
 
 void arNavigationSpace::_bound() {

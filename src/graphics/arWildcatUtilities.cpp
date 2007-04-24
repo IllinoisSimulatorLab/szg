@@ -10,8 +10,7 @@
 #include "arLogStream.h"
 
 namespace arWildcatNamespace {
-  bool __inited = false;
-  arMutex __wildcatMutex;
+  arLock __wildcatMutex;
   bool __useWildcatFramelock = false;
   bool __frameLockInitted = false;
 #ifdef AR_USE_WIN_32
@@ -27,29 +26,16 @@ using namespace std;
 using namespace arWildcatNamespace;
 
 void ar_useWildcatFramelock( bool isOn ) {
-  if (__inited) {
-    ar_mutex_lock( &__wildcatMutex );
-    __useWildcatFramelock = isOn;
-    ar_mutex_unlock( &__wildcatMutex );
-  } else {
-    ar_mutex_init( &__wildcatMutex );
-    ar_mutex_lock( &__wildcatMutex );
-    __inited = true;
-    __useWildcatFramelock = isOn;
-    ar_mutex_unlock( &__wildcatMutex );
-  }
+  __wildcatMutex.lock();
+  __useWildcatFramelock = isOn;
+  __wildcatMutex.unlock();
 }
 
 // It is really annoying to have Wildcat-specific code in this file.
 // A little bit of a design to-do, I suppose.
 void ar_findWildcatFramelock() {
 #ifdef AR_USE_WIN_32
-  if (!__inited){
-    ar_log_warning() << "arWildcatUtilities warning: calling ar_findWildcatFramelock "
-	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
-    ar_useWildcatFramelock( false );
-  }
-  ar_mutex_lock( &__wildcatMutex );
+  __wildcatMutex.lock();
   if (__useWildcatFramelock) {
     // need to try to find the Wildcat card's frame-locking functions here
       __wglEnableFrameLockI3D 
@@ -64,55 +50,45 @@ void ar_findWildcatFramelock() {
         ar_log_error() << "wglDisableFrameLockI3D not found.\n";
       }
   }
-  ar_mutex_unlock( &__wildcatMutex );
+  __wildcatMutex.unlock();
 #endif
 }
 
 void ar_activateWildcatFramelock() {
 #ifdef AR_USE_WIN_32
-  if (!__inited){
-    ar_log_warning() << "arWildcatUtilities warning: calling ar_activateWildcatFramelock "
-	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
-    ar_useWildcatFramelock( false );
-  }
-  ar_mutex_lock( &__wildcatMutex );
+  __wildcatMutex.lock();
   if (!__frameLockInitted) {
+    __frameLockInitted = true;
+
     if (__wglEnableFrameLockI3D != 0 && __useWildcatFramelock) {
       if (__wglEnableFrameLockI3D() == FALSE) {
-	ar_log_error() << "\nwglEnableFrameLockI3D failed.\n";
+	ar_log_warning() << "wglEnableFrameLockI3D failed.\n";
       }
       else{
-	ar_log_debug() << "\nwglEnableFrameLockI3D succeeded.\n";
+	ar_log_debug() << "wglEnableFrameLockI3D.\n";
       }
     }
-    __frameLockInitted = true;
   }
-  ar_mutex_unlock( &__wildcatMutex );
+  __wildcatMutex.unlock();
 #endif
 }
 
 void ar_deactivateWildcatFramelock() {
 #ifdef AR_USE_WIN_32
-  if (!__inited){
-    ar_log_warning() << "arWildcatUtilities warning: calling "
-	             << "ar_deactivateWildcatFramelock "
-	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
-    ar_useWildcatFramelock( false );
-  }
-  ar_mutex_lock( &__wildcatMutex );
+  __wildcatMutex.lock();
   if (__frameLockInitted){
+
     if (__wglDisableFrameLockI3D != 0 && __useWildcatFramelock) {
       if (__wglDisableFrameLockI3D() == FALSE) {
-        ar_log_error() << "\nwglDisableFrameLockI3D() failed.\n";
+        ar_log_warning() << "wglDisableFrameLockI3D failed.\n";
       }
       else{
-        ar_log_remark() << "\nwglDisableFrameLockI3D() succeeded.\n";
+        ar_log_debug() << "wglDisableFrameLockI3D.\n";
       }
+
       __frameLockInitted = false;
     }
   }
-  ar_mutex_unlock( &__wildcatMutex );
+  __wildcatMutex.unlock();
 #endif
 }
-
-

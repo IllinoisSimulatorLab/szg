@@ -83,12 +83,12 @@ arDatabaseNode* arSoundServer::alter(arStructuredData* theData,
                                      bool refNode){
   // Serialization must occur at this level AND must use the thread-safety lock
   // for arDatabase.
-  ar_mutex_lock(&_databaseLock);
+  _lock();
   arDatabaseNode* result = _syncServer.receiveMessage(theData);
   if (result && refNode){
     result->ref();
   }
-  ar_mutex_unlock(&_databaseLock);
+  _unlock();
   return result;
 }
 

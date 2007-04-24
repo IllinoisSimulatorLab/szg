@@ -289,8 +289,7 @@ class SZG_CALL arSZGClient{
   // Member related to service registration/discovery. NOTE: we want to be
   // able to use the service/registration/discovery functions in multiple
   // threads.
-  arMutex       _serviceLock;
-  int           _nextMatch;   // to match up async rpc's
+  arIntAtom _match;   // to match up async rpc's
 
   arStructuredDataParser* _dataParser;
   arThread                _clientDataThread;
@@ -348,7 +347,7 @@ class SZG_CALL arSZGClient{
   bool    _beginTimer;
   string  _requestedName;
   bool    _dataRequested;
-  arMutex _queueLock; // for server discovery functions
+  arMutex _lock; // with _timerCondVar, _dataCondVar.  For server discovery.
   bool    _keepRunning;
   arConditionVar _dataCondVar;
   arConditionVar _timerCondVar;

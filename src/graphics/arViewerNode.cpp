@@ -14,9 +14,9 @@ arViewerNode::arViewerNode(){
 
 arStructuredData* arViewerNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_head, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -30,7 +30,7 @@ bool arViewerNode::receiveData(arStructuredData* inData){
          << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   inData->dataOut(_g->AR_VIEWER_MATRIX, _head._matrix.v, AR_FLOAT, 16);
   inData->dataOut(_g->AR_VIEWER_MID_EYE_OFFSET, 
                   _head._midEyeOffset.v, AR_FLOAT, 3);
@@ -41,22 +41,22 @@ bool arViewerNode::receiveData(arStructuredData* inData){
   _head._farClip = inData->getDataFloat(_g->AR_VIEWER_FAR_CLIP);
   _head._unitConversion = inData->getDataFloat(_g->AR_VIEWER_UNIT_CONVERSION);
   _head._fixedHeadMode = inData->getDataInt(_g->AR_VIEWER_FIXED_HEAD_MODE);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 void arViewerNode::setHead(const arHead& head){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(head, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _head = head;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

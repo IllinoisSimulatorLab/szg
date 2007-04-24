@@ -46,7 +46,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   arSoundLanguage _langSound;  
 
  protected:
-  arMutex        _pathLock;
+  arLock _pathLock; // Guard _path.
   list<string>*  _path;
   map<string,arSoundFile*,less<string> > _filewavNameContainer;
 

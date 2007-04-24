@@ -182,8 +182,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arSZGClient*    _client;
   arThread        _connectionThread;
 
-  //arMutex _socketsLock;
-  arMutex _queueLock;
+  //arLock _socketsLock;
+  arLock _queueLock;
   
   bool    _queueingData;
   bool    _localDatabase;
@@ -197,24 +197,24 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
 
   // Some calls involve a round trip to a remote peer, like finding the
   // ID of a node if we haven't transfered the stuff locally.
-  arMutex        _IDResponseLock;
+  arMutex        _IDResponseLock; // with _IDResponseVar
   arConditionVar _IDResponseVar;
   int            _requestedNodeID;
 
   // Also, involving a round trip to the remote peer is a request to serialize
-  arMutex        _dumpLock;
+  arMutex        _dumpLock; // with _dumpVar
   arConditionVar _dumpVar;
   bool           _dumped;
 
   // Finally, we can "ping" a connected peer. This allows us to be sure that
   // all previous messages we've sent have been processed.
-  arMutex _pingLock;
+  arMutex _pingLock; // with _pingVar
   arConditionVar _pingVar;
   bool           _pinged;
 
   // We need to delay sending a ping reply until consumption of queued messages
   // has occured.
-  arMutex        _queueConsumeLock;
+  arMutex        _queueConsumeLock; // with _queueConsumeVar
   arConditionVar _queueConsumeVar;
   bool           _queueConsumeQuery;
   arMutex        _queueQueryUniquenessLock;
@@ -268,7 +268,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                      bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,
-                     map<int, int, less<int> >& filterMap);
+                     map<int, int, less<int> >& filterMap); // Call only when _lock()'ed.
   void _sendDataToBridge(arStructuredData*);
   bool _updateTransientMap(int nodeID,
 		  map<int, arGraphicsPeerUpdateInfo,less<int> >& transientMap,

@@ -110,8 +110,8 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   //GLuint	_normLookupTexture; //deprecated? ;;;;
 
  protected:
-  arMutex                              _texturePathLock;
-  list<string>*                        _texturePath;
+  arLock _texturePathLock; // guards _texturePath
+  list<string>* _texturePath;
   map<string,arTexture*,less<string> > _textureNameContainer;
   arTexFont _texFont;
 

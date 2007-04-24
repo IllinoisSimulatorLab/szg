@@ -12,10 +12,10 @@
 // ( a good way to verify that the server discovery functions of the
 // arSZGClient are threadsafe
 
-arSZGClient  szgClient;
+arSZGClient szgClient;
 arDataClient dataClient[2];
-string       serviceName[2];
-arMutex      printLock;
+string serviceName[2];
+arLock printLock;
 arSlashString networks;
 
 void readDataTask(void* num){
@@ -27,17 +27,17 @@ void readDataTask(void* num){
     trial++;
     const int whichNetwork = rand()% networks.size();
     const string testNetwork = networks[whichNetwork];
-    ar_mutex_lock(&printLock);
+    printLock.lock();
     cout << "***** Thread number = " << number << "\n"
          << "  trial = " << trial << "\n"
          << "  Discovering service on network " << testNetwork << "\n";
-    ar_mutex_unlock(&printLock);
+    printLock.unlock();
     // the call to discoverService uses some async mojo...
     // the upshot is that discoverService blocks until an appropriate service
     // is registered
     arPhleetAddress result 
       = szgClient.discoverService(serviceName[number], testNetwork, true);
-    ar_mutex_lock(&printLock);
+    printLock.lock();
     cout << "***** Thread number = " << number << "\n"
          << "  trial = "<< trial << "\n"
          << "  Service = " << serviceName[number] << "\n"
@@ -48,15 +48,15 @@ void readDataTask(void* num){
       cout << result.portIDs[i] << " ";
     }
     cout << "\n";
-    ar_mutex_unlock(&printLock);
+    printLock.unlock();
     
     if (!dataClient[number].dialUpFallThrough(result.address.c_str(), 
                                               result.portIDs[0])){
-      ar_mutex_lock(&printLock);
+      printLock.lock();
       cout << "***** Thread number = " << number << "\n";
       cout << "  trial = " << trial << "\n";
       cout << "  error: failed to connect to supposedly registered server.\n";
-      ar_mutex_unlock(&printLock);
+      printLock.unlock();
       continue;
     }
     arTemplateDictionary* dictionary = dataClient[number].getDictionary();
@@ -65,19 +65,19 @@ void readDataTask(void* num){
     arStructuredData* data = new arStructuredData(dictionary->find("test"));
     for (int k=0; k<10; k++){
       if (!dataClient[number].getData(buffer, bufferSize)){
-        ar_mutex_lock(&printLock);
+        printLock.lock();
         cout << "***** Thread number = " << number << "\n";
         cout << "  trial = " << trial << "\n";
         cout << "  error: szgClient failed to get data.\n";
-        ar_mutex_unlock(&printLock);
+        printLock.unlock();
 	// try to discover a new service
         break;
       }
       data->unpack(buffer);
-      ar_mutex_lock(&printLock);
+      printLock.lock();
       cout << "##### Thread number = " << number << "\n";
       data->print();
-      ar_mutex_unlock(&printLock);
+      printLock.unlock();
     }
     dataClient[number].closeConnection();
   }
@@ -99,7 +99,6 @@ int main(int argc, char** argv){
   serviceName[0] = string(argv[1]);
   serviceName[1] = string(argv[2]);
   
-  ar_mutex_init(&printLock);
   // num1 and num2 need to be distinct, lest each thread attach to source 1.
 
   int num1 = 0;

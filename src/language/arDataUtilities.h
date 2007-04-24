@@ -6,15 +6,22 @@
 #ifndef AR_DATA_UTILITIES
 #define AR_DATA_UTILITIES
 
+#ifdef AR_USE_WIN_32
+#include "arPrecompiled.h"
+#endif
+
 #include "arDataType.h"
 #include "arSocket.h"
+
 #include "arLanguageCalling.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
 #include <list>
 #include <vector>
 #include <fstream>
+
 using namespace std;
 
 #ifdef AR_USE_WIN_32
@@ -27,9 +34,10 @@ bool SZG_CALL ar_winSockInit();
 class SZG_CALL arIntTriple{
  public:
   int a, b, c;
-  arIntTriple() { a=b=c=0; }
-  arIntTriple(int x, int y, int z) { a=x; b=y; c=z; }
+  arIntTriple(): a(0), b(0), c(0) {}
+  arIntTriple(int x, int y, int z): a(x), b(y), c(z) {}
 };
+
 
 // Timing.
 

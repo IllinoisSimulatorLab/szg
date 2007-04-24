@@ -106,8 +106,10 @@ class SZG_CALL arSoundClient{
   bool            _dspStarted;
   void (*_dspTap)(float*);
 
+#ifdef UNUSED
   arSignalObject  _signalObject;
-  arMutex         _bufferSwapLock;
+  arLock         _bufferSwapLock;
+#endif
 
   // Microphone output into the sound player.
 #ifdef EnableSound

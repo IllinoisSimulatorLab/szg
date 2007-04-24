@@ -31,7 +31,7 @@ class SZG_CALL arSharedMemSinkDriver: public arInputSink {
     bool _eventThreadRunning;
     void* _shmFoB;
     void* _shmWand;
-    arMutex _lockShm;
+    arLock _l;
     arInputNode _node;
     arNetInputSource _source;
     int _buttonPrev[256];

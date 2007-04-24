@@ -30,8 +30,6 @@ arGraphicsDatabase::arGraphicsDatabase() :
   // Initialize the texture path list.
   _texturePath->push_back(string("") /* local directory */ );
 
-  ar_mutex_init(&_texturePathLock);
-
   // make the external parsing storage
   arTemplateDictionary* d = _gfx.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -207,7 +205,7 @@ arTexFont* arGraphicsDatabase::getTexFont() {
 
 void arGraphicsDatabase::setTexturePath(const string& thePath) {
   // this is probably called in a different thread from the data handling
-  ar_mutex_lock(&_texturePathLock);
+  _texturePathLock.lock();
 
   // Delete the _texturePath object and create a new one.
   delete _texturePath;
@@ -226,7 +224,7 @@ void arGraphicsDatabase::setTexturePath(const string& thePath) {
       continue;
     _texturePath->push_back(ar_pathAddSlash(result));
   }
-  ar_mutex_unlock(&_texturePathLock);
+  _texturePathLock.unlock();
 }
 
 // Creates a new texture and then refs it before returning. Consequently,
@@ -252,7 +250,6 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   else if (!isServer()) {
     // Client. Get the actual bitmap.
     // Try everything in the path.
-    ar_mutex_lock(&_texturePathLock);
     bool fDone = false;
     string potentialFileName;
     // Look at the bundle path, if it's defined.
@@ -269,16 +266,15 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
         potentialFileName += name;
         ar_scrubPath(potentialFileName);
         triedPaths.push_back( potentialFileName );
-        fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha,
-				      false);
+        fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, false);
 	theTexture->mipmap(true);
       }
     }
 
+    _texturePathLock.lock();
     // If nothing was found, look at the texture path.
     for (list<string>::iterator i = _texturePath->begin();
-	 !fDone && i != _texturePath->end();
-	 ++i) {
+	 !fDone && i != _texturePath->end(); ++i) {
       potentialFileName = *i + name;
       ar_scrubPath(potentialFileName);
       triedPaths.push_back( potentialFileName );
@@ -299,7 +295,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
         ar_log_warning() << ".\n";
       }
     }
-    ar_mutex_unlock(&_texturePathLock);
+    _texturePathLock.unlock();
   }
   triedPaths.clear();
   _textureNameContainer.insert(
@@ -321,14 +317,10 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 //       (Actually, a separate bumpNameContainer should be enough...)
   // A new bump map.
   const int numTBN = index ? numInd : numPts;
-  //printf("arGraphicsDatabase: Create new bump map\n");
   arBumpMap* theBumpMap = new arBumpMap();
   theBumpMap->setDecalTexture(decalTexture);
-  //printf("arGraphicsDatabase: set bumpmap height\n");
   theBumpMap->setHeight(height);
-  //printf("arGraphicsDatabase: set bumpmap PIT\n");
   theBumpMap->setPIT(numPts, numInd, points, index, tex2);
-  //printf("arGraphicsDatabase: force bumpmap generate frames\n");
   theBumpMap->generateFrames(numTBN);
   char buffer[512];
   ar_stringToBuffer(name, buffer, sizeof(buffer));
@@ -340,13 +332,11 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
   else if (!isServer()) {
     // todo: factor out copypasting between this and texture map code
     // Try everything in the path.
-    ar_mutex_lock(&_texturePathLock);
     char fileNameBuffer[512];
-
     bool fDone = false;
+    _texturePathLock.lock();
     for (list<string>::iterator i = _texturePath->begin();
-	 !fDone && i != _texturePath->end();
-	 ++i) {
+	 !fDone && i != _texturePath->end(); ++i) {
       const string tmp(*i + buffer);
       ar_stringToBuffer(tmp, fileNameBuffer, sizeof(fileNameBuffer));
       fDone = theBumpMap->readPPM(fileNameBuffer, 1);
@@ -364,7 +354,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 	ar_log_warning() << "bump path." << ar_endl;
       }
     }
-    ar_mutex_unlock(&_texturePathLock);
+    _texturePathLock.unlock();
   }
  /* _textureNameContainer.insert(
     map<string,arTexture*,less<string> >::value_type(name,theBumpMap));
@@ -885,18 +875,14 @@ bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
   return true;
 }
 
-// For thread safety w.r.t. light deletion, lock this call with
-// _databaseLock. Take care that no call inside
-// also locks the global lock, 
-// creating a deadlock. Since accumulateTransform(int) does do that,
-// use arDatabaseNode::accumulateTransform() instead.
 void arGraphicsDatabase::activateLights() {
-  ar_mutex_lock(&_databaseLock);
+  _lock(); // Thread-safe for light deletion.
   for (int i=0; i<8; ++i) {
     if (_lightContainer[i].first) {
       // A light has been registered for this ID.
+      // Don't call _lock() again: use accumulateTransform not accumulateTransform(int).
       const arMatrix4 lightPositionTransform(
-      _lightContainer[i].first->accumulateTransform());
+	_lightContainer[i].first->accumulateTransform());
       _lightContainer[i].second->activateLight(lightPositionTransform);
     } else {
       // No light in this slot. Disable.
@@ -907,7 +893,7 @@ void arGraphicsDatabase::activateLights() {
       glDisable(lights[i]);
     }
   }
-  ar_mutex_unlock(&_databaseLock);
+  _unlock();
 }
 
 // Report the main camera node's location.  Return a pointer

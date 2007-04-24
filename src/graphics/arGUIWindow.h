@@ -350,11 +350,6 @@ class SZG_CALL arWMEvent
     arWMEvent( const arGUIWindowInfo& event );
 
     /**
-     * The arWMEvent destructor.
-     */
-    ~arWMEvent( void );
-
-    /**
      * Reset the event state so that it can be reused.
      *
      * @param event Information to reset the state to.
@@ -389,18 +384,17 @@ class SZG_CALL arWMEvent
     void setEvent( arGUIWindowInfo event ) { _event = event; }
     const arGUIWindowInfo& getEvent( void ) const { return _event; }
 
-    int getDone( void ) const { return _done; }
+    int getDone( void ) { return int(_done); }
     //@}
 
   private:
 
-    arGUIWindowInfo _event;             // The current message information.
-    bool _conditionFlag;                // Condition flag for use in conjunction with _eventCond.
+    arGUIWindowInfo _event; // Current message info.
+    arIntAtom _done; // 0 if new/reset event, 1 if signaled, 2 if waited, allows 'done' events to be reused by arGUIWindow.
 
-    int _done;                          // 0 if new/reset event, 1 if signaled, 2 if waited, allows 'done' events to be reused by arGUIWindow.
-
-    arConditionVar _eventCond;          // Condition variable for use in blocking.
-    arMutex _eventMutex, _doneMutex;    // Mutexes to ensure thread safety.
+    bool _conditionFlag;    // Flag for _eventCond.
+    arMutex _eventMutex; // with _eventCond.
+    arConditionVar _eventCond;
 
 };
 
@@ -421,11 +415,6 @@ class arGUIWindowBuffer
      * @param dblBuf If the window is double-buffered (unused).
      */
     arGUIWindowBuffer( bool dblBuf = true );
-
-    /**
-     * The arGUIWindowBuffer destructor.
-     */
-    ~arGUIWindowBuffer( void );
 
     /**
      * Perform the buffer swap using OS-specific API calls.
@@ -976,15 +965,16 @@ class SZG_CALL arGUIWindow
 
     arConditionVar _creationCond;               // Signaled when the window has been created.
     arConditionVar _destructionCond;            // Signaled when the window has been destroyed.
-    arMutex _creationMutex, _destructionMutex;  // Mutexes for the condition variables.
+    arMutex _creationMutex;			// with _creationCond.
+    arLock _destructionMutex;
     bool _creationFlag, _destructionFlag;       // Flags for the condition variables.
 
     EventQueue _WMEvents;                       // Queue of to-be-processed events received from the window manager.
-    arMutex _WMEventsMutex;                     // Mutex protecting the window manager event queue.
+    arMutex _WMEventsMutex;                     // Guard the window manager event queue.  With _WMEventsVar.
 
     void* _userData;                            // User-set data pointer.
 
-    arMutex _graphicsWindowMutex;               // A lock protecting access to the arGraphicsWindow.
+    arLock _graphicsWindowMutex;               // Guard the arGraphicsWindow.
     arGUIWindowManager* _windowManager;   // If we were created by an arGUIWindowManager, then this points back to it. OK since the GUI window manager should outlive us.
     arGraphicsWindow* _graphicsWindow;          // An associated arGraphicsWindow (can be NULL). 
 
@@ -999,7 +989,7 @@ class SZG_CALL arGUIWindow
      * neatly sidestepped.
      */
     EventVector _usableEvents;
-    arMutex _usableEventsMutex;  // Mutex protecting the usable events queue.
+    arLock _usableEventsMutex;  // Guard _usableEvents.
 
     arConditionVar _WMEventsVar;
 

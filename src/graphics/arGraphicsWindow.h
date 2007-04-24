@@ -92,8 +92,8 @@ class SZG_CALL arGraphicsWindow {
     // returned by getCamera() or setCamera(), will still be valid).
     bool setViewMode( const std::string& viewModeString );
     void clearViewportList();
-    void lockViewports() { ar_mutex_lock( &_viewportLock ); }
-    void unlockViewports() { ar_mutex_unlock( &_viewportLock ); }
+    void lockViewports() { _viewportLock.lock(); }
+    void unlockViewports() { _viewportLock.unlock(); }
 
     std::vector<arViewport>* getViewports();
     arViewport* getViewport( unsigned int vpindex );
@@ -119,7 +119,7 @@ class SZG_CALL arGraphicsWindow {
     arVector3        _colorScaleFactors;
     arVector4        _contrastFilterParameters;
     std::vector<arViewport> _viewportVector;
-    arMutex _viewportLock;
+    arLock _viewportLock;
     arWindowInitCallback* _initCallback;
     arRenderCallback* _drawCallback;
     // This is the 'master' screen, used by viewports by default

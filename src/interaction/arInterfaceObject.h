@@ -59,7 +59,7 @@ class SZG_CALL arInterfaceObject{
   bool _grabbed;
   arMatrix4 _mGrab;
   
-  arMutex _infoLock;
+  arLock _infoLock;
 
   arMatrix4 _mNav;
   arMatrix4 _mObj;

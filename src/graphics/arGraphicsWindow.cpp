@@ -45,7 +45,6 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   // by default, we'll be using screen objects for our automatically
   // created configurations (i.e. from configure(...)). It is still
   // possible to put an arGraphicsWindow together in an arbitrary fashion.
-  ar_mutex_init(&_viewportLock);
 }
 
 //arGraphicsWindow::arGraphicsWindow( const arGraphicsWindow& x ) :

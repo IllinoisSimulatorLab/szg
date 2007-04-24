@@ -40,7 +40,7 @@ void arInterfaceObject::_ioPollTask(){
     const arVector3 vWandForward(m * arVector3(0,0,-1) * speedForward);
     const arVector3 vWandLateral(m * arVector3(1,0,0)  * speedLateral);
 
-    ar_mutex_lock(&_infoLock);
+    _infoLock.lock();
 
     const float inertia = 0.98; // Between 0.01 and 0.99.  Should be database parameter.
     arVector3 vMove((vWandLateral + vWandForward) * _speedMultiplier * .2);
@@ -65,7 +65,7 @@ void arInterfaceObject::_ioPollTask(){
       _grabbed = false;
     }
 
-    ar_mutex_unlock(&_infoLock);
+    _infoLock.unlock();
     ar_usleep(10000);
   }
 }
@@ -76,7 +76,6 @@ arInterfaceObject::arInterfaceObject() :
   _vMovePrev(0,0,0),
   _grabbed(false)
 {
-  ar_mutex_init(&_infoLock);
   _matrices.clear();
   _buttons.clear();
   _axes.clear();
@@ -107,28 +106,28 @@ bool arInterfaceObject::start(){
 }
 
 void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
-  ar_mutex_lock(&_infoLock);
+  _infoLock.lock();
     _mNav = arg;
-  ar_mutex_unlock(&_infoLock);
+  _infoLock.unlock();
 }
 
 arMatrix4 arInterfaceObject::getNavMatrix(){
-  ar_mutex_lock(&_infoLock);
+  _infoLock.lock();
     const arMatrix4 result(_mNav);
-  ar_mutex_unlock(&_infoLock);
+  _infoLock.unlock();
   return result;
 }
 
 void arInterfaceObject::setObjectMatrix(const arMatrix4& arg){
-  ar_mutex_lock(&_infoLock);
-  _mObj = arg;
-  ar_mutex_unlock(&_infoLock);
+  _infoLock.lock();
+    _mObj = arg;
+  _infoLock.unlock();
 }
 
 arMatrix4 arInterfaceObject::getObjectMatrix(){
-  ar_mutex_lock(&_infoLock);
+  _infoLock.lock();
     const arMatrix4 result(_mObj);
-  ar_mutex_unlock(&_infoLock);
+  _infoLock.unlock();
   return result;
 }
 

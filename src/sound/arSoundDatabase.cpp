@@ -26,8 +26,6 @@ arSoundDatabase::arSoundDatabase() :
   // Initialize the path list.
   _path->push_back(string("")); // local directory
 
-  ar_mutex_init(&_pathLock);
-
   // make the external parsing storage
   arTemplateDictionary* d = _langSound.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -99,9 +97,8 @@ string arSoundDatabase::getPath(){
     
 // Only arSoundClient, not arSoundServer, should ever call setPath().
 void arSoundDatabase::setPath(const string& thePath){
-  // this is probably called in a different thread from the data handling
-  ar_mutex_lock(&_pathLock);
-
+  // probably called in a different thread from the data handling
+  _pathLock.lock();
   delete _path;
   _path = new list<string>;
 
@@ -120,10 +117,9 @@ void arSoundDatabase::setPath(const string& thePath){
     ++cdir;
     _path->push_back(ar_pathAddSlash(result));
   }
+  _pathLock.unlock();
   if (cdir <= 0)
     ar_log_warning() << "empty SZG_SOUND/path.\n";
-
-  ar_mutex_unlock(&_pathLock);
 }
 
 // Only the client, not the server, tries to
@@ -137,13 +133,13 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   if (_server)
     return NULL;
 
-  std::vector<std::string> triedPaths;
-
   const map<string,arSoundFile*,less<string> >::iterator
     iFind(_filewavNameContainer.find(name));
   if (iFind != _filewavNameContainer.end()){
     return iFind->second;
   }
+
+  std::vector<std::string> triedPaths;
 
   // A new sound file.
   arSoundFile* theFile = new arSoundFile;
@@ -169,15 +165,15 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   }
 
   // Try everything in the sound path.
-  ar_mutex_lock(&_pathLock);
+  _pathLock.lock();
   for (list<string>::iterator i = _path->begin();
-       !fDone && i != _path->end();
-       ++i){
+       !fDone && i != _path->end(); ++i){
     potentialFileName = *i + name;
     ar_scrubPath(potentialFileName);
     triedPaths.push_back( potentialFileName );
     fDone = theFile->read(potentialFileName.c_str(), fLoop);
   }
+  _pathLock.unlock();
   static bool fComplained = false;
   if (!fDone){
     if (!theFile->dummy()) {
@@ -185,8 +181,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     }
     if (!fComplained){
       fComplained = true;
-      ar_log_error() << "arSoundDatabase: no soundfile '"
-	   << name << "'. Tried ";
+      ar_log_error() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
       std::vector<std::string>::iterator iter;
       for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
         ar_log_error() << *iter << " ";
@@ -194,7 +189,6 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
       ar_log_error() << ".\n";
     }
   }
-  ar_mutex_unlock(&_pathLock);
   triedPaths.clear();
   _filewavNameContainer.insert(
     map<string,arSoundFile*,less<string> >::value_type(name,theFile));

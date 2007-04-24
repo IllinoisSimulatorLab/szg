@@ -52,8 +52,6 @@ SZGuserDB userDB;
 // The current parameter database
 SZGparamDB* valueContainer = NULL;
 
-arMutex receiveDataMutex;
-
 // message IDs start at 1
 int nextMessageID = 1;
 
@@ -2058,7 +2056,6 @@ int main(int argc, char** argv) {
 
   bool fAbort = false;
   arThread dummy(serverDiscoveryFunction, &fAbort);
-  ar_mutex_init(&receiveDataMutex);
   // Give thread a chance to fail (it will set fAbort).
 #ifndef AR_USE_WIN_32
   ar_usleep(100000);

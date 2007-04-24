@@ -71,7 +71,7 @@ class SZG_CALL arSyncDataServer{
   arQueuedData* _dataQueue;
   arSignalObject _signalObject;
   arSignalObject _signalObjectRelease;
-  arMutex _queueLock;
+  arMutex _queueLock; // with _messageBufferVar
   arConditionVar _messageBufferVar;
   bool _messageBufferFull;
   // This had better be a pretty large default...
@@ -97,10 +97,10 @@ class SZG_CALL arSyncDataServer{
   // single process, as is useful for standalone mode)
   bool           _locallyConnected;
   int            _localConsumerReady;
-  arMutex        _localConsumerReadyLock;
+  arMutex        _localConsumerReadyLock; // with _localConsumerReadyVar
   arConditionVar _localConsumerReadyVar;
   int            _localProducerReady;
-  arMutex        _localProducerReadyLock;
+  arMutex        _localProducerReadyLock; // with _localProducerReadyVar
   arConditionVar _localProducerReadyVar;
 
   void _sendTask();

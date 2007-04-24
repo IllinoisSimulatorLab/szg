@@ -155,21 +155,23 @@ class SZG_CALL arDatabase{
 
   arDatabaseLanguage* _lang;
 
+ private:
+  arLock _lockDatabase;
  protected:
-  // What sort of database is this?
-  int    _typeCode;
+  void _lock() { _lockDatabase.lock(); }
+  void _unlock() { _lockDatabase.unlock(); }
+
+  int    _typeCode; // what "kind" of database
   string _typeString;
-  // The server flag enables a object that doesn't need to
-  // display (i.e. arGraphicsServer in the arDistSceneGraphFramework) do
-  // LESS unnecessary work (like load textures into memory, which might fail
-  // anyway since there is no OpenGL context).
+
+  // If true, do less work (e.g., don't load graphics textures since there's
+  // no OpenGL context anyways).
   bool _server;
-  // Stuff pertaining to finding the data bundles.
+
+  // Finding data bundles.
   string                               _bundlePathName;
   string                               _bundleName;
   map<string,string,less<string> >     _bundlePathMap;
-
-  arMutex _databaseLock;
 
   map<int,arDatabaseNode*,less<int> > _nodeIDContainer;
   int _nextAssignedID;
@@ -209,7 +211,7 @@ class SZG_CALL arDatabase{
 		      bool& failure);
   void _insertOutFilter(map<int,int,less<int> >& outFilter,
 			int nodeID,
-			arNodeLevel outFilterLevel);
+			arNodeLevel outFilterLevel); // Call only while lock()'d.
   arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
 				const string& nodeType,
 				const string& nodeName,

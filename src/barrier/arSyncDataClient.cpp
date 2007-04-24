@@ -116,7 +116,7 @@ void arSyncDataClient::_readTask(){
       _barrierClient.requestActivation();
     // read data into back buffer 
     ar_timeval time1 = ar_time();
-    ar_mutex_lock(&_stackLock);
+    _stackLock.lock();
     if (_storageStack.empty()){
       // storage for the next network buffer
       const int tempSize = 10000;
@@ -125,9 +125,7 @@ void arSyncDataClient::_readTask(){
     }
     pair<char*,int> dataStorage = _storageStack.front();
     _storageStack.pop_front();
-    ar_mutex_unlock(&_stackLock);
-    //bool ok = _dataClient.getDataQueue(_data[_backBuffer],
-    //					 _dataSize[_backBuffer]);
+    _stackLock.unlock();
     const bool ok = _dataClient.getDataQueue(dataStorage.first, dataStorage.second);
     const float temp = ar_difftime(ar_time(), time1);
     _oldRecvTime = temp>0. ? temp : _oldRecvTime;
@@ -145,7 +143,7 @@ void arSyncDataClient::_readTask(){
       ar_unpackData(_data[_backBuffer],&bufferSize,AR_INT,1);
       _oldRecvSize = bufferSize>0 ? float(bufferSize) : 0.; // ignore garbage
 
-      // Wait to swap buffers. Only do this if we are in synchronized read mode
+      // Put the stored data on the receive stack, sync or nosync.
       if (syncClient()) {
         ar_mutex_lock(&_swapLock);
         while (!_bufferSwapReady){
@@ -153,21 +151,20 @@ void arSyncDataClient::_readTask(){
         }
         // Buffer swap can occur now.
         _bufferSwapReady = false;
-        // put the stored data on the receive stack
-        ar_mutex_lock(&_stackLock);
+
+        _stackLock.lock();
         _receiveStack.push_back(dataStorage);
-        ar_mutex_unlock(&_stackLock);
+        _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
+
         _dataAvailable = 1;
         _dataWaitCondVar.signal();
         ar_mutex_unlock(&_swapLock);
       }
       else{
-	// still need to put data onto the receiveStack, even in nosync mode
-        // put the stored data on the receive stack
-        ar_mutex_lock(&_stackLock);
+        _stackLock.lock();
         _receiveStack.push_back(dataStorage);
-        ar_mutex_unlock(&_stackLock);
+        _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
       }
     }
@@ -180,14 +177,13 @@ void arSyncDataClient::_readTask(){
       // Reset the rest of the state, to avoid deadlocks.
       _bufferSwapReady = true;
       // recycle any pending buffers on the receive stack
-      ar_mutex_lock(&_stackLock);
+      _stackLock.lock();
       for (list<pair<char*,int> >::iterator iter = _receiveStack.begin();
-           iter != _receiveStack.end();
-	   iter++) {
+           iter != _receiveStack.end(); iter++) {
         _storageStack.push_back(*iter);
       }
       _receiveStack.clear();
-      ar_mutex_unlock(&_stackLock);
+      _stackLock.unlock();
       //_backBuffer = 0;
       _dataAvailable = 0;
       // signal that the connection has been closed *last*
@@ -208,13 +204,11 @@ arSyncDataClient::arSyncDataClient():
   _mode = AR_SYNC_CLIENT;
   _dataAvailable = 0;
   _bufferSwapReady = true;
-  _data[0] = new ARchar[10000];
   _dataSize[0] = 10000;
-  _data[1] = new ARchar[10000];
   _dataSize[1] = 10000;
+  _data[0] = new ARchar[10000];
+  _data[1] = new ARchar[10000];
   _backBuffer = 0;
-
-  ar_mutex_init(&_stackLock);
 
   _stateClientConnected = false;
   _exitProgram = false;
@@ -409,8 +403,7 @@ void arSyncDataClient::consume(){
     // We must wait for the data to become ready.
     ar_mutex_lock(&_syncServer->_localProducerReadyLock);
     while (!_syncServer->_localProducerReady){
-      _syncServer->_localProducerReadyVar.wait
-        (&_syncServer->_localProducerReadyLock);
+      _syncServer->_localProducerReadyVar.wait(&_syncServer->_localProducerReadyLock);
     } 
     // Could be the case that everything is stopping.
     if (_syncServer->_localProducerReady == 2){
@@ -451,8 +444,7 @@ void arSyncDataClient::consume(){
         _disconnectCallback(_bondedObject);
       }
       else {
-        ar_log_error() << "arSyncDataClient warning: undefined disconnection "
-	               << "callback.\n";
+        ar_log_error() << "arSyncDataClient: no disconnection callback.\n";
       }
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
@@ -473,12 +465,11 @@ void arSyncDataClient::consume(){
       // (if we are synchronized, this will be exactly 1 buffer).
       // Then consume everything.
       _consumeStack.clear();
-      ar_mutex_lock(&_stackLock);
+      _stackLock.lock();
       list<pair<char*,int> >::iterator iter;
       if (_mode == AR_NOSYNC_CLIENT){
 	// consume everything
-        for (iter = _receiveStack.begin(); iter != _receiveStack.end();
-	     iter++){
+        for (iter = _receiveStack.begin(); iter != _receiveStack.end(); iter++){
           _consumeStack.push_back(*iter);
         }
         _receiveStack.clear();
@@ -495,17 +486,17 @@ void arSyncDataClient::consume(){
 	  _receiveStack.pop_front();
 	}
       }
-      ar_mutex_unlock(&_stackLock);
+      _stackLock.unlock();
       for (iter = _consumeStack.begin(); iter != _consumeStack.end(); iter++){
         _consumptionCallback(_bondedObject, (*iter).first);
       }
       // move storage from consume stack to storage stack
-      ar_mutex_lock(&_stackLock);
+      _stackLock.lock();
       for (iter = _consumeStack.begin(); iter != _consumeStack.end(); iter++){
         _storageStack.push_back(*iter);
       }
       _consumeStack.clear();
-      ar_mutex_unlock(&_stackLock);
+      _stackLock.unlock();
       //_consumptionCallback(_bondedObject, _data[1 - _backBuffer]);
       time3 = ar_time();
       _actionCallback(_bondedObject);

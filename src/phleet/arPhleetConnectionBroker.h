@@ -157,17 +157,19 @@ class SZG_CALL arPhleetConnectionBroker{
   void print();
   
  private:
-  arMutex               _brokerLock;
-  SZGComputerData       _computerData;
-  SZGComponentData      _componentData;
-  SZGServiceData        _temporaryServices;
-  SZGServiceData        _usedServices;
-  SZGRequestList        _requestedServices;
+  SZGComputerData  _computerData;
+  SZGComponentData _componentData;
+  SZGServiceData   _temporaryServices;
+  SZGServiceData   _usedServices;
+  SZGRequestList   _requestedServices;
+  arLock _l; // for brokering
   void (*_releaseNotificationCallback)(int,int,const string&);
 
   void _resizeComputerPorts(arBrokerComputerData& computer,
                             int first, int size);
   bool _portValid(int port, arBrokerComputerData& computer);
+  void _lock() { _l.lock(); }
+  void _unlock() { _l.unlock(); }
 };
 
 #endif

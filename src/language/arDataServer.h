@@ -124,14 +124,16 @@ class SZG_CALL arDataServer : public arDataPoint {
    void _setSocketRemoteConfig(arSocket*, const arStreamConfig&);
    arSocket* _acceptConnection(bool);
 
-   arMutex _dataTransferMutex; // Serializes socket lists and _dataBuffer.
+   arLock _lockTransfer; // Serializes socket lists and _dataBuffer.
+   void _lock() { _lockTransfer.lock(); }
+   void _unlock() { _lockTransfer.unlock(); }
 
    arTemplateDictionary*   _theDictionary;
    arStructuredDataParser* _dataParser;
 
    arSocket* _nextConsumer;
    list<arSocket*> _pendingConsumers;
-   arMutex _consumptionLock; // Serialize data consumption.
+   arLock _lockConsume; // Serialize data consumption.
 
    void (*_consumerFunction)(arStructuredData*,void*,arSocket*);
    void* _consumerObject;

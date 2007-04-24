@@ -50,7 +50,7 @@ arSZGClient::arSZGClient():
   _parseSpecialPhleetArgs(true),
   _initialInitLength(0),
   _initialStartLength(0),
-  _nextMatch(0),
+  _match(-1),
   _logLevel(AR_LOG_WARNING),
   _discoveryThreadsLaunched(false),
   _beginTimer(false),
@@ -63,8 +63,7 @@ arSZGClient::arSZGClient():
   _dataClient.setLabel(_exeName);
   _dataClient.smallPacketOptimize(true);
   _dataClient.setBufferSize(_receiveBufferSize);
-  ar_mutex_init(&_queueLock);
-  ar_mutex_init(&_serviceLock);
+  ar_mutex_init(&_lock);
 }
 
 arSZGClient::~arSZGClient() {
@@ -1952,9 +1951,7 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
 // responses of the szgserver to sent messages. This allows arSZGClient
 // methods to be called freely from different application threads.
 int arSZGClient::_fillMatchField(arStructuredData* data) {
-  ar_mutex_lock(&_serviceLock);
-  const int match = _nextMatch++;
-  ar_mutex_unlock(&_serviceLock);
+  const int match = ++_match;
   data->dataIn(_l.AR_PHLEET_MATCH,&match,AR_INT,1);
   return match;
 }
@@ -2989,7 +2986,7 @@ void arSZGClient::_serverResponseThread() {
 
     // We got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
-    ar_mutex_lock(&_queueLock);
+    ar_mutex_lock(&_lock);
     if (_dataRequested) {
       // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
@@ -3026,24 +3023,24 @@ void arSZGClient::_serverResponseThread() {
         }
       }
     }
-    ar_mutex_unlock(&_queueLock);
+    ar_mutex_unlock(&_lock);
   }
 }
 
 void arSZGClient::_timerThread() {
   while (_keepRunning) {
-    ar_mutex_lock(&_queueLock);
+    ar_mutex_lock(&_lock);
       while (!_beginTimer) {
-	_timerCondVar.wait(&_queueLock);
+	_timerCondVar.wait(&_lock);
       }
       _beginTimer = false;
-    ar_mutex_unlock(&_queueLock);
+    ar_mutex_unlock(&_lock);
 
     ar_usleep(1500000); // Long, for slow or flaky networks.
 
-    ar_mutex_lock(&_queueLock);
+    ar_mutex_lock(&_lock);
       _dataCondVar.signal();
-    ar_mutex_unlock(&_queueLock);
+    ar_mutex_unlock(&_lock);
   }
 }
 
@@ -3104,7 +3101,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  ar_mutex_lock(&_queueLock);
+  ar_mutex_lock(&_lock);
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = name;
@@ -3112,11 +3109,11 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _sendDiscoveryPacket(name,broadcast);
   _timerCondVar.signal();
   while (_dataRequested && _beginTimer) {
-    _dataCondVar.wait(&_queueLock);
+    _dataCondVar.wait(&_lock);
   }
   if (_dataRequested) {
     // timeout
-    ar_mutex_unlock(&_queueLock);
+    ar_mutex_unlock(&_lock);
     return false;
   }
 
@@ -3125,7 +3122,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _IPaddress = string(_responseBuffer+132);
   _port = atoi(_responseBuffer+164);
 
-  ar_mutex_unlock(&_queueLock);
+  ar_mutex_unlock(&_lock);
   return true;
 }
 
@@ -3138,7 +3135,7 @@ void arSZGClient::printSZGServers(const string& broadcast) {
   _bufferResponse = true;
   _justPrinting = true;
 
-  ar_mutex_lock(&_queueLock);
+  ar_mutex_lock(&_lock);
     _foundServers.clear();
     _dataRequested = true;
     _beginTimer = true;
@@ -3146,9 +3143,9 @@ void arSZGClient::printSZGServers(const string& broadcast) {
     _sendDiscoveryPacket("*",broadcast);
     _timerCondVar.signal();
     while (_beginTimer) {
-      _dataCondVar.wait(&_queueLock);
+      _dataCondVar.wait(&_lock);
     }
-  ar_mutex_unlock(&_queueLock);
+  ar_mutex_unlock(&_lock);
   _dataRequested = false;
 
   _justPrinting = false;
@@ -3164,7 +3161,7 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   }
 
   _bufferResponse = true;
-  ar_mutex_lock(&_queueLock);
+  ar_mutex_lock(&_lock);
   _foundServers.clear();
   _dataRequested = true;
   _beginTimer = true;
@@ -3172,9 +3169,9 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   _sendDiscoveryPacket("*",broadcast);
   _timerCondVar.signal();
   while (_beginTimer) {
-    _dataCondVar.wait(&_queueLock);
+    _dataCondVar.wait(&_lock);
   }
-  ar_mutex_unlock(&_queueLock);
+  ar_mutex_unlock(&_lock);
   _dataRequested = false;
   _bufferResponse = false;
   return _foundServers;

@@ -14,9 +14,9 @@ arMaterialNode::arMaterialNode() {
 
 arStructuredData* arMaterialNode::dumpData() {
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_lMaterial, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -29,35 +29,35 @@ bool arMaterialNode::receiveData(arStructuredData* inData) {
     << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   inData->dataOut(_g->AR_MATERIAL_DIFFUSE,_lMaterial.diffuse.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_AMBIENT,_lMaterial.ambient.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_SPECULAR,_lMaterial.specular.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_EMISSIVE,_lMaterial.emissive.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_EXPONENT,&_lMaterial.exponent,AR_FLOAT,1);
   inData->dataOut(_g->AR_MATERIAL_ALPHA,&_lMaterial.alpha,AR_FLOAT,1); 
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
 arMaterial arMaterialNode::getMaterial() {
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arMaterial r = _lMaterial;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arMaterialNode::setMaterial(const arMaterial& material) {
   if (active()) {
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(material, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   } else {
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _lMaterial = material;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 

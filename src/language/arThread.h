@@ -157,4 +157,25 @@ private:
   arSignalObject _signal; // avoid race condition during initialization
 };
 
+//**************************************
+// thread-safe types
+//**************************************
+
+// Thread-safe int.  Used by arSocket.  Todo: use more.
+class SZG_CALL arIntAtom {
+ public:
+  arIntAtom(int x=0) : _x(x) {}
+  operator int()
+    { _l.lock(); const int x = _x; _l.unlock(); return x; }
+  int set(int x)
+    { _l.lock(); _x = x; _l.unlock(); return x; }
+  friend int operator++(arIntAtom& a) // prefix operator only
+    { a._l.lock(); const int x = ++(a._x); a._l.unlock(); return x; }
+  friend int operator--(arIntAtom& a) // prefix operator only
+    { a._l.lock(); const int x = --(a._x); a._l.unlock(); return x; }
+ private:
+  int _x;
+  arLock _l;
+};
+
 #endif

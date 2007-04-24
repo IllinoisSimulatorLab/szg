@@ -35,16 +35,16 @@ const float* arNormal3Node::getNormal3(int& number){
 
 void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(number, normal3, IDs, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _mergeElements(number, normal3, IDs);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
@@ -54,7 +54,7 @@ void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
 vector<arVector3> arNormal3Node::getNormal3(){
   vector<arVector3> result;
   // Must be thread-safe.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   unsigned int num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
@@ -62,7 +62,7 @@ vector<arVector3> arNormal3Node::getNormal3(){
     result[i][1] = _commandBuffer.v[3*i+1];
     result[i][2] = _commandBuffer.v[3*i+2];
   }
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 

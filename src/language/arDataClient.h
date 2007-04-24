@@ -51,7 +51,7 @@ class SZG_CALL arDataClient : public arDataPoint {
    arStreamConfig _remoteStreamConfig;
 
    bool _activeConnection;
-   arMutex _sendLock;
+   arLock _lockSend;
 
    bool _dialUpInit(const char*, int);
    bool _dialUpConnect(const char*, int);

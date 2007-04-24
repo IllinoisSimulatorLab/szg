@@ -30,7 +30,7 @@ class SZG_CALL arSharedMemDriver: public arInputSource {
     bool _eventThreadRunning;
     void* _shmFoB;
     void* _shmWand;
-    arMutex _lockShm;
+    arLock _l;
     int _buttonPrev[8];
     arThread _eventThread;
 };

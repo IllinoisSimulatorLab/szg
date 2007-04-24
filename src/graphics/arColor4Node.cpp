@@ -37,16 +37,16 @@ const float* arColor4Node::getColor4(int& number){
 
 void arColor4Node::setColor4(int number, float* color4, int* IDs){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(number, color4, IDs, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _mergeElements(number, color4, IDs);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
@@ -56,7 +56,7 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
 vector<arVector4> arColor4Node::getColor4(){
   vector<arVector4> result;
   // Must be thread-safe.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   unsigned int num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
@@ -65,7 +65,7 @@ vector<arVector4> arColor4Node::getColor4(){
     result[i][2] = _commandBuffer.v[4*i+2];
     result[i][3] = _commandBuffer.v[4*i+3];
   }
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return result;
 }
 

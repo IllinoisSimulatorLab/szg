@@ -9,38 +9,36 @@
 #include <errno.h>
 using namespace std;
 
-// Only need to initialize sockets in the windows case.
 #ifdef AR_USE_WIN_32
 #include "arDataUtilities.h" // for ar_winSockInit()
 
-// Helper class that implements the singleton pattern for winsock init.
+// Helper class, singleton pattern for winsock init.
 class arWinSockHelper{
  public:
-  arWinSockHelper(){ _initialized = false; ar_mutex_init(&_lock); }
-  ~arWinSockHelper(){}
-
-  bool init(){
-    ar_mutex_lock(&_lock);
+  arWinSockHelper(): _fInit(false) {}
+  bool init() {
+    _lock.lock();
     // If we do not need to initialize, return true.
-    bool state = true;
-    if (!_initialized){
-      state = ar_winSockInit();
-      if (!state){
-        cerr << "syzygy error: win sock failed to initialize.\n";
+    bool ok = true;
+    if (!_fInit){
+      ok = ar_winSockInit();
+      if (!ok){
+        cerr << "Syzygy error: WinSock failed to initialize.\n";
       }
-      _initialized = true;
+      _fInit = true;
     }
-    ar_mutex_unlock(&_lock);
-    return state;
+    _lock.unlock();
+    return ok;
   }
 
-  arMutex _lock;
-  bool    _initialized;
+ private:
+  bool _fInit;
+  arLock _lock;
 };
 
 bool ar_winSockHelper(){
-  static arWinSockHelper helper;
-  return helper.init();
+  static arWinSockHelper h;
+  return h.init();
 }
 #endif
 
@@ -52,19 +50,14 @@ arCommunicator::arCommunicator(){
 
 ///////////// Okay, now the actual arSocket code begins... ///////////
 
-arSocket::arSocket(int type) :
-  _type(type),
-  _ID(-1),
-  _usageCount(0){
-
-  ar_mutex_init(&_usageLock);
+arSocket::arSocket(int type) : _type(type), _ID(-1) {
 #ifdef AR_USE_WIN_32
   _socketFD = INVALID_SOCKET;
 #else
   _socketFD = -1;
 #endif
-  if (type != AR_LISTENING_SOCKET && type != AR_STANDARD_SOCKET){
-    cerr << "warning: ignoring unexpected arSocket type " << type << endl;
+  if (_type != AR_LISTENING_SOCKET && _type != AR_STANDARD_SOCKET){
+    cerr << "warning: ignoring unexpected arSocket type " << _type << endl;
     _type = AR_STANDARD_SOCKET;
   }
 }
@@ -390,9 +383,7 @@ cerr << "attempt #2: queue length == " << ifr.ifr_qlen << endl;
 int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout){
   const bool fTimeout = usecTimeout > 0.;
   const ar_timeval tStart = ar_time();
-  ar_mutex_lock(&_usageLock);
-  _usageCount++;
-  ar_mutex_unlock(&_usageLock);
+  ++_usageCount;
   arSleepBackoff a(6, 25, 1.1);
 
   while (numBytes>0) {
@@ -412,26 +403,20 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
     if (n <= 0) { 
       //  <0: failed to read from socket.
       // ==0: socket closed, but caller wants still more bytes.
-      ar_mutex_lock(&_usageLock);
-        _usageCount--;
-      ar_mutex_unlock(&_usageLock); 
+      --_usageCount;
       return false; 
       }
     numBytes -= n;
     theData += n;
   }
-  ar_mutex_lock(&_usageLock);
-  _usageCount--;
-  ar_mutex_unlock(&_usageLock); 
+  --_usageCount;
   return true;
 }
 
 int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecTimeout){
   const bool fTimeout = usecTimeout > 0.;
   const ar_timeval tStart = ar_time();
-  ar_mutex_lock(&_usageLock);
-  _usageCount++;
-  ar_mutex_unlock(&_usageLock);
+  ++_usageCount;
   arSleepBackoff a(6, 25, 1.1);
 
   while (numBytes>0) {
@@ -450,25 +435,18 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
     const int n = ar_write(theData,numBytes);
     if (n<0) {
       // an error in writing to the socket
-      ar_mutex_lock(&_usageLock);
-      _usageCount--;
-      ar_mutex_unlock(&_usageLock);
+      --_usageCount;
       return false;
     }
     numBytes -= n;
     theData += n;
   }
-  ar_mutex_lock(&_usageLock);
-  _usageCount--;
-  ar_mutex_unlock(&_usageLock);
+  --_usageCount;
   return true;
 }
 
 int arSocket::getUsageCount(){
-  ar_mutex_lock(&_usageLock);
-  const int count = _usageCount;
-  ar_mutex_unlock(&_usageLock);
-  return count;
+  return _usageCount;
 }
 
 void arSocket::ar_close(){

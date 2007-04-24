@@ -87,7 +87,7 @@ class SZG_CALL arSyncDataClient{
   list<pair<char*,int> > _receiveStack;
   list<pair<char*,int> > _storageStack;
   list<pair<char*,int> > _consumeStack;
-  arMutex                 _stackLock;
+  arLock                 _stackLock; // For all three of these stacks.
   ARchar* _data[2];
   ARint _dataSize[2];
   int _backBuffer;
@@ -106,7 +106,7 @@ class SZG_CALL arSyncDataClient{
   bool (*_nullCallback)(void*);
   bool (*_postSyncCallback)(void*);
 
-  arMutex _swapLock;
+  arMutex _swapLock; // with _bufferSwapCondVar, _dataWaitCondVar
   arConditionVar _bufferSwapCondVar;
   arConditionVar _dataWaitCondVar;
   arDataClient _dataClient;
@@ -132,7 +132,7 @@ class SZG_CALL arSyncDataClient{
   // disconnection. This is necessary if, say, something needs to
   // be executed on disconnect in the consume thread (and the most 
   // convenient way to do this is in the _nullCallback).
-  arMutex        _nullHandshakeLock;
+  arMutex        _nullHandshakeLock; // with _nullHandshakeVar
   arConditionVar _nullHandshakeVar;
   int            _nullHandshakeState;
 

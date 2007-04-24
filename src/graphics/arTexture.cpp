@@ -144,28 +144,18 @@ bool arTexture::operator!() const {
 }
 
 int arTexture::getRef(){
-  _lock.lock();
-    const int result = _refs;
-  _lock.unlock();
-  return result;
+  return _refs;
 }
 
 arTexture* arTexture::ref(){
-  // Returning the pointer allows us to atomically create
-  // a reference to the object.
-  _lock.lock();
-    _refs++;
-  _lock.unlock();
+  ++_refs;
   return this;
 }
 
 void arTexture::unref(bool fDebug){
-  _lock.lock();
-    const bool fDelete = --_refs == 0;
-  _lock.unlock();
-  if (fDelete){
+  if (--_refs == 0) {
     if (fDebug)
-      ar_log_debug() << "arTexture: deleting.\n";
+      ar_log_debug() << "arTexture deleted.\n";
     delete this;
   }
 }

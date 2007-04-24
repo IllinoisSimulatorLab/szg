@@ -108,9 +108,10 @@ class SZG_CALL arStructuredData {
    void dump(bool verbosity = false);
 
    // XML I/O
-   void print();
    void print(ostream& s);
    void print(FILE*);
+   void print()
+     { print(stdout); }
 
  private:
    bool _fValid;             // got constructed okay
@@ -128,7 +129,7 @@ class SZG_CALL arStructuredData {
    string _name; // name of arDataTemplate this was derived from
 
    static bool _fInitdumpLock;
-   static arMutex _dumpLock;
+   static arLock _dumpLock; // Don't interleave multiple threads' output.
 };
 
 ostream& operator<<(ostream& s, const arStructuredData& d);

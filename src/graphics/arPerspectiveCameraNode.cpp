@@ -17,9 +17,9 @@ arPerspectiveCameraNode::arPerspectiveCameraNode(){
 
 arStructuredData* arPerspectiveCameraNode::dumpData(){
   // Caller is responsible for deleting.
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arStructuredData* r = _dumpData(_nodeCamera, false);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
@@ -32,7 +32,7 @@ bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
     << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   inData->dataOut(_g->AR_PERSP_CAMERA_CAMERA_ID,
                   &_nodeCamera.cameraID, AR_INT, 1);
   inData->dataOut(_g->AR_PERSP_CAMERA_FRUSTUM,_nodeCamera.frustum,AR_FLOAT,6);
@@ -40,7 +40,7 @@ bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
 
   // register it with the database
   _owningDatabase->registerCamera(this,&_nodeCamera);
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return true;
 }
 
@@ -50,24 +50,24 @@ void arPerspectiveCameraNode::deactivate(){
 }
 
 arPerspectiveCamera arPerspectiveCameraNode::getCamera(){
-  ar_mutex_lock(&_nodeLock);
+  _nodeLock.lock();
   arPerspectiveCamera r = _nodeCamera;
-  ar_mutex_unlock(&_nodeLock);
+  _nodeLock.unlock();
   return r;
 }
 
 void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
   if (active()){
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     arStructuredData* r = _dumpData(camera, true);
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
+    _nodeLock.lock();
     _nodeCamera = camera;
-    ar_mutex_unlock(&_nodeLock);
+    _nodeLock.unlock();
   }
 }
 
