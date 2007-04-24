@@ -222,18 +222,8 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
       ar_log_warning() << "arInputSimulator: no buttons in keyboard().\n";
       break;
     }
-    bool fAllUp = true;
-    for (unsigned i=0; i<_newButtonEvents.size(); ++i) {
-      if (_newButtonEvents[i] != 0) {
-        fAllUp = false;
-	break;
-      }
-    }
-    if (!fAllUp) {
-      // Better might be to reset all buttons.
-      ar_log_warning() << "arInputSimulator ignoring spacebar while button(s) are held down.\n";
-      break;
-    }
+    // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
+    // while spacebar cycles to the next subset of buttons.
     if (++_buttonSelector >= numRows)
       _buttonSelector = 0;
     break;
