@@ -298,7 +298,7 @@ bool arAppLauncher::waitForKill(){
   while (true) {
     string messageType, messageBody;
     if (!_szgClient->receiveMessage(&messageType,&messageBody)){
-      ar_log_warning() << _exeName << ": no szgserver.\n";
+      ar_log_error() << _exeName << ": no szgserver.\n";
       // Don't bother calling killApp(), since szgserver is gone.
       break;
     }
