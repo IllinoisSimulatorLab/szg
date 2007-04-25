@@ -119,17 +119,17 @@ necessary for programs to work in [Standalone Mode Standalone.html].
 
 ``szg.conf`` is an XML file contains the following information:
 
-# The computer's Syzygy name (typically the first part of the DNS name, but it doesn't
++ The computer's Syzygy name (typically the first part of the DNS name, but it doesn't
   have to be). Defaults to "NULL".
-# For each network interface card in the computer there must be a record specifying:
-  # The Syzygy network that this interface is part of. Interfaces connected to the
++ For each network interface card in the computer there must be a record specifying:
+  + The Syzygy network that this interface is part of. Interfaces connected to the
     internet should specify "internet"; multiple private networks are allowed and
     should be assigned distinct names that are meaningful to you.
-  # The interface's IP address and netmask. The netmask defaults to 255.255.255.0.
-  # A "type" value that must currently be set to "IP".
+  + The interface's IP address and netmask. The netmask defaults to 255.255.255.0.
+  + A "type" value that must currently be set to "IP".
   Note that there's no default interface record, if you don't add any you simply
   won't be able to perform any Syzygy networking functions.
-# A range of ports to be used in connection brokering. This is specified by two
++ A range of ports to be used in connection brokering. This is specified by two
   numbers, the starting port number and number of ports in the block. The default
   values are 4700 and 200.
 
