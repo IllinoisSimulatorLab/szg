@@ -6,15 +6,13 @@
 #ifndef AR_THREAD_H
 #define AR_THREAD_H
 
-#include "arLanguageCalling.h"
-
 #ifdef AR_USE_WIN_32
 #include <process.h>
-// DO NOT INCLUDE windows.h here. Instead, do as below.
-#include "arPrecompiled.h"
 #else
 #include <pthread.h>
 #endif
+
+#include "arLanguageCalling.h"
 
 //******************************************
 // mutexes
@@ -30,16 +28,14 @@ void SZG_CALL ar_mutex_init(arMutex*);
 void SZG_CALL ar_mutex_lock(arMutex*);
 void SZG_CALL ar_mutex_unlock(arMutex*);
 
-
-//Implementation lifted from MUTEX class of
-// Walmsley, "Multi-threaded Programming in C++"
+// From Walmsley, "Multi-threaded Programming in C++," class MUTEX.
 class SZG_CALL arLock {
   public:
     arLock(const char* name = NULL);
-    virtual ~arLock();
-    virtual void lock();
-    virtual bool tryLock();
-    virtual void unlock();
+    ~arLock();
+    void lock();
+    bool tryLock();
+    void unlock();
     bool valid() const;
   protected:
 #ifdef AR_USE_WIN_32
@@ -54,8 +50,8 @@ class SZG_CALL arLock {
 //*****************************************
 
 // Signal.
-// Our signals are "sticky" (like Win32 manual-reset events).
-// Once signalled, the object remains so until a
+// "Sticky" (like Win32 manual-reset events):
+// once signalled, remain so until a
 // receiveSignal() call is issued.
 // However, sometimes we want to de-signal the object.
 

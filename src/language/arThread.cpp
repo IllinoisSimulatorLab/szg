@@ -89,6 +89,7 @@ LBackoff:
 #else
 arLock::arLock(const char*) {
   pthread_mutex_init( &_mutex, NULL );
+  // PTHREAD_MUTEX_DEFAULT deadlocks if _mutex is locked twice.
 }
 #endif
 
@@ -112,13 +113,27 @@ void arLock::lock() {
 #ifdef AR_USE_WIN_32
   WaitForSingleObject( _mutex, INFINITE );
 #else
-  pthread_mutex_lock( &_mutex );
+  switch (pthread_mutex_trylock(&_mutex)) {
+  case 0:
+  default:
+    break;
+  case EBUSY:
+    cerr << "arLock warning: failed to re-lock.  Beware of deadlocks.\n";
+    break;
+  case EINVAL:
+    cerr << "arLock warning: uninitialized.\n";
+    break;
+  case EFAULT:
+    cerr << "arLock warning: invalid pointer.\n";
+    break;
+  }
 #endif
 }
 
 // Try to lock().  Returns true also if "you" lock()'ed already.
 bool arLock::tryLock() {
 #ifdef AR_USE_WIN_32
+  // BUG: this just checks if it was locked already, it doesn't actually LOCK it.
   return WaitForSingleObject( _mutex, 0 ) != WAIT_TIMEOUT;
 #else
   return pthread_mutex_trylock( &_mutex ) == 0;
