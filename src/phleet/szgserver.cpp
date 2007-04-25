@@ -1351,10 +1351,8 @@ void messageProcessingCallback(arStructuredData* pd,
 // @param dataSocket Connection upon which we received the data
 void messageAdminCallback(arStructuredData* pd,
 			  arSocket* dataSocket) {
-  const string messageAdminType 
-    = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_TYPE);
+  const string messageAdminType = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_TYPE);
   bool status = false;
-  int messageID = -1;
   int responseOwner = -1;
   int responseDestination = -1;
   arPhleetMsg messageData;
@@ -1367,7 +1365,7 @@ void messageAdminCallback(arStructuredData* pd,
   _transferMatchFromTo(pd, messageAckData);
 
   if (messageAdminType == "SZG Response") {
-    messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
+    const int messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
     responseOwner = SZGgetMessageOwnerID(messageID);
     if (responseOwner < 0) {
       ar_log_warning() << "szgserver: unexpected response for messageID " << messageID << ".\n";
@@ -1384,7 +1382,7 @@ void messageAdminCallback(arStructuredData* pd,
       else {
         responseSocket = dataServer->getConnectedSocket(responseDestination);
         if (!responseSocket) {
-	  ar_log_warning() << "szgserver: missing response destination.\n";
+	  ar_log_warning() << "szgserver: no destination to respond to.\n";
 	}
 	else {
 	  // Fill in the match.
@@ -1413,7 +1411,7 @@ void messageAdminCallback(arStructuredData* pd,
   }
 
   else if (messageAdminType == "SZG Trade Message") {
-    messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
+    const int messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
     key = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
     status = SZGaddMessageTradeToDB(
       key, messageID, dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
@@ -1431,7 +1429,7 @@ void messageAdminCallback(arStructuredData* pd,
     if (SZGmessageRequest(key, dataSocket->getID(), messageData)) {
       // Notify originator of the trade that the trade has occurred.
       (void)SZGack(messageAckData, true);
-      messageID = -1;
+      int messageID = -1;
       // Put in the match from the original trade.
       messageAckData->dataIn(lang.AR_PHLEET_MATCH, &messageData.idTradingMatch, AR_INT, 1);
       messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, AR_INT, 1);
@@ -1459,11 +1457,10 @@ void messageAdminCallback(arStructuredData* pd,
     status = SZGrevokeMessageTrade(key, dataSocket->getID());
   }
 
-  // Send an ACK back to the receiving component,
-  // with ID field possibly not filled in.
+  // ACK, with ID field possibly not filled in.
   if (!SZGack(messageAckData, status) ||
       !dataServer->sendData(messageAckData, dataSocket)) {
-    ar_log_warning() << "szgserver failed to send message ack.\n";
+    ar_log_warning() << "szgserver failed to ack.\n";
   }
   dataParser->recycle(messageAckData);
 }
@@ -1535,13 +1532,12 @@ void lockRequestCallback(arStructuredData* pd,
 void lockReleaseCallback(arStructuredData* pd,
 			 arSocket* dataSocket) {
   const int ownerID = -1;
-  arStructuredData* lockResponseData 
-    = dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
-  // Must propogate the "match".
+  arStructuredData* lockResponseData =
+    dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
+  // Propagate the "match".
   _transferMatchFromTo(pd, lockResponseData);
-  const bool ok =
-    SZGreleaseLock(lockRequestInit(lockResponseData,pd), 
-                                   dataSocket->getID());
+  const bool ok = SZGreleaseLock(lockRequestInit(lockResponseData, pd), 
+    dataSocket->getID());
   lockRequestFinish(lockResponseData, ok, ownerID, dataSocket);
   dataParser->recycle(lockResponseData);
 }
@@ -1570,8 +1566,7 @@ void lockListingCallback(arStructuredData* pd,
 // Let a component request notification when a lock is released.
 void lockNotificationCallback(arStructuredData* data,
 			      arSocket* dataSocket) {
-  const string 
-    lockName(data->getDataString(lang.AR_SZG_LOCK_NOTIFICATION_NAME));
+  const string lockName(data->getDataString(lang.AR_SZG_LOCK_NOTIFICATION_NAME));
   // There is no need to propogate the match in the failure case, since
   // the received message is simply returned.
   if (!SZGcheckLock(lockName)) {
@@ -1594,29 +1589,22 @@ void lockNotificationCallback(arStructuredData* data,
 // @param pd Incoming data record (contains info about the service to
 // be registered)
 // @param dataSocket Connection upon which we received the data
-void registerServiceCallback(arStructuredData* pd,
-                             arSocket* dataSocket) {
+void registerServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
   // Check the status field first. This indicates whether we are receiving
   // an initial service registration request OR a retry that the remote
   // component has demanded because it could not use some of the returned ports
   // Unpack the record into easy-to-use variables.
-  const int match =
-    pd->getDataInt(lang.AR_PHLEET_MATCH);
-  const string 
-    status(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_STATUS));
-  const string serviceName(
-    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_TAG));
-  const string networks(
-    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_NETWORKS));
-  const string addresses(
-    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_ADDRESSES));
+  const int match = pd->getDataInt(lang.AR_PHLEET_MATCH);
+  const string status(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_STATUS));
+  const string serviceName(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_TAG));
+  const string networks(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_NETWORKS));
+  const string addresses(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_ADDRESSES));
   const int size = pd->getDataInt(lang.AR_SZG_REGISTER_SERVICE_SIZE);
-  const string computer(
-    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_COMPUTER));
+  const string computer(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_COMPUTER));
   int temp[2];
   pd->dataOut(lang.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
-  const int firstPort = temp[0];
-  const int blockSize = temp[1];
+  const int& firstPort = temp[0];
+  const int& blockSize = temp[1];
  
   arPhleetService result;
   arStructuredData* data = NULL;
