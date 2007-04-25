@@ -161,7 +161,7 @@ void arSharedMemSinkDriver::_dataThread() {
     const unsigned ca = aIS.getNumberAxes();
     const unsigned cb = aIS.getNumberButtons();
     //;; todo: only print out when it changes.  ar_log_debug() << "arSharedMemSinkDriver sig is " << cm << "/" << ca << "/" << cb << "\n";
-    int i;
+    unsigned i;
     for (i=0; i<cm; i++)
       setMatrix(i, _shmFoB, aIS.getMatrix(i));
     for (i=0; i<ca; i++)

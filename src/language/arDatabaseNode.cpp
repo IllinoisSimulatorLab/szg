@@ -11,14 +11,15 @@
 // INITIALIZED WITH THESE! For instance, sometimes we detect that it
 // is the root node by testing one of them (i.e. the ID or name).)
 arDatabaseNode::arDatabaseNode():
+  _info(""),
   _ID(0),
   _name("root"),
   _typeCode(-1),
   _typeString("root"),
   _parent(NULL),
   _refs(1),
-  _nodeLevel(AR_STRUCTURE_NODE), // default; see arGraphicsPeer::alter.
-  _info(""){
+  _nodeLevel(AR_STRUCTURE_NODE) // default; see arGraphicsPeer::alter.
+{
   _databaseOwner = NULL;
   _dLang = NULL;
 }

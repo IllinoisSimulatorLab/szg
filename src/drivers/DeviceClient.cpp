@@ -107,26 +107,25 @@ class CompactFilterEventStream : public FilterEventStream {
     virtual bool _processEvent( arInputEvent& inputEvent );
 };
 bool CompactFilterEventStream::_processEvent( arInputEvent& event ) {
-  if (_printEventType==AR_EVENT_GARBAGE || _printEventType==event.getType()) {
-    switch (event.getType()) {
-      case AR_EVENT_BUTTON:
-        cout << "button|" << event.getIndex() << "|" << event.getButton() << endl;
-        break;
-      case AR_EVENT_AXIS:
-        cout << "axis|" << event.getIndex() << "|" << event.getAxis() << endl;
-        break;
-      case AR_EVENT_MATRIX:
-        arMatrix4 m = event.getMatrix();
-        float *ptr = m.v;
-        cout << "matrix|" << event.getIndex() << "|";
-        for (int i=0; i<16; ++i) {
-          if (i != 0) {
-            cout << ",";
-          }
-          cout << *ptr++;
-        }
-        cout << endl;
-    }
+  if (_printEventType!=AR_EVENT_GARBAGE && _printEventType!=event.getType())
+    return true;
+
+  switch (event.getType()) {
+    case AR_EVENT_GARBAGE:
+      break;
+    case AR_EVENT_BUTTON:
+      cout << "button|" << event.getIndex() << "|" << event.getButton() << endl;
+      break;
+    case AR_EVENT_AXIS:
+      cout << "axis|" << event.getIndex() << "|" << event.getAxis() << endl;
+      break;
+    case AR_EVENT_MATRIX:
+      const float *p = event.getMatrix().v;
+      cout << "matrix|" << event.getIndex() << "|" << *p++;
+      for (int i=1; i<16; ++i) {
+	cout << "," << *p++;
+      }
+      cout << endl;
   }
   return true;
 }
@@ -162,13 +161,13 @@ LAbort:
     }
   }
 
-  arInputNode inputNode;
   arNetInputSource src;
   if (!src.setSlot(slot)) {
     ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
     goto LAbort;
   }
   ar_log_remark() << "DeviceClient listening on slot " << slot << ".\n";
+  arInputNode inputNode;
   inputNode.addInputSource(&src, false);
 
   FilterOnButton filterOnButton;
@@ -193,7 +192,7 @@ LAbort:
   if (!szgClient.sendInitResponse(true)) {
     cerr << "DeviceClient error: maybe szgserver died.\n";
   }
-  ar_usleep(50000); // avoid interleaving diagnostics from init and start
+  ar_usleep(40000); // avoid interleaving diagnostics from init and start
 
   if (!inputNode.start()) {
     if (!szgClient.sendStartResponse(false)) {
