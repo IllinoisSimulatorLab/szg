@@ -147,9 +147,9 @@ int main(int argc, char** argv){
     }
 
   arSZGClient szgClient;
-  // dex forwards rather than parses the "special" phleet args, so this works:
+  // dex forwards rather than parses the "special" Syzygy args, so this works:
   //     dex smoke szgrender -szg networks/graphics=wall
-  // But dex DOES parse phleet args that relate to user login, so this works:
+  // But dex DOES parse Syzygy args that relate to user login, so this works:
   //     dex smoke szgrender -szg user=ben -szg server=192.168.0.1:9999
   szgClient.parseSpecialPhleetArgs(false);
   const bool fInit = szgClient.init(argc, argv);

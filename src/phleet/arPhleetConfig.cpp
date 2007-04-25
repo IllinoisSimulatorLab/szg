@@ -296,8 +296,8 @@ bool arPhleetConfig::deleteInterface(const string& networkName,
       return true; // no need to search further
     }
   }
-  cerr << "phleet error: failed to delete missing interface "
-       << networkName  << "/" << address << ".\n";
+  ar_log_error() << "failed to delete missing interface "
+                 << networkName  << "/" << address << ".\n";
   return false;
 }
 
@@ -308,7 +308,7 @@ bool arPhleetConfig::deleteInterface(const string& networkName,
 bool arPhleetConfig::setPortBlock(int firstPort, int blockSize){
   // a little sanity check
   if (firstPort < 1024 || blockSize < 1){
-    cout << "arPhleetConfig error: block parameters are invalid.\n";
+    ar_log_error() << "arPhleetConfig block parameters are invalid.\n";
     return false;
   }
   _firstPort = firstPort;

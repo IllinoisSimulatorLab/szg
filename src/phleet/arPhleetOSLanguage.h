@@ -20,8 +20,8 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // The following field and record IDs are public in order to allow
   // programmers to use 
 
-  // Constants corresponding to the common fields for each phleet record.
-  // The Phleet user name.
+  // Constants corresponding to the common fields for each Syzygy record.
+  // The Syzygy user name.
   int AR_PHLEET_USER;
   // The context in which the communication has been issued. In general, 
   // this field gives a list of key/value pairs.
@@ -35,7 +35,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // the client to communicate with the szgserver simultaneously.
   int AR_PHLEET_MATCH; 
 
-  // A description of the various records in the phleet protocol follows
+  // A description of the various records in the Syzygy protocol follows
   // CONNECTION_ACK: After an arSZGClient connects to the szgserver,
   // it uses this record to communicate it's component's name. Many
   // management operations (like dkill) depend on component name.
@@ -46,7 +46,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   int AR_CONNECTION_ACK_LABEL;
 
   // KILL: Ideally, when components expire, their entries will be purged from
-  // the database of phleet components. This currently relies on the szgserver
+  // the database of Syzygy components. This currently relies on the szgserver
   // realizing, via the TCP connection, that the component has exited.
   // Unfortunately, sometimes this doesn't work (if the component's host
   // crashes or if they are communicating over a wireless link). Consequently,
@@ -61,7 +61,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   int AR_KILL_ID;
 
   // PROCESS_INFO: This one is used to get ID and/or label information from
-  // one of the phleet components. By varying the "type" field, we can
+  // one of the Syzygy components. By varying the "type" field, we can
   // get the label of a process with a given ID, the ID of a process with a
   // given label, or the ID of ourselves. 
   int AR_PROCESS_INFO;
@@ -101,8 +101,8 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
 
   // AR_SZG_MESSAGE: The user can send messages to other components using
   // this record. RESPONSE is 0 or 1, depending upon whether a resonse is
-  // desired. USER is the phleet user. CONTEXT is the context in which the
-  // message is sent (i.e. the virtual computer). DEST is the phleet ID of
+  // desired. USER is the Syzygy user. CONTEXT is the context in which the
+  // message is sent (i.e. the virtual computer). DEST is the Syzygy ID of
   // the component to which the message is to be sent. TYPE and BODY give
   // the content of the message.
   // NOTE: the szgserver gets the message, fills in various fields (like 

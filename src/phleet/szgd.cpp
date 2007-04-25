@@ -37,7 +37,7 @@ void warnTwice( ostringstream& errStream, const string& msg ) {
 
   if (errStream != cerr && errStream != cout) {
     // to dex
-    errStream << "szgd on " << SZGClient->getComputerName() << " warning: " << msg;
+    errStream << "szg: szgd on " << SZGClient->getComputerName() << ": " << msg;
     if (!fTerminated)
       errStream << '\n';
   }
@@ -286,7 +286,7 @@ const char* const ExecInfo::_formatnames[formatInvalid+1] =
 // 3. Determine "symbolicCommand", "command" and "args", returned by reference.
 //
 // NOTE: the only inputs are "userName" and "argSring", with "userName" being the
-// phleet user as determined by the message context of the "dex" message and
+// Syzygy user as determined by the message context of the "dex" message and
 // "argString" being the body of the "dex" message.
 //
 // "execPath" is user's SZG_EXEC/path on the host running us.

@@ -6,19 +6,6 @@
 // that the application is running on, to retrieve configuration information.
 // Not intended for everyday use.
 //
-// Example: youre running a master/slave application and you need to send a
-// message to the master from a slave. You do that with the arAppLauncher
-// and the arSZGClient, as shown here (fw is an arMasterSlaveFramework).
-//
-//  cl = fw.getSZGClient()
-//  al = fw.getAppLauncher()
-//  mn = al.getMasterPipeNumber()
-//  rp = al.getRenderProgram( mn )
-//  if rp == 'NULL':
-//    return
-//  rpl = rp.split('/')
-//  id = cl.getProcessID(rpl[0],rpl[1])
-//  m = cl.sendMessage( 'user', 'connected', id, False )
 
 
 
@@ -40,7 +27,6 @@ class arAppLauncher {
     bool setParameters();
 
     int getNumberScreens();
-    int getMasterPipeNumber();
     string getMasterName();
     string getTriggerName();
     string getScreenName(int num);

@@ -169,7 +169,7 @@ class SZG_CALL arSZGClient{
   bool finishMessageOwnershipTrade(int match, int timeout = -1);
   bool revokeMessageOwnershipTrade(const string& key);
   int  requestMessageOwnership(const string& key);
-  // If a phleet component is launched via dex, it is our responsibility
+  // If a Syzygy component is launched via dex, it is our responsibility
   // to respond in some fashion to the launching message. We can do so
   // by getting the ID of the launching message like so.
   int getLaunchingMessageID(){ return _launchingMessageID; }
@@ -329,7 +329,7 @@ class SZG_CALL arSZGClient{
                              const string&, const string&);
   map<string, string, less<string> > _localParameters;
 
-  // Parsing phleet-specific args or the context
+  // Parsing Syzygy-specific args or the context
   bool _parseContext();
   bool _parsePhleetArgs(int& argc, char** const argv);
   bool _parseContextPair(const string& pair);

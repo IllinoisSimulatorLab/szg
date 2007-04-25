@@ -90,15 +90,15 @@ void arSZGClient::simpleHandshaking(bool fSimple) {
 }
 
 // Most components should not see the
-// "special" phleet args (like "-szg virtual=vccube"). These
-// shape how phleet components behave (like acting as part of
+// "special" Syzygy args (like "-szg virtual=vccube"). These
+// shape how Syzygy components behave (like acting as part of
 // a particular virtual computer or in a particular mode).
 // But components like dex must see them to pass them on: use "false" then.
 void arSZGClient::parseSpecialPhleetArgs(bool state) {
   _parseSpecialPhleetArgs = state;
 }
 
-// Connect client to the phleet. Call early in main().
+// Connect client to the cluster. Call early in main().
 // @param argc main()'s argc
 // @param argv main()'s argv
 // @param forcedName Optional. Ideally, we'd read the exe name from argv[0],
@@ -146,7 +146,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // argc is passed by reference (and modified) because the special args that
   // manipulate these values are stripped after use.
   
-  // Parse the config file BEFORE parsing the Phleet args (and the "context"),
+  // Parse the config file BEFORE parsing the Syzygy args (and the "context"),
   // to set the _networks and _addresses.
   // If these files cannot be read, it is still possible to recover.
   if (!_config.read())
@@ -173,17 +173,17 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   _port         = _config.getServerPort();     // can override
   _userName     = _config.getUserName();       // can override
 
-  // Handle and remove any special Phleet args.
+  // Handle and remove any special Syzygy args.
   // These can override some _members above.
   if (!_parsePhleetArgs(argc, argv)) {
-    _initResponseStream << _exeName << " error: invalid Phleet args.\n";
+    _initResponseStream << _exeName << " error: invalid -szg args.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
   }
 
   // "Context" can override some _members above.
   if (!_parseContext()) {
-    _initResponseStream << _exeName << " error: invalid Phleet context.\n";
+    _initResponseStream << _exeName << " error: invalid Syzygy context.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
   }
@@ -491,7 +491,7 @@ inline bool arSZGClient::_parseBetweenTags(arFileTextStream& fs,
 
 // Sometimes we want to be able to read in parameters from a file, as in
 // dbatch or when starting a program in "standalone" mode (i.e. when it is
-// not connected to the Phleet).
+// not connected to a cluster).
 bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
   // There are two parameter file formats.
@@ -888,7 +888,7 @@ string arSZGClient::getGlobalAttribute(const string& userName,
 }
 
 // The userName is implicit in this one (i.e. it is the name of the
-// phleet user executing the program)
+// Syzygy user executing the program)
 string arSZGClient::getGlobalAttribute(const string& attributeName) {
   return getGlobalAttribute(_userName, attributeName);
 }
@@ -937,7 +937,7 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
   return true;
 }
 
-// The phleet user name is implicit in this one.
+// The Syzygy user name is implicit in this one.
 bool arSZGClient::setGlobalAttribute(const string& attributeName,
 				     const string& attributeValue) {
   return setGlobalAttribute(_userName, attributeName, attributeValue);
@@ -950,11 +950,11 @@ Upside: easy to manipulate whole display descriptions.
 Downside: hard to make little changes to a (possibly quite complex)
 display description.
 This method attempts to mitigate this downside. It accesses XML stored
-in the Phleet parameter database, exploiting the hierarchical nature of
+in the Syzygy parameter database, exploiting the hierarchical nature of
 XML to access individual attributes in the doc tree.
 The pathList variable stores the path via which we search into the XML.
 
-1. The first member of the path gives the name of the Phleet global
+1. The first member of the path gives the name of the Syzygy global
 parameter where we will start.
 
 2. Subsequent members define child XML "elements". They are element names
@@ -993,7 +993,7 @@ Here, viewmode is an attribute of the szg_viewport_list element. If a path
 parses down to an attribute BEFORE getting to its final member, an error
 occurs (return "NULL").
 
-4. Phleet allows the XML documents to be stored in multiple global
+4. Syzygy allows the XML documents to be stored in multiple global
 parameters, which facilitates reuse of individual pieces of complex configs.
 This feat is accomplished via "pointers" embedded in the XML in a standard
 way. For instance,
@@ -1206,7 +1206,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
 
 // DOES NOT WORK IN THE LOCAL (STANDALONE) CASE!!!
 // ALSO... Should this really be left in? This was an early attempt
-// at providing lock-like functionality for the Phleet.
+// at providing lock-like functionality for a cluster.
 string arSZGClient::testSetAttribute(const string& computerName,
 			       const string& groupName,
 			       const string& parameterName,
@@ -2075,7 +2075,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
 // (up to 10) containing the port IDs. NOTE: this call can be made in either
 // synchronous or asynchronous mode. The difference between the two modes
 // shows up only if the requested service is not currently registered
-// in the phleet. In synchronous mode, the szgserver immediately responds
+// in the cluster. In synchronous mode, the szgserver immediately responds
 // with a failure message. In asynchronous mode, the szgserver declines
 // responding and, instead, waits for the service to be registered, at
 // which time it responds.  In asynchronous mode, discoverService() thus blocks.
@@ -2278,14 +2278,14 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
 }
 
 // From the szgserver get the list of running services,
-// including the hosts on which they run, and the phleet IDs of
+// including the hosts on which they run, and the Syzygy IDs of
 // the components hosting them. Print this list like dps does.
 void arSZGClient::printServices() {
   _printServices("active");
 }
 
 // From the szgserver get the list of pending service requests,
-// including the hosts on which they are running and the phleet IDs of
+// including the hosts on which they are running and the Syzygy IDs of
 // the components making them. Print this list like dps does.
 // With this command and the printServices() command,
 // one can diagnose connection brokering problems in the distributed system.
@@ -2293,7 +2293,7 @@ void arSZGClient::printPendingServiceRequests() {
   _printServices("pending");
 }
 
-// Directly get the phleet ID
+// Directly get the Syzygy ID
 // of the component running a service. For instance, upon launching an
 // app on a virtual computer, we may wish to kill a previously running
 // app that supplied a service that the
@@ -2332,7 +2332,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
 // Return the networks on which this component should operate.
 // Used as an arg for discoverService().
 // Networks can be set in 3 ways: by increasing precedence,
-// the parameter file, the phleet command line args, and the context.
+// the parameter file, the Syzygy command line args, and the context.
 // @param channel Should be either default, graphics, sound, or input.
 // This lets network traffic be routed independently for various
 // traffic types.
@@ -2368,7 +2368,7 @@ arSlashString arSZGClient::getAddresses(const string& channel) {
 
 // If this component is operating as part of a virtual computer, return
 // its name. Otherwise, return "NULL". As with networks, the
-// virtual computer is set via a combination of the phleet command line
+// virtual computer is set via a combination of the Syzygy command line
 // args, and the context.
 const string& arSZGClient::getVirtualComputer() {
   return _virtualComputer;
@@ -2429,7 +2429,7 @@ string arSZGClient::getTrigger(const string& virtualComputer) {
 // to let users share services. There are 3 cases:
 //
 // 1. Component runs standalone:
-//    The phleet user name provides the compartmenting, e.g. SZG_BARRIER/ben.
+//    The Syzygy user name provides the compartmenting, e.g. SZG_BARRIER/ben.
 // 2. Component runs as part of virtual computer FOO, which
 //    has no "location" defined.  The virtual computer
 //    name compartments the service, e.g. FOO/SZG_BARRIER.
@@ -2672,7 +2672,7 @@ bool arSZGClient::_parsePair(const string& thePair,
   return true;
 }
 
-// When a client launches, parse and remove the "phleet args" prefaced by -szg.
+// When a client launches, parse and remove the "Syzygy args" prefaced by -szg.
 // But if _parseSpecialPhleetArgs is false (e.g., in dex), then only
 // the args user and server (pertaining to login) are parsed and removed.
 // If args are removed, argc and argv change, to hide the removals from the caller.
@@ -3190,7 +3190,7 @@ bool arSZGClient::writeLogin(const string& userName) {
   // userName may differ from _userName.
   // The internal storage refers to the effective user name of this
   // component, which the environment variable SZGUSER can override.
-  // userName is the phleet login name in the config file
+  // userName is the Syzygy login name in the config file
   _config.setUserName(userName);
   _config.setServerName(_serverName);
   _config.setServerIP(_IPaddress);

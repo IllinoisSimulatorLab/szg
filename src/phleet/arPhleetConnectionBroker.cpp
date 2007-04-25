@@ -15,7 +15,7 @@ arPhleetConnectionBroker::arPhleetConnectionBroker() :
 // arPhleetAddress with the valid field marked false. This can fail
 // if the named service is already being offered or if ports are not
 // available. 
-// @param componentID the phleet ID of the component requesting the ports
+// @param componentID the Syzygy ID of the component requesting the ports
 // @param serviceName the name of the to-be-offered service
 // @param computer the name of the computer on which the service will
 // be offered
@@ -68,7 +68,7 @@ LAbort:
   SZGComputerData::iterator i(_computerData.find(computer));
   // must be check to see if the port block config needs changing
   _resizeComputerPorts(i->second, firstPort, blockSize);
-  // create a phleet service record
+  // create a Syzygy service record
   arPhleetService tempService;
   tempService.valid = true;
   tempService.info = string("");
@@ -78,7 +78,7 @@ LAbort:
   tempService.addresses = addresses;
   tempService.numberPorts = size;
   // assign ports and edit the computer record appropriately. also edit
-  // the phleet service record.
+  // the Syzygy service record.
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   // not checking for ports that haven't been issued
   for (int m=0; m<size; m++){
@@ -106,7 +106,7 @@ LAbort:
   for (int nn=0; nn<size; nn++){
     j->second.temporaryPorts.push_back(tempService.portIDs[nn]);
   }
-  // put the phleet service record on the temporary service list and return
+  // put the Syzygy service record on the temporary service list and return
   // the assigned ports via an arPhleetService
   _temporaryServices.insert(SZGServiceData::value_type(serviceName, tempService));
   _unlock();
@@ -121,7 +121,7 @@ LAbort:
 // different ports. The ports it was previously given are returned
 // to be released into the available pool (might just have been a temporary
 // binding problem). And new ports are returned, as above.
-// @param componentID the phleet ID of the component requesting the ports
+// @param componentID the Syzygy ID of the component requesting the ports
 // @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
     int componentID, const string& serviceName){
@@ -175,7 +175,7 @@ LAbort:
       j->second.availablePorts.push_back(i->second.portIDs[nn]);
     }
   }
-  // assign ports and edit the computer record, component, and phleet
+  // assign ports and edit the computer record, component, and Syzygy
   // service records
   for (nn = 0; nn < i->second.numberPorts; nn++){
     // NOTE: we make sure that there is, in fact, a port to broker
@@ -202,7 +202,7 @@ LAbort:
 // might assign a service some ports and then direct a client to that
 // location BEFORE the service has bound to the ports. Returns true if
 // this process succeeds and false otherwise.
-// @param componentID the phleet ID of the component confirming it has bound
+// @param componentID the Syzygy ID of the component confirming it has bound
 // to the ports.
 // @param serviceName the name of the offered service
 bool arPhleetConnectionBroker::confirmPorts(int componentID, 
@@ -362,7 +362,7 @@ bool arPhleetConnectionBroker::checkService(const string& serviceName){
 // arPhleetAddress with valid field marked false. NOTE: in the case of
 // failure, the connection broker actually remembers the request! The
 // service might, for instance, be offered again.
-// @param componentID the phleet ID of the component requesting the service
+// @param componentID the Syzygy ID of the component requesting the service
 // @param computer the name of the computer on which the component runs
 // @param match the "async rpc" message tag... we need to save this in
 // the service request area so that we can make responses with matching
@@ -808,7 +808,7 @@ void arPhleetConnectionBroker::print(){
   for (k = _temporaryServices.begin();
        k != _temporaryServices.end();
        k++){
-    cout << "temporary phleet service = " << k->first << "\n";
+    cout << "temporary Syzygy service = " << k->first << "\n";
     cout << "  running on computer = " << k->second.computer << "\n";
     cout << "  owned by component = " << k->second.componentID << "\n";
     cout << "  networks = " << k->second.networks << "\n";
@@ -822,7 +822,7 @@ void arPhleetConnectionBroker::print(){
   for (k = _usedServices.begin();
        k != _usedServices.end();
        k++){
-    cout << "used phleet service = " << k->first << "\n";
+    cout << "used Syzygy service = " << k->first << "\n";
     cout << "  running on computer = " << k->second.computer << "\n";
     cout << "  owned by component = " << k->second.componentID << "\n";
     cout << "  networks = " << k->second.networks << "\n";
