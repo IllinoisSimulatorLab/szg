@@ -58,96 +58,125 @@ arInputState::~arInputState() {
   _lastButtons.clear();
 }
 
-int arInputState::getButton( const unsigned int buttonNumber ){
+// Call-while-_unlock()'d public methods.
+
+unsigned arInputState::getNumberButtons() {
   _lock();
-    const int result = _getButtonNoLock(buttonNumber);
+  const unsigned result = _buttons.size();
+  _unlock();
+  return result;
+}
+unsigned arInputState::getNumberAxes() {
+  _lock();
+  const unsigned result = _axes.size();
+  _unlock();
+  return result;
+}
+unsigned arInputState::getNumberMatrices() {
+  _lock();
+  const unsigned result = _matrices.size();
   _unlock();
   return result;
 }
 
-int arInputState::_getButtonNoLock( const unsigned int buttonNumber ) const {
-  return buttonNumber >= _buttons.size() ? 0 : _buttons[buttonNumber];
-}
-
-float arInputState::getAxis( const unsigned int axisNumber ){
+bool arInputState::getOnButton( const unsigned iButton ) {
   _lock();
-    const float result = _getAxisNoLock(axisNumber);
+    const bool result = _getOnButton(iButton);
   _unlock();
   return result;
 }
 
-float arInputState::_getAxisNoLock( const unsigned int axisNumber ) const {
-  return axisNumber >= _axes.size() ? 0. : _axes[axisNumber];
-}
-
-arMatrix4 arInputState::getMatrix( const unsigned int matrixNumber ){
+bool arInputState::getOffButton( const unsigned iButton ) {
   _lock();
-    const arMatrix4 result = _getMatrixNoLock(matrixNumber);
+    const bool result = _getOffButton(iButton);
   _unlock();
   return result;
 }
 
-arMatrix4 arInputState::_getMatrixNoLock( const unsigned int matrixNumber ) const {
-  return matrixNumber >= _matrices.size() ?
-    ar_identityMatrix() : _matrices[matrixNumber];
-}
-
-bool arInputState::getOnButton( const unsigned int buttonNumber ){
+int arInputState::getButton( const unsigned iButton ) {
   _lock();
-    const bool result = _getOnButtonNoLock(buttonNumber);
+    const int result = _getButton(iButton);
   _unlock();
   return result;
 }
 
-bool arInputState::_getOnButtonNoLock( const unsigned int buttonNumber ) const {
-  if (buttonNumber >= _buttons.size())
-    return false;
-  return _buttons[buttonNumber] && !_lastButtons[buttonNumber];
-}
-
-bool arInputState::getOffButton( const unsigned int buttonNumber ){
+float arInputState::getAxis( const unsigned iAxis ) {
   _lock();
-    const bool result = _getOffButtonNoLock(buttonNumber);
+    const float result = _getAxis(iAxis);
   _unlock();
   return result;
 }
 
-bool arInputState::_getOffButtonNoLock( const unsigned int buttonNumber ) const {
-  if (buttonNumber >= _buttons.size())
-    return false;
-  return _lastButtons[buttonNumber] && !_buttons[buttonNumber];
-}
-
-bool arInputState::setButton( const unsigned int buttonNumber, 
-                              const int value ) {
+arMatrix4 arInputState::getMatrix( const unsigned iMatrix ) {
   _lock();
-    const bool result = _setButtonNoLock(buttonNumber, value);
+    const arMatrix4 result = _getMatrix(iMatrix);
   _unlock();
   return result;
 }
 
-bool arInputState::setAxis( const unsigned int axisNumber, 
-                            const float value ) {
+bool arInputState::setButton( const unsigned iButton, const int value ) {
   _lock();
-    const bool result = _setAxisNoLock(axisNumber, value);
+    const bool ok = _setButton(iButton, value);
   _unlock();
-  return result;
+  return ok;
 }
 
-bool arInputState::setMatrix( const unsigned int matrixNumber,
-			      const arMatrix4& value){
+bool arInputState::setAxis( const unsigned iAxis, const float value ) {
   _lock();
-    const bool result = _setMatrixNoLock(matrixNumber, value);
+    const bool ok = _setAxis(iAxis, value);
   _unlock();
-  return result;
+  return ok;
+}
+
+bool arInputState::setMatrix( const unsigned iMatrix, const arMatrix4& value) {
+  _lock();
+    const bool ok = _setMatrix(iMatrix, value);
+  _unlock();
+  return ok;
+}
+
+// Mac OS X segfaults when constructors for global vars print to cout.
+// The arEffector constructor does so, if including
+// info about the signature.  So printing warnings is optional.
+void arInputState::setSignature( const unsigned numButtons,
+				 const unsigned numAxes,
+				 const unsigned numMatrices,
+                                 bool printWarnings){
+  _lock();
+    _setSignature(numButtons, numAxes, numMatrices, printWarnings);
+  _unlock();
+}
+
+
+// Call-while-_lock()'d private methods.
+
+bool arInputState::_getOnButton( const unsigned iButton ) const {
+  return (iButton < _buttons.size()) &&
+    !_lastButtons[iButton] && _buttons[iButton];
+}
+
+bool arInputState::_getOffButton( const unsigned iButton ) const {
+  return (iButton < _buttons.size()) &&
+    _lastButtons[iButton] && !_buttons[iButton];
+}
+
+int arInputState::_getButton( const unsigned iButton ) const {
+  return iButton < _buttons.size() ? _buttons[iButton] : 0;
+}
+
+float arInputState::_getAxis( const unsigned iAxis ) const {
+  return iAxis < _axes.size() ? _axes[iAxis] : 0.;
+}
+
+arMatrix4 arInputState::_getMatrix( const unsigned iMatrix ) const {
+  return iMatrix < _matrices.size() ?  _matrices[iMatrix] : ar_identityMatrix();
 }
 
 // todo: factor out:
 // if (x >= ~.size()) vector<> insert( ~.end(), x - ~.size()+1, 0)
-// (Templatize _axes and _matrices?)
+// (Templatize _axes and _matrices, like arInputDeviceMap?)
 
-bool arInputState::_setButtonNoLock( const unsigned int iButton, 
-                                     const int value ) {
+bool arInputState::_setButton( const unsigned iButton, const int value ) {
   if (iButton >= _buttons.size()) {
     _buttons.insert( _buttons.end(), iButton - _buttons.size() + 1, 0 );
   }
@@ -159,8 +188,7 @@ bool arInputState::_setButtonNoLock( const unsigned int iButton,
   return true;
 }
 
-bool arInputState::_setAxisNoLock( const unsigned iAxis, 
-                                   const float value ) {
+bool arInputState::_setAxis( const unsigned iAxis, const float value ) {
   if (iAxis >= _axes.size()) {
     // ar_log_debug() << "arInputState grown to " << iAxis+1 << " axes.\n";
     _axes.insert( _axes.end(), iAxis+1 - _axes.size(), 0. );
@@ -169,8 +197,7 @@ bool arInputState::_setAxisNoLock( const unsigned iAxis,
   return true;
 }
 
-bool arInputState::_setMatrixNoLock( const unsigned int iMatrix,
-                                    const arMatrix4& value ) {
+bool arInputState::_setMatrix( const unsigned iMatrix, const arMatrix4& value ) {
   if (iMatrix >= _matrices.size()) {
     // ar_log_debug() << "arInputState grown to " << iMatrix+1 << " matrices.\n";
     _matrices.insert(_matrices.end(), iMatrix+1 - _matrices.size(), ar_identityMatrix());
@@ -179,37 +206,8 @@ bool arInputState::_setMatrixNoLock( const unsigned int iMatrix,
   return true;
 }
 
-bool arInputState::update( const arInputEvent& event ) {
-  // no locking, since internal storage is accessed through locked methods
-  const int eventType = event.getType();
-  switch (eventType) {
-    case AR_EVENT_BUTTON:
-      return setButton( event.getIndex(), event.getButton() );
-    case AR_EVENT_AXIS:
-      return setAxis( event.getIndex(), event.getAxis() );
-    case AR_EVENT_MATRIX:
-      return setMatrix( event.getIndex(), event.getMatrix() );
-  }
-  ar_log_warning() << "arInputState ignoring invalid event type " << eventType << ".\n";
-  return false;
-}
-
-// Mac OS X segfaults when constructors for global vars print to cout.
-// The arEffector constructor does so, if including
-// info about the signature.  So printing warnings is optional.
-void arInputState::setSignature( const unsigned int numButtons,
-				 const unsigned int numAxes,
-				 const unsigned int numMatrices,
-                                 bool printWarnings){
-  _lock();
-    _setSignatureNoLock(numButtons, numAxes, numMatrices, printWarnings);
-  _unlock();
-}
-
-void arInputState::_setSignatureNoLock( const unsigned int numButtons,
-                                        const unsigned int numAxes,
-                                        const unsigned int numMatrices,
-                                        bool printWarnings ) {
+void arInputState::_setSignature( const unsigned numButtons,
+    const unsigned numAxes, const unsigned numMatrices, const bool printWarnings ) {
   // It's possible to lose pending events if numXXX is decreased.
   bool changed = false;
   if (numButtons < _buttons.size()) {
@@ -224,7 +222,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
     _lastButtons.insert( _lastButtons.end(), numButtons-_lastButtons.size(), 0 );
     changed = true;
   }
-    
+
   if (numAxes < _axes.size()) {
     if (printWarnings){
       ar_log_warning() << "arInputState axes reduced to " << numAxes << ".\n";
@@ -235,7 +233,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
     _axes.insert( _axes.end(), numAxes-_axes.size(), 0 );
     changed = true;
   }
-    
+
   if (numMatrices < _matrices.size()) {
     if (printWarnings){
       ar_log_warning() << "arInputState matrices reduced to " << numMatrices << ".\n";
@@ -247,99 +245,124 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
                       ar_identityMatrix() );
     changed = true;
   }
-  
+
   if (changed && printWarnings){
-    ar_log_remark() << "arInputState signature ("
-                    << _buttons.size() << "," << _axes.size() << "," << _matrices.size()
-                    << ").\n";
+    ar_log_remark() << "arInputState signature (" << _buttons.size() << ", " <<
+      _axes.size() << ", " << _matrices.size() << ").\n";
   }
 }
 
-void arInputState::addInputDevice( const unsigned int numButtons,
-                                   const unsigned int numAxes,
-                                   const unsigned int numMatrices ) {
-  // Don't chain some methods together because use of locks would deadlock.
-  // Use setSignatureNoLock instead of setSignature.
+bool arInputState::update( const arInputEvent& event ) {
+  const int eventType = event.getType();
+  switch (eventType) {
+    case AR_EVENT_BUTTON:
+      return setButton( event.getIndex(), event.getButton() );
+    case AR_EVENT_AXIS:
+      return setAxis( event.getIndex(), event.getAxis() );
+    case AR_EVENT_MATRIX:
+      return setMatrix( event.getIndex(), event.getMatrix() );
+  }
+  ar_log_warning() << "arInputState ignoring invalid event type " << eventType << ".\n";
+  return false;
+}
+
+void arInputState::addInputDevice( const unsigned numButtons,
+                                   const unsigned numAxes,
+                                   const unsigned numMatrices ) {
   _lock();
-  const unsigned oldButtons = _buttons.size();
-  const unsigned oldAxes = _axes.size();
-  const unsigned oldMatrices = _matrices.size();
+  const unsigned bPrev = _buttons.size();
+  const unsigned aPrev = _axes.size();
+  const unsigned mPrev = _matrices.size();
   _buttonInputMap.addInputDevice( numButtons, _buttons );
   _axisInputMap.addInputDevice( numAxes, _axes );
   _matrixInputMap.addInputDevice( numMatrices, _matrices );
-  _setSignatureNoLock( oldButtons+numButtons, 
-                      oldAxes+numAxes, 
-                      oldMatrices+numMatrices );
-  ar_log_remark() << "arInputState added device "
-                  << _buttonInputMap.getNumberDevices()-1
-                  << " (" << numButtons << "," << numAxes << "," << numMatrices
-                  << ").\n";
+  _setSignature( bPrev+numButtons, aPrev+numAxes, mPrev+numMatrices );
+  ar_log_remark() << "arInputState added device " <<
+    _buttonInputMap.getNumberDevices()-1 << " (" << numButtons << "," <<
+    numAxes << "," << numMatrices << ").\n";
   _unlock();
 }
                          
-void arInputState::remapInputDevice( const unsigned int deviceNum,
-                                     const unsigned int numButtons,
-                                     const unsigned int numAxes,
-                                     const unsigned int numMatrices ) {
-  // Don't chain some methods together because use of locks would deadlock.
-  // Use setSignatureNoLock instead of setSignature.
+void arInputState::remapInputDevice( const unsigned iDevice,
+                                     const unsigned numButtons,
+                                     const unsigned numAxes,
+                                     const unsigned numMatrices ) {
   _lock();
-  const int buttonDiff = numButtons - _buttonInputMap.getNumberDeviceEvents( deviceNum );
-  const int axisDiff = numAxes - _axisInputMap.getNumberDeviceEvents( deviceNum );
-  const int matrixDiff = numMatrices - _matrixInputMap.getNumberDeviceEvents( deviceNum );
+  const int dbutton = numButtons - _buttonInputMap.getNumberDeviceEvents( iDevice );
+  const int daxis = numAxes - _axisInputMap.getNumberDeviceEvents( iDevice );
+  const int dmatrix = numMatrices - _matrixInputMap.getNumberDeviceEvents( iDevice );
 
-  if ((buttonDiff != 0)||(axisDiff != 0)||(matrixDiff != 0)) {
-    if (buttonDiff < 0 && axisDiff < 0 && matrixDiff < 0) {
-      if (numButtons==0 && numAxes==0 && numMatrices==0)
-	ar_log_warning() << "arInputState zeroing device " << deviceNum << "\n";
-      else
-	ar_log_warning() << "arInputState decreasing max events for device " << deviceNum << "\n";
-    }
-    else {
-      if (buttonDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << "\n";
-      if (axisDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << "\n";
-      if (matrixDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << "\n";
-    }
-
-    const unsigned oldButtons = _buttons.size();
-    const unsigned oldAxes = _axes.size();
-    const unsigned oldMatrices = _matrices.size();
-    _buttonInputMap.remapInputEvents( deviceNum, numButtons, _buttons );
-    _axisInputMap.remapInputEvents( deviceNum, numAxes, _axes );
-    _matrixInputMap.remapInputEvents( deviceNum, numMatrices, _matrices );
-    _setSignatureNoLock( oldButtons+buttonDiff, 
-                        oldAxes+axisDiff, 
-                        oldMatrices+matrixDiff );
-    ar_log_remark() << "arInputState signature ("
-                    << _buttons.size() << ", " << _axes.size() << ", " << _matrices.size()
-                    << ").\n";
+  if (dbutton == 0 && daxis == 0 && dmatrix == 0) {
+    // Signature didn't change.
+    _unlock();
+    return;
   }
+
+  if (dbutton < 0 && daxis < 0 && dmatrix < 0) {
+    if (numButtons==0 && numAxes==0 && numMatrices==0)
+      ar_log_warning() << "arInputState zeroing device " << iDevice << "\n";
+    else
+      ar_log_warning() << "arInputState shrinking device " << iDevice << "\n";
+  }
+  else {
+    if (dbutton < 0)
+      ar_log_warning() << "arInputState: fewer buttons for device " << iDevice << "\n";
+    if (daxis < 0)
+      ar_log_warning() << "arInputState: fewer axes for device " << iDevice << "\n";
+    if (dmatrix < 0)
+      ar_log_warning() << "arInputState: fewer matrices for device " << iDevice << "\n";
+  }
+
+  const unsigned oldButtons = _buttons.size();
+  const unsigned oldAxes = _axes.size();
+  const unsigned oldMatrices = _matrices.size();
+  _buttonInputMap.remapInputEvents( iDevice, numButtons, _buttons );
+  _axisInputMap.remapInputEvents( iDevice, numAxes, _axes );
+  _matrixInputMap.remapInputEvents( iDevice, numMatrices, _matrices );
+  _setSignature( oldButtons + dbutton, oldAxes + daxis, oldMatrices + dmatrix );
+  ar_log_remark() << "arInputState device " << iDevice << " has signature (" << _buttons.size() << ", " <<
+    _axes.size() << ", " << _matrices.size() << ").\n";
   _unlock();
 }
 
-bool arInputState::setFromBuffers( const int* const buttonData,
-                                   const unsigned int numButtons,
-                                   const float* const axisData,
-                                   const unsigned int numAxes,
-                                   const float* const matrixData,
-                                   const unsigned int numMatrices ) {
+bool arInputState::getButtonOffset( unsigned iDevice, unsigned& offset ) {
   _lock();
+    const bool ok = _buttonInputMap.getEventOffset( iDevice, offset );
+  _unlock();
+  return ok;
+}
+bool arInputState::getAxisOffset(   unsigned iDevice, unsigned& offset ) {
+  _lock();
+    const bool ok = _axisInputMap.getEventOffset( iDevice, offset );
+  _unlock();
+  return ok;
+}
+bool arInputState::getMatrixOffset( unsigned iDevice, unsigned& offset ) {
+  _lock();
+    const bool ok = _matrixInputMap.getEventOffset( iDevice, offset );
+  _unlock();
+  return ok;
+}
+
+bool arInputState::setFromBuffers( const int* const buttonData,
+                                   const unsigned numButtons,
+                                   const float* const axisData,
+                                   const unsigned numAxes,
+                                   const float* const matrixData,
+                                   const unsigned numMatrices ) {
   if (!buttonData || !axisData || !matrixData) {
-    _unlock();
     ar_log_warning() << "arInputState: null buffer.\n";
     return false;
   }
 
+  _lock();
   int i = 0;
   for (i=numButtons-1; i>=0; --i)
-    _setButtonNoLock( unsigned(i), buttonData[i] );
+    _setButton( unsigned(i), buttonData[i] );
   for (i=numAxes-1; i>=0; --i)
-    _setAxisNoLock( unsigned(i), axisData[i] );
+    _setAxis( unsigned(i), axisData[i] );
   for (i=numMatrices-1; i>=0; --i)
-    _setMatrixNoLock( unsigned(i), matrixData + i*16 );
+    _setMatrix( unsigned(i), matrixData + i*16 );
   _unlock();
   return true;
 }
@@ -347,14 +370,13 @@ bool arInputState::setFromBuffers( const int* const buttonData,
 bool arInputState::saveToBuffers( int* const buttonBuf,
                                   float* const axisBuf,
                                   float* const matrixBuf ){
-  _lock();
   if (!buttonBuf || !axisBuf || !matrixBuf) {
-    _unlock();
     ar_log_warning() << "arInputState: null buffer.\n";
     return false;
   }
 
-  unsigned int i = 0;
+  _lock();
+  unsigned i = 0;
   for (i=0; i<_buttons.size(); i++)
     buttonBuf[i] = _buttons[i];
   for (i=0; i<_axes.size(); i++)
@@ -382,7 +404,7 @@ void arInputState::updateLastButton( const unsigned i ) {
   _unlock();
 }
 
-ostream& operator<<(ostream& os, const arInputState& cinp ) {
+ostream& operator<<(ostream& os, arInputState& cinp ) {
   const int cb = cinp.getNumberButtons();
   const int ca = cinp.getNumberAxes();
   const int cm = cinp.getNumberMatrices();

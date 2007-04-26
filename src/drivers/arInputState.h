@@ -27,11 +27,11 @@ template <class eventDataType> class arInputDeviceMap {
     }
     unsigned getNumberDevices() const { return _deviceNumEvents.size(); }
     unsigned getNumberEvents() const;
-    unsigned getNumberDeviceEvents( const unsigned deviceNum ) const;
-    bool getEventOffset( const unsigned deviceNum, unsigned& offset ) const;
+    unsigned getNumberDeviceEvents( const unsigned iDevice ) const;
+    bool getEventOffset( const unsigned iDevice, unsigned& offset ) const;
     void addInputDevice( const unsigned numEvents,
                          vector<eventDataType>& dataSpace );
-    bool remapInputEvents( const unsigned deviceNum, 
+    bool remapInputEvents( const unsigned iDevice, 
                            const unsigned newNumEvents,
                            vector<eventDataType>& dataSpace );
   private:
@@ -46,45 +46,43 @@ class SZG_CALL arInputState {
     arInputState& operator=( const arInputState& x );
     ~arInputState();
 
-    // These aren't const because they use a lock.
-    int getButton(       const unsigned buttonNumber );
-    float getAxis(       const unsigned axisNumber );
-    arMatrix4 getMatrix( const unsigned matrixNumber );
-    
-    bool getOnButton(  const unsigned buttonNumber );
-    bool getOffButton( const unsigned buttonNumber );
-  
-    // For arInputState, the number of buttons equals the button signature.
-    unsigned getNumberButtons()  const { return _buttons.size(); }
-    unsigned getNumberAxes()     const { return _axes.size(); }
-    unsigned getNumberMatrices() const { return _matrices.size(); }
-    
-    bool setButton( const unsigned buttonNumber, const int value );
-    bool setAxis(   const unsigned axisNumber, const float value );
-    bool setMatrix( const unsigned matrixNumber, const arMatrix4& value );
-  
+    // Methods which call _lock(), i.e. all public methods, can't be const.
+
+    // The number of buttons equals the button signature.
+    unsigned getNumberButtons();
+    unsigned getNumberAxes();
+    unsigned getNumberMatrices();
+
+    int getButton(       const unsigned );
+    float getAxis(       const unsigned );
+    arMatrix4 getMatrix( const unsigned );
+
+    bool getOnButton(  const unsigned );
+    bool getOffButton( const unsigned );
+
+    bool setButton( const unsigned iButton, const int value );
+    bool setAxis(   const unsigned iAxis, const float value );
+    bool setMatrix( const unsigned iMatrix, const arMatrix4& value );
+
     bool update( const arInputEvent& event );
-    
+
     void setSignature( const unsigned maxButtons,
                        const unsigned maxAxes,
                        const unsigned maxMatrices,
                        bool printWarnings=false );
-                       
+
     void addInputDevice( const unsigned numButtons,
                          const unsigned numAxes,
                          const unsigned numMatrices );
 
-    void remapInputDevice( const unsigned deviceNum,
+    void remapInputDevice( const unsigned iDevice,
                            const unsigned numButtons,
                            const unsigned numAxes,
                            const unsigned numMatrices );
 
-    bool getButtonOffset( unsigned devNum, unsigned& offset ) const
-      { return _buttonInputMap.getEventOffset( devNum, offset ); }
-    bool getAxisOffset(   unsigned devNum, unsigned& offset ) const
-      { return _axisInputMap.getEventOffset( devNum, offset ); }
-    bool getMatrixOffset( unsigned devNum, unsigned& offset ) const
-      { return _matrixInputMap.getEventOffset( devNum, offset ); }
+    bool getButtonOffset( unsigned iDevice, unsigned& offset );
+    bool getAxisOffset(   unsigned iDevice, unsigned& offset );
+    bool getMatrixOffset( unsigned iDevice, unsigned& offset );
 
     bool setFromBuffers( const int* const buttonBuf,
                          const unsigned numButtons,
@@ -103,19 +101,21 @@ class SZG_CALL arInputState {
     void _init();
     void _lock() { _l.lock(); }
     void _unlock() { _l.unlock(); }
-    void _setSignatureNoLock( const unsigned maxButtons,
-                              const unsigned maxAxes,
-                              const unsigned maxMatrices,
-                              bool printWarnings=false );
-    int _getButtonNoLock(       unsigned buttonNumber ) const;
-    float _getAxisNoLock(       unsigned axisNumber ) const;
-    arMatrix4 _getMatrixNoLock( unsigned matrixNumber ) const;
-    bool _getOnButtonNoLock(  unsigned buttonNumber ) const;
-    bool _getOffButtonNoLock( unsigned buttonNumber ) const;
-    bool _setButtonNoLock( const unsigned buttonNumber, const int value );
-    bool _setAxisNoLock(   const unsigned axisNumber, const float value );
-    bool _setMatrixNoLock( const unsigned matrixNumber, 
-                           const arMatrix4& value );
+
+    // Call  setX and  getX only while _unlock()'d.
+    // Call _setX and _getX only while _lock()'d.
+    void _setSignature( const unsigned maxButtons,
+                        const unsigned maxAxes,
+                        const unsigned maxMatrices,
+                        const bool printWarnings=false );
+    int _getButton( const unsigned ) const;
+    float _getAxis( const unsigned ) const;
+    arMatrix4 _getMatrix( const unsigned ) const;
+    bool _getOnButton( const unsigned ) const;
+    bool _getOffButton( const unsigned ) const;
+    bool _setButton( const unsigned iButton, const int );
+    bool _setAxis( const unsigned iAxis, const float );
+    bool _setMatrix( const unsigned iMatrix, const arMatrix4& );
     // event values
     vector<int> _buttons;
     vector<float> _axes;
@@ -124,8 +124,7 @@ class SZG_CALL arInputState {
     // previous button values
     vector<int> _lastButtons;
     
-    // info for mapping multiple inputs to a single event index space
-    // (for each event type)
+    // Map multiple inputs to a single event index space.
     arInputDeviceMap<int> _buttonInputMap;
     arInputDeviceMap<float> _axisInputMap;
     arInputDeviceMap<arMatrix4> _matrixInputMap;
@@ -133,7 +132,7 @@ class SZG_CALL arInputState {
     arLock _l;
 };  
 
-ostream& operator<<(ostream& os, const arInputState& inp );
+ostream& operator<<(ostream& os, arInputState& inp );
 
 template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberEvents() const {
@@ -142,25 +141,24 @@ unsigned arInputDeviceMap<eventDataType>::getNumberEvents() const {
   
 template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberDeviceEvents(
-    const unsigned deviceNum) const {
-  if (deviceNum >= _deviceEventOffsets.size()) {
+    const unsigned iDevice) const {
+  if (iDevice >= _deviceEventOffsets.size()) {
     ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
-      deviceNum << ".\n";
+      iDevice << ".\n";
     return 0;
   }
-  return _deviceNumEvents[deviceNum];
+  return _deviceNumEvents[iDevice];
 }
 
 template <class eventDataType>
 bool arInputDeviceMap<eventDataType>::getEventOffset(
-                                    const unsigned deviceNum,
-                                    unsigned& offset ) const {
-  if (deviceNum >= _deviceEventOffsets.size()) {
+    const unsigned iDevice, unsigned& offset ) const {
+  if (iDevice >= _deviceEventOffsets.size()) {
     ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
-      deviceNum << ".\n";
+      iDevice << ".\n";
     return false;
   }
-  offset = _deviceEventOffsets[deviceNum];
+  offset = _deviceEventOffsets[iDevice];
   return true;
 }
 
@@ -173,7 +171,6 @@ void arInputDeviceMap<eventDataType>::addInputDevice(
     _deviceEventOffsets.push_back(_deviceEventOffsets.back() + _deviceNumEvents.back() );
   _deviceNumEvents.push_back( numEvents );
   if (numEvents > 0) {
-    // do we need to allocate new memory (there are more than 256 events)?
     if (dataSpace.size()+numEvents > dataSpace.capacity())
       dataSpace.reserve( dataSpace.capacity()+256 );
     dataSpace.insert( dataSpace.begin()+_deviceEventOffsets.back(), numEvents, eventDataType() );
@@ -182,19 +179,19 @@ void arInputDeviceMap<eventDataType>::addInputDevice(
 
 template <class eventDataType>
 bool arInputDeviceMap<eventDataType>::remapInputEvents(
-    const unsigned deviceNum, const unsigned newNumEvents,
+    const unsigned iDevice, const unsigned newNumEvents,
     vector<eventDataType>& dataSpace ) { // TD
-  if (deviceNum >= _deviceNumEvents.size()) {
+  if (iDevice >= _deviceNumEvents.size()) {
     ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
-      deviceNum << ".\n";
+      iDevice << ".\n";
     return false;
   }
-  const int oldNumEvents = _deviceNumEvents[deviceNum];
+  const int oldNumEvents = _deviceNumEvents[iDevice];
   const int difference = newNumEvents - oldNumEvents;
   if (difference == 0) {
     return true;
   }
-  const unsigned devOffset = _deviceEventOffsets[deviceNum];
+  const unsigned devOffset = _deviceEventOffsets[iDevice];
   if (difference > 0) {
     if (dataSpace.size()+difference > dataSpace.capacity()) {
       // more than 256 events
@@ -206,9 +203,9 @@ bool arInputDeviceMap<eventDataType>::remapInputEvents(
     dataSpace.erase( dataSpace.begin()+devOffset+newNumEvents,
                      dataSpace.begin()+devOffset+oldNumEvents );
   }   
-  for (unsigned i=deviceNum+1; i<_deviceEventOffsets.size(); i++)
+  for (unsigned i=iDevice+1; i<_deviceEventOffsets.size(); i++)
     _deviceEventOffsets[i] += difference;
-  _deviceNumEvents[deviceNum] = newNumEvents;
+  _deviceNumEvents[iDevice] = newNumEvents;
   return true;
 }
 
