@@ -8,7 +8,7 @@ Header3
 Thanks to Camille Goudeseune for creating Syzygy sound support.
 
 Syzygy sound support is based on the [FMOD Sound System www.fmod.org],
-copyright © Firelight Technologies Pty, Ltd., 1994-2006.
+copyright (C) Firelight Technologies Pty, Ltd., 1994-2006.
 
 Sound in Syzygy works much like the [distributed scene graph SceneGraph.html].
 If you already understand that, this document should pose few surprises.
@@ -79,9 +79,11 @@ are given by "xyz".  (The listener's position is handled by the arDistSceneGraph
 
 Having created a loop node, this call modifies the sound "loop" playing at that point.
 "fLoop" can have one of three values.
--  1: Start looping the sound continuously.
--  -1: Trigger the sound (play it exactly once).
--  0: If it was looping, stop looping immediately.
+
+- 1: Start looping the sound continuously.
+- -1: Trigger the sound (play it exactly once).
+- 0: If it was looping, stop looping immediately.
+
 If it was triggered, reset the trigger.  (A trigger is
 an event, not a state.  The scene graph distributes state, not events.
 So we fake the trigger event by means of a state transition from 0 to -1.)
