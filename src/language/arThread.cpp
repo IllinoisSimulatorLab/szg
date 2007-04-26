@@ -83,8 +83,6 @@ LBackoff:
       goto LBackoff;
     }
   }
-
-  // if (name) printf("arLock debug: constructed! '%s' %x\n", name, int(&_mutex));
 }
 #else
 arLock::arLock(const char*) {
@@ -111,7 +109,28 @@ arLock::~arLock() {
 
 void arLock::lock() {
 #ifdef AR_USE_WIN_32
-  WaitForSingleObject( _mutex, INFINITE );
+  // Called twice by the same thread, this doesn't appear to deadlock.
+  // This didn't deadlock, for example: l.lock(); l.lock(); l.unlock(); l.unlock();
+  const DWORD msecTimeout = 10000;
+  for (;;) {
+    const DWORD r = WaitForSingleObject( _mutex, msecTimeout );
+    switch (r) {
+    case WAIT_OBJECT_0:
+      // Locked ok.
+      return;
+    default:
+    case WAIT_ABANDONED:
+      cerr << "arLock warning: internal error.\n";
+      return;
+    case WAIT_TIMEOUT:
+      cerr << "arLock warning: retrying timed-out lock().\n";
+      break;
+    case WAIT_FAILED:
+      const DWORD e = GetLastError();
+      cerr << "arLock warning: internal error, GetLastError() == " << e << ".\n";
+      return;
+    }
+  }
 #else
   switch (pthread_mutex_trylock(&_mutex)) {
   case 0:
