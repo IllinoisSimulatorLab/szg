@@ -36,16 +36,12 @@ void hammerString2(void*){
 }
 
 int main(){
-  cout << "\n";
-  cout << "PLEASE NOTE: $SZGHOME must be set to the top level of your szg\n"
+  cout << "$SZGHOME must be set to the top of your szg\n"
        << "installation for these tests to succeed.\n\n";
   cout << "Beginning unit test 1: basic arStructuredData.\n";
   // Check that it is possible to delete a template with an attribute added.
-  // (This was a source of a perplexing error once upon a time when moving
-  // to dll's on Win32). NOTE: A little web searching indicates that this
-  // is essentially a *thread-safety* issue. So better leave the test here.
+  // This is essentially a *thread-safety* issue.
   arDataTemplate* t3 = new arDataTemplate("foo");
-  cout << "AARGH!\n";
   t3->add("bar", AR_INT);
   delete t3;
 
@@ -65,7 +61,7 @@ int main(){
   arStructuredData data1(&t1);
   arStructuredData data2(&t2);
   
-  // We test packing/unpacking of various types of fields.
+  // pack/unpack various types of fields.
   ARint junkIntData[5];
   ARint moreIntData[5];
   for (i=0; i<5; i++)
@@ -119,32 +115,27 @@ int main(){
   // have we received the right data upon unpacking?
   char* testCharPtr = (char*) data2.getDataPtr(CHAR_ID, AR_CHAR);
    if (testCharPtr[0] != 'A'){
-     cout << "*** test failed (wrong char field unpacking, "
-	  << "record 2).\n";
+     cout << "*** test failed (wrong char field unpacking, record 2).\n";
      exit(0);
    }
    if (testCharPtr[1] != 'B'){
-     cout << "*** test failed (wrong char field unpacking, "
-	  << "record 2).\n";
+     cout << "*** test failed (wrong char field unpacking, record 2).\n";
      exit(0);
    }
    if (testCharPtr[2] != ' '){
-     cout << "*** test failed (wrong char field unpacking, "
-	  << "record 2).\n";
+     cout << "*** test failed (wrong char field unpacking, record 2).\n";
      exit(0);
    }
    if (testCharPtr[3] != 'D'){
-      cout << "*** test failed (wrong char field unpacking, "
-	   << "record 2).\n";
+     cout << "*** test failed (wrong char field unpacking, record 2).\n";
       exit(0);
    }
    if (testCharPtr[4] != 'E'){
-     cout << "*** test failed (wrong char field unpacking, "
-	  << "record 2).\n";
+     cout << "*** test failed (wrong char field unpacking, record 2).\n";
      exit(0);
    }
    for (i=0; i<5; i++){
-     // NOTE: doubles will not be the same!
+     // doubles will not be the same!
      if (fabs(((double*)data2.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
 	      -i/2.0) > 0.0001){
        cout << "*** test failed (wrong double field unpacking, "
@@ -167,8 +158,7 @@ int main(){
      // NOTE: doubles will not be the same!
      if (fabs(((double*)data3.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
 	      -i/2.0) > 0.0001){
-       cout << "*** test failed (wrong double field unpacking, "
-	    << "record 2).\n";
+       cout << "*** test failed (wrong double field unpacking, record 2).\n";
        exit(0);
      }
    }
