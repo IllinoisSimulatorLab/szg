@@ -20,14 +20,11 @@ arStructuredData* arViewerNode::dumpData(){
   return r;
 }
 
-// NOTE: arViewerNode is a friend class of arHead.
 bool arViewerNode::receiveData(arStructuredData* inData){
   if (inData->getID() != _g->AR_VIEWER){
-    cerr << "arViewerNode error: expected "
-         << _g->AR_VIEWER
-         << " (" << _g->_stringFromID(_g->AR_VIEWER) << "), not "
-         << inData->getID()
-         << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+    ar_log_warning() << "arViewerNode expected " << _g->AR_VIEWER <<
+         " (" << _g->_stringFromID(_g->AR_VIEWER) << "), not " <<
+         inData->getID() << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
   _nodeLock.lock();
@@ -60,17 +57,11 @@ void arViewerNode::setHead(const arHead& head){
   }
 }
 
-// NOTE: arViewerNode is a friend class of arHead.
-// NOT thread-safe.
-arStructuredData* arViewerNode::_dumpData(const arHead& head,
-                                          bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_VIEWER);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_VIEWER);
-  }
+// Not thread-safe.
+arStructuredData* arViewerNode::_dumpData(const arHead& head, const bool owned){
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_VIEWER) :
+    _g->makeDataRecord(_g->AR_VIEWER);
   _dumpGenericNode(result,_g->AR_VIEWER_ID);
   if (!result->dataIn(_g->AR_VIEWER_MATRIX, head._matrix.v, AR_FLOAT, 16) 
       || !result->dataIn(_g->AR_VIEWER_MID_EYE_OFFSET, 

@@ -11,6 +11,7 @@
 #include "arGraphicsCalling.h"
 
 // Point of view (gaze direction, eye spacing, viewing transformation, etc.).
+// A friend of arHead.
 
 class SZG_CALL arViewerNode: public arGraphicsNode{
  public:
@@ -27,7 +28,7 @@ class SZG_CALL arViewerNode: public arGraphicsNode{
 
  protected:
   arHead _head;
-  arStructuredData* _dumpData(const arHead& head, bool owned);
+  arStructuredData* _dumpData(const arHead& head, const bool owned);
 };
 
 #endif
