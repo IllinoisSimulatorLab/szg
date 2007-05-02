@@ -367,10 +367,9 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
 //  cerr << "_renderPass start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
   (*_initCallback)( *this );
 
-  // NOTE: in what follows, we will be changing the viewport. Its current
-  // extent must be saved so that it can subsequently be restored.
-  int params[4];
-  glGetIntegerv(GL_VIEWPORT, (GLint*)params);
+  // Save viewport's extent, since it will change.
+  int viewportExtent[4];
+  glGetIntegerv(GL_VIEWPORT, (GLint*)viewportExtent);
 
   std::vector<arViewport>::iterator i;
   for (i=_viewportVector.begin(); i != _viewportVector.end(); ++i){
@@ -381,10 +380,10 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
     (*_drawCallback)(*this, *i);
     if (_useColorFilter)
       _applyColorFilter();
-    // Restore the original viewport, lest the viewports shrink
+    // Restore the viewport's extent, lest the viewports shrink
     // and disappear in modes like walleyed.
-    glViewport( (GLint)params[0], (GLint)params[1],
-                (GLsizei)params[2], (GLsizei)params[3] );
+    glViewport( (GLint)viewportExtent[0], (GLint)viewportExtent[1],
+                (GLsizei)viewportExtent[2], (GLsizei)viewportExtent[3] );
   }
 
 //  glGetIntegerv( GL_DRAW_BUFFER, (GLint*)&drawBuffer );
