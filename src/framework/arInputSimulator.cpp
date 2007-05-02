@@ -115,7 +115,6 @@ void arInputSimulator::setNumberButtonEvents( unsigned numButtonEvents ) {
     _newButtonEvents.erase( _newButtonEvents.end()-diff, _newButtonEvents.end() );
   }
   _numButtonEvents = numButtonEvents;
-  // # buttons, # axes, # matrices
   _driver.setSignature(_numButtonEvents,2,2);
   _buttonLabels.clear();
   ostringstream os;
@@ -148,11 +147,10 @@ void arInputSimulator::draw() {
   glMultMatrixf(ar_rotationMatrix('y',_rotSim).v);
 
   // wireframe cube
-  glLineWidth(1.0); // in case embedding app changed this
+  glLineWidth(1.); // in case embedding app changed this
   glColor3f(1,1,1);
   glPushMatrix();
   glTranslatef(0,5,0);
-  glLineWidth(1.);
   _wireCube(10);
   glPopMatrix();
 
@@ -424,51 +422,47 @@ void arInputSimulator::mousePosition(int x, int y){
 }
 
 void arInputSimulator::_wireCube(float size) const {
-  const float offset = size/2;
+  size /= 2;
   glBegin(GL_LINES);
-  glVertex3f(offset,offset,-offset);
-  glVertex3f(offset,-offset,-offset);
+  glVertex3f(size,size,-size);
+  glVertex3f(size,-size,-size);
 
-  glVertex3f(offset,-offset,-offset);
-  glVertex3f(-offset,-offset,-offset);
+  glVertex3f(size,-size,-size);
+  glVertex3f(-size,-size,-size);
 
-  glVertex3f(-offset,-offset,-offset);
-  glVertex3f(-offset,offset,-offset);
+  glVertex3f(-size,-size,-size);
+  glVertex3f(-size,size,-size);
 
-  glVertex3f(-offset,offset,-offset);
-  glVertex3f(offset,offset,-offset);
+  glVertex3f(-size,size,-size);
+  glVertex3f(size,size,-size);
 
-  glVertex3f(offset,offset,offset);
-  glVertex3f(offset,-offset,offset);
+  glVertex3f(size,size,size);
+  glVertex3f(size,-size,size);
 
-  glVertex3f(offset,-offset,offset);
-  glVertex3f(-offset,-offset,offset);
+  glVertex3f(size,-size,size);
+  glVertex3f(-size,-size,size);
 
-  glVertex3f(-offset,-offset,offset);
-  glVertex3f(-offset,offset,offset);
+  glVertex3f(-size,-size,size);
+  glVertex3f(-size,size,size);
 
-  glVertex3f(-offset,offset,offset);
-  glVertex3f(offset,offset,offset);
+  glVertex3f(-size,size,size);
+  glVertex3f(size,size,size);
 
-  glVertex3f(offset,offset,offset);
-  glVertex3f(offset,offset,-offset);
+  glVertex3f(size,size,size);
+  glVertex3f(size,size,-size);
 
-  glVertex3f(-offset,offset,offset);
-  glVertex3f(-offset,offset,-offset);
+  glVertex3f(-size,size,size);
+  glVertex3f(-size,size,-size);
 
-  glVertex3f(offset,-offset,offset);
-  glVertex3f(offset,-offset,-offset);
+  glVertex3f(size,-size,size);
+  glVertex3f(size,-size,-size);
 
-  glVertex3f(-offset,-offset,offset);
-  glVertex3f(-offset,-offset,-offset);
+  glVertex3f(-size,-size,size);
+  glVertex3f(-size,-size,-size);
   glEnd();
 }
 
 void arInputSimulator::_drawGamepad() const {
-  const float GAMEPAD_YOFFSET = -.8;
-  const float GAMEPAD_WIDTH = 1.;
-  const float BUTTON_SPACING = 1.1;
-  const float BUTTON_YBORDER = .8;
   const unsigned rowLength = _mouseButtons.size();
   unsigned numRows = unsigned(_numButtonEvents / rowLength);
   if (_numButtonEvents % rowLength != 0)
@@ -478,8 +472,13 @@ void arInputSimulator::_drawGamepad() const {
     return;
   }
 
+  const float GAMEPAD_YOFFSET = -.8;
+  const float GAMEPAD_WIDTH = 1.;
+  const float BUTTON_SPACING = 1.1;
+  const float BUTTON_YBORDER = .8;
   const float padWidth = max(1.4F, rowLength*BUTTON_SPACING);
   const float padHeight = GAMEPAD_WIDTH + numRows*BUTTON_SPACING;
+
   glPushMatrix();
     glMultMatrixf(ar_translationMatrix(4,0,5).v);
     // blue background for the wand controller

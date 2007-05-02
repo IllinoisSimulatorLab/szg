@@ -58,7 +58,7 @@ arDatabaseNode* ar_graphicsServerMessageCallback(void* server,
 arGraphicsServer::arGraphicsServer() :
   _connectionQueue(new arQueuedData())
 {
-  _server = true; // _server is a member of arDatabase
+  _server = true; // arDatabase::_server
 
   (void)_syncServer.setDictionary(_gfx.getDictionary());
   _syncServer.setBondedObject(this);
@@ -71,21 +71,19 @@ arGraphicsServer::~arGraphicsServer(){
     delete _connectionQueue;
 }
 
-// No threads are started.
+// Initialize.  But don't start threads yet.
 bool arGraphicsServer::init(arSZGClient& client){
   _syncServer.setServiceName("SZG_GEOMETRY");
   _syncServer.setChannel("graphics");
   return _syncServer.init(client);
 }
 
-// This method starts the various threads going and must be made before any other
-// work is done by a calling application.
+// Start threads.
 bool arGraphicsServer::start(){
   return _syncServer.start();
 }
 
-// It is necessary to be able to make the arGraphicsServer stop in a
-// more-or-less deterministic fashion
+// Stop more-or-less deterministically.
 void arGraphicsServer::stop(){
   _syncServer.stop();
 }
