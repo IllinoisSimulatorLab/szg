@@ -294,8 +294,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
     tmp.push_back(*iter);
   }
   _activationSocketIDs.clear();
-  // release the lock no matter what... also we set the shadow variable
-  // saying we are holding the lock to false
+  // Release the lock, even if _activationQueueLockedExternally was true.
   _queueActivationLock.unlock();
   _activationQueueLockedExternally = false;
 
@@ -335,7 +334,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
 }
 
 bool arBarrierServer::checkWaitingSockets(){
-  return !(_activationSocketIDs.empty());
+  return !_activationSocketIDs.empty();
 }
 
 void arBarrierServer::lockActivationQueue(){
@@ -384,10 +383,10 @@ void arBarrierServer::localSync(){
   _localSignal.receiveSignal();
 }
 
-int arBarrierServer::getNumberConnected(){
+int arBarrierServer::getNumberConnected() const {
   return _dataServer.getNumberConnected();
 }
 
-int arBarrierServer::getNumberConnectedActive(){
+int arBarrierServer::getNumberConnectedActive() const {
   return _dataServer.getNumberConnectedActive();
 }

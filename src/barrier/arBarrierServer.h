@@ -49,8 +49,8 @@ class SZG_CALL arBarrierServer{
   void registerLocal(); // Register local connection.
   void localSync();
 
-  int getNumberConnectedActive();
-  int getNumberConnected();
+  int getNumberConnectedActive() const;
+  int getNumberConnected() const;
 
  private: 
   arSZGClient*   _client;
