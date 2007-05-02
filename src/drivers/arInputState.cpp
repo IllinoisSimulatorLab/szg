@@ -60,19 +60,19 @@ arInputState::~arInputState() {
 
 // Call-while-_unlock()'d public methods.
 
-unsigned arInputState::getNumberButtons() {
+unsigned arInputState::getNumberButtons() const {
   _lock();
   const unsigned result = _buttons.size();
   _unlock();
   return result;
 }
-unsigned arInputState::getNumberAxes() {
+unsigned arInputState::getNumberAxes() const {
   _lock();
   const unsigned result = _axes.size();
   _unlock();
   return result;
 }
-unsigned arInputState::getNumberMatrices() {
+unsigned arInputState::getNumberMatrices() const {
   _lock();
   const unsigned result = _matrices.size();
   _unlock();

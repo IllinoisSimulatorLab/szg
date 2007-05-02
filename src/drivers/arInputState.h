@@ -49,9 +49,9 @@ class SZG_CALL arInputState {
     // Methods which call _lock(), i.e. all public methods, can't be const.
 
     // The number of buttons equals the button signature.
-    unsigned getNumberButtons();
-    unsigned getNumberAxes();
-    unsigned getNumberMatrices();
+    unsigned getNumberButtons() const;
+    unsigned getNumberAxes() const;
+    unsigned getNumberMatrices() const;
 
     int getButton(       const unsigned );
     float getAxis(       const unsigned );
@@ -99,8 +99,8 @@ class SZG_CALL arInputState {
 
   private:    
     void _init();
-    void _lock() { _l.lock(); }
-    void _unlock() { _l.unlock(); }
+    void _lock() const { _l.lock(); }
+    void _unlock() const { _l.unlock(); }
 
     // Call  setX and  getX only while _unlock()'d.
     // Call _setX and _getX only while _lock()'d.
@@ -129,7 +129,7 @@ class SZG_CALL arInputState {
     arInputDeviceMap<float> _axisInputMap;
     arInputDeviceMap<arMatrix4> _matrixInputMap;
 
-    arLock _l;
+    mutable arLock _l;
 };  
 
 ostream& operator<<(ostream& os, arInputState& inp );
