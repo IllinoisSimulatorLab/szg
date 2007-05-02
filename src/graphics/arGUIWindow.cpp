@@ -413,11 +413,10 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
   if( !wmEvent.getUserData() )
     wmEvent.setUserData( _userData );
 
-  EventIterator eitr;
-
   _usableEventsMutex.lock();
     // find an 'empty' event and recycle it
-    for( eitr = _usableEvents.begin(); eitr != _usableEvents.end(); eitr++ ) {
+    for (EventIterator eitr = _usableEvents.begin();
+         eitr != _usableEvents.end(); eitr++ ) {
       if( (*eitr)->getDone() == 2 ) {
 	event = *eitr;
 	event->reset( wmEvent );
