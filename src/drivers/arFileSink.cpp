@@ -61,7 +61,7 @@ bool arFileSink::stop(){
   return true;
 }
 
-void arFileSink::receiveData(int /*ID*/, arStructuredData* data){
+void arFileSink::receiveData(int /*ID*/, arStructuredData* data) const {
   _logLock.lock();
   if (_logging)
     data->print(_dataFile);

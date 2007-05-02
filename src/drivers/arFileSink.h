@@ -20,13 +20,13 @@ class SZG_CALL arFileSink : public arInputSink{
   bool start();
   bool stop();
 
-  void receiveData(int,arStructuredData*);
+  void receiveData(int,arStructuredData*) const;
  private:
   string _dataFilePath;
   string _dataFileName;
   FILE* _dataFile;
   bool _logging;
-  arLock _logLock;
+  mutable arLock _logLock;
 };
 
 #endif 
