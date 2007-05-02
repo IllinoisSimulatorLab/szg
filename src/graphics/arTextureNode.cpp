@@ -41,11 +41,9 @@ arStructuredData* arTextureNode::dumpData(){
 
 bool arTextureNode::receiveData(arStructuredData* inData){
   if (inData->getID() != _g->AR_TEXTURE){
-    cerr << "arTextureNode error: expected "
-         << _g->AR_TEXTURE
-         << " (" << _g->_stringFromID(_g->AR_TEXTURE) << "), not "
-         << inData->getID()
-         << " (" << _g->_stringFromID(inData->getID()) << "), for node \""
+    ar_log_warning() << "arTextureNode expected "
+         << _g->AR_TEXTURE << " (" << _g->_stringFromID(_g->AR_TEXTURE) << "), not "
+         << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << "), for node \""
 	 << getName() << "\".\n";
     return false;
   }
