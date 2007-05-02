@@ -157,11 +157,22 @@ private:
 // thread-safe types
 //**************************************
 
-// Thread-safe int.  Used by arSocket.  Todo: use more.
+class SZG_CALL arBoolAtom {
+ public:
+  arBoolAtom(bool x=false) : _x(x) {}
+  operator bool() const
+    { _l.lock(); const bool x = _x; _l.unlock(); return x; }
+  bool set(bool x)
+    { _l.lock(); _x = x; _l.unlock(); return x; }
+ private:
+  bool _x;
+  mutable arLock _l;
+};
+
 class SZG_CALL arIntAtom {
  public:
   arIntAtom(int x=0) : _x(x) {}
-  operator int()
+  operator int() const
     { _l.lock(); const int x = _x; _l.unlock(); return x; }
   int set(int x)
     { _l.lock(); _x = x; _l.unlock(); return x; }
@@ -171,7 +182,7 @@ class SZG_CALL arIntAtom {
     { a._l.lock(); const int x = --(a._x); a._l.unlock(); return x; }
  private:
   int _x;
-  arLock _l;
+  mutable arLock _l;
 };
 
 #endif
