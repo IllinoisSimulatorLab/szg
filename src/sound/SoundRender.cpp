@@ -68,7 +68,7 @@ int main(int argc, char** argv){
   const bool fInit = szgClient.init(argc, argv, "SoundRender");
   if (!szgClient)
     return szgClient.failStandalone(fInit);
-  
+
   // Only one SoundRender per host.
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
@@ -81,8 +81,7 @@ int main(int argc, char** argv){
     }
     return 1;
   }
-  
-  // get the initial parameters
+
   if (!loadParameters(szgClient)){
     if (!szgClient.sendInitResponse(false)){
       cerr << "SoundRender error: maybe szgserver died.\n";
