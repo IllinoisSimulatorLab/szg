@@ -63,12 +63,12 @@ public:
   int ar_bind(const char* IPaddress, int port);
   int ar_listen(int queueSize);
   int ar_accept(arSocket*, arSocketAddress* addr = NULL);
-  bool readable(const ar_timeval& timeout);
-  bool writable(const ar_timeval& timeout);
-  bool readable(); // poll with no timeout
-  bool writable();
-  int ar_read(char* theData, int howMuch);
-  int ar_write(const char* theData, int howMuch);
+  bool readable(const ar_timeval& timeout) const;
+  bool writable(const ar_timeval& timeout) const;
+  bool readable() const; // poll with no timeout
+  bool writable() const;
+  int ar_read(char* theData, const int numBytes) const;
+  int ar_write(const char* theData, int numBytes) const;
 
   // "Safe" versions keep usage counts, and are guaranteed to return
   // the number of bytes requested, or an error.

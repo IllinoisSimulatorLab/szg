@@ -4,9 +4,12 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+#include "arLogStream.h"
 #include "arSocket.h"
+
 #include <stdio.h>
 #include <errno.h>
+
 using namespace std;
 
 #ifdef AR_USE_WIN_32
@@ -23,7 +26,7 @@ class arWinSockHelper{
     if (!_fInit){
       ok = ar_winSockInit();
       if (!ok){
-        cerr << "Syzygy error: WinSock failed to initialize.\n";
+        ar_log_warning() << "WinSock failed to initialize.\n";
       }
       _fInit = true;
     }
@@ -57,7 +60,7 @@ arSocket::arSocket(int type) : _type(type), _ID(-1) {
   _socketFD = -1;
 #endif
   if (_type != AR_LISTENING_SOCKET && _type != AR_STANDARD_SOCKET){
-    cerr << "warning: ignoring unexpected arSocket type " << _type << endl;
+    ar_log_warning() << "arSocket ignoring unexpected type " << _type << ".\n";
     _type = AR_STANDARD_SOCKET;
   }
 }
@@ -86,7 +89,7 @@ int arSocket::ar_create(){
   if (_socketFD < 0)
 #endif
   {
-    cerr << "arSocket error: socket() failed: ";
+    ar_log_warning() << "arSocket: socket() failed: ";
     perror("");
     return -1;
   }
@@ -215,7 +218,7 @@ LError:
 
 int arSocket::ar_bind(const char* IPaddress, int port){
   if (_type != AR_LISTENING_SOCKET){
-    cerr << "arSocket error: ar_bind() requires an AR_LISTENING_SOCKET.\n";
+    ar_log_warning() << "arSocket: ar_bind() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
 
@@ -235,9 +238,8 @@ int arSocket::ar_bind(const char* IPaddress, int port){
   const int err = bind(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
   if (err < 0)
     {
-    cerr << "arSocket error: bind to "
-         << (IPaddress == NULL ? "(localhost)" : IPaddress)
-	 << ":" << port << " failed: ";
+    ar_log_warning() << "arSocket error: bind to " <<
+      (IPaddress == NULL ? "(localhost)" : IPaddress) << ":" << port << " failed: ";
     perror("");
     }
   return err;
@@ -245,7 +247,7 @@ int arSocket::ar_bind(const char* IPaddress, int port){
 
 int arSocket::ar_listen(int queueSize){
   if (_type != AR_LISTENING_SOCKET){
-    cerr << "arSocket error: ar_listen() requires an AR_LISTENING_SOCKET.\n";
+    ar_log_warning() << "arSocket: ar_listen() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
   return listen(_socketFD, queueSize);
@@ -254,7 +256,7 @@ int arSocket::ar_listen(int queueSize){
 // If addr != NULL, stuff it with who we accepted a connection from.
 int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   if (!communicationSocket) {
-    cerr << "arSocket warning: can't accept on null socket.\n";
+    ar_log_warning() << "arSocket can't accept on null socket.\n";
     return -1;
   }
   communicationSocket->_socketFD = -1;
@@ -262,13 +264,13 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   // must be called by a listening socket and operate on a standard socket
   if (_type != AR_LISTENING_SOCKET ||
       communicationSocket->_type != AR_STANDARD_SOCKET){
-    cerr << "arSocket error: ar_accept() requires an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
+    ar_log_warning() << "arSocket: ar_accept() needs an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
     return -1;
   }
 
   if (_socketFD < 0){
-    cerr << "arSocket error: ar_accept() has a bad _socketFD.\n"
-         << "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
+    ar_log_warning() << "arSocket: ar_accept() got a bad _socketFD.\n" <<
+      "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
     return -1;
   }
 
@@ -281,7 +283,7 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
 #endif
             socketAddress.getAddressLengthPtr());
     if (communicationSocket->_socketFD < 0){
-      cerr << "arSocket error: accept() failed: ";
+      ar_log_warning() << "arSocket: accept() failed: ";
       perror("");
       return -1;
     }
@@ -301,15 +303,15 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   return 0;
 }
 
-int arSocket::ar_read(char* theData, int howMuch){
+int arSocket::ar_read(char* theData, const int numBytes) const {
 #ifdef AR_USE_WIN_32
-  return recv(_socketFD,theData,howMuch,0);
+  return recv(_socketFD,theData,numBytes,0);
 #else
-  return read(_socketFD,theData,howMuch);
+  return read(_socketFD,theData,numBytes);
 #endif
 }
 
-bool arSocket::readable(const ar_timeval& timeout){
+bool arSocket::readable(const ar_timeval& timeout) const {
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(_socketFD, &fds);
@@ -319,7 +321,7 @@ bool arSocket::readable(const ar_timeval& timeout){
   return select(_socketFD+1, &fds, NULL, NULL, &tv) == 1;
 }
 
-bool arSocket::writable(const ar_timeval& timeout){
+bool arSocket::writable(const ar_timeval& timeout) const {
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(_socketFD, &fds);
@@ -329,11 +331,11 @@ bool arSocket::writable(const ar_timeval& timeout){
   return select(_socketFD+1, NULL, &fds, NULL, &tv) == 1;
 }
 
-bool arSocket::readable() {
+bool arSocket::readable() const {
   return readable(ar_timeval(0,0));
 }
 
-bool arSocket::writable() {
+bool arSocket::writable() const {
   return writable(ar_timeval(0,0));
 }
 
@@ -347,7 +349,7 @@ bool arSocket::writable() {
 #endif
 #endif
 
-int arSocket::ar_write(const char* theData, int howMuch){
+int arSocket::ar_write(const char* theData, int numBytes) const {
 #ifndef AR_USE_WIN_32
 	// UNIX code
 
@@ -373,10 +375,10 @@ cerr << "attempt #2: queue length == " << ifr.ifr_qlen << endl;
 }
 #endif
 
-  return write(_socketFD,theData,howMuch);
+  return write(_socketFD,theData,numBytes);
 #else
   // Win32
-  return send(_socketFD,theData,howMuch,0);
+  return send(_socketFD,theData,numBytes,0);
 #endif
 }
 
