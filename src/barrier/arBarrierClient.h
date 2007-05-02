@@ -27,8 +27,8 @@ class SZG_CALL arBarrierClient{
   bool checkActivation();
   bool setBondedSocketID(int);
 
-  void setServiceName(string serviceName);
-  void setNetworks(string networks);
+  void setServiceName(const string& serviceName);
+  void setNetworks(const string& networks);
 
   bool init(arSZGClient& client);
   bool start();

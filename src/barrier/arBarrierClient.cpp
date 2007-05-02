@@ -216,13 +216,13 @@ bool arBarrierClient::setBondedSocketID(int theID){
   return true;
 }
 
-void arBarrierClient::setServiceName(string serviceName){
+void arBarrierClient::setServiceName(const string& serviceName){
   _serviceName = serviceName;
 }
 
 // A slash-delimited string containing the networks, in order of descending preference,
 // that the object will use to connect to a service
-void arBarrierClient::setNetworks(string networks){
+void arBarrierClient::setNetworks(const string& networks){
   _networks = networks;
 }
 
