@@ -28,7 +28,7 @@ arDataClient::~arDataClient(){
 }
 
 void arDataClient::setLabel(const string& exeName){
-  _exeName = (exeName.length() > 0) ? exeName : string("syzygy arDataClient");
+  _exeName = (exeName.length() > 0) ? exeName : string("Syzygy arDataClient");
 }
 
 arTemplateDictionary* arDataClient::getDictionary(){
