@@ -269,7 +269,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // offer the state data.
   int  _masterPort[ 1 ];
 
-  // Variables pertaining to the data transfer process.
+  // Data transfer.
   arTemplateDictionary    _transferLanguage;
   arDataTemplate          _transferTemplate;
   arStructuredData*       _transferData;
@@ -295,7 +295,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );
   void (*_mouseCallback)( arMasterSlaveFramework&, arGUIMouseInfo* );
 
-  // Input-event information.
   arInputEventQueue _inputEventQueue;
 
   // Time variables
@@ -315,11 +314,11 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int   _randSynchError;
   int   _firstTransfer;
   
-  // Variable related to the "delay" message. Allows us to artificially slow down
+  // Variable related to the "delay" message. Artificial slowdown.
   // the framerate.
   bool  _framerateThrottle;
 
-  // Variables pertaining to the screenshot process. (in response to message)
+  // Responding to screenshot message.
   bool _screenshotFlag;
   int  _screenshotStartX;
   int  _screenshotStartY;
@@ -327,7 +326,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int  _screenshotHeight;
   int  _whichScreenshot;
 
-  // Pausing the visualization. (in response to message)
+  // Respond to pause message.
   bool           _pauseFlag;
   arMutex        _pauseLock; // with _pauseVar
   arConditionVar _pauseVar;
