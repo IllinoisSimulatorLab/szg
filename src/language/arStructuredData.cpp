@@ -65,7 +65,7 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
   _storageDimension = new ARint[_numberDataItems];
   _dataName = new string[_numberDataItems];
   _dataType = new arDataType[_numberDataItems];
-  for (arAttributeIterator iAttribute(theTemplate->attributeBegin());
+  for (arAttribute::iterator iAttribute(theTemplate->attributeBegin());
        iAttribute != theTemplate->attributeEnd();
        ++iAttribute){
     const int i = iAttribute->second.second;

@@ -137,7 +137,7 @@ int arTemplateDictionary::size(){
                             // and 3 more for following AR_GARBAGE field
                             // and 3 more for the ID
     arDataTemplate* theTemplate = iTemplate->second;
-    for (arAttributeIterator iter(theTemplate->attributeBegin());
+    for (arAttribute::iterator iter(theTemplate->attributeBegin());
          iter != theTemplate->attributeEnd();
          ++iter){
       total += ar_fieldSize(AR_CHAR, iter->first.length()) + 5*AR_INT_SIZE;
@@ -201,7 +201,7 @@ void arTemplateDictionary::pack(ARchar* dest){
       // Pack THAT one.  So they're packed in the correct order,
       // the same order that as arStructuredData::arStructuredData().
 
-      for (arAttributeIterator iAttribute(theTemplate->attributeBegin());
+      for (arAttribute::iterator iAttribute(theTemplate->attributeBegin());
            iAttribute != theTemplate->attributeEnd();
            ++iAttribute){
 	if (iAttribute->second.second != i)
