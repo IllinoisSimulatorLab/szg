@@ -435,12 +435,10 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
   return (float)acos(dotProd);
 }
 
-// Returns euler angles calculated from fixed rotation axes. By default,
-// the axis order is ZYX (as denoted AR_ZYX.. but other possibilities are
-// AR_XYZ, AR_XZY, etc.) which means axis1 = (0,0,1), axis2 = (0,1,0),
-// and axis3 = (1,0,0). We assume that the given matrix is, in fact, a
-// pure rotation (and attempt to extract the rotation in order to ensure
-// this). Under this assumption, the original matrix will be:
+// Returns euler angles, in radians, calculated from fixed rotation axes.
+// Default axis order is ZYX (AR_ZYX; others are AR_XYZ, AR_XZY, etc.)
+// which means axis1 = (0,0,1), axis2 = (0,1,0), and axis3 = (1,0,0).
+// If the original matrix was a pure rotation, it will equal:
 // ar_rotationMatrix(axis1, v[2])
 // * ar_rotationMatrix(axis2, v[1])
 // * ar_rotationMatrix(axis3, v[0])
