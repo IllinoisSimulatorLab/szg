@@ -53,9 +53,10 @@ inline void setAxis(int ID, void* m, float value){
 
 void setMatrix(const int ID, const void* mRaw, const arMatrix4& value){
   float* m = ((float*)mRaw) + 7 + ID*10;
-  memcpy(m+3, ar_extractEulerAngles(value, AR_YXZ /* AR_ZXY? */).v,
-    3 * sizeof(float));
-  memcpy(m, ar_extractTranslation(value).v, 3 * sizeof(float));
+  const arVector3 t(ar_extractTranslation(value));
+  memcpy(m, t.v, 3 * sizeof(float));
+  const arVector3 a(180. / M_PI * ar_extractEulerAngles(value, AR_ZXY));
+  memcpy(m+3, a.v, 3 * sizeof(float));
 }
 
 bool arSharedMemSinkDriver::init(arSZGClient& c) {
