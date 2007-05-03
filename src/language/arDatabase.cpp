@@ -1041,7 +1041,7 @@ bool arDatabase::_initDatabaseLanguage(){
   
   // Create the parsing helpers. NOTE: THIS WILL GO AWAY ONCE THE
   // arStructuredDataParser is integrated!
-  for (arTemplateType::iterator iter = d->begin();
+  for (arTemplateType::const_iterator iter = d->begin();
        iter != d->end(); ++iter){
     const int ID = iter->second->getID();
     _parsingData[ID] = new arStructuredData(iter->second);

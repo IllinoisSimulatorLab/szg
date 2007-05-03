@@ -69,7 +69,7 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
   // Retrieve the templates from the framework object.
   arTemplateDictionary* templateDictionary = object->getDictionary();
   // Must first check that they all have the magic "szg_router_id" field
-  arTemplateType::iterator i;
+  arTemplateType::const_iterator i;
   for (i = templateDictionary->begin(); 
        i != templateDictionary->end(); i++){
     if (i->second->getAttributeID("szg_router_id") == -1){
