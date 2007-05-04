@@ -117,7 +117,7 @@ not try to //write// to it. It must
 exist for programs to work in Cluster Mode but it is not
 necessary for programs to work in [Standalone Mode Standalone.html].
 
-``szg.conf`` is an XML file contains the following information:
+``szg.conf`` is an XML file containing the following information:
 
 + The computer's Syzygy name (typically the first part of the DNS name, but it doesn't
   have to be). Defaults to "NULL".
@@ -186,6 +186,11 @@ To create szg.conf, perform the following steps (to perform these steps you must
 ```
   dname my_computer
 ```
+  Or if you type:
+```
+  dname -hostname
+```
+  it will attempt to set the name automatically to the computer's hostname.
 + szg.conf must contain information about the network interfaces
   in the computer, specifically the IP address and netmask.
   In addition, each interface must be assigned to a Syzygy network.
@@ -257,7 +262,12 @@ To create szg.conf, perform the following steps (to perform these steps you must
 ```
     Sets the computer's name in the szg.conf file. If no ports information is
     present, it goes ahead and adds a default ports record, reserving the range
-    4700-4899.
+    4700-4899. //New in Syzygy 1.2//: If ``<name>`` is ``-hostname`` it will
+    attempt to set the name
+    automatically using the gethostname() function (i.e. it will attempt to set
+    the Syzygy name to the hostname). Previously, issuing the ``dname`` command
+    without an argument would do this. Now, if issued without an argument
+    it will print the computer's Syzygy name, if defined.
 
 ```
   dconfig

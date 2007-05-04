@@ -6,9 +6,10 @@
 #include "arPrecompiled.h"
 #include "arCallbackInteractable.h"
 
-arCallbackInteractable::arCallbackInteractable(int ID) :
+arCallbackInteractable::arCallbackInteractable(int graphicsTransformID, int soundTransformID) :
   arInteractable(),
-  _id(ID),
+  _graphicsTransformID(graphicsTransformID),
+  _soundTransformID(soundTransformID),
   _touchCallback(0),
   _processCallback(0),
   _untouchCallback(0),
@@ -17,7 +18,8 @@ arCallbackInteractable::arCallbackInteractable(int ID) :
 
 arCallbackInteractable::arCallbackInteractable( const arCallbackInteractable& bi ) :
   arInteractable( bi ),
-  _id( bi._id ),
+  _graphicsTransformID( bi._graphicsTransformID ),
+  _soundTransformID( bi._soundTransformID ),
   _touchCallback( bi._touchCallback ),
   _processCallback( bi._processCallback ),
   _untouchCallback( bi._untouchCallback ),
@@ -28,7 +30,8 @@ arCallbackInteractable& arCallbackInteractable::operator=( const arCallbackInter
   if (&bi == this)
     return *this;
   arInteractable::operator=( bi );
-  _id = bi._id;
+  _graphicsTransformID = bi._graphicsTransformID;
+  _soundTransformID = bi._soundTransformID;
   _touchCallback = bi._touchCallback;
   _processCallback = bi._processCallback;
   _untouchCallback = bi._untouchCallback;

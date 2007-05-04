@@ -160,7 +160,8 @@ and reverses axis 1:
   DeviceServer -s arJoystickDriver 0 joystick_scaledown
 ```
 
-==Configurations of Input Nodes==
+==Configuration of Input Devices==
+
 Here is a simple example of an input node configuration for DeviceServer:
 
 ```
@@ -200,42 +201,15 @@ input devices (here, a Spacepad and a joystick), put multiple entries
 in the input_sources field like this instead of trying to run multiple
 DeviceServers.
 
-The field **<pforth>** contains a PForth program to filter data from
+The field **<pforth>** contains a [PForth PForth.html] program to filter data from
 the input sources, before the data reaches the chain of input_filters
 and finally the input_sinks.  If left empty as here, obviously no
 special filtering happens.
 
-This elaborate example of an input node configuration reads Ascension
-MotionStar events, filters the events with the PForth program shown, and
-filters the events yet again through an arTrackCalFilter (a calibration
-lookup table):
 
-```
- <param>
-  <name> cube_tracker </name>
-  <value>
-    <szg_device>
-      <input_sources> arMotionstarDriver </input_sources>
-      <input_filters> arTrackCalFilter   </input_filters>
-      <input_sinks>                      </input_sinks>
-      <pforth>
-	  matrix inputMatrix
-	  matrix outputMatrix
-	  matrix correctXRotMatrix
-	  matrix correctYRotMatrix
-	  matrix correctZRotMatrix
-	  matrix correctHeadRotMatrix
-	  -30 0 correctXRotMatrix rotationMatrix
-	  6 1 correctYRotMatrix rotationMatrix
-	  -1 2 correctZRotMatrix rotationMatrix
-	  correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
-	  define filter_matrix_0
-	    inputMatrix getCurrentEventMatrix
-	    inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
-	    outputMatrix setCurrentEventMatrix
-	  enddef
-      </pforth>
-    </szg_device>
-  </value>
-  </param>
-```
+=Transformation to Syzygy Coordinates=
+
+For a HowTo about getting your tracker data mapped in to Syzygy coordinates,
+see [Tracker Coordinate Conversion TrackerCoordConversion.html]
+
+

@@ -383,7 +383,7 @@ void arPythonDragBehavior::init( const arEffector* const effector,
     if (PyErr_Occurred()) {
       PyErr_Print(); 
     }
-    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in arPythonInteractable.init().");
+    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in arPythonDragBehavior.init().");
   }
 finish:
   Py_XDECREF( result ); 

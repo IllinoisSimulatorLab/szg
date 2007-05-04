@@ -221,6 +221,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _barrierClient( NULL ),
   _soundClient( NULL ),
 
+  // Sound nav. matrix ID
+  _soundNavMatrixID(-1),
+
   // Miscellany.
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
@@ -383,6 +386,10 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     // copypaste
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
+    
+    if (_soundNavMatrixID == -1) {
+      _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+    }
     
     // Before _loadParameters, so the internal sound client,
     // created in _initStandaloneObjects, can be configured for standalone.
@@ -1151,6 +1158,16 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   if( _soundClient ) {
     // Standalone, so set up the internal sound client.
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
+  }
+}
+
+void arMasterSlaveFramework::loadNavMatrix(void ) {
+  const arMatrix4 navMatrix( ar_getNavInvMatrix() );
+  glMultMatrixf( navMatrix.v );
+  if (getMaster()) {
+    if (_soundNavMatrixID != -1){
+      dsTransform( _soundNavMatrixID, navMatrix );
+    }
   }
 }
 
@@ -1924,6 +1941,10 @@ LAbort:
     return false;
   }
 
+  if (_soundNavMatrixID == -1) {
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+  }
+    
   ar_log_remark() << _label << " initialized master's objects.\n";
   return true;
 }

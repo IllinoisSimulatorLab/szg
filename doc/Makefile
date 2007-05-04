@@ -37,6 +37,7 @@ ALL = \
   SyzygyEnvironmentVariables.html \
   szgview.html \
   Testing.html \
+	TrackerCoordConversion.html \
   VirtCompConfiguration.html \
   VisualStudioBuildVars.html \
   Standalone.html \

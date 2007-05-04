@@ -90,10 +90,11 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
       quat[2] = preading->quaternion.nQ2 / 32767.;
       quat[3] = preading->quaternion.nQ3 / 32767.;
       
-//      arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]) );
-//      arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
+      // Note: we've been reporting the inverse of the correct orientation
+      // component. The two lines below correct this.
+      arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]).inverse() );
+      arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
 
-      const arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
       fobDriver->queueMatrix( 0, fobMatrix );
     } else {
       for (int i=1; i<=fobDriver->_numDevices; i++) {
@@ -108,10 +109,11 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
         quat[2] = preading->quaternion.nQ2 / 32767.;
         quat[3] = preading->quaternion.nQ3 / 32767.;
         
-      //	arQuaternion orient( quat[0],quat[1],quat[2],quat[3] );
-      //	arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
-      
-        const arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
+        // Note: we've been reporting the inverse of the correct orientation
+        // component. The two lines below correct this.
+        arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]).inverse() );
+        arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
+
         fobDriver->queueMatrix( i-1, fobMatrix );
       }
     }

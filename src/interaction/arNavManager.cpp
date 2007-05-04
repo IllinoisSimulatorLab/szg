@@ -29,7 +29,7 @@ void arNavInteractable::setMatrix( const arMatrix4& matrix ) {
 arNavManager::arNavManager() :
   _effector(1,0,0,0,0,0,0),
   _navObject() {
-  for (unsigned i=0; i<3; i++) {
+  for (unsigned int i=0; i<3; ++i) {
     _transSpeeds[i] = 5.;
     _rotSpeeds[i] = 0.;
   }

@@ -1,4 +1,5 @@
-// (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
+// (c) 2004-2007, Trustees of the University of Illinois
+// 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU LGPL as published by
@@ -182,7 +183,7 @@ static void pyWindowEventCallback( arMasterSlaveFramework& fw, arGUIWindowInfo* 
 
 
 //    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
-//											   arCallbackEventFilter& filter) );
+//                                        arCallbackEventFilter& filter) );
 //
 static PyObject *pyEventFunc = NULL;
 static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCallbackEventFilter& filter ) {
@@ -491,6 +492,8 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   bool getConnected() const;
   bool soundActive() const;
   bool inputActive() const;
+
+  string getNavNodeName() const;
 
   void setRandomSeed( const long newSeed );
 

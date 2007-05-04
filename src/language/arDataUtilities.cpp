@@ -631,7 +631,9 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
       break;
     }
     if (inStream.fail()) {
-      ar_log_warning() << "ar_parseIntString: stream failed during field " <<
+      // NOTE: This is sometimes OK, i.e. if you have to parse a
+      // variable-length item list and you give the max. num. items...
+      ar_log_debug() << "ar_parseIntString: stream failed during field " <<
 	numValues+1 << " of " << len << " in '" << theString << "'.\n";
       break;
     }

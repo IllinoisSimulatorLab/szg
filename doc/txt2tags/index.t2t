@@ -68,6 +68,8 @@ Header2 %%mtime(%m/%d/%Y)
 - [PForth.html PForth.html]: The PForth ("Pseudo-FORTH") input-filtering language.
   It's a stack-based language for applying
   transformations to streams of input events (e.g., re-mapping input device button indices).
+- [TrackerCoordConversion.html TrackerCoordConversion.html]: A HowTo for mapping the
+  coordinates reported by your tracking device into the Syzygy coordinate system.
 - [AppFeatures.html AppFeatures.html]: Tricks for managing cluster applications
   using the 'dmsg' command.
 

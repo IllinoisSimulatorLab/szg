@@ -51,7 +51,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
                          const string& bundleSubDirectory);
   void setAutoBufferSwap(bool);
   void swapBuffers();
-  const string getNavNodeName() const { return "SZG_NAV_MATRIX"; }
   arDatabaseNode* getNavNode();
 
   void loadNavMatrix();

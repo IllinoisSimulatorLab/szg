@@ -12,7 +12,7 @@
 
 class SZG_CALL arCallbackInteractable : public arInteractable {
   public:
-    arCallbackInteractable(int ID = -1);
+    arCallbackInteractable(int graphicsTransformID = -1, int soundTransformID=-1);
     arCallbackInteractable( const arCallbackInteractable& bi );
     arCallbackInteractable& operator=( const arCallbackInteractable& bi );
     // Yes, it is necessary to call _cleanup here rather than in the base
@@ -33,14 +33,22 @@ class SZG_CALL arCallbackInteractable : public arInteractable {
     void setMatrixCallback( void (*callback)( arCallbackInteractable* object, const arMatrix4& matrix ) ) {
       _matrixCallback = callback;
     }
-    void setID( int ID ) { _id = ID; }
-    int getID() const { return _id; }
+    void setGraphicsTransformID( int ID ) { _graphicsTransformID = ID; }
+    int getGraphicsTransformID() const { return _graphicsTransformID; }
+    void setSoundTransformID( int ID ) { _soundTransformID = ID; }
+    int getSoundTransformID() const { return _soundTransformID; }
+    
+    // For backwards compatibility...
+    void setID( int ID ) { _graphicsTransformID = ID; }
+    int getID() const { return _graphicsTransformID; }
+
     virtual void setMatrix( const arMatrix4& matrix );
   protected:
     virtual bool _processInteraction( arEffector& effector );
     virtual bool _touch( arEffector& effector );
     virtual bool _untouch( arEffector& effector );
-    int _id;
+    int _graphicsTransformID;
+    int _soundTransformID;
     bool (*_touchCallback)( arCallbackInteractable* object, arEffector* effector );
     bool (*_processCallback)( arCallbackInteractable* object, arEffector* effector );
     bool (*_untouchCallback)( arCallbackInteractable* object, arEffector* effector );

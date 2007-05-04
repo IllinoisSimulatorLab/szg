@@ -14,7 +14,8 @@ enum {
   ON_BUTTON_DUMP,
   EVENT_STREAM,
   BUTTON_STREAM,
-  COMPACT_STREAM
+  COMPACT_STREAM,
+  POSITION
 };
 
 void dump( arInputState& inp ) {
@@ -130,6 +131,29 @@ bool CompactFilterEventStream::_processEvent( arInputEvent& event ) {
   return true;
 }
 
+class PositionFilter : public arIOFilter {
+  public:
+    PositionFilter( unsigned int matrixIndex=0 ) :
+      arIOFilter(),
+      _matrixIndex(matrixIndex) {
+      }
+    virtual ~PositionFilter() {}
+  protected:
+    virtual bool _processEvent( arInputEvent& inputEvent );
+    unsigned int _matrixIndex;
+};
+bool PositionFilter::_processEvent( arInputEvent& event ) {
+  if (event.getType()==AR_EVENT_MATRIX && event.getIndex()==_matrixIndex) {
+    cout << ar_extractTranslation(event.getMatrix()) << "\n";
+  }
+  return true;
+}
+
+
+void printusage() {
+  ar_log_error() <<
+    "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream | -compactstream | -position <#> ]\n";
+}
 
 int main(int argc, char** argv) {
   arSZGClient szgClient;
@@ -138,8 +162,8 @@ int main(int argc, char** argv) {
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  if (argc != 2 && argc != 3) {
-    ar_log_error() << "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream | -compactstream]\n";
+  if (argc != 2 && argc != 3 && argc != 4) {
+    printusage();
 LAbort:
     if (!szgClient.sendInitResponse(false)) {
       cerr << "DeviceClient error: maybe szgserver died.\n";
@@ -149,7 +173,7 @@ LAbort:
 
   const int slot = atoi(argv[1]);
   int mode = CONTINUOUS_DUMP;
-  if (argc == 3) {
+  if (argc > 2) {
     if (!strcmp(argv[2], "-onbutton")) {
       mode = ON_BUTTON_DUMP;
     } else if (!strcmp(argv[2], "-stream")) {
@@ -158,6 +182,8 @@ LAbort:
       mode = BUTTON_STREAM;
     } else if (!strcmp(argv[2], "-compactstream")) {
       mode = COMPACT_STREAM;
+    } else if (!strcmp(argv[2], "-position")) {
+      mode = POSITION;
     }
   }
 
@@ -174,6 +200,7 @@ LAbort:
   FilterEventStream filterEventStream;
   FilterEventStream filterButtonStream( AR_EVENT_BUTTON );
   CompactFilterEventStream compactFilterEventStream;
+  PositionFilter* postionFilterPtr;
 
   if (mode == ON_BUTTON_DUMP) {
     inputNode.addFilter( &filterOnButton, false );
@@ -183,6 +210,14 @@ LAbort:
     inputNode.addFilter( &filterButtonStream, false );
   } else if (mode == COMPACT_STREAM) {
     inputNode.addFilter( &compactFilterEventStream, false );
+  } else if (mode == POSITION) {
+    if (argc != 4) {
+      printusage();
+      goto LAbort;
+    }
+    const unsigned int matrixIndex = (unsigned int)atoi(argv[3]);
+    postionFilterPtr = new PositionFilter( matrixIndex );
+    inputNode.addFilter( postionFilterPtr, false );
   }
 
   if (!inputNode.init(szgClient)) {

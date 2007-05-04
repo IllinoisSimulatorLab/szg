@@ -101,6 +101,10 @@ class SZG_CALL arSZGAppFramework {
     // inside the arInputNode.
     arInputState* getInputState() { return (arInputState*)_inputState; }
 
+    // This used to be in arDistSceneGraphFramework. Moved it up here
+    // for the arMasterSlaveFramework sound database.
+    const string getNavNodeName() const { return "SZG_NAV_MATRIX"; }
+
     // Some apps need a thread running external to the library.
     // For deterministic shutdown, we need to register that
     // thread's existence, know when it is shutting down, etc.

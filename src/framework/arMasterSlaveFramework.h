@@ -143,8 +143,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   void setDataBundlePath( const string& bundlePathName,
                           const string& bundleSubDirectory );
-  void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
-			      glMultMatrixf( temp.v ); }
+  void loadNavMatrix(void );
   void setPlayTransform( void );
   void drawGraphicsDatabase( void );
   void usePredeterminedHarmony();
@@ -234,6 +233,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Misc. variables follow.
   // Holds the head position for the spatialized sound API.
   arSpeakerObject      _speakerObject;
+  // sound navigation matrix ID
+  int _soundNavMatrixID;
   // Need to store the networks on which we'll try to connect to services
   // as well as the name of the service we'll be using.
   std::string _serviceName;

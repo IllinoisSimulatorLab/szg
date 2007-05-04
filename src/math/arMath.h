@@ -180,8 +180,19 @@ class SZG_CALL arQuaternion{
   arQuaternion( const float* numAddress );
   ~arQuaternion() {}
 
+  inline float magsqr() const {
+    return real*real+pure.v[0]*pure.v[0]+
+	      pure.v[1]*pure.v[1]+pure.v[2]*pure.v[2];
+  }
+  inline float magnitude() const {
+    return sqrt(magsqr());
+  }
+  inline arQuaternion conjugate() const {
+    return arQuaternion( real, -pure.v[0], -pure.v[1], -pure.v[2] );
+  }
+  arQuaternion inverse() const;
+
   operator arMatrix4() const;
-  // todo: implement member inverse() (instead of unimplemented member operator!).
 
   float real;
   arVector3 pure;
@@ -533,9 +544,9 @@ inline arQuaternion operator-(const arQuaternion& x, const arQuaternion& y){
 		      x.pure.v[1]-y.pure.v[1], x.pure.v[2]-y.pure.v[2]);
 }
 
-// inverse of unit quaternion
+// inverse of quaternion
 inline arQuaternion operator!(const arQuaternion& x){
-  return arQuaternion(x.real,-x.pure.v[0],-x.pure.v[1],-x.pure.v[2]);
+  return x.inverse();
 }
 
 // magnitude

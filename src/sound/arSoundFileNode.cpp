@@ -75,8 +75,21 @@ bool arSoundFileNode::_adjust(bool useTrigger){
     return true;
   }
 
+  const arMatrix4 mat = ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top();
+//cerr << "MATRIX: " << mat << endl;
   const arVector3& p = useTrigger ? _triggerPoint : _point;
-  const arVector3 point(ar_transformStack.empty() ? p : ar_transformStack.top() * p);
+  const arVector3 point(mat * p);
+//cerr << "SOUND POINT 1: " << p << endl;
+//cerr << "SOUND POINT 2: " << point << endl;
+//float x, y;
+//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_LEFT, &x, &y );
+//cerr << "FRONT LEFT  SPEAKER POSITION: " << x << ", " << y << endl;
+//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_RIGHT, &x, &y );
+//cerr << "FRONT RIGHT SPEAKER POSITION: " << x << ", " << y << endl << endl;
+//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_LEFT, &x, &y );
+//cerr << "SIDE  LEFT  SPEAKER POSITION: " << x << ", " << y << endl;
+//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_RIGHT, &x, &y );
+//cerr << "SIDE  RIGHT SPEAKER POSITION: " << x << ", " << y << endl << endl;
   const FMOD_VECTOR tmp(FmodvectorFromArvector(point)); // doppler velocity nyi
   const FMOD_VECTOR velocity(FmodvectorFromArvector(arVector3(0,0,0)));
   return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity ));

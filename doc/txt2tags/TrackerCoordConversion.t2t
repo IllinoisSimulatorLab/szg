@@ -1,0 +1,178 @@
+Header1 Tracker Coordinate Conversion
+Header2 %%mtime(%m/%d/%Y)
+
+%!options: --headers --toc
+
+Header3
+
+How to align the coordinate system of your tracking device with
+the physical coordinates of your space.
+
+% Table of Contents
+%%toc
+
+
+=Swapping Axes=
+
+Unless you're more mathematically sophisticated than we are, this is
+the tricky bit. You've got your tracking device talking with a Syzygy
+device driver, but its native coordinate axes point in different
+directions from the Syzygy coordinate system (which, like OpenGL coordinates,
+is +X=right, +Y=up, +Z=back when you are facing in your VR apparatus'
+"forwards" direction. For example, in the 
+[Beckman Institute Cube http://www.isl.uiuc.edu/Labs/room_b650.htm]
+the axes are +X=East, +Y=up, +Z=south). How to get the two sets of axes
+aligned?
+
+
+==Mapping the Tracker Axes==
+
+First, if you don't already know it you need to determine what directions
+the tracker axes are pointed. This is easiest to do with the //DeviceClient//
+utility in 'position' mode. For example, if you're running your tracker
+as input service ``SZG_INPUT0`` in the context of a
+[virtual computer VirtCompConfiguration.html] named 'vc', then you would
+start DeviceClient using e.g.:
+```
+  DeviceClient 0 -position 0 -szg virtual=vc
+```
+...and it would print out a stream of positions computed from the incoming
+values of [matrix event #0 InputDevices.html#Overview], which would
+correspond to the head tracking sensor (the first '0' above is the input
+service number, while the second is the matrix event index). Now you can
+move the sensor around and observe how the reported position values change
+from place to place.
+
+
+==The Axis-Transformation Equation==
+
+You perform the axis transformation by bracketing each incoming matrix event
+with a pair of matrices, one of which is the inverse of the other:
+```
+  M' = C * M * C^^-1^^
+```
+The ``C`` matrices are constructed such that when multiplied by M they swap
+two of its rows or columns (depending on whether it's left- or right-multiplication)
+along with an optional change of sign (multiplication by -1). Each
+row //and// column of each of these matrices has //exactly// one non-zero
+element, which is equal to 1 or -1, and the lower-right element is 1.
+
+
+==Determining the Axis-Transformation Matrices: An Example==
+
+Take the Ascension Flock of Birds(TM) tracker. It uses a right-handed coordinate
+system with the X-axis pointing away from the transmitter power cable and the
+Z-axis pointing down (i.e. towards the side containing the hole for the mounting
+screw). Let's say that we've got it mounted so that the power cable points forwards
+(away from the user), such that +X=back, +Y=left, +Z=down, and we've confirmed
+with DeviceClient that these are the tracker coordinate axes. We need to map these
+to the Syzygy coordinates +X=right, +Y=up, +Z=back. In other words we want:
+```
+  Tracker X => Syzygy +Z
+  Tracker Y => Syzygy -X
+  Tracker Z => Syzygy -Y
+```
+We construct the transformation matrix using the table below. The tracker axes
+go along the top and the desired Syzygy axes along the side, with the sign of
+the non-zero element corresponding to the sign of the mapping:
+
+||         | Tracker X | Tracker Y | Tracker Z |   |
+| Syzygy X |     0     |    -1     |     0     | 0 |
+| Syzygy Y |     0     |     0     |    -1     | 0 |
+| Syzygy Z |     1     |     0     |     0     | 0 |
+|          |     0     |     0     |     0     | 1 |
+
+i.e.
+
+[images/AxisTransformMatrix.jpg]
+
+and since these are orthonormal matrices so the inverse is the same as the
+transpose,
+
+[images/AxisTransformInvMatrix.jpg]
+
+
+==Implementing the Axis Transformation in a PForth Filter==
+
+The best way to implement these transformations is in a [PForth filter PForth.html]
+inside your [global input device definition InputDeviceConfiguration.html#GlobalParameters].
+Here's an example using the above transformations:
+```
+<param>
+  <name>
+    fob_tracker
+  </name>
+  <value>
+    <szg_device>
+      <input_sources> arBirdWinDriver </input_sources>
+      <input_sinks></input_sinks>
+      <input_filters></input_filters>
+      <pforth>
+        matrix Xin
+        matrix Xout
+
+        matrix C
+        matrix Cinv
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        C matrixStoreTranspose
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        Cinv matrixStore
+
+        define filter_all_matrices
+          Xin getCurrentEventMatrix
+          C Xin Cinv 3 Xout concatMatrices
+          Xout setCurrentEventMatrix
+        enddef
+      </pforth>
+    </szg_device>
+  </value>
+</param>
+```
+
+This device definition loads one device driver plugin (shared library):
+``arBirdWinDriver``, the Syzygy Flock-of-Birds(TM) driver that is based on
+the Bird.dll supplied by Ascension (Windows only). It also defines a PForth
+filter to be applied to the output of this device.
+
+The filter defines four matrix variables, ``Xin``, ``Xout``, ``C``, and ``Cinv``.
+``Xin`` and ``Xout`` are just temporary storage for the initial and final
+values of the tracker matrices. ``C`` and ``Cinv`` are the two axis-transformation
+matrices we constructed above. It may be a bit confusing that we use
+``matrixStoreTranspose`` to store the values in ``C`` and ``matrixStore`` for ``Cinv``.
+In Syzygy, as in OpenGL, matrix values are internally stored in a one-dimensional
+array with the //row// subscript varying faster, i.e. going down the first column,
+then the second, and so on. The ``matrixStore`` word reads in the numbers and stores
+them in the same order: In other words, the numbers in the top //row// of the matrix text
+above end up being stored internally as the first //column// of the matrix, so you end
+up with the transpose of the matrix as it appears in the PForth source code. The
+``matrixStoreTranspose`` word allows you to enter matrices in human-readable form.
+
+Finally, the code defines a //filter word//, ``filter_all_matrices``, which will be
+applied to any outgoing matrix event. The matrix value is stored in ``Xin`` in the
+first line, the transformation equation is applied in the second, and the result
+is stuffed back into the matrix event in the third.
+
+
+=Correcting Residual Coordinate-Axis Direction Errors=
+
+Still to do...
+
+
+=Specifying the Origin Offset=
+
+Still to do...
+
+
+=Correcting Sensor Orientations=
+
+Still to do...
+
+

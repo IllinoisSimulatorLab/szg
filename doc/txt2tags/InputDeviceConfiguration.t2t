@@ -124,6 +124,12 @@ indices; for matrices this is the identity matrix, for the other two
 types it is 0.
 
 
+=Transformation to Syzygy Coordinates=
+
+For a HowTo about getting your tracker data mapped in to Syzygy coordinates,
+see [Tracker Coordinate Conversion TrackerCoordConversion.html]
+
+
 =Troubleshooting=
 
 If your program isn't getting input, verify

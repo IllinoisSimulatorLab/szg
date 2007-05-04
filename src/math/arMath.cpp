@@ -261,6 +261,15 @@ arQuaternion::arQuaternion( const float* numAddress ) :
 {
 }
 
+arQuaternion arQuaternion::inverse() const {
+  float m = magsqr();
+  if (fabs(m) < 1.e-6) {
+    return arQuaternion(0,0,0,0);
+  } else {
+    return conjugate() / m;
+  }
+}
+
 arQuaternion::operator arMatrix4() const {
   const float aa = real*real;
   const float b1b1 = pure.v[0]*pure.v[0];

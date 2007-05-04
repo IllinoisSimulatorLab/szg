@@ -53,13 +53,13 @@ bool connected = false;
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis uses 1/2-millimeters (that's what ended up looking best in
 // stereo.  Use mm. and the sharks get too huge and far apart).
-const float CM_TO_ATLANTISUNITS = 20.;
-const float FEET_TO_AU = 12*2.54*CM_TO_ATLANTISUNITS;
+const float ATLANTISUNITS_PER_CM = 20.;
+const float ATLANTISUNITS_PER_FOOT = 12*2.54*ATLANTISUNITS_PER_CM;
 
 // Near & far clipping planes.
-//const float nearClipDistance = 20*CM_TO_ATLANTISUNITS;
-const float nearClipDistance = 1*CM_TO_ATLANTISUNITS;
-const float farClipDistance = 20000.*CM_TO_ATLANTISUNITS;
+//const float nearClipDistance = 20*ATLANTISUNITS_PER_CM;
+const float nearClipDistance = 1*ATLANTISUNITS_PER_CM;
+const float farClipDistance = 20000.*ATLANTISUNITS_PER_CM;
 
 const int SPHERE_SLICES = 10;
 const int SPHERE_STACKS = 6;
@@ -76,8 +76,8 @@ float acceleration = 0.95;
 arEffector spear( 1, 6, 2, 2, 0, 0, 0 );
 arCallbackInteractable interactableArray[NUM_SHARKS];
 list<arInteractable*> interactionList;
-const float SPEAR_LENGTH = 6*FEET_TO_AU;
-float gSpearRadius = 2.*FEET_TO_AU;
+const float SPEAR_LENGTH = 6*ATLANTISUNITS_PER_FOOT;
+float gSpearRadius = 2.*ATLANTISUNITS_PER_FOOT;
 int gDrawSpearTip = 0;
 
 arTimer tipTimer;
@@ -123,14 +123,14 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
   glPushMatrix();
     glMultMatrixf(spearMatrix.v);
     glPushMatrix();
-      glScalef( FEET_TO_AU/12., FEET_TO_AU/12., SPEAR_LENGTH );
+      glScalef( ATLANTISUNITS_PER_FOOT/12., ATLANTISUNITS_PER_FOOT/12., SPEAR_LENGTH );
       glColor3f(.4,.4,.4);
       glutSolidCube(1.);
     glPopMatrix();
     if (drawVerticalBar) {
       glPushMatrix();
-       glTranslatef( 0, .5*FEET_TO_AU, 0. );
-       glScalef( FEET_TO_AU/12., FEET_TO_AU, FEET_TO_AU/12. );
+       glTranslatef( 0, .5*ATLANTISUNITS_PER_FOOT, 0. );
+       glScalef( ATLANTISUNITS_PER_FOOT/12., ATLANTISUNITS_PER_FOOT, ATLANTISUNITS_PER_FOOT/12. );
        glutSolidCube(1.);
       glPopMatrix();
     }
@@ -312,13 +312,13 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
 
   // This is cube-specific (the origin is on the floor, so the center
   // of the screen is 5 feet high).
-  ar_navTranslate(arVector3(0., -5.*FEET_TO_AU, 0.));
+  ar_navTranslate(arVector3(0., -5.*ATLANTISUNITS_PER_FOOT, 0.));
 
   if (fw.getMaster()) {
     connected = true;
 
     // set max interaction distance at .5 ft. in real-world coordinates
-    spear.setUnitConversion( FEET_TO_AU );
+    spear.setUnitConversion( ATLANTISUNITS_PER_FOOT );
     spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
     // Set wand to do a normal drag when you click on button 2 or 6 & 7
     // (the wand triggers)
@@ -344,8 +344,8 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
   (void)dsLoop("whale song", "whale sound matrix", "whale.mp3", 1,
     1.0, arVector3(0,0,0));
-  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3", 1,
-    0.05, arVector3(0,0,0));
+//  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3", 1,
+//    0.05, arVector3(0,0,0));
 
   // Register the shared memory.
   fw.addTransferField("fishCoords", fishCoords, AR_FLOAT, NUM_COORDS);
@@ -357,13 +357,13 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   fw.addTransferField("drawVerticalBar", &drawVerticalBar, AR_INT, 1);
   fw.addTransferField("useTexture", &useTexture, AR_INT, 1);
 
-  fw.setNavTransSpeed( 20.*FEET_TO_AU );
+  fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
   fw.ownNavParam("translation_speed");
   return true;
 }
 
 static int spearTipIndex = 0;
-float distances[3] = {2*FEET_TO_AU,1*FEET_TO_AU,.5*FEET_TO_AU};
+float distances[3] = {2*ATLANTISUNITS_PER_FOOT,1*ATLANTISUNITS_PER_FOOT,.5*ATLANTISUNITS_PER_FOOT};
 static bool sharkAttack = false;
 
 // This is where we pack data into the networked shared memory
@@ -434,22 +434,21 @@ void preExchange(arMasterSlaveFramework& fw) {
 
   // Calculate transformation matrix from head to whale (should be whale's
   // mouth (or blowhole?), haven't gotten that far yet) for sound rendering.
-  arMatrix4 fishMatrix( ar_translationMatrix( momWhale.y, momWhale.z, -momWhale.x ) );
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   const arMatrix4 headInvMatrix( fw.getMatrix(0).inverse() );
-  arMatrix4 soundMatrix( headInvMatrix*navMatrix*fishMatrix );
 
+  arMatrix4 fishMatrix( ar_translationMatrix( momWhale.y, momWhale.z, -momWhale.x ) );
+  arMatrix4 soundMatrix( headInvMatrix*navMatrix*fishMatrix );
   // Decrease attenuation 'cause we're under water (and it sounds better)
   for (i=12; i<15; i++ )
-    soundMatrix[i] /= 25*FEET_TO_AU;
-
-  // Load matrices for whale and dolphin.
+    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
   dsTransform( whaleSoundTransformID, soundMatrix );
-  fishMatrix = ar_translationMatrix( dolph.y, dolph.z, -dolph.x );
 
+  fishMatrix = ar_translationMatrix( dolph.y, dolph.z, -dolph.x );
   soundMatrix = headInvMatrix*navMatrix*fishMatrix;
+  // Decrease attenuation 'cause we're under water (and it sounds better)
   for (i=12; i<15; i++ )
-    soundMatrix[i] /= 25*FEET_TO_AU;
+    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
   dsTransform( dolphinSoundTransformID, soundMatrix );
 }
 
@@ -561,7 +560,7 @@ void drawFishies()
     glTranslatef(0,offset,0);
     glScalef(textureScale, textureScale, 1);
     glMatrixMode(GL_MODELVIEW);
-    offset += .00001*FEET_TO_AU*sin(2*M_PI*angle/30.);
+    offset += .00001*ATLANTISUNITS_PER_FOOT*sin(2*M_PI*angle/30.);
     angle += .1;
     if (angle > 360)
       angle -= 360;
@@ -631,7 +630,7 @@ int main(int argc, char** argv){
   fw.setWindowStartGLCallback( initGL );
   fw.setClipPlanes(nearClipDistance, farClipDistance);
   // Do this before fw.init() if we use framework-based navigation.
-  fw.setUnitConversion(FEET_TO_AU); // half-millimeter units
+  fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
   if (!fw.init(argc, argv)){
     return 1;

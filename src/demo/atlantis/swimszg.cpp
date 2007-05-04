@@ -90,7 +90,7 @@ void SharkPilot(fishRec * fish, const arMatrix4& headMatrix, bool attackViewer)
     headPos[1] = temp;
     if (attackViewer) {
       fish->xt = headPos[0];
-      fish->yt = headPos[1] - 2*FEET_TO_AU;
+      fish->yt = headPos[1] - 2*ATLANTISUNITS_PER_FOOT;
       fish->zt = headPos[2];
     } else {  
       fish->xt = 60000.0;

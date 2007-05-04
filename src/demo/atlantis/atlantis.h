@@ -41,8 +41,8 @@
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis uses 1/2-millimeters (that's what ended up looking best in
 // stereo.  Use mm. and the sharks get too huge and far apart).
-extern const float CM_TO_ATLANTISUNITS;
-extern const float FEET_TO_AU;
+extern const float ATLANTISUNITS_PER_CM;
+extern const float ATLANTISUNITS_PER_FOOT;
 
 
 #define RAD 57.295

@@ -126,8 +126,9 @@ an ERT.@@
 		4: ERT and bird@@
 
 ``` HOST SZG_FOB com_port 4
-  Serial port to which the Flock-of-Birds is attached, one-based in Windows
-and zero-based in Linux (so /dev/xxxxx0 is Syzygy port 1).
+  Serial port to which the Flock-of-Birds is attached. The number is 1-based on
+  all platforms, which means that e.g. on Linux you need to add one
+  (/dev/xxxxx0 is Syzygy port 1).
 
 ``` HOST SZG_FOB baud_rate 38400
 Baud rate of the Flock, one of 2400, 4800, 9600, 19200, 38400, 57600, 115200.
@@ -214,3 +215,10 @@ Plays at about the same speed as the data file's internal timestamps.
 To record such a stream from a DeviceServer, send it the message ``dumpon``.
 Stop recording with ``dumpoff``.  The event stream will be saved in a file
 ``inputdump.xml`` in SZG_DATA/path.  This is convenient for elaborate event streams such as full-body motion capture.
+
+
+=Transformation to Syzygy Coordinates=
+
+For a HowTo about getting your tracker data mapped in to Syzygy coordinates,
+see [Tracker Coordinate Conversion TrackerCoordConversion.html]
+

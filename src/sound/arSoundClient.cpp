@@ -148,6 +148,14 @@ arSoundClient::~arSoundClient(){
 // the Syzygy parameter database
 bool arSoundClient::configure(arSZGClient* client){
   setPath(client->getAttribute("SZG_SOUND", "path"));
+
+  // Hack in some sound system parameter values
+  // (to be replaced eventually by database parameter values).
+//  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_LEFT, 0., 1.  );
+//  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_RIGHT, 0., 1.  );
+//  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_LEFT, 0., 1.  );
+//  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_RIGHT, 0., 1.  );
+  
   return true;
 }
 
@@ -252,6 +260,8 @@ bool arSoundClient::startDSP(){
   x.length = 44100 * sizeof(short) * x.numchannels * 5;
   if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), NULL,
           FMOD_3D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1 ))) {
+//  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), NULL,
+//          FMOD_3D | FMOD_HARDWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1 ))) {
     return false;
   }
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)

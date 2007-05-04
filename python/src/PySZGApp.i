@@ -299,6 +299,7 @@ class arSZGAppFramework {
     void ownNavParam( const string& paramName );
     void navUpdate();
     void navUpdate( arInputEvent& event );
+    string getNavNodeName() const;
     
     bool setEventFilter( arFrameworkEventFilter* filter );
     void setEventCallback( arFrameworkEventCallback callback );

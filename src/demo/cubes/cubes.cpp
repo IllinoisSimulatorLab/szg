@@ -40,6 +40,7 @@ int teapotTransformID = -1;
 int pythonID = -1;
 int pythonTransformID = -1;
 float teapotAngle = 0.;
+int cube0SoundTransformID = -1;
 arGraphicsStateValue lightingOnOff(AR_G_TRUE);
 int lightsOnOffID;
 const float WAND_LENGTH = 2.;
@@ -107,9 +108,16 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
   return true;
 }
 
-void matrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
+void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
   ar_mutex_lock(&databaseLock);
-    dgTransform( object->getID(), matrix );
+  int gid = object->getGraphicsTransformID();
+  if (gid != -1) {
+    dgTransform( gid, matrix );
+  }
+  int sid = object->getSoundTransformID();
+  if (sid != -1) {
+    dsTransform( sid, matrix );
+  }
   ar_mutex_unlock(&databaseLock);
 }
 
@@ -243,8 +251,13 @@ recalcpos:
     }
 
     const arMatrix4 cubeTransform(ar_translationMatrix(randX,randY,randZ));
-    arCallbackInteractable cubeInteractor( dgTransform( objectParent, "light_switch", arMatrix4() ) );
-    cubeInteractor.setMatrixCallback( matrixCallback );
+    arCallbackInteractable cubeInteractor( 
+        dgTransform( objectParent, "light_switch", arMatrix4() ) );
+    if (i==0) {
+      cube0SoundTransformID = dsTransform( objectParent, framework.getNavNodeName(), arMatrix4() );
+      cubeInteractor.setSoundTransformID( cube0SoundTransformID );
+    }
+    cubeInteractor.setMatrixCallback( setMatrixCallback );
     cubeInteractor.setMatrix( cubeTransform );
     cubeInteractor.setProcessCallback( processCallback );
     interactionArray[i] = cubeInteractor;
@@ -320,9 +333,9 @@ int main(int argc, char** argv) {
     
   arDistSceneGraphFramework framework;
   ar_mutex_init(&databaseLock);
-  
-  // Before init(), if using framework-mediated navigation.
-  framework.setUnitConversion( 1. );
+
+//  framework.setUnitConversion(3.);
+//  framework.setUnitSoundConversion(3.);
   
   // Initialize everything.
   if (!framework.init(argc,argv))
@@ -365,14 +378,11 @@ int main(int argc, char** argv) {
 
   arThread dummy(worldAlter, &framework);
 
-  const arVector3 xyz(cube0Matrix * arVector3(0,0,0));
-  (void)dsLoop("foo", framework.getNavNodeName(), "cubes.mp3", 1, 0.9, xyz);
+  // Attach sound to big yellow box with star on it (cube0)
+  (void)dsLoop("foo", "cube0 transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
 
   // Main loop.
   while (true) {
-    // cube0Matrix is being updated by worldAlter().
-    const arVector3 xyz(cube0Matrix * arVector3(0,5,0));
-
     ar_mutex_lock(&databaseLock);
       framework.setViewer();
       framework.setPlayer();
