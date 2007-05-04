@@ -65,7 +65,7 @@ class SZG_CALL arInputNode: public arInputSink {
     void _remapData( unsigned channelNumber, arStructuredData* data );
     void _filterEventQueue( arInputEventQueue& queue );
     void _updateState( arInputEventQueue& queue );
-    int _findUnusedFilterID();
+    int _findUnusedFilterID() const;
     
     arInputLanguage _inp;
     arInputEventQueue _eventQueue;
@@ -94,6 +94,7 @@ class SZG_CALL arInputNode: public arInputSink {
     typedef list<arInputSource*>::iterator iterSrc;
     typedef list<arInputSink*>::iterator iterSink;
     typedef list<arIOFilter*>::iterator iterFlt;
+    typedef list<arIOFilter*>::const_iterator constIterFlt;
 };
 
 #endif

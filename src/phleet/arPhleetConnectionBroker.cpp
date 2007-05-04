@@ -266,26 +266,21 @@ LAbort:
 // BUG: maybe at some point it would be better to return FAILURE 
 // (since the empty string is also a valid response!)
 // @param serviceName The full name of the service.
-string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
-  string result("");
+string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const {
+  string info("");
   _lock();
   SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
-  // Is the service on the temporary list?
-  if (i != _temporaryServices.end()){
-    result = i->second.info;
-    _unlock();
-    return result;
+  if (i != _temporaryServices.end()) {
+    info = i->second.info;
   }
-  i = _usedServices.find(serviceName);
-  // Is the service on the used list?
-  if (i != _usedServices.end()){
-    result = i->second.info;
-    _unlock();
-    return result;
+  else {
+    i = _usedServices.find(serviceName);
+    if (i != _usedServices.end()) {
+      info = i->second.info;
+    }
   }
-  // We haven't found the service.
   _unlock();
-  return result;
+  return info;
 }
 
 // Attempt to set the "info" for a service, as specified by the given
@@ -297,10 +292,9 @@ string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
 // @param serviceName The full name of the service.
 // @param info The new info string to be associated with the service in the
 //  event of success.
-bool arPhleetConnectionBroker::setServiceInfo(int componentID, 
+bool arPhleetConnectionBroker::setServiceInfo(const int componentID, 
                                               const string& serviceName,
                                               const string& info){
-  // Must lock the broker.
   _lock();
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()) {
@@ -310,6 +304,7 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
     }
     goto LDone;
   }
+
   i = _usedServices.find(serviceName);
   if (i != _usedServices.end() && i->second.componentID == componentID) {
 LDone:
@@ -328,7 +323,7 @@ LFail:
 // Used to determine if a service is, at this moment, either on the
 // temporary list or the used list. If so, return true. Otherwise, false. 
 // @param serviceName Name of the service to be checked
-bool arPhleetConnectionBroker::checkService(const string& serviceName){
+bool arPhleetConnectionBroker::checkService(const string& serviceName) const {
   bool ok = false;
   _lock();
   SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
@@ -458,17 +453,12 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
   return result;
 }
 
-// Sometimes we actually want all pending service requests
-SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
+SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
   SZGRequestList result;
   _lock();
-  SZGRequestList::iterator i = _requestedServices.begin();
-  while (i != _requestedServices.end()){
-    result.push_back(*i);
-    i++;
-  }
+  std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
   _unlock();
   return result;
 }
@@ -476,10 +466,10 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
 // Returns a ;-delimited list containing all service names
 // (because service names may contain '/'). 
 // In other words, arSlashString's can't nest!
-string arPhleetConnectionBroker::getServiceNames(){
+string arPhleetConnectionBroker::getServiceNames() const {
   arSemicolonString result;
   _lock();
-  for (SZGServiceData::iterator i = _usedServices.begin();
+  for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
       result /= i->first;
   }
@@ -490,10 +480,10 @@ string arPhleetConnectionBroker::getServiceNames(){
 // Returns a slash-delimited list containing all computers on which
 // services are running, in the same order as the service names returned in 
 // getServiceNames(...)
-arSlashString arPhleetConnectionBroker::getServiceComputers(){
+arSlashString arPhleetConnectionBroker::getServiceComputers() const {
   arSlashString result;
   _lock();
-  for (SZGServiceData::iterator i = _usedServices.begin();
+  for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
     result /= i->second.computer;
   }
@@ -504,36 +494,29 @@ arSlashString arPhleetConnectionBroker::getServiceComputers(){
 // Returns the number of services running.
 // @param IDs a pointer reference. This is overwritten by internally
 // allocated memory, containing the component IDs of the various services,
-// arranged in the same order as getServiceNames(...)
-int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
-  int result = 0;
+// arranged in the same order as getServiceNames().
+// Caller's responsible for delete[]'ing IDs.
+int arPhleetConnectionBroker::getServiceComponents(int*& IDs) const {
   _lock();
-  SZGServiceData::iterator i;
-  // lame 2 pass algorithm
-  // todo: STL length method here!
-  for (i=_usedServices.begin(); i!=_usedServices.end(); i++)
-    result++;
-  IDs = new int[result];
-  int which = 0;
-  for (i=_usedServices.begin(); i!=_usedServices.end(); i++){
-    IDs[which++] = i->second.componentID;
+  const int numServices = _usedServices.size();
+  IDs = new int[numServices];
+  SZGServiceData::const_iterator iter = _usedServices.begin();
+  for (int iService = 0; iService < numServices; ++iService,++iter) {
+    IDs[iService] = iter->second.componentID;
   }
   _unlock();
-  return result;
+  return numServices;
 }
 
 // Given a particular service name, this returns the owning component ID,
 // if such exists, and otherwise -1
 // @param serviceName the name of the service in which we are interested
-int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName){
-  int result = -1;
+int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName) const {
   _lock();
-  SZGServiceData::iterator i = _usedServices.find(serviceName);
-  if (i != _usedServices.end()){
-    result = i->second.componentID;
-  }
+  SZGServiceData::const_iterator i = _usedServices.find(serviceName);
+  const int id = (i != _usedServices.end()) ? i->second.componentID : -1;
   _unlock();
-  return result;
+  return id;
 }
 
 // When the particular service name has been released, notify
@@ -707,22 +690,20 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   _unlock();
 }
 
-// print out the entire state of the connection broker. extremely verbose,
-// especially for larger systems.
-void arPhleetConnectionBroker::print(){
-  list<int>::iterator nn;
-  list<string>::iterator mm;
+// Print the entire verbose state of the connection broker.
+void arPhleetConnectionBroker::print() const {
+  list<int>::const_iterator nn;
+  list<string>::const_iterator mm;
   _lock();
   cout << "***************************************************\n";
-  for (SZGComputerData::iterator i = _computerData.begin();
-       i != _computerData.end();
-       i++){
-    cout << "computer = " << i->first << "\n";
-    cout << "  networks = " << i->second.networks << "\n";
-    cout << "  addresses = " << i->second.addresses << "\n";
-    cout << "  first port = " << i->second.firstPort << "\n";
-    cout << "  block size = " << i->second.blockSize << "\n";
-    cout << "  available ports = ";
+  for (SZGComputerData::const_iterator i = _computerData.begin();
+       i != _computerData.end(); ++i){
+    cout << "computer = " << i->first << "\n"
+         << "  networks = " << i->second.networks << "\n"
+         << "  addresses = " << i->second.addresses << "\n"
+         << "  first port = " << i->second.firstPort << "\n"
+         << "  block size = " << i->second.blockSize << "\n"
+         << "  available ports = ";
     for (nn = i->second.availablePorts.begin();
 	 nn != i->second.availablePorts.end();
 	 nn++){
@@ -740,12 +721,11 @@ void arPhleetConnectionBroker::print(){
     }
     cout << "\n";
   }
-  for (SZGComponentData::iterator j = _componentData.begin();
-       j != _componentData.end();
-       j++){
-    cout << "component ID = " << j->first << "\n";
-    cout << "  running on computer = " << j->second.computer << "\n";
-    cout << "  temporary service tags = ";
+  for (SZGComponentData::const_iterator j = _componentData.begin();
+       j != _componentData.end(); ++j){
+    cout << "component ID = " << j->first << "\n"
+         << "  running on computer = " << j->second.computer << "\n"
+         << "  temporary service tags = ";
     for (mm = j->second.temporaryTags.begin();
 	 mm != j->second.temporaryTags.end(); mm++){
       cout << *mm << " ";
@@ -772,77 +752,67 @@ void arPhleetConnectionBroker::print(){
     }
     cout << "\n";
   }
-  SZGServiceData::iterator k;
-  for (k = _temporaryServices.begin();
-       k != _temporaryServices.end();
-       k++){
-    cout << "temporary Syzygy service = " << k->first << "\n";
-    cout << "  running on computer = " << k->second.computer << "\n";
-    cout << "  owned by component = " << k->second.componentID << "\n";
-    cout << "  networks = " << k->second.networks << "\n";
-    cout << "  addresses = " << k->second.addresses << "\n";
-    cout << "  ports = ";
+  SZGServiceData::const_iterator k;
+  for (k = _temporaryServices.begin(); k != _temporaryServices.end(); k++){
+    cout << "temporary Syzygy service = " << k->first << "\n"
+         << "  running on computer = " << k->second.computer << "\n"
+         << "  owned by component = " << k->second.componentID << "\n"
+         << "  networks = " << k->second.networks << "\n"
+         << "  addresses = " << k->second.addresses << "\n"
+         << "  ports = ";
     for (int n=0; n < k->second.numberPorts; n++){
       cout << k->second.portIDs[n] << " ";
     }
     cout << "\n";
   }
-  for (k = _usedServices.begin();
-       k != _usedServices.end();
-       k++){
-    cout << "used Syzygy service = " << k->first << "\n";
-    cout << "  running on computer = " << k->second.computer << "\n";
-    cout << "  owned by component = " << k->second.componentID << "\n";
-    cout << "  networks = " << k->second.networks << "\n";
-    cout << "  addresses = " << k->second.addresses << "\n";
-    cout << "  ports = ";
+  for (k = _usedServices.begin(); k != _usedServices.end(); k++){
+    cout << "used Syzygy service = " << k->first << "\n"
+         << "  running on computer = " << k->second.computer << "\n"
+         << "  owned by component = " << k->second.componentID << "\n"
+         << "  networks = " << k->second.networks << "\n"
+         << "  addresses = " << k->second.addresses << "\n"
+         << "  ports = ";
     for (int n=0; n < k->second.numberPorts; n++){
       cout << k->second.portIDs[n] << " ";
     }
     cout << "\n";
   }
   cout << "Pending service requests =\n";
-  for (SZGRequestList::iterator l = _requestedServices.begin();
-       l != _requestedServices.end();
-       ++l){
-    cout << "  Request =\n";
-    cout << "    Component ID = " << l->componentID << "\n";
-    cout << "    Service name = " << l->serviceName << "\n";
-    cout << "    Networks = " << l->networks <<"\n";
+  for (SZGRequestList::const_iterator l = _requestedServices.begin();
+       l != _requestedServices.end(); ++l){
+    cout << "  Request =\n"
+         << "    Component ID = " << l->componentID << "\n"
+         << "    Service name = " << l->serviceName << "\n"
+         << "    Networks = " << l->networks <<"\n";
   }
   _unlock();
 }
 
-void arPhleetConnectionBroker::
-  _resizeComputerPorts(arBrokerComputerData& computer,
-                       int first, int size){
+void arPhleetConnectionBroker::_resizeComputerPorts(arBrokerComputerData& computer,
+    const int first, const int size){
   // already locked
-  if (computer.firstPort != first ||
-      computer.blockSize != size){
-    list<int> temp;
-    for (int i=first; i<first+size; i++){
-      temp.push_back(i);
-    }
-    // Remove everything in the temporaryPorts and usedPorts lists.
-    list<int>::iterator iter;
-    for (iter=computer.temporaryPorts.begin(); 
-         iter!=computer.temporaryPorts.end(); iter++){
-      temp.remove(*iter);
-    }
-    for (iter=computer.usedPorts.begin(); 
-         iter!=computer.usedPorts.end(); iter++){
-      temp.remove(*iter);
-    }
-    // we have a new list of available ports
-    computer.availablePorts = temp;
-    // update the information about the port block
-    computer.firstPort = first;
-    computer.blockSize = size;
+  if (computer.firstPort == first && computer.blockSize == size)
+    return;
+
+  list<int> ports;
+  for (int i=first; i<first+size; i++){
+    ports.push_back(i);
   }
+
+  // Clear anything from temporaryPorts and usedPorts.
+  list<int>::const_iterator iter;
+  for (iter=computer.temporaryPorts.begin(); iter!=computer.temporaryPorts.end(); iter++)
+    ports.remove(*iter);
+  for (iter=computer.usedPorts.begin(); iter!=computer.usedPorts.end(); iter++)
+    ports.remove(*iter);
+
+  // we have a new list of available ports
+  computer.availablePorts = ports;
+  // update the information about the port block
+  computer.firstPort = first;
+  computer.blockSize = size;
 }
  
-bool arPhleetConnectionBroker::_portValid(int port, 
-                                          arBrokerComputerData& computer){
-  return port >= computer.firstPort && 
-         port < computer.firstPort + computer.blockSize;
+bool arPhleetConnectionBroker::_portValid(const int port, const arBrokerComputerData& c) const {
+  return port >= c.firstPort && port < c.firstPort + c.blockSize;
 }

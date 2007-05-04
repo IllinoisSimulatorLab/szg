@@ -133,28 +133,28 @@ class SZG_CALL arPhleetConnectionBroker{
                                int firstPort, int blockSize);
   arPhleetService retryPorts(int componentID, const string& serviceName);
   bool confirmPorts(int componentID, const string& serviceName);
-  string getServiceInfo(const string& serviceName);
-  bool setServiceInfo(int componentID, 
+  string getServiceInfo(const string& serviceName) const;
+  bool setServiceInfo(const int componentID, 
                       const string& serviceName,
                       const string& info);
-  bool checkService(const string& serviceName);
+  bool checkService(const string& serviceName) const;
   arPhleetAddress requestService(int componentID, const string& computer, 
                                  int match,
                                  const string& serviceName, 
                                  const arSlashString& networks, bool async);
   SZGRequestList  getPendingRequests(const string& serviceName);
-  SZGRequestList  getPendingRequests();
-  string getServiceNames();
-  arSlashString getServiceComputers();
-  int    getServiceComponents(int*& IDs);
-  int    getServiceComponentID(const string& serviceName);
+  SZGRequestList  getPendingRequests() const;
+  string getServiceNames() const;
+  arSlashString getServiceComputers() const;
+  int    getServiceComponents(int*& IDs) const;
+  int    getServiceComponentID(const string& serviceName) const;
   void   registerReleaseNotification(int componentID, 
                                      int match,
                                      const string& computer,
 				     const string& serviceName);
   void _removeService(const string& serviceName);
   void removeComponent(int componentID);
-  void print();
+  void print() const;
   
  private:
   SZGComputerData  _computerData;
@@ -162,14 +162,14 @@ class SZG_CALL arPhleetConnectionBroker{
   SZGServiceData   _temporaryServices;
   SZGServiceData   _usedServices;
   SZGRequestList   _requestedServices;
-  arLock _l; // for brokering
+  mutable arLock _l;
   void (*_releaseNotificationCallback)(int,int,const string&);
 
   void _resizeComputerPorts(arBrokerComputerData& computer,
-                            int first, int size);
-  bool _portValid(int port, arBrokerComputerData& computer);
-  void _lock() { _l.lock(); }
-  void _unlock() { _l.unlock(); }
+                            const int first, const int size);
+  bool _portValid(const int port, const arBrokerComputerData&) const;
+  void _lock() const { _l.lock(); }
+  void _unlock() const { _l.unlock(); }
 };
 
 #endif

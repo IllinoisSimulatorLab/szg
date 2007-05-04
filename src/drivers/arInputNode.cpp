@@ -418,12 +418,12 @@ void arInputNode::_updateState( arInputEventQueue& queue ) {
   }
 }
     
-int arInputNode::_findUnusedFilterID() {
+int arInputNode::_findUnusedFilterID() const {
   int id = 1;
   bool done = false;
   while (!done) {
     done = true;
-    for (iterFlt iter = _filters.begin(); iter != _filters.end(); ++iter) {
+    for (constIterFlt iter = _filters.begin(); iter != _filters.end(); ++iter) {
       if ((*iter)->getID() != id)
         continue;
       ++id;

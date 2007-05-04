@@ -8,7 +8,7 @@
 #include "arSTLalgo.h"
 
 arInputEventQueue::~arInputEventQueue() {
-  _queue.clear();
+  clear();
 }
 
 arInputEventQueue::arInputEventQueue( const arInputEventQueue& q ) :
@@ -32,13 +32,10 @@ arInputEventQueue::arInputEventQueue( const arInputEventQueue& q ) :
 arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
   if (&q == this)
     return *this;
-  _numButtons = 0;
-  _numAxes = 0;
-  _numMatrices = 0;
+  clear();
   _buttonSignature = q._buttonSignature;
   _axisSignature = q._axisSignature;
   _matrixSignature = q._matrixSignature;
-  _queue.clear();
 
 #ifdef AR_USE_WIN_32
   std::deque<arInputEvent>::const_iterator iter;
@@ -64,20 +61,21 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
       break;
     case AR_EVENT_AXIS:
       _numAxes++;
-      if (eventIndex >= _axisSignature)
+      if (eventIndex >= _axisSignature) {
         setSignature( _buttonSignature, eventIndex+1, _matrixSignature );
+      }
       break;
     case AR_EVENT_MATRIX:
       _numMatrices++;
-      if (eventIndex >= _matrixSignature)
+      if (eventIndex >= _matrixSignature) {
         setSignature( _buttonSignature, _axisSignature, eventIndex+1 );
+      }
       break;
     default:
       ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
 	<< eventType << ".\n";
       return;
   }
-  //ar_log_debug() << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
   _queue.push_back( inputEvent );
 }
 
@@ -85,13 +83,14 @@ static inline unsigned int maxuint( const unsigned int a, const unsigned int b )
   return (a > b)?(a):(b);
 }
 
-void arInputEventQueue::appendQueue( const arInputEventQueue& eventQueue ) {
+// Concatenate two queues.
+void arInputEventQueue::appendQueue( const arInputEventQueue& rhs ) {
   std::deque<arInputEvent>::const_iterator iter;
-  for (iter = eventQueue._queue.begin(); iter != eventQueue._queue.end(); ++iter)
+  for (iter = rhs._queue.begin(); iter != rhs._queue.end(); ++iter)
     appendEvent( *iter );
-  setSignature( maxuint( _buttonSignature, eventQueue.getButtonSignature() ),
-                maxuint( _axisSignature, eventQueue.getAxisSignature() ),
-                maxuint( _matrixSignature, eventQueue.getMatrixSignature() ) );
+  setSignature( maxuint( _buttonSignature, rhs.getButtonSignature() ),
+                maxuint( _axisSignature, rhs.getAxisSignature() ),
+                maxuint( _matrixSignature, rhs.getMatrixSignature() ) );
 }
 
 arInputEvent arInputEventQueue::popNextEvent() {
@@ -120,29 +119,21 @@ LAgain:
   return temp;
 }
 
-void arInputEventQueue::setSignature( unsigned int numButtons,
-                                      unsigned int numAxes,
-                                      unsigned int numMatrices ) {
-  std::deque<arInputEvent>::iterator iter;
+void arInputEventQueue::setSignature( unsigned numButtons,
+                                      unsigned numAxes,
+                                      unsigned numMatrices ) {
+  std::deque<arInputEvent>::const_iterator iter;
 
-  /*
-    ar_log_debug() << "arInputEventQueue signature was ("
-      << _buttonSignature << ","
-      << _axisSignature << ","
-      << _matrixSignature << ").\n";
-  */
-  
   if (numButtons < _buttonSignature) {
     int maxIndex = -1;
     for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_BUTTON)
-        if ((int)iter->getIndex() > maxIndex)
+        if (int(iter->getIndex()) > maxIndex)
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numButtons) {
-      ar_log_warning() << "arInputEventQueue warning: you can't set button signature to "
-           << numButtons << ",\n I'm holding a button event with index "
-           << maxIndex << ".\n";
+      ar_log_warning() << "arInputEventQueue failed to shrink button signature to "
+           << numButtons << ": has a button event with index " << maxIndex << ".\n";
       numButtons = maxIndex+1;
     }
   }
@@ -153,13 +144,12 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
     int maxIndex = -1;
     for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_AXIS)
-        if ((int)iter->getIndex() > maxIndex)
+        if (int(iter->getIndex()) > maxIndex)
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numAxes) {
-      ar_log_warning() << "arInputEventQueue warning: you can't set axis signature to "
-           << numAxes << ",\n I'm holding an axis event with index "
-           << maxIndex << ".\n";
+      ar_log_warning() << "arInputEventQueue failed to shrink axis signature to "
+           << numAxes << ": has an axis event with index " << maxIndex << ".\n";
       numAxes = maxIndex+1;
     }
   }
@@ -170,13 +160,12 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
     int maxIndex = -1;
     for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_MATRIX)
-        if ((int)iter->getIndex() > maxIndex)
+        if (int(iter->getIndex()) > maxIndex)
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numMatrices) {
-      ar_log_warning() << "arInputEventQueue warning: you can't set matrix signature to "
-           << numAxes << ",\n I'm holding a matrix event with index "
-           << maxIndex << ".\n";
+      ar_log_warning() << "arInputEventQueue failed to shrink matrix signature to "
+           << numMatrices << ": has a matrix event with index " << maxIndex << ".\n";
       numMatrices = maxIndex+1;
     }
   }
@@ -184,7 +173,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
   _matrixSignature = numMatrices;
 
   if (changed){
-    ar_log_debug() << "arInputEventQueue signature is ("
+    ar_log_debug() << "arInputEventQueue sig is ("
       << _buttonSignature << ","
       << _axisSignature << ","
       << _matrixSignature << ").\n";
@@ -265,15 +254,19 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
   }  
 
   bool ok = true;
-  unsigned numItems = _numButtons + _numAxes + _numMatrices;
+  const unsigned numItems = _numButtons + _numAxes + _numMatrices;
+  if (numItems != size())
+    ar_log_warning() << "arInputEventQueue internal miscount," <<
+      _numButtons << "+" << _numAxes << "+" << _numMatrices << " != " << size() << ".\n";
+
   unsigned iButton = 0;
   unsigned iAxis = 0;
   unsigned iMatrix = 0;
   for (unsigned int i=0; i<numItems; i++) {
-    const arInputEvent inputEvent = _queue[i];
-    const arInputEventType eventType = inputEvent.getType();
+    const arInputEvent ev = _queue[i];
+    const arInputEventType eventType = ev.getType();
     typeBuf[i] = (int)eventType;
-    indexBuf[i] = (int)inputEvent.getIndex();
+    indexBuf[i] = (int)ev.getIndex();
 //ar_log_warning() << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
 //     << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
@@ -283,16 +276,18 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
           ar_log_warning() << "arInputEventQueue: _numButtons != number of buttons.\n"
                << "   Skipping extra.\n";
           ok = false;
-        } else
-          buttonBuf[iButton++] = inputEvent.getButton();
+        } else {
+          buttonBuf[iButton++] = ev.getButton();
+	}
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= _numAxes) {
           ar_log_warning() << "arInputEventQueue: _numAxes != number of axes.\n"
                << "   Skipping extra.\n";
           ok = false;
-        } else
-          axisBuf[iAxis++] = inputEvent.getAxis();
+        } else {
+          axisBuf[iAxis++] = ev.getAxis();
+	}
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= _numMatrices) {
@@ -300,8 +295,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
                << "   Skipping extra.\n";
           ok = false;
         } else {
-          arMatrix4 m = inputEvent.getMatrix();
-          memcpy( matrixBuf + 16*iMatrix++, m.v, 16*sizeof(float) );
+          memcpy( matrixBuf + 16*iMatrix++, ev.getMatrix().v, 16*sizeof(float) );
         }
         break;
       default:
@@ -314,8 +308,8 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
 }
   
 void arInputEventQueue::clear() {
-  _queue.clear();
   _numButtons = 0;
   _numAxes = 0;
   _numMatrices = 0;
+  _queue.clear();
 }

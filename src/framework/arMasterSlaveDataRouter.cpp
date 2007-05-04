@@ -38,7 +38,7 @@ bool arMasterSlaveDataRouter::start(){
   _parser = new arStructuredDataParser(&_dictionary);
   _started = true;
   // start needs to occur recursively
-  map<int,arFrameworkObject*,less<int> >::iterator i;
+  map<int,arFrameworkObject*,less<int> >::const_iterator i;
   for (i = _objectTable.begin(); i != _objectTable.end(); i++){ 
     i->second->start();
   }
