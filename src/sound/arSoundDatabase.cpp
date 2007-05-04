@@ -60,13 +60,11 @@ arSoundDatabase::~arSoundDatabase(){
   }
 }
 
-arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData,
-                                       bool refNode){
+arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData, bool refNode){
   return arDatabase::alter(inData, refNode);
 }
 
 void arSoundDatabase::reset(){
-  // first, call base class to do that cleaning
   arDatabase::reset();
 
   // Delete wavfiles.
@@ -80,50 +78,49 @@ void arSoundDatabase::reset(){
 }
 
 // We return the whole path.
-string arSoundDatabase::getPath(){
+string arSoundDatabase::getPath() const {
+  _pathLock.lock();
   if (_path->empty()){
     return string("NULL");
   }
   string result;
-  list<string>::iterator i;
+  list<string>::const_iterator i;
   for (i=_path->begin(); i!=_path->end(); i++){
     if (*i != ""){
-      result += *i; 
-      result += ";"; 
+      result += *i + ";"; 
     }
   }
+  _pathLock.unlock();
   return result;
 }
     
 // Only arSoundClient, not arSoundServer, should ever call setPath().
 void arSoundDatabase::setPath(const string& thePath){
-  // probably called in a different thread from the data handling
-  _pathLock.lock();
-  delete _path;
-  _path = new list<string>;
-
   // Parse the path.
   int nextChar = 0;
-  int length = thePath.length();
-
-  string result(""); // always search local directory
-  _path->push_back(result);
-
+  const int length = thePath.length();
+  string dir(""); // always search local directory
   int cdir = 0;
+
+  _pathLock.lock(); // probably called in a different thread from the data handling
+  delete _path;
+  _path = new list<string>;
+  _path->push_back(dir);
+
   while (nextChar < length){
-    result = ar_pathToken(thePath, nextChar); // updates nextChar
-    if (result == "NULL")
+    dir = ar_pathToken(thePath, nextChar); // updates nextChar
+    if (dir == "NULL")
       continue;
     ++cdir;
-    _path->push_back(ar_pathAddSlash(result));
+    _path->push_back(ar_pathAddSlash(dir));
   }
   _pathLock.unlock();
   if (cdir <= 0)
     ar_log_warning() << "empty SZG_SOUND/path.\n";
 }
 
-// Only the client, not the server, tries to
-// load the soundfiles (or even verify that the files exist --
+// Only the client, not the server,
+// loads the soundfiles (or even verify that the files exist --
 // client and server may be different machines with different disks mounted).
 
 // Only arSoundClient, not arSoundServer, should ever call addFile().
@@ -133,7 +130,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   if (_server)
     return NULL;
 
-  const map<string,arSoundFile*,less<string> >::iterator
+  const map<string,arSoundFile*,less<string> >::const_iterator
     iFind(_filewavNameContainer.find(name));
   if (iFind != _filewavNameContainer.end()){
     return iFind->second;
@@ -238,7 +235,7 @@ bool arSoundDatabase::_render(arSoundNode* node){
   }
   list<arDatabaseNode*> children = node->getChildren();
   for (list<arDatabaseNode*>::iterator i = children.begin();
-       i != children.end(); i++){
+       i != children.end(); ++i){
     ok &= _render((arSoundNode*)*i);
   }
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){

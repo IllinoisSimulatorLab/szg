@@ -29,7 +29,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   virtual arDatabaseNode* alter(arStructuredData*, bool refNode=false);
   virtual void reset();
 
-  string getPath();
+  string getPath() const;
   void setPath(const string& thePath);
   arSoundFile* addFile(const string&, bool);
 
@@ -46,7 +46,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   arSoundLanguage _langSound;  
 
  protected:
-  arLock _pathLock; // Guard _path.
+  mutable arLock _pathLock; // Guard _path.
   list<string>*  _path;
   map<string,arSoundFile*,less<string> > _filewavNameContainer;
 

@@ -111,7 +111,7 @@ void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
   _infoLock.unlock();
 }
 
-arMatrix4 arInterfaceObject::getNavMatrix(){
+arMatrix4 arInterfaceObject::getNavMatrix() const {
   _infoLock.lock();
     const arMatrix4 result(_mNav);
   _infoLock.unlock();
@@ -124,7 +124,7 @@ void arInterfaceObject::setObjectMatrix(const arMatrix4& arg){
   _infoLock.unlock();
 }
 
-arMatrix4 arInterfaceObject::getObjectMatrix(){
+arMatrix4 arInterfaceObject::getObjectMatrix() const {
   _infoLock.lock();
     const arMatrix4 result(_mObj);
   _infoLock.unlock();
@@ -139,37 +139,30 @@ void arInterfaceObject::setNumMatrices( const int num ) {
   _matrices.resize(num);
 }
 
-void arInterfaceObject::setNumButtons( const int num ) {
-  _buttons.resize(num);
-}
-
 void arInterfaceObject::setNumAxes( const int num ) {
   _axes.resize(num);
+}
+
+void arInterfaceObject::setNumButtons( const int num ) {
+  _buttons.resize(num);
 }
 
 int arInterfaceObject::getNumMatrices() const {
   return _matrices.size();
 }
 
-int arInterfaceObject::getNumButtons() const {
-  return _buttons.size();
-}
-
 int arInterfaceObject::getNumAxes() const {
   return _axes.size();
+}
+
+int arInterfaceObject::getNumButtons() const {
+  return _buttons.size();
 }
 
 bool arInterfaceObject::setMatrix( const int i, const arMatrix4& mat ) {
   if ((i < 0)||(i >= getNumMatrices()))
     return false;
   _matrices[i] = mat;
-  return true;
-}
-
-bool arInterfaceObject::setButton( const int i, const int but ) {
-  if ((i < 0)||(i >= getNumButtons()))
-    return false;
-  _buttons[i] = but;
   return true;
 }
 
@@ -180,19 +173,29 @@ bool arInterfaceObject::setAxis( const int i, const float val ) {
   return true;
 }
 
+bool arInterfaceObject::setButton( const int i, const int but ) {
+  if ((i < 0)||(i >= getNumButtons()))
+    return false;
+  _buttons[i] = but;
+  return true;
+}
+
 void arInterfaceObject::setMatrices( const arMatrix4* matPtr ) {
-  for (int i=0; i<getNumMatrices(); i++)
+  const int iMax = getNumMatrices();
+  for (int i=0; i<iMax; i++)
     _matrices[i] = *matPtr++;
 }
 
-void arInterfaceObject::setButtons( const int* butPtr ) {
-  for (int i=0; i<getNumButtons(); i++)
-    _buttons[i] = *butPtr++;
+void arInterfaceObject::setAxes( const float* axisPtr ) {
+  const int iMax = getNumAxes();
+  for (int i=0; i<iMax; i++)
+    _axes[i] = *axisPtr++;
 }
 
-void arInterfaceObject::setAxes( const float* axisPtr ) {
-  for (int i=0; i<getNumAxes(); i++)
-    _axes[i] = *axisPtr++;
+void arInterfaceObject::setButtons( const int* butPtr ) {
+  const int iMax = getNumButtons();
+  for (int i=0; i<iMax; i++)
+    _buttons[i] = *butPtr++;
 }
 
 arMatrix4 arInterfaceObject::getMatrix( const int i ) const {
@@ -200,10 +203,10 @@ arMatrix4 arInterfaceObject::getMatrix( const int i ) const {
   return ((i < 0)||(i >= getNumMatrices())) ? ident : _matrices[i];
 }
 
-int arInterfaceObject::getButton( const int i ) const {
-  return ((i < 0)||(i >= getNumButtons())) ? 0 : _buttons[i];
-}
-
 float arInterfaceObject::getAxis( const int i ) const {
   return ((i < 0)||(i >= getNumAxes())) ? 0. : _axes[i];
+}
+
+int arInterfaceObject::getButton( const int i ) const {
+  return ((i < 0)||(i >= getNumButtons())) ? 0 : _buttons[i];
 }

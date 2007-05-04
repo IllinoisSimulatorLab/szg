@@ -24,9 +24,9 @@ class SZG_CALL arInterfaceObject{
   void setInputDevice(arInputNode*);
   bool start();
   void setNavMatrix(const arMatrix4&);
-  arMatrix4 getNavMatrix();
+  arMatrix4 getNavMatrix() const;
   void setObjectMatrix(const arMatrix4&);
-  arMatrix4 getObjectMatrix();
+  arMatrix4 getObjectMatrix() const;
 
   void setSpeedMultiplier(float);
   
@@ -59,7 +59,7 @@ class SZG_CALL arInterfaceObject{
   bool _grabbed;
   arMatrix4 _mGrab;
   
-  arLock _infoLock;
+  mutable arLock _infoLock;
 
   arMatrix4 _mNav;
   arMatrix4 _mObj;
