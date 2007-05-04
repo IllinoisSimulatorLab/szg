@@ -10,9 +10,9 @@
 
 #include <map>
 
-
-arGraphicsPluginNode::arGraphicsPluginNode( bool isGraphicsServer ) {
-  _name = "graphics_plugin";
+arGraphicsPluginNode::arGraphicsPluginNode( bool isGraphicsServer )
+{
+  _setName ( "graphics_plugin" );
   _typeString = "graphics plugin";
   _typeCode = AR_G_GRAPHICS_PLUGIN_NODE;
   _isGraphicsServer = isGraphicsServer;

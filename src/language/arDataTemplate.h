@@ -16,16 +16,14 @@ using namespace std;
 
 class arTemplateDictionary;
 
-// This map is from string to arDataPair, not merely to arDataType,
-// so that add()'s return value (which is arDataPair.second)
-// does not change as a result of future add()'s.
-
 typedef pair< arDataType, int > arDataPair;
 
 // Something stored by the szgserver.
+// This map is to arDataPair, not merely to arDataType,
+// so add()'s return value, arDataPair.second,
+// does not change as a result of future add()'s.
 
 typedef map< string,arDataPair,less<string> > arAttribute;
-typedef arAttribute::iterator arAttributeIterator;
 
 // Contains a list of arAttribute objects (string and arDataType).
 
@@ -47,26 +45,26 @@ class SZG_CALL arDataTemplate{
    int getID() const
      { return _templateID; }
    void setID(int ID){ _templateID = ID; }
-   int getAttributeID(const string&);
-   arDataType getAttributeType(const string&);
+   int getAttributeID(const string&) const;
+   arDataType getAttributeType(const string&) const;
    int getNumberAttributes() const
      { return _numberAttributes; }
-   void dump();
+   void dump() const;
    int translate(ARchar*,ARchar*,arStreamConfig);
 
-   arAttributeIterator attributeBegin()
+   arAttribute::iterator attributeBegin()
      { return _attributeContainer.begin(); }
-   arAttributeIterator attributeEnd()
+   arAttribute::iterator attributeEnd()
      { return _attributeContainer.end(); }
    
  private:
    string _templateName;
-   int    _templateID;                 // will be set by the owning dictionary
+   int    _templateID; // set by owning dictionary
    int    _numberAttributes;
    arAttribute _attributeContainer;
 };  
 
 SZG_CALL bool ar_addAttributesFromString( arDataTemplate& t,
-                                 string nameString, string typeString );
+  const string& nameString, const string& typeString );
 
 #endif

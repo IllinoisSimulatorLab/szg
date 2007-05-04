@@ -77,10 +77,9 @@ void arDataTemplate::setName(const string& name){
   _templateName = name;
 }
 
-int arDataTemplate::getAttributeID(const string& attributeName){
-  for (arAttributeIterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end();
-       ++iter){
+int arDataTemplate::getAttributeID(const string& attributeName) const {
+  for (arAttribute::const_iterator iter(_attributeContainer.begin());
+       iter != _attributeContainer.end(); ++iter){
     if (iter->first == attributeName)
       return iter->second.second;
       // This is the value of _numberAttributes when this field was added.
@@ -88,10 +87,9 @@ int arDataTemplate::getAttributeID(const string& attributeName){
   return -1;
 }
 
-arDataType arDataTemplate::getAttributeType(const string& attributeName){
-  for (arAttributeIterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end();
-       ++iter){
+arDataType arDataTemplate::getAttributeType(const string& attributeName) const {
+  for (arAttribute::const_iterator iter(_attributeContainer.begin());
+       iter != _attributeContainer.end(); ++iter){
     if (iter->first == attributeName)
       return iter->second.first;
       // This is the value of _numberAttributes when this field was added.
@@ -99,11 +97,10 @@ arDataType arDataTemplate::getAttributeType(const string& attributeName){
   return AR_GARBAGE;
 }
 
-void arDataTemplate::dump(){
+void arDataTemplate::dump() const {
   cout << "arDataTemplate: \"" << _templateName << "\"\n";
-  for (arAttributeIterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end();
-       ++iter){
+  for (arAttribute::const_iterator iter(_attributeContainer.begin());
+       iter != _attributeContainer.end(); ++iter){
     cout << "  \"" << iter->first << "\":" << iter->second.second << ":"
 	 << arDataTypeName(iter->second.first) << "\n";
   }
@@ -149,7 +146,7 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
 }
 
 bool ar_addAttributesFromString( arDataTemplate& t,
-                                 string nameString, string typeString ) {
+    const string& nameString, const string& typeString ) {
   std::vector<std::string> names;
   if (!ar_getTokenList( nameString, names, '|' )) { // vertical bar, not slash
     cerr << "ar_addAttributesFromString error: failed to parse name string.\n";

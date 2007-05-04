@@ -39,7 +39,7 @@ class SZG_CALL arTexture {
   bool operator!() const;
 
   // Reference-counted because of how textures are shared in arGraphicsDatabase.
-  int getRef();
+  int getRef() const;
   arTexture* ref();
   void unref(bool debug = false);
 
@@ -115,7 +115,7 @@ class SZG_CALL arTexture {
 
   bool _reallocPixels();
   void _assignAlpha(int);
-  char* _packPixels();
+  char* _packPixels() const;
   virtual bool _loadIntoOpenGL();
 };
 

@@ -143,7 +143,7 @@ bool arTexture::operator!() const {
   return _pixels==0 || numbytes()==0;
 }
 
-int arTexture::getRef(){
+int arTexture::getRef() const {
   return _refs;
 }
 
@@ -226,7 +226,7 @@ bool arTexture::dummy() {
 
 // Copies an externally given array of pixels into internal memory.
 // DO NOT change this so that only the pointer is copied in.
-// Please note: the fill(...) method actually deals with transparency.
+// Please note: the fill() method actually deals with transparency.
 // This deals with RGB textures only.
 void arTexture::setPixels(char* pixels, int width, int height){
   // AARGH! This does not deal with different pixel formats!!!
@@ -633,13 +633,19 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
 #endif
 }
 
+bool arTexture::_reallocPixels() {
+  if (_pixels)
+    delete [] _pixels;
+  _pixels = new char[numbytes()];
+  _fDirty = true;
+  return _pixels;
+}
+
 bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
   if (w<=0 || h<=0 || !pixels) {
     return false;
   }
 
-  // For speed, call _reallocPixels only if the number of bytes allocated
-  // will change (or no memory has been allocated yet).
   if (_width != w || _height != h || _alpha != alpha || !_pixels) {
     _width = w;
     _height = h;
@@ -649,10 +655,8 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
       return false;
     }
   }
-  // Texture blending requires GL_MODULATE mode.
   if (_alpha)
-    _textureFunc = GL_MODULATE;
-  // Otherwise, update only the pixels.
+    _textureFunc = GL_MODULATE; // for texture blending
   memcpy(_pixels, pixels, numbytes());
   _fDirty = true;
   return true;
@@ -682,33 +686,22 @@ bool arTexture::flipHorizontal() {
   return true;
 }
 
-bool arTexture::_reallocPixels() {
-  if (_pixels)
-    delete [] _pixels;
-  _pixels = new char[numbytes()];
-  _fDirty = true;
-  return _pixels;
-}
-
 // Certain pixels can be made transparent in our image. The file
 // reading routine packs pixels in an RGB fashion... and then this routine
 // goes ahead and does the alpha channel, if such has been requested.
 void arTexture::_assignAlpha(int alpha){
-  if (_alpha) {
-    // Parse all the pixels and turn them into an alpha channel.
-    for (int i = _height*_width -1; i >= 0; i--) {
-      unsigned char* pPixel = (unsigned char*)&_pixels[i * getDepth()];
-      const int test = (int(pPixel[2])<<16) 
-                        | (int(pPixel[1])<<8) 
-                        | int(pPixel[0]);
-      pPixel[3] = (test == alpha) ? 0 : 255;
-    }
+  if (!_alpha)
+    return;
+
+  // Parse the pixels and turn them into an alpha channel.
+  for (int i = _height*_width -1; i >= 0; i--) {
+    unsigned char* pPixel = (unsigned char*)&_pixels[i * getDepth()];
+    const int test = (int(pPixel[2])<<16) 
+		      | (int(pPixel[1])<<8) 
+		      | int(pPixel[0]);
+    pPixel[3] = (test == alpha) ? 0 : 255;
   }
-  
-  // Texture blending only works if we are in GL_MODULATE mode.
-  if (_alpha){
-    _textureFunc = GL_MODULATE;
-  }
+  _textureFunc = GL_MODULATE; // for texture blending
 }
 
 // Return an RGB array of pixels suitable for writing to a file. 
@@ -719,7 +712,7 @@ void arTexture::_assignAlpha(int alpha){
 // the image). This is the reverse of how an image
 // is stored in a file, where the 1st line in the file is the top line of
 // the image. So reverse that as well.
-char* arTexture::_packPixels(){
+char* arTexture::_packPixels() const {
   char* buffer = new char[_width*_height*3];
   if (!buffer) {
     ar_log_warning() << "arTexture _packPixels out of memory.\n";
