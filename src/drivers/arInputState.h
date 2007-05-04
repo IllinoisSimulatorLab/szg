@@ -50,19 +50,17 @@ class SZG_CALL arInputState {
     arInputState& operator=( const arInputState& x );
     ~arInputState();
 
-    // Methods which call _lock(), i.e. all public methods, can't be const.
-
     // The number of buttons equals the button signature.
     unsigned getNumberButtons() const;
     unsigned getNumberAxes() const;
     unsigned getNumberMatrices() const;
 
-    int getButton(       const unsigned );
-    float getAxis(       const unsigned );
-    arMatrix4 getMatrix( const unsigned );
+    int getButton(       const unsigned ) const;
+    float getAxis(       const unsigned ) const;
+    arMatrix4 getMatrix( const unsigned ) const;
 
-    bool getOnButton(  const unsigned );
-    bool getOffButton( const unsigned );
+    bool getOnButton(  const unsigned ) const;
+    bool getOffButton( const unsigned ) const;
 
     bool setButton( const unsigned iButton, const int value );
     bool setAxis(   const unsigned iAxis, const float value );
@@ -96,7 +94,7 @@ class SZG_CALL arInputState {
                          const unsigned numMatrices );
     bool saveToBuffers( int* const buttonBuf,
                         float* const axisBuf,
-                        float* const matrixBuf );
+                        float* const matrixBuf ) const;
                         
     void updateLastButtons();
     void updateLastButton( const unsigned index );
@@ -136,7 +134,7 @@ class SZG_CALL arInputState {
     mutable arLock _l;
 };  
 
-ostream& operator<<(ostream& os, arInputState& inp );
+ostream& operator<<(ostream& os, const arInputState& inp );
 
 template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberEvents() const {

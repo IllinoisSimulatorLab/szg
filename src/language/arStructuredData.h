@@ -46,32 +46,36 @@ class SZG_CALL arStructuredData {
      { return _numberDataItems; }
    
    // for manipulating data in a fine-grained way
-   void* getDataPtr(int,arDataType);
-   int getDataDimension(int);      // called by xxxClient
+   void* getDataPtr(int i, arDataType a)
+     { return (void*)getConstDataPtr(i,a); }
+   const void* getConstDataPtr(int,arDataType) const;
+   int getDataDimension(const int) const;      // called by xxxClient
    bool setDataDimension(int,int); // called by xxxServer
-   int getStorageDimension(int);
+   int getStorageDimension(int) const;
    bool setStorageDimension(int,int);
    arDataType getDataType(int fieldIndex) const;
 
-   void* getDataPtr(const string&, arDataType);
-   int getDataDimension(const string&);
+   void* getDataPtr(const string& s, arDataType a)
+     { return (void*)getConstDataPtr(s, a); }
+   const void* getConstDataPtr(const string&, arDataType) const;
+   int getDataDimension(const string&) const;
    bool setDataDimension(const string&, int); 
-   arDataType getDataType(const string& fieldName);
+   arDataType getDataType(const string& fieldName) const;
    
-   // useful for manipulating data one chunk at a time
+   // for manipulating data one chunk at a time
    bool dataIn(int field,const void* data,arDataType type,int dim); // called by xxxServer
-   bool dataOut(int,void*,arDataType,int);      // called by xxxClient
+   bool dataOut(int,void*,arDataType,int) const; // called by xxxClient
 
    // some less efficient methods for data manipulation
    bool dataIn(const string&, const void*, 
                arDataType theType=AR_GARBAGE, int dimension=0);
-   bool dataOut(const string&, void*, arDataType, int);
+   bool dataOut(const string&, void*, arDataType, int) const;
    
-   int getDataFieldIndex( const string& fieldName );
-   bool getDataFieldName( int index, string& fieldName );
+   int getDataFieldIndex( const string& fieldName ) const;
+   bool getDataFieldName( const int index, string& fieldName ) const;
    void getFieldNames( std::vector< std::string >& names ) const;
 
-   // common abbreviations
+   // Abbreviations.
    bool dataInString(int id, const string& s)
      { return dataIn(id, s.data(), AR_CHAR, s.length()); }
    bool dataInString(const string& fieldName, const string& s)
@@ -82,25 +86,25 @@ class SZG_CALL arStructuredData {
      { return dataIn(fieldName, s, AR_CHAR, strlen(s)); }
    string getDataString(int field);
    string getDataString(const string& fieldName);
-   int getDataInt(int id)
+   int getDataInt(int id) const
      { int x; return dataOut(id, &x, AR_INT, 1) ? x : -1; }
-   int getDataInt(const string& fieldName)
+   int getDataInt(const string& fieldName) const
      { int x; return dataOut(fieldName, &x, AR_INT, 1) ? x : -1; }
-   float getDataFloat(int id)
+   float getDataFloat(int id) const
      { float x; return dataOut(id, &x, AR_FLOAT, 1) ? x : 0.; }
-   float getDataFloat(const string& fieldName)
+   float getDataFloat(const string& fieldName) const
      { float x; return dataOut(fieldName, &x, AR_FLOAT, 1) ? x : 0.; }
 
-   // Useful for manipulating big chunks of data with fewer mem copies.
+   // For manipulating big chunks of data with fewer mem copies.
    // Experimenting here with not requiring data type.
    // Called only by xxxClient, I think.
-   bool ptrIn(int,void*,int);
+   bool ptrIn(int, void*, int);
    
    // byte stream representation
-   int size() const;     // how many bytes will this data be when packed
-   void pack(ARchar*);   // from internal representation to byte stream
-   bool unpack(ARchar*); // from byte stream to internal representation
-   bool parse(ARchar*);  // set pointers into char buffer... do not own data
+   int size() const;           // # of bytes when packed
+   void pack(ARchar*) const;   // from internal representation to byte stream
+   bool unpack(const ARchar*); // from byte stream to internal representation
+   bool parse(ARchar*);        // set pointers into char buffer. unowned data.
 
    // debugging info
    const string& getName() const
@@ -108,9 +112,9 @@ class SZG_CALL arStructuredData {
    void dump(bool verbosity = false);
 
    // XML I/O
-   void print(ostream& s);
-   void print(FILE*);
-   void print()
+   void print(ostream& s) const;
+   void print(FILE*) const;
+   void print() const
      { print(stdout); }
 
  private:
@@ -127,8 +131,6 @@ class SZG_CALL arStructuredData {
    typedef map< string,int,less<string> > arNameMap;
    arNameMap _dataNameMap;
    string _name; // name of arDataTemplate this was derived from
-
-   static bool _fInitdumpLock;
    static arLock _dumpLock; // Don't interleave multiple threads' output.
 };
 

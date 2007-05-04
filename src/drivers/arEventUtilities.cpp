@@ -18,7 +18,7 @@ static inline int maxint( const int a, const int b, const int c ) {
 // todo: remove 60-line copypaste with ar_setInputStateFromStructuredData
 
 bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
-                                         arStructuredData* data ) {
+                                         const arStructuredData* data ) {
   const int sigField = data->getDataFieldIndex("signature");
   const int typeField = data->getDataFieldIndex("types");
   const int indexField = data->getDataFieldIndex("indices");
@@ -100,7 +100,7 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
   return ok;
 }
 
-bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
+bool ar_saveEventQueueToStructuredData( const arInputEventQueue* q,
                                         arStructuredData* data ) {
   const int typeField = data->getDataFieldIndex("types");
   const int indexField = data->getDataFieldIndex("indices");
@@ -178,7 +178,7 @@ bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
 // todo: remove 60-line copypaste with ar_setEventQueueFromStructuredData
 
 bool ar_setInputStateFromStructuredData( arInputState* state,
-                                         arStructuredData* data ) {
+                                         const arStructuredData* data ) {
   const int sigField = data->getDataFieldIndex("signature");
   const int typeField = data->getDataFieldIndex("types");
   const int indexField = data->getDataFieldIndex("indices");
@@ -326,7 +326,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   return ok;
 }
 
-bool ar_saveInputStateToStructuredData( arInputState* state,
+bool ar_saveInputStateToStructuredData( const arInputState* state,
                                         arStructuredData* data ) {
   const int typeField   = data->getDataFieldIndex("types");
   const int indexField  = data->getDataFieldIndex("indices");

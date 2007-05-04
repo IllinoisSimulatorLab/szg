@@ -79,35 +79,35 @@ unsigned arInputState::getNumberMatrices() const {
   return result;
 }
 
-bool arInputState::getOnButton( const unsigned iButton ) {
+bool arInputState::getOnButton( const unsigned iButton ) const {
   _lock();
     const bool result = _getOnButton(iButton);
   _unlock();
   return result;
 }
 
-bool arInputState::getOffButton( const unsigned iButton ) {
+bool arInputState::getOffButton( const unsigned iButton ) const {
   _lock();
     const bool result = _getOffButton(iButton);
   _unlock();
   return result;
 }
 
-int arInputState::getButton( const unsigned iButton ) {
+int arInputState::getButton( const unsigned iButton ) const {
   _lock();
     const int result = _getButton(iButton);
   _unlock();
   return result;
 }
 
-float arInputState::getAxis( const unsigned iAxis ) {
+float arInputState::getAxis( const unsigned iAxis ) const {
   _lock();
     const float result = _getAxis(iAxis);
   _unlock();
   return result;
 }
 
-arMatrix4 arInputState::getMatrix( const unsigned iMatrix ) {
+arMatrix4 arInputState::getMatrix( const unsigned iMatrix ) const {
   _lock();
     const arMatrix4 result = _getMatrix(iMatrix);
   _unlock();
@@ -369,7 +369,7 @@ bool arInputState::setFromBuffers( const int* const buttonData,
 
 bool arInputState::saveToBuffers( int* const buttonBuf,
                                   float* const axisBuf,
-                                  float* const matrixBuf ){
+                                  float* const matrixBuf ) const {
   if (!buttonBuf || !axisBuf || !matrixBuf) {
     ar_log_warning() << "arInputState: null buffer.\n";
     return false;
@@ -404,7 +404,7 @@ void arInputState::updateLastButton( const unsigned i ) {
   _unlock();
 }
 
-ostream& operator<<(ostream& os, arInputState& cinp ) {
+ostream& operator<<(ostream& os, const arInputState& cinp ) {
   const int cb = cinp.getNumberButtons();
   const int ca = cinp.getNumberAxes();
   const int cm = cinp.getNumberMatrices();

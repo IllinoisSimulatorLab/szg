@@ -12,13 +12,13 @@
 #include "arDriversCalling.h"
 
 SZG_CALL bool ar_setEventQueueFromStructuredData(
-  arInputEventQueue*, arStructuredData*);
+  arInputEventQueue*, const arStructuredData*);
 SZG_CALL bool ar_saveEventQueueToStructuredData(
-  arInputEventQueue*, arStructuredData*);
+  const arInputEventQueue*, arStructuredData*);
 
 SZG_CALL bool ar_setInputStateFromStructuredData(
-  arInputState*, arStructuredData*);
+  arInputState*, const arStructuredData*);
 SZG_CALL bool ar_saveInputStateToStructuredData(
-  arInputState*, arStructuredData*);
+  const arInputState*, arStructuredData*);
 
 #endif
