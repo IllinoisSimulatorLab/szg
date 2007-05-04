@@ -38,10 +38,9 @@ bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {
   return true;
 }
 
-arCallbackEventFilter::arCallbackEventFilter( arSZGAppFramework* fw,
-                                              arFrameworkEventCallback cb ) :
-  arFrameworkEventFilter(fw),
-  _callback(cb) {
+arCallbackEventFilter::arCallbackEventFilter(
+  arSZGAppFramework* fw, arFrameworkEventCallback cb ) :
+  arFrameworkEventFilter(fw), _callback(cb) {
 }
 
 bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {

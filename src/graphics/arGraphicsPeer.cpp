@@ -1482,10 +1482,10 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
     // DO NOT RESET THE inMap HERE! FOR THE SAME REASON
     //i->second->inMap.clear();
     // Already _lock()'ed.
-    arDatabaseNode* newRootNode = _getNodeNoLock(nodeID);
+    arDatabaseNode* newRootNode = _getNodeNoLock /* _getNode;;;;*/ (nodeID);
     if (!newRootNode) {
-      cout << "arGraphicsPeer error: connection map root node not present. "
-	   << "Using default.(ID = " << nodeID << ")\n";
+      ar_log_warning() << "arGraphicsPeer: rootless connection map defaulting to ID = " <<
+        nodeID << ".\n";
       i->second->rootMapNode = &_rootNode;
     } 
     else{

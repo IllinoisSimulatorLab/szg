@@ -181,9 +181,9 @@ arSyncDataServer::~arSyncDataServer(){
 }
 
 bool arSyncDataServer::setMode(int theMode){
-  if (theMode != AR_SYNC_AUTO_SERVER
-      && theMode != AR_SYNC_MANUAL_SERVER
-      && theMode != AR_NOSYNC_MANUAL_SERVER){
+  if (theMode != AR_SYNC_AUTO_SERVER &&
+      theMode != AR_SYNC_MANUAL_SERVER &&
+      theMode != AR_NOSYNC_MANUAL_SERVER){
     ar_log_error() << "arDataSyncServer error: invalid operating mode "
                    << theMode << ".\n";
     return false;
@@ -221,11 +221,11 @@ void arSyncDataServer::setMessageCallback
   _messageCallback = messageCallback;
 }
 
-void arSyncDataServer::setServiceName(string serviceName){
+void arSyncDataServer::setServiceName(const string& serviceName){
   _serviceName = serviceName;
 }
 
-void arSyncDataServer::setChannel(string channel){
+void arSyncDataServer::setChannel(const string& channel){
   _channel = channel;
 }
 

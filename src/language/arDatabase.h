@@ -18,6 +18,7 @@
 using namespace std;
 
 typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
+typedef map<int,arDatabaseNode*,less<int> >::const_iterator const_arNodeIDIterator;
 
 typedef arDatabaseNode*
     (arDatabase::*arDatabaseProcessingCallback)(arStructuredData*);
@@ -35,14 +36,15 @@ class SZG_CALL arDatabase{
   arDatabase();
   virtual ~arDatabase();
 
-  int getTypeCode(){ return _typeCode; }
-  string getTypeString(){ return _typeString; }
+  int getTypeCode() const { return _typeCode; }
+  string getTypeString() const { return _typeString; }
 
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
   void addDataBundlePathMap(const string& bundlePathName, 
                             const string& bundlePath);
 
+  // getNode(), findNode(), etc., aren't const because they ref().
   int getNodeID(const string& name, bool fWarn=true);
   arDatabaseNode* getNode(int ID, bool fWarn=true, bool refNode=false);
   arDatabaseNode* getNodeRef(int ID, bool fWarn=true);
@@ -58,7 +60,7 @@ class SZG_CALL arDatabase{
 				 bool refNode = false);
   arDatabaseNode* findNodeByTypeRef(arDatabaseNode* node, 
                                     const string& nodeType);
-  arDatabaseNode* getRoot(){ return &_rootNode; }
+  arDatabaseNode* getRoot() { return &_rootNode; }
 
   arDatabaseNode* getParentRef(arDatabaseNode*);
   list<arDatabaseNode*> getChildrenRef(arDatabaseNode*);
@@ -135,10 +137,6 @@ class SZG_CALL arDatabase{
   void printStructure(int maxLevel);
   void printStructure(int maxLevel, ostream& s);
   void printStructure() { printStructure(10000); }
-  // Abbreviations for the above.
-  void ps(int maxLevel){ printStructure(maxLevel); }
-  void ps(int maxLevel, ostream& s){ printStructure(maxLevel, s); }
-  void ps(){ printStructure(); }
 
   // Sometimes a database only needs to store information, not manage it
   // for some other activity (as in the case of the arGraphicsDatabase and

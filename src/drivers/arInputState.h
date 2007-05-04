@@ -39,6 +39,10 @@ template <class eventDataType> class arInputDeviceMap {
     vector<unsigned> _deviceEventOffsets;
 };
 
+// A snapshot of input-device values,
+// in particular button values.
+// The dual view is a stream of events, class arInputEventQueue.
+
 class SZG_CALL arInputState {
   public:
     arInputState();
@@ -104,6 +108,7 @@ class SZG_CALL arInputState {
 
     // Call  setX and  getX only while _unlock()'d.
     // Call _setX and _getX only while _lock()'d.
+
     void _setSignature( const unsigned maxButtons,
                         const unsigned maxAxes,
                         const unsigned maxMatrices,
@@ -116,12 +121,11 @@ class SZG_CALL arInputState {
     bool _setButton( const unsigned iButton, const int );
     bool _setAxis( const unsigned iAxis, const float );
     bool _setMatrix( const unsigned iMatrix, const arMatrix4& );
+
     // event values
     vector<int> _buttons;
     vector<float> _axes;
     vector<arMatrix4> _matrices;
-
-    // previous button values
     vector<int> _lastButtons;
     
     // Map multiple inputs to a single event index space.

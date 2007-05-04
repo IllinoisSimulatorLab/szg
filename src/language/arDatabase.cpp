@@ -89,8 +89,8 @@ void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                         (bundlePathName, bundlePath));
 }
 
-// An abbreiviation for depth-first search for the node via its name,
-// returning the ID of the first such node found (and -1 if none is found).
+// Find a node by name,
+// returning the ID of the first such node found (else -1).
 int arDatabase::getNodeID(const string& name, bool fWarn) {
   const arDatabaseNode* pNode = getNode(name,fWarn);
   return pNode ? pNode->getID() : -1;
@@ -109,24 +109,24 @@ arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
   return result;
 }
 
-arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn){
+arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn) {
   return getNode(ID, fWarn, true);
 }
 
 
 // Node names are not assumed to be unique within the arDatabase.
-// Consequently, this function is really just a restatement of findNode(...).
+// Consequently, this function is really just a restatement of findNode().
 // We do a breadth-first search for the first node with the given name and
 // return that.
 arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn, 
                                     bool refNode){
   _lock();
-  // Conducts a breadth-first search for the node with the given name.
+  // Search breadth-first for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
   _rootNode._findNode(result, name, success, NULL, true);
   if (!success && fWarn){
-    cerr << "arDatabase warning: no node \"" << name << "\".\n";
+    cerr << "arDatabase warning: no node '" << name << "'.\n";
   }
   if (result && refNode){
     result->ref();
@@ -135,7 +135,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn,
   return result;
 }
 
-arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn){
+arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
   return getNode(name, fWarn, true);
 }
 
@@ -153,15 +153,14 @@ arDatabaseNode* arDatabase::findNode(const string& name, bool refNode){
   return result;
 }
 
-arDatabaseNode* arDatabase::findNodeRef(const string& name){
+arDatabaseNode* arDatabase::findNodeRef(const string& name) {
   return findNode(name, true);
 }
 
 arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
-			             bool refNode){
+			             bool refNode) {
   if (!node || !node->active() || node->getOwner() != this){
-    cout << "arDatabase error: attempted to findNode starting at node "
-	 << "not owned by this database.\n";
+    ar_log_warning() << "arDatabaseNode::findNode from non-owned node.\n";
     return NULL;
   }
   _lock();
@@ -176,8 +175,7 @@ arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
   return result;
 }
 
-arDatabaseNode* arDatabase::findNodeRef(arDatabaseNode* node, 
-                                        const string& name){
+arDatabaseNode* arDatabase::findNodeRef(arDatabaseNode* node, const string& name) {
   return findNode(node, name, true);
 }
 
@@ -185,10 +183,10 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
                                            const string& nodeType,
 			                   bool refNode){
   if (!node || !node->active() || node->getOwner() != this){
-    cout << "arDatabase error: attempted to findNode starting at node "
-	 << "not owned by this database.\n";
+    ar_log_warning() << "arDatabase can't find from null, inactive, or unowned node.\n";
     return NULL;
   }
+
   _lock();
   // NOTE: regardless of whether or not the caller has requested the ptr be
   // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
@@ -203,7 +201,7 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
 }
 
 arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node, 
-                                              const string& nodeType){
+                                              const string& nodeType) {
   return findNodeByType(node, nodeType, true);
 }
 
@@ -252,8 +250,7 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& name,
                                     bool refNode){
   if (!parent || !parent->active() || parent->getOwner() != this){
-    cout << "arDatabase error: designated parent is not part of this "
-	 << "database.\n";
+    ar_log_warning() << "arDatabaseNode::newNode got non-owned parent.\n";
     return NULL;
   }
   int parentID = parent->getID();
@@ -279,13 +276,12 @@ arDatabaseNode* arDatabase::newNodeRef(arDatabaseNode* parent,
   return newNode(parent, type, name);
 }
 
-// The parent node must be given. If no child node is given (i.e. the 
-// parameter is NULL) then the new node should go between the parent and
-// its current children. If a child node is given, then put the new node
+// If no child node is given (i.e. the 
+// parameter is NULL) then the new node goes between the parent and
+// its current children. If a child node is given, put the new node
 // between the two specified nodes (assuming they are truly parent and 
-// child). If successful, return a pointer to the new node, otherwise
-// return NULL. This method will also fail if either of the nodes
-// is not *owned* by this database.
+// child). Return a pointer to the new node (or NULL on error).
+// Fail if either node is not owned by this database.
 
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
@@ -297,7 +293,7 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   // If the child node is not NULL, it must be owned by this database as well.
   if (!parent || !parent->active() || parent->getOwner() != this ||
       (child && (!child->active() || child->getOwner() != this))){
-    cout << "arDatabase error: attempted to insert using foreign nodes.\n";
+    ar_log_warning() << "arDatabaseNode: can't insert with non-owned nodes.\n";
     return NULL;
   }
 
@@ -336,7 +332,7 @@ arDatabaseNode* arDatabase::insertNodeRef(arDatabaseNode* parent,
 
 bool arDatabase::cutNode(arDatabaseNode* node){
   if (!node || !node->active() || node->getOwner() != this){
-    cout << "arDatabase error: node does not belong to this arDatabase.\n";
+    ar_log_warning() << "arDatabaseNode: can't cut non-owned node.\n";
     return false;
   }
   return cutNode(node->getID());
@@ -354,7 +350,7 @@ bool arDatabase::cutNode(int ID){
 
 bool arDatabase::eraseNode(arDatabaseNode* node){
   if (!node || !node->active() || node->getOwner() != this){
-    cout << "arDatabaseNode error: node does not belong to this database.\n";
+    ar_log_warning() << "arDatabaseNode: can't erase non-owned node.\n";
     return false;
   }
   return eraseNode(node->getID());
@@ -446,15 +442,14 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
   arDatabaseNode* pNode = NULL;
   if (_databaseReceive[dataID]){
     // Call one of _handleQueuedData _eraseNode _makeDatabaseNode.
-    // If it fails, it prints its own error message,
-    // so we don't need to print another one here.
+    // If it fails, it prints its own diagnostic.
     pNode = (this->*(_databaseReceive[dataID]))(inData); 
     if (!pNode) {
-      ar_log_error() << "arDatabaseNode inData() failed.\n";
+      ar_log_remark() << "arDatabase::alter() failed.\n";
     }
-    // Only requests for new nodes (i.e. make node and insert) will actually
-    // set refNode to true. Consequently, we won't be, for instance, increasing
-    // the reference count on the root node.
+
+    // Only requests for new nodes (i.e. make node and insert) actually
+    // make refNode true. Thus, e.g., the root node's ref count won't increase.
     if (refNode && pNode){
       pNode->ref();
     }
@@ -488,27 +483,25 @@ arDatabaseNode* arDatabase::alterRaw(ARchar* theData){
   return alter(_parsingData[dataID]);
 }
 
-// Sure, we are loosing some info by returning bool here.... BUT by sending
-// in a buffer packed with various calls, we're pretty much guaranteeing that
-// we don't (or can't) care about specific outcomes.
+// Sure, we are losing info by returning bool. But sending
+// in a buffer packed with various calls, pretty much guarantees that
+// we can't care about specific outcomes.
 bool arDatabase::handleDataQueue(ARchar* theData){
-  ARint bufferSize = -1, numberRecords = -1;
+  ARint bufferSize = -1;
+  ARint numberRecords = -1;
   ar_unpackData(theData,&bufferSize,AR_INT,1);
   ar_unpackData(theData+AR_INT_SIZE,&numberRecords,AR_INT,1);
   ARint position = 2*AR_INT_SIZE;
   for (int i=0; i<numberRecords; i++){
     const int theSize = ar_rawDataGetSize(theData+position);
     if (!alterRaw(theData+position)) {
-      cerr << "arDatabase::handleDataQueue error: failure in record "
+      ar_log_warning() << "arDatabase::handleDataQueue failure in record "
            << i+1 << " of " << numberRecords << ".\n";
-      // It seems better to proces the remaining records than to abort
-      // with a return false here. This allows the processing of the records
-      // that can be processed.
-      //return false;
+      // Keep processing the remaining records.
     }
     position += theSize;
     if (position > bufferSize){
-      cerr << "arDatabase::handleDataQueue error: buffer overflow.\n";
+      ar_log_warning() << "arDatabase::handleDataQueue buffer overflow.\n";
       return false;
     }
   }
@@ -520,8 +513,7 @@ bool arDatabase::readDatabase(const string& fileName,
                               const string& path){
   FILE* sourceFile = sourceFile = ar_fileOpen(fileName,path,"rb");
   if (!sourceFile){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
+    ar_log_warning() << "arDatabase failed to read file '" << fileName << "'.\n";
     return false;
   }
 
@@ -992,7 +984,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
 
 bool arDatabase::empty(){
   _lock();
-  bool isEmpty = _rootNode.hasChildren();
+  const bool isEmpty = _rootNode.hasChildren();
   _unlock();
   return isEmpty;
 }
@@ -1027,11 +1019,10 @@ void arDatabase::printStructure(int maxLevel, ostream& s){
 // constructors.
 bool arDatabase::_initDatabaseLanguage(){
   // Allocate storage for external parsing.
-  arTemplateDictionary* d = _lang->getDictionary();
+  arTemplateDictionary* d = (/*hack*/ arTemplateDictionary*) _lang->getDictionary();
   eraseData = new arStructuredData(d, "erase");
   makeNodeData = new arStructuredData(d, "make node");
-  if (!eraseData || !makeNodeData ||
-      !*eraseData || !*makeNodeData) {
+  if (!eraseData || !makeNodeData || !*eraseData || !*makeNodeData) {
     if (eraseData)
       delete eraseData;
     if (makeNodeData)
@@ -1084,7 +1075,7 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
 string arDatabase::_getDefaultName(){
   stringstream def;
   _lock();
-  def << "szg_default_" << _nextAssignedID;
+    def << "szg_default_" << _nextAssignedID;
   _unlock();
   return def.str();
 }
@@ -1815,7 +1806,6 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
   delete [] mappedChildIDs;
   return -1;
 }
-
 
 // Construct the nodes that are unqiue to the arDatabase
 // (as opposed to subclasses).

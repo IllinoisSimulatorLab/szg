@@ -18,6 +18,7 @@ arGraphicsPluginNode::arGraphicsPluginNode( bool isGraphicsServer ) {
   _isGraphicsServer = isGraphicsServer;
   _object = NULL;
   _triedToLoad = false;
+
 }
 
 arGraphicsPluginNode::~arGraphicsPluginNode() {
@@ -30,7 +31,6 @@ arGraphicsPluginNode::~arGraphicsPluginNode() {
   _doubleData.clear();
   _stringData.clear();
 }
-
 
 void arGraphicsPluginNode::draw(arGraphicsContext* context) {
   _nodeLock.lock();
@@ -55,13 +55,11 @@ void arGraphicsPluginNode::draw(arGraphicsContext* context) {
   _nodeLock.unlock();
 }
 
-
 arStructuredData* arGraphicsPluginNode::dumpData() {
   // Caller is responsible for deleting.
   _nodeLock.lock();
-  arStructuredData* r = _dumpData( _fileName, _intData, _longData,
-                                   _floatData, _doubleData, _stringData,
-                                   false );
+  arStructuredData* r = _dumpData(
+    _fileName, _intData, _longData, _floatData, _doubleData, _stringData, false );
   _nodeLock.unlock();
   return r;
 }
@@ -182,8 +180,8 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
   float* floatPtr = new float[floatData.size()];
   double* doublePtr = new double[doubleData.size()];
 
-  int numStrings = (int)stringData.size();
-  unsigned int stringSize;
+  const int numStrings = (int)stringData.size();
+  unsigned stringSize;
   char* stringPtr = ar_packStringVector( stringData, stringSize );
 
   if (!intPtr || !longPtr || !floatPtr || !doublePtr || !stringPtr) {

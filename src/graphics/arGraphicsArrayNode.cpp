@@ -33,9 +33,9 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   const ARint len = inData->getDataDimension(_dataField) / _arrayStride;
   const ARint numberIDs = inData->getDataDimension(_indexField);
   
-  if (numberIDs == 0){
+  if (numberIDs <= 0){
     // Must be at least one ID.
-    cerr << _typeString << " error: no IDs.\n";
+    ar_log_warning() << "arGraphicsArrayNode " << _typeString << ": no IDs.\n";
     // This isn't really an error... we were able to process the info.
     return true;
   }
@@ -56,13 +56,10 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-// This function is NOT thread-safe. It is the responsibility of the caller
-// to lock the node's lock before calling. Already, various methods
-// (like arPointsNode::setPoints or arGraphicsArrayNode::receiveData) call 
-// this from a locked section... so changing this will create DEADLOCKS!
-void arGraphicsArrayNode::_mergeElements(int number,
-					 void* elements,
-					 int* IDs){
+// NOT thread-safe. Caller must lock node's lock.
+// Methods like arPointsNode::setPoints and arGraphicsArrayNode::receiveData
+// call this from a locked section, so we can't lock in here lest deadlocks ensue.
+void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs){
   const int numbytes = arDataTypeSize(_nodeDataType);
   if (!IDs){
     // Coordinate vectors are packed in ID order.
@@ -94,15 +91,12 @@ arStructuredData* arGraphicsArrayNode::_dumpData(int number,
                                                  void* elements,
 						 int* IDs,
                                                  bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = _owningDatabase->getDataParser()->getStorage(_recordType);
-  }
-  else{
-    result = _g->makeDataRecord(_recordType);
-  }
+  arStructuredData* result =  owned ?
+    _owningDatabase->getDataParser()->getStorage(_recordType) :
+    _g->makeDataRecord(_recordType);
   if (!result){
-    cerr << "arGraphicsArrayNode error: failed to make specified record.\n";
+    ar_log_warning() << "arGraphicsArrayNode failed to make record of type " <<
+      _recordType << " (" << _g->_stringFromID(_recordType) << ").\n";
     return NULL;
   }
 
@@ -121,7 +115,6 @@ arStructuredData* arGraphicsArrayNode::_dumpData(int number,
   // Fill in the data field. BUG: THIS RELIES ON THE FACT THAT ALL OUR DATA
   // TYPE HAVE THE SAME SIZE IN MEMORY (i.e. FLOAT AND INT)
   memcpy(result->getDataPtr(_dataField,_nodeDataType),
-         elements,
-         _arrayStride * number * arDataTypeSize(_nodeDataType));
+         elements, _arrayStride * number * arDataTypeSize(_nodeDataType));
   return result;
 }

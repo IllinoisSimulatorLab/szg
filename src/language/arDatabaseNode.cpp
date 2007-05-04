@@ -6,6 +6,7 @@
 #include "arPrecompiled.h"
 #include "arDatabaseNode.h"
 #include "arDatabase.h"
+#include "arLogStream.h"
 
 // DO NOT CHANGE THE BELOW DEFAULTS! THE ROOT NODE IS ASSUMED TO BE 
 // INITIALIZED WITH THESE! For instance, sometimes we detect that it
@@ -194,15 +195,13 @@ arDatabaseNode* arDatabaseNode::findNodeByTypeRef(const string& nodeType){
   return findNodeByType(nodeType, true);
 }
 
-void arDatabaseNode::printStructure(int maxLevel, ostream& s){
+void arDatabaseNode::printStructure(int maxLevel, ostream& s) {
   _printStructureOneLine(0, maxLevel, s);
 }
 
 bool arDatabaseNode::receiveData(arStructuredData* data){
   if (data->getID() != _dLang->AR_NAME){
-    // DO NOT PRINT ANYTHING OUT HERE. THE ASSUMPTION IS THAT THIS IS
-    // BEING CALLED FROM ELSEWHERE (i.e. FROM A SUBCLASS) WHERE ANY
-    // NECESSARY MESSAGE WILL, IN FACT, BE PRINTED. 
+    // Called by a subclass, which already printed a diagnostic.
     return false;
   } 
   if (getName() == "root"){
@@ -429,9 +428,9 @@ void arDatabaseNode::_stealChildren(arDatabaseNode* node){
   node->_children.clear();
 }
 
-// Inefficient for large lists of nodes.
 // The given children (if they are children of the node) will be moved to
-// the front of the list, in the order they are given.
+// the front of the list, in the order given.
+// Inefficient for large lists of nodes.
 void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
   childList.reverse();
   for (list<arDatabaseNode*>::iterator i = childList.begin();
@@ -441,8 +440,7 @@ void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
     for (list<arDatabaseNode*>::iterator j = _children.begin();
 	 j != _children.end(); j++){
       if (*i == *j){
-        // NOTE: We do not need to do any ref or unref since we're just
-	// moving this node to the front of the list.
+        // No ref or unref; just move this node to the front of the list.
 	arDatabaseNode* node = *j;
         _children.erase(j);
         _children.push_front(node);
@@ -462,26 +460,23 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
   (void)theData->dataIn(IDField,&ID,AR_INT,1);
 }
 
-// Have not tried to make this call thread-safe (it uses getChildren instead
-// of getChildrenRef). However, if thread-safety is desired, it will always
-// be called (for instance) from within a _lock().
+// Not thread-safe (uses getChildren instead of getChildrenRef).
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
                                map<int,int,less<int> >* nodeMap,
-                               bool checkTop){
-  // First, check self.
+                               bool checkTop) {
+  // Check self.
   if (checkTop && getName() == name){
     success = true;
     result = this;
     return;
   }
+
+  // Search breadth-first.
   list<arDatabaseNode*> children = getChildren();
-  // we are doing a breadth-first search (maybe..), check the children first
-  // then recurse
-  list<arDatabaseNode*>::iterator i;
-  // If a node map has been passed, make sure that we do NOT find an already
-  // mapped node.
+  list<arDatabaseNode*>::const_iterator i;
+  // If a node map has been passed, do NOT find an already mapped node.
   for (i = children.begin(); i != children.end(); i++){
     if ( (*i)->getName() == name && 
          (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
@@ -490,10 +485,9 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
       return;
     }
   }
-  // now, recurse...
+  // Recurse.
   for (i = children.begin(); i != children.end(); i++){
     if (success){
-      // we're already done.
       return;
     }
     (*i)->_findNode(result, name, success, nodeMap, true);
@@ -540,8 +534,7 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
 // @param currentNodeID ID of node to print out and recurse down through
 // @param level How far down the tree hierarchy we are
 // @param maxLevel how far down the tree hierarchy we will go
-void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, 
-                                            ostream& s) {
+void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s) {
 
   for (int l=0; l<level; l++){
     if (maxLevel > l){
@@ -553,9 +546,8 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel,
     }
   }
 
-  // Might not be that efficient to copy the list but this operation need
-  // not be incredibly optimized. Note how we use ref-ing to ensure
-  // thread-safety.
+  // Inefficient list-copying.  Oh well.
+  // Ref-ing ensures thread safety, but forbids constness.
   list<arDatabaseNode*> childList = getChildrenRef();
  
   s << '(' << getID() << ", " 

@@ -5,6 +5,9 @@
 #include "arDriversCalling.h"
 #include <deque>
 
+// A stream of events.  Useful for time-domain filtering.
+// The dual view is a snapshot of input-device values, class arInputState.
+
 class SZG_CALL arInputEventQueue {
   public:
     arInputEventQueue() :
@@ -21,7 +24,7 @@ class SZG_CALL arInputEventQueue {
     void appendEvent( const arInputEvent& event );
     void appendQueue( const arInputEventQueue& queue );
     bool empty() const { return _queue.empty(); }
-    bool size() const { return _queue.size(); }
+    unsigned size() const { return _queue.size(); }
     arInputEvent popNextEvent();
     
     unsigned getNumberButtons()  const { return _numButtons; }
@@ -52,20 +55,26 @@ class SZG_CALL arInputEventQueue {
     void clear();
     
   private:
-    std::deque<arInputEvent> _queue;
+    std::deque<arInputEvent> _queue; // Container of events.
+
+    // Number of each "type" of event in _queue.  They sum to size().
     unsigned _numButtons;
     unsigned _numAxes;
     unsigned _numMatrices;
     
-    // These are meant to be set from an arStructuredData
-    // cf ar_setInputQueueFromStructuredData() in arEventUtilities
-    // will be increased if a higher event index comes along
-    // then will be used to set outgoing arStructuredData signature
+    // These are meant to be set from an arStructuredData,
+    // see ar_setInputQueueFromStructuredData() in arEventUtilities.
+    // Will be increased if a higher event index comes along.
+    // Then will be used to set outgoing arStructuredData signature
     // in ar_saveInputQueueToStructuredData().
-    // The arInputEventQueue will never reject events because of the signature.
+
+    // Signature of a device which could have generated these events.
     unsigned _buttonSignature;
     unsigned _axisSignature;
     unsigned _matrixSignature;
+
+    // arInputEventQueue doesn't reject events "larger than" the signature.
+    // Instead, it grows the signature to accept the events.
 };    
 
 #endif

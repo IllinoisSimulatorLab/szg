@@ -73,7 +73,6 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
   for (i = templateDictionary->begin(); 
        i != templateDictionary->end(); i++){
     if (i->second->getAttributeID("szg_router_id") == -1){
-      // field does not exist
       cerr << "arMasterSlaveDataRouter error: template lacks ID field.\n";
       return false;
     }
@@ -93,8 +92,8 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
       _dictionary.add(i->second);
     }
     else{
-      // must make sure that the owned arFrameworkObject's template
-      // (which is presumed to be equal) gets the same ID...
+      // Give the owned arFrameworkObject's template,
+      // which is presumed to be equal, the same ID.
       i->second->setID(temp->getID());
     }
   }

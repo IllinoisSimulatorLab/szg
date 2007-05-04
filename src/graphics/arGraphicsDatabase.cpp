@@ -244,8 +244,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   theTexture->setTextureFunc(GL_MODULATE);
   std::vector<std::string> triedPaths;
   if (name.length() <= 0) {
-    ar_log_warning() << "arGraphicsDatabase warning: "
-	             << "ignoring empty filename for texture.\n";
+    ar_log_warning() << "arGraphicsDatabase ignoring empty filename for texture.\n";
   }
   else if (!isServer()) {
     // Client. Get the actual bitmap.
@@ -318,15 +317,15 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
   // A new bump map.
   const int numTBN = index ? numInd : numPts;
   arBumpMap* theBumpMap = new arBumpMap();
+  // todo: constructor for next 4 lines
   theBumpMap->setDecalTexture(decalTexture);
   theBumpMap->setHeight(height);
   theBumpMap->setPIT(numPts, numInd, points, index, tex2);
   theBumpMap->generateFrames(numTBN);
   char buffer[512];
   ar_stringToBuffer(name, buffer, sizeof(buffer));
-  if (strlen(buffer) <= 0) {
-    ar_log_warning() << "arGraphicsDatabase warning: "
-	             << "ignoring empty filename for PPM bump texture.\n";
+  if (!*buffer) {
+    ar_log_warning() << "arGraphicsDatabase ignoring empty filename for PPM bump texture.\n";
   }
   // Only client, not server, needs the actual bitmap.
   else if (!isServer()) {
@@ -346,8 +345,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
       theBumpMap->dummy();
       if (!fComplained) {
 	fComplained = true;
-	ar_log_warning() << "arGraphicsDatabase: no PPM file '"
-	               << buffer << "' in ";
+	ar_log_warning() << "arGraphicsDatabase: no PPM file '" << buffer << "' in ";
 	if (_texturePath->size() <= 1) {
 	  ar_log_warning() << "empty ";
 	}
@@ -367,28 +365,27 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 // database operations (it uses hidden global database locks). Consequently,
 // this cannot be called from any message handling code.
 arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
-  arMatrix4 result = ar_identityMatrix();
+  arMatrix4 result(ar_identityMatrix());
   arDatabaseNode* thisNode = getNodeRef(nodeID);
   if (!thisNode) {
     ar_log_warning() << "arGraphicsDatabase: invalid node ID for accumulateTransform.\n";
     return result;
   }
+
+  // unref()'s avoid memory leaks.
   arDatabaseNode* temp = thisNode->getParentRef();
-  // Must release our reference to the node to prevent a memory leak.
   thisNode->unref();
   thisNode = temp;
   while (thisNode && thisNode->getID() != 0) {
     if (thisNode->getTypeCode() == AR_G_TRANSFORM_NODE) {
       arTransformNode* transformNode = (arTransformNode*) thisNode;
-      result = transformNode->getTransform()*result;
+      result = transformNode->getTransform() * result;
     }
     temp = thisNode->getParentRef();
-    // Must release our reference to the node to prevent a memory leak.
     thisNode->unref();
     thisNode = temp;
   }
   if (thisNode) {
-    // Must release our reference to the node to prevent a memory leak.
     thisNode->unref();
   }
   return result;
@@ -396,8 +393,8 @@ arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
 
 arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, 
                                                   int endNodeID) {
-  return accumulateTransform(startNodeID).inverse() 
-         * accumulateTransform(endNodeID);
+  return accumulateTransform(startNodeID).inverse() *
+         accumulateTransform(endNodeID);
 }
 
 void arGraphicsDatabase::setVRCameraID(int cameraID) {
@@ -1057,9 +1054,9 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data) {
   else if (action == "camera_node") {
     int nodeID = data->getDataInt("node_ID");
     // If we have a node with this ID, then set the camera to it.
-    // Use _getNodeNoLock instead of getNode, to avoid deadlocks
+    // Use _getNode instead of getNode, to avoid deadlocks
     // (since _processAdmin is called from within the global arDatabase lock).
-    arDatabaseNode* node = _getNodeNoLock(nodeID);
+    arDatabaseNode* node = _getNodeNoLock /*;;;; _getNode*/ (nodeID);
     if (node && node->getTypeString() == "viewer") {
       _viewerNodeID = nodeID;
     }

@@ -48,9 +48,9 @@ class SZG_CALL arSyncDataServer{
   void setMessageCallback
     (arDatabaseNode* (*messageCallback)(void*,arStructuredData*));
 
-  void setServiceName(string serviceName);
-  void setChannel(string channel);
-  bool init(arSZGClient& client);
+  void setServiceName(const string&);
+  void setChannel(const string&);
+  bool init(arSZGClient&);
   bool start();
   void stop();
 

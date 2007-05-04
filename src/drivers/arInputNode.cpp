@@ -343,8 +343,8 @@ void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
     numMatrices = 0;
     ar_log_warning() << "arInputNode overriding negative matrix signature, to 0.\n";
   }
-  // todo: delete old storage if necessary!
   _inputState.setSignature( unsigned(numButtons), unsigned(numAxes), unsigned(numMatrices) );
+  // todo: delete old storage if necessary!
 }
 
 

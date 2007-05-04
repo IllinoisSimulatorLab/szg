@@ -9,6 +9,7 @@
 #include "arMath.h"
 #include "arDriversCalling.h"
 
+// The order button, axis, matrix is important.  Arrays index by this.
 SZG_CALL enum arInputEventType {
   AR_EVENT_GARBAGE=-1,
   AR_EVENT_BUTTON,
