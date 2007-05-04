@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arPhleetConnectionBroker.h"
+#include "arLogStream.h"
 
 arPhleetConnectionBroker::arPhleetConnectionBroker() :
   _releaseNotificationCallback(NULL) {}
@@ -134,6 +135,7 @@ arPhleetService arPhleetConnectionBroker::retryPorts(
     cerr << "arPhleetConnectionBroker warning: component attempted to\n"
 	 << "retry ports on nonexistant service name.\n";
 LAbort:
+      // todo: constructor for next 2 lines
       arPhleetService result;
       result.valid = false;
       _unlock();
@@ -213,13 +215,13 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i == _temporaryServices.end()){
     cout << "arPhleetConnectionBroker warning: confirmation invoked on unknown service name.\n";
+LAbort:
     _unlock();
     return false;
   }
   if (i->second.componentID != componentID){
     cout << "arPhleetConnectionBroker error: confirmation invoked on unowned service name.\n";
-    _unlock();
-    return false;
+    goto LAbort;
   }
   // remove the service from the temporary list and place it on the active
   // list. furthermore, update the component record and the computer record
@@ -228,15 +230,14 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   SZGComputerData::iterator j = _computerData.find(computer);
   if (j == _computerData.end()){
     cout << "arPhleetConnectionBroker error: component record not found on confirm ports request.\n";
-    _unlock();
-    return false;
+    goto LAbort;
   }
   SZGComponentData::iterator k = _componentData.find(componentID);
   if (k == _componentData.end()){
     cout << "arPhleetConnectionBroker error: component record not found on confirm ports request.\n";
-    _unlock();
-    return false;
+    goto LAbort;
   }
+
   arPhleetService tempService = i->second;
   _temporaryServices.erase(i);
   _usedServices.insert(SZGServiceData::value_type(serviceName, tempService));
@@ -302,34 +303,24 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
   // Must lock the broker.
   _lock();
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
-  // Is the service on the temporary list?
-  if (i != _temporaryServices.end()){
-    // Does the component in question own it?
-    if (i->second.componentID != componentID){
-      // No. Return immediately.
-      _unlock();
-      return false;
+  if (i != _temporaryServices.end()) {
+    if (i->second.componentID != componentID) {
+      // Component in question doesn't own the service.
+      goto LFail;
     }
-    // Yes. Set and return.
-    i->second.info = info;
-    _unlock();
-    return true;
+    goto LDone;
   }
   i = _usedServices.find(serviceName);
-  // Is the service on the used list?
-  if (i != _usedServices.end()){
-    // Does the component in question own it?
-    if (i->second.componentID != componentID){
-      // No. Return immediately.
-      _unlock();
-      return false;
-    }
-    // Yes. Set and return.
-    i->second.info = info;
-    _unlock();
-    return true;
+  if (i != _usedServices.end() && i->second.componentID == componentID) {
+LDone:
+  // Component in question owns the service.  Set service's info.
+  i->second.info = info;
+  _unlock();
+  return true;
   }
-  // We haven't found the service.
+  // Didn't find the service.
+
+LFail:
   _unlock();
   return false;
 }
@@ -379,11 +370,11 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
                                                  int    match,
                                                  const string& serviceName,
                                                  const arSlashString& networks,
-                                                 bool   async){
+                                                 bool   async) {
   arPhleetAddress result;
   _lock();
   // see if the service already exists on the active list
-  // if not, we need to insert the service request into the notification 
+  // if not, insert the service request into the notification 
   // queue. return arPhleetAddress with valid field set to false
   const SZGServiceData::const_iterator i = _usedServices.find(serviceName);
   if ( i == _usedServices.end() ){
@@ -391,6 +382,7 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
     result.valid = false;
     if (async) {
       // Insert into the pending connections queue
+      // todo: constructor for next 7 lines
       arPhleetServiceRequest temp;
       temp.componentID = componentID;
       temp.computer = computer;
@@ -455,12 +447,11 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
   while ( i != _requestedServices.end() ){
     if ( i->serviceName == serviceName ){
       result.push_back(*i);
-      // removes the current element and returns an iterator to the next
-      // element
+      // remove the current element and get an iterator to the next element
       i = _requestedServices.erase(i);
     }
     else{
-      i++;
+      ++i;
     }
   }
   _unlock();
@@ -553,13 +544,14 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
                                                    const string& computer,
 						   const string& serviceName){
   _lock();
-  // See if the service actually exists.
   SZGServiceData::iterator k = _usedServices.find(serviceName);
   if (k == _usedServices.end()){
+    _unlock();
     return;
   }
-  // could be that we actually need to create a component data entry here
+  // Service exists.
   if (_componentData.find(componentID) == _componentData.end()){
+    // Create a component data entry.
     arBrokerComponentData temp;
     temp.computer = computer;
     _componentData.insert(SZGComponentData::value_type(componentID,temp));
@@ -569,7 +561,8 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
   // Add the serviceName to the list of services upon whose
   // release the component expects to be notified.
   i->second.releaseTags.push_back(serviceName);
-  // Now, add the notification to the service's list
+  // Add the notification to the service's list
+  // todo: constructor for next 3 lines
   arPhleetNotification notification;
   notification.componentID = componentID;
   notification.match = match;
@@ -632,41 +625,36 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   // remove any service requests with this component ID
   SZGRequestList::iterator ii = _requestedServices.begin();
   while ( ii != _requestedServices.end() ){
-    if ( (*ii).componentID == componentID ){
+    if ( ii->componentID == componentID ){
       // this returns an iterator to the next element in the list
       ii = _requestedServices.erase(ii);
     }
     else{
-      ii++;
+      ++ii;
     }
   }
-  // find the component record
+
   SZGComponentData::iterator i = _componentData.find(componentID);
   if (i == _componentData.end()){
-    // Do not print a diagnostic.  This will be called for
-    // every component that leaves the system. It is normal for
-    // a component to have no record in the connection broker (think dex).
+    // Component had no record.  Probably fine, e.g. for the component "dex.exe".
     _unlock();
     return;
   }
+  // todo: factor out i->second from the rest of this function
+
   // Remove all the owned stuff.
-  // first, remove all temporary service tags
+  // Remove all temporary service tags.
   list<string>::iterator j;
-  for (j = i->second.temporaryTags.begin();
-       j != i->second.temporaryTags.end();
-       j++){
+  for (j = i->second.temporaryTags.begin(); j != i->second.temporaryTags.end(); j++){
     _removeService(*j);
   }
   // Remove all used service tags.
-  for (j = i->second.usedTags.begin();
-       j != i->second.usedTags.end();
-       j++){
+  for (j = i->second.usedTags.begin(); j != i->second.usedTags.end(); j++){
     _removeService(*j);
   }
+
   // Traverse the list of release tags and remove this component from them.
-  for (j = i->second.releaseTags.begin();
-       j != i->second.releaseTags.end();
-       j++){
+  for (j = i->second.releaseTags.begin(); j != i->second.releaseTags.end(); j++){
     // Remove the componentID from the service's release list.
     // Bug: more blatant inefficiency.
     SZGServiceData::iterator n = _usedServices.find(*j);
@@ -675,8 +663,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
     // BUG: is it really correct to not look at the temporary services
     // as well?
     if (n != _usedServices.end()){
-      list<arPhleetNotification>::iterator nn 
-        = n->second.notifications.begin();
+      list<arPhleetNotification>::iterator nn = n->second.notifications.begin();
       while (nn != n->second.notifications.end()){
         if (nn->componentID == componentID)
           nn = n->second.notifications.erase(nn);
@@ -691,22 +678,18 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   const SZGComputerData::iterator k = _computerData.find(computer);
   if (k != _computerData.end()){
     list<int>::iterator l;
-    for (l = i->second.temporaryPorts.begin();
-         l != i->second.temporaryPorts.end();
-         l++){
-      k->second.temporaryPorts.remove(*l);
+    for (l = i->second.temporaryPorts.begin(); l != i->second.temporaryPorts.end(); l++){
       // copypaste
+      k->second.temporaryPorts.remove(*l);
       // Append them to the list, but only if the port is still valid
       // (the port block might have changed).
       if (_portValid(*l, k->second)){
         k->second.availablePorts.push_back(*l);
       }
     }
-    for (l = i->second.usedPorts.begin();
-	 l != i->second.usedPorts.end();
-	 l++){
-      k->second.usedPorts.remove(*l);
+    for (l = i->second.usedPorts.begin(); l != i->second.usedPorts.end(); l++){
       // copypaste
+      k->second.usedPorts.remove(*l);
       // Append them to the list, but only if the port is still valid
       // (the port block might have changed).
       if (_portValid(*l, k->second)){
@@ -715,10 +698,8 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
     }
   }
   else{
-    // this really is an error condition
-    cout << "arPhleetConnectionBroker error: on removal of component, could\n"
-	 << "not find expected computer record ( "
-	 << computer << ").\n";
+    ar_log_warning() << "arPhleetConnectionBroker: on removal of component, found no expected computer record '"
+	 << computer << "'.\n";
   }
 
   // finally, remove the component record
@@ -747,18 +728,14 @@ void arPhleetConnectionBroker::print(){
 	 nn++){
       cout << *nn << " ";
     }
-    cout << "\n";
-    cout << "  temporary ports = ";
+    cout << "\n  temporary ports = ";
     for (nn = i->second.temporaryPorts.begin();
-	 nn != i->second.temporaryPorts.end();
-	 nn++){
+	 nn != i->second.temporaryPorts.end(); ++nn){
       cout << *nn << " ";
     }
-    cout << "\n";
-    cout << "  used ports = ";
+    cout << "\n  used ports = ";
     for (nn = i->second.usedPorts.begin();
-	 nn != i->second.usedPorts.end();
-	 nn++){
+	 nn != i->second.usedPorts.end(); ++nn){
       cout << *nn << " ";
     }
     cout << "\n";
@@ -770,36 +747,27 @@ void arPhleetConnectionBroker::print(){
     cout << "  running on computer = " << j->second.computer << "\n";
     cout << "  temporary service tags = ";
     for (mm = j->second.temporaryTags.begin();
-	 mm != j->second.temporaryTags.end();
-	 mm++){
+	 mm != j->second.temporaryTags.end(); mm++){
       cout << *mm << " ";
     }
-    cout << "\n";
-    cout << "  used service tags = ";
+    cout << "\n  used service tags = ";
     for (mm = j->second.usedTags.begin();
-	 mm != j->second.usedTags.end();
-	 mm++){
+	 mm != j->second.usedTags.end(); mm++){
       cout << *mm << " ";
     }
-    cout << "\n";
-    cout << "  service release tags = ";
+    cout << "\n  service release tags = ";
     for (mm = j->second.releaseTags.begin();
-	 mm != j->second.releaseTags.end();
-	 mm++){
+	 mm != j->second.releaseTags.end(); mm++){
       cout << *mm << " ";
     }
-    cout << "\n";
-    cout << "  temporary ports = ";
+    cout << "\n  temporary ports = ";
     for (nn = j->second.temporaryPorts.begin();
-	 nn != j->second.temporaryPorts.end();
-	 nn++){
+	 nn != j->second.temporaryPorts.end(); nn++){
       cout << *nn << " ";
     }
-    cout << "\n";
-    cout << "  used ports = ";
+    cout << "\n  used ports = ";
     for (nn = j->second.usedPorts.begin();
-	 nn != j->second.usedPorts.end();
-	 nn++){
+	 nn != j->second.usedPorts.end(); nn++){
       cout << *nn << "\n";
     }
     cout << "\n";
