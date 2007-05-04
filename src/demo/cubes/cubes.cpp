@@ -17,7 +17,7 @@
 #include "arCallbackInteractable.h"
 #include <list>
 
-const int NUMBER_OBJECTS = 200;
+const int NUMBER_OBJECTS = 100;
 
 // dragWand uses matrix 1, has 6 buttons mapped from input button 2
 // to output button 2. This means that you can access input buttons
