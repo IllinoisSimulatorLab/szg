@@ -6,12 +6,6 @@
 #ifndef AR_THREAD_H
 #define AR_THREAD_H
 
-#ifdef AR_USE_WIN_32
-#include <process.h>
-#else
-#include <pthread.h>
-#endif
-
 #include "arLanguageCalling.h"
 
 //******************************************
@@ -19,9 +13,20 @@
 //******************************************
 
 #ifdef AR_USE_WIN_32
+
+  // needed to make python bindings
+  #ifndef HANDLE
+  #include "arPrecompiled.h"
+  #endif
+
+#include <process.h>
 typedef CRITICAL_SECTION arMutex;
+
 #else
+
+#include <pthread.h>
 typedef pthread_mutex_t arMutex;
+
 #endif
 
 void SZG_CALL ar_mutex_init(arMutex*);
