@@ -8,7 +8,6 @@
 
 #include "arDatabaseNode.h"
 #include "arDatabaseLanguage.h"
-#include "arThread.h"
 #include "arNameNode.h"
 #include "arStructuredDataParser.h"
 #include "arLanguageCalling.h"

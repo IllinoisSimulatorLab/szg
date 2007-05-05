@@ -6,7 +6,7 @@
 #ifndef AR_LOG_STREAM_H
 #define AR_LOG_STREAM_H
 
-#include "arThread.h"
+#include "arThread.h" // for arLock
 #include "arLanguageCalling.h"
 
 #include <iostream>

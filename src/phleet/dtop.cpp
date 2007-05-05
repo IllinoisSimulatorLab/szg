@@ -21,7 +21,6 @@ int main(int argc, char** argv){
 }
 #else
 
-#include "arThread.h"
 extern "C"{
 #include <curses.h>
 }

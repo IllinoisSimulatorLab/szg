@@ -10,7 +10,6 @@
 #include "arSoundClient.h"
 #include "arMath.h"
 #include "arSoundFile.h"
-#include "arThread.h"
 #include "arSZGClient.h"
 #include "arLogStream.h"
 

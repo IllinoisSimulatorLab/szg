@@ -13,7 +13,6 @@
 #elif defined( AR_USE_SGI )
 #endif
 
-#include "arThread.h"
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"
 #include "arGraphicsCalling.h"

@@ -4,7 +4,6 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arThread.h"
 #include "arDataUtilities.h"
 
 #include <errno.h>

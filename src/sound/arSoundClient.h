@@ -11,7 +11,6 @@
 #include "arDataType.h"
 #include "arSyncDataClient.h"
 #include <string>
-#include "arThread.h"
 #include "arSoundCalling.h"
 
 #ifdef AR_USE_WIN_32

@@ -6,7 +6,6 @@
 #ifndef AR_PHLEET_CONNECTION_BROKER_H
 #define AR_PHLEET_CONNECTION_BROKER_H
 
-#include "arThread.h"
 #include "arDataUtilities.h"
 #include "arPhleetCalling.h"
 

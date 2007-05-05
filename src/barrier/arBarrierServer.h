@@ -6,7 +6,6 @@
 #ifndef AR_BARRIER_SERVER_H
 #define AR_BARRIER_SERVER_H
 
-#include "arThread.h"
 #include "arDataUtilities.h"
 #include "arDataServer.h"
 #include "arSZGClient.h"

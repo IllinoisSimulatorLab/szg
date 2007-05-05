@@ -7,7 +7,6 @@
 #define AR_INPUT_STATE_H
 
 #include "arMath.h"
-#include "arThread.h"
 #include "arInputEvent.h"
 #include <vector>
 #include <ostream>

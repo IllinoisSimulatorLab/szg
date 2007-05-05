@@ -5,7 +5,6 @@
 
 #include "arPrecompiled.h"
 #include "arNavigationUtilities.h"
-#include "arThread.h"
 
 namespace arNavigationSpace {
   bool _navInverseDirty = false;

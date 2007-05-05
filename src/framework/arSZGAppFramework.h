@@ -8,7 +8,6 @@
 
 #include "arInputSimulator.h"
 #include "arFramerateGraph.h"
-#include "arThread.h"
 #include "arSZGClient.h"
 #include "arInputNode.h"
 #include "arInputState.h"

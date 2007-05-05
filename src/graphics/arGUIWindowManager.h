@@ -9,7 +9,6 @@
 #include <map>
 #include <vector>
 
-#include "arThread.h"
 #include "arGUIDefines.h"
 #include "arGraphicsCalling.h"
 

@@ -7,7 +7,6 @@
 #define AR_FOB_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 
 #ifdef AR_USE_WIN_32
   #include <wtypes.h>

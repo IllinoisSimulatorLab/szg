@@ -7,7 +7,6 @@
 #define AR_SZG_CLIENT_H
 
 #include "arDataClient.h"
-#include "arThread.h"
 #include "arUDPSocket.h"
 #include "arStructuredDataParser.h"
 #include "arPhleetConfig.h"

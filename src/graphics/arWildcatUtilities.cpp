@@ -6,7 +6,6 @@
 #include "arPrecompiled.h"
 #include "arWildcatUtilities.h"
 #include "arDataUtilities.h"
-#include "arThread.h"
 #include "arLogStream.h"
 
 namespace arWildcatNamespace {

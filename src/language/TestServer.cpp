@@ -10,7 +10,6 @@
 #include "arStructuredData.h"
 #include "arDataTemplate.h"
 #include "arTemplateDictionary.h"
-#include "arThread.h"
 #include <sstream>
 
 arDataServer* dataServer = NULL;

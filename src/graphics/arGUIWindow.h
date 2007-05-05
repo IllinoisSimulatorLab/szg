@@ -17,7 +17,6 @@
  #endif
 #endif
 
-#include "arThread.h"
 #include "arGraphicsWindow.h"
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"

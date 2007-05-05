@@ -11,7 +11,6 @@
 #include "arPhleetConfig.h"
 #include "arPhleetConnectionBroker.h"
 #include "arPhleetOSLanguage.h"
-#include "arThread.h"
 #include "arUDPSocket.h"
 
 #include <stdio.h>

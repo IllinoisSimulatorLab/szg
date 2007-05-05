@@ -8,7 +8,7 @@
 
 #include "arGraphicsHeader.h"
 #include "arDataType.h"
-#include "arThread.h"
+#include "arThread.h" // for arLock
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>

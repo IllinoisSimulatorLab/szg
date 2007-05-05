@@ -12,7 +12,7 @@
 
 #include "arDataUtilities.h"
 #include "arSocketAddress.h"
-#include "arThread.h"
+#include "arThread.h" // for arIntAtom
 
 #include "arLanguageCalling.h"
 

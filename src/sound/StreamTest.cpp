@@ -15,7 +15,6 @@ TODO:  change printf's to cout and cerr.
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arThread.h"
 #include "arSZGClient.h"
 #include "fmodStub.h"
 #include <math.h>

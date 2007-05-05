@@ -9,7 +9,6 @@
 #include "arStructuredData.h"
 #include "arTemplateDictionary.h"
 #include "arDataUtilities.h"
-#include "arThread.h"
 #include "arBuffer.h"
 #include "arTextStream.h"
 #include "arFileTextStream.h"

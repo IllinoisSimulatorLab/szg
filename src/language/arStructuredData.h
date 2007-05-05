@@ -12,11 +12,6 @@ class arLanguage;
 #include "arDataUtilities.h"
 #include "arLanguage.h" // for error-reporting constructor
 
-//*******************************************************************
-// AAAAAAARRRRRRRGGGHHHHHHH
-#include "arThread.h"
-//*******************************************************************
-
 #include "arLanguageCalling.h"
 
 #include <iostream>
