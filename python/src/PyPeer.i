@@ -113,8 +113,6 @@ class arDatabase{
   virtual void reset();
   void printStructure(int maxLevel);
   void printStructure();
-  void ps(int maxLevel);
-  void ps();
 %pythoncode{
   def permute(self, parent, children):
       c = []
@@ -240,8 +238,6 @@ class arDatabaseNode{
 
   void printStructure();
   void printStructure(int maxLevel);
-  void ps();
-  void ps(int maxLevel);
 
   void permuteChildren(int number, int* children);
 
