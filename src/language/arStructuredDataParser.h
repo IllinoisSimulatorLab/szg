@@ -89,16 +89,13 @@ class SZG_CALL arStructuredDataParser{
   arTemplateDictionary* _dictionary;
   list<arBuffer<char>*> _translationBuffers;
 
-  // Serialize access to complex message storage
-  arLock _globalLock; 
-  // Serialize access to unused message storage
-  arLock _recycleLock;
+  arLock _globalLock; // Guard complex message storage
+  arLock _recycleLock; // Guard unused message storage
+  arLock _translationBufferListLock; // Guard the list of translation buffers
   // For clearQueues/activateQueues
   arLock _activationLock;
   // true iff "clients" may grab data from queues
   bool _activated;
-  // Serialize access to the list of translation buffers
-  arLock _translationBufferListLock; 
 
   void _pushOntoQueue(arStructuredData* theData);
   void _pushOntoTaggedQueue(int tag, arStructuredData* theData);

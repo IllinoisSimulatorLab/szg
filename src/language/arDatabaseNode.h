@@ -111,6 +111,7 @@ class SZG_CALL arDatabaseNode{
   int    _typeCode;
   string _typeString;
 
+  // _databaseOwner _parent _children aren't guarded by a specific arLock.
   // THIS IS A LITTLE OBNOXIOUS... the arGraphicsDatabase and arSoundDatabase
   // both have a referenced owning database and language. Which is duplicated
   // here.... This will be solved once all the database operations are
