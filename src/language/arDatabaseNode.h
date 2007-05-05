@@ -63,13 +63,9 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* findNodeByType(const string& nodeType, bool refNode = false);
   arDatabaseNode* findNodeByTypeRef(const string& nodeType);
 
-  void printStructure(){ printStructure(10000); }
-  void printStructure(int maxLevel){ printStructure(maxLevel, cout); }
+  void printStructure() { printStructure(10000); }
+  void printStructure(int maxLevel) { printStructure(maxLevel, cout); }
   void printStructure(int maxLevel, ostream& s);
-  // Abbreviations for the above.
-  void ps(){ printStructure(); }
-  void ps(int maxLevel){ printStructure(maxLevel); }
-  void ps(int maxLevel, ostream& s){ printStructure(maxLevel, s); }
 
   virtual arStructuredData* dumpData();
   virtual bool receiveData(arStructuredData*);
@@ -80,9 +76,11 @@ class SZG_CALL arDatabaseNode{
   void permuteChildren(list<arDatabaseNode*>& children);
   void permuteChildren(int number, int* children);
 
-  int getID() const;
-  inline arDatabase* getOwner() const { return _databaseOwner; }
-  arDatabaseNode* getParent() const;
+  inline bool isroot() const;
+  inline int getID() const;
+  inline arDatabase* getOwner() const;
+  inline arDatabaseNode* getParent() const;
+
   // A version of getParent() that is thread-safe with respect to database
   // manipulations. The arDatabaseNode ptr returned has an extra reference
   // added to it (will not be deleted out from under us, for instance).

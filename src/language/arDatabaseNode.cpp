@@ -39,8 +39,7 @@ arDatabaseNode::~arDatabaseNode(){
 // whether or not to route our function calls through the arDatabase message
 // stream OR through the local memory).
 bool arDatabaseNode::active(){
-  // The root node is the unique node with ID = 0
-  return getOwner() && (getParent() || getID() == 0);
+  return getOwner() && (getParent() || isroot());
 }
 
 void arDatabaseNode::ref(){
@@ -76,20 +75,14 @@ arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
 bool arDatabaseNode::addChild(arDatabaseNode* child){
   // Bug: should test that the new child has the right type,
   // e.g. arGraphicsNode doesn't match arSoundNode.
-  if (!child || getOwner() || child->getOwner())
-    return false;
-
-  return _addChild(child);
+  return child && !getOwner() && !child->getOwner() && _addChild(child);
 }
 
 // Remove an existing node from the child list of this node.
 // Return false on failure, e.g. if one of the nodes
 // is owned by an arDatabase.
 bool arDatabaseNode::removeChild(arDatabaseNode* child){
-  if (!child || getOwner() || child->getOwner())
-    return false;
-
-  return _removeChild(child);
+  return child && !getOwner() && !child->getOwner() && _removeChild(child);
 }
 
 string arDatabaseNode::getName() {
@@ -125,7 +118,7 @@ string arDatabaseNode::getInfo() {
 }
 
 void arDatabaseNode::setInfo(const string& info){
-  if (getName() == "root"){
+  if (isroot()) {
     cout << "arDatabaseNode warning: can't set info of root.\n";
     return;
   }
@@ -204,8 +197,8 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     // Called by a subclass, which already printed a diagnostic.
     return false;
   } 
-  if (getName() == "root"){
-    cout << "arDatabaseNode warning: failed to set root name.\n";
+  if (isroot()) {
+    ar_log_warning() << "arDatabaseNode::receiveData cannot rename root node.\n";
   }
   else{
     _lockName.lock();
@@ -257,11 +250,20 @@ void arDatabaseNode::permuteChildren(int number, int* children){
 // looking towards the future.
 //**********************************************************************
 
-int arDatabaseNode::getID() const { 
+inline bool arDatabaseNode::isroot() const { 
+  // Equivalently, getName() == "root".  But this method is faster.
+  return _ID == 0;
+}
+
+inline int arDatabaseNode::getID() const { 
   return _ID; 
 }
 
-arDatabaseNode* arDatabaseNode::getParent() const{ 
+inline arDatabase* arDatabaseNode::getOwner() const {
+  return _databaseOwner;
+}
+
+inline arDatabaseNode* arDatabaseNode::getParent() const{ 
   return _parent; 
 }
 

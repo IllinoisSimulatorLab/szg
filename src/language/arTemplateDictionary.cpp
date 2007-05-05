@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arTemplateDictionary.h"
+#include "arLogStream.h"
 
 arTemplateDictionary::arTemplateDictionary() :
   _numberTemplates(0)
@@ -19,8 +20,7 @@ arTemplateDictionary::arTemplateDictionary(arDataTemplate* t) :
 
 arTemplateDictionary::~arTemplateDictionary(){
   for (arOwnerType::iterator i = _ownershipContainer.begin();
-       i != _ownershipContainer.end();
-       ++i){
+       i != _ownershipContainer.end(); ++i){
     if (i->second){
       // Template was created by the dictionary (via unpack)
       delete _templateContainer.find(i->first)->second;
@@ -124,23 +124,18 @@ void arTemplateDictionary::renumber(){
   }
 }
 
-int arTemplateDictionary::size(){
-  int total = 3*AR_INT_SIZE; // header size
-  arTemplateType::iterator iTemplate;
-  for (iTemplate = _templateContainer.begin();
-       iTemplate != _templateContainer.end();
-       ++iTemplate){
-    // add in length of template's name
+int arTemplateDictionary::size() const {
+  int total = 3*AR_INT_SIZE; // header
+  for (arTemplateType::const_iterator iTemplate = _templateContainer.begin();
+       iTemplate != _templateContainer.end(); ++iTemplate){
+    // length of template's name
     total += ar_fieldSize(AR_CHAR,iTemplate->first.length());
-                                              
-    total += 8*AR_INT_SIZE; // 2 ARint for string field header
-                            // and 3 more for following AR_GARBAGE field
-                            // and 3 more for the ID
-    arDataTemplate* theTemplate = iTemplate->second;
-    for (arAttribute::iterator iter(theTemplate->attributeBegin());
-         iter != theTemplate->attributeEnd();
-         ++iter){
-      total += ar_fieldSize(AR_CHAR, iter->first.length()) + 5*AR_INT_SIZE;
+    // 2 ARint for string field header, 3 for following AR_GARBAGE field, 3 for ID.
+    total += 8*AR_INT_SIZE;
+    const arDataTemplate* theTemplate = iTemplate->second;
+    for (arAttribute::const_iterator iAttr(theTemplate->attributeConstBegin());
+         iAttr != theTemplate->attributeConstEnd(); ++iAttr){
+      total += ar_fieldSize(AR_CHAR, iAttr->first.length()) + 5*AR_INT_SIZE;
     }
   }
   // Pad record to an 8-byte boundary.
@@ -165,16 +160,14 @@ static void ar_packDataField(
   position += ar_fieldSize(type,length);
 }
 
-void arTemplateDictionary::pack(ARchar* dest){
+void arTemplateDictionary::pack(ARchar* dest) const {
   // (Fill in the first three fields later.)
   ARint position = 3*AR_INT_SIZE;
   ARint recordID = 0; // ID we'll assign to this record
   ARint numFields = 0;
-  arTemplateType::iterator iTemplate;
-  for (iTemplate = _templateContainer.begin();
-       iTemplate != _templateContainer.end();
-       ++iTemplate){
-    string templateName = iTemplate->first;
+  for (arTemplateType::const_iterator iTemplate = _templateContainer.begin();
+       iTemplate != _templateContainer.end(); ++iTemplate){
+    const string& templateName = iTemplate->first;
 
     // Pack the name field.
     ar_packDataField(dest, position, AR_CHAR,
@@ -194,26 +187,24 @@ void arTemplateDictionary::pack(ARchar* dest){
     // Pack the template fields.
     arDataTemplate* theTemplate = iTemplate->second;
 
-    // This way is correct, but takes quadratic instead of linear time.
+    // Quadratic instead of linear in getNumberAttributes(), sigh.
     for (int i = 0; i < theTemplate->getNumberAttributes(); ++i){
 
-      // Find iAttribute such that iAttribute->second.second == i.
-      // Pack THAT one.  So they're packed in the correct order,
-      // the same order that as arStructuredData::arStructuredData().
+      // Pack the iAttr whose iAttr->second.second == i, so packing
+      // has the same order as arStructuredData::arStructuredData().
 
-      for (arAttribute::iterator iAttribute(theTemplate->attributeBegin());
-           iAttribute != theTemplate->attributeEnd();
-           ++iAttribute){
-	if (iAttribute->second.second != i)
+      for (arAttribute::const_iterator iAttr(theTemplate->attributeBegin());
+           iAttr != theTemplate->attributeEnd(); ++iAttr){
+	if (iAttr->second.second != i)
 	  continue;
 
 	// Pack the field name.
-	string attributeName = iAttribute->first;
+	string attributeName = iAttr->first;
 	ar_packDataField(dest, position, AR_CHAR,
 	  attributeName.length(), attributeName.data());
 
 	// Pack the data type.
-	ARint attributeType = iAttribute->second.first;
+	ARint attributeType = iAttr->second.first;
 	ar_packDataField(dest, position, AR_INT, 1, &attributeType);
 
 	numFields += 2;

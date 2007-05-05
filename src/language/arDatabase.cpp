@@ -1056,9 +1056,6 @@ bool arDatabase::_initDatabaseLanguage(){
   return true;
 }
 
-// Many functions in this C++ file call _getNodeNoLock instead
-// of getNode, when already _lock()'ed.
-
 // Convert an ID into a node pointer while already _lock()'d.
 arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
   const arNodeIDIterator i(_nodeIDContainer.find(ID));
@@ -1356,10 +1353,9 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
 // Cuts a node from the database (the node's children become the children
 // of the parent).
 void arDatabase::_cutNode(arDatabaseNode* node){
-  if (node->getID() == 0){
-    // This is the root node. Do nothing.
+  if (node->isroot())
     return;
-  }
+
   arDatabaseNode* parent = node->getParent();
   // Every node except for the root node will have a parent (since it must
   // be part of this database, given how we've been called). Still, check.

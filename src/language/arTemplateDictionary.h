@@ -41,8 +41,8 @@ class SZG_CALL arTemplateDictionary{
    // Byte-stream representation.
    // AARGH! THESE ARE BROKEN WITH RESPECT TO RENUMBERING!
    // FORTUNATELY, THAT ONLY OCCURS IN arMasterSlaveDataRouter...
-   int size();
-   void pack(ARchar*); 
+   int size() const;
+   void pack(ARchar*) const;
    bool unpack(ARchar*,arStreamConfig);  
    bool unpack(ARchar* buf)
      { return unpack(buf, ar_getLocalStreamConfig()); };

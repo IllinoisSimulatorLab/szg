@@ -91,7 +91,7 @@ arStructuredData* arStructuredDataParser::getStorage(int ID){
   arDataTemplate* theTemplate = _dictionary->find(ID);
   if (theTemplate) {
     _recycleLock.lock();
-    SZGrecycler::const_iterator i = recycling.find(ID);
+    const SZGrecycler::const_iterator i = recycling.find(ID);
     if (i == recycling.end()) {
       // Create recycling list.
       SZGdatalist* tmp = new SZGdatalist;
@@ -675,7 +675,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 void arStructuredDataParser::recycle(arStructuredData* trash){
   const int ID = trash->getID();
   _recycleLock.lock();
-  SZGrecycler::const_iterator i = recycling.find(ID);
+  const SZGrecycler::const_iterator i = recycling.find(ID);
   if (i != recycling.end()) {
     // Found recycling for this ID.
     i->second->push_back(trash);

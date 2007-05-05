@@ -44,7 +44,8 @@ class SZG_CALL arDataTemplate{
      { return _templateName; }
    int getID() const
      { return _templateID; }
-   void setID(int ID){ _templateID = ID; }
+   void setID(int ID)
+     { _templateID = ID; }
    int getAttributeID(const string&) const;
    arDataType getAttributeType(const string&) const;
    int getNumberAttributes() const
@@ -56,7 +57,11 @@ class SZG_CALL arDataTemplate{
      { return _attributeContainer.begin(); }
    arAttribute::iterator attributeEnd()
      { return _attributeContainer.end(); }
-   
+   arAttribute::const_iterator attributeConstBegin() const
+     { return _attributeContainer.begin(); }
+   arAttribute::const_iterator attributeConstEnd() const
+     { return _attributeContainer.end(); }
+
  private:
    string _templateName;
    int    _templateID; // set by owning dictionary

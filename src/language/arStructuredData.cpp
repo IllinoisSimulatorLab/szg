@@ -61,18 +61,16 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
   _storageDimension = new ARint[_numberDataItems];
   _dataName = new string[_numberDataItems];
   _dataType = new arDataType[_numberDataItems];
-  for (arAttribute::iterator iAttribute(theTemplate->attributeBegin());
-       iAttribute != theTemplate->attributeEnd();
-       ++iAttribute){
-    const int i = iAttribute->second.second;
+  for (arAttribute::const_iterator iAttr(theTemplate->attributeBegin());
+       iAttr != theTemplate->attributeEnd(); ++iAttr){
+    const int i = iAttr->second.second;
     _dataPtr[i] = NULL;
     _owned[i] = false;
     _dataDimension[i] = 0;
     _storageDimension[i] = 0;
-    _dataName[i] = iAttribute->first;
-    _dataType[i] = iAttribute->second.first;
-    _dataNameMap.insert(arNameMap::value_type
-    		        (iAttribute->first,i));
+    _dataName[i] = iAttr->first;
+    _dataType[i] = iAttr->second.first;
+    _dataNameMap.insert(arNameMap::value_type(iAttr->first, i));
     if (_dataType[i] == AR_GARBAGE){
       ar_log_warning() << "arStructuredData template " << _name <<
         " has not-yet-typed attribute (# " << i << ", name " << _dataName[i] << ").\n";
@@ -373,7 +371,7 @@ bool arStructuredData::setDataDimension(int field, int dim){
   return true;
 }
 
-int arStructuredData::getStorageDimension(const int field) const {
+int arStructuredData::getStorageDimension(int field) const {
   if (_numberDataItems <= 0){
     cerr << "arStructuredData warning: ignoring getStorageDimension() for empty \""
          << _name << "\".\n";
