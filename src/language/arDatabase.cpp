@@ -455,13 +455,18 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
     }
     return pNode;
   }
-  // Use _getNodeNoLock instead of getNode.
-  // Subclasses may call this within _lock()/_unlock().
-  // This node pointer needs no extra reference (unlike the make node
-  // or insert cases, where new nodes can be created).
-  pNode = _getNodeNoLock(inData->getDataInt(_routingField[dataID]));
+
+  // Use _getNodeNoLock instead of getNode, since
+  // subclasses may call this within _lock()/_unlock().
+  // pNode needs no extra ref(), unlike the make node
+  // or insert cases, where new nodes can be created.
+
+  const int id = inData->getDataInt(_routingField[dataID]);
+  pNode = _getNodeNoLock(id);
   if (!pNode) {
-    ar_log_error() << "arDatabaseNode _getNodeNoLock() failed.\n";
+    ar_log_warning() << "arDatabaseNode::alter() _getNodeNoLock() failed:\n";
+    // Re-fail, but with an error message this time.
+    (void)_getNodeNoLock(id, true);
     return NULL;
   }
 
@@ -1063,6 +1068,12 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
     if (fWarn){
       ar_log_warning() << "arDatabase: no node with ID " << ID <<
 	   (empty() ? " in empty database.\n" : ".\n");
+      ar_log_debug() << "arDatabase: nodes are (ID, name, info):\n";
+      for (arNodeIDIterator j(_nodeIDContainer.begin());
+        j != _nodeIDContainer.end(); ++j) {
+        ar_log_debug() << "\t" << j->first << ", " << j->second->getName() << ", " <<
+	  j->second->getInfo() << "\n";
+      }
     }
     return NULL;
   }
@@ -1094,7 +1105,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   
   // If no parent node exists, then there is nothing to do.
-  arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
+  arDatabaseNode* parentNode = _getNodeNoLock(parentID);
   if (!parentNode){
     cout << "arDatabase warning: no parent (ID=" << parentID << ").\n";
     return NULL;
@@ -1105,7 +1116,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   if (theID != -1){
     // Insert a node with a specific ID.
     // If there is already a node by this ID, just use it.
-    arDatabaseNode* pNode = _getNodeNoLock(theID, false);
+    arDatabaseNode* pNode = _getNodeNoLock(theID);
     if (pNode){
       // Determine if the existing node is suitable for "mapping".
       if (pNode->getTypeString() == type){
@@ -1141,6 +1152,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
 
 // Inserts a new node between existing nodes (parent and child).
 arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
+
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
@@ -1148,18 +1160,21 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   int nodeID = data->getDataInt(_lang->AR_INSERT_ID);
   string nodeName = data->getDataString(_lang->AR_INSERT_NAME);
   string nodeType = data->getDataString(_lang->AR_INSERT_TYPE);
+
   // Check that both parent and child nodes (between which we will insert)
   // exist. If not, return an error.
   // DO NOT print warnings if the node is not found (the meaning of the
   // second "false" parameter).
-  arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
-  arDatabaseNode* childNode = _getNodeNoLock(childID, false);
+  arDatabaseNode* parentNode = _getNodeNoLock(parentID);
+  arDatabaseNode* childNode = _getNodeNoLock(childID);
+
   // Only the parentNode is assumed to exist. If childID is -1, then we
   // do not deal with the child node.
   if (!parentNode || (!childNode && childID != -1)){
     cout << "arDatabase error: either parent or child does not exist.\n";
     return NULL;
   }
+
   // If the child is specified, check that the child is, indeed, a child 
   // of the parent.
   if (childNode && (childNode->getParent() != parentNode)){
@@ -1167,11 +1182,12 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
 	 << "parent.\n";
     return NULL;
   }
+
   // If the node ID is specified (i.e. not -1), check that there is no node 
   // with that ID. Insert (unlike add) does not support node "mappings". If
   // a node exists with the ID, return an error.
   if (nodeID > -1){
-    if (_getNodeNoLock(nodeID, false)){
+    if (_getNodeNoLock(nodeID)){
       return NULL;
     }
   }
@@ -1301,9 +1317,13 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   // Set ID appropriately.
   if (nodeID == -1){
     // Assign an ID automatically.
+    ar_log_debug() << "\tNew node " << _nextAssignedID << ", name " << node->getName() <<
+      ", info " << node->getInfo() << ".\n";
     node->_setID(_nextAssignedID++);
   }
   else{
+    ar_log_debug() << "\tNew node with specified ID " << nodeID << ", name " << node->getName() <<
+      ", info " << node->getInfo() << ".\n";
     node->_setID(nodeID);
     if (_nextAssignedID <= nodeID){
       _nextAssignedID = nodeID+1;
@@ -1332,22 +1352,20 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
     _eraseNode(*i);
   }
   node->_removeAllChildren();
-  // If this is not the root node, remove it from the node ID
+  if (node->isroot())
+    return;
+
+  // Remove node from the node ID
   // container AND release our reference to it. If no one holds an external
   // reference to it, then it will delete itself.
+
   const int nodeID = node->getID();
-  if (nodeID != 0){
-    _nodeIDContainer.erase(nodeID);
-    // Must call the node's deactivate method. The arGraphicsDatabase, for
-    // instance, uses this to remove the lights of deleted nodes from its
-    // list.
-    node->deactivate();
-    // Must remove our, internal, arDatabase ref to the node.
-    // This ref happens when our factory creates the node.
-    // Recall that we are unref-ing nodes, not deleting them.
-    // Someone (external) might be holding a pointer to the node.
-    node->unref();
-  }
+  ar_log_debug() << "\tDeleting node (id,name,info) " << nodeID << ", " <<
+    node->getName() << ", " << node->getInfo() << ".\n";
+
+  _nodeIDContainer.erase(nodeID);
+  node->deactivate();
+  node->unref();
 }
 
 // Cuts a node from the database (the node's children become the children
@@ -1366,11 +1384,13 @@ void arDatabase::_cutNode(arDatabaseNode* node){
   parent->_removeChild(node);
   // Attach the children to their new parent.
   parent->_stealChildren(node);
-  // Must remove the node from the database's storage.
+
+  const int nodeID = node->getID();
+  ar_log_debug() << "\tCutting node (id,name,info) " << nodeID << ", " <<
+    node->getName() << ", " << node->getInfo() << ".\n";
+
   _nodeIDContainer.erase(node->getID());
-  // Must call the node's deactivate method.
   node->deactivate();
-  // Must unreference the node, which might cause a delete.
   node->unref();
 }
 
