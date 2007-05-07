@@ -242,31 +242,6 @@ void arDatabaseNode::permuteChildren(int number, int* children){
   }
 }
 
-//**********************************************************************
-// These accessor functions (combined with the next block of functions)
-// should be the only way(s) that external code touches _databaseOwner,
-// _ID, _parent, and _children. Even though these are simple functions,
-// do not put them in the header file. This gives us greater flexibility
-// looking towards the future.
-//**********************************************************************
-
-inline bool arDatabaseNode::isroot() const { 
-  // Equivalently, getName() == "root".  But this method is faster.
-  return _ID == 0;
-}
-
-inline int arDatabaseNode::getID() const { 
-  return _ID; 
-}
-
-inline arDatabase* arDatabaseNode::getOwner() const {
-  return _databaseOwner;
-}
-
-inline arDatabaseNode* arDatabaseNode::getParent() const{ 
-  return _parent; 
-}
-
 // A little bit unusual. To achieve thread-safety with respect to the
 // owning database, we must have the owning database (if such exists)
 // execute the function. If there is no owning database, just ref the

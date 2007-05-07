@@ -76,10 +76,26 @@ class SZG_CALL arDatabaseNode{
   void permuteChildren(list<arDatabaseNode*>& children);
   void permuteChildren(int number, int* children);
 
-  inline bool isroot() const;
-  inline int getID() const;
-  inline arDatabase* getOwner() const;
-  inline arDatabaseNode* getParent() const;
+//**********************************************************************
+// These accessor functions (combined with the next block of functions)
+// should be the only way(s) that external code touches _databaseOwner,
+// _ID, _parent, and _children. Even though these are simple functions,
+// do not put them in the header file. This gives us greater flexibility
+// looking towards the future.
+//**********************************************************************
+  inline bool isroot() const { 
+    // Equivalently, getName() == "root".  But this method is faster.
+    return _ID == 0;
+  }
+  inline int getID() const { 
+    return _ID; 
+  }
+  inline arDatabase* getOwner() const {
+    return _databaseOwner;
+  }
+  inline arDatabaseNode* getParent() const{ 
+    return _parent; 
+  }
 
   // A version of getParent() that is thread-safe with respect to database
   // manipulations. The arDatabaseNode ptr returned has an extra reference
