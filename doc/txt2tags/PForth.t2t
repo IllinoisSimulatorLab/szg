@@ -18,12 +18,23 @@ language, which is used by the input filter arPForthFilter. Each
 instance of DeviceServer contains an arPForthFilter, and so does
 inputsimulator. The intent is to provide a means of performing simple
 manipulations on input events based on information in a text file.
+
+PForth is a FORTH-like language. This is, it's
+stack-based and uses RPN notation like an HP calculator. For example, to add
+two numbers together you would type ``3 2 +`` ("Place the numbers 3 and 2 on
+the stack, then call the '+' word, which takes the top two numbers off the stack
+and pushes their sum onto the stack"). PForth is compiled; when the PForth filter
+is loaded, the source code gets converted into an STL vector<> of pointers to
+objects, one for each PForth word. Running a filter word consists in iterating
+through its vector<> of pointers and calling ``i->action()`` for each one, so it's
+quite fast.
+
 PForth is virtually identical in usage to Forth, except it has a very
 limited vocabulary geared towards manipulating input events, and some
-of the less informative word names have been changed (for example, "!"
+of the less informative words have been changed (for example, "!"
 and "@" have been renamed "store" and "fetch"). New words can be
-defined from sequences of existing words, as in a Forth
-colon-definition, or entirely new actions can be written in C++; see
+defined from sequences of existing words using "define" and "enddef", as in a Forth
+":"/";" colon-definition, or entirely new actions can be written in C++; see
 arPForthStandardVocabulary.cpp for examples.
 
 
@@ -459,7 +470,7 @@ when an event of the appropriate type and index comes in. For example, to apply
 a filter only to the head matrix (matrix event #0), define the word
 **filter_matrix_0**.
 
-If a given matches the pattern for more than one word (e.g. a matrix event #0 comes in and
+If a given event matches the pattern for more than one word (e.g. a matrix event #0 comes in and
 you have defined the words **filter_all_matrices** and **filter_matrix_0**),
 then both will be called, with the more general one (**filter_all_matrices**) coming first.
 

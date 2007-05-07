@@ -387,10 +387,6 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
     
-    if (_soundNavMatrixID == -1) {
-      _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
-    }
-    
     // Before _loadParameters, so the internal sound client,
     // created in _initStandaloneObjects, can be configured for standalone.
     if( !_initStandaloneObjects() ) {
@@ -1893,6 +1889,9 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
 // fold init and start in together.
 bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
   _soundServer.start();
+  if (_soundNavMatrixID == -1) {
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+  }
   _soundActive = true;
   return true;
 }
@@ -1941,10 +1940,6 @@ LAbort:
     return false;
   }
 
-  if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
-  }
-    
   ar_log_remark() << _label << " initialized master's objects.\n";
   return true;
 }
@@ -2009,6 +2004,10 @@ bool arMasterSlaveFramework::_startMasterObjects() {
     return false;
   }
 
+  if (_soundNavMatrixID == -1) {
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+  }
+    
   _soundActive = true;
 
   ar_log_remark() << _label << " started master's objects.\n";

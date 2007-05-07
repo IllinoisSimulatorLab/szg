@@ -86,8 +86,8 @@ i.e.
 
 [images/AxisTransformMatrix.jpg]
 
-and since these are orthonormal matrices so the inverse is the same as the
-transpose,
+and because these are orthonormal matrices, the inverse is the same as the
+transpose, i.e.:
 
 [images/AxisTransformInvMatrix.jpg]
 
@@ -142,6 +142,16 @@ This device definition loads one device driver plugin (shared library):
 the Bird.dll supplied by Ascension (Windows only). It also defines a PForth
 filter to be applied to the output of this device.
 
+[PForth PForth.html] (or PseudoForth) is a FORTH-like language. This is, it's
+stack-based and uses RPN notation like an HP calculator. For example, to add
+two numbers together you would type ``3 2 +`` ("Place the numbers 3 and 2 on
+the stack, then call the '+' word, which takes the top two numbers off the stack
+and pushes their sum onto the stack"). PForth is compiled; when the PForth filter
+is loaded, the source code gets converted into an STL vector<> of pointers to
+objects, one for each PForth word. Running a filter word consists in iterating
+through its vector<> of pointers and calling ``i->action()`` for each one, so it's
+quite fast.
+
 The filter defines four matrix variables, ``Xin``, ``Xout``, ``C``, and ``Cinv``.
 ``Xin`` and ``Xout`` are just temporary storage for the initial and final
 values of the tracker matrices. ``C`` and ``Cinv`` are the two axis-transformation
@@ -157,8 +167,9 @@ up with the transpose of the matrix as it appears in the PForth source code. The
 
 Finally, the code defines a //filter word//, ``filter_all_matrices``, which will be
 applied to any outgoing matrix event. The matrix value is stored in ``Xin`` in the
-first line, the transformation equation is applied in the second, and the result
-is stuffed back into the matrix event in the third.
+first line, the transformation equation is applied in the second (``concatMatrices``
+multiplies together a variable number of matrices, specified in this case by the '3'),
+and the result is stuffed back into the matrix event in the third.
 
 
 =Correcting Residual Coordinate-Axis Direction Errors=
@@ -168,11 +179,127 @@ Still to do...
 
 =Specifying the Origin Offset=
 
-Still to do...
+Suppose the aforementioned tracker transmitter is mounted two feet off the ground,
+so we need to add 2 to the Y position coordinate of each matrix event from the
+tracker. Modify the PForth program as follows:
+```
+        matrix Xin
+        matrix Xout
+
+        matrix C
+        matrix Cinv
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        C matrixStoreTranspose
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        Cinv matrixStore
+
+        /* create a matrix that translates by (x,y,z)=(0,2,0) */
+        matrix originOffset
+        0 2 0 originOffset translationMatrix
+
+        define filter_all_matrices
+          Xin getCurrentEventMatrix
+          originOffset C Xin Cinv 4 Xout concatMatrices
+          Xout setCurrentEventMatrix
+        enddef
+```
+The tracker origin offset transformation comes //before// the rest.
 
 
 =Correcting Sensor Orientations=
 
-Still to do...
+Now we have the problem of attaching tracking sensors to things that we want to track.
+The natural orientation for the Flock-of-Birds(TM) sensors is base-down with the cord
+pointing forwards. That will most likely not be a convenient way to mount them. Let's say
+that we have two of them and we want to mount one on the left side of a pair of glasses
+with the base facing right and the cord facing the back; this sensor will provide matrix
+event #0. The other one will be mounted
+on the bottom of a gamepad with the base facing up and cord facing back; this will provide
+matrix event #1.
 
+The first mounting transformation can be composed of a 180-degree rotation around the
+Y axis (to get the cord pointing backwards) followed by a -90-degree rotation around the
+Z-axis (remember, after the first rotation the positive Z axis points forwards).
 
+The second one is a 180-degree rotation around Y followed by another 180-degree rotation
+around Z.
+
+We extend the PForth filter as follows:
+```
+        matrix Xin
+        matrix Xout
+
+        matrix C
+        matrix Cinv
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        C matrixStoreTranspose
+
+        0 -1  0  0
+        0  0  -1 0
+        1  0  0  0
+        0  0  0  1
+        Cinv matrixStore
+
+        matrix originOffset
+        0 2 0 originOffset translationMatrix
+
+        /* Apply transmitter coordinate transformations (common
+           to all sensors) */
+        define filter_all_matrices
+          Xin getCurrentEventMatrix
+          originOffset C Xin Cinv 4 Xout concatMatrices
+          Xout setCurrentEventMatrix
+        enddef
+
+        matrix ySensorRot
+        matrix zHeadRot
+        matrix zGPadRot
+        matrix headRot
+        matrix GPadRot
+
+        /* Construct 3 rotation matrices, 2 containing separate
+           Z-rotations for head and gamepad and a common Y-rotation */
+        180 yaxis ySensorRot rotationMatrix
+        -90 zaxis zHeadRot rotationMatrix
+        180 zaxis zGPadRot rotationMatrix
+
+        /* Pre-construct the head and gamepad transformations */
+        ySensorRot zHeadRot headRot matrixMultiply
+        ySensorRot zGPadRot GPadRot matrixMultiply
+
+        /* Then apply mounting transformations for individual
+           sensors */
+        define filter_matrix_0
+          Xin getCurrentEventMatrix
+          Xin headRot Xout matrixMultiply
+          Xout setCurrentEventMatrix
+        enddef
+        define filter_matrix_1
+          Xin getCurrentEventMatrix
+          Xin GPadRot Xout matrixMultiply
+          Xout setCurrentEventMatrix
+        enddef
+```
+
+All of the new code is at the bottom. We need five additional matrices, one
+for each of the three rotation components discussed above and two more
+to hold the concatenation of the two components for the head and for the
+gamepad. We could have left the components separate and multiplied them
+inside the ``define``/``enddef`` blocks using ``concatMatrices``, but that
+would have been less efficient; better to perform the multiplication once
+at compile time when the filter is initialized.
+
+The ``filter_matrix_#`` words are called for matrix events with the appropriate
+index # //after// ``filter_all_matrices`` is called.

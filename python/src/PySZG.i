@@ -25,6 +25,7 @@
 #include <sstream>
 #include <math.h>
 #include <string>
+#include "arThread.h"
 #include "arMath.h"
 #include "arNavigationUtilities.h"
 #include "arDrawableNode.h"

@@ -344,8 +344,8 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
   (void)dsLoop("whale song", "whale sound matrix", "whale.mp3", 1,
     1.0, arVector3(0,0,0));
-//  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3", 1,
-//    0.05, arVector3(0,0,0));
+  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3", 1,
+    0.05, arVector3(0,0,0));
 
   // Register the shared memory.
   fw.addTransferField("fishCoords", fishCoords, AR_FLOAT, NUM_COORDS);
