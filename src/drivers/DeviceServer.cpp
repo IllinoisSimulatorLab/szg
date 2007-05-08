@@ -13,13 +13,131 @@
 #include "arNetInputSource.h"
 #include "arIOFilter.h"
 #include "arFileSink.h"
+
+#ifndef AR_LINKING_STATIC
 #include "arSharedLib.h"
+#else
+// Various device driver headers.
+#include "arJoystickDriver.h"
+#include "arIntelGamepadDriver.h"
+#include "arMotionstarDriver.h"
+#include "arFOBDriver.h"
+#include "arBirdWinDriver.h"
+#include "arFaroDriver.h"
+#include "arSpacepadDriver.h"
+#include "arEVaRTDriver.h"
+#include "arIntersenseDriver.h"
+#include "arVRPNDriver.h"
+#include "arReactionTimerDriver.h"
+#include "arFileSource.h"
+#include "arLogitechDriver.h"
+#include "arPPTDriver.h"
+#endif
 
 // Device drivers.
 #include "arFileSource.h"
 #include "arPForthFilter.h"
 
 #include <map>
+
+#ifdef AR_LINKING_STATIC
+struct DriverTableEntry {
+  const char* arName;
+  const char* serviceName;
+  const char* printableName;
+  const char* netName;
+};
+const int NUM_SERVICES = 20;
+// NOTE: there is a really obnoxious kludge below... namely
+// arFileSource should be able to masquerade as any of the other
+// devices/ services, but it is stuck as SZG_INPUT!
+const struct DriverTableEntry driverTable[NUM_SERVICES] = {
+  { "arJoystickDriver",     "SZG_JOYSTICK", "joystick driver", NULL},
+  { "arIntelGamepadDriver", "SZG_JOYSTICK", "intel gamepad driver", NULL},
+  { "arMotionstarDriver",   "SZG_TRACKER",  "MotionStar driver", NULL},
+  { "arFaroDriver",         "SZG_FARO",     "FaroArm driver", NULL},
+  { "arCubeTracker",        "SZG_INPUT",    "cube tracker", "USED"},
+  { "arFaroFOB",            "SZG_FAROFOB",  "FaroArm/FOB combo", "USED"},
+  { "arFOBDriver",          "SZG_FOB",      "flock-of-birds driver", NULL},
+  { "arBirdWinDriver",      "SZG_FOB",      "WinBird flock-of-birds driver", NULL},
+  { "arFaroCalib",          "SZG_FAROCAL",  "FaroArm/MotionStar combo", "USED"},
+  { "arSpacepadDriver",     "SZG_TRACKER",  "Ascension Spacepad", NULL},
+  { "arIdeskTracker",       "SZG_INPUT",    "IDesk tracker", NULL},
+  { "arEVaRTDriver",        "SZG_EVART",    "EVaRT driver", NULL},
+  { "arFileSource",         "SZG_MOCAP",    "replay of file data", NULL},
+  { "arIntersenseDriver",   "SZG_INPUT",    "intersense trackers", NULL},
+  { "arVRPNDriver",         "SZG_VRPN",     "vrpn bridge", NULL},
+  { "arCubeTrackWand",      "SZG_INPUT",    "cube tracker with Monowand", "USED"},
+  { "arReactionTimer",      "SZG_RT",       "Reaction Timer", NULL},
+  { "arPassiveTracker",     "SZG_INPUT",    "Passive Display Tracker", NULL},
+  { "arLogitechDriver",     "SZG_LOGITECH", "Logitech Tracker", NULL},
+  { "arPPTDriver",          "SZG_PPT",      "WorldViz PPT Tracker", "USED"}
+};
+
+arInputSource* inputSourceFactory( const string& driverName ) {
+  arInputSource* theSource = NULL;
+  int iService;
+  for (iService = 0; iService < NUM_SERVICES; ++iService) {
+    if (driverName == string(driverTable[iService].arName)) {
+      // Found a match.
+      //
+      // This switch() could eventually become an AbstractFactory or
+      // ConcreteFactory (see Design Patterns).
+      switch (iService) {
+      case 0: theSource = new arJoystickDriver;
+        break;
+      case 1: theSource = new arIntelGamepadDriver;
+        break;
+      case 2: theSource = new arMotionstarDriver;
+        break;
+      case 3: theSource = new arFaroDriver;
+        break;
+      case 4: theSource = new arMotionstarDriver;
+        break;
+      case 5: theSource = new arFaroDriver;
+        break;
+      case 6: theSource = new arFOBDriver;
+        break;
+      case 7: theSource = new arBirdWinDriver;
+        break;
+      case 8: theSource = new arMotionstarDriver;
+        break;
+      case 9: theSource = new arSpacepadDriver;
+        break;
+      case 10: theSource = new arSpacepadDriver;
+        break;
+      case 11: theSource = new arEVaRTDriver;
+        break;
+      case 12: theSource = new arFileSource;
+        break;
+      case 13: theSource = new arIntersenseDriver;
+        break;
+      case 14: theSource = new arVRPNDriver;
+        break;
+      case 15: theSource = new arMotionstarDriver();
+        break;
+      case 16: theSource = new arReactionTimerDriver;
+        break;
+      case 17: theSource = new arFOBDriver;
+        break;
+      case 18: theSource = new arLogitechDriver;
+        break;
+      case 19: theSource = new arPPTDriver;
+        break;
+      }
+      break;
+    }
+  }
+  return theSource;
+}
+
+void printDriverList( arLogStream& os ) {
+  os << "Supported input device drivers:\n";
+  for (int i=0; i<NUM_SERVICES; ++i) {
+    os << "\t" << driverTable[i].arName << "\n";
+  }
+}
+#endif
 
 // The input node configuration (at this early stage) looks like this:
 // <szg_device>
@@ -214,22 +332,28 @@ LAbort:
       slotNext++;
       inputNode.addInputSource(netInputSource, true);
     } else {
+#ifndef AR_LINKING_STATIC
       // A dynamically loaded library.
       arSharedLib* inputSourceSharedLib = new arSharedLib();
       string error;
       if (!inputSourceSharedLib->createFactory(*iter, execPath, "arInputSource", error)) {
-        ar_log_warning() << error;
+        ar_log_error() << error;
         goto LAbort;
       }
 
       theSource = (arInputSource*) inputSourceSharedLib->createObject();
+#else
+      theSource = inputSourceFactory( *iter );
       if (!theSource) {
-        ar_log_error() << "DeviceServer failed to create input source '" <<
-	  *iter << "'.\n";
+        printDriverList( ar_log_error() );
+      }
+#endif
+      if (!theSource) {
+        ar_log_error() << "DeviceServer failed to create input source '" << *iter << "'.\n";
         goto LAbort;
       }
-      ar_log_debug() << "DeviceServer created input source '" <<
-	  *iter << "' in slot " << slotNext-1 << ".\n";
+      ar_log_debug() << "DeviceServer created input source '"
+                     << *iter << "' in slot " << slotNext-1 << ".\n";
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource, false);
     }
@@ -264,6 +388,7 @@ LAbort:
   arFileSink fileSink;
   inputNode.addInputSink(&fileSink,false);
 
+#ifndef AR_LINKING_STATIC
   // Add the dynamically loaded sinks.
   for (iter = nodeConfig.inputSinks.begin();
        iter != nodeConfig.inputSinks.end(); iter++){
@@ -284,6 +409,7 @@ LAbort:
     ar_log_debug() << "DeviceServer created input sink '" << *iter << ".\n";
     inputNode.addInputSink(theSink, true);
   }
+#endif
 
   // Load the filters.
 
@@ -315,6 +441,7 @@ LAbort:
     }
   }
   
+#ifndef AR_LINKING_STATIC
   // Add the various optional filters...
   for (iter = nodeConfig.inputFilters.begin();
        iter != nodeConfig.inputFilters.end(); iter++){
@@ -338,6 +465,7 @@ LAbort:
     // We own this.
     inputNode.addFilter(theFilter,true);
   }
+#endif
 
   const bool ok = inputNode.init(szgClient);
   if (!ok)

@@ -63,17 +63,17 @@ ifeq ($(strip $(SZG_USE_PCH)),FALSE)
 endif
 endif
 
-# We are using the "dll" libc. This is essential vis-a-vis because of szg's
+# We are using the "dll" libc. This is essential because of szg's
 # dll-centricity. NOTE: AR_USED_SHARED must be defined to get the 
 # __declspec(dllexport) that builds the export libraries.
 # NOTE: Windows requires the compiler receive information about 
 # linker when creating object files. Hence, the "HYBRID_FLAGS" moniker...
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  HYBRID_FLAGS_DEBUG = -MTd -D "AR_LINKING_STATIC"
-  HYBRID_FLAGS_NDEBUG = -MT -D "AR_LINKING_STATIC"
+  HYBRID_FLAGS_DEBUG = -MTd
+  HYBRID_FLAGS_NDEBUG = -MT
 else
-  HYBRID_FLAGS_DEBUG = -MDd -D "AR_USE_SHARED"
-  HYBRID_FLAGS_NDEBUG = -MD -D "AR_USE_SHARED"
+  HYBRID_FLAGS_DEBUG = -MDd
+  HYBRID_FLAGS_NDEBUG = -MD
 endif
 OPT_FLAGS_DEBUG = -D "_CONSOLE" -O1 -D "_DEBUG" $(HYBRID_FLAGS_DEBUG)
 OPT_FLAGS_NDEBUG = -D "_CONSOLE" -O2 -D "NDEBUG" $(HYBRID_FLAGS_NDEBUG)

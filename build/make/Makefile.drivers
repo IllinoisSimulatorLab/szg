@@ -24,7 +24,8 @@ OBJS := \
   arPForthFilter$(OBJ_SUFFIX) \
   arPForthStandardVocabulary$(OBJ_SUFFIX) \
 
-# arGenericDriver is in OBJS not OBJS_DRIVER, oddly.
+# arGenericDriver is in OBJS not OBJS_DRIVER, because
+# it gets built into libarDrivers.
 
 OBJS_DRIVER := \
   arBirdWinDriver$(OBJ_SUFFIX) \
@@ -54,10 +55,34 @@ endif
 
 LIBS_DRIVER = $(subst $(OBJ_SUFFIX),$(PLUGIN_SUFFIX),$(OBJS_DRIVER))
 
-# Local variables.
+DEVICESERVER_INCLUDES =
+DEVICESERVER_PRELINK =
+DEVICESERVER_POSTLINK =
+DEVICESERVER_OBJS =
+
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
   OBJS += $(OBJS_DRIVER)
+
+DEVICESERVER_INCLUDES += \
+  $(SZG_INCLUDE_WIN_BIRD) \
+  $(SZG_INCLUDE_EVART) \
+  $(SZG_INCLUDE_VRPN)
+
+DEVICESERVER_PRELINK += \
+  $(PRE_LINK_BIRDWIN) \
+  $(PRE_LINK_GAMEPAD) \
+  $(PRE_LINK_EVART) \
+  $(PRE_LINK_VRPN)
+
+DEVICESERVER_POSTLINK += \
+  $(POST_LINK_BIRDWIN) \
+  $(POST_LINK_GAMEPAD) \
+  $(POST_LINK_EVART) \
+  $(POST_LINK_VRPN)
+
+DEVICESERVER_OBJS += \
+  isense$(OBJ_SUFFIX)
 endif
 
 # Explicit definitions, replacing the otherwise generic ones in Makefile.defines
@@ -117,15 +142,16 @@ endif
 
 ALL = \
   $(SZG_CURRENT_DLL) \
+  DeviceServer$(EXE) \
   DeviceClient$(EXE) \
   EventTest$(EXE) \
   FaroTest$(EXE) \
   PForthTest$(EXE) \
   pfconsole$(EXE)
 
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
-  ALL += DeviceServer$(EXE) $(LIBS_DRIVER)
-endif
+# ifneq ($(strip $(SZG_LINKING)), STATIC) 
+#   ALL += DeviceServer$(EXE) $(LIBS_DRIVER)
+# endif
 
 include $(SZGHOME)/build/make/Makefile.rules
 
@@ -135,12 +161,15 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 
 # Executables
 
-DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) DeviceClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+DeviceServer$(OBJ_SUFFIX): DeviceServer.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(DEVICESERVER_INCLUDES)
+
+DeviceServer$(EXE): DeviceServer$(OBJ_SUFFIX) $(DEVICESERVER_OBJS) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) $(DEVICESERVER_PRELINK) DeviceServer$(OBJ_SUFFIX) $(DEVICESERVER_OBJS) $(SZG_EXE_SECOND) $(DEVICESERVER_POSTLINK)
 	$(COPY)
 
-DeviceServer$(EXE): DeviceServer$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) DeviceServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) DeviceClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 FaroTest$(EXE): FaroTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
