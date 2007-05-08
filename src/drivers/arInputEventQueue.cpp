@@ -19,14 +19,9 @@ arInputEventQueue::arInputEventQueue( const arInputEventQueue& q ) :
   _axisSignature( q._axisSignature ),
   _matrixSignature( q._matrixSignature ) {
 
-#ifdef AR_USE_WIN_32
   std::deque<arInputEvent>::const_iterator iter;
   for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
     appendEvent( *iter );
-#else
-  // memory leak in deque copy, STLport, visual studio 6.
-  std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
-#endif
 }
 
 arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
@@ -37,14 +32,9 @@ arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
   _axisSignature = q._axisSignature;
   _matrixSignature = q._matrixSignature;
 
-#ifdef AR_USE_WIN_32
   std::deque<arInputEvent>::const_iterator iter;
   for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
     appendEvent( *iter );
-#else
-  // memory leak in deque copy, STLport, visual studio 6.
-  std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
-#endif
 
   return *this;
 }

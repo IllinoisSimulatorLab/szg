@@ -253,7 +253,7 @@ void arSZGAppFramework::_loadNavParameters() {
     int params[5] = { 1, 1, 0, 2, 0 };
     temp = _SZGClient.getAttribute("SZG_NAV", "effector");
     if (temp != "NULL") {
-      if (ar_parseIntString( temp, params, 5 ) != 0) {
+      if (ar_parseIntString( temp, params, 5 ) != 5) {
         ar_log_warning() << "arSZGAppFramework failed to read SZG_NAV/effector.\n";
       }
     }

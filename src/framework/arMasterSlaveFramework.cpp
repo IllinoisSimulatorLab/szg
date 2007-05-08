@@ -1881,6 +1881,9 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // Sound is inactive for the time being
   _soundActive = false;
 
+  if (_soundNavMatrixID == -1) {
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+  }
   // This always succeeds.
   return true;
 }
@@ -1889,9 +1892,6 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
 // fold init and start in together.
 bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
   _soundServer.start();
-  if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
-  }
   _soundActive = true;
   return true;
 }

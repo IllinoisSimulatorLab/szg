@@ -108,12 +108,16 @@ Here's an example using the above transformations:
       <input_sinks></input_sinks>
       <input_filters></input_filters>
       <pforth>
+        /* Declare matrix variables (each 'matrix' call allocates
+           16 cells in the dataspace and defines a new word, e.g.
+           'Xin', that pushes the address of the first cell onto
+           the stack. */
         matrix Xin
         matrix Xout
-
         matrix C
         matrix Cinv
 
+        /* Store transformation matrices. */
         0 -1  0  0
         0  0  -1 0
         1  0  0  0
@@ -126,8 +130,11 @@ Here's an example using the above transformations:
         0  0  0  1
         Cinv matrixStore
 
+        /* Define 'filter' word to be called when any matrix event
+           passes through the filter. */
         define filter_all_matrices
           Xin getCurrentEventMatrix
+          /* Multiply C * Xin * Cinv, store result in Xout */
           C Xin Cinv 3 Xout concatMatrices
           Xout setCurrentEventMatrix
         enddef
@@ -183,12 +190,17 @@ Suppose the aforementioned tracker transmitter is mounted two feet off the groun
 so we need to add 2 to the Y position coordinate of each matrix event from the
 tracker. Modify the PForth program as follows:
 ```
+        /* Declare matrix variables (each 'matrix' call allocates
+           16 cells in the dataspace and defines a new word, e.g.
+           'Xin', that pushes the address of the first cell onto
+           the stack. */
         matrix Xin
         matrix Xout
-
         matrix C
         matrix Cinv
+        matrix originOffset
 
+        /* Store transformation matrices. */
         0 -1  0  0
         0  0  -1 0
         1  0  0  0
@@ -202,11 +214,13 @@ tracker. Modify the PForth program as follows:
         Cinv matrixStore
 
         /* create a matrix that translates by (x,y,z)=(0,2,0) */
-        matrix originOffset
         0 2 0 originOffset translationMatrix
 
+        /* Define 'filter' word to be called when any matrix event
+           passes through the filter. */
         define filter_all_matrices
           Xin getCurrentEventMatrix
+          /* Multiply originOffset * C * Xin * Cinv, store result in Xout */
           originOffset C Xin Cinv 4 Xout concatMatrices
           Xout setCurrentEventMatrix
         enddef
@@ -234,12 +248,17 @@ around Z.
 
 We extend the PForth filter as follows:
 ```
+        /* Declare matrix variables (each 'matrix' call allocates
+           16 cells in the dataspace and defines a new word, e.g.
+           'Xin', that pushes the address of the first cell onto
+           the stack. */
         matrix Xin
         matrix Xout
-
         matrix C
         matrix Cinv
+        matrix originOffset
 
+        /* Store transformation matrices. */
         0 -1  0  0
         0  0  -1 0
         1  0  0  0
@@ -252,13 +271,15 @@ We extend the PForth filter as follows:
         0  0  0  1
         Cinv matrixStore
 
-        matrix originOffset
+        /* create a matrix that translates by (x,y,z)=(0,2,0) */
         0 2 0 originOffset translationMatrix
 
-        /* Apply transmitter coordinate transformations (common
-           to all sensors) */
+        /* Define 'filter' word to be called when any matrix event
+           passes through the filter.  Applies transmitter coordinate
+           transformations (common to all sensors) */
         define filter_all_matrices
           Xin getCurrentEventMatrix
+          /* Multiply originOffset * C * Xin * Cinv, store result in Xout */
           originOffset C Xin Cinv 4 Xout concatMatrices
           Xout setCurrentEventMatrix
         enddef
@@ -279,8 +300,10 @@ We extend the PForth filter as follows:
         ySensorRot zHeadRot headRot matrixMultiply
         ySensorRot zGPadRot GPadRot matrixMultiply
 
-        /* Then apply mounting transformations for individual
-           sensors */
+        /* Define filter words to be called when matrix events with
+           particular indices (i.e. that originate from particular
+           sensors) pass through. They apply mounting transformations
+           for individual sensors */
         define filter_matrix_0
           Xin getCurrentEventMatrix
           Xin headRot Xout matrixMultiply

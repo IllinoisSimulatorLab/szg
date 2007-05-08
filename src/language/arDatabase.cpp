@@ -1320,8 +1320,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
     ar_log_debug() << "\tNew node " << _nextAssignedID << ", name " << node->getName() <<
       ", info " << node->getInfo() << ".\n";
     node->_setID(_nextAssignedID++);
-  }
-  else{
+  } else {
     ar_log_debug() << "\tNew node with specified ID " << nodeID << ", name " << node->getName() <<
       ", info " << node->getInfo() << ".\n";
     node->_setID(nodeID);
