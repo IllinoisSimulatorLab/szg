@@ -181,7 +181,7 @@ class SZG_CALL arDatabase{
   arStructuredDataParser*      _dataParser;
 
   bool _initDatabaseLanguage();
-  arDatabaseNode* _getNodeNoLock(int ID, bool fWarn=false);
+  arDatabaseNode* _getNodeNoLock(int ID, bool fWarn=false); // Call only while lock()'d.
   string          _getDefaultName();
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
   arDatabaseNode* _insertDatabaseNode(arStructuredData*);

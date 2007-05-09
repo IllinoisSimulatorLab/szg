@@ -139,9 +139,8 @@ arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
   return getNode(name, fWarn, true);
 }
 
-// Does a depth-first search for a node with the given name, starting at the
-// arDatabase's root node.
-arDatabaseNode* arDatabase::findNode(const string& name, bool refNode){
+// Search depth-first for a node with the given name, from the arDatabase's root.
+arDatabaseNode* arDatabase::findNode(const string& name, bool refNode) {
   _lock();
   arDatabaseNode* result = NULL;
   bool success = false;
