@@ -11,8 +11,6 @@ static inline int maxint(const unsigned a, const int b) { return int(a)>b ? int(
 static inline int maxint(const int a, const unsigned b) { return a>int(b) ? a : int(b); }
 static inline int maxint(const unsigned a, const unsigned b) { return int(a>b ? a : b); }
 
-// todo: ar_toStructuredData like ar_fromStructuredData, to decopypaste.
-
 bool ar_fromStructuredData(int& sigLen, int& sigField, int* sigBuf,
          int*& typeBuf, int*& indexBuf, int*& buttonBuf, float*& axisBuf, float*& matrixBuf,
 	 int& numItems, int& numButtons, int& numAxes, int& numMatrices,
@@ -54,7 +52,7 @@ bool ar_fromStructuredData(int& sigLen, int& sigField, int* sigBuf,
     return false;
   }
 
-  // Caller's responsible for delete[]'ing these.
+  // ar_fromStructuredDataEnd() deletes these.
   typeBuf = new int[numItems];
   indexBuf = new int[numItems];
   buttonBuf = new int[numButtons];
@@ -94,6 +92,98 @@ void ar_fromStructuredDataEnd(int*& typeBuf, int*& indexBuf, int*& buttonBuf, fl
   delete [] matrixBuf;
 }
 
+bool ar_toStructuredData(
+  int& _numButtons, int& _numAxes, int& _numMatrices, int& _numItems,
+  int& typeField, int& indexField, int& buttonField, int& axisField, int& matrixField,
+  int*& typeBuf, int*& indexBuf, int*& buttonBuf, float*& axisBuf, float*& matrixBuf,
+  arStructuredData* data
+)
+{
+  typeField   = data->getDataFieldIndex("types");
+  indexField  = data->getDataFieldIndex("indices");
+  buttonField = data->getDataFieldIndex("buttons");
+  axisField   = data->getDataFieldIndex("axes");
+  matrixField = data->getDataFieldIndex("matrices");
+
+  const int numItems    = data->getDataDimension(typeField);
+  const int numIndices  = data->getDataDimension(indexField);
+  const int numButtons  = data->getDataDimension(buttonField);
+  const int numAxes     = data->getDataDimension(axisField);
+  const int numMatrices = data->getDataDimension(matrixField);
+
+  _numItems = _numButtons + _numAxes + _numMatrices;
+
+  if (numButtons != _numButtons &&
+      !data->setDataDimension( buttonField, _numButtons )) {
+    ar_log_warning() << "ar_toStructuredData failed to set button data dimension.\n";
+    return false;
+  }
+  if (numAxes != _numAxes &&
+      !data->setDataDimension( axisField, _numAxes )) {
+    ar_log_warning() << "ar_toStructuredData failed to set axis data dimension.\n";
+    return false;
+  }
+  if (numMatrices != _numMatrices &&
+      !data->setDataDimension( matrixField, _numMatrices )) {
+    ar_log_warning() << "ar_toStructuredData failed to set matrix data dimension.\n";
+    return false;
+  }
+  if (numItems != _numItems &&
+      !data->setDataDimension( typeField, _numItems )) {
+    ar_log_warning() << "ar_toStructuredData failed to set button data dimension.\n";
+    return false;
+  }
+  if (numIndices != _numItems &&
+      !data->setDataDimension( indexField, _numItems )) {
+    ar_log_warning() << "ar_toStructuredData failed to set button data dimension.\n";
+    return false;
+  }
+
+  typeBuf = new int[_numItems];
+  indexBuf = new int[_numItems];
+  buttonBuf = new int[_numButtons];
+  axisBuf = new float[_numAxes];
+  matrixBuf = new float[16*_numMatrices];
+
+  if (!typeBuf || !indexBuf || !buttonBuf || !axisBuf || !matrixBuf) {
+    ar_log_warning() << "ar_toStructuredData out of memory.\n";
+    return false;
+  }
+  return true;
+}
+
+bool ar_toStructuredDataEnd(
+  const bool ok,
+  const int sigB, const int sigA, const int sigM,
+  const int& _numButtons,
+  const int& _numAxes,
+  const int& _numMatrices,
+  const int& _numItems,
+  const int& typeField,
+  const int& indexField,
+  const int& buttonField,
+  const int& axisField,
+  const int& matrixField,
+  int*& typeBuf, int*& indexBuf, int*& buttonBuf, float*& axisBuf, float*& matrixBuf,
+  arStructuredData* data) {
+
+  const int sigBuf[] = { sigB, sigA, sigM };
+  if (ok) {
+    data->dataIn( "signature", sigBuf, AR_INT, 3 );
+    data->dataIn( typeField, typeBuf, AR_INT, _numItems );
+    data->dataIn( indexField, indexBuf, AR_INT, _numItems );
+    data->dataIn( buttonField, buttonBuf, AR_INT, _numButtons );
+    data->dataIn( axisField, axisBuf, AR_FLOAT, _numAxes );
+    data->dataIn( matrixField, matrixBuf, AR_FLOAT, _numMatrices*16 );
+  }
+  delete [] typeBuf;
+  delete [] indexBuf;
+  delete [] buttonBuf;
+  delete [] axisBuf;
+  delete [] matrixBuf;
+  return ok;
+}
+
 bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
                                          const arStructuredData* data ) {
   int sigLen, sigField, sigBuf[3];
@@ -124,89 +214,31 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
 
 bool ar_saveEventQueueToStructuredData( const arInputEventQueue* q,
                                         arStructuredData* data ) {
-  const int typeField = data->getDataFieldIndex("types");
-  const int indexField = data->getDataFieldIndex("indices");
-  const int buttonField = data->getDataFieldIndex("buttons");
-  const int axisField = data->getDataFieldIndex("axes");
-  const int matrixField = data->getDataFieldIndex("matrices");
-
-  const int numItems    = data->getDataDimension(typeField);
-  const int numIndices  = data->getDataDimension(indexField);
-  const int numButtons  = data->getDataDimension(buttonField);
-  const int numAxes     = data->getDataDimension(axisField);
-  const int numMatrices = data->getDataDimension(matrixField);
-
-  const int _numButtons = q->getNumberButtons();
-  const int _numAxes = q->getNumberAxes();
-  const int _numMatrices = q->getNumberMatrices();
-  const int _numItems = _numButtons + _numAxes + _numMatrices;
-  if (_numItems != int(q->size()))
-    ar_log_warning() << "ar_saveEventQueueToStructuredData: queue miscount, " <<
-      _numButtons << "+" << _numAxes << "+" << _numMatrices << " != " << q->size() << ".\n";
-
-  if (numButtons != _numButtons)
-    if (!data->setDataDimension( buttonField, _numButtons )) {
-      ar_log_warning() << "ar_saveEventQueueToStructuredData "
-	   << "failed to set button data dimension.\n";
-      return false;
-    }
-  if (numAxes != _numAxes)
-    if (!data->setDataDimension( axisField, _numAxes )) {
-      ar_log_warning() << "ar_saveEventQueueToStructuredData "
-	   << "failed to set axis data dimension.\n";
-      return false;
-    }
-  if (numMatrices != _numMatrices)
-    if (!data->setDataDimension( matrixField, _numMatrices )) {
-      ar_log_warning() << "ar_saveEventQueueToStructuredData "
-	   << "failed to set matrix data dimension.\n";
-      return false;
-    }
-  if (numItems != _numItems)
-    if (!data->setDataDimension( typeField, _numItems )) {
-      ar_log_warning() << "ar_saveEventQueueToStructuredData "
-	   << "failed to set button data dimension.\n";
-      return false;
-    }
-  if (numIndices != _numItems)
-    if (!data->setDataDimension( indexField, _numItems )) {
-      ar_log_warning() << "ar_saveEventQueueToStructuredData "
-	   << "failed to set button data dimension.\n";
-      return false;
-    }
-
-  int* typeBuf = new int[_numItems];
-  int* indexBuf = new int[_numItems];
-  int* buttonBuf = new int[_numButtons];
-  float* axisBuf = new float[_numAxes];
-  float* matrixBuf = new float[16*_numMatrices];
-
-  if (!typeBuf || !indexBuf || !buttonBuf || !axisBuf || !matrixBuf) {
-    ar_log_warning() << "ar_setEventQueueToStructuredData out of memory.\n";
+  int* typeBuf;
+  int* indexBuf;
+  int* buttonBuf;
+  float* axisBuf;
+  float* matrixBuf;
+  int _numButtons = q->getNumberButtons();
+  int _numAxes = q->getNumberAxes();
+  int _numMatrices = q->getNumberMatrices();
+  int _numItems;
+  int typeField, indexField, buttonField, axisField, matrixField;
+  if (!ar_toStructuredData(
+    _numButtons, _numAxes, _numMatrices, _numItems,
+    typeField, indexField, buttonField, axisField, matrixField,
+    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+    data)) {
     return false;
   }
 
-  const int sigBuf[] = {
-    q->getButtonSignature(),
-    q->getAxisSignature(), 
-    q->getMatrixSignature() };
-  // ar_log_critical() << "packing sig " << sigBuf[0] << sigBuf[1] << sigBuf[2] << ".\n";
-  data->dataIn( "signature", sigBuf, AR_INT, 3 );
-
-  const bool ok = q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf );
-  if (ok) {
-    data->dataIn( typeField, typeBuf, AR_INT, _numItems );
-    data->dataIn( indexField, indexBuf, AR_INT, _numItems );
-    data->dataIn( buttonField, buttonBuf, AR_INT, _numButtons );
-    data->dataIn( axisField, axisBuf, AR_FLOAT, _numAxes );
-    data->dataIn( matrixField, matrixBuf, AR_FLOAT, _numMatrices*16 );
-  }
-  delete [] typeBuf;
-  delete [] indexBuf;
-  delete [] buttonBuf;
-  delete [] axisBuf;
-  delete [] matrixBuf;
-  return ok;
+  return ar_toStructuredDataEnd(
+    q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf ),
+    q->getButtonSignature(), q->getAxisSignature(), q->getMatrixSignature(),
+    _numButtons, _numAxes, _numMatrices, _numItems,
+    typeField, indexField, buttonField, axisField, matrixField,
+    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+    data);
 }
 
 bool ar_setInputStateFromStructuredData( arInputState* state,
@@ -251,9 +283,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   state->setSignature( stateSig[0], stateSig[1], stateSig[2] );
 
   bool ok = true;
-  unsigned iButton = 0;
-  unsigned iAxis = 0;
-  unsigned iMatrix = 0;
+  unsigned iBAM[3] = {0}; // button, axis, matrix
   for (i=0; i<(unsigned)numItems; i++) {
     if (indexBuf[i] < 0) {
       ar_log_warning() << "ar_setInputStateFromStructuredData ignoring negative event index.\n";
@@ -262,27 +292,29 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
     }
     unsigned eventIndex = unsigned(indexBuf[i]);
     const int eventType = typeBuf[i];
+    unsigned& iGizmo = iBAM[eventType];
+    // todo: eventType-indexed array instead of numButtons numAxes numMatrices.
     switch (eventType) {
       case AR_EVENT_BUTTON:
-        if (iButton >= (unsigned)numButtons) {
+        if (iGizmo >= (unsigned)numButtons) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra buttons in index field.\n";
           ok = false;
         } else
-          state->setButton( eventIndex, buttonBuf[iButton++] );
+          state->setButton( eventIndex, buttonBuf[iGizmo++] );
         break;
       case AR_EVENT_AXIS:
-        if (iAxis >= (unsigned)numAxes) {
+        if (iGizmo >= (unsigned)numAxes) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra axes in index field.\n";
           ok = false;
         } else
-          state->setAxis( eventIndex, axisBuf[iAxis++] );
+          state->setAxis( eventIndex, axisBuf[iGizmo++] );
         break;
       case AR_EVENT_MATRIX:
-        if (iMatrix >= (unsigned)numMatrices) {
+        if (iGizmo >= (unsigned)numMatrices) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra matrices in index field.\n";
           ok = false;
         } else
-          state->setMatrix( eventIndex, matrixBuf + 16*iMatrix++ );
+          state->setMatrix( eventIndex, matrixBuf + 16*iGizmo++ );
         break;
       default:
         ar_log_warning() << "ar_setInputStateFromStructuredData ignoring event type "
@@ -297,60 +329,23 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
 
 bool ar_saveInputStateToStructuredData( const arInputState* state,
                                         arStructuredData* data ) {
-  const int typeField   = data->getDataFieldIndex("types");
-  const int indexField  = data->getDataFieldIndex("indices");
-  const int buttonField = data->getDataFieldIndex("buttons");
-  const int axisField   = data->getDataFieldIndex("axes");
-  const int matrixField = data->getDataFieldIndex("matrices");
-
-  const int numItems    = data->getDataDimension(typeField);
-  const int numIndices  = data->getDataDimension(indexField);
-  const int numButtons  = data->getDataDimension(buttonField);
-  const int numAxes     = data->getDataDimension(axisField);
-  const int numMatrices = data->getDataDimension(matrixField);
-
-  const int _numButtons = state->getNumberButtons();
-  const int _numAxes = state->getNumberAxes();
-  const int _numMatrices = state->getNumberMatrices();
-  const int _numItems = _numButtons + _numAxes + _numMatrices;
-
-  if (numButtons != _numButtons)
-    if (!data->setDataDimension( buttonField, _numButtons )) {
-      ar_log_warning() << "ar_saveInputStateToStructuredData "
-	   << "failed to set button data dimension.\n";
-      return false;
-    }
-  if (numAxes != _numAxes)
-    if (!data->setDataDimension( axisField, _numAxes )) {
-      ar_log_warning() << "ar_saveInputStateToStructuredData "
-	   << "failed to set axis data dimension.\n";
-      return false;
-    }
-  if (numMatrices != _numMatrices)
-    if (!data->setDataDimension( matrixField, _numMatrices )) {
-      ar_log_warning() << "ar_saveInputStateToStructuredData "
-	   << "failed to set matrix data dimension.\n";
-      return false;
-    }
-  if (numItems != _numItems)
-    if (!data->setDataDimension( typeField, _numItems )) {
-      ar_log_warning() << "ar_saveInputStateToStructuredData "
-	   << "failed to set type data dimension.\n";
-      return false;
-    }
-  if (numIndices != _numItems)
-    if (!data->setDataDimension( indexField, _numItems )) {
-      ar_log_warning() << "ar_saveInputStateToStructuredData "
-	   << "failed to set index data dimension.\n";
-      return false;
-    }
-
-  const int sigBuf[3] = { _numButtons, _numAxes, _numMatrices };
-  int* typeBuf = new int[_numItems];
-  int* indexBuf = new int[_numItems];
-  int* buttonBuf = new int[_numButtons];
-  float* axisBuf = new float[_numAxes];
-  float* matrixBuf = new float[16*_numMatrices];
+  int* typeBuf;
+  int* indexBuf;
+  int* buttonBuf;
+  float* axisBuf;
+  float* matrixBuf;
+  int _numButtons = state->getNumberButtons();
+  int _numAxes = state->getNumberAxes();
+  int _numMatrices = state->getNumberMatrices();
+  int _numItems;
+  int typeField, indexField, buttonField, axisField, matrixField;
+  if (!ar_toStructuredData(
+    _numButtons, _numAxes, _numMatrices, _numItems,
+    typeField, indexField, buttonField, axisField, matrixField,
+    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+    data)) {
+    return false;
+  }
 
   unsigned i;
   unsigned iEvent = 0;
@@ -366,19 +361,13 @@ bool ar_saveInputStateToStructuredData( const arInputState* state,
     typeBuf[iEvent] = AR_EVENT_MATRIX;
     indexBuf[iEvent] = (int)i;
   }
-  const bool ok = state->saveToBuffers( buttonBuf, axisBuf, matrixBuf );
 
-  data->dataIn( "signature", sigBuf, AR_INT, 3 );
-  data->dataIn( typeField, typeBuf, AR_INT, _numItems );
-  data->dataIn( indexField, indexBuf, AR_INT, _numItems );
-  data->dataIn( buttonField, buttonBuf, AR_INT, _numButtons );
-  data->dataIn( axisField, axisBuf, AR_FLOAT, _numAxes );
-  data->dataIn( matrixField, matrixBuf, AR_FLOAT, _numMatrices*16 );
-
-  delete [] typeBuf;
-  delete [] indexBuf;
-  delete [] buttonBuf;
-  delete [] axisBuf;
-  delete [] matrixBuf;
-  return ok;
+  return ar_toStructuredDataEnd(
+    state->saveToBuffers( buttonBuf, axisBuf, matrixBuf ),
+    _numButtons, _numAxes, _numMatrices,
+    _numButtons, _numAxes, _numMatrices,
+    _numItems,
+    typeField, indexField, buttonField, axisField, matrixField,
+    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+    data);
 }
