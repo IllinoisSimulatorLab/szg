@@ -45,10 +45,12 @@ void arPerformanceElement::pushNewValue(float value){
 void arPerformanceElement::draw() {
   glColor3fv(color.v);
   glBegin(GL_LINE_STRIP);
-  for (int i=0; i<_numberEntries; i++){
-    glVertex3f(-1 + 2.0*i/(_numberEntries-1), 
-               -1+2.0*_data[i]/scale,
-               0.02);
+  float x = -1.;
+  const float dx = 2. / (_numberEntries-1);
+  for (int i=0; i<_numberEntries; ++i){
+    x += dx;
+    const float y = _data[i]/scale * 2 - 1;
+    glVertex3f(x, y<.99 ? y : .99, 0.02);
   }
   glEnd();
 }
@@ -116,6 +118,7 @@ void arFramerateGraph::addElement(const string& name,
   }
 
   arPerformanceElement* element = new arPerformanceElement;
+  // todo: next 3 lines into a constructor
   element->setNumberEntries(numberEntries);
   element->scale = scale;
   element->color = color;
