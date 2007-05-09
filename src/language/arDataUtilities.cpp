@@ -455,7 +455,7 @@ void ar_usleep(int microseconds){
 #endif
 }
 
-arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float ratio) :
+arSleepBackoff::arSleepBackoff(const float msecMin, const float msecMax, const float ratio) :
   _uMin(msecMin*1000.),
   _uMax(msecMax*1000.),
   _ratio(ratio) {
@@ -478,6 +478,7 @@ arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float
 
 void arSleepBackoff::sleep() {
   ar_usleep(int(_u));
+  _uElapsed += _u;
   _u *= _ratio;
   if (_u > _uMax)
     _u = _uMax;
@@ -485,6 +486,11 @@ void arSleepBackoff::sleep() {
 
 void arSleepBackoff::reset() {
   _u = _uMin;
+  resetElapsed();
+}
+
+void arSleepBackoff::resetElapsed() {
+  _uElapsed = 0;
 }
 
 // string->number conversions with error checking

@@ -299,10 +299,13 @@ class SZG_CALL arSleepBackoff {
   float _uMin;  // initial short nap
   float _uMax;  // final long nap
   float _ratio; // ratio between successive naptimes
+  float _uElapsed; // total time slept
  public:
-  arSleepBackoff(const int msecMin, const int msecMax, const float ratio);
+  arSleepBackoff(const float msecMin, const float msecMax, const float ratio);
   void sleep();
   void reset();
+  void resetElapsed();
+  float msecElapsed() const { return _uElapsed / 1000.; }
 };
 
 SZG_CALL void* ar_allocateBuffer( arDataType theType, unsigned int size );

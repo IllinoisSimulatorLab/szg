@@ -85,8 +85,13 @@ LBackoff:
 }
 #else
 arLock::arLock(const char*) {
-  pthread_mutex_init( &_mutex, NULL );
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   // PTHREAD_MUTEX_DEFAULT deadlocks if _mutex is locked twice.
+  // PTHREAD_MUTEX_NORMAL doesn't check for usage errors like wrong thread unlocking.
+  pthread_mutex_init(&_mutex, &attr);
+  pthread_mutexattr_destroy(&attr);
 }
 #endif
 
@@ -115,7 +120,7 @@ void arLock::lock() {
     const DWORD r = WaitForSingleObject( _mutex, msecTimeout );
     switch (r) {
     case WAIT_OBJECT_0:
-      // Locked ok.
+      // Locked.
       return;
     default:
     case WAIT_ABANDONED:
@@ -131,20 +136,29 @@ void arLock::lock() {
     }
   }
 #else
-  switch (pthread_mutex_trylock(&_mutex)) {
-  case 0:
-  default:
-    break;
-  case EBUSY:
-    cerr << "arLock warning: failed to re-lock.  Beware of deadlocks.\n";
-    break;
-  case EINVAL:
-    cerr << "arLock warning: uninitialized.\n";
-    break;
-  case EFAULT:
-    cerr << "arLock warning: invalid pointer.\n";
-    break;
+  arSleepBackoff a(2, 300, 1.1); // Slower than a pthread_mutex_timedlock_np().  Yuck.
+  for (;;) {
+    switch (pthread_mutex_trylock(&_mutex)) {
+    case 0:
+    default:
+      // Locked.
+      return;
+    case EBUSY:
+      a.sleep();
+      if (a.msecElapsed() > 10000.) {
+	cerr << "arLock warning: retrying timed-out lock().\n";
+	a.resetElapsed();
+      }
+      break;
+    case EINVAL:
+      cerr << "arLock warning: uninitialized.\n";
+      return;
+    case EFAULT:
+      cerr << "arLock warning: invalid pointer.\n";
+      return;
+    }
   }
+
 #endif
 }
 
