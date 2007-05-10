@@ -226,6 +226,8 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
 
 };
 
+#define TITLE_DEFAULT "SyzygyWindow"
+
 /**
  * A window configuration object.
  *
@@ -266,7 +268,7 @@ class SZG_CALL arGUIWindowConfig
                        int bpp = 16, int Hz = 0, bool decorate = true,
                        arZOrder zorder = AR_ZORDER_TOP,
                        bool fullscreen = false, bool stereo = false,
-                       const std::string& title = _titleDefault,
+                       const std::string& title = TITLE_DEFAULT,
                        const std::string& XDisplay = ":0.0",
                        arCursor cursor = AR_CURSOR_ARROW );
 
@@ -308,7 +310,7 @@ class SZG_CALL arGUIWindowConfig
     bool getZOrder( void ) const { return _zorder; }
     std::string getTitle( void ) const { return _title; }
     std::string getXDisplay( void ) const { return _XDisplay; }
-    bool untitled( void ) const { return getTitle() == _titleDefault; }
+    bool untitled( void ) const { return getTitle() == TITLE_DEFAULT; }
     arCursor getCursor( void ) const { return _cursor; }
     //@}
 
@@ -319,7 +321,8 @@ class SZG_CALL arGUIWindowConfig
     arZOrder _zorder;
     std::string _title, _XDisplay;
     arCursor _cursor;
-    static const std::string _titleDefault;
+// The following causes the linker to barf (VC++6, anyway) on the Python bindings.
+//    static const std::string _titleDefault;
 };
 
 

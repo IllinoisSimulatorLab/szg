@@ -5,6 +5,7 @@ VPATH = ../../../src/drivers
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS := \
+  arInputFactory$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
   arFileSink$(OBJ_SUFFIX) \
   arFileSource$(OBJ_SUFFIX) \
@@ -54,36 +55,6 @@ ifneq ($(strip $(SZG_COMPILER)),MINGW)
 endif
 
 LIBS_DRIVER = $(subst $(OBJ_SUFFIX),$(PLUGIN_SUFFIX),$(OBJS_DRIVER))
-
-DEVICESERVER_INCLUDES =
-DEVICESERVER_PRELINK =
-DEVICESERVER_POSTLINK =
-DEVICESERVER_OBJS =
-
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  COMPILE_FLAGS += -D "NOFACTORY"
-  OBJS += $(OBJS_DRIVER)
-
-DEVICESERVER_INCLUDES += \
-  $(SZG_INCLUDE_WIN_BIRD) \
-  $(SZG_INCLUDE_EVART) \
-  $(SZG_INCLUDE_VRPN)
-
-DEVICESERVER_PRELINK += \
-  $(PRE_LINK_BIRDWIN) \
-  $(PRE_LINK_GAMEPAD) \
-  $(PRE_LINK_EVART) \
-  $(PRE_LINK_VRPN)
-
-DEVICESERVER_POSTLINK += \
-  $(POST_LINK_BIRDWIN) \
-  $(POST_LINK_GAMEPAD) \
-  $(POST_LINK_EVART) \
-  $(POST_LINK_VRPN)
-
-DEVICESERVER_OBJS += \
-  isense$(OBJ_SUFFIX)
-endif
 
 # Explicit definitions, replacing the otherwise generic ones in Makefile.defines
 
@@ -139,6 +110,37 @@ else
   PRE_LINK_GAMEPAD =
   POST_LINK_GAMEPAD = $(GAMEPAD_LIBS)
 endif
+
+
+DEVICESERVER_PRELINK =
+DEVICESERVER_POSTLINK =
+DEVICESERVER_OBJS =
+
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  COMPILE_FLAGS += -D "NOFACTORY"
+  OBJS += $(OBJS_DRIVER)
+  OBJS += isense$(OBJ_SUFFIX)
+
+SZG_INCLUDE += \
+  $(SZG_INCLUDE_WIN_BIRD) \
+  $(SZG_INCLUDE_EVART) \
+  $(SZG_INCLUDE_VRPN)
+
+PRE_LINK_LINE_LIB += \
+  $(PRE_LINK_BIRDWIN) \
+  $(PRE_LINK_GAMEPAD) \
+  $(PRE_LINK_EVART) \
+  $(PRE_LINK_VRPN)
+
+POST_LINK_LINE_LIB += \
+  $(POST_LINK_BIRDWIN) \
+  $(POST_LINK_GAMEPAD) \
+  $(POST_LINK_EVART) \
+  $(POST_LINK_VRPN)
+
+endif
+
+
 
 ALL = \
   $(SZG_CURRENT_DLL) \

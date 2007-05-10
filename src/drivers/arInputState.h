@@ -8,10 +8,10 @@
 
 #include "arMath.h"
 #include "arInputEvent.h"
+#include "arDriversCalling.h"
 #include <vector>
 #include <ostream>
 #include "arSTLalgo.h"
-#include "arDriversCalling.h"
 
 template <class eventDataType> class arInputDeviceMap {
   public:

@@ -56,7 +56,8 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, a
   }
 }
 
-const std::string arGUIWindowConfig::_titleDefault("SyzygyWindow");
+// The following causes the linker to barf (VC++6, anyway) on the Python bindings.
+//const std::string arGUIWindowConfig::_titleDefault("SyzygyWindow");
 
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
                                       int bpp, int hz,
