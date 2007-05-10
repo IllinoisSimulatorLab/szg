@@ -6,8 +6,8 @@
 #ifndef AR_SZG_INPUTSIM_FACTORY_H
 #define AR_SZG_INPUTSIM_FACTORY_H
 
-#include "arInputSimulator.h"
 #include "arSZGClient.h"
+#include "arInputSimulator.h"
 #include "arFrameworkCalling.h"
 
 class SZG_CALL arInputSimulatorFactory {

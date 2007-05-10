@@ -552,57 +552,9 @@ bool arDistSceneGraphFramework::_initInput(){
       return false;
     }
     _inputState = &(_inputDevice->_inputState);
-  }
-  else{
-    // standalone, using either an embedded inputsimulator or a joystick
-    _standaloneControlMode = _SZGClient.getAttribute("SZG_DEMO",
-						     "control_mode",
-						     "|simulator|joystick|");
-    if (_standaloneControlMode == "simulator"){
-      _simPtr->registerInputNode(_inputDevice);
-    }
-    else{
-      // the joystick is the only other option so far
-      arSharedLib* joystickObject = new arSharedLib();
-      // It is annoying that, in here, we do not configure the arInputNode
-      // like it is done in DeviceServer. This looses us alot of flexibility
-      // that we might otherwise have.
-      string sharedLibLoadPath = _SZGClient.getAttribute("SZG_EXEC","path");
-      string pforthProgramName = _SZGClient.getAttribute("SZG_PFORTH",
-                                                         "program_names");
-      string error;
-      if (!joystickObject->createFactory("arJoystickDriver", sharedLibLoadPath,
-                                         "arInputSource", error)){
-        ar_log_warning() << error;
-        return false;
-      }
-      arInputSource* driver = (arInputSource*) joystickObject->createObject();
-      // The input node is not responsible for clean-up
-      _inputDevice->addInputSource(driver, false);
-      if (pforthProgramName == "NULL"){
-        ar_log_remark() << _label << ": no pforth program for standalone joystick.\n";
-      }
-      else{
-        string pforthProgram 
-          = _SZGClient.getGlobalAttribute(pforthProgramName);
-        if (pforthProgram == "NULL"){
-          ar_log_remark() << _label << ": no pforth program for '" <<
-	    pforthProgramName << "'.\n";
-	}
-        else{
-          arPForthFilter* filter = new arPForthFilter();
-          ar_PForthSetSZGClient( &_SZGClient );
-      
-          if (!filter->loadProgram( pforthProgram )){
-	    ar_log_remark() << _label << ": failed to configure pforth filter with program '"
-	      << pforthProgram << "\n";
-            return false;
-	  }
-          // The input node is not responsible for clean-up
-          _inputDevice->addFilter(filter, false);
-	}
-      }
-    }
+    
+  } else {  // Standalone
+    _handleStandaloneInput();
   }
 
   _installFilters();
@@ -706,7 +658,6 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
 
 // Start the various framework objects in the manner demanded by standalone mode.
 bool arDistSceneGraphFramework::_startStandaloneMode(){
-  _simPtr->configure(_SZGClient);
   // Configure the window manager and pass it to the graphicsClient
   // before configure (because, inside graphicsClient configure, it is used
   // with the arGUIXMLParser).
@@ -720,7 +671,10 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
   // arGraphicsClient is what actually draws and manages the windows.
   _graphicsClient.setWindowManager(_wm);
   _graphicsClient.configure(&_SZGClient);
-  _graphicsClient.setSimulator(_simPtr);
+  if (_standaloneControlMode == "simulator") {
+    _simPtr->configure(_SZGClient);
+    _graphicsClient.setSimulator(_simPtr);
+  }
   _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
   _graphicsClient.addFrameworkObject(&_framerateGraph);
   arSpeakerObject* speakerObject = new arSpeakerObject();

@@ -20,19 +20,19 @@ arInputSource::arInputSource() :
   _data = new arStructuredData(_inp.find("input"));
 }
 
-arInputSource::~arInputSource(){
+arInputSource::~arInputSource() {
   if (_data)
     delete _data;
 }
 
-void arInputSource::setInputNode(arInputSink* inputSink){
+void arInputSource::setInputNode(arInputSink* inputSink) {
   _inputSink = inputSink;
 }
 
-void arInputSource::sendButton(int i, int value){
+void arInputSource::sendButton(int i, int value) {
   if (!_data)
     return;
-  if (i<0 || i>=_numberButtons){
+  if (i<0 || i>=_numberButtons) {
     // ar_log_warning() << "arInputSource warning: ignoring out-of-range index to "
     // << "sendButton(" << i << ").\n";
     return;
@@ -51,10 +51,10 @@ void arInputSource::sendButton(int i, int value){
   _sendData();
 }
 
-void arInputSource::sendAxis(int i, float value){
+void arInputSource::sendAxis(int i, float value) {
   if (!_data)
     return;
-  if (i<0 || i>=_numberAxes){
+  if (i<0 || i>=_numberAxes) {
     //ar_log_warning() << "arInputSource warning: ignoring out-of-range index to sendAxis("
     //     << i << ").\n";
     return;
@@ -74,10 +74,10 @@ void arInputSource::sendAxis(int i, float value){
   _sendData();
 }
 
-void arInputSource::sendMatrix(int i, const arMatrix4& value){
+void arInputSource::sendMatrix(int i, const arMatrix4& value) {
   if (!_data)
     return;
-  if (i<0 || i>=_numberMatrices){
+  if (i<0 || i>=_numberMatrices) {
     //ar_log_warning() << "arInputSource warning: ignoring out-of-range index "
     //	 << "to sendMatrix(" << i << ").\n";
     return;
@@ -101,12 +101,12 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value){
 void arInputSource::sendButtonsAxesMatrices(
   int numButtons, const int* rgiButtons, const int* rgvalueButtons,
   int numAxes, const int* rgiAxes, const float* rgvalueAxes,
-  int numMatrices, const int* rgiMatrices, const arMatrix4* rgvalueMatrices){
+  int numMatrices, const int* rgiMatrices, const arMatrix4* rgvalueMatrices) {
 
   if (!_data)
     return;
   const int numThings = numButtons + numAxes + numMatrices;
-  if (numThings > _numThingsMax){
+  if (numThings > _numThingsMax) {
     _numThingsMax = numThings;
     if (_theIndices)
       delete [] _theIndices;
@@ -119,15 +119,15 @@ void arInputSource::sendButtonsAxesMatrices(
   // Pack the arrays with first buttons, then axes, then matrices.
   int iAll = 0;
   int i =0 ;
-  for (i=0; i<numButtons; i++){
+  for (i=0; i<numButtons; i++) {
     _theTypes[iAll] = AR_EVENT_BUTTON;
     _theIndices[iAll++] = rgiButtons ? rgiButtons[i] : i;
     }
-  for (i=0; i<numAxes; i++){
+  for (i=0; i<numAxes; i++) {
     _theTypes[iAll] = AR_EVENT_AXIS;
     _theIndices[iAll++] = rgiAxes ? rgiAxes[i] : i;
     }
-  for (i=0; i<numMatrices; i++){
+  for (i=0; i<numMatrices; i++) {
     _theTypes[iAll] = AR_EVENT_MATRIX;
     _theIndices[iAll++] = rgiMatrices ? rgiMatrices[i] : i;
     }
@@ -146,8 +146,8 @@ void arInputSource::sendButtonsAxesMatrices(
   _sendData();
 }
 
-void arInputSource::queueButton(int i, int value){
-  if (i<0 || i>=_numberButtons){
+void arInputSource::queueButton(int i, int value) {
+  if (i<0 || i>=_numberButtons) {
     //cerr << "arInputSource warning: ignoring out-of-range index "
     //	 << "to queueButton(" << i << ").\n";
     return;
@@ -157,8 +157,8 @@ void arInputSource::queueButton(int i, int value){
   _buttons[_iButton++] = value;
 }
 
-void arInputSource::queueAxis(int i, float value){
-  if (i<0 || i>=_numberAxes){
+void arInputSource::queueAxis(int i, float value) {
+  if (i<0 || i>=_numberAxes) {
     //cerr << "arInputSource warning: ignoring out-of-range index to "
     //	 << "queueAxis(" << i << ").\n";
     return;
@@ -168,8 +168,8 @@ void arInputSource::queueAxis(int i, float value){
   _axes[_iAxis++] = ARfloat(value);
 }
 
-void arInputSource::queueMatrix(int i, const arMatrix4& value){
-  if (i<0 || i>=_numberMatrices){
+void arInputSource::queueMatrix(int i, const arMatrix4& value) {
+  if (i<0 || i>=_numberMatrices) {
     //cerr << "arInputSource warning: ignoring out-of-range index to "
     //	 << "queueMatrix(" << i << ").\n";
     return;
@@ -179,7 +179,7 @@ void arInputSource::queueMatrix(int i, const arMatrix4& value){
   _matrices[_iMatrix++] = value;
 }
 
-void arInputSource::sendQueue(){
+void arInputSource::sendQueue() {
   if (!_data)
     return;
   if (_iAll <= 0)
@@ -197,16 +197,16 @@ void arInputSource::sendQueue(){
   _iAll = _iButton = _iAxis = _iMatrix = 0;
 }
 
-void arInputSource::_setDeviceElements(int buttons, int axes, int matrices){
-  if (buttons<0){
+void arInputSource::_setDeviceElements(int buttons, int axes, int matrices) {
+  if (buttons<0) {
     cerr << "arInputSource warning: ignoring negative number of buttons.\n";
     buttons = 0;
   }
-  if (axes<0){
+  if (axes<0) {
     cerr << "arInputSource warning: ignoring negative number of axes.\n";
     axes = 0;
   }
-  if (matrices<0){
+  if (matrices<0) {
     cerr << "arInputSource warning: ignoring negative number of matrices.\n";
     matrices = 0;
   }
@@ -216,7 +216,7 @@ void arInputSource::_setDeviceElements(int buttons, int axes, int matrices){
   _numberMatrices = matrices;
 }
 
-bool arInputSource::_fillCommonData(arStructuredData* d){
+bool arInputSource::_fillCommonData(arStructuredData* d) {
   const ARint signature[3] = { _numberButtons, _numberAxes, _numberMatrices };
   const ar_timeval t(ar_time());
   const ARint theTime[2] = { t.sec, t.usec };
@@ -224,12 +224,12 @@ bool arInputSource::_fillCommonData(arStructuredData* d){
          d->dataIn("timestamp", theTime, AR_INT, 2);
 }
 
-void arInputSource::_sendData(arStructuredData* theData){
-  if (!_inputSink){
+void arInputSource::_sendData(arStructuredData* theData) {
+  if (!_inputSink) {
     cerr << "arInputSource warning: undefined input sink.\n";
     return;
   }
-  if (theData){
+  if (theData) {
     // send the data we've been given instead of the internal data
     _inputSink->receiveData(_inputChannelID, theData);
   }
@@ -240,16 +240,15 @@ void arInputSource::_sendData(arStructuredData* theData){
   }
 }
 
-bool arInputSource::_reconfig(){
-  if (!_inputSink){
+bool arInputSource::_reconfig() {
+  if (!_inputSink) {
     cerr << "arInputSource warning: undefined input sink.\n";
     return false;
   }
   return _inputSink->sourceReconfig(_inputChannelID);
 }
 
-void arInputSource::_setInputSink(int inputChannelID,
-				  arInputSink* sink){
+void arInputSource::_setInputSink(int inputChannelID, arInputSink* sink) {
   _inputChannelID = inputChannelID;
   _inputSink = sink;
 }

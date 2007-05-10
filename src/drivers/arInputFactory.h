@@ -39,17 +39,21 @@ class SZG_CALL arInputNodeConfig {
 
 class SZG_CALL arInputFactory {
   public:
+    arInputFactory() : _inputConfig() {}
     arInputFactory( const arInputNodeConfig& inputConfig ) :
        _inputConfig( inputConfig ) {}
     virtual ~arInputFactory();
     bool configure( arSZGClient& szgClient );
+    void setInputNodeConfig( const arInputNodeConfig& inputConfig ) {
+      _inputConfig = inputConfig;
+    }
     arInputSource* getInputSource( const string& driverName );
     arInputSink* getInputSink( const string& driverName );
     arIOFilter* getFilter( const string& filterName );
     // slotNumber is a bit ugly. You pass in the value of the _output_
     // slot. It may be incremented and/or used as the number for one
     // or more _input_ slots.
-    bool loadInputSources( arInputNode& inputNode, unsigned int& slotNumber, bool fNetInput=false );
+    bool loadInputSources( arInputNode& inputNode, int& slotNumber, bool fNetInput=false );
     bool loadInputSinks( arInputNode& inputNode );
     bool loadFilters( arInputNode& inputNode, const string& namedPForthProgram="" );
     arInputSource* findInputSource( const string& driverName );
@@ -57,7 +61,6 @@ class SZG_CALL arInputFactory {
     void _printDriverNames( arLogStream& os ); 
     void _deleteSources();
     arInputNodeConfig _inputConfig;
-    unsigned int _outputSlotNumber;
     arSZGClient* _szgClientPtr;
     map< string, arInputSource* > _sourceNameMap;
 #ifndef AR_LINKING_STATIC

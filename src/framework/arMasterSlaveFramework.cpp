@@ -13,7 +13,6 @@
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
 #include "arLogStream.h"
-#include "arInputSimulatorFactory.h"
 
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
@@ -1801,59 +1800,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   _inputDevice = new arInputNode( true );
   _inputState = &_inputDevice->_inputState;
 
-  // Which mode are we using? The simulator mode is the default.
-  _standaloneControlMode = _SZGClient.getAttribute( "SZG_DEMO", "control_mode",
-                                                    "|simulator|joystick|");
-  // _simPtr defaults to &_simulator, a vanilla arInputSimulator instance.
-  // If it has been set to something else in code, then we don't mess with it here.
-  if (_simPtr == &_simulator) {
-    arInputSimulatorFactory simFactory;
-    arInputSimulator* simTemp = simFactory.createSimulator( _SZGClient );
-    if (simTemp) {
-      _simPtr = simTemp;
-    }
-  }
-  if (_standaloneControlMode == "simulator") {
-    _simPtr->registerInputNode( _inputDevice );
-  } else {
-    // the joystick is the only other option so far
-    arSharedLib* joystickObject = new arSharedLib();
-    string sharedLibLoadPath = _SZGClient.getAttribute( "SZG_EXEC", "path" );
-    string pforthProgramName = _SZGClient.getAttribute( "SZG_PFORTH",
-                                                        "program_names");
-    string error;
-    if( !joystickObject->createFactory( "arJoystickDriver", sharedLibLoadPath,
-                                        "arInputSource", error ) ) {
-      ar_log_warning() << error;
-      return false;
-    }
-
-    arInputSource* driver = (arInputSource*) joystickObject->createObject();
-
-    // The input node is not responsible for clean-up
-    _inputDevice->addInputSource( driver, false );
-    if( pforthProgramName == "NULL" ) {
-      ar_log_remark() << _label << ": no pforth program for standalone joystick.\n";
-    } else {
-      string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
-      if( pforthProgram == "NULL" ) {
-        ar_log_remark() << _label << ": no pforth program for '"
-		        << pforthProgramName << "'.\n";
-      } else {
-        arPForthFilter* filter = new arPForthFilter();
-        ar_PForthSetSZGClient( &_SZGClient );
-
-        if( !filter->loadProgram( pforthProgram ) ) {
-          ar_log_remark() << _label <<
-            " failed to configure pforth filter with program '" << pforthProgram << "'.\n";
-          return false;
-        }
-
-        // The input node is not responsible for clean-up
-        _inputDevice->addFilter( filter, false );
-      }
-    }
-  }
+  _handleStandaloneInput();
 
   // Ignore init()'s success.  (Failure might mean just that
   // no szgserver was found, vacuously true since standalone.)
@@ -2265,7 +2212,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
     _head.configure( _SZGClient );
   }
 
-  if( _standalone ) {
+  if( _standalone && (_standaloneControlMode == "simulator") ) {
     _simPtr->configure( _SZGClient );
   }
 

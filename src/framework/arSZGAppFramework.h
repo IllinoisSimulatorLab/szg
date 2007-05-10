@@ -12,6 +12,7 @@
 #include "arInputNode.h"
 #include "arInputState.h"
 #include "arNetInputSource.h"
+#include "arInputFactory.h"
 #include "arHead.h"
 #include "arSoundServer.h"
 #include "arAppLauncher.h"
@@ -156,6 +157,7 @@ class SZG_CALL arSZGAppFramework {
     bool              _showSimulator;
     arFramerateGraph  _framerateGraph;
     bool              _showPerformance;
+    arInputFactory    _inputFactory;
 
     arCallbackEventFilter _callbackFilter;
     arFrameworkEventQueueCallback _eventQueueCallback;
@@ -205,6 +207,8 @@ class SZG_CALL arSZGAppFramework {
     // exit(0) is going to occur in an application-defined thread.
     bool _stopped;
     
+    void _handleStandaloneInput();
+    bool _loadInputDrivers();
     // Installs two filters: _defaultUserFilter (which does nothing, it's a placeholder)
     // and _callbackFilter (which initially does nothing, as it has no callback).
     // Any user-installed filter replaces _defaultUserFilter (installing a NULL

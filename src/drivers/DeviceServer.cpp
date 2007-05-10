@@ -60,8 +60,8 @@ LAbort:
   }
 
   arInputNodeConfig inputConfig;
-  const unsigned int outputSlot = atoi(argv[2]);
-  unsigned int slotNumber = outputSlot;
+  const int outputSlot = atoi(argv[2]);
+  int slotNumber = outputSlot;
   if (fSimple) {
     // As command-line flags, specify only the driver and slot.
     inputConfig.addInputSource( string(argv[1]) );

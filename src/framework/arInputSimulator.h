@@ -15,6 +15,7 @@
 #include <vector>
 #include <map>
 
+
 // The simulated interface is modal. The states follow.
 enum arHeadWandSimState{
   AR_SIM_HEAD_TRANSLATE = 0,
@@ -26,7 +27,7 @@ enum arHeadWandSimState{
   AR_SIM_SIMULATOR_ROTATE
 };
 
-class SZG_CALL arInputSimulator: public arFrameworkObject{
+class SZG_CALL arInputSimulator: public arFrameworkObject {
  public:
   arInputSimulator();
   virtual ~arInputSimulator();

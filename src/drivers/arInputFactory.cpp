@@ -318,9 +318,8 @@ arInputFactory::~arInputFactory() {
 }
 
 bool arInputFactory::loadInputSources( arInputNode& inputNode,
-                                        unsigned int& slotNumber,
+                                        int& slotNumber,
                                         bool fNetInput ) {
-  _outputSlotNumber = slotNumber;
   vector<string>::iterator iter;
   vector<string>& inputSources = _inputConfig.inputSources;
   for (iter = inputSources.begin(); iter != inputSources.end(); ++iter) {
@@ -345,7 +344,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
         return false;
       }
       ar_log_debug() << "arInputFactory created input source '"
-                     << *iter << "' in output slot " << _outputSlotNumber << ".\n";
+                     << *iter << "'.\n";
       _sourceNameMap[*iter] = theSource;
       inputNode.addInputSource( theSource, false );
     }

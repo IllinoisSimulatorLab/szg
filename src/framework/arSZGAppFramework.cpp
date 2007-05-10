@@ -7,6 +7,7 @@
 #include "arSZGAppFramework.h"
 #include "arSoundAPI.h"
 #include "arLogStream.h"
+#include "arInputSimulatorFactory.h"
 
 // Defaults include an average eye spacing of 6 cm.
 arSZGAppFramework::arSZGAppFramework() :
@@ -20,6 +21,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _simPtr(&_simulator),
   _showSimulator(true),
   _showPerformance( false ),
+  _inputFactory(),
   _callbackFilter(this),
   _defaultUserFilter(),
   _userEventFilter(NULL),
@@ -65,6 +67,74 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   }
 
   _simPtr = sim;
+  return true;
+}
+
+void arSZGAppFramework::_handleStandaloneInput() {
+  // Which mode are we using? The simulator mode is the default.
+  _standaloneControlMode = _SZGClient.getAttribute( "SZG_STANDALONE", "input_config" );
+  if (_standaloneControlMode == "NULL") {
+    _standaloneControlMode = "simulator";
+  }
+  if (_standaloneControlMode != "simulator") {
+    if (!_loadInputDrivers()) {
+      ar_log_error() << "Failed to load input devices, defaulting to simulator mode.\n";
+      _standaloneControlMode = "simulator";
+    }
+  }
+  if (_standaloneControlMode == "simulator") {
+    // _simPtr defaults to &_simulator, a vanilla arInputSimulator instance.
+    // If it has been set to something else in code, then we don't mess with it here.
+    if (_simPtr == &_simulator) {
+      arInputSimulatorFactory simFactory;
+      arInputSimulator* simTemp = simFactory.createSimulator( _SZGClient );
+      if (simTemp) {
+        _simPtr = simTemp;
+      }
+    }
+    _simPtr->registerInputNode( _inputDevice );
+  }
+}
+
+bool arSZGAppFramework::_loadInputDrivers() {
+  arInputNodeConfig inputConfig;
+  int slotNumber = 0;
+  const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );
+
+  if (!_inputDevice) {
+    ar_log_error() << "Can't load input drivers; NULL input node pointer.\n";
+    return false;
+  }
+
+  arInputNode& inputNode = *_inputDevice;
+
+  if (config == "NULL") {
+    ar_log_error() << "invalid value '" << _standaloneControlMode
+                   << "' for SZG_STANDALONE/input_config;\n   must be either 'simulator'"
+                   << "or the name of a global input device parameter (<param> in dbatch file).\n";
+    return false;
+  }
+  if (!inputConfig.parseXMLRecord( config )) {
+    ar_log_error() << "misconfigured global input device parameter (<param> in dbatch file) '"
+                   << _standaloneControlMode << "'\n";
+    return false;
+  }
+  _inputFactory.setInputNodeConfig( inputConfig );
+  if (!_inputFactory.configure( _SZGClient )) {
+    ar_log_error() << "failed to configure arInputFactory.\n";
+    return false;
+  }
+  if (!_inputFactory.loadInputSources( inputNode, slotNumber )) {
+    ar_log_error() << "failed to load input sources.\n";
+    return false;
+  }
+  ar_log_debug() << "Loaded input sources in global param '" << _standaloneControlMode
+                 << "'.\n";
+  if (!_inputFactory.loadFilters( inputNode )) {
+    ar_log_error() << "failed to load filters.\n";
+    return false;
+  }
+  ar_log_debug() << "Loaded input filters.\n";
   return true;
 }
 
