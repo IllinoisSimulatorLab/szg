@@ -142,4 +142,3 @@ class SZG_CALL arInputFactory {
 };
 
 #endif
->>>>>>> 1.4
