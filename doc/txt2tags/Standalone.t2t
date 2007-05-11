@@ -77,8 +77,8 @@ directory named either szg_parameters.xml or szg_parameters.txt, in that
 order. However, the file name can be overriden by passing a
 special command line argument to the program, for example:
 ```
-my_program_name arg1 arg2 -szg parameter_file=szg_anaglyph.txt
-my_program_name arg1 arg2 -szg parameter_file-szg_virtualcave.txt
+my_program_name arg1 arg2 -szg parameter_file=szg_anaglyph.xml
+my_program_name arg1 arg2 -szg parameter_file-szg_virtualcave.xml
 ```
 Note that any arguments prefaced by ``-szg`` are interepreted as special
 Syzygy arguments and are removed from the argument array and processed
@@ -109,3 +109,22 @@ parameter's group and name. For example, if the program wants the value
 of the parameter SZG_DATA/path, it will look for an environment variable
 named SZG_DATA_path containing the value.
 
+
+==Device Drivers in Standalone Mode==
+
+Prior to Syzygy 1.2, applications running in standalone mode could not use
+input devices; instead, they loaded and displayed the
+[tracking simulator TrackingSim.html], which allows the user to simulate
+a tracked head and wand using the mouse and keyboard.
+
+Now, however, standalone applications can load input device drivers
+//provided they are built with dynamic linking enabled// (dynamic vs.
+static linking is discussed in [Getting the Software GettingSoftware.html],
+[Compiling C++ Programs CompileCPP.html], and
+[Environment Variables SyzygyEnvironmentVariables.html]). The choice
+between the tracking simulator and a device driver is made using the
+database parameter SZG_STANDALONE/input_config, which defaults to
+"simulator". If given any other value, this is assumed to be the name
+of a [global input device configuration parameter InputDeviceConfiguration.html#GlobalParameters]
+in the parameter file. Any defined input sources (drivers), filters, and
+PForth filter code are loaded.

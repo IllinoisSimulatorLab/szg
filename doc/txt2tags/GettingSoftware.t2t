@@ -250,11 +250,14 @@ systems:
 
   **IMPORTANT NOTE**: On Win32, there is a problem with
   static linking. Because DLL's cannot link to a static libc, loadable
-  DLLs (like Syzygy input device drivers) will NOT work with this option.
-  Consequently, DeviceServer will not work. Similarly, the Python
-  bindings (on Win32) must be built as a DLL and cannot be built with
+  DLLs cannot be built with this option.
+  The Python bindings and scene-graph plugins must be built as a DLL and cannot be built with
   SZG_LINKING set to STATIC. The supported Unix-like platforms do not suffer from
   this problem. 
+  //New in Syzygy 1.2//: You can now compile input device drivers and the
+  DeviceServer program with static linking. The device drivers are linked
+  directly into the DeviceServer executable instead of each comprising its
+  own shared library.
 
 - SZG_DEVELOPER_STYLE: (optional, and no longer supported) If set to "EASY", the build
   assumes that the Syzygy headers and libraries are arranged as in one of

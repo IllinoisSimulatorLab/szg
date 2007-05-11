@@ -71,7 +71,7 @@ A number of environment variables control the build process.
   (.dlls on Windows, .so files on Unix) that applications load at runtime. If
   STATIC, the libraries are linked into each executable at build time. The latter
   creates larger files but much less of a version-control headache. Note that
-  the input device drivers and Python bindings can only be built with this set
+  scene-graph plugins and Python bindings can only be built with this set
   to DYNAMIC, and that STATIC is the only option when compiling with MinGW
   g++ on Windows.
 - SZG_COMPILER: Currently effective only on Windows. Must be 'VC6' (Visual C++ 6,
