@@ -47,11 +47,12 @@ class SZG_CALL arInputFactory {
     void setInputNodeConfig( const arInputNodeConfig& inputConfig ) {
       _inputConfig = inputConfig;
     }
-    arInputSource* getInputSource( const string& );
-    arInputSink* getInputSink( const string& );
-    arIOFilter* getFilter( const string& );
-    // slotNumber is ugly. Pass in the value of the _output_ slot.
-    // It may be incremented and/or used as the number for one or more _input_ slots.
+    arInputSource* getInputSource( const string& driverName );
+    arInputSink* getInputSink( const string& sinkName );
+    arIOFilter* getFilter( const string& filterName );
+    // slotNumber is a bit ugly. You pass in the value of the _output_
+    // slot. It may be incremented and/or used as the number for one
+    // or more _input_ slots.
     bool loadInputSources( arInputNode& inputNode, int& slotNumber, bool fNetInput=false );
     bool loadInputSinks( arInputNode& inputNode );
     bool loadFilters( arInputNode& inputNode, const string& namedPForthProgram="" );

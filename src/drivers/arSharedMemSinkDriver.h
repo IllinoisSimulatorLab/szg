@@ -14,7 +14,7 @@
 // Collect data from whatever slot arAppLauncher assigns to the DeviceServer
 
 class SZG_CALL arSharedMemSinkDriver: public arInputSink {
-    friend void ar_ShmDriverDataTask(void*);
+    friend void ar_ShmSinkDriverDataTask(void*);
   public:
     arSharedMemSinkDriver();
     ~arSharedMemSinkDriver();

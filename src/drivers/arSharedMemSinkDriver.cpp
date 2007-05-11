@@ -106,7 +106,7 @@ bool arSharedMemSinkDriver::start() {
     return false;
   }
 
-  return _eventThread.beginThread(ar_ShmDriverDataTask,this);
+  return _eventThread.beginThread(ar_ShmSinkDriverDataTask,this);
 #endif
 }
 
@@ -139,7 +139,7 @@ bool arSharedMemSinkDriver::stop() {
   return true;
 }
 
-void ar_ShmDriverDataTask(void* pv) {
+void ar_ShmSinkDriverDataTask(void* pv) {
   ((arSharedMemSinkDriver*)pv)->_dataThread();
 }
 

@@ -157,7 +157,9 @@ class SZG_CALL arSZGAppFramework {
     bool              _showSimulator;
     arFramerateGraph  _framerateGraph;
     bool              _showPerformance;
+#ifndef AR_LINKING_STATIC
     arInputFactory    _inputFactory;
+#endif
 
     arCallbackEventFilter _callbackFilter;
     arFrameworkEventQueueCallback _eventQueueCallback;

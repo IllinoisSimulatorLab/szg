@@ -21,7 +21,9 @@ arSZGAppFramework::arSZGAppFramework() :
   _simPtr(&_simulator),
   _showSimulator(true),
   _showPerformance( false ),
+#ifndef AR_LINKING_STATIC
   _inputFactory(),
+#endif
   _callbackFilter(this),
   _defaultUserFilter(),
   _userEventFilter(NULL),
@@ -97,6 +99,10 @@ void arSZGAppFramework::_handleStandaloneInput() {
 }
 
 bool arSZGAppFramework::_loadInputDrivers() {
+#ifdef AR_LINKING_STATIC
+  ar_log_error() << "Can't load input drivers in standalone apps linked statically.\n";
+  return false;
+#else
   arInputNodeConfig inputConfig;
   int slotNumber = 0;
   const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );
@@ -136,6 +142,7 @@ bool arSZGAppFramework::_loadInputDrivers() {
   }
   ar_log_debug() << "Loaded input filters.\n";
   return true;
+#endif
 }
 
 void arSZGAppFramework::setEyeSpacing( float feet) {

@@ -301,7 +301,11 @@ void arInputFactory::_printDriverNames( arLogStream& os ) {
   }
 }
 
+<<<<<<< arInputFactory.cpp
+arInputSink* arInputFactory::getInputSink( const string& sinkName ) {
+=======
 arInputSink* arInputFactory::getInputSink( const string& /*sinkName*/ ) {
+>>>>>>> 1.3
   ar_log_error() << "arInputFactory: No input sink dlls when statically linked.\n";
   return NULL;
 }
