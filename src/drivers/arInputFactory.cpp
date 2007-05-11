@@ -301,12 +301,12 @@ void arInputFactory::_printDriverNames( arLogStream& os ) {
   }
 }
 
-arInputSink* arInputFactory::getInputSink( const string* sinkName ) {
+arInputSink* arInputFactory::getInputSink( const string& /*sinkName*/ ) {
   ar_log_error() << "arInputFactory: No input sink dlls when statically linked.\n";
   return NULL;
 }
 
-arIOFilter* arInputFactory::getFilter( const string& filterName ) {
+arIOFilter* arInputFactory::getFilter( const string& /*filterName*/ ) {
   ar_log_error() << "arInputFactory: No filter dlls when statically linked.\n";
   return NULL;
 }
@@ -320,13 +320,13 @@ arInputFactory::~arInputFactory() {
 bool arInputFactory::loadInputSources( arInputNode& inputNode,
                                         int& slotNumber,
                                         bool fNetInput ) {
-  vector<string>::iterator iter;
+  vector<string>::const_iterator iter;
   vector<string>& inputSources = _inputConfig.inputSources;
   for (iter = inputSources.begin(); iter != inputSources.end(); ++iter) {
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource) {
-        ar_log_error() << "Failed to allocate netInputSource memory.\n";
+        ar_log_error() << "arInputFactory::loadInputSources out of memory.\n";
         return false;
       }
       if (!netInputSource->setSlot( slotNumber )) {
@@ -338,13 +338,11 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
     } else {
       arInputSource* theSource = getInputSource( *iter );
       if (!theSource) {
-        ar_log_error() << "arInputFactory failed to create input source '"
-                       << *iter << "'.\n";
+        ar_log_error() << "arInputFactory failed to create source '" << *iter << "'.\n";
         _printDriverNames( ar_log_error() );
         return false;
       }
-      ar_log_debug() << "arInputFactory created input source '"
-                     << *iter << "'.\n";
+      ar_log_debug() << "arInputFactory created source '" << *iter << "'.\n";
       _sourceNameMap[*iter] = theSource;
       inputNode.addInputSource( theSource, false );
     }
