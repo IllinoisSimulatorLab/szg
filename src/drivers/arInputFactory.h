@@ -1,4 +1,3 @@
-<<<<<<< arInputFactory.h
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
