@@ -214,31 +214,29 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
 
 bool ar_saveEventQueueToStructuredData( const arInputEventQueue* q,
                                         arStructuredData* data ) {
-  int* typeBuf;
-  int* indexBuf;
-  int* buttonBuf;
-  float* axisBuf;
-  float* matrixBuf;
   int _numButtons = q->getNumberButtons();
   int _numAxes = q->getNumberAxes();
   int _numMatrices = q->getNumberMatrices();
   int _numItems;
   int typeField, indexField, buttonField, axisField, matrixField;
-  if (!ar_toStructuredData(
-    _numButtons, _numAxes, _numMatrices, _numItems,
-    typeField, indexField, buttonField, axisField, matrixField,
-    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
-    data)) {
-    return false;
-  }
+  int* typeBuf;
+  int* indexBuf;
+  int* buttonBuf;
+  float* axisBuf;
+  float* matrixBuf;
 
-  return ar_toStructuredDataEnd(
-    q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf ),
-    q->getButtonSignature(), q->getAxisSignature(), q->getMatrixSignature(),
-    _numButtons, _numAxes, _numMatrices, _numItems,
-    typeField, indexField, buttonField, axisField, matrixField,
-    typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
-    data);
+  return ar_toStructuredData(
+      _numButtons, _numAxes, _numMatrices, _numItems,
+      typeField, indexField, buttonField, axisField, matrixField,
+      typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+      data) &&
+    ar_toStructuredDataEnd(
+      q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf ),
+      q->getButtonSignature(), q->getAxisSignature(), q->getMatrixSignature(),
+      _numButtons, _numAxes, _numMatrices, _numItems,
+      typeField, indexField, buttonField, axisField, matrixField,
+      typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf,
+      data);
 }
 
 bool ar_setInputStateFromStructuredData( arInputState* state,
@@ -329,16 +327,17 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
 
 bool ar_saveInputStateToStructuredData( const arInputState* state,
                                         arStructuredData* data ) {
-  int* typeBuf;
-  int* indexBuf;
-  int* buttonBuf;
-  float* axisBuf;
-  float* matrixBuf;
   int _numButtons = state->getNumberButtons();
   int _numAxes = state->getNumberAxes();
   int _numMatrices = state->getNumberMatrices();
   int _numItems;
   int typeField, indexField, buttonField, axisField, matrixField;
+  int* typeBuf;
+  int* indexBuf;
+  int* buttonBuf;
+  float* axisBuf;
+  float* matrixBuf;
+
   if (!ar_toStructuredData(
     _numButtons, _numAxes, _numMatrices, _numItems,
     typeField, indexField, buttonField, axisField, matrixField,
