@@ -89,8 +89,7 @@ arDataTemplate* arTemplateDictionary::find(const string& name){
   arTemplateType::iterator iTemplate = _templateContainer.find(name);
   if (iTemplate == _templateContainer.end()){
     if (_templateContainer.empty()){
-      cerr << "arTemplateDictionary error: empty, so find(\""
-	   << name << "\") failed.\n";
+      ar_log_warning() << "arTemplateDictionary empty, so find(" << name << ") failed.\n";
     }
     else {
       cerr << "arTemplateDictionary error: no entry \"" << name << "\".\n"
@@ -108,10 +107,8 @@ arDataTemplate* arTemplateDictionary::find(const string& name){
 }
 
 arDataTemplate* arTemplateDictionary::find(int ID){
-  arTemplat2Type::iterator iter(
-    _templateIDContainer.find(ID));
-  return (iter == _templateIDContainer.end()) ? NULL :
-    iter->second;
+  arTemplat2Type::const_iterator i(_templateIDContainer.find(ID));
+  return (i == _templateIDContainer.end()) ? NULL : i->second;
 }
 
 // For merging dictionaries (see arMasterSlaveDataRouter.)
