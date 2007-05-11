@@ -33,20 +33,25 @@ void SZG_CALL ar_mutex_init(arMutex*);
 void SZG_CALL ar_mutex_lock(arMutex*);
 void SZG_CALL ar_mutex_unlock(arMutex*);
 
-// From Walmsley, "Multi-threaded Programming in C++," class MUTEX.
+// Recursive mutex: called twice by the same thread, doesn't deadlock.
+// Loosely from Walmsley, "Multi-threaded Programming in C++," class MUTEX.
 class SZG_CALL arLock {
-  public:
-    arLock(const char* name = NULL);
-    ~arLock();
-    void lock();
-    bool tryLock();
-    void unlock();
-    bool valid() const;
-  protected:
+ public:
+  arLock(const char* name = NULL);
+  ~arLock();
+  void lock();
+#ifdef UNUSED
+  bool tryLock();
+#endif
+  void unlock();
+  bool valid() const;
+
+ protected:
 #ifdef AR_USE_WIN_32
-    HANDLE _mutex;
+  HANDLE _mutex;
+  bool _fOwned;
 #else
-    pthread_mutex_t _mutex;
+  pthread_mutex_t _mutex;
 #endif
 };
 

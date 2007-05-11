@@ -45,22 +45,29 @@ void ar_mutex_unlock(arMutex* theMutex){
 // In Windows, a (non-NULL) name starting with Global\ makes the lock system-wide.
 // In Vista that fails because users don't login as "Session 0", which is required.
 #ifdef AR_USE_WIN_32
-arLock::arLock(const char* name) {
+arLock::arLock(const char* name) : _fOwned(true) {
   _mutex = CreateMutex(NULL, FALSE, name);
+  const DWORD e = GetLastError();
+  if (e == ERROR_ALREADY_EXISTS && _mutex) {
+    // Another app has this.  (Only do this with global things like arLogStream.)
+    _fOwned = false;
+  }
 
   if (!_mutex) {
-    const DWORD e = GetLastError();
     if (!name) {
       cerr << "arLock error: CreateMutex failed, GetLastError() == " << e << ".\n";
+      // valid() now fails.
       return;
     }
 
     // name != NULL.
 
     if (e == ERROR_ALREADY_EXISTS) {
-      // Another app has this.  This SHOULD happen.  Why doesn't it?
+      cerr << "arLock warning: CreateMutex('" << name <<
+        "') failed (already exists).\n";
+      return;
     }
-    else if (e == ERROR_ACCESS_DENIED) {
+    if (e == ERROR_ACCESS_DENIED) {
       cerr << "arLock warning: CreateMutex('" << name <<
         "') failed (access denied); backing off.\n";
 LBackoff:
@@ -88,8 +95,8 @@ arLock::arLock(const char*) {
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-  // PTHREAD_MUTEX_DEFAULT deadlocks if _mutex is locked twice.
-  // PTHREAD_MUTEX_NORMAL doesn't check for usage errors like wrong thread unlocking.
+  // Unlike PTHREAD_MUTEX_DEFAULT, don't deadlock if _mutex is locked twice.
+  // Unlike PTHREAD_MUTEX_NORMAL, check for usage errors like unlocking by the wrong thread.
   pthread_mutex_init(&_mutex, &attr);
   pthread_mutexattr_destroy(&attr);
 }
@@ -105,7 +112,10 @@ bool arLock::valid() const {
 
 arLock::~arLock() {
 #ifdef AR_USE_WIN_32
-  CloseHandle(_mutex);
+  if (_fOwned && _mutex) {
+    (void)ReleaseMutex(_mutex); // paranoid
+    CloseHandle(_mutex);
+  }
 #else
   pthread_mutex_destroy( &_mutex );
 #endif
@@ -113,9 +123,12 @@ arLock::~arLock() {
 
 void arLock::lock() {
 #ifdef AR_USE_WIN_32
-  // Called twice by the same thread, this doesn't appear to deadlock.
-  // This didn't deadlock, for example: l.lock(); l.lock(); l.unlock(); l.unlock();
-  const DWORD msecTimeout = 10000;
+  if (!valid()) {
+    cerr << "arLock warning: internal error.\n";
+    return;
+  }
+
+  const DWORD msecTimeout = 3000;
   for (;;) {
     const DWORD r = WaitForSingleObject( _mutex, msecTimeout );
     switch (r) {
@@ -124,14 +137,22 @@ void arLock::lock() {
       return;
     default:
     case WAIT_ABANDONED:
-      cerr << "arLock warning: internal error.\n";
+      // Another thread terminated without releasing _mutex.
+      cerr << "arLock warning: acquired abandoned lock.\n";
       return;
     case WAIT_TIMEOUT:
       cerr << "arLock warning: retrying timed-out lock().\n";
       break;
     case WAIT_FAILED:
       const DWORD e = GetLastError();
-      cerr << "arLock warning: internal error, GetLastError() == " << e << ".\n";
+      if (e == ERROR_INVALID_HANDLE) {
+	cerr << "arLock warning: invalid handle.\n";
+	// _mutex is bad, so stop using it.
+	_mutex = NULL;
+      }
+      else {
+	cerr << "arLock warning: internal error, GetLastError() == " << e << ".\n";
+      }
       return;
     }
   }
@@ -145,7 +166,7 @@ void arLock::lock() {
       return;
     case EBUSY:
       a.sleep();
-      if (a.msecElapsed() > 10000.) {
+      if (a.msecElapsed() > 3000.) {
 	cerr << "arLock warning: retrying timed-out lock().\n";
 	a.resetElapsed();
       }
@@ -162,6 +183,8 @@ void arLock::lock() {
 #endif
 }
 
+#ifdef UNUSED
+
 // Try to lock().  Returns true also if "you" lock()'ed already.
 bool arLock::tryLock() {
 #ifdef AR_USE_WIN_32
@@ -173,9 +196,15 @@ bool arLock::tryLock() {
 #endif
 }
 
+#endif
+
 void arLock::unlock() {
 #ifdef AR_USE_WIN_32
-  ReleaseMutex( _mutex );
+  if (!ReleaseMutex(_mutex)) {
+    cerr << "arLock warning: failed to unlock.\n";
+    CloseHandle(_mutex);
+    _mutex = NULL;
+  };
 #else
   pthread_mutex_unlock( &_mutex );
 #endif
