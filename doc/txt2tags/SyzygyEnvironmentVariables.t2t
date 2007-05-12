@@ -34,7 +34,10 @@ and links to fuller explanations.
   //New in Syzygy 1.2//: You can now compile input device drivers and the
   DeviceServer program with static linking. The device drivers are linked
   directly into the DeviceServer executable instead of each comprising its
-  own shared library.
+  own shared library. There are a few important and unfortunate exceptions
+  when compiling with the MinGW g++ compiler:
+  you can't currently build the joystick, Intel gamepad, and SpacePad
+  drivers with this compiler.
 
 - SZG_STLPORT: For Windows.
   Visual Studio 6's STL implementation is incompatible with

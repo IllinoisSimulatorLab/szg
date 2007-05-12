@@ -184,13 +184,17 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
 #else
 
 // Various device driver headers.
+
+#ifndef AR_USE_MINGW
 #include "arJoystickDriver.h"
 #include "arIntelGamepadDriver.h"
+#include "arSpacepadDriver.h"
+#endif
+
 #include "arMotionstarDriver.h"
 #include "arFOBDriver.h"
 #include "arBirdWinDriver.h"
 #include "arFaroDriver.h"
-#include "arSpacepadDriver.h"
 #include "arEVaRTDriver.h"
 #include "arIntersenseDriver.h"
 #include "arVRPNDriver.h"
@@ -212,6 +216,8 @@ const int NUM_SERVICES = 20;
 const struct DriverTableEntry driverTable[NUM_SERVICES] = {
   { "arJoystickDriver",     "SZG_JOYSTICK", "joystick driver", NULL},
   { "arIntelGamepadDriver", "SZG_JOYSTICK", "intel gamepad driver", NULL},
+  { "arSpacepadDriver",     "SZG_TRACKER",  "Ascension Spacepad", NULL},
+  { "arIdeskTracker",       "SZG_INPUT",    "IDesk tracker", NULL},
   { "arMotionstarDriver",   "SZG_TRACKER",  "MotionStar driver", NULL},
   { "arFaroDriver",         "SZG_FARO",     "FaroArm driver", NULL},
   { "arCubeTracker",        "SZG_INPUT",    "cube tracker", "USED"},
@@ -219,8 +225,6 @@ const struct DriverTableEntry driverTable[NUM_SERVICES] = {
   { "arFOBDriver",          "SZG_FOB",      "flock-of-birds driver", NULL},
   { "arBirdWinDriver",      "SZG_FOB",      "WinBird flock-of-birds driver", NULL},
   { "arFaroCalib",          "SZG_FAROCAL",  "FaroArm/MotionStar combo", "USED"},
-  { "arSpacepadDriver",     "SZG_TRACKER",  "Ascension Spacepad", NULL},
-  { "arIdeskTracker",       "SZG_INPUT",    "IDesk tracker", NULL},
   { "arEVaRTDriver",        "SZG_EVART",    "EVaRT driver", NULL},
   { "arFileSource",         "SZG_MOCAP",    "replay of file data", NULL},
   { "arIntersenseDriver",   "SZG_INPUT",    "intersense trackers", NULL},
@@ -247,27 +251,47 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
       // This switch() could eventually become an AbstractFactory or
       // ConcreteFactory (see Design Patterns).
       switch (iService) {
-      case 0: theSource = new arJoystickDriver;
+      case 0:
+#ifndef AR_USE_MINGW
+        theSource = new arJoystickDriver;
+#else
+        ar_log_error() << "arJoystickDriver not supported with g++ (MinGW compiler) on Windows.\n";
+#endif
         break;
-      case 1: theSource = new arIntelGamepadDriver;
+      case 1:
+#ifndef AR_USE_MINGW
+        theSource = new arIntelGamepadDriver;
+#else
+        ar_log_error() << "arIntelGamepadDriver not supported with g++ (MinGW compiler) on Windows.\n";
+#endif
         break;
-      case 2: theSource = new arMotionstarDriver;
+      case 2:
+#ifndef AR_USE_MINGW
+        theSource = new arSpacepadDriver;
+#else
+        ar_log_error() << "arSpacepadDriver not supported with g++ (MinGW compiler) on Windows.\n";
+#endif
         break;
-      case 3: theSource = new arFaroDriver;
+      case 3:
+#ifndef AR_USE_MINGW
+        theSource = new arSpacepadDriver;
+#else
+        ar_log_error() << "arIdeskTracker not supported with g++ (MinGW compiler) on Windows.\n";
+#endif
         break;
       case 4: theSource = new arMotionstarDriver;
         break;
       case 5: theSource = new arFaroDriver;
         break;
-      case 6: theSource = new arFOBDriver;
+      case 6: theSource = new arMotionstarDriver;
         break;
-      case 7: theSource = new arBirdWinDriver;
+      case 7: theSource = new arFaroDriver;
         break;
-      case 8: theSource = new arMotionstarDriver;
+      case 8: theSource = new arFOBDriver;
         break;
-      case 9: theSource = new arSpacepadDriver;
+      case 9: theSource = new arBirdWinDriver;
         break;
-      case 10: theSource = new arSpacepadDriver;
+      case 10: theSource = new arMotionstarDriver;
         break;
       case 11: theSource = new arEVaRTDriver;
         break;

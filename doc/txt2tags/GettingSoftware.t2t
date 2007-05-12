@@ -100,9 +100,12 @@ Visual Studio compiler and linker (either Visual Studio 6 with
 the STLPort STL headers or Visual Studio .NET without)
 or the MinGW implementation of the GNU g++ compiler and linker.
 Note that not all functionality is available when compiling
-with g++ on Windows: You can't currently compile device drivers
+with g++ on Windows: You can't currently compile scene graph plugins
 or Python bindings, and speech synthesis and .3ds file support are
-also unavailable. However, we can supply you with precompiled binaries of
+also unavailable. The device drivers for joysticks, Intel gamepads,
+and the SpacePad are also unavailable (see
+[Supported Input Devices InputDevices-Drivers.html].
+However, we can supply you with precompiled binaries of
 the device drivers, Python bindings, and SoundRender for speech
 synthesis in Cluster Mode.
 

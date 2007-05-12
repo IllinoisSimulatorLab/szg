@@ -35,6 +35,7 @@ std::list<arInteractable*> interactionList;
 arCallbackInteractable interactionArray[NUMBER_OBJECTS];
 int objectTextureID[NUMBER_OBJECTS];
 int wandID = -1;
+int soundTransformID = -1;
 int teapotID = -1;
 int teapotTransformID = -1;
 int pythonID = -1;
@@ -221,6 +222,7 @@ void worldInit(arDistSceneGraphFramework& framework) {
   arCubeMesh theCube;
   const string navNodeName = framework.getNavNodeName();
   lightsOnOffID = dgStateInt( "light_switch", navNodeName, "lighting", AR_G_TRUE );
+  soundTransformID = dsTransform( "sound_transform", navNodeName, arMatrix4() );
   wandID = dgTransform( "wand_transform", "light_switch", arMatrix4() );
   dgTexture( "wand_texture", "wand_transform", "ambrosia.ppm" );
   theCube.setTransform(ar_scaleMatrix(.2,.2,WAND_LENGTH));

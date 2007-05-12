@@ -12,8 +12,9 @@ Header2 %%mtime(%m/%d/%Y)
 - [GettingSoftware.html GettingSoftware.html]: Downloading and compiling the source code.
   If using Microsoft Visual C++, also see
   [VisualStudioBuildVars.html VisualStudioBuildVars.html]. Most of Syzygy can be compiled
-  on Windows using the [MinGW http://www.mingw.org/] GNU compiler; the exceptions are the input device
-  driver plugins and the Python bindings, which still require a Microsoft compiler.
+  on Windows using the [MinGW http://www.mingw.org/] GNU compiler; the exceptions are some
+  of the input device drivers, scene graph plugins, and the Python bindings, which
+  still require a Microsoft compiler.
   Precompiled copies of these might be in the same place where you got this archive.
 - [SupportingLibraries.html SupportingLibraries.html]: Installing and using
   libraries that add features to Syzygy.
@@ -25,8 +26,7 @@ Header2 %%mtime(%m/%d/%Y)
   Specifying parameters of a VR system with the Syzygy Database, in both Standalone and Cluster modes.
   This includes:
   - [GraphicsConfiguration.html GraphicsConfiguration.html]: Arranging
-    display devices. See also 
-    [Examples GraphicsConfigExamples.html].
+    display devices. See also [Examples GraphicsConfigExamples.html].
   - [PathConfiguration.html PathConfiguration.html]: Defining search paths
     for sound files and texture maps.
   - [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup]:
