@@ -13,7 +13,7 @@ void ar_barrierClientConnection(void* barrierClient){
 void arBarrierClient::_connectionTask(){
   _connectionThreadRunning = true;
   if (!_client){
-    cerr << "arBarrierClient error: object has not been initialized.\n";
+    ar_log_warning() << getLabel() << ": barrier client uninitialized.\n";
     _keepRunningThread = false;
     return;
   }
@@ -34,14 +34,14 @@ void arBarrierClient::_connectionTask(){
     _connectionThreadRunning = true;
 
     if (!result.valid){
-      cerr << getLabel() << " warning: no service '"
+      ar_log_warning() << getLabel() << ": no service '"
            << _serviceName << "' on network '" << _networks << "'.\n";
       continue;
     } 
 
     _connected = _dataClient.dialUpFallThrough(result.address, result.portIDs[0]);
     if (!_connected){
-      cerr << getLabel() << " warning: failed to connect to brokered address '"
+      ar_log_warning() << getLabel() << " failed to connect to brokered address '"
 	   << result.address << "' for service '"
 	   << _serviceName << "' on network '" << _networks << "'.\n";
     }
@@ -104,7 +104,7 @@ void arBarrierClient::_dataTask(){
       _releaseSignal.sendSignal();
     }
     else{
-      cerr << getLabel() << " warning: got unknown packet.\n";
+      ar_log_warning() << getLabel() << " got unknown packet.\n";
     }
   }
   _dataThreadRunning = false;
@@ -166,10 +166,10 @@ bool arBarrierClient::requestActivation(){
 
   _handshakeData->dataIn(BONDED_ID,&_bondedSocketID,AR_INT,1);
   _sendLock.lock();
-  bool ok = _dataClient.sendData(_handshakeData);
+    const bool ok = _dataClient.sendData(_handshakeData);
   _sendLock.unlock();
   if (!ok){
-    cerr << getLabel() << " error: requestActivation failed to send data.\n";
+    ar_log_warning() << getLabel() << ": requestActivation failed to send data.\n";
     return false;
   }
 
@@ -303,6 +303,7 @@ bool arBarrierClient::sync(){
   }
 
   // there are definitely race conditions here...
+
   // Pack the buffer with the tuning data.
   _sendLock.lock();
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
@@ -322,7 +323,7 @@ bool arBarrierClient::sync(){
   }
   _sendLock.unlock();
   if (!ok){
-    cerr << getLabel() << " error: sync failed.\n";
+    ar_log_warning() << getLabel() << " barrier client failed to sync.\n";
     return false;
   }
   _releaseSignal.receiveSignal();
