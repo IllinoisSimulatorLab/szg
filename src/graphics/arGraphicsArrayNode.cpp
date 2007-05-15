@@ -20,11 +20,9 @@ arStructuredData* arGraphicsArrayNode::dumpData(){
 
 bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   if (inData->getID() != _recordType){
-    cerr << _typeString << " error: expected "
-	 << _recordType
-	 << " (" << _g->_stringFromID(_recordType) << "), not "
-	 << inData->getID()
-	 << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+    ar_log_warning() << "arGraphicsArrayNode " << _typeString << " expected "
+	 << _recordType << " (" << _g->_stringFromID(_recordType) << "), not "
+	 << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
 

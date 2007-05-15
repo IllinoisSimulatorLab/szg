@@ -214,11 +214,10 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
   _firstMessageReceived = true;
 
   if (inData->getID() != _g->AR_DRAWABLE){
-    cerr << "arDrawableNode error: expected "
-    << _g->AR_DRAWABLE
-    << " (" << _g->_stringFromID(_g->AR_DRAWABLE) << ") not "
-    << inData->getID()
-    << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+    ar_log_warning() << "arDrawableNode expected "
+    << _g->AR_DRAWABLE << " (" << _g->_stringFromID(_g->AR_DRAWABLE) << "), not "
+    << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+    //;;;; factor out all these
     return false;
   }
 
