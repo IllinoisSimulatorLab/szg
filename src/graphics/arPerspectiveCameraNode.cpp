@@ -24,14 +24,9 @@ arStructuredData* arPerspectiveCameraNode::dumpData(){
 }
 
 bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _g->AR_PERSP_CAMERA){
-    cerr << "arLightNode error: expected "
-    << _g->AR_PERSP_CAMERA
-    << " (" << _g->_stringFromID(_g->AR_PERSP_CAMERA) << "), not "
-    << inData->getID()
-    << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_PERSP_CAMERA, inData->getID(), "arLightNode"))
     return false;
-  }
+
   _nodeLock.lock();
   inData->dataOut(_g->AR_PERSP_CAMERA_CAMERA_ID,
                   &_nodeCamera.cameraID, AR_INT, 1);
@@ -51,7 +46,7 @@ void arPerspectiveCameraNode::deactivate(){
 
 arPerspectiveCamera arPerspectiveCameraNode::getCamera(){
   _nodeLock.lock();
-  arPerspectiveCamera r = _nodeCamera;
+    const arPerspectiveCamera r = _nodeCamera;
   _nodeLock.unlock();
   return r;
 }
@@ -59,14 +54,14 @@ arPerspectiveCamera arPerspectiveCameraNode::getCamera(){
 void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(camera, true);
+      arStructuredData* r = _dumpData(camera, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _nodeCamera = camera;
+      _nodeCamera = camera;
     _nodeLock.unlock();
   }
 }
@@ -74,13 +69,9 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
 // NOT thread-safe.
 arStructuredData* arPerspectiveCameraNode::_dumpData
   (const arPerspectiveCamera& camera, bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_PERSP_CAMERA);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_PERSP_CAMERA);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_PERSP_CAMERA) :
+    _g->makeDataRecord(_g->AR_PERSP_CAMERA);
   _dumpGenericNode(result,_g->AR_PERSP_CAMERA_ID);
   result->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);
   result->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6);

@@ -27,9 +27,8 @@ void arDrawableNode::draw(arGraphicsContext* context){
     return;
 
   _nodeLock.lock();
-  const ARint whatKind = _type;
-  // This may change below as we check array bounds.
-  ARint howMany = _number;
+    const ARint whatKind = _type;
+    ARint howMany = _number; // May change as we check array bounds.
   _nodeLock.unlock();
 
   int numberPos = 0;
@@ -213,24 +212,19 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
   // in two different messages.
   _firstMessageReceived = true;
 
-  if (inData->getID() != _g->AR_DRAWABLE){
-    ar_log_warning() << "arDrawableNode expected "
-    << _g->AR_DRAWABLE << " (" << _g->_stringFromID(_g->AR_DRAWABLE) << "), not "
-    << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << ")\n";
-    //;;;; factor out all these
+  if (!_g->checkNodeID(_g->AR_DRAWABLE, inData->getID(), "arDrawableNode"))
     return false;
-  }
 
   _nodeLock.lock();
-  _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
-  _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
+    _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
+    _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
   _nodeLock.unlock();
   return true;
 }
 
 int arDrawableNode::getType(){
   _nodeLock.lock();
-  int r = _type;
+    const int r = _type;
   _nodeLock.unlock();
   return r;
 }
@@ -241,7 +235,7 @@ string arDrawableNode::getTypeAsString(){
 
 int arDrawableNode::getNumber(){
   _nodeLock.lock();
-  int r = _number;
+    const int r = _number;
   _nodeLock.unlock();
   return r;
 }
@@ -249,15 +243,15 @@ int arDrawableNode::getNumber(){
 void arDrawableNode::setDrawable(arDrawableType type, int number){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(type, number, true);
+      arStructuredData* r = _dumpData(type, number, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _type = type;
-    _number = number;
+      _type = type;
+      _number = number;
     _nodeLock.unlock();
   }
 }
@@ -270,17 +264,13 @@ void arDrawableNode::setDrawableViaString(const string& type,
 // NOT thread-safe.
 arStructuredData* arDrawableNode::_dumpData(int type, int number,
                                             bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_DRAWABLE);
-  }
-  _dumpGenericNode(result,_g->AR_DRAWABLE_ID);
-  result->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);
-  result->dataIn(_g->AR_DRAWABLE_NUMBER, &number, AR_INT, 1);
-  return result;
+  arStructuredData* r = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE) :
+    _g->makeDataRecord(_g->AR_DRAWABLE);
+  _dumpGenericNode(r, _g->AR_DRAWABLE_ID);
+  r->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);
+  r->dataIn(_g->AR_DRAWABLE_NUMBER, &number, AR_INT, 1);
+  return r;
 }
 
 bool arDrawableNode::_0DPreDraw(arGraphicsNode* pointsNode,

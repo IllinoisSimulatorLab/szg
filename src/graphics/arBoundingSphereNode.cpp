@@ -40,26 +40,19 @@ arStructuredData* arBoundingSphereNode::dumpData(){
 }
 
 bool arBoundingSphereNode::receiveData(arStructuredData* inData){
-  if (inData->getID() == _g->AR_BOUNDING_SPHERE){
-    _nodeLock.lock();
-    const ARint vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY);
-    _boundingSphere.visibility = vis ? true : false;
-    inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
-                    &_boundingSphere.radius, AR_FLOAT, 1);
-    inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
-                    _boundingSphere.position.v, AR_FLOAT, 3);
-    _nodeLock.unlock();
-    return true;
-  }
+  if (!_g->checkNodeID(_g->AR_BOUNDING_SPHERE, inData->getID(), "arBoundingSphereNode"))
+    return false;
 
-  cerr << "arBoundingSphereNode error: expected "
-       << _g->AR_BOUNDING_SPHERE
-       << " (" << _g->_stringFromID(_g->AR_BOUNDING_SPHERE) << "), not "
-       << inData->getID()
-       << " (" << _g->_stringFromID(inData->getID()) << ")\n";
-  return false;
+  _nodeLock.lock();
+  const ARint vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY);
+  _boundingSphere.visibility = vis ? true : false;
+  inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
+		  &_boundingSphere.radius, AR_FLOAT, 1);
+  inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
+		  _boundingSphere.position.v, AR_FLOAT, 3);
+  _nodeLock.unlock();
+  return true;
 }
-
 
 arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
   _nodeLock.lock();

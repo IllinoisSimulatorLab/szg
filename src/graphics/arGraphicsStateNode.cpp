@@ -37,14 +37,10 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
   if (arDatabaseNode::receiveData(data)){
     return true;
   }
-  if (data->getID() != _g->AR_GRAPHICS_STATE){
-    cerr << "arGraphicsStateNode error: expected "
-         << _g->AR_GRAPHICS_STATE
-         << " (" << _g->_stringFromID(_g->AR_GRAPHICS_STATE) << "), not "
-         << data->getID()
-         << " (" << _g->_stringFromID(data->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_GRAPHICS_STATE, data->getID(), "arGraphicsStateNode")) {
     return false;
   }
+
   _nodeLock.lock();
   _stateName = data->getDataString(_g->AR_GRAPHICS_STATE_STRING);
   _stateID = _convertStringToStateID(_stateName);
@@ -59,23 +55,22 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
 
 string arGraphicsStateNode::getStateName(){
   _nodeLock.lock();
-  string r = _stateName;
+    const string r(_stateName);
   _nodeLock.unlock();
   return r;
 }
 
 arGraphicsStateID arGraphicsStateNode::getStateID(){
   _nodeLock.lock();
-  arGraphicsStateID r = _stateID;
+    const arGraphicsStateID r = _stateID;
   _nodeLock.unlock();
   return r;
 }
 
 bool arGraphicsStateNode::isFloatState(){
-  // NOTE: _isFloatState is NOT thread-safe (since it uses the node's current
-  // state).
   _nodeLock.lock();
-  bool r = _isFloatState();
+    // _isFloatState uses the node's current state.
+    const bool r = _isFloatState();
   _nodeLock.unlock();
   return r;
 }

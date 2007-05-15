@@ -19,12 +19,8 @@ arStructuredData* arGraphicsArrayNode::dumpData(){
 }
 
 bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _recordType){
-    ar_log_warning() << "arGraphicsArrayNode " << _typeString << " expected "
-	 << _recordType << " (" << _g->_stringFromID(_recordType) << "), not "
-	 << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_recordType, inData->getID(), "arGraphicsArrayNode"))
     return false;
-  }
 
   ARint* theIDs = (ARint*)inData->getDataPtr(_indexField, AR_INT);
   void* theData = inData->getDataPtr(_dataField, _nodeDataType);
@@ -32,13 +28,12 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   const ARint numberIDs = inData->getDataDimension(_indexField);
   
   if (numberIDs <= 0){
-    // Must be at least one ID.
     ar_log_warning() << "arGraphicsArrayNode " << _typeString << ": no IDs.\n";
-    // This isn't really an error... we were able to process the info.
+    // Nothing to do.
     return true;
   }
 
-  // Must lock before data modification.
+  // Lock before modifying data.
   _nodeLock.lock();
   if (theIDs[0] == -1){
     // Array elements are packed in order.
@@ -54,7 +49,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-// NOT thread-safe. Caller must lock node's lock.
+// NOT thread-safe. Caller must _nodeLock.lock().
 // Methods like arPointsNode::setPoints and arGraphicsArrayNode::receiveData
 // call this from a locked section, so we can't lock in here lest deadlocks ensue.
 void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs){
@@ -94,7 +89,7 @@ arStructuredData* arGraphicsArrayNode::_dumpData(int number,
     _g->makeDataRecord(_recordType);
   if (!result){
     ar_log_warning() << "arGraphicsArrayNode failed to make record of type " <<
-      _recordType << " (" << _g->_stringFromID(_recordType) << ").\n";
+      _g->numstringFromID(_recordType) << ".\n";
     return NULL;
   }
 

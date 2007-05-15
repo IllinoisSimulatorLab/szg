@@ -69,12 +69,10 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   if (arDatabaseNode::receiveData(data)) {
     return true;
   }
-  if (data->getID() != _g->AR_GRAPHICS_PLUGIN) {
-    cerr << "arGraphicsPluginNode error: expected " << _g->AR_GRAPHICS_PLUGIN
-         << " (" << _g->_stringFromID(_g->AR_GRAPHICS_PLUGIN) << "), not "
-         << data->getID() << " (" << _g->_stringFromID(data->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_GRAPHICS_PLUGIN, data->getID(), "arGraphicsPluginNode")) {
     return false;
   }
+
   _nodeLock.lock();
   std::string newFileName = data->getDataString( _g->AR_GRAPHICS_PLUGIN_NAME );
   if (!_object && (newFileName == "")) {

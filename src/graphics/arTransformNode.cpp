@@ -28,26 +28,20 @@ arStructuredData* arTransformNode::dumpData(){
 
 bool arTransformNode::receiveData(arStructuredData* inData){
   // Get the name change record, for instance, if sent.
-  if (arDatabaseNode::receiveData(inData)){
+  if (arDatabaseNode::receiveData(inData))
     return true;
-  }
-  if (inData->getID() != _g->AR_TRANSFORM){
-    cerr << "arTransformNode error: expected "
-         << _g->AR_TRANSFORM
-         << " (" << _g->_stringFromID(_g->AR_TRANSFORM) << "), not "
-         << inData->getID()
-         << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_TRANSFORM, inData->getID(), "arTransformNode"))
     return false;
-  }
+
   _nodeLock.lock();
-  inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
+    inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
   _nodeLock.unlock();
   return true;
 }
 
 arMatrix4 arTransformNode::getTransform(){
   _nodeLock.lock();
-  const arMatrix4 result(_transform);
+    const arMatrix4 result(_transform);
   _nodeLock.unlock();
   return result;
 }
@@ -55,20 +49,19 @@ arMatrix4 arTransformNode::getTransform(){
 void arTransformNode::setTransform(const arMatrix4& transform){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(transform, true);
+      arStructuredData* r = _dumpData(transform, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _transform = transform;
+      _transform = transform;
     _nodeLock.unlock();
   }
 }
 
-// This method is NOT thread-safe. Instead, it is the caller's responsbility
-// to call it from within a locked section.
+// NOT thread-safe. Call from within a locked section.
 arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
                                              bool owned){
   arStructuredData* result = owned ?

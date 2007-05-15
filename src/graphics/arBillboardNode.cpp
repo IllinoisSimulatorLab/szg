@@ -76,21 +76,15 @@ arStructuredData* arBillboardNode::dumpData(){
 }
 
 bool arBillboardNode::receiveData(arStructuredData* inData){
-  if (inData->getID() == _g->AR_BILLBOARD){
-    int vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY);
-    _nodeLock.lock();
-    _visibility = vis ? true : false;
-    _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
-    _nodeLock.unlock();
-    return true;
-  }
+  if (!_g->checkNodeID(_g->AR_BILLBOARD, inData->getID(), "arBillboardNode"))
+    return false;
 
-  cerr << "arBillboardNode error: expected "
-       << _g->AR_BILLBOARD
-       << " (" << _g->_stringFromID(_g->AR_BILLBOARD) << "), not "
-       << inData->getID()
-       << " (" << _g->_stringFromID(inData->getID()) << ")\n";
-  return false;
+  const int vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY);
+  _nodeLock.lock();
+  _visibility = vis ? true : false;
+  _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
+  _nodeLock.unlock();
+  return true;
 }
 
 string arBillboardNode::getText(){

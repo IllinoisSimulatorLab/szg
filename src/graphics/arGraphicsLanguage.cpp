@@ -5,6 +5,9 @@
 
 #include "arPrecompiled.h"
 #include "arGraphicsLanguage.h"
+#include "arLogStream.h"
+
+#include <sstream>
 
 arGraphicsLanguage::arGraphicsLanguage():
   _transform("transform"),
@@ -164,10 +167,34 @@ string arGraphicsLanguage::typeFromID(int ID){
   return "NULL";
 }
 
-const char* arGraphicsLanguage::_stringFromID(int id)
-{
-  // This is slow, but it's only for debugging printf's.
+const char* arGraphicsLanguage::_stringFromID(const int id) const {
   const int cnames = 22;
+
+  const int ids[] = {
+    AR_TRANSFORM,
+    AR_POINTS,
+    AR_TEXTURE,
+    AR_BOUNDING_SPHERE,
+    AR_ERASE,
+    AR_BILLBOARD,
+    AR_VISIBILITY,
+    AR_VIEWER,
+    AR_MAKE_NODE,
+    AR_BLEND,
+    AR_NORMAL3,
+    AR_COLOR4,
+    AR_TEX2,
+    AR_INDEX,
+    AR_DRAWABLE,
+    AR_MATERIAL,
+    AR_LIGHT,
+    AR_PERSP_CAMERA,
+    AR_BUMPMAP,
+    AR_GRAPHICS_ADMIN,
+    AR_GRAPHICS_STATE,
+    AR_GRAPHICS_PLUGIN,
+    };
+
   static const char* names[cnames+1] = {
     "AR_TRANSFORM",
     "AR_POINTS",
@@ -193,32 +220,30 @@ const char* arGraphicsLanguage::_stringFromID(int id)
     "AR_GRAPHICS_PLUGIN",
     "(unknown!)"
     };
-  const int ids[cnames] = {
-    AR_TRANSFORM,
-    AR_POINTS,
-    AR_TEXTURE,
-    AR_BOUNDING_SPHERE,
-    AR_ERASE,
-    AR_BILLBOARD,
-    AR_VISIBILITY,
-    AR_VIEWER,
-    AR_MAKE_NODE,
-    AR_BLEND,
-    AR_NORMAL3,
-    AR_COLOR4,
-    AR_TEX2,
-    AR_INDEX,
-    AR_DRAWABLE,
-    AR_MATERIAL,
-    AR_LIGHT,
-    AR_PERSP_CAMERA,
-    AR_BUMPMAP,
-    AR_GRAPHICS_ADMIN,
-    AR_GRAPHICS_STATE,
-    AR_GRAPHICS_PLUGIN
-    };
+
+  // Linear search is slow, but this is merely for diagnostics.
   for (int i=0; i<cnames; ++i)
     if (id == ids[i])
       return names[i];
   return names[cnames]; // id was not found
 }
+
+string arGraphicsLanguage::numstringFromID(const int id) const {
+  ostringstream s;
+  s << id << " (" << _stringFromID(id) << ")";
+  return s.str();
+}
+
+bool arGraphicsLanguage::checkNodeID(const int idExpected,
+    const int id, const char* name) const {
+  if (id == idExpected)
+    return true;
+
+  ar_log_warning() << name << " expected " <<
+    numstringFromID(idExpected) << ", not " <<
+    numstringFromID(id) << ".\n";
+
+  // Caller could pass in its getName() for an even more specific warning.
+  return false;
+}
+// todo: copypaste checkNodeID from graphics to sound.

@@ -11,7 +11,7 @@
 #include "arDatabaseLanguage.h"
 #include "arGraphicsCalling.h"
 
-// ID's shared between an arGraphicsServer and its arGraphicsClient objects
+// ID's shared between an arGraphicsServer and its arGraphicsClients
 // when rendering an arGraphicsDatabase.
 
 class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
@@ -176,7 +176,10 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   arDataTemplate _graphicsState;
   arDataTemplate _graphicsPlugin;
 public:
-  const char* _stringFromID(int id);
+  const char* _stringFromID(const int) const;
+  string numstringFromID(const int) const;
+  bool arGraphicsLanguage::checkNodeID(const int idExpected,
+      const int id, const char* name) const;
 };
 
 #endif

@@ -32,21 +32,16 @@ arTextureNode::~arTextureNode(){
 arStructuredData* arTextureNode::dumpData(){
   // Caller is responsible for deleting.
   _nodeLock.lock();
-  arStructuredData* r = _dumpData(_fileName, _alpha, _width, _height, 
-                                  _texture ? _texture->getPixels() : NULL,
-                                  false);
+    arStructuredData* r = _dumpData(_fileName, _alpha, _width, _height, 
+      _texture ? _texture->getPixels() : NULL,
+      false);
   _nodeLock.unlock();
   return r;
 }
 
 bool arTextureNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _g->AR_TEXTURE){
-    ar_log_warning() << "arTextureNode expected "
-         << _g->AR_TEXTURE << " (" << _g->_stringFromID(_g->AR_TEXTURE) << "), not "
-         << inData->getID() << " (" << _g->_stringFromID(inData->getID()) << "), for node \""
-	 << getName() << "\".\n";
+  if (!_g->checkNodeID(_g->AR_TEXTURE, inData->getID(), "arTextureNode"))
     return false;
-  }
 
   _nodeLock.lock();
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
@@ -128,13 +123,9 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
 			                   int width, int height, 
                                            const char* pixels,
                                            bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_TEXTURE);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_TEXTURE);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_TEXTURE) :
+    _g->makeDataRecord(_g->AR_TEXTURE);
   _dumpGenericNode(result,_g->AR_TEXTURE_ID);
   if (fileName != ""){
     // Set the data dimension of the _width to 0, to tell

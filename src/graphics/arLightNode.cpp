@@ -20,20 +20,14 @@ arLightNode::~arLightNode(){
 arStructuredData* arLightNode::dumpData(){
   // Caller is responsible for deleting.
   _nodeLock.lock();
-  arStructuredData* r = _dumpData(_nodeLight, false);
+    arStructuredData* r = _dumpData(_nodeLight, false);
   _nodeLock.unlock();
   return r;
 }
 
 bool arLightNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _g->AR_LIGHT){
-    cerr << "arLightNode error: expected "
-    << _g->AR_LIGHT
-    << " (" << _g->_stringFromID(_g->AR_LIGHT) << "), not "
-    << inData->getID()
-    << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_LIGHT, inData->getID(), "arLightNode"))
     return false;
-  }
 
   _nodeLock.lock();
   inData->dataOut(_g->AR_LIGHT_LIGHT_ID,&_nodeLight.lightID,AR_INT,1);
@@ -63,10 +57,9 @@ void arLightNode::deactivate(){
   _owningDatabase->removeLight(this);
 }
 
-
 arLight arLightNode::getLight(){
   _nodeLock.lock();
-  arLight r = _nodeLight;
+    const arLight r = _nodeLight;
   _nodeLock.unlock();
   return r;
 }
@@ -87,13 +80,9 @@ void arLightNode::setLight(arLight& light){
 }
 
 arStructuredData* arLightNode::_dumpData(arLight& light, bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_LIGHT);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_LIGHT);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_LIGHT) :
+    _g->makeDataRecord(_g->AR_LIGHT);
   _dumpGenericNode(result,_g->AR_LIGHT_ID); 
   result->dataIn(_g->AR_LIGHT_LIGHT_ID,&light.lightID,AR_INT,1);
   result->dataIn(_g->AR_LIGHT_POSITION,light.position.v,AR_FLOAT,4);

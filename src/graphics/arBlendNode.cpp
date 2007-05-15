@@ -23,14 +23,8 @@ arStructuredData* arBlendNode::dumpData(){
 }
 
 bool arBlendNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _g->AR_BLEND){
-    cerr << "arBlendNode error: expected "
-         << _g->AR_BLEND
-         << " (" << _g->_stringFromID(_g->AR_BLEND) << "), not "
-         << inData->getID()
-         << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_BLEND, inData->getID(), "arBlendNode"))
     return false;
-  }
 
   _nodeLock.lock();
   _blendFactor = inData->getDataFloat(_g->AR_BLEND_FACTOR);

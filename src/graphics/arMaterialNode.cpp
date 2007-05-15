@@ -21,14 +21,9 @@ arStructuredData* arMaterialNode::dumpData() {
 }
 
 bool arMaterialNode::receiveData(arStructuredData* inData) {
-  if (inData->getID() != _g->AR_MATERIAL) {
-    cerr << "arMaterialNode error: expected "
-    << _g->AR_MATERIAL
-    << " (" << _g->_stringFromID(_g->AR_MATERIAL) << "), not "
-    << inData->getID()
-    << " (" << _g->_stringFromID(inData->getID()) << ")\n";
+  if (!_g->checkNodeID(_g->AR_MATERIAL, inData->getID(), "arMaterialNode"))
     return false;
-  }
+
   _nodeLock.lock();
   inData->dataOut(_g->AR_MATERIAL_DIFFUSE,_lMaterial.diffuse.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_AMBIENT,_lMaterial.ambient.v,AR_FLOAT,3);
@@ -42,7 +37,7 @@ bool arMaterialNode::receiveData(arStructuredData* inData) {
 
 arMaterial arMaterialNode::getMaterial() {
   _nodeLock.lock();
-  arMaterial r = _lMaterial;
+    const arMaterial r = _lMaterial;
   _nodeLock.unlock();
   return r;
 }
@@ -50,13 +45,13 @@ arMaterial arMaterialNode::getMaterial() {
 void arMaterialNode::setMaterial(const arMaterial& material) {
   if (active()) {
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(material, true);
+      arStructuredData* r = _dumpData(material, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   } else {
     _nodeLock.lock();
-    _lMaterial = material;
+      _lMaterial = material;
     _nodeLock.unlock();
   }
 }
@@ -64,13 +59,9 @@ void arMaterialNode::setMaterial(const arMaterial& material) {
 // NOT thread-safe.
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material,
                                             bool owned) {
-  arStructuredData* result = NULL;
-  if (owned) {
-    result = getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_MATERIAL);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL) :
+    _g->makeDataRecord(_g->AR_MATERIAL);
   _dumpGenericNode(result,_g->AR_MATERIAL_ID);
   result->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3);
   result->dataIn(_g->AR_MATERIAL_AMBIENT,material.ambient.v,AR_FLOAT,3);
