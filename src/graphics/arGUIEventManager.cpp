@@ -15,8 +15,6 @@ arGUIEventManager::arGUIEventManager( void* userData ) :
   _active( true ),
   _userData( userData )
 {
-  ar_mutex_init( &_eventsMutex );
-
   _GUIInfoDictionary = new arTemplateDictionary();
 
   // build the common GUI info dictionary
@@ -71,25 +69,25 @@ arGUIEventManager::~arGUIEventManager( void )
 
 bool arGUIEventManager::eventsPending( void )
 {
-  ar_mutex_lock( &_eventsMutex );
-  const bool ok = !_events.empty();
-  ar_mutex_unlock( &_eventsMutex );
+  _eventsMutex.lock();
+    const bool ok = !_events.empty();
+  _eventsMutex.unlock();
   return ok;
 }
 
 arGUIInfo* arGUIEventManager::getNextEvent( void )
 {
-  ar_mutex_lock( &_eventsMutex );
+  _eventsMutex.lock();
 
   if( _events.empty() ) {
-    ar_mutex_unlock( &_eventsMutex );
+    _eventsMutex.unlock();
     return NULL;
   }
 
   arStructuredData event = _events.front();
   _events.pop();
 
-  ar_mutex_unlock( &_eventsMutex );
+  _eventsMutex.unlock();
 
   const arGUIEventType eventType = arGUIEventType( event.getDataInt( "eventType" ) );
 
@@ -474,10 +472,9 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
     return -1;
   }
 
-  ar_mutex_lock( &_eventsMutex );
-  _events.push( event );
-  ar_mutex_unlock( &_eventsMutex );
-
+  _eventsMutex.lock();
+    _events.push( event );
+  _eventsMutex.unlock();
   return 0;
 }
 
@@ -940,10 +937,9 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
 
 void arGUIEventManager::setActive( const bool active )
 {
-  // just to be on the safe side...
-  ar_mutex_lock( &_eventsMutex );
-  _active = active;
-  ar_mutex_unlock( &_eventsMutex );
+  _eventsMutex.lock(); // paranoid
+    _active = active;
+  _eventsMutex.unlock();
 }
 
 arGUIKeyInfo arGUIEventManager::getKeyState( const arGUIKey key )

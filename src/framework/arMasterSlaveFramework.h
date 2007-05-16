@@ -329,7 +329,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // Respond to pause message.
   bool           _pauseFlag;
-  arMutex        _pauseLock; // with _pauseVar
+  arLock         _pauseLock; // with _pauseVar
   arConditionVar _pauseVar;
 
   // Allow a different screen color (for lighting effects... i.e. when

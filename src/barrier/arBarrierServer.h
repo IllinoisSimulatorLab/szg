@@ -57,7 +57,7 @@ class SZG_CALL arBarrierServer{
   
   int            _totalWaiting; // too complicated for arIntAtom
   arConditionVar _waitingCondVar;
-  arMutex       _waitingLock; // with _waitingCondVar, guards _totalWaiting and _waitingCondVar (?)
+  arLock _waitingLock; // with _waitingCondVar, guards _totalWaiting and _waitingCondVar (?)
 
   arThread _releaseThread;
   arThread _receiveThread;
@@ -92,7 +92,7 @@ class SZG_CALL arBarrierServer{
   int CLIENT_TUNING_DATA;
   int SERVER_TUNING_DATA;
   list< pair<int,int> > _activationSocketIDs;
-  arMutex _activationLock; // with _activationVar
+  arLock _activationLock; // with _activationVar
   arConditionVar _activationVar;
   arLock _queueActivationLock;
   bool _activationQueueLockedExternally;

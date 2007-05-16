@@ -48,20 +48,20 @@ const float WAND_LENGTH = 2.;
 arMatrix4 cube0Matrix;
 long randomSeed = 0;
 
-arMutex databaseLock;
+arLock databaseLock;
 
 inline float randDistance(){
   return (float(rand() % 1001) / 1000. - 0.5) * .03;
 }
 
+// Caller must lock databaseLock.
 void drawWand( const arEffector* effector ) {
-  // Caller must lock databaseLock.
   const arMatrix4 wandOffsetMat( ar_translationMatrix( arVector3( 0,0,-0.5*WAND_LENGTH ) ) );
   dgTransform( wandID, effector->getBaseMatrix()*wandOffsetMat );
 }
 
 bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& ) {
-  ar_mutex_lock(&databaseLock);
+  databaseLock.lock();
   dragWand.updateState( event );
   headEffector.updateState( event );
   if (event.getType() == AR_EVENT_AXIS) {
@@ -74,7 +74,7 @@ bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackE
   fw.loadNavMatrix();
   dragWand.draw();
   
-  ar_mutex_unlock(&databaseLock);
+  databaseLock.unlock();
   return true;
 }
 
@@ -82,7 +82,7 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
   if (eventQueue.size() == 0) {
     return true;
   }
-  ar_mutex_lock(&databaseLock);
+  databaseLock.lock();
   while (!eventQueue.empty()) {
     arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
@@ -105,12 +105,12 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
   fw.loadNavMatrix();
   dragWand.draw();
   
-  ar_mutex_unlock(&databaseLock);
+  databaseLock.unlock();
   return true;
 }
 
 void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
-  ar_mutex_lock(&databaseLock);
+  databaseLock.lock();
   int gid = object->getGraphicsTransformID();
   if (gid != -1) {
     dgTransform( gid, matrix );
@@ -119,7 +119,7 @@ void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix 
   if (sid != -1) {
     dsTransform( sid, matrix );
   }
-  ar_mutex_unlock(&databaseLock);
+  databaseLock.unlock();
 }
 
 bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
@@ -127,9 +127,9 @@ bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
     if (object->grabbed()) {
       int iObject = object - interactionArray;
       if ((iObject >= 0)&&(iObject < NUMBER_OBJECTS)) {
-        ar_mutex_lock(&databaseLock);
+	databaseLock.lock();
         dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
-        ar_mutex_unlock(&databaseLock);
+	databaseLock.unlock();
       }
     }
   }
@@ -163,9 +163,9 @@ void worldAlter(void* f) {
         char buffer[32];
         sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
         const string whichTexture(buffer);
-        ar_mutex_lock(&databaseLock);
+	databaseLock.lock();
         dgTexture(objectTextureID[iObject], whichTexture);
-        ar_mutex_unlock(&databaseLock);
+	databaseLock.unlock();
       }
     }
 
@@ -334,7 +334,6 @@ int main(int argc, char** argv) {
   }
     
   arDistSceneGraphFramework framework;
-  ar_mutex_init(&databaseLock);
 
 //  framework.setUnitConversion(3.);
 //  framework.setUnitSoundConversion(3.);
@@ -385,10 +384,10 @@ int main(int argc, char** argv) {
 
   // Main loop.
   while (true) {
-    ar_mutex_lock(&databaseLock);
+    databaseLock.lock();
       framework.setViewer();
       framework.setPlayer();
-    ar_mutex_unlock(&databaseLock);
+    databaseLock.unlock();
     ar_usleep(1000000/200); // 200 fps cpu throttle
   }
 }  

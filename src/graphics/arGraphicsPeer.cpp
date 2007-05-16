@@ -137,7 +137,6 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     else if (action == "frame_time") {
       // These locks must be CONSISTENTLY nested everywhere!
       gp->_lock(); 
-      //ar_mutex_lock(&gp->_socketsLock);
       int frameTime = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i
         = gp->_connectionContainer.find(socket->getID());
@@ -148,7 +147,6 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       else{
         i->second->remoteFrameTime = frameTime;
       }
-      //ar_mutex_unlock(&gp->_socketsLock);
       gp->_unlock();  
     }
     else if (action == "pull_serial") {
@@ -172,10 +170,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
     else if (action == "dump-done") {
-      ar_mutex_lock(&gp->_dumpLock);
-      gp->_dumped = true;
-      gp->_dumpVar.signal();
-      ar_mutex_unlock(&gp->_dumpLock);
+      gp->_dumpLock.lock();
+	gp->_dumped = true;
+	gp->_dumpVar.signal();
+      gp->_dumpLock.unlock();
     }
     else if (action == "ping") {
       arStructuredData adminData(l->find("graphics admin"));
@@ -188,22 +186,22 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
         // Unfortunately, there can be only ONE of these active at a time
 	// (our portable condition vars do not support broadcast).
 	// Hence the "uniqueness lock".
-        ar_mutex_lock(&gp->_queueQueryUniquenessLock);
-        ar_mutex_lock(&gp->_queueConsumeLock);
-        gp->_queueConsumeQuery = true;
-        while (gp->_queueConsumeQuery) {
-          gp->_queueConsumeVar.wait(&gp->_queueConsumeLock);
-	}
-        ar_mutex_unlock(&gp->_queueConsumeLock);
-        ar_mutex_unlock(&gp->_queueQueryUniquenessLock);
+        gp->_queueQueryUniquenessLock.lock();
+	gp->_queueConsumeLock.lock();
+	  gp->_queueConsumeQuery = true;
+	  while (gp->_queueConsumeQuery) {
+	    gp->_queueConsumeVar.wait(gp->_queueConsumeLock);
+	  }
+	gp->_queueConsumeLock.unlock();
+	gp->_queueQueryUniquenessLock.unlock();
       }
       gp->_dataServer->sendData(&adminData, socket);
     }
     else if (action == "ping_reply") {
-      ar_mutex_lock(&gp->_pingLock);
-      gp->_pinged = true;
-      gp->_pingVar.signal();
-      ar_mutex_unlock(&gp->_pingLock);
+      gp->_pingLock.lock();
+	gp->_pinged = true;
+	gp->_pingVar.signal();
+      gp->_pingLock.unlock();
     }
     else if (action == "close") {
       // Probably a good idea to handshake back with the following.
@@ -243,11 +241,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       int dataFilterInfo[2];
       data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
       gp->_lock();
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-        = gp->_connectionContainer.find(socket->getID());
+      map<int, arGraphicsPeerConnection*, less<int> >::const_iterator i =
+        gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()) {
-        cout << "arGraphicsPeer internal error: could not find connection "
-	     << "object.\n";
+        cout << "arGraphicsPeer internal error: could not find connection object.\n";
       }
       else{
         map<int, int, less<int> >::iterator mapIter 
@@ -287,10 +284,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     else if (action == "ID-response") {
       // Cheesy. Only allowing a single round trip at a time.
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
-      ar_mutex_lock(&gp->_IDResponseLock);
-      gp->_requestedNodeID = nodeID;
-      gp->_IDResponseVar.signal();
-      ar_mutex_unlock(&gp->_IDResponseLock);
+      gp->_IDResponseLock.lock();
+	gp->_requestedNodeID = nodeID;
+	gp->_IDResponseVar.signal();
+      gp->_IDResponseLock.unlock();
     }
     else if (action == "camera_node") {
       // Discard.
@@ -443,12 +440,6 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer) {
 
 arGraphicsPeer::arGraphicsPeer() {
   // set a few defaults and initialize the mutexes.
-  //ar_mutex_init(&_socketsLock);
-  ar_mutex_init(&_IDResponseLock);
-  ar_mutex_init(&_dumpLock);
-  ar_mutex_init(&_pingLock);
-  ar_mutex_init(&_queueConsumeLock);
-  ar_mutex_init(&_queueQueryUniquenessLock);
   _localDatabase = true;
   _queueingData = false;
   _name = string("default");
@@ -598,7 +589,6 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   // Do this so we don't mistakenly send a map record.
   filterIDs[0] = -1;
   _lock();
-  //ar_mutex_lock(&_socketsLock);
   // NOTE: we exploit the fact that the ID field of the record is an ARRAY
   // of ints. As data comes in, classify it as follows:
   //  1. Does the ID have data dimension 1? If so, this record was LOCALLY
@@ -628,7 +618,6 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
     if (connectionIter == _connectionContainer.end()) {
       // There is no connection with that ID currently used. This is
       // really an error.
-      //ar_mutex_unlock(&_socketsLock);
       _unlock();
       // Return a pointer to the root node.
       return result; 
@@ -661,7 +650,6 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       if (j->second != originID) {
         // If the node has been locked, return.
         // (we return the root node for default success).
-        //ar_mutex_unlock(&_socketsLock);
         _unlock();
         return result;
       }
@@ -791,7 +779,6 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       }
     }
   }
-  //ar_mutex_unlock(&_socketsLock);
   _unlock();
   // No matter what happened just above, we return the state from just before.
   return result;
@@ -909,10 +896,10 @@ void arGraphicsPeer::queueData(bool state) {
 // If our peer is displaying graphics, it is desirable to only alter
 // its database between draws, not during draws.
 int arGraphicsPeer::consume() {
-  // We must release a pending ping reply. The _queueConsumeLock goes
+  // We must release a pending ping reply. _queueConsumeLock goes
   // first to ensure that pings are registered atomically with buffer swap
   // and buffer consumption.
-  ar_mutex_lock(&_queueConsumeLock);
+  _queueConsumeLock.lock();
   _queueLock.lock();
   _incomingQueue->swapBuffers();
   _queueLock.unlock();
@@ -922,7 +909,7 @@ int arGraphicsPeer::consume() {
     _queueConsumeQuery = false;
     _queueConsumeVar.signal();
   }
-  ar_mutex_unlock(&_queueConsumeLock);
+  _queueConsumeLock.unlock();
   return bufferSize;
 }
 
@@ -1028,15 +1015,15 @@ bool arGraphicsPeer::pullSerial(const string& name,
   }
 
   // We have to wait for the serialization to be completed
-  ar_mutex_lock(&_dumpLock);
+  _dumpLock.lock();
   _dumped = false;
   _dataServer->sendData(&adminData, socket);
   // Block until we are done receiving data (the remote peer signals us that
   // it is finished.)
   while (!_dumped) {
-    _dumpVar.wait(&_dumpLock);
+    _dumpVar.wait(_dumpLock);
   }
-  ar_mutex_unlock(&_dumpLock);
+  _dumpLock.unlock();
   return true;
 }
 
@@ -1089,14 +1076,14 @@ bool arGraphicsPeer::pingPeer(const string& name) {
   if (!socket) {
     return false;
   }
-  ar_mutex_lock(&_pingLock);
+  _pingLock.lock();
   _pinged = false;
   _dataServer->sendData(&adminData, socket);
   while (!_pinged) {
-    _pingVar.wait(&_pingLock);
+    _pingVar.wait(_pingLock);
   }
   _pinged = false;
-  ar_mutex_unlock(&_pingLock);
+  _pingLock.unlock();
   return true;
 }
 
@@ -1260,35 +1247,36 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
   if (!socket) {
     return -1;
   }
-  ar_mutex_lock(&_IDResponseLock);
-  _requestedNodeID = -2;
-  _dataServer->sendData(&adminData, socket);
-  // On error, we'll get back -1, and otherwise nonnegative.
-  while (_requestedNodeID == -2) {
-    _IDResponseVar.wait(&_IDResponseLock);
-  }
-  int result = _requestedNodeID;
-  ar_mutex_unlock(&_IDResponseLock);
-  return result;
+  _IDResponseLock.lock();
+    _requestedNodeID = -2;
+    _dataServer->sendData(&adminData, socket);
+    // On error, we'll get back -1, and otherwise nonnegative.
+    while (_requestedNodeID == -2) {
+      _IDResponseVar.wait(_IDResponseLock);
+    }
+    const int id = _requestedNodeID;
+  _IDResponseLock.unlock();
+  return id;
 }
 
 string arGraphicsPeer::printConnections() {
-  stringstream result;
+  stringstream s;
   _lock();
+  // todo: can't STL accumulate do this without a loop?
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
   for (i = _connectionContainer.begin();
-       i != _connectionContainer.end(); i++) {
-    result << i->second->print();
+       i != _connectionContainer.end(); ++i) {
+    s << i->second->print();
   }
   _unlock();
-  return result.str();
+  return s.str();
 }
 
+// Thread-safe because arDatabase::printStructure() is.
 string arGraphicsPeer::printPeer() {
-  stringstream result;
-  // This call is thread-safe since arDatabase::printStructure() is.
-  printStructure(100, result);
-  return result.str();
+  stringstream s;
+  printStructure(100, s);
+  return s.str();
 }
 
 // THIS IS A TEMPORARY HACK... eventually will do something more general!
@@ -1506,7 +1494,6 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket) {
   }
   _lockContainer.insert(map<int,int,less<int> >::value_type(nodeID,
 							    socket->getID()));
-  //ar_mutex_lock(&_socketsLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = _connectionContainer.find(socket->getID());
   if (j == _connectionContainer.end()) {
@@ -1528,7 +1515,6 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket) {
       j->second->nodesLockedLocal.push_back(nodeID);
     }
   }
-  //ar_mutex_unlock(&_socketsLock);
   _unlock();
 }
 
@@ -1555,7 +1541,6 @@ void arGraphicsPeer::_lockNodeBelow(int nodeID, arSocket* socket) {
 // Use this when someone else is unlocking the node.
 void arGraphicsPeer::_unlockNode(int nodeID) {
   _lock();
-  //ar_mutex_lock(&_socketsLock);
   int socketID = _unlockNodeNoNotification(nodeID);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socketID);
@@ -1566,7 +1551,6 @@ void arGraphicsPeer::_unlockNode(int nodeID) {
   else{
     i->second->nodesLockedLocal.remove(nodeID);
   }
-  //ar_mutex_unlock(&_socketsLock);
   _unlock();
 }
 

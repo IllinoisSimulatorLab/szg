@@ -82,16 +82,16 @@ void arSyncDataClient::_connectionTask(){
     // bug: some copypaste with below
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for wildcat graphics cards.
-    ar_mutex_lock(&_nullHandshakeLock);
+    _nullHandshakeLock.lock();
     // We might be in stop mode.
     if (_nullHandshakeState != 2){
       _nullHandshakeState = 1; // Request that a disconnect callback be issued
       while (_nullHandshakeState != 2){
-        _nullHandshakeVar.wait(&_nullHandshakeLock);
+        _nullHandshakeVar.wait(_nullHandshakeLock);
       }
       _nullHandshakeState = 0;
     }
-    ar_mutex_unlock(&_nullHandshakeLock);
+    _nullHandshakeLock.unlock();
 
     ar_log_remark() << getLabel() << " remark: disconnected.\n";
   }
@@ -101,6 +101,9 @@ void arSyncDataClient::_connectionTask(){
 void ar_syncDataClientReadTask(void* client){
   ((arSyncDataClient*)client)->_readTask();
 }
+
+// Avoid race condition: _stackLock happens inside _swapLock.
+// So _swapLock should never happen inside _stackLock.  Indeed it is not.  Phew.
 
 void arSyncDataClient::_readTask(){
   _readThreadRunning = true;
@@ -132,7 +135,7 @@ void arSyncDataClient::_readTask(){
     if (ok && _firstConsumption){
       // if in sync read mode, request another buffer right away for double-buffering
       if (syncClient() && !_barrierClient.sync()){
-	ar_log_error() << getLabel() << " error: sync failed.\n";
+	ar_log_warning() << getLabel() << ": _readTask()'s barrier client failed to sync.\n";
       }
       _firstConsumption = false;
     }
@@ -145,9 +148,9 @@ void arSyncDataClient::_readTask(){
 
       // Put the stored data on the receive stack, sync or nosync.
       if (syncClient()) {
-        ar_mutex_lock(&_swapLock);
+        _swapLock.lock();
         while (!_bufferSwapReady){
-	  _bufferSwapCondVar.wait(&_swapLock);
+	  _bufferSwapCondVar.wait(_swapLock);
         }
         // Buffer swap can occur now.
         _bufferSwapReady = false;
@@ -159,7 +162,7 @@ void arSyncDataClient::_readTask(){
 
         _dataAvailable = 1;
         _dataWaitCondVar.signal();
-        ar_mutex_unlock(&_swapLock);
+        _swapLock.unlock();
       }
       else{
         _stackLock.lock();
@@ -223,8 +226,6 @@ arSyncDataClient::arSyncDataClient():
   _actionCallback = NULL;
   _postSyncCallback = NULL;
 
-  ar_mutex_init(&_swapLock);
-
   _firstConsumption = true;
 
   // performance analysis data
@@ -237,7 +238,6 @@ arSyncDataClient::arSyncDataClient():
   _recvSize = 10000;
   _serverSendSize = 10000;
 
-  ar_mutex_init(&_nullHandshakeLock);
   _nullHandshakeState = 0;
 
 }
@@ -357,7 +357,7 @@ bool arSyncDataClient::start(){
 
 void arSyncDataClient::stop(){
   if (_syncServer){
-    ar_log_error() << getLabel() << " can't stop() when locally connected.\n";
+    ar_log_warning() << getLabel() << " ignoring stop() when locally connected.\n";
     return;
   }
 
@@ -367,15 +367,17 @@ void arSyncDataClient::stop(){
   // we are not blocking in requestActivation()
   _barrierClient.stop();
   // make sure the read thread is not hung waiting to swap buffers
-  ar_mutex_lock(&_swapLock);
+  _swapLock.lock();
   _bufferSwapReady = true;
   _bufferSwapCondVar.signal();
-  ar_mutex_unlock(&_swapLock);
-  // make sure that we are not blocked at the end of the connection thread
-  ar_mutex_lock(&_nullHandshakeLock);
-  _nullHandshakeState = 2;
-  _nullHandshakeVar.signal();
-  ar_mutex_unlock(&_nullHandshakeLock);
+  _swapLock.unlock();
+
+  // Ensure we're not blocked at the end of the connection thread
+  _nullHandshakeLock.lock();
+    _nullHandshakeState = 2;
+    _nullHandshakeVar.signal();
+  _nullHandshakeLock.unlock();
+
   arSleepBackoff a(5, 30, 1.1);
   while (_readThreadRunning || _connectionThreadRunning){
     a.sleep();
@@ -383,56 +385,50 @@ void arSyncDataClient::stop(){
 }
 
 void arSyncDataClient::consume(){
-  // A TERRIBLE LITTLE HACK! We have two cases. The first is when this
-  // object is connected locally and directly to an arSyncDataServer.
-  // The second is when we are trying to connect over the network.
-
-  // This is the local connection case.
   if (_syncServer){
-    // The arSyncDataServer must be informed that we are ready to get some
-    // data
-    ar_mutex_lock(&_syncServer->_localConsumerReadyLock);
-    // It could be the case that everything is stopping...
-    if (_syncServer->_localConsumerReady == 2){
-      ar_mutex_unlock(&_syncServer->_localConsumerReadyLock);
-      return;
-    }
-    _syncServer->_localConsumerReady = 1;
-    _syncServer->_localConsumerReadyVar.signal();
-    ar_mutex_unlock(&_syncServer->_localConsumerReadyLock);
-    // We must wait for the data to become ready.
-    ar_mutex_lock(&_syncServer->_localProducerReadyLock);
-    while (!_syncServer->_localProducerReady){
-      _syncServer->_localProducerReadyVar.wait(&_syncServer->_localProducerReadyLock);
-    } 
-    // Could be the case that everything is stopping.
-    if (_syncServer->_localProducerReady == 2){
-      ar_mutex_unlock(&_syncServer->_localProducerReadyLock);
-      return;
-    }
-    _syncServer->_localProducerReady = 0;
-    ar_mutex_unlock(&_syncServer->_localProducerReadyLock);    
+    // Locally connected.
+    // Tell arSyncDataServer that we're ready for data.
+    _syncServer->_localConsumerReadyLock.lock();
+      if (_syncServer->_localConsumerReady == 2){
+	// Everything may be stopping.
+	_syncServer->_localConsumerReadyLock.unlock();
+	return;
+      }
+      _syncServer->_localConsumerReady = 1;
+      _syncServer->_localConsumerReadyVar.signal();
+    _syncServer->_localConsumerReadyLock.unlock();
 
-    _consumptionCallback(_bondedObject,
-                         _syncServer->_dataQueue->getFrontBufferRaw());
+    // Wait for the data to become ready.
+    _syncServer->_localProducerReadyLock.lock();
+      while (!_syncServer->_localProducerReady){
+	_syncServer->_localProducerReadyVar.wait(_syncServer->_localProducerReadyLock);
+      } 
+      if (_syncServer->_localProducerReady == 2){
+	// Everything may be stopping.
+	_syncServer->_localProducerReadyLock.unlock();
+	return;
+      }
+      _syncServer->_localProducerReady = 0;
+    _syncServer->_localProducerReadyLock.unlock();
+    _consumptionCallback(_bondedObject, _syncServer->_dataQueue->getFrontBufferRaw());
     _actionCallback(_bondedObject);
     _postSyncCallback(_bondedObject);
     return;
   }
 
-  // This is the MUCH more complicated network connection case.
+  // Remotely connected.
 
   // performance measurement
-  ar_timeval time1, time2, time3, time4;
+  const ar_timeval time1 = ar_time();
+  ar_timeval time2, time3, time4;
 
-  time1 = ar_time();
   if (!_stateClientConnected){
     _nullCallback(_bondedObject);
     // bug: some copypaste with above
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for
     // wildcat graphics cards.
-    ar_mutex_lock(&_nullHandshakeLock);
+    _nullHandshakeLock.lock();
     if (_nullHandshakeState == 1){
       // The connection thread registers disconnected and is waiting for
       // us to say we've cleared, so it can then accept a new connection.
@@ -449,83 +445,105 @@ void arSyncDataClient::consume(){
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
     }
-    ar_mutex_unlock(&_nullHandshakeLock);
+    _nullHandshakeLock.unlock();
   }
   else{
-    ar_mutex_lock(&_swapLock);
+    if (_exitProgram)
+      return;
+    _swapLock.lock();
     // only wait if we are in synchronized read mode
     while (!_dataAvailable && _mode == AR_SYNC_CLIENT){
-      _dataWaitCondVar.wait(&_swapLock);
+      _dataWaitCondVar.wait(_swapLock);
     }
     if (_dataAvailable != 2){
       _dataAvailable = 0;
-      ar_mutex_unlock(&_swapLock);
+      _swapLock.unlock();
+      if (_exitProgram)
+	return;
       time2 = ar_time();
       // Copy the current receive stack into the consume stack
       // (if we are synchronized, this will be exactly 1 buffer).
       // Then consume everything.
       _consumeStack.clear();
+      if (_exitProgram)
+	return;
       _stackLock.lock();
-      list<pair<char*,int> >::iterator iter;
       if (_mode == AR_NOSYNC_CLIENT){
 	// consume everything
-        for (iter = _receiveStack.begin(); iter != _receiveStack.end(); iter++){
-          _consumeStack.push_back(*iter);
-        }
+	copy(_receiveStack.begin(), _receiveStack.end(), _consumeStack.end());
         _receiveStack.clear();
       }
       else{
-	// Consume exactly one thing, as we are in synchronized
-	// read mode, AR_SYNC_CLIENT.
-	// PLEASE NOTE: If the arSyncDataServer (that is providing us data)
-	// was killed by SIGNINT instead of dkill then we might get here
-	// during connection shutdown with nothing in the receive stack!
-	// Consequently, test for this.
-        if (!_receiveStack.empty()){
+	// Consume exactly one thing, since in synchronized read mode, AR_SYNC_CLIENT.
+	// But if the arSyncDataServer feeding us was killed by SIGINT
+	// instead of dkill, the connection would be shutting down,
+	// causing _receiveStack.empty().
+        if (!_exitProgram && !_receiveStack.empty()){
           _consumeStack.push_back(_receiveStack.front());
 	  _receiveStack.pop_front();
 	}
       }
+
       _stackLock.unlock();
-      for (iter = _consumeStack.begin(); iter != _consumeStack.end(); iter++){
-        _consumptionCallback(_bondedObject, (*iter).first);
+      if (_exitProgram)
+	return;
+      
+      
+      // arLock warning: acquired abandoned lock. - when I killed dead szgrender's main thread.  _stackLock.lock() was the EnterCriticalSection on that thread's stack.
+      // killed 2nd thread, nothing happened (msg thread?)
+      // killed 3rd thread, still-living szgrender resumed updating.
+
+
+      list<pair<char*,int> >::const_iterator iter;
+      for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter){
+        _consumptionCallback(_bondedObject, iter->first);
       }
+      if (_exitProgram)
+	return;
       // move storage from consume stack to storage stack
       _stackLock.lock();
-      for (iter = _consumeStack.begin(); iter != _consumeStack.end(); iter++){
-        _storageStack.push_back(*iter);
-      }
+      copy(_consumeStack.begin(), _consumeStack.end(), _storageStack.end());
       _consumeStack.clear();
       _stackLock.unlock();
+      if (_exitProgram)
+	return;
       //_consumptionCallback(_bondedObject, _data[1 - _backBuffer]);
       time3 = ar_time();
       _actionCallback(_bondedObject);
       time4 = ar_time();
+      if (_exitProgram)
+	return;
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
-        if (!_barrierClient.sync())
-	  ar_log_error() << getLabel() << " error: sync failed.\n";
+        if (!_barrierClient.sync()) {
+	  ar_log_warning() << getLabel() << ": consume()'s barrier client failed to sync.\n";
+	}
       }
+      if (_exitProgram)
+	return;
       _postSyncCallback(_bondedObject);
       // Signal that we are ready to swap buffers.
-      ar_mutex_lock(&_swapLock); 
+      if (_exitProgram)
+	return;
+      _swapLock.lock(); 
 	_bufferSwapReady = true;
 	_bufferSwapCondVar.signal();
-      ar_mutex_unlock(&_swapLock);
+      _swapLock.unlock();
     }
     else{
       _dataAvailable = 0;
-      ar_mutex_unlock(&_swapLock);
+      _swapLock.unlock();
+      if (_exitProgram)
+	return;
       _nullCallback(_bondedObject);
     }
   }
+  if (_exitProgram)
+    return;
 
-  float temp = ar_difftime(ar_time(), time1);
-  temp = temp>0 ? temp : _frameTime;
-  float drawTime = ar_difftime(time4, time3);
-  drawTime = drawTime>0 ? drawTime : _drawTime;
-  float procTime = ar_difftime(time3, time2);
-  procTime = procTime>0 ? procTime : _procTime;
+  const float drawTime = ar_difftime(time4, time3);
+  const float procTime = ar_difftime(time3, time2);
+  const float temp = ar_difftime(ar_time(), time1);
   const float usecFilter =
     temp>100000 ? .5 : temp>50000 ? .08 : temp>25000 ? .04 : .02;
   _update(_frameTime, temp, usecFilter);
@@ -538,6 +556,8 @@ void arSyncDataClient::consume(){
 }
 
 inline void arSyncDataClient::_update(float& value, float newValue, float filter){
+  if (newValue <= 0.)
+    newValue = value;
   if (newValue == 0.) {
     value = 0.;
     return;
@@ -553,10 +573,10 @@ inline void arSyncDataClient::_update(float& value, float newValue, float filter
 // On shutdown, make sure that consume() exits, where otherwise
 // it might be blocked waiting for data from the read data thread
 void arSyncDataClient::skipConsumption(){
-  ar_mutex_lock(&_swapLock);
+  _swapLock.lock();
     _dataAvailable = 2;
     _dataWaitCondVar.signal();
-  ar_mutex_unlock(&_swapLock);
+  _swapLock.unlock();
 }
 
 int arSyncDataClient::getServerSendSize() const {

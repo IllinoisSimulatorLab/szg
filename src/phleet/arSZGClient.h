@@ -346,7 +346,7 @@ class SZG_CALL arSZGClient{
   bool    _beginTimer;
   string  _requestedName;
   bool    _dataRequested;
-  arMutex _lock; // with _timerCondVar, _dataCondVar.  For server discovery.
+  arLock _lock; // with _timerCondVar, _dataCondVar.  For server discovery.
   bool    _keepRunning;
   arConditionVar _dataCondVar;
   arConditionVar _timerCondVar;

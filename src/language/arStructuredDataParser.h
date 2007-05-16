@@ -17,21 +17,38 @@
 #include <map>
 using namespace std;
 
-class SZG_CALL arStructuredDataSynchronizer{
+class SZG_CALL arGuard {
+  arLock l;
+  arConditionVar var;
+ public:
+  void lock()
+    { l.lock(); }
+  void unlock()
+    { l.unlock(); }
+  bool wait(int msecTimeout = -1)
+    { return var.wait(l, msecTimeout); }
+  void signal()
+    { var.signal(); }
+};
+
+class SZG_CALL arStructuredDataSynchronizer: public arGuard {
+  // lock() guards tag and exitFlag, but not refCount.
  public:
   bool exitFlag;
   int tag;
   int refCount;
-  arMutex lock; // with member "var"
-  arConditionVar var;
+  void reset()
+    { exitFlag = false; tag = -1; refCount = 0; }
+  arStructuredDataSynchronizer()
+    { reset(); }
 };
 
-class SZG_CALL arMessageQueueByID{
+class SZG_CALL arMessageQueueByID: public arGuard {
+  // lock() guards exitFlag and messages.
  public:
   bool exitFlag;
-  arMutex lock; // with member "var"
-  arConditionVar var;
   list<arStructuredData*> messages;
+  arMessageQueueByID() : exitFlag(false) {}
 };
 
 typedef list<arStructuredData*> SZGdatalist;

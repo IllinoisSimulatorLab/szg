@@ -100,18 +100,19 @@ void arJoystickDriver::_eventTask() {
 #endif
 
   // Thread ends.  Signal stop.
-  ar_mutex_lock(&_shutdownLock);
+  _shutdownLock.lock();
   _pollingDone = true;
   _shutdownVar.signal();
-  ar_mutex_unlock(&_shutdownLock);
+  _shutdownLock.unlock();
 }
 
+// Don't inline, lest factory break.
 arJoystickDriver::arJoystickDriver() :
   _pollingDone(false),
   _shutdown(false)
 {
-  ar_mutex_init(&_shutdownLock);
 }
+
 
 bool arJoystickDriver::init(arSZGClient& szgClient){
   // Many gamepads have 6 axes and 10 buttons in 2007.  Default generously.
@@ -214,12 +215,12 @@ bool arJoystickDriver::start(){
 bool arJoystickDriver::stop(){
   // Windows probably needs a clean shutdown
   _shutdown = true;
-  ar_mutex_lock(&_shutdownLock);
+  _shutdownLock.lock();
   // Wait for thread to end
   while (!_pollingDone){
-    _shutdownVar.wait(&_shutdownLock);
+    _shutdownVar.wait(_shutdownLock);
   }
-  ar_mutex_unlock(&_shutdownLock);
+  _shutdownLock.unlock();
   ar_log_debug() << "arJoystickDriver polling thread done.\n";
   return true;
 }

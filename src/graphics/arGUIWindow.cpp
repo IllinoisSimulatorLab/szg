@@ -82,49 +82,42 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
 {
 }
 
-arGUIWindowConfig::~arGUIWindowConfig( void )
+arWMEvent::arWMEvent( const arGUIWindowInfo& event )
 {
-}
-
-arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
-  _event( event ),
-  _done( 0 ),
-  _conditionFlag( false )
-{
-  ar_mutex_init( &_eventMutex );
+  reset(event);
 }
 
 void arWMEvent::reset( const arGUIWindowInfo& event )
 {
   _event = event;
   _done = 0;
-  ar_mutex_lock( &_eventMutex );
+  _eventMutex.lock();
     _conditionFlag = false;
-  ar_mutex_unlock( &_eventMutex );
+  _eventMutex.unlock();
 }
 
 void arWMEvent::wait( const bool blocking )
 {
   if( blocking ) {
-    ar_mutex_lock( &_eventMutex );
+    _eventMutex.lock();
     while( !_conditionFlag ) {
-      if( !_eventCond.wait( &_eventMutex ) ) {
+      if( !_eventCond.wait( _eventMutex ) ) {
         // print error?
       }
     }
-    ar_mutex_unlock( &_eventMutex );
+    _eventMutex.unlock();
   }
 
-  // even if not blocking, update _done so this event may be reused.
+  // Let this event be reused.
   ++_done;
 }
 
 void arWMEvent::signal( void )
 {
-  ar_mutex_lock( &_eventMutex );
+  _eventMutex.lock();
     _conditionFlag = true;
     _eventCond.signal();
-  ar_mutex_unlock( &_eventMutex );
+  _eventMutex.unlock();
   ++_done;
 }
 
@@ -194,8 +187,6 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _windowBuffer = new arGUIWindowBuffer( true );
   _GUIEventManager = new arGUIEventManager( _userData );
   _lastFrameTime = ar_time();
-  ar_mutex_init( &_WMEventsMutex );
-  ar_mutex_init( &_creationMutex );
 }
 
 arGUIWindow::~arGUIWindow( void )
@@ -224,7 +215,7 @@ arGUIWindow::~arGUIWindow( void )
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
-  ar_mutex_lock(&_creationMutex);
+  _creationMutex.lock();
   if( _drawCallback ) {
     // print warning that previous callback is being overwritten?
     delete _drawCallback;
@@ -236,12 +227,12 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
   else {
     _drawCallback = drawCallback;
   }
-  ar_mutex_unlock(&_creationMutex);
+  _creationMutex.unlock();
 }
 
 void arGUIWindow::_drawHandler( void )
 {
-  ar_mutex_lock(&_creationMutex);
+  _creationMutex.lock();
   if( _running && _drawCallback ) {
 
     // ensure (in non-threaded mode) that this window's opengl context is current
@@ -279,7 +270,7 @@ void arGUIWindow::_drawHandler( void )
     XUnlockDisplay( _windowHandle._dpy );
 #endif
   }
-  ar_mutex_unlock(&_creationMutex);
+  _creationMutex.unlock();
 }
 
 // the most vanilla opengl setup possible
@@ -315,12 +306,12 @@ int arGUIWindow::beginEventThread( void )
   // wait for the window to actually be created, to avoid
   // race conditions from window manager trying to modify a
   // half-baked window.  Time out after 5 seconds.
-  ar_mutex_lock( &_creationMutex );
+  _creationMutex.lock();
     while( !_creationFlag ) {
-      if( !_creationCond.wait( &_creationMutex, 5000 ) )
+      if( !_creationCond.wait( _creationMutex, 5000 ) )
 	return -1;
     }
-  ar_mutex_unlock( &_creationMutex );
+  _creationMutex.unlock();
   return 0;
 }
 
@@ -353,11 +344,11 @@ int arGUIWindow::_consumeWindowEvents( void )
   if( _GUIEventManager->consumeEvents( this, false ) < 0 )
     return -1;
 
-  // Spin only a "little bit". The wait has a timeout.
-  ar_mutex_lock(&_WMEventsMutex);
+  // Spin only a "little bit" (time out).
+  _WMEventsMutex.lock();
     if (_threaded && _WMEvents.empty())
-      _WMEventsVar.wait(&_WMEventsMutex, 100);
-  ar_mutex_unlock(&_WMEventsMutex);
+      _WMEventsVar.wait(_WMEventsMutex, 100);
+  _WMEventsMutex.unlock();
 
   // Queue may be empty, if the timeout was short.  That's OK.
   return _processWMEvents()<0 ? -1 : 0;
@@ -393,14 +384,14 @@ void arGUIWindow::returnGraphicsWindow( void )
 
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
-  ar_mutex_lock(&_creationMutex);
+  _creationMutex.lock();
   _graphicsWindowMutex.lock();
     if( _graphicsWindow ) {
       delete _graphicsWindow; // do we really own this?
     }
     _graphicsWindow = graphicsWindow;
   _graphicsWindowMutex.unlock();
-  ar_mutex_unlock(&_creationMutex);
+  _creationMutex.unlock();
 }
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
@@ -431,11 +422,11 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
     }
   _usableEventsMutex.unlock();
 
-  ar_mutex_lock( &_WMEventsMutex );
+  _WMEventsMutex.lock();
     _WMEvents.push( event );
     // If we are waiting in _consumeWindowEvents, release.
     _WMEventsVar.signal();
-  ar_mutex_unlock( &_WMEventsMutex );
+  _WMEventsMutex.unlock();
   return event;
 }
 
@@ -445,7 +436,7 @@ int arGUIWindow::_processWMEvents( void )
      // print warning / return?
   }
 
-  ar_mutex_lock( &_WMEventsMutex );
+  _WMEventsMutex.lock();
 
   // process every wm event received in the last iteration
   while( !_WMEvents.empty() ) {
@@ -482,7 +473,7 @@ int arGUIWindow::_processWMEvents( void )
             // event to this 'slow' window and move on to 'faster' windows (the
             // wm will wait if either its in singlethreaded mode or the swaps
             // are blocking {both fairly 'normal' modes of operation})
-            ar_mutex_unlock( &_WMEventsMutex );
+	    _WMEventsMutex.unlock();
             return 0;
             // ar_usleep( 0 );
             // currentTime = ar_time();
@@ -549,14 +540,13 @@ int arGUIWindow::_processWMEvents( void )
       break;
     }
 
-    // signal anyone waiting on this event that it has finally been processed
+    // Announce that this event has finally been processed.
     wmEvent->signal();
 
     _WMEvents.pop();
   }
 
-  ar_mutex_unlock( &_WMEventsMutex );
-
+  _WMEventsMutex.unlock();
   return 0;
 }
 
@@ -581,10 +571,10 @@ int arGUIWindow::_performWindowCreation( void )
   // InitGL( getWidth(), getHeight() );
 
   // Announce that the window has been created and initialized.
-  ar_mutex_lock( &_creationMutex );
-  _creationFlag = true;
-  _creationCond.signal();
-  ar_mutex_unlock( &_creationMutex );
+  _creationMutex.lock();
+    _creationFlag = true;
+    _creationCond.signal();
+  _creationMutex.unlock();
 
   return 0;
 }

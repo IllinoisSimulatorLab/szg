@@ -12,35 +12,6 @@
 #endif
 using namespace std;
 
-void ar_mutex_init(arMutex* theMutex){
-#ifdef AR_USE_WIN_32
-        // "A critical section object must be deleted before it can be reinitialized.
-        // Initializing a critical section that has already been initialized results
-        // in undefined behavior." -MSDN online
-	InitializeCriticalSection(theMutex);
-#else
-	// "Attempting to initialise an already initialised mutex
-	// results in undefined behaviour." -- man page.
-	pthread_mutex_init(theMutex,NULL);
-#endif
-}
-
-void ar_mutex_lock(arMutex* theMutex){
-#ifdef AR_USE_WIN_32
-	EnterCriticalSection(theMutex);
-#else
-	pthread_mutex_lock(theMutex);
-#endif
-}
-
-void ar_mutex_unlock(arMutex* theMutex){
-#ifdef AR_USE_WIN_32
-	LeaveCriticalSection(theMutex);
-#else
-	pthread_mutex_unlock(theMutex);
-#endif
-}
-
 // Originally from Walmsley, "Multi-threaded Programming in C++", class MUTEX.
 // In Windows, a (non-NULL) name starting with Global\ makes the lock system-wide.
 // In Vista that fails because users don't login as "Session 0", which is required.
@@ -213,8 +184,7 @@ void arLock::unlock() {
 arConditionVar::arConditionVar(){
 #ifdef AR_USE_WIN_32
   _numberWaiting = 0;
-  ar_mutex_init(&_countLock);
-  _theEvent = CreateEvent(NULL,FALSE,FALSE,NULL);
+  _event = CreateEvent(NULL,FALSE,FALSE,NULL);
 #else
   pthread_cond_init(&_conditionVar,NULL);
 #endif
@@ -222,78 +192,70 @@ arConditionVar::arConditionVar(){
 
 arConditionVar::~arConditionVar(){
 #ifdef AR_USE_WIN_32
-  CloseHandle(_theEvent);
+  CloseHandle(_event);
 #endif
 }
 
-// Wait for the condition variable to be signaled. By default, timeout is
-// not used, but, if specified, wait for that number of milliseconds.
-// (the default value passed for timeout is -1). If we have returned because
-// we were signaled, return true. If we have returned because of timeout,
-// return false.
-bool arConditionVar::wait(arMutex* externalLock, int timeout){
-  bool state = true;
+// Wait for the condition variable to be signaled.
+// Return true if signaled, false if timed out.
+bool arConditionVar::wait(arLock& l, const int msecTimeout){
 #ifdef AR_USE_WIN_32
-  ar_mutex_lock(&_countLock);
-  _numberWaiting++;
-  ar_mutex_unlock(&_countLock);
 
-  ar_mutex_unlock(externalLock);
-  if (timeout >= 0){
-    if (WaitForSingleObject(_theEvent, timeout) == WAIT_TIMEOUT){
-      state = false;
-    }
+  _lCount.lock();
+    ++_numberWaiting;
+  _lCount.unlock();
+  l.unlock();
+  bool ok = true;
+  if (msecTimeout >= 0){
+    ok = WaitForSingleObject(_event, msecTimeout) != WAIT_TIMEOUT;
   }
   else{
-    WaitForSingleObject(_theEvent, INFINITE);
+    WaitForSingleObject(_event, INFINITE);
   }
 
-  // Subtle race condition:
-  // What if signal() is called here and gets the lock
-  // before _numberWaiting-- ?  The next wait will get woken
-  // spuriously. Does this matter for condition variable semantics?
-  // Probably not. POSIX standards suggest that condition vars
-  // can be spuriously woken.
+  // Subtle race condition: if signal() is called here and gets the lock
+  // before --_numberWaiting, the next wait will be woken spuriously.
+  // Might not matter for condition variable semantics:
+  // POSIX suggests that condition vars can be spuriously woken.
 
-  ar_mutex_lock(&_countLock);
-  _numberWaiting--;
-  ar_mutex_unlock(&_countLock);
+  _lCount.lock();
+    --_numberWaiting;
+  _lCount.unlock();
 
-  // HMMMM.... SHOULD THIS BE MOVED ABOVE THE lock of _countLock?
-  // It might be a good idea to do so! BE VERY CONSERVATIVE ABOUT THIS,
-  // however.
-  ar_mutex_lock(externalLock);
+  l.lock();
+  return ok;
+
 #else
-  if (timeout < 0){
-    pthread_cond_wait(&_conditionVar,externalLock);
+
+  if (msecTimeout < 0){
+    pthread_cond_wait(&_conditionVar, &l._mutex);
+    return true;
   }
-  else{
-    // GRUMBLE... WHY CAN'T PTHREADS JUST USE A WAIT INTERVAL?
-    ar_timeval time1 = ar_time();
-    time1.sec += timeout/1000;
-    time1.usec += (timeout%1000)*1000;
-    if (time1.usec >= 1000000){
-      time1.sec++;
-      time1.usec -= 1000000;
-    }
-    struct timespec ts;
-    ts.tv_sec = time1.sec;
-    ts.tv_nsec = time1.usec * 1000;
-    if (pthread_cond_timedwait(&_conditionVar,externalLock,&ts) == ETIMEDOUT){
-      state = false;
-    }
+
+  // Workaround for pthreads' lack of wait intervals.
+  ar_timeval time1 = ar_time();
+  // todo: define a function to add a pure msec to an ar_timeval.  At least 3 places would use it.  Grep for 1000000 and usec.
+  time1.sec += msecTimeout/1000;
+  time1.usec += (msecTimeout%1000)*1000;
+  if (time1.usec >= 1000000){
+    time1.sec++;
+    time1.usec -= 1000000;
   }
+  struct timespec ts;
+  ts.tv_sec = time1.sec;
+  ts.tv_nsec = time1.usec * 1000;
+  return pthread_cond_timedwait(&_conditionVar, &l._mutex, &ts) != ETIMEDOUT;
+
 #endif
-  return state;
 }
 
 void arConditionVar::signal(){
 #ifdef AR_USE_WIN_32
-  ar_mutex_lock(&_countLock);
+  _lCount.lock();
   if (_numberWaiting > 0){
-    SetEvent(_theEvent);
+    SetEvent(_event);
   }
-  ar_mutex_unlock(&_countLock);
+  _lCount.unlock();
 #else
   pthread_cond_signal(&_conditionVar);
 #endif
@@ -364,28 +326,26 @@ bool arThreadEvent::test() {
   return WaitForSingleObject( _event, 0 ) != WAIT_TIMEOUT;
 #else
   pthread_mutex_lock( &_mutex );
-  bool active = _active;
-  if (_active && _automatic)
+  const bool active = _active;
+  if (_automatic)
     _active = false;
   pthread_mutex_unlock( &_mutex );
   return active;
 #endif
 }
 
-
 arWrapperType ar_threadWrapperFunction(void* threadObject)
 {
+  // Local copy.
   arThread* theThread = (arThread*)threadObject;
-
-  // 1. Make a local copy of the data we need.
-  // 2. Then sendSignal to allow the remote copy in *theThread to be
-  //    deleted if needed (because *theThread will be deleted, because
-  //    it's a local variable of exceedingly tiny scope),
-  // 3. Then use the local copy.
-
   void (*threadFunction)(void*) = theThread->_threadFunction;
   void* parameter = theThread->_parameter;
+
+  // Let the remote copy in *theThread be deleted if needed
+  // (because *theThread will be deleted, because its scope is tiny).
   theThread->_signal.sendSignal();
+
+  // Use the local copy.
   threadFunction(parameter);
 #ifndef AR_USE_WIN_32
   return NULL;
@@ -399,7 +359,7 @@ arThread::arThread(void (*threadFunction)(void*),void* parameter){
   (void)beginThread(threadFunction, parameter);
 }
 
-arThreadID arThread::getThreadID()
+arThreadID arThread::getThreadID() const
 {
   return _threadID;
 }
@@ -410,12 +370,11 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
   _threadID = _beginthread(threadFunction,0,parameter);
   if (_threadID < 0)
     {
-    cerr << "arThread error: _beginthread failed";
+    cerr << "arThread error: _beginthread failed: ";
     if (errno == EAGAIN)
-      cerr << ", too many threads.\n";
+      cerr << "too many threads.\n";
     else if (errno == EINVAL)
-      cerr << ", invalid argument.\n";
-    cerr << "\n";
+      cerr << "invalid argument.\n";
     return false;
     }
 
@@ -423,7 +382,7 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
 
   _threadFunction = threadFunction;
   _parameter = parameter;
-  int error = pthread_create(&_threadID,NULL,ar_threadWrapperFunction, this);
+  const int error = pthread_create(&_threadID,NULL,ar_threadWrapperFunction, this);
   //*************************************************************************
   // the windows threads are formed automatically in a detached stated
   // so let's do the same thing on this side 
@@ -434,8 +393,7 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
     {
     cerr << "arThread error: pthread_create failed.\n";
     if (error == EAGAIN)
-      cerr << "arThread error: pthread_create failed: possibly too many threads, "
-	   << "more than PTHREAD_THREADS_MAX.\n";
+      cerr << "arThread error: pthread_create failed: PTHREAD_THREADS_MAX exceeded.\n";
     return false;
     }
 
@@ -448,15 +406,12 @@ arSignalObject::arSignalObject(){
   // Create an auto-reset event object, which resets to
   // unsignaled after a single thread is awakened,
   // with initial state unsignaled.
-  _theEvent = CreateEvent(NULL, false, false, NULL);
+  _event = CreateEvent(NULL, false, false, NULL);
 #else
-  pthread_mutex_init(&_theMutex,NULL);
-  pthread_cond_init(&_theConditionVariable,NULL);
+  pthread_mutex_init(&_mutex,NULL);
+  pthread_cond_init(&_conditionVar,NULL);
   _fSync = false;
 #endif
-}
-
-arSignalObject::~arSignalObject(){
 }
 
 void arSignalObject::sendSignal(){
@@ -470,34 +425,34 @@ void arSignalObject::sendSignal(){
   //
   // SetEvent has the semantics of the Unix solution using
   // condition vars, so we use that.
-  SetEvent(_theEvent);
+  SetEvent(_event);
 #else
-   pthread_mutex_lock(&_theMutex);
+   pthread_mutex_lock(&_mutex);
    _fSync = true;
-   pthread_cond_signal(&_theConditionVariable);
-   pthread_mutex_unlock(&_theMutex);
+   pthread_cond_signal(&_conditionVar);
+   pthread_mutex_unlock(&_mutex);
 #endif
 }
 
 void arSignalObject::receiveSignal(){
 #ifdef AR_USE_WIN_32
-   WaitForSingleObject(_theEvent,INFINITE);
+   WaitForSingleObject(_event,INFINITE);
 #else
-   pthread_mutex_lock(&_theMutex);
+   pthread_mutex_lock(&_mutex);
    while (!_fSync) {
-     pthread_cond_wait(&_theConditionVariable,&_theMutex);
+     pthread_cond_wait(&_conditionVar,&_mutex);
    }
    _fSync = false;
-   pthread_mutex_unlock(&_theMutex);
+   pthread_mutex_unlock(&_mutex);
 #endif
 }
 
 void arSignalObject::reset(){
 #ifdef AR_USE_WIN_32
-  ResetEvent(_theEvent);
+  ResetEvent(_event);
 #else
-  pthread_mutex_lock(&_theMutex);
+  pthread_mutex_lock(&_mutex);
   _fSync = false;
-  pthread_mutex_unlock(&_theMutex);
+  pthread_mutex_unlock(&_mutex);
 #endif
 }

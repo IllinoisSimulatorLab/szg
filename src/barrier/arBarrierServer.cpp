@@ -29,10 +29,10 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
     _queueActivationLock.unlock();
   }
   else if (id == _responseData->getID()) {
-    ar_mutex_lock(&_activationLock);
-    _activationResponse = true;
-    _activationVar.signal();
-    ar_mutex_unlock(&_activationLock);
+    _activationLock.lock();
+      _activationResponse = true;
+      _activationVar.signal();
+    _activationLock.unlock();
   }
   else if (id == _clientTuningData->getID()) {
     int theData[4];
@@ -41,10 +41,10 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
     _rcvTime = theData[1];
     _procTime = theData[2];
     _frameNum = theData[3];
-    ar_mutex_lock(&_waitingLock);
+    _waitingLock.lock();
     _totalWaiting++;
     _waitingCondVar.signal();
-    ar_mutex_unlock(&_waitingLock);
+    _waitingLock.unlock();
   }
   else {
     cerr << "arBarrierServer warning: ignoring unknown record.\n";
@@ -69,7 +69,7 @@ void ar_releaseFunction(void* server){
   
 void arBarrierServer::_releaseFunction(){
   while (_runThreads){
-    ar_mutex_lock(&_waitingLock);
+    _waitingLock.lock();
     while (true) {
       int total = _dataServer.getNumberConnectedActive();
       if (_localConnection)
@@ -79,7 +79,7 @@ void arBarrierServer::_releaseFunction(){
 	break;
       }
       else{
-        _waitingCondVar.wait(&_waitingLock);
+        _waitingCondVar.wait(_waitingLock);
       }
     }
     // send release packet
@@ -90,7 +90,7 @@ void arBarrierServer::_releaseFunction(){
       // cerr << "arBarrierServer warning: problem in ar_releaseFunction.\n";
       // Don't complain, probably a client just disconnected from this master.
     }
-    ar_mutex_unlock(&_waitingLock);
+    _waitingLock.unlock();
    
     // If the _signalObjectRelease is activated, use that to send the
     // external signal that the buffer swap has been activated.
@@ -114,9 +114,9 @@ void ar_barrierDisconnectFunction(void* server, arSocket*){
 
 void arBarrierServer::_barrierDisconnectFunction(){
   //NOISY cout << "arBarrierServer remark: disconnected.\n";
-  ar_mutex_lock(&_waitingLock);
+  _waitingLock.lock();
   _waitingCondVar.signal();
-  ar_mutex_unlock(&_waitingLock);
+  _waitingLock.unlock();
 
   //********************************************************
   // there really is a bit of a race condition in the below
@@ -152,9 +152,6 @@ arBarrierServer::arBarrierServer():
   _dataServer.setDisconnectFunction(ar_barrierDisconnectFunction);
   _dataServer.setDisconnectObject(this);
   _dataServer.smallPacketOptimize(true);
-
-  ar_mutex_init(&_waitingLock);
-  ar_mutex_init(&_activationLock);
 
   // Set up the language.
   BONDED_ID = _handshakeTemplate.add("bonded ID",AR_INT);
@@ -304,23 +301,23 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   // discard unwanted broadcast release packets. This should be updated
   // atomically as well.
 
-  ar_mutex_lock(&_waitingLock);
+  _waitingLock.lock();
   
   for (iter = tmp.begin(); iter != tmp.end(); ++iter){
     arSocket* theSocket = _dataServer.getConnectedSocket(iter->first);
-    ar_mutex_lock(&_activationLock);
-    _activationResponse = false;
-    ar_mutex_unlock(&_activationLock);
+    _activationLock.lock();
+      _activationResponse = false;
+    _activationLock.unlock();
 
     // Send 2nd round of handshake to the client.
     _dataServer.sendData(_handshakeData, theSocket);
 
     // Wait for the response.
-    ar_mutex_lock(&_activationLock);
+    _activationLock.lock();
     while (!_activationResponse){
-      _activationVar.wait(&_activationLock);
+      _activationVar.wait(_activationLock);
     }
-    ar_mutex_unlock(&_activationLock);
+    _activationLock.unlock();
 
     // Activate the sockets.
     _dataServer.activatePassiveSocket(iter->first);
@@ -329,7 +326,7 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
     }
   }
   
-  ar_mutex_unlock(&_waitingLock);
+  _waitingLock.unlock();
   return true;
 }
 
@@ -376,10 +373,10 @@ void arBarrierServer::localSync(){
 
   if (_dataServer.getNumberConnectedActive() == 0)
     ar_usleep(10000);
-  ar_mutex_lock(&_waitingLock);
+  _waitingLock.lock();
     _totalWaiting++;
     _waitingCondVar.signal();
-  ar_mutex_unlock(&_waitingLock);
+  _waitingLock.unlock();
   _localSignal.receiveSignal();
 }
 

@@ -15,10 +15,8 @@ arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary)
   // Each template in the dictionary has a queue lock and a condition variable.
   for (arTemplateType::const_iterator i = _dictionary->begin();
       i != _dictionary->end(); ++i){
-    arMessageQueueByID* q = new arMessageQueueByID();
-    ar_mutex_init(&q->lock);
-    q->exitFlag = false;
-    _messageQueue.insert(SZGmessageQueue::value_type(i->second->getID(), q));
+    _messageQueue.insert(SZGmessageQueue::value_type(
+      i->second->getID(), new arMessageQueueByID()));
   }
 }
 
@@ -131,7 +129,7 @@ arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
 // front of the list so buffers are reused often.
 void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer){
   _translationBufferListLock.lock();
-  _translationBuffers.push_front(buffer);
+    _translationBuffers.push_front(buffer);
   _translationBufferListLock.unlock();
 }
 
@@ -488,7 +486,7 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   }
 
   arMessageQueueByID* p = i->second;
-  ar_mutex_lock(&p->lock);
+  p->lock();
 
   // NOTE: after calling clearQueues(), we should ALWAYS fall through here
   // with an error UNTIL activateQueues() has been called.
@@ -499,13 +497,13 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   _activationLock.lock();
     if (!_activated){
       _activationLock.unlock();
-      ar_mutex_unlock(&p->lock);
+      p->unlock();
       return NULL;
     }
   _activationLock.unlock();
 
   while (p->messages.empty() && !p->exitFlag){
-    p->var.wait(&p->lock);
+    p->wait();
   }
   arStructuredData* result = NULL;
   if (p->exitFlag){
@@ -517,7 +515,7 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
     p->messages.pop_front();
   }
 
-  ar_mutex_unlock(&p->lock);
+  p->unlock();
   return result;
 }
 
@@ -573,23 +571,14 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // synchronizer for all these tags!
   arStructuredDataSynchronizer* syn = NULL;
   if (_recycledSync.empty()){
-    // must create 
     syn = new arStructuredDataSynchronizer();
-    syn->tag = -1;
-    // We could be using this to signal "fall through" the getNextTagged()
-    syn->exitFlag = false;
-    syn->refCount = 0;
-    ar_mutex_init(&syn->lock);
   }
   else{
-    // simply pop the front, making sure that tag is set to -1.
     syn = _recycledSync.front();
-    syn->tag = -1;
-    // We could be using this to signal "fall through" the getNextTagged()
-    syn->exitFlag = false;
-    syn->refCount = 0;
+    syn->reset();
     _recycledSync.pop_front();
   }
+
   // Associate it with the given tags.
   list<int> actualUsedTags;
   for (j = tags.begin(); j != tags.end(); j++){
@@ -611,21 +600,19 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // we do, in fact, make it into the body of the loop, then the final value
   // of normalExit is determined by the wait.
   bool normalExit = true;
-  ar_mutex_lock(&syn->lock);
-  // if the exitFlag has been set,
-  // the tag will be -1, so exit normally from the wait.
-  while (syn->tag < 0 && !syn->exitFlag){
-    // The wait call returns false exactly when we've got a time-out.
-    // Distinguish this case, since we won't actually have any data.
-    normalExit = syn->var.wait(&syn->lock, timeout);
-    if (!normalExit){
-      break;
+  syn->lock();
+
+    // if the exitFlag has been set,
+    // the tag will be -1, so exit normally from the wait.
+    while (syn->tag < 0 && !syn->exitFlag && normalExit){
+      // wait returns false on timeout, i.e. no data.
+      normalExit = syn->wait(timeout);
     }
-  }
-  // Get the tag associated with the signal. This is the tag of the
-  // message we've been awaiting.
-  int tag = syn->tag;
-  ar_mutex_unlock(&syn->lock);
+    // Get the tag associated with the signal. This is the tag of the
+    // message we've been awaiting.
+    int tag = syn->tag;
+
+  syn->unlock();
 
   // We don't need the synchronizers anymore. Put them on the
   // recycling list. Use the ERROR-CHECKED list of tags,
@@ -713,13 +700,15 @@ void arStructuredDataParser::clearQueues(){
   // we may send the release multiple times as well. That is OK. 
   for (iSync i = _messageSync.begin(); i != _messageSync.end(); i++) {
     arStructuredDataSynchronizer* p = i->second;
-    ar_mutex_lock(&p->lock);
-    // No tag to pass.
-    p->tag = -1;
-    // Set the flag indicating that any woken getNextTagged() should return an error.
-    p->exitFlag = true;
-    p->var.signal();
-    ar_mutex_unlock(&p->lock);
+    p->lock();
+
+      // No tag to pass.
+      p->tag = -1;
+      // Tell any woken getNextTagged() to return an error.
+      p->exitFlag = true;
+      p->signal();
+
+    p->unlock();
   }
   // DO NOT remove from the _messageQueue. That is the job of
   // _cleanupSynchronizers() below. It will be executed by the various
@@ -735,17 +724,19 @@ void arStructuredDataParser::clearQueues(){
   // (and, incidentally, recycle all messages as waiting by ID)
   for (iQueue j(_messageQueue.begin()); j != _messageQueue.end(); j++){
     arMessageQueueByID* p = j->second;
-    ar_mutex_lock(&p->lock);
-    // Recycle everything on the message list and then signal.
-    // Set the variable indicating that data has been cleared.
-    // Clear but don't delete the list.
-    _recyclelist(p->messages);
-    p->messages.clear();
-    // Assume that at most *one* getNextInternal() is waiting for this ID.
-    // Thus, set the exit flag.  The waiter, when woken, unsets it.
-    p->exitFlag = true;
-    p->var.signal();
-    ar_mutex_unlock(&p->lock);
+    p->lock();
+
+      // Recycle everything on the message list and then signal.
+      // Set the variable indicating that data has been cleared.
+      // Clear but don't delete the list.
+      _recyclelist(p->messages);
+      p->messages.clear();
+      // Assume that at most *one* getNextInternal() is waiting for this ID.
+      // Thus, set the exit flag.  The waiter, when woken, unsets it.
+      p->exitFlag = true;
+      p->signal();
+
+    p->unlock();
   }
   _globalLock.unlock();
 }
@@ -769,10 +760,10 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   // we assume the next 3 iterators will find something, because theData is valid
   iQueue i(_messageQueue.find(theData->getID()));
   arMessageQueueByID* p = i->second;
-  ar_mutex_lock(&p->lock);
-  p->messages.push_back(theData);
-  p->var.signal();
-  ar_mutex_unlock(&p->lock);
+  p->lock();
+    p->messages.push_back(theData);
+    p->signal();
+  p->unlock();
 }
 
 // Push the received message onto the tagged queue (a single
@@ -805,10 +796,10 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* the
     // is the one responsible for the firing!
     // NOTE: MULTIPLE tags can correspond to ONE synchronizer!
     arStructuredDataSynchronizer* p = i->second;
-    ar_mutex_lock(&p->lock);
+    p->lock();
       p->tag = tag;
-      p->var.signal();
-    ar_mutex_unlock(&p->lock);
+      p->signal();
+    p->unlock();
   }
   _globalLock.unlock();
 }
@@ -820,8 +811,7 @@ void arStructuredDataParser::_cleanupSynchronizers(list<int> tags){
   for (list<int>::const_iterator i = tags.begin(); i != tags.end(); i++){
     SZGtaggedMessageSync::iterator j = _messageSync.find(*i);
     if (j != _messageSync.end()){
-      j->second->refCount--;
-      if (j->second->refCount == 0){
+      if (--(j->second->refCount) == 0){
         _recycledSync.push_front(j->second);
       }
       _messageSync.erase(j);

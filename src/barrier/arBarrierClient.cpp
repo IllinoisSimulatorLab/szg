@@ -90,10 +90,10 @@ void arBarrierClient::_dataTask(){
     }
     if (ar_rawDataGetID(_dataBuffer) == _handshakeData->getID()){
       // this must be round 2 of the handshake
-      ar_mutex_lock(&_activationLock);
+      _activationLock.lock();
       _activationResponse = true;
       _activationVar.signal();
-      ar_mutex_unlock(&_activationLock);
+      _activationLock.unlock();
     }
     else if (ar_rawDataGetID(_dataBuffer) == _serverTuningData->getID()){
       // the server has sent a release packet
@@ -129,7 +129,6 @@ arBarrierClient::arBarrierClient(){
   _connected = false;
   _bufferSize = 200;
   _dataBuffer = new ARchar[_bufferSize];
-  ar_mutex_init(&_activationLock);
   _activationResponse = false;
 
   // connection mode stuff
@@ -160,9 +159,9 @@ bool arBarrierClient::requestActivation(){
     return false;
 
   // communicate that we are ready to activate
-  ar_mutex_lock(&_activationLock);
+  _activationLock.lock();
     _activationResponse = false;
-  ar_mutex_unlock(&_activationLock);
+  _activationLock.unlock();
 
   _handshakeData->dataIn(BONDED_ID,&_bondedSocketID,AR_INT,1);
   _sendLock.lock();
@@ -179,11 +178,11 @@ bool arBarrierClient::requestActivation(){
   // leaving the arSyncDataClient read thread unable to exit. (note how
   // _activationResponse is set to false above and see the race condition
   // w/ stop(). Consequently, we also need to test for _exitProgram below
-  ar_mutex_lock(&_activationLock);
+  _activationLock.lock();
     while (!_activationResponse && !_exitProgram){
-      _activationVar.wait(&_activationLock);
+      _activationVar.wait(_activationLock);
     }
-  ar_mutex_unlock(&_activationLock);
+  _activationLock.unlock();
   // if we pushed through the following wait because of stop()... DO NOT
   // send a response
   if (!_exitProgram){
@@ -243,7 +242,7 @@ bool arBarrierClient::start(){
 void arBarrierClient::stop(){
   // make sure we are not blocking on any calls (like requestActivation(...))
   // this really is somewhat cheesy SO FAR
-  ar_mutex_lock(&_activationLock);
+  _activationLock.lock();
 
   // Set _exitProgram both within the _activationLock and the _sendLock.
   // In the case of _sendLock,
@@ -256,7 +255,7 @@ void arBarrierClient::stop(){
 
   _activationResponse = true;
   _activationVar.signal();
-  ar_mutex_unlock(&_activationLock);
+  _activationLock.unlock();
   // Ping the server to avoid getting stuck in arDataClient's readData call.
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
   _sendLock.lock();

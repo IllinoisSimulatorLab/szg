@@ -63,7 +63,6 @@ arSZGClient::arSZGClient():
   _dataClient.setLabel(_exeName);
   _dataClient.smallPacketOptimize(true);
   _dataClient.setBufferSize(_receiveBufferSize);
-  ar_mutex_init(&_lock);
 }
 
 arSZGClient::~arSZGClient() {
@@ -2986,7 +2985,7 @@ void arSZGClient::_serverResponseThread() {
 
     // We got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
-    ar_mutex_lock(&_lock);
+    _lock.lock();
     if (_dataRequested) {
       // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
@@ -3023,24 +3022,24 @@ void arSZGClient::_serverResponseThread() {
         }
       }
     }
-    ar_mutex_unlock(&_lock);
+    _lock.unlock();
   }
 }
 
 void arSZGClient::_timerThread() {
   while (_keepRunning) {
-    ar_mutex_lock(&_lock);
+    _lock.lock();
       while (!_beginTimer) {
-	_timerCondVar.wait(&_lock);
+	_timerCondVar.wait(_lock);
       }
       _beginTimer = false;
-    ar_mutex_unlock(&_lock);
+    _lock.unlock();
 
     ar_usleep(1500000); // Long, for slow or flaky networks.
 
-    ar_mutex_lock(&_lock);
+    _lock.lock();
       _dataCondVar.signal();
-    ar_mutex_unlock(&_lock);
+    _lock.unlock();
   }
 }
 
@@ -3101,7 +3100,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  ar_mutex_lock(&_lock);
+  _lock.lock();
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = name;
@@ -3109,11 +3108,11 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _sendDiscoveryPacket(name,broadcast);
   _timerCondVar.signal();
   while (_dataRequested && _beginTimer) {
-    _dataCondVar.wait(&_lock);
+    _dataCondVar.wait(_lock);
   }
   if (_dataRequested) {
     // timeout
-    ar_mutex_unlock(&_lock);
+    _lock.unlock();
     return false;
   }
 
@@ -3122,7 +3121,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _IPaddress = string(_responseBuffer+132);
   _port = atoi(_responseBuffer+164);
 
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
   return true;
 }
 
@@ -3135,7 +3134,7 @@ void arSZGClient::printSZGServers(const string& broadcast) {
   _bufferResponse = true;
   _justPrinting = true;
 
-  ar_mutex_lock(&_lock);
+  _lock.lock();
     _foundServers.clear();
     _dataRequested = true;
     _beginTimer = true;
@@ -3143,9 +3142,9 @@ void arSZGClient::printSZGServers(const string& broadcast) {
     _sendDiscoveryPacket("*",broadcast);
     _timerCondVar.signal();
     while (_beginTimer) {
-      _dataCondVar.wait(&_lock);
+      _dataCondVar.wait(_lock);
     }
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
   _dataRequested = false;
 
   _justPrinting = false;
@@ -3161,7 +3160,7 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   }
 
   _bufferResponse = true;
-  ar_mutex_lock(&_lock);
+  _lock.lock();
   _foundServers.clear();
   _dataRequested = true;
   _beginTimer = true;
@@ -3169,9 +3168,9 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   _sendDiscoveryPacket("*",broadcast);
   _timerCondVar.signal();
   while (_beginTimer) {
-    _dataCondVar.wait(&_lock);
+    _dataCondVar.wait(_lock);
   }
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
   _dataRequested = false;
   _bufferResponse = false;
   return _foundServers;

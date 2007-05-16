@@ -23,46 +23,43 @@ string interfaceType;
 bool stereoMode;
 int windowSizeX, windowSizeY;
 arMatrix4 hyperTransform;
-arMutex hyperLock;
-
 arMatrix4 worldMatrix;
 int worldTransformID;
-
 H3World *worldH3 = NULL;
 
 arMatrix4 hyperRotate(char axis, float radians)
 {
-  arMatrix4 result;
+  arMatrix4 m;
   switch (axis)
   {
   case 'x':
-    result[5]  =  cos(radians);
-    result[6]  =  sin(radians);
-    result[9]  = -sin(radians);
-    result[10] =  cos(radians);
+    m[5]  =  cos(radians);
+    m[6]  =  sin(radians);
+    m[9]  = -sin(radians);
+    m[10] =  cos(radians);
     break;
   case 'y':
-    result[0]  =  cos(radians);
-    result[2]  =  sin(radians);
-    result[8]  =  -sin(radians);
-    result[10] =  cos(radians);
+    m[0]  =  cos(radians);
+    m[2]  =  sin(radians);
+    m[8]  =  -sin(radians);
+    m[10] =  cos(radians);
     break;
   case 'z':
-    result[0] =  cos(radians);
-    result[1] =  sin(radians);
-    result[4] = -sin(radians);
-    result[5] =  cos(radians);
+    m[0] =  cos(radians);
+    m[1] =  sin(radians);
+    m[4] = -sin(radians);
+    m[5] =  cos(radians);
     break;
   }
-  return result;
+  return m;
 }
 
 arMatrix4 hyperTranslate(float speed)
 {
-  arMatrix4 result;
-  result[10] = result[15] = cosh(speed);
-  result[11] = result[14] = sinh(speed);
-  return result;
+  arMatrix4 m;
+  m[10] = m[15] = cosh(speed);
+  m[11] = m[14] = sinh(speed);
+  return m;
 }
 
 //***********************************************************************
@@ -87,7 +84,6 @@ void preExchange(arMasterSlaveFramework& fw){
 void postExchange(arMasterSlaveFramework&){
   if (!worldH3)
     return;
-  // Convert from floats to doubles.
   double m[16];
   for (int i=0; i<16; i++)
     m[i] = double(hyperTransform[i]);

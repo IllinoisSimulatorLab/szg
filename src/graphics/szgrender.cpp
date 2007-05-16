@@ -23,7 +23,7 @@ bool fDrawPerformance = false;
 bool fExit = false;
 bool fReload = false;
 bool fPause = false;
-arMutex pauseLock; // with pauseVar, around fPause, between message and draw threads.
+arLock pauseLock; // with pauseVar, around fPause, between message and draw threads.
 arConditionVar pauseVar;
 string dataPath("NULL");
 string textPath("NULL");
@@ -47,7 +47,7 @@ void shutdownAction(){
   fExit = true;
 
   ar_log_debug() << "szgrender shutdown.\n";
-  // Let the draw loop _cliSync.consume() finish.
+  // Let the draw loop's _cliSync.consume() finish.
   graphicsClient._cliSync.skipConsumption();
 
   // exit() from the draw loop, to avoid Win32 crashes.
@@ -57,6 +57,7 @@ void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (true) {
+// probably in language/arStructuredDataParser.cpp getNextInternal().
     // Happens only once.
     if (!cli->receiveMessage(&messageType,&messageBody) || messageType=="quit"){
       shutdownAction();
@@ -88,15 +89,15 @@ void messageTask(void* pClient){
 
     else if (messageType=="pause"){
       if (messageBody == "on"){
-        ar_mutex_lock(&pauseLock);
+        pauseLock.lock();
 	  fPause = true;
-	ar_mutex_unlock(&pauseLock);
+        pauseLock.unlock();
       }
       else if (messageBody == "off"){
-        ar_mutex_lock(&pauseLock);
+        pauseLock.lock();
 	  fPause = false;
 	  pauseVar.signal();
-	ar_mutex_unlock(&pauseLock);
+        pauseLock.unlock();
       }
       else
         ar_log_warning() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
@@ -188,7 +189,6 @@ int main(int argc, char** argv){
     cerr << "szgrender error: maybe szgserver died.\n";
   }
 
-  ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
 
   // Default to a non-threaded window manager.
@@ -217,13 +217,13 @@ int main(int argc, char** argv){
   }
 
   while (!fExit) {
-    ar_mutex_lock(&pauseLock);
+    pauseLock.lock();
       while (fPause) {
-	pauseVar.wait(&pauseLock);
+	pauseVar.wait(pauseLock);
       }
-    ar_mutex_unlock(&pauseLock);
+    pauseLock.unlock();
 
-    ar_timeval time1 = ar_time();
+    const ar_timeval time1 = ar_time();
     if (fReload){
       fReload = false;
       (void)loadParameters(szgClient);
@@ -244,12 +244,10 @@ int main(int argc, char** argv){
       1000000.0 / ar_difftimeSafe(ar_time(), time1));
   }
 
-  // Clean up.
   graphicsClient._cliSync.stop();
 
   // We're the display thread.  Do this before exiting.
   windowManager->deactivateFramelock();
-
   windowManager->deleteAllWindows();
   return 0;
 }

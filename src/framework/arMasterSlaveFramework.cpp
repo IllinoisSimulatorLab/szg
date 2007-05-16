@@ -315,8 +315,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _transferTemplate.addAttribute( "numRandCalls",    AR_LONG   );
   _transferTemplate.addAttribute( "randVal",         AR_FLOAT  );
 
-  ar_mutex_init( &_pauseLock );
-
   // when the default color is set like this, the app's geometry is displayed
   // instead of a default color
   _masterPort[ 0 ] = -1;
@@ -479,7 +477,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
 
     (void)_launcher.waitForKill();
-    exit( 0 );
+    exit(0);
   }
   
   // We're not the trigger node.
@@ -546,11 +544,11 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   }
 
   // To avoid a race condition, set _exitProgram within this lock.
-  ar_mutex_lock( &_pauseLock );
-  _exitProgram = true;
-  _pauseFlag   = false;
-  _pauseVar.signal();
-  ar_mutex_unlock( &_pauseLock );
+  _pauseLock.lock();
+    _exitProgram = true;
+    _pauseFlag   = false;
+    _pauseVar.signal();
+  _pauseLock.unlock();
   
   // We can be a master with no distribution.
   if( getMaster() ) {
@@ -665,11 +663,11 @@ void arMasterSlaveFramework::preDraw( void ) {
   const ar_timeval preDrawStart = ar_time();
   
   // Catch pause/ un-pause requests.
-  ar_mutex_lock( &_pauseLock );
+  _pauseLock.lock();
   while( _pauseFlag ) {
-    _pauseVar.wait( &_pauseLock );
+    _pauseVar.wait( _pauseLock );
   }
-  ar_mutex_unlock( &_pauseLock );
+  _pauseLock.unlock();
   
   // the pause might have been triggered by shutdown
   if (stopping())
@@ -752,22 +750,20 @@ void arMasterSlaveFramework::draw( int windowID ){
     _wm->drawWindow( windowID, true );
 }
 
-// The sequence of events that should occur after the window is drawn,
-// but before the synchronization is called.
+// What happens after the window is drawn, but before synchronizing.
 void arMasterSlaveFramework::postDraw( void ){
-  // if shutdown has been triggered, just return
   if (stopping())
     return;
   
   const ar_timeval postDrawStart = ar_time();
+
+  // For testing sync.
   if( _framerateThrottle ) {
-    // For testing sync.
     ar_usleep( 200000 );
   }
 
-  // Synchronize.
   if( !_standalone && !_sync() ) {
-    ar_log_warning() << _label << ": sync failed.\n";
+    ar_log_warning() << _label << ": sync failed in postDraw().\n";
   }
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
 }
@@ -785,7 +781,7 @@ void arMasterSlaveFramework::swap( int windowID ) {
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
-    ar_log_error() << _label << " user-defined start callback failed.\n";
+    ar_log_warning() << _label << ": user-defined start callback failed.\n";
     return false;
   }
 
@@ -2255,7 +2251,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       // without the m/s framework windowing, then DO NOT exit here.
       // That will occur in the external thread of control.
       if( !_useExternalThread ) {
-        exit( 0 );
+        exit(0);
       }
 
       // We DO NOT want to hit this again! (since things are DISCONNECTED)
@@ -2278,12 +2274,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
     else if ( messageType== "performance" ) {
-      if ( messageBody == "on" ) {
-	      _showPerformance = true;
-      }
-      else {
-        _showPerformance = false;
-      }
+      _showPerformance = messageBody == "on";
     }
     else if ( messageType == "reload" ) {
       // Yes, this is a little bit bogus. By setting the variable here,
@@ -2340,16 +2331,16 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "pause" ) {
       if ( messageBody == "on" ) {
-        ar_mutex_lock( &_pauseLock );
-        if ( !stopping() )
-	  _pauseFlag = true;
-	ar_mutex_unlock(&_pauseLock);
+	_pauseLock.lock();
+	  if ( !stopping() )
+	    _pauseFlag = true;
+	_pauseLock.unlock();
       }
       else if( messageBody == "off" ) {
-        ar_mutex_lock( &_pauseLock );
-        _pauseFlag = false;
-        _pauseVar.signal();
-        ar_mutex_unlock( &_pauseLock );
+	_pauseLock.lock();
+	  _pauseFlag = false;
+	  _pauseVar.signal();
+	_pauseLock.unlock();
       }
       else
         ar_log_warning() << _label <<

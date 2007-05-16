@@ -186,7 +186,7 @@ class SZG_CALL arGUIEventManager
 
     // bug: this is a lot of data to be copying around, any way to do this without passing-by-value?
     std::queue<arStructuredData > _events;    // Queue of consumed os events waiting to be processed by the window manager.
-    arMutex _eventsMutex;                     // Mutex protecting the event queue.
+    arLock _eventsMutex;                      // Mutex protecting the event queue.
 
     void* _userData;                          // Data pointer defined by associated window.
 

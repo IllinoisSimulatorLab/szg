@@ -106,7 +106,7 @@ class SZG_CALL arSyncDataClient{
   bool (*_nullCallback)(void*);
   bool (*_postSyncCallback)(void*);
 
-  arMutex _swapLock; // with _bufferSwapCondVar, _dataWaitCondVar
+  arLock _swapLock; // with _bufferSwapCondVar, _dataWaitCondVar
   arConditionVar _bufferSwapCondVar;
   arConditionVar _dataWaitCondVar;
   arDataClient _dataClient;
@@ -132,7 +132,7 @@ class SZG_CALL arSyncDataClient{
   // disconnection. This is necessary if, say, something needs to
   // be executed on disconnect in the consume thread (and the most 
   // convenient way to do this is in the _nullCallback).
-  arMutex        _nullHandshakeLock; // with _nullHandshakeVar
+  arLock         _nullHandshakeLock; // with _nullHandshakeVar
   arConditionVar _nullHandshakeVar;
   int            _nullHandshakeState;
 

@@ -181,10 +181,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arDataServer*   _dataServer;
   arSZGClient*    _client;
   arThread        _connectionThread;
-
-  //arLock _socketsLock;
   arLock _queueLock;
-  
   bool    _queueingData;
   bool    _localDatabase;
 
@@ -197,27 +194,27 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
 
   // Some calls involve a round trip to a remote peer, like finding the
   // ID of a node if we haven't transfered the stuff locally.
-  arMutex        _IDResponseLock; // with _IDResponseVar
+  arLock         _IDResponseLock; // with _IDResponseVar
   arConditionVar _IDResponseVar;
   int            _requestedNodeID;
 
   // Also, involving a round trip to the remote peer is a request to serialize
-  arMutex        _dumpLock; // with _dumpVar
+  arLock         _dumpLock; // with _dumpVar
   arConditionVar _dumpVar;
   bool           _dumped;
 
   // Finally, we can "ping" a connected peer. This allows us to be sure that
   // all previous messages we've sent have been processed.
-  arMutex _pingLock; // with _pingVar
+  arLock _pingLock; // with _pingVar
   arConditionVar _pingVar;
   bool           _pinged;
 
   // We need to delay sending a ping reply until consumption of queued messages
   // has occured.
-  arMutex        _queueConsumeLock; // with _queueConsumeVar
+  arLock         _queueConsumeLock; // with _queueConsumeVar
   arConditionVar _queueConsumeVar;
   bool           _queueConsumeQuery;
-  arMutex        _queueQueryUniquenessLock;
+  arLock         _queueQueryUniquenessLock;
 
   // A path for reading and writing info might be specified.
   string _readWritePath;

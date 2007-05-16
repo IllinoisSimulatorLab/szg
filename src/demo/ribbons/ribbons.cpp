@@ -58,7 +58,7 @@ void stroke::append(const arVector3& v)
 
 list<stroke> strokes;
 list<stroke> fragments;
-arMutex lockDraw; // protects strokes and fragments
+arLock lockDraw; // Guards strokes and fragments.
 stroke sCur;
 typedef list <arVector3>::const_iterator citer;
 typedef list <arVector3>::iterator iter;
@@ -399,9 +399,9 @@ void drawSculpture()
   glPushMatrix();
     // draw previously made strokes
     // set different material here if you like
-    ar_mutex_lock(&lockDraw);
+    lockDraw.lock();
     for_each(strokes.begin(), strokes.end(), drawStroke());
-    ar_mutex_unlock(&lockDraw);
+    lockDraw.unlock();
 
     // draw stroke in progress (if any)
     // set different material here if you like
@@ -417,7 +417,7 @@ struct emptyStroke : public unary_function<stroke, void>
 
 void erase(const arVector3& v)
 {
-  ar_mutex_lock(&lockDraw);
+  lockDraw.lock();
   for_each(strokes.begin(), strokes.end(), eraseStroke(v));
   // Unpatched Visual C++ 6 does not like the following line... even though
   // it is correct STL. Everything in szg should compile to unpatched
@@ -452,7 +452,7 @@ void erase(const arVector3& v)
     }
 #endif
   strokes.splice(strokes.begin(), fragments);
-  ar_mutex_unlock(&lockDraw);
+  lockDraw.unlock();
 }
 
 static enum { cursorDefault, cursorDraw, cursorErase } cursor;
@@ -527,9 +527,9 @@ void update(const int* fDown, const arVector3& wand)
   if (fDraw)
     sCur.append(wand);
   if (fDrawEnd) {
-    ar_mutex_lock(&lockDraw);
+    lockDraw.lock();
       strokes.push_back(sCur);
-    ar_mutex_unlock(&lockDraw);
+    lockDraw.unlock();
     sCur.clear();
     cursor = cursorDefault;
     fDraw = false;
@@ -686,6 +686,5 @@ int main(int argc, char** argv){
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);
-  ar_mutex_init(&lockDraw);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

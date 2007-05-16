@@ -272,11 +272,6 @@ class SZG_CALL arGUIWindowConfig
                        const std::string& XDisplay = ":0.0",
                        arCursor cursor = AR_CURSOR_ARROW );
 
-    /**
-     * The arGUIWindowConfig destructor.
-     */
-    ~arGUIWindowConfig( void );
-
     //@{
     /** @name arGUIWindowConfig accessors
      *
@@ -394,8 +389,8 @@ class SZG_CALL arWMEvent
     arGUIWindowInfo _event; // Current message info.
     arIntAtom _done; // 0 if new/reset event, 1 if signaled, 2 if waited, allows 'done' events to be reused by arGUIWindow.
 
-    bool _conditionFlag;    // Flag for _eventCond.
-    arMutex _eventMutex; // with _eventCond.
+    bool _conditionFlag; // Flag for _eventCond.
+    arLock _eventMutex; // with _eventCond.
     arConditionVar _eventCond;
 
 };
@@ -967,12 +962,12 @@ class SZG_CALL arGUIWindow
 
     arConditionVar _creationCond;               // Signaled when the window has been created.
     arConditionVar _destructionCond;            // Signaled when the window has been destroyed.
-    arMutex _creationMutex;			// with _creationCond.
+    arLock _creationMutex;			// with _creationCond.
     arLock _destructionMutex;
     bool _creationFlag, _destructionFlag;       // Flags for the condition variables.
 
     EventQueue _WMEvents;                       // Queue of to-be-processed events received from the window manager.
-    arMutex _WMEventsMutex;                     // Guard the window manager event queue.  With _WMEventsVar.
+    arLock _WMEventsMutex;                      // Guard the window manager event queue.  With _WMEventsVar.
 
     void* _userData;                            // User-set data pointer.
 
