@@ -351,7 +351,7 @@ bool arSyncDataClient::start(){
     return false;
   }
 
-  ar_log_remark() << getLabel() << " started.\n";
+  ar_log_remark() << getLabel() << " arSyncDataClient started.\n";
   return true;
 }
 
@@ -468,9 +468,14 @@ void arSyncDataClient::consume(){
       if (_exitProgram)
 	return;
       _stackLock.lock();
+      list<pair<char*,int> >::iterator iter;
       if (_mode == AR_NOSYNC_CLIENT){
-	// consume everything
-	copy(_receiveStack.begin(), _receiveStack.end(), _consumeStack.end());
+        // consume everything
+        for (iter = _receiveStack.begin(); iter != _receiveStack.end(); ++iter){
+          _consumeStack.push_back(*iter);
+        }
+      //      MINGW crasher!
+//        copy(_receiveStack.begin(), _receiveStack.end(), _consumeStack.end());
         _receiveStack.clear();
       }
       else{
@@ -480,8 +485,8 @@ void arSyncDataClient::consume(){
 	// causing _receiveStack.empty().
         if (!_exitProgram && !_receiveStack.empty()){
           _consumeStack.push_back(_receiveStack.front());
-	  _receiveStack.pop_front();
-	}
+          _receiveStack.pop_front();
+        }
       }
 
       _stackLock.unlock();
@@ -494,7 +499,7 @@ void arSyncDataClient::consume(){
       // killed 3rd thread, still-living szgrender resumed updating.
 
 
-      list<pair<char*,int> >::const_iterator iter;
+//      list<pair<char*,int> >::const_iterator iter;
       for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter){
         _consumptionCallback(_bondedObject, iter->first);
       }
@@ -502,7 +507,11 @@ void arSyncDataClient::consume(){
 	return;
       // move storage from consume stack to storage stack
       _stackLock.lock();
-      copy(_consumeStack.begin(), _consumeStack.end(), _storageStack.end());
+      for (iter = _consumeStack.begin(); iter != _consumeStack.end(); ++iter){
+        _storageStack.push_back(*iter);
+      }
+      //      MINGW crasher!
+//      copy(_consumeStack.begin(), _consumeStack.end(), _storageStack.end());
       _consumeStack.clear();
       _stackLock.unlock();
       if (_exitProgram)
