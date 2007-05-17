@@ -110,11 +110,18 @@ void arDatabaseNode::setName(const string& name){
   }
 }
 
+bool arDatabaseNode::hasInfo() {
+  _lockInfo.lock();
+    const bool ok = !_info.empty();
+  _lockInfo.unlock();
+  return ok;
+}
+
 string arDatabaseNode::getInfo() {
   _lockInfo.lock();
-    const string result = _info;
+    const string s = _info;
   _lockInfo.unlock();
-  return result;
+  return s;
 }
 
 void arDatabaseNode::setInfo(const string& info){

@@ -41,6 +41,7 @@ class SZG_CALL arDatabaseNode{
 
   string getName();
   void setName(const string& name);
+  bool hasInfo();
   string getInfo();
   void setInfo(const string& info);
   int getTypeCode() const { return _typeCode; }

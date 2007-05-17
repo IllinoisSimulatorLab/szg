@@ -1245,14 +1245,12 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
     cerr << "arDatabase::_eraseNode failed: no such node.\n";
     return NULL;
   }
-  //ar_mutex_lock(&_eraseLock);
   // Delete the startNode from the child list of its parent
   arDatabaseNode* parent = startNode->getParent();
   if (parent){
     parent->_removeChild(startNode);
   }
   _eraseNode(startNode);
-  //ar_mutex_unlock(&_eraseLock);
   return &_rootNode;
 }
 
@@ -1290,44 +1288,43 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
                                              int nodeID,
                                              const string& nodeName,
 					     bool moveChildren){
-  // We will actually create a new node.
+  // Create a new node.
   arDatabaseNode* node = _makeNode(typeString);
   if (!node){
-    // This is an error.
     cout << "arDatabase error: failed to create node of type="
 	 << typeString << ".\n";
     return NULL;
   }
-  // Notice that we use the protected _setName method instead of the public
-  // setName method, which generates a message.
+  // Use protected _setName() not public setName(), which sends a message.
   node->_setName(nodeName);
 
-  // Add to children of parent, remembering that if moveChildren is true,
-  // then all the parent's previous children will be attached to the new
-  // node.
-  //ar_mutex_lock(&_bufferLock);
+  // Add to children of parent.
   if (moveChildren){
+    // Attach parent's previous children to the new node.
     node->_stealChildren(parentNode);
   }
   // Either way, make the new node a child of the parent.
   parentNode->_addChild(node);
-  //ar_mutex_unlock(&_bufferLock);
 
   // Set ID appropriately.
   if (nodeID == -1){
     // Assign an ID automatically.
-    ar_log_debug() << "\tNew node " << _nextAssignedID << ", name " << node->getName() <<
-      ", info " << node->getInfo() << ".\n";
+    ar_log_debug() << "\tNew node " << _nextAssignedID << ", name " << node->getName();
+    if (node->hasInfo())
+      ar_log_debug() << ", info " << node->getInfo();
+    ar_log_debug() << ".\n";
     node->_setID(_nextAssignedID++);
   } else {
-    ar_log_debug() << "\tNew node with specified ID " << nodeID << ", name " << node->getName() <<
-      ", info " << node->getInfo() << ".\n";
+    ar_log_debug() << "\tNew node ID " << nodeID << ", name " << node->getName();
+    if (node->hasInfo())
+      ar_log_debug() << ", info " << node->getInfo();
+    ar_log_debug() << ".\n";
     node->_setID(nodeID);
     if (_nextAssignedID <= nodeID){
       _nextAssignedID = nodeID+1;
     }
   }
-  // Must enter the database's registry.
+  // Enter the database's registry.
   _nodeIDContainer.insert(
       map<int,arDatabaseNode*,less<int> >::value_type(node->getID(), node));
   // Do not forget to intialize.
