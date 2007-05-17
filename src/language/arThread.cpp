@@ -193,6 +193,8 @@ arConditionVar::arConditionVar(){
 arConditionVar::~arConditionVar(){
 #ifdef AR_USE_WIN_32
   CloseHandle(_event);
+#else
+  pthread_cond_destroy(&_conditionVar);
 #endif
 }
 
@@ -368,7 +370,8 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
 #ifdef AR_USE_WIN_32
 
   _threadID = _beginthread(threadFunction,0,parameter);
-  if (_threadID < 0)
+  // Weird. On error, _beginthread returns an unsigned minus one.
+  if (_threadID == arThreadID(-1L))
     {
     cerr << "arThread error: _beginthread failed: ";
     if (errno == EAGAIN)
