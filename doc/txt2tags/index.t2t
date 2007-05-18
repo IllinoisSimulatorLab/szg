@@ -21,7 +21,8 @@ Header2 %%mtime(%m/%d/%Y)
 - [Standalone.html Standalone.html]: Running on a single, unclustered, PC.
 - [ExampleCode.html ExampleCode.html]: Running the included examples, where to put their
   data files, etc.
-- [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension, etc.) with Syzygy's //inputsimulator//, e.g. in standalone mode.
+- [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension,
+  etc.) with Syzygy's //inputsimulator//, e.g. in standalone mode.
 - [SystemConfiguration.html SystemConfiguration.html]:
   Specifying parameters of a VR system with the Syzygy Database, in both Standalone and Cluster modes.
   This includes:
@@ -38,6 +39,8 @@ Header2 %%mtime(%m/%d/%Y)
 - [Programming.html Programming.html]: Writing programs using Syzygy's application frameworks.
 - [QuickPort.html QuickPort.html]: Porting an OpenGL/GLUT-based application, in a hurry.
 - [CompileCPP.html CompileCPP.html]: Compiling and linking C++ programs.
+- If you're planning on modifying the libraries, see also
+  [Compiler Idiosyncrasies CompilerIdiosyncrasies.html]
 - [PySZG.html PySZG.html]: Writing Python programs.
 - [SceneGraph.html SceneGraph.html]: The distributed scene graph API.
 - [Sound.html Sound.html]: The spatial sound system.

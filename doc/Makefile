@@ -8,6 +8,7 @@ ALL = \
   CommLayer.html \
   CommunicationDetails.html \
   CompileCPP.html \
+	CompilerIdiosyncrasies.html \
   DistributedOS.html \
   ExampleCode.html \
   GettingSoftware.html \
