@@ -403,8 +403,8 @@ int main(){
   
   cout << "Beginning unit test 4: Thread safety of platform's lib c++.\n";
   // THIS ISN'T NEARLY LONG ENOUGH!
-  arThread thread1(hammerString1);
-  arThread thread2(hammerString2);
+  arThread dummy1(hammerString1);
+  arThread dummy2(hammerString2);
   time1 = ar_time();
   while (ar_difftime(ar_time(), time1)/1000000.0 < 10){
     ar_usleep(10000);

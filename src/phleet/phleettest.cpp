@@ -13,7 +13,6 @@ bool done1 = false;
 bool done2 = false;
 
 // WHY IS THERE A SEGFAULT IF THIS IS DECLARED LIKE SO?
-//arSZGClient szgClient;
 arSZGClient* szgClient = NULL;
 
 void getTask1(void*){
@@ -85,6 +84,7 @@ int main(int argc, char** argv){
     return szgClient->failStandalone(fInit);
     }
 #endif
+
     szgClient->setAttribute("foo","bar1","bar1");
     szgClient->setAttribute("foo","bar2","bar2");
     ar_timeval time1 = ar_time();
@@ -93,15 +93,15 @@ int main(int argc, char** argv){
     }
     const double totalTime = ar_difftime(ar_time(), time1);
     cout << "Time to get attribute is "
-         << totalTime/(1000.0*numberGetAttr) << " ms.\n";
-    cout << "  Requests per second = " 
+         << totalTime/(1000.0*numberGetAttr) << " ms.\n"
+         << "  Requests per second = " 
          << (1000000.0*numberGetAttr)/totalTime << "\n";
     done1 = false;
     done2 = false;
-    arThread tmp1(getTask1);
-    arThread tmp2(getTask2);
+    arThread dummy1(getTask1);
+    arThread dummy2(getTask2);
     while (!done1 || !done2){
-      ar_usleep(100000);
+      ar_usleep(200000);
     }
 
     /*szgClient->closeConnection();
