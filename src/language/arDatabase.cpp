@@ -1306,20 +1306,13 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   // Either way, make the new node a child of the parent.
   parentNode->_addChild(node);
 
-  // Set ID appropriately.
   if (nodeID == -1){
     // Assign an ID automatically.
-    ar_log_debug() << "\tNew node " << _nextAssignedID << ", name " << node->getName();
-    if (node->hasInfo())
-      ar_log_debug() << ", info " << node->getInfo();
-    ar_log_debug() << ".\n";
     node->_setID(_nextAssignedID++);
+    ar_log_debug() << "\t" << _typeString << " auto node " << node->dumpOneline();
   } else {
-    ar_log_debug() << "\tNew node ID " << nodeID << ", name " << node->getName();
-    if (node->hasInfo())
-      ar_log_debug() << ", info " << node->getInfo();
-    ar_log_debug() << ".\n";
     node->_setID(nodeID);
+    ar_log_debug() << "\t" << _typeString << " new node " << node->dumpOneline();
     if (_nextAssignedID <= nodeID){
       _nextAssignedID = nodeID+1;
     }
@@ -1354,11 +1347,8 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   // container AND release our reference to it. If no one holds an external
   // reference to it, then it will delete itself.
 
-  const int nodeID = node->getID();
-  ar_log_debug() << "\tDeleting node (id,name,info) " << nodeID << ", " <<
-    node->getName() << ", " << node->getInfo() << ".\n";
-
-  _nodeIDContainer.erase(nodeID);
+  ar_log_debug() << "\t" << _typeString << " deleting node " << node->dumpOneline();
+  _nodeIDContainer.erase(node->getID());
   node->deactivate();
   node->unref();
 }
@@ -1380,10 +1370,7 @@ void arDatabase::_cutNode(arDatabaseNode* node){
   // Attach the children to their new parent.
   parent->_stealChildren(node);
 
-  const int nodeID = node->getID();
-  ar_log_debug() << "\tCutting node (id,name,info) " << nodeID << ", " <<
-    node->getName() << ", " << node->getInfo() << ".\n";
-
+  ar_log_debug() << "\t" << _typeString << " cutting node " << node->dumpOneline();
   _nodeIDContainer.erase(node->getID());
   node->deactivate();
   node->unref();

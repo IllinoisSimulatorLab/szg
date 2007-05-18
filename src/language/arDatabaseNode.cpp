@@ -148,6 +148,14 @@ void arDatabaseNode::setInfo(const string& info){
   }
 }
 
+string arDatabaseNode::dumpOneline() {
+  string s(ar_intToString(_ID) + ", name " + getName());
+  const string info(getInfo());
+  if (!info.empty())
+    s += ", info " + info;
+  return s + ".\n";
+}
+
 // We do not worry about thread-safety if the caller does not request that
 // the returned node ptr be ref'ed. If, on the other hand, the caller does
 // so request, thread safety gets handled by forwarding the request to

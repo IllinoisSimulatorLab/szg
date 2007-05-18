@@ -164,6 +164,7 @@ SZG_CALL bool ar_doubleToFloatValid( const double theDouble,
                                      float& theFloat );
 SZG_CALL bool ar_stringToFloatValid( const string& theString, 
                                      float& theFloat );
+SZG_CALL string ar_intToString(const int);
 
 // string manipulation
 SZG_CALL int ar_parseFloatString(const string& theString, 

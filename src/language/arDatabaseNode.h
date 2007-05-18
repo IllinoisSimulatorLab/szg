@@ -113,6 +113,8 @@ class SZG_CALL arDatabaseNode{
   arNodeLevel getNodeLevel() const;
   void setNodeLevel(arNodeLevel nodeLevel);
 
+  string dumpOneline();
+
  private:
   // Lock _info and _name (data i/o).
   // Not thread-safe for changes to the database owner, children, and parent.

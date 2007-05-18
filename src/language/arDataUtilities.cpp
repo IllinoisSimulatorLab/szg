@@ -522,6 +522,12 @@ bool ar_longToIntValid( const long theLong, int& theInt ) {
   return true;
 }
 
+string ar_intToString(const int i) {
+  char s[80];
+  sprintf(s, "%d", i);
+  return string(s);
+}
+
 bool ar_stringToIntValid( const string& theString, int& theInt ) {
   long theLong = -1;
   return ar_stringToLongValid( theString, theLong ) &&
