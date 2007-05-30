@@ -71,16 +71,14 @@ void arBarrierServer::_releaseFunction(){
   while (_runThreads){
     _waitingLock.lock();
     while (true) {
-      int total = _dataServer.getNumberConnectedActive();
+      int total = getNumberConnectedActive();
       if (_localConnection)
         ++total;
-      if (_totalWaiting >= total && total >0) {
+      if (_totalWaiting >= total && total > 0) {
         _totalWaiting = 0;
 	break;
       }
-      else{
-        _waitingCondVar.wait(_waitingLock);
-      }
+      _waitingCondVar.wait(_waitingLock);
     }
     // send release packet
     const int tuningData = _serverSendSize;
@@ -113,7 +111,6 @@ void ar_barrierDisconnectFunction(void* server, arSocket*){
 }
 
 void arBarrierServer::_barrierDisconnectFunction(){
-  //NOISY cout << "arBarrierServer remark: disconnected.\n";
   _waitingLock.lock();
   _waitingCondVar.signal();
   _waitingLock.unlock();
@@ -171,7 +168,7 @@ arBarrierServer::arBarrierServer():
 
 arBarrierServer::~arBarrierServer(){
   _runThreads = false;
-  // \bug memory leaks (but we need a shutdown procedure first)
+  // bug: memory leaks (but we need a shutdown procedure first)
 }
 
 void arBarrierServer::setServiceName(string serviceName){
@@ -244,7 +241,7 @@ LAbort:
   return true;
 }
 
-// really all this does (SO FAR) is disable the localSync call so that it
+// Disable the localSync call so that it
 // automatically falls through. It would be a BAD IDEA, at this stage,
 // to make the barrier server stop sending replies to its clients, since
 // those clients rely on receiving messages to stop their data reading
@@ -271,15 +268,14 @@ void arBarrierServer::setSignalObjectRelease(arSignalObject* signalObject){
 }
 
 bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
-  // we only want to issue a locking command if this hasn't been issued
-  // externally
-  // note the funny locking dance. There's a pretty subtle deadlock
-  // potentiality... namely, if we held the _queueActivationLock
+  // Only issue a locking command if this hasn't been issued externally.
+  // Locking dance has a subtle deadlock danger:
+  // if we held _queueActivationLock
   // through the end of the function, we could block in
   // ar_barrierDataFunction on the first round of a handshake receive
-  // (which wants the _queueActivationLock) but then never be able to
+  // (which wants _queueActivationLock) but then never be able to
   // get the third handshake round, which also must pass through that
-  // API point, consequently blocking in _activationVar.wait() forever
+  // API point, thus deadlocking in _activationVar.wait().
   if (!_activationQueueLockedExternally){
     _queueActivationLock.lock();
   }
@@ -295,11 +291,9 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   _queueActivationLock.unlock();
   _activationQueueLockedExternally = false;
 
-  // we want to change the number of active connections atomically
-  // with respect to the barrier release. also, we have a global
-  // "heartbeat" value that lets remote arBarrierClient objects
-  // discard unwanted broadcast release packets. This should be updated
-  // atomically as well.
+  // Update the number of active connections atomically w.r.t. the barrier release.
+  // Also atomically update global "heartbeat", which lets remote arBarrierClients
+  // discard unwanted broadcast release packets.
 
   _waitingLock.lock();
   
@@ -371,7 +365,7 @@ void arBarrierServer::localSync(){
   if (_exitProgram)
     return;
 
-  if (_dataServer.getNumberConnectedActive() == 0)
+  if (getNumberConnectedActive() == 0)
     ar_usleep(10000);
   _waitingLock.lock();
     _totalWaiting++;
