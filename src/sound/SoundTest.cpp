@@ -80,11 +80,11 @@ int main(int argc, char** argv){
   dsSetSoundDatabase(&soundServer);
 
   if (!soundServer.init(szgClient)){
-    ar_log_error() << "SoundServer failed to init.\n";
+    ar_log_error() << "SoundTest server failed to init.\n";
     return 1;
   }
   if (!soundServer.start()){
-    ar_log_error() << "SoundServer failed to start.\n";
+    ar_log_error() << "SoundTest server failed to start.\n";
     return 1;
   }
 
@@ -92,9 +92,10 @@ int main(int argc, char** argv){
 
   initDatabase();
 
-  while (true){
+  while (szgClient.running()){
     changeDatabase();
     ar_usleep(500000);
   }
+  szgClient.messageTaskStop();
   return 0;
 }

@@ -16,6 +16,7 @@
 #include "arNetInputSource.h"
 #include "arPForthFilter.h"
 
+arSZGClient* pszgClient = NULL;
 arInputSimulator defaultSimulator;
 arInputSimulator* pSim = NULL;
 arInputNode inputNode;
@@ -60,6 +61,7 @@ void keyboard(unsigned char key, int x, int y){
   pSim->keyboard(key,1,x,y);
   switch(key){
   case 27:
+    pszgClient->messageTaskStop();
     exit(0);
   }
 }
@@ -81,7 +83,7 @@ void mousePosition(int x, int y){
 void messageTask(void* pv){
   arSZGClient* pszgClient = (arSZGClient*)pv;
   string messageType, messageBody;
-  while (true) {
+  while (pszgClient->running()) {
     if (!pszgClient->receiveMessage(&messageType,&messageBody)){
       ar_log_debug() << "inputsimulator shutdown.\n";
       goto LStop;
@@ -108,6 +110,7 @@ LAbort:
     return 1;
   }
 
+  pszgClient = &szgClient;
   const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
   ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
 

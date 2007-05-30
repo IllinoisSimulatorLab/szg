@@ -32,7 +32,7 @@ int main(int argc, char** argv){
   arThread dummy(ar_messageTask, &szgClient);
   int count = 0;
   ar_timeval timePrev;
-  while (true) {
+  while (szgClient.running()) {
     while (!barrierClient.checkConnection()){
       ar_usleep(100000);
     }
@@ -51,10 +51,10 @@ int main(int argc, char** argv){
       count = 0;
       cout << "Barrier sync averages " 
            << ar_difftime(timeNow, timePrev) / float(countMax)
-	   << "usec.\n";
+	   << " usec.\n";
       timePrev = ar_time();
     }
   }
-
+  szgClient.messageTaskStop();
   return 0;
 }

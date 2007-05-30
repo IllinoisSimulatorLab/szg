@@ -517,6 +517,7 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
   switch (key) {
     case 27: /* escape key */
       // AARGH!!! This should use the stop mechanism as well!!!!
+      szgClient->messageTaskStop();
       exit(0);
     case 'f':
       glutFullScreen();

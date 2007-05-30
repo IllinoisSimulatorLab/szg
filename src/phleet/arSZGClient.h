@@ -153,8 +153,7 @@ class SZG_CALL arSZGClient{
                    bool responseRequested = false);
   int receiveMessage(string* messageType, string* messageBody)
     { return receiveMessage(NULL, messageType, messageBody, NULL); }
-  int receiveMessage(string* userName, string* messageType,
-                      string* messageBody)
+  int receiveMessage(string* userName, string* messageType, string* messageBody)
     { return receiveMessage(userName, messageType, messageBody, NULL); }
   int receiveMessage(string* userName, string* messageType,
                       string* messageBody, string* context);
@@ -236,6 +235,8 @@ class SZG_CALL arSZGClient{
   operator bool() const { return _connected; }
   const string& getServerName();
   void messageTask();
+  void messageTaskStop() { _dataParser->clearQueues(); }
+  bool running() const { return _keepRunning; }
 
  private:
   arPhleetConfig       _config;

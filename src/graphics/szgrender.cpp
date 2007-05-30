@@ -16,11 +16,11 @@
 arGraphicsClient graphicsClient;
 arFramerateGraph  framerateGraph;
 arGUIWindowManager* windowManager;
-arGUIXMLParser*     guiParser;
+arGUIXMLParser* guiParser;
 
 bool framerateThrottle = false;
 bool fDrawPerformance = false;
-bool fExit = false;
+bool fExiting = false;
 bool fReload = false;
 bool fPause = false;
 arLock pauseLock; // with pauseVar, around fPause, between message and draw threads.
@@ -40,29 +40,25 @@ bool loadParameters(arSZGClient& cli){
 }
 
 void shutdownAction(){
-  if (fExit) {
-    // exit already pending
+  if (fExiting)
     return;
-  }
-  fExit = true;
+  fExiting = true;
 
   ar_log_debug() << "szgrender shutdown.\n";
   // Let the draw loop's _cliSync.consume() finish.
   graphicsClient._cliSync.skipConsumption();
 
-  // exit() from the draw loop, to avoid Win32 crashes.
+  // exit() only from the draw loop, to avoid Win32 crashes.
 }
 
 void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
-  while (true) {
-// probably in language/arStructuredDataParser.cpp getNextInternal().
-    // Happens only once.
-    if (!cli->receiveMessage(&messageType,&messageBody) || messageType=="quit"){
-      shutdownAction();
-      break;
-    }
+  while (!fExiting &&
+    cli->receiveMessage(&messageType,&messageBody) && messageType != "quit") {
+
+    // receiveMessage() blocks in language/arStructuredDataParser.cpp getNextInternal().
+    // If fExiting is set to true, it should unblock and this thread should die.
 
     if (messageType=="performance"){
       fDrawPerformance = messageBody=="on";
@@ -123,6 +119,7 @@ void messageTask(void* pClient){
       fReload = true;
     }
   }
+  shutdownAction();
 }
 
 // GUI window callbacks. "Init GL" and "mouse" callbacks are not used.
@@ -163,7 +160,6 @@ void ar_guiWindowKeyboard(arGUIKeyInfo* ki){
       break;
     }
   }
-
 }
 
 int main(int argc, char** argv){
@@ -216,7 +212,7 @@ int main(int argc, char** argv){
     cerr << "szgrender error: maybe szgserver died.\n";
   }
 
-  while (!fExit) {
+  while (!fExiting) {
     pauseLock.lock();
       while (fPause) {
 	pauseVar.wait(pauseLock);
@@ -243,7 +239,7 @@ int main(int argc, char** argv){
     framerateGraph.getElement("framerate")->pushNewValue(
       1000000.0 / ar_difftimeSafe(ar_time(), time1));
   }
-
+  szgClient.messageTaskStop();
   graphicsClient._cliSync.stop();
 
   // We're the display thread.  Do this before exiting.

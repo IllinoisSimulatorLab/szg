@@ -36,7 +36,7 @@ bool loadParameters(arSZGClient& cli){
 void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
-  while (true) {
+  while (cli->running()) {
     const int sendID = cli->receiveMessage(&messageType,&messageBody);
     if (!sendID){
       ar_log_debug() << "SoundRender shutdown.\n";
@@ -114,11 +114,12 @@ int main(int argc, char** argv){
   }
 
   arThread dummy(messageTask, &szgClient);
-  while (true) {
+  while (szgClient.running()) {
     soundClient->_cliSync.consume();
     // Only the LAN throttles arSoundClient/ arSoundServer communication,
     // allowing thousands of updates per second.  Throttle down to 50 FPS.
     ar_usleep(1000000/50);
   }
+  szgClient.messageTaskStop();
   return 0;
 }

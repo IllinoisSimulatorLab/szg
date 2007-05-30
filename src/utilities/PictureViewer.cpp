@@ -161,5 +161,6 @@ int main(int argc, char** argv){
   arThread dummy(ar_messageTask, &szgClient);
   timer.start( FLIP_SECONDS * 1e6 );
   glutMainLoop(); 
+  szgClient.messageTaskStop();
   return 0;
 }

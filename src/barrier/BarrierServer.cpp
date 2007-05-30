@@ -23,9 +23,10 @@ int main(int argc, char** argv){
     return 1;
 
   arThread dummy(ar_messageTask, &szgClient);
-  while (true) {
+  while (szgClient.running()) {
     barrierServer.activatePassiveSockets(NULL);
     ar_usleep(100000);
   } 
+  szgClient.messageTaskStop();
   return 0;
 }

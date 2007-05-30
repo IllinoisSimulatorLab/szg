@@ -34,7 +34,7 @@ void messageTask(void* pClient)
 {
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
-  for (;;) {
+  while (cli->running()) {
     if (cli->receiveMessage(&messageType, &messageBody)){
       if (messageType=="quit"){
         fDone = 1;
@@ -272,6 +272,7 @@ LUsage:
     }
   }
   endwin();
+  szgClient.messageTaskStop();
   if (fDone == 2)
     cerr << argv[0] << " error: szgserver not responding.\n";
   return 0;

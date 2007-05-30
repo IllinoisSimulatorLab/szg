@@ -23,13 +23,11 @@ bool fQuit = false;
 
 void messageTask(void* pClient){
   string messageType, messageBody;
-  while (true) {
-    ((arSZGClient*)pClient)->receiveMessage(&messageType, &messageBody);
-    if (messageType=="quit"){
-      fQuit = true;
-      return;
-    }
+  arSZGClient* cli = (arSZGClient*)pClient;
+  while (cli->running() && messageType != "quit") {
+    cli->receiveMessage(&messageType, &messageBody);
   }
+  fQuit = true;
 }
 
 const int mySR = 44100;
@@ -319,7 +317,7 @@ LAbort:
   unsigned recordposPrev = 0;
   unsigned playposPrev = 0;
   float freq = originalFreq;
-  while (!fQuit) {
+  while (!fQuit && szgClient.running()) {
     unsigned playpos;
     unsigned recordpos;
     if (!ar_fmodcheck( FMOD_Channel_GetPosition( channel, &playpos, FMOD_TIMEUNIT_PCM )) ||
@@ -379,6 +377,8 @@ LAbort:
     ar_usleep(10000);
   }
 #endif
+
+  szgClient.messageTaskStop();
 
 #ifdef EnableSound
   (void)ar_fmodcheck( FMOD_Sound_Release( samp1 ));

@@ -1485,19 +1485,18 @@ int arSZGClient::receiveMessage(string* userName, string* messageType,
   if (!_connected) {
     return 0;
   }
+
   // This is the one place we get a record via its type, not its match.
   arStructuredData* data = _getDataByID(_l.AR_SZG_MESSAGE);
   if (!data) {
-#if 0
     // Too low-level for a warning.  Caller should warn, if they care.
-    ar_log_warning() << _exeName << ": failed to receive message.\n";
-#endif
     return 0;
   }
+
   *messageType = data->getDataString(_l.AR_SZG_MESSAGE_TYPE);
   *messageBody = data->getDataString(_l.AR_SZG_MESSAGE_BODY);
 
-  // Pack username and context structures, if requested.
+  // Return username and context.
   if (userName)
     *userName = data->getDataString(_l.AR_PHLEET_USER);
   if (context)
@@ -3218,12 +3217,12 @@ void ar_messageTask(void* pClient) {
 
 void arSZGClient::messageTask() {
   string messageType, messageBody;
-  do {
+  while (_keepRunning && messageType != "quit") {
     receiveMessage(&messageType, &messageBody);
-  } while (messageType != "quit");
+  }
 
   closeConnection();
   _keepRunning = false;
-  ar_usleep(50000); // let other threads exit cleanly
+  ar_usleep(75000); // let other threads exit cleanly
   exit(0);
 }
