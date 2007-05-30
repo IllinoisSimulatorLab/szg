@@ -120,6 +120,11 @@ void arLock::lock() {
 	cerr << "arLock warning: invalid handle.\n";
 	// _mutex is bad, so stop using it.
 	_mutex = NULL;
+	// Desperate fallback: create a fresh (unnamed) mutex.
+	_mutex = CreateMutex(NULL, FALSE, NULL);
+	if (_mutex)
+	  continue;
+	cerr << "arLock warning: failed to recreate handle.  Unrecoverable.\n";
       }
       else {
 	cerr << "arLock warning: internal error, GetLastError() == " << e << ".\n";
