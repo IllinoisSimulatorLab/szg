@@ -1326,7 +1326,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   return node;
 }
 
-// Deletes a node from the database... plus everything in its subtree.
+// Delete a node and its subtree.
 void arDatabase::_eraseNode(arDatabaseNode* node){
   // Go to each child and erase that node. Yes, copying the node list out
   // is somewhat inefficient... BUT it this keeps us from putting our hands
@@ -1343,9 +1343,8 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   if (node->isroot())
     return;
 
-  // Remove node from the node ID
-  // container AND release our reference to it. If no one holds an external
-  // reference to it, then it will delete itself.
+  // Remove node from the node ID container AND release our reference to it.
+  // If no one holds an external reference to it, then it will delete itself.
 
   ar_log_debug() << "\t" << _typeString << " deleting node " << node->dumpOneline();
   _nodeIDContainer.erase(node->getID());
