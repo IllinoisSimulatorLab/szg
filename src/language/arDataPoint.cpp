@@ -86,9 +86,8 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
   return fd->ar_safeRead(pch + AR_INT_SIZE, theSize - AR_INT_SIZE);
 }
 
-// This function is a simplified version of getDataCore for when one is
-// using the single internal _translationBuffer. NOTE: THIS IS NOT
-// THREAD-SAFE!
+// Simplified getDataCore for the single internal _translationBuffer.
+// Not thread-safe.
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
                               ARint& theSize, bool& fEndianMode, arSocket* fd, 
                               const arStreamConfig& remoteConfig){

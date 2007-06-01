@@ -3044,18 +3044,21 @@ void arSZGClient::_timerThread() {
 
 void arSZGClient::_dataThread() {
   while (_keepRunning) {
+    // todo: pass a timeout through getData to ar_safeRead, for deterministic shutdown
     if (!_dataClient.getData(_receiveBuffer, _receiveBufferSize)) {
       // Don't complain if the destructor has already been invoked.
-      // Should do something here, like maybe disconnect.
+      // Disconnect?
+      _keepRunning = false;
       ar_log_error() << _exeName << ": no szgserver.\n";
       break;
     }
-    int size = -1; // aren't actually going to use this here
-    // The data distribution needs to be multi-threaded. We can assume
-    // that the messages are received in a single thread (which will
-    // be internal to the arSZGClient before too long). However, everything
-    // else is in response to something we've sent to the szgserver and
-    // hence has a "match" to enable multi-threading.
+
+    // Data distribution must be multithreaded.
+    // Only one thread (which should be in arSZGClient!) receives messages.
+    // Everything else is in response to something sent to the szgserver,
+    // and hence has a "match" for multithreading.
+
+    int size = -1; // unused
     if (ar_rawDataGetID(_receiveBuffer) == _l.AR_SZG_MESSAGE) {
       _dataParser->parseIntoInternal(_receiveBuffer, size);
     }
