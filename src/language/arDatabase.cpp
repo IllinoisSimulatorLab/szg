@@ -106,7 +106,7 @@ arDatabaseNode* arDatabase::_ref(arDatabaseNode* node, const bool fRef) {
 // Consequently, it cannot be called internally in any of the arDatabase
 // (or subclass) code for message processing in order to avoid deadlocks.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   return _ref(_getNodeNoLock(ID, fWarn), refNode);
 }
 
@@ -124,7 +124,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn,
   // Search breadth-first for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   _rootNode._findNode(result, name, success, NULL, true);
   if (!success && fWarn){
     cerr << "arDatabase warning: no node '" << name << "'.\n";
@@ -140,7 +140,7 @@ arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
 arDatabaseNode* arDatabase::findNode(const string& name, bool refNode) {
   arDatabaseNode* result = NULL;
   bool success = false;
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   _rootNode._findNode(result, name, success, NULL, true);
   return _ref(result, refNode);
 }
@@ -156,7 +156,7 @@ arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
     return NULL;
   }
 
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   // Whether or not the caller has requested the ptr be
   // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
   // result in a call to arDatabase::findNode again and an infinite recursion.
@@ -175,7 +175,7 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
     return NULL;
   }
 
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   // Whether or not the caller has requested the ptr be
   // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
   // result in a call to arDatabase::findNodeByType again and an infinite recursion.
@@ -192,7 +192,7 @@ arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node,
 // (within which all database operations occur) will be locked.
 // This is called when an owned node's getParentRef() method is invoked.
 arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
 
   // Make sure this is a *active* node owned by this database.
   // Here, active means that the node is owned AND has a parent (or is the
@@ -208,7 +208,7 @@ arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
 
 list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
   list<arDatabaseNode*> l;
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   // Make sure this is a *active* node owned by this database.
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
@@ -963,7 +963,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
 }
 
 bool arDatabase::empty(){
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   return _rootNode.hasChildren();
 }
 
@@ -1055,7 +1055,7 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
 
 string arDatabase::_getDefaultName(){
   stringstream s;
-  arGuard dummy(_lock);
+  arGuard dummy(_l);
   s << "szg_default_" << _nextAssignedID;
   return s.str();
 }

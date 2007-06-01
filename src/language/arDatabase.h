@@ -153,12 +153,13 @@ class SZG_CALL arDatabase{
   arDatabaseLanguage* _lang;
 
  private:
-  arLock _lock;
+  arLock _l;
   arDatabaseNode* _ref(arDatabaseNode*, const bool);
 
  protected:
-  //unused? void _lock() { _lock.lock(); }
-  //unused? void _unlock() { _lock.unlock(); }
+  // Used by arGraphicsPeer, arGraphicsDatabase, etc.
+  void _lock() { _l.lock(); }
+  void _unlock() { _l.unlock(); }
 
   int    _typeCode; // what "kind" of database
   string _typeString;
