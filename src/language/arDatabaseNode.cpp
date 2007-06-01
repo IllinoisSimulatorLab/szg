@@ -86,10 +86,8 @@ bool arDatabaseNode::removeChild(arDatabaseNode* child){
 }
 
 string arDatabaseNode::getName() {
-  _lockName.lock();
-    const string result(_name);
-  _lockName.unlock();
-  return result;
+  arGuard dummy(_lockName);
+  return _name;
 }
 
 void arDatabaseNode::setName(const string& name){
@@ -111,17 +109,13 @@ void arDatabaseNode::setName(const string& name){
 }
 
 bool arDatabaseNode::hasInfo() {
-  _lockInfo.lock();
-    const bool ok = !_info.empty();
-  _lockInfo.unlock();
-  return ok;
+  arGuard dummy(_lockInfo);
+  return !_info.empty();
 }
 
 string arDatabaseNode::getInfo() {
-  _lockInfo.lock();
-    const string s = _info;
-  _lockInfo.unlock();
-  return s;
+  arGuard dummy(_lockInfo);
+  return _info;
 }
 
 void arDatabaseNode::setInfo(const string& info){
@@ -142,9 +136,8 @@ void arDatabaseNode::setInfo(const string& info){
     getOwner()->getDataParser()->recycle(r);
   }
   else{
-    _lockInfo.lock();
-      _info = info;
-    _lockInfo.unlock();
+    arGuard dummy(_lockInfo);
+    _info = info;
   }
 }
 
@@ -216,13 +209,11 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     ar_log_warning() << "arDatabaseNode::receiveData cannot rename root node.\n";
   }
   else{
-    _lockName.lock();
-      _name = data->getDataString(_dLang->AR_NAME_NAME);
-    _lockName.unlock();
+    arGuard dummy(_lockName);
+    _name = data->getDataString(_dLang->AR_NAME_NAME);
   }
-  _lockInfo.lock();
-    _info = data->getDataString(_dLang->AR_NAME_INFO);
-  _lockInfo.unlock();
+  arGuard dummy(_lockInfo);
+  _info = data->getDataString(_dLang->AR_NAME_INFO);
   return true;
 }
 
@@ -310,9 +301,8 @@ void arDatabaseNode::setNodeLevel(arNodeLevel nodeLevel) {
 //**********************************************************************
 
 void arDatabaseNode::_setName(const string& name){
-  _lockName.lock();
-    _name = name;
-  _lockName.unlock();
+  arGuard dummy(_lockName);
+  _name = name;
 }
 
 // A node either belongs to an arDatabase or it doesn't. This will only be
