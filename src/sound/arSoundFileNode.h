@@ -33,7 +33,7 @@ class SZG_CALL arSoundFileNode : public arSoundNode{
   //  "start the loop", "pause the loop", "trigger the sound", and
   //  "prepare to trigger the sound again"
   int _fLoop;
-  bool _fComplained[2];
+  bool _fComplained[4];
   string _fileName;
   string _oldFileName;
   string _action;

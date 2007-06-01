@@ -64,14 +64,20 @@ bool arSoundFileNode::_adjust(bool useTrigger){
 
   if (m & FMOD_2D) {
     // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-    ar_log_debug() << "2D sound won't be 3D-updated.\n";
+    if (!_fComplained[2]) {
+      _fComplained[2] = true;
+      ar_log_debug() << "2D sound won't be 3D-updated.\n";
+    }
     return true;
   }
 
   // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
   if (!(m & FMOD_3D)) {
     // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-    ar_log_remark() << "2D sound won't be 3D-updated, and I mean it this time.\n";
+    if (!_fComplained[3]) {
+      _fComplained[3] = true;
+      ar_log_remark() << "2D sound won't be 3D-updated, and I mean it this time.\n";
+    }
     return true;
   }
 
@@ -101,9 +107,8 @@ bool arSoundFileNode::render(){
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
       _fComplained[0] = true;
-      cerr << "arSoundFileNode warning: \""
-	   << _name << "\" has negative amplitude "
-	   << _amplitude << ".\n";
+      cerr << "arSoundFileNode warning: '"
+	   << _name << "' has negative amplitude " << _amplitude << ".\n";
     }
   }
   else{
@@ -113,9 +118,8 @@ bool arSoundFileNode::render(){
   if (_amplitude > 100.) {
     if (!_fComplained[1]) {
       _fComplained[1] = true;
-      cerr << "arSoundFileNode warning: \""
-	   << _name << "\" has excessive amplitude "
-	   << _amplitude << ".\n";
+      cerr << "arSoundFileNode warning: '"
+	   << _name << "' has excessive amplitude " << _amplitude << ".\n";
     }
   }
   else{
