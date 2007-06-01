@@ -35,8 +35,8 @@ arDatabase::arDatabase() :
 }
 
 arDatabase::~arDatabase(){
-  // Release our references to the nodes in the database. This avoids a
-  // memory leak (nodes self-delete when their reference count falls to 0).
+  // Unreference our nodes in the database;
+  // the nodes self-delete when their ref count falls to 0.
   // Don't use an arDatabase method here that passes a message to alter().
   _eraseNode(&_rootNode);
   delete eraseData;
@@ -1322,31 +1322,31 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
       map<int,arDatabaseNode*,less<int> >::value_type(node->getID(), node));
   // Do not forget to intialize.
   node->initialize(this);
-
   return node;
 }
 
 // Delete a node and its subtree.
 void arDatabase::_eraseNode(arDatabaseNode* node){
-  // Go to each child and erase that node. Yes, copying the node list out
-  // is somewhat inefficient... BUT it this keeps us from putting our hands
-  // in the guts of the arDatabaseNode unnecessarily.
-  // No need to use getChildrenRef since this function is called while
-  // already _lock()'d.  (when thread-safety is desired, as in
-  // arGraphicsPeer and arGraphicsServer.)
+  // Erase each child's node. Copying the node list is inefficient,
+  // but hides the guts of the arDatabaseNode.
+
+  // Don't use getChildrenRef, since this function is called while
+  // already _lock()'d (when thread-safety is desired, as in
+  // arGraphicsPeer and arGraphicsServer).
   list<arDatabaseNode*> childList = node->getChildren();
   for (list<arDatabaseNode*>::iterator i = childList.begin();
        i != childList.end(); i++){
+    // Recurse.
     _eraseNode(*i);
   }
   node->_removeAllChildren();
   if (node->isroot())
     return;
 
-  // Remove node from the node ID container AND release our reference to it.
-  // If no one holds an external reference to it, then it will delete itself.
+  // arLogStream's lock sometimes hangs on shutdown.
+  // ar_log_debug() << "\t" << _typeString << " deleting node " << node->dumpOneline();
 
-  ar_log_debug() << "\t" << _typeString << " deleting node " << node->dumpOneline();
+  // Unreference node, and remove it from the node ID container.
   _nodeIDContainer.erase(node->getID());
   node->deactivate();
   node->unref();
