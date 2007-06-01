@@ -153,16 +153,17 @@ class SZG_CALL arDatabase{
   arDatabaseLanguage* _lang;
 
  private:
-  arLock _lockDatabase;
+  arLock _lock;
+  arDatabaseNode* _ref(arDatabaseNode*, const bool);
+
  protected:
-  void _lock() { _lockDatabase.lock(); }
-  void _unlock() { _lockDatabase.unlock(); }
+  //unused? void _lock() { _lock.lock(); }
+  //unused? void _unlock() { _lock.unlock(); }
 
   int    _typeCode; // what "kind" of database
   string _typeString;
 
-  // If true, do less work (e.g., don't load graphics textures since there's
-  // no OpenGL context anyways).
+  // If true, work less (don't load textures since there's no OpenGL context).
   bool _server;
 
   // Finding data bundles.

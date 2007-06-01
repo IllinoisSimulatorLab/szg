@@ -247,10 +247,7 @@ void arDataClient::closeConnection(){
   }
 }
 
-// Send data on the data client's socket to the connect data server.
-// Lock this so different threads
-// can issue send-data commands (as happens in some
-// uses of arSZGClient and its embedded arDataClient).
+// Send data to the data server.
 bool arDataClient::sendData(arStructuredData* theData){
   if (!theData) {
     ar_log_warning() << _exeName << " ignoring sendData(NULL)\n";
@@ -258,14 +255,11 @@ bool arDataClient::sendData(arStructuredData* theData){
   }
 
   const int theSize = theData->size();
-  _lockSend.lock();
-  if (!ar_growBuffer(_dataBuffer, _dataBufferSize, theSize)){
-    _lockSend.unlock();
-    return false;
-  }
 
-  theData->pack(_dataBuffer);
-  bool ok = _socket->ar_safeWrite(_dataBuffer, theSize);
-  _lockSend.unlock();
-  return ok;
+  // Thread-safe.
+  arGuard dummy(_lockSend);
+
+  return ar_growBuffer(_dataBuffer, _dataBufferSize, theSize) &&
+    theData->pack(_dataBuffer) &&
+    _socket->ar_safeWrite(_dataBuffer, theSize);
 }

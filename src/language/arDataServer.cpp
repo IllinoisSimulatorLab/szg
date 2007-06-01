@@ -84,11 +84,9 @@ void arDataServer::_readDataTask(){
       }
       const ARint recordID = ar_translateInt(transBuffer+AR_INT_SIZE, remoteConfig);
       // Bug? if !_atomicReceive, this still needs to be locked.
-      _lockConsume.lock();
-	arDataTemplate* t = _theDictionary->find(recordID);
-	const bool ok = t && (t->translate(dest,transBuffer,remoteConfig) > 0);
-      _lockConsume.unlock();
-      if (!ok) {
+      arGuard dummy(_lockConsume);
+      arDataTemplate* t = _theDictionary->find(recordID);
+      if (!t || t->translate(dest,transBuffer,remoteConfig) <= 0) {
 	cerr << "arDataServer warning: failed to translate record.\n";
         break;
       }
@@ -121,9 +119,9 @@ void arDataServer::_readDataTask(){
   if (_atomicReceive){
     _lockConsume.lock();
   }
-  _lock();
+  _lockTransfer.lock();
   _deleteSocketFromDatabase(newFD);
-  _unlock();
+  _lockTransfer.unlock();
   if (_atomicReceive){
     _lockConsume.unlock();
   }
@@ -206,12 +204,11 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
 }
 
 bool arDataServer::removeConnection(int id){
-  _lock();
-    const map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
-    const bool found = (i != _connectionIDs.end());
-    if (found)
-      _deleteSocketFromDatabase(i->second);
-  _unlock();
+  arGuard dummy(_lockTransfer);
+  const map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
+  const bool found = (i != _connectionIDs.end());
+  if (found)
+    _deleteSocketFromDatabase(i->second);
   return found;
 }
 
@@ -234,12 +231,11 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     return NULL;
   }
  
-  _lock();
+  arGuard dummy(_lockTransfer);
   _addSocketToDatabase(newSocketFD);
   if (!newSocketFD->smallPacketOptimize(_smallPacketOptimize)) {
     ar_log_warning() << "arDataServer failed to smallPacketOptimize.\n";
 LAbort:
-    _unlock();
     return NULL;
   }
 
@@ -321,78 +317,63 @@ LAbort:
     _threadLaunchSignal.receiveSignal();
   }
  
-  _unlock();
   return newSocketFD;
 }
 
 void arDataServer::activatePassiveSockets(){
-  _lock();
+  arGuard dummy(_lockTransfer);
   for (list<arSocket*>::const_iterator i(_passiveSockets.begin());
        i != _passiveSockets.end(); ++i){
     _connectionSockets.push_back(*i);
     _numberConnectedActive++;
   }
   _passiveSockets.clear();
-  _unlock();
 }
 
 bool arDataServer::checkPassiveSockets(){
-  _lock();
-    const bool ok = _passiveSockets.begin() != _passiveSockets.end();
-  _unlock();
-  return ok;
+  arGuard dummy(_lockTransfer);
+  return _passiveSockets.begin() != _passiveSockets.end();
 }
 
 list<arSocket*>* arDataServer::getActiveSockets(){
   list<arSocket*>* result = new list<arSocket*>;
-  _lock();
-    for (list<arSocket*>::const_iterator i=_connectionSockets.begin();
-	 i != _connectionSockets.end();
-	 ++i){
-      result->push_back(*i);
-    }
-  _unlock();
+  arGuard dummy(_lockTransfer);
+  for (list<arSocket*>::const_iterator i=_connectionSockets.begin();
+       i != _connectionSockets.end();
+       ++i){
+    result->push_back(*i);
+  }
   return result;
 }
 
 void arDataServer::activatePassiveSocket(int socketID){
-  _lock();
-    for (list<arSocket*>::iterator i(_passiveSockets.begin());
-	 i != _passiveSockets.end(); ++i){
-      if ((*i)->getID() == socketID){
-	_connectionSockets.push_back(*i);
-	_passiveSockets.erase(i);
-	_numberConnectedActive++;
-	break;
-      }
+  arGuard dummy(_lockTransfer);
+  for (list<arSocket*>::iterator i(_passiveSockets.begin());
+       i != _passiveSockets.end(); ++i){
+    if ((*i)->getID() == socketID){
+      _connectionSockets.push_back(*i);
+      _passiveSockets.erase(i);
+      _numberConnectedActive++;
+      break;
     }
-  _unlock();
+  }
 }
 
 bool arDataServer::sendData(arStructuredData* pData){
-  bool anyConnections = false;
   const int theSize = pData->size();
-  _lock();
-  if (ar_growBuffer(_dataBuffer, _dataBufferSize, theSize)) {
-    pData->pack(_dataBuffer);
-    anyConnections = _sendDataCore(_dataBuffer, theSize);
-  }
-  else {
-    cerr << "arDataServer warning: failed to grow buffer.\n";
-  }
-  _unlock();
-  return anyConnections;
+  arGuard dummy(_lockTransfer);
+  return ar_growBuffer(_dataBuffer, _dataBufferSize, theSize) &&
+    pData->pack(_dataBuffer) &&
+    _sendDataCore(_dataBuffer, theSize);
 }
 
 bool arDataServer::sendDataQueue(arQueuedData* pData){
-  _lock();
-    const bool ok = _sendDataCore(pData->getFrontBufferRaw(), pData->getFrontBufferSize());
-  _unlock();
-  return ok;
+  arGuard dummy(_lockTransfer);
+  return _sendDataCore(pData->getFrontBufferRaw(), pData->getFrontBufferSize());
 }
 
 // Send data in a different thread from where we accept connections.
-// Call this only inside _lock().
+// Call this only inside _lockTransfer.
 // Return true if any connections.
 bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize){
   bool ok = false;
@@ -414,10 +395,8 @@ bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize){
 }
 
 bool arDataServer::sendData(arStructuredData* pData, arSocket* fd){
-  _lock();
-    const bool ok = sendDataNoLock(pData, fd);
-  _unlock();
-  return ok;
+  arGuard dummy(_lockTransfer);
+  return sendDataNoLock(pData, fd);
 }
 
 bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
@@ -439,13 +418,11 @@ bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd){
     cerr << "arDataServer warning: ignoring data-queue-send to NULL socket.\n";
     return false;
   }
-  _lock();
-    const bool ok = _sendDataCore(p->getFrontBufferRaw(), p->getFrontBufferSize(), fd);
-  _unlock();
-  return ok;
+  arGuard dummy(_lockTransfer);
+  return _sendDataCore(p->getFrontBufferRaw(), p->getFrontBufferSize(), fd);
 }
 
-// Call this only inside _lock().
+// Call this only inside _lockTransfer.
 bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd){
   // Caller ensures that fd != NULL.
   if (fd->ar_safeWrite(theBuffer,theSize))
@@ -461,7 +438,7 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
   bool ok = false;
   ARchar* theBuffer = theData->getFrontBufferRaw();
   list<arSocket*>::iterator i;
-  _lock();
+  arGuard dummy(_lockTransfer);
   for (i = socketList->begin(); i != socketList->end(); ++i){
     if ((*i)->ar_safeWrite(theBuffer, theSize)){
       ok = true;
@@ -474,7 +451,6 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
   for (i = removalList.begin(); i != removalList.end(); i++){
     _deleteSocketFromDatabase(*i);
   }
-  _unlock();
   return ok;
 }
 
@@ -497,23 +473,20 @@ void arDataServer::setDisconnectObject(void* disconnectObject){
 }
 
 string arDataServer::dumpConnectionLabels(){
-  string result;
+  string s;
   char buffer[16];
-  _lock();
+  arGuard dummy(_lockTransfer);
   for (map<int,string,less<int> >::const_iterator iLabel(_connectionLabels.begin());
        iLabel != _connectionLabels.end(); ++iLabel){
-    sprintf(buffer,"%i",iLabel->first);
-    result += iLabel->second + "/" + buffer + ":";
+    sprintf(buffer, "%i", iLabel->first);
+    s += iLabel->second + "/" + buffer + ":";
   }
-  _unlock();
-  return result;
+  return s;
 }
 
 arSocket* arDataServer::getConnectedSocket(int id){
-  _lock();
-    arSocket* result = getConnectedSocketNoLock(id);
-  _unlock();
-  return result;
+  arGuard dummy(_lockTransfer);
+  return getConnectedSocketNoLock(id);
 }
 
 arSocket* arDataServer::getConnectedSocketNoLock(int id){
@@ -522,34 +495,28 @@ arSocket* arDataServer::getConnectedSocketNoLock(int id){
 }
 
 void arDataServer::setSocketLabel(arSocket* theSocket, const string& theLabel){
-  _lock();
-    _addSocketLabel(theSocket, theLabel);
-  _unlock();
+  arGuard dummy(_lockTransfer);
+  _addSocketLabel(theSocket, theLabel);
 }
 
 string arDataServer::getSocketLabel(int theSocketID){
-  _lock();
-    map<int,string,less<int> >::const_iterator i(_connectionLabels.find(theSocketID));
-    const string s(i==_connectionLabels.end() ? string("NULL") : i->second);
-  _unlock();
-  return s;
+  arGuard dummy(_lockTransfer);
+  map<int,string,less<int> >::const_iterator i(_connectionLabels.find(theSocketID));
+  return i==_connectionLabels.end() ? string("NULL") : i->second;
 }
 
 int arDataServer::getFirstIDWithLabel(const string& theSocketLabel){
-  int result = -1;
-  _lock();
+  arGuard dummy(_lockTransfer);
   for (map<int,string,less<int> >::const_iterator i = _connectionLabels.begin();
-      i != _connectionLabels.end(); ++i){
+      i != _connectionLabels.end(); ++i) {
     if (theSocketLabel == i->second){
-      result = i->first;
-      break;
+      return i->first;
     }
   }
-  _unlock();
-  return result;
+  return -1;
 }
 
-// _lock() serializes this, so 2 sockets don't get the same ID.
+// _lockTransfer serializes this, so 2 sockets don't get the same ID.
 void arDataServer::_addSocketToDatabase(arSocket* theSocket){
   theSocket->setID(_nextID++);         // give the socket an ID
   _addSocketLabel(theSocket, "NULL");  // give the socket a default label
@@ -719,7 +686,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   // Success!
   delete [] dataBuffer;
 
-  _lock();
+  arGuard dummy(_lockTransfer);
   // Add this to the list of active connections.
   _connectionSockets.push_back(socket);
   _addSocketToDatabase(socket);
@@ -737,12 +704,10 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     arThread* dummy = new arThread; // \bug memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
       cerr << "arDataServer error: failed to start read thread.\n";
-      _unlock();
       return -1;
     } 
     // Wait until the new thread reads _nextConsumer into local storage.
     _threadLaunchSignal.receiveSignal();
   }
-  _unlock();
   return socket->getID();
 }

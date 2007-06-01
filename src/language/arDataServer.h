@@ -124,8 +124,6 @@ class SZG_CALL arDataServer : public arDataPoint {
    arSocket* _acceptConnection(bool);
 
    arLock _lockTransfer; // Serializes socket lists and _dataBuffer.
-   void _lock() { _lockTransfer.lock(); }
-   void _unlock() { _lockTransfer.unlock(); }
 
    arTemplateDictionary*   _theDictionary;
    arStructuredDataParser* _dataParser;

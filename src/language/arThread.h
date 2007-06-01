@@ -50,6 +50,17 @@ class SZG_CALL arLock {
 #endif
 };
 
+// Lock that implicitly unlocks when out of scope.
+class SZG_CALL arGuard {
+ public:
+  arGuard(arLock& l): _l(l)
+    { _l.lock(); }
+  ~arGuard()
+    { _l.unlock(); }
+ private:
+  arLock& _l;
+};
+
 //**************************************
 // thread-safe types
 //**************************************

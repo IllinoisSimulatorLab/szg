@@ -740,7 +740,7 @@ int arStructuredData::size() const {
   return total + ar_fieldOffset(AR_DOUBLE,total);
 }
 
-void arStructuredData::pack(ARchar* destination) const {
+bool arStructuredData::pack(ARchar* destination) const {
   const ARint theSize = size();
   ARint offset = 0;
   ar_packData(destination + offset, &theSize, AR_INT, 1);
@@ -773,6 +773,7 @@ void arStructuredData::pack(ARchar* destination) const {
     ar_packData(destination + offset, _dataPtr[i], type, dim);
     offset += ar_fieldSize(_dataType[i],_dataDimension[i]);
   }
+  return true;
 }
 
 bool arStructuredData::unpack(const ARchar* source){

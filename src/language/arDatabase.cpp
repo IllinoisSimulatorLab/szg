@@ -96,17 +96,18 @@ int arDatabase::getNodeID(const string& name, bool fWarn) {
   return pNode ? pNode->getID() : -1;
 }
 
+arDatabaseNode* arDatabase::_ref(arDatabaseNode* node, const bool fRef) {
+  if (node && fRef)
+    node->ref();
+  return node;
+}
+
 // Note how this call is thread-safe using the global arDatabase lock.
 // Consequently, it cannot be called internally in any of the arDatabase
 // (or subclass) code for message processing in order to avoid deadlocks.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
-  _lock();
-  arDatabaseNode* result = _getNodeNoLock(ID, fWarn);
-  if (result && refNode){
-    result->ref();
-  }
-  _unlock();
-  return result;
+  arGuard dummy(_lock);
+  return _ref(_getNodeNoLock(ID, fWarn), refNode);
 }
 
 arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn) {
@@ -120,19 +121,15 @@ arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn) {
 // return that.
 arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn, 
                                     bool refNode){
-  _lock();
   // Search breadth-first for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
+  arGuard dummy(_lock);
   _rootNode._findNode(result, name, success, NULL, true);
   if (!success && fWarn){
     cerr << "arDatabase warning: no node '" << name << "'.\n";
   }
-  if (result && refNode){
-    result->ref();
-  }
-  _unlock();
-  return result;
+  return _ref(result, refNode);
 }
 
 arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
@@ -141,15 +138,11 @@ arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
 
 // Search depth-first for a node with the given name, from the arDatabase's root.
 arDatabaseNode* arDatabase::findNode(const string& name, bool refNode) {
-  _lock();
   arDatabaseNode* result = NULL;
   bool success = false;
+  arGuard dummy(_lock);
   _rootNode._findNode(result, name, success, NULL, true);
-  if (result && refNode){
-    result->ref();
-  }
-  _unlock();
-  return result;
+  return _ref(result, refNode);
 }
 
 arDatabaseNode* arDatabase::findNodeRef(const string& name) {
@@ -162,16 +155,12 @@ arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
     ar_log_warning() << "arDatabaseNode::findNode from non-owned node.\n";
     return NULL;
   }
-  _lock();
-  // NOTE: regardless of whether or not the caller has requested the ptr be
+
+  arGuard dummy(_lock);
+  // Whether or not the caller has requested the ptr be
   // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
   // result in a call to arDatabase::findNode again and an infinite recursion.
-  arDatabaseNode* result = node->findNode(name, false);
-  if (result && refNode){
-    result->ref();
-  }
-  _unlock();
-  return result;
+  return _ref(node->findNode(name, false), refNode);
 }
 
 arDatabaseNode* arDatabase::findNodeRef(arDatabaseNode* node, const string& name) {
@@ -186,17 +175,11 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
     return NULL;
   }
 
-  _lock();
-  // NOTE: regardless of whether or not the caller has requested the ptr be
+  arGuard dummy(_lock);
+  // Whether or not the caller has requested the ptr be
   // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
-  // result in a call to arDatabase::findNodeByType again and an infinite 
-  // recursion.
-  arDatabaseNode* result = node->findNodeByType(nodeType, false);
-  if (result && refNode){
-    result->ref();
-  }
-  _unlock();
-  return result;
+  // result in a call to arDatabase::findNodeByType again and an infinite recursion.
+  return _ref(node->findNodeByType(nodeType, false), refNode);
 }
 
 arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node, 
@@ -209,39 +192,35 @@ arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node,
 // (within which all database operations occur) will be locked.
 // This is called when an owned node's getParentRef() method is invoked.
 arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
-  _lock();
-  arDatabaseNode* result = NULL;
+  arGuard dummy(_lock);
+
   // Make sure this is a *active* node owned by this database.
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
-  if (node && node->active() && node->getOwner() == this){
-    // NOTE: We CANNOT call arDatabaseNode::getParentRef here, since that
-    // will simply lead to another call to arDatabase::getParentRef (an
-    // infinite recursion).
-    result = node->getParent();
-    if (result){
-      result->ref();
-    }
-  }
-  _unlock();
-  return result;
+  if (!node || !node->active() || node->getOwner() != this)
+    return NULL;
+
+  // We CANNOT call arDatabaseNode::getParentRef here, since that
+  // will simply lead to another call to arDatabase::getParentRef (an
+  // infinite recursion).
+  return _ref(node->getParent(), true);
 }
 
 list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
-  _lock();
-  list<arDatabaseNode*> result;
+  list<arDatabaseNode*> l;
+  arGuard dummy(_lock);
   // Make sure this is a *active* node owned by this database.
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
-  if (node && node->active() && node->getOwner() == this){
-    // NOTE: We CANNOT call arDatabaseNode::getChildrenRef here, since that
-    // will simply lead to another call to arDatabase::getChildrenRef (an
-    // infinite recursion).
-    result = node->getChildren();
-    ar_refNodeList(result);
-  }
-  _unlock();
-  return result;
+  if (!node || !node->active() || node->getOwner() != this)
+    return l;
+
+  // NOTE: We CANNOT call arDatabaseNode::getChildrenRef here, since that
+  // will simply lead to another call to arDatabase::getChildrenRef (an
+  // infinite recursion).
+  l = node->getChildren();
+  ar_refNodeList(l);
+  return l;
 }
 
 arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
@@ -449,10 +428,7 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
 
     // Only requests for new nodes (i.e. make node and insert) actually
     // make refNode true. Thus, e.g., the root node's ref count won't increase.
-    if (refNode && pNode){
-      pNode->ref();
-    }
-    return pNode;
+    return _ref(pNode, refNode);
   }
 
   // Use _getNodeNoLock instead of getNode, since
@@ -987,10 +963,8 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
 }
 
 bool arDatabase::empty(){
-  _lock();
-  const bool isEmpty = _rootNode.hasChildren();
-  _unlock();
-  return isEmpty;
+  arGuard dummy(_lock);
+  return _rootNode.hasChildren();
 }
 
 void arDatabase::reset(){
@@ -1080,11 +1054,10 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
 }
 
 string arDatabase::_getDefaultName(){
-  stringstream def;
-  _lock();
-    def << "szg_default_" << _nextAssignedID;
-  _unlock();
-  return def.str();
+  stringstream s;
+  arGuard dummy(_lock);
+  s << "szg_default_" << _nextAssignedID;
+  return s.str();
 }
 
 // When the database receives a message demanding creation of a node,

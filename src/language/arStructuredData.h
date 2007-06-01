@@ -97,7 +97,7 @@ class SZG_CALL arStructuredData {
    
    // byte stream representation
    int size() const;           // # of bytes when packed
-   void pack(ARchar*) const;   // from internal representation to byte stream
+   bool pack(ARchar*) const;   // from internal representation to byte stream
    bool unpack(const ARchar*); // from byte stream to internal representation
    bool parse(ARchar*);        // set pointers into char buffer. unowned data.
 

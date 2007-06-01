@@ -116,25 +116,24 @@ FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
 #undef SILENT_OUTPUT
 #ifdef SILENT_OUTPUT
 
-  // Do this on the record side, for silent output there.
+  // On the record side, for silent output.
   // Or just "return bufDst;" to echo input to output.
 
   memset(bufDst, 0, cb);
 
 #else
 
-  // Do this on the playback side, to inject bytes into the playback buffers.
+  // On the playback side, inject bytes into the playback buffers.
 
-  lockPlay.lock();
-    if (ibPlay < cb) {
-      // bufPlay needs more bytes than bufDst has, so pad it with zeros.
-      memset((char*)bufPlay+cb, 0, cb-ibPlay);
-      ibPlay = cb;
-    }
-    // memset from bufPlay, then shrink bufPlay.
-    memcpy(bufDst, bufPlay, cb);
-    memmove(bufPlay, bufPlay+cb, ibPlay-=cb);
-  lockPlay.unlock();
+  arGuard dummy(lockPlay);
+  if (ibPlay < cb) {
+    // bufPlay needs more bytes than bufDst has, so pad it with zeros.
+    memset((char*)bufPlay+cb, 0, cb-ibPlay);
+    ibPlay = cb;
+  }
+  // memset from bufPlay, then shrink bufPlay.
+  memcpy(bufDst, bufPlay, cb);
+  memmove(bufPlay, bufPlay+cb, ibPlay-=cb);
 
 #endif
 
@@ -164,18 +163,15 @@ int cbPlayed = 0;
 void consumerTask(void*) {
   while (!fQuit) {
     ar_usleep(10000 * (1 + rand()%4)); // 10 to 40 msec, simulated entropy
-
-    lockPlay.lock();
-      cbPlayed = getBytes(bufPlay+ibPlay, cbPlayMax-ibPlay);
-      ibPlay += cbPlayed;
-      if (ibPlay > cbPlayMax)
-        ibPlay = 0; // paranoia, this should never happen.
-    lockPlay.unlock();
+    arGuard dummy(lockPlay);
+    cbPlayed = getBytes(bufPlay+ibPlay, cbPlayMax-ibPlay);
+    ibPlay += cbPlayed;
+    if (ibPlay > cbPlayMax)
+      ibPlay = 0; // paranoia, this should never happen.
   }
 }
 
 int main(int argc, char** argv) {
-
   arSZGClient szgClient;
   (void)szgClient.init(argc, argv); // standalone is ok
 

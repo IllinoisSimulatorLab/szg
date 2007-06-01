@@ -17,7 +17,7 @@
 #include <map>
 using namespace std;
 
-class SZG_CALL arGuard {
+class SZG_CALL arLockable {
   arLock l;
   arConditionVar var;
  public:
@@ -31,7 +31,7 @@ class SZG_CALL arGuard {
     { var.signal(); }
 };
 
-class SZG_CALL arStructuredDataSynchronizer: public arGuard {
+class SZG_CALL arStructuredDataSynchronizer: public arLockable {
   // lock() guards tag and exitFlag, but not refCount.
  public:
   bool exitFlag;
@@ -43,7 +43,7 @@ class SZG_CALL arStructuredDataSynchronizer: public arGuard {
     { reset(); }
 };
 
-class SZG_CALL arMessageQueueByID: public arGuard {
+class SZG_CALL arMessageQueueByID: public arLockable {
   // lock() guards exitFlag and messages.
  public:
   bool exitFlag;

@@ -27,9 +27,7 @@ class SZG_CALL arLanguage{
  protected:
   arTemplateDictionary _dictionary;
  private:
-  arLock _l;
-  void _lock() { _l.lock(); }
-  void _unlock() { _l.unlock(); }
+  arLock _l; // paranoid thread-safety
 };
 
 #endif
