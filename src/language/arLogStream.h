@@ -78,14 +78,16 @@ class SZG_CALL arLogStream{
   int _threshold;
   int _level;
   
-  void _preAppend();
+  bool _preAppend();
   void _postAppend(bool flush=false);
   void _finish();
   void _flush(const bool addNewline = true);
   arLogStream& _setLevel(int);
 
+  // Guards _header, _threshold, _flush(), _buffer interleaving.
+  // Guards _level *only* when altering, to avoid deadlocks.
   arLock _l;
-  bool _fLocked;
+  bool _fLocked; // todo: move into class arLock
   void _lock() { _l.lock(); _fLocked = true; }
   void _unlock() { _l.unlock(); _fLocked = false; }
 };
