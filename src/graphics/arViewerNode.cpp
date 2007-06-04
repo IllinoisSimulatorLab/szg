@@ -12,19 +12,17 @@ arViewerNode::arViewerNode(){
   _typeString = "viewer";
 }
 
+// Caller is responsible for deleting.
 arStructuredData* arViewerNode::dumpData(){
-  // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_head, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_head, false);
 }
 
 bool arViewerNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_VIEWER, inData->getID(), "arViewerNode"))
     return false;
 
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   inData->dataOut(_g->AR_VIEWER_MATRIX, _head._matrix.v, AR_FLOAT, 16);
   inData->dataOut(_g->AR_VIEWER_MID_EYE_OFFSET, _head._midEyeOffset.v, AR_FLOAT, 3);
   inData->dataOut(_g->AR_VIEWER_EYE_DIRECTION, _head._eyeDirection.v, AR_FLOAT, 3);
@@ -33,7 +31,6 @@ bool arViewerNode::receiveData(arStructuredData* inData){
   _head._farClip = inData->getDataFloat(_g->AR_VIEWER_FAR_CLIP);
   _head._unitConversion = inData->getDataFloat(_g->AR_VIEWER_UNIT_CONVERSION);
   _head._fixedHeadMode = inData->getDataInt(_g->AR_VIEWER_FIXED_HEAD_MODE);
-  _nodeLock.unlock();
   return true;
 }
 

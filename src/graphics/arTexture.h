@@ -41,6 +41,7 @@ class SZG_CALL arTexture {
   // Reference-counted because of how textures are shared in arGraphicsDatabase.
   int getRef() const;
   arTexture* ref();
+  // Caller may not use *this after unref(), just like after ~arTexture().
   void unref(bool debug = false);
 
   bool activate(bool forceReload = false);

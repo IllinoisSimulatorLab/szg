@@ -24,24 +24,20 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   void setFileName(const string& fileName, int alpha = -1);
   void setPixels(int width, int height, char* pixels, bool alpha);
 
-  // Need to be able to get the texture itself for database draw.
+  // For database draw.
   arTexture* getTexture(){ return _texture; }
 
  protected:
-  string _fileName;
+  string _fileName; // Empty means bitmap is locally created.
   int    _alpha;
   int    _width;
   int    _height;
 
-  // The texture that we are using. Reference counted.
   arTexture* _texture; 
-  // Is the texture held locally by us... or is it in some store somwehere,
-  // like in the arGraphicsDatabase?
-  bool _locallyHeldTexture;
+  bool _locallyHeldTexture; // _texture is owned by us, not the arGraphicsDatabase store.
 
   arStructuredData* _dumpData(const string& fileName, int alpha,
-			      int width, int height, const char* pixels,
-                              bool owned);
+			      int width, int height, const char* pixels, bool owned);
   void _addLocalTexture(int alpha, int width, int height, char* pixels);
 };
 

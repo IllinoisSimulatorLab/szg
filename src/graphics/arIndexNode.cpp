@@ -55,8 +55,7 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
 // Thread-safe.
 vector<int> arIndexNode::getIndices(){
   vector<int> result;
-  // Must be thread-safe.
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   unsigned int num = _commandBuffer.size()/_arrayStride;
   // BUG BUG BUG. Relying on the fact that sizeof(int) = sizeof(float)
   int* ptr = (int*) _commandBuffer.v;
@@ -64,7 +63,6 @@ vector<int> arIndexNode::getIndices(){
   for (unsigned int i = 0; i < num; i++){
     result[i] = ptr[i];
   }
-  _nodeLock.unlock();
   return result;
 }
 
@@ -85,11 +83,7 @@ void arIndexNode::setIndices(vector<int>& indices){
 // Thread-safe.
 void arIndexNode::setIndices(vector<int>& indices,
 			     vector<int>& IDs){
-  unsigned int num = IDs.size();
-  // If there are two many IDs for points, cut down on our dimension.
-  if (num > indices.size()){
-    num = indices.size();
-  }
+  const unsigned num = min(IDs.size(), indices.size());
   int* ptr = new int[num];
   int* iPtr = new int[num];
   for (unsigned int i = 0; i < num; i++){

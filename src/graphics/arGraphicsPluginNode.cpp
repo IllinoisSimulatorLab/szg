@@ -33,35 +33,29 @@ arGraphicsPluginNode::~arGraphicsPluginNode() {
 }
 
 void arGraphicsPluginNode::draw(arGraphicsContext* context) {
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   if (!_object) {
     ar_log_debug() << "arGraphicsPluginNode draw() without valid plugin object." << ar_endl;
-    _nodeLock.unlock();
     return;
   }
   arGraphicsWindow* win = context->getWindow();
   if (!win) {
-    ar_log_error() << "arGraphicsPluginNode draw() not passed a valid arGraphicsWindow." << ar_endl;
-    _nodeLock.unlock();
+    ar_log_warning() << "arGraphicsPluginNode draw() not passed a valid arGraphicsWindow." << ar_endl;
     return;
   }
   arViewport* vp = context->getViewport();
   if (!vp) {
-    ar_log_error() << "arGraphicsPluginNode draw() not passed a valid arViewport." << ar_endl;
-    _nodeLock.unlock();
+    ar_log_warning() << "arGraphicsPluginNode draw() not passed a valid arViewport." << ar_endl;
     return;
   }
   _object->draw( *win, *vp );
-  _nodeLock.unlock();
 }
 
 arStructuredData* arGraphicsPluginNode::dumpData() {
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(
+  arGuard dummy(_nodeLock);
+  return _dumpData(
     _fileName, _intData, _longData, _floatData, _doubleData, _stringData, false );
-  _nodeLock.unlock();
-  return r;
 }
 
 bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
@@ -73,11 +67,10 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
     return false;
   }
 
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   std::string newFileName = data->getDataString( _g->AR_GRAPHICS_PLUGIN_NAME );
   if (!_object && (newFileName == "")) {
     ar_log_error() << "arGraphicsPluginNode got empty file name.\n";
-    _nodeLock.unlock();
     return false;
   }
   if (_object && (newFileName != _fileName)) {
@@ -91,7 +84,6 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   if (!_isGraphicsServer) {
     if (!_object) {
       if (_triedToLoad) {
-        _nodeLock.unlock();
         return true;
       }
       ar_log_debug() << "arGraphicsPluginNode attempting to create " << _fileName
@@ -100,7 +92,6 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
       if (!_object) {
         ar_log_error() << "arGraphicsPluginNode failed to create " << _fileName
                        << " object." << ar_endl;
-        _nodeLock.unlock();
         return true;
       }
       ar_log_debug() << "arGraphicsPluginNode successfully created "
@@ -117,7 +108,6 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
 
   if (numStrings == -1) {
     ar_log_error() << "arGraphicsPluginNode got numStrings==-1 in receiveData().\n";
-    _nodeLock.unlock();
     return false;
   }
 
@@ -145,13 +135,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
     ar_unpackStringVector( stringPtr, numStrings, _stringData );
   }
 
-  bool stat = true;
-  if (!_isGraphicsServer && _object) {
-    stat = _object->setState( _intData, _longData, _floatData, _doubleData, _stringData );
-  }
-
-  _nodeLock.unlock();
-  return stat;
+  return _isGraphicsServer || !_object || _object->setState( _intData, _longData, _floatData, _doubleData, _stringData );
 }
 
 // NOT thread-safe.
@@ -162,28 +146,23 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
                                                      std::vector<double>& doubleData,
                                                      std::vector< std::string >& stringData,
                                                      bool owned ) {
-  arStructuredData* result;
-  if (owned) {
-    result =getOwner()->getDataParser()->getStorage( _g->AR_GRAPHICS_PLUGIN );
-  } else {
-    result = _g->makeDataRecord( _g->AR_GRAPHICS_PLUGIN );
-  }
-  _dumpGenericNode( result, _g->AR_GRAPHICS_PLUGIN_ID );
+  arStructuredData* r = owned ?
+    getOwner()->getDataParser()->getStorage( _g->AR_GRAPHICS_PLUGIN ) :
+    _g->makeDataRecord( _g->AR_GRAPHICS_PLUGIN );
+  _dumpGenericNode( r, _g->AR_GRAPHICS_PLUGIN_ID );
 
   // Don't use the member variable. Instead, use the function parameter.
-  result->dataInString( _g->AR_GRAPHICS_PLUGIN_NAME, fileName );
+  r->dataInString( _g->AR_GRAPHICS_PLUGIN_NAME, fileName );
   
   int* intPtr = new int[intData.size()];
   long* longPtr = new long[longData.size()];
   float* floatPtr = new float[floatData.size()];
   double* doublePtr = new double[doubleData.size()];
-
-  const int numStrings = (int)stringData.size();
   unsigned stringSize;
   char* stringPtr = ar_packStringVector( stringData, stringSize );
 
   if (!intPtr || !longPtr || !floatPtr || !doublePtr || !stringPtr) {
-    ar_log_error() << "arGraphicsPluginNode failed to allocate buffers in _dumpData().\n";
+    ar_log_error() << "arGraphicsPluginNode _dumpData() out of memory.\n";
     return NULL;
   }
 
@@ -191,13 +170,14 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
   std::copy( longData.begin(), longData.end(), longPtr );
   std::copy( floatData.begin(), floatData.end(), floatPtr );
   std::copy( doubleData.begin(), doubleData.end(), doublePtr );
+  const int numStrings = (int)stringData.size();
   
-  bool stat = result->dataIn( _g->AR_GRAPHICS_PLUGIN_INT, (const void*)intPtr, AR_INT, intData.size() )
-    && result->dataIn( _g->AR_GRAPHICS_PLUGIN_LONG, (const void*)longPtr, AR_LONG, longData.size() )
-    && result->dataIn( _g->AR_GRAPHICS_PLUGIN_FLOAT, (const void*)floatPtr, AR_FLOAT, floatData.size() )
-    && result->dataIn( _g->AR_GRAPHICS_PLUGIN_DOUBLE, (const void*)doublePtr, AR_DOUBLE, doubleData.size() )
-    && result->dataIn( _g->AR_GRAPHICS_PLUGIN_STRING, (const void*)stringPtr, AR_CHAR, stringSize )
-    && result->dataIn( _g->AR_GRAPHICS_PLUGIN_NUMSTRINGS, (const void*)&numStrings, AR_INT, 1 );
+  const bool ok = r->dataIn( _g->AR_GRAPHICS_PLUGIN_INT, (const void*)intPtr, AR_INT, intData.size() )
+    && r->dataIn( _g->AR_GRAPHICS_PLUGIN_LONG, (const void*)longPtr, AR_LONG, longData.size() )
+    && r->dataIn( _g->AR_GRAPHICS_PLUGIN_FLOAT, (const void*)floatPtr, AR_FLOAT, floatData.size() )
+    && r->dataIn( _g->AR_GRAPHICS_PLUGIN_DOUBLE, (const void*)doublePtr, AR_DOUBLE, doubleData.size() )
+    && r->dataIn( _g->AR_GRAPHICS_PLUGIN_STRING, (const void*)stringPtr, AR_CHAR, stringSize )
+    && r->dataIn( _g->AR_GRAPHICS_PLUGIN_NUMSTRINGS, (const void*)&numStrings, AR_INT, 1 );
 
   delete[] intPtr;
   delete[] longPtr;
@@ -205,12 +185,12 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
   delete[] doublePtr;
   delete[] stringPtr;
 
-  if (!stat) {
-    ar_log_error() << "arGraphicsPluginNode failed to dump data in _dumpData()." << ar_endl;
+  if (!ok) {
+    ar_log_error() << "arGraphicsPluginNode _dumpData() failed.\n";
     return NULL;
   }
   
-  return result;
+  return r;
 }
 
 

@@ -14,30 +14,25 @@ arVisibilityNode::arVisibilityNode():
   _typeString = "visibility";
 }
 
+// Responsibility of the caller to delete this message.
 arStructuredData* arVisibilityNode::dumpData(){
-  // Responsibility of the caller to delete this message.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_visibility, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_visibility, false);
 }
 
 bool arVisibilityNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_VISIBILITY, inData->getID(), "arVisibilityNode"))
     return false;
 
-  const int vis = inData->getDataInt(_g->AR_VISIBILITY_VISIBILITY);
-  _nodeLock.lock();
-    _visibility = vis ? true : false;
-  _nodeLock.unlock();
+  const bool vis = inData->getDataInt(_g->AR_VISIBILITY_VISIBILITY) ? true : false;
+  arGuard dummy(_nodeLock);
+  _visibility = vis;
   return true;
 }
 
 bool arVisibilityNode::getVisibility(){
-  _nodeLock.lock();
-    const bool r= _visibility;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _visibility;
 }
 
 void arVisibilityNode::setVisibility(bool visibility){

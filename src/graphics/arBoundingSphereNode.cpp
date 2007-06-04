@@ -32,33 +32,28 @@ void arBoundingSphereNode::draw(arGraphicsContext*){
 }
 
 arStructuredData* arBoundingSphereNode::dumpData(){
-  // This record will be deleted by the caller.
-  _nodeLock.lock();
-    arStructuredData* r = _dumpData(_boundingSphere, false);
-  _nodeLock.unlock();
-  return r;
+  // Caller deletes this record.
+  arGuard dummy(_nodeLock);
+  return _dumpData(_boundingSphere, false);
 }
 
 bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_BOUNDING_SPHERE, inData->getID(), "arBoundingSphereNode"))
     return false;
 
-  _nodeLock.lock();
-  const ARint vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY);
-  _boundingSphere.visibility = vis ? true : false;
+  const bool vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY) ? true : false;
+  arGuard dummy(_nodeLock);
+  _boundingSphere.visibility = vis;
   inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
 		  &_boundingSphere.radius, AR_FLOAT, 1);
   inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
 		  _boundingSphere.position.v, AR_FLOAT, 3);
-  _nodeLock.unlock();
   return true;
 }
 
 arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
-  _nodeLock.lock();
-  arBoundingSphere result = _boundingSphere;
-  _nodeLock.unlock();
-  return result;
+  arGuard dummy(_nodeLock);
+  return _boundingSphere;
 }
 
 void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
@@ -79,18 +74,16 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
 // Not thread-safe.
 arStructuredData* arBoundingSphereNode::_dumpData(const arBoundingSphere& b,
                                                   bool owned){
-  arStructuredData* result = owned ?
+  arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_g->AR_BOUNDING_SPHERE) :
     _g->makeDataRecord(_g->AR_BOUNDING_SPHERE);
-  _dumpGenericNode(result,_g->AR_BOUNDING_SPHERE_ID);
+  _dumpGenericNode(r, _g->AR_BOUNDING_SPHERE_ID);
   const ARint visible = b.visibility ? 1 : 0;
-  if (!result->dataIn(_g->AR_BOUNDING_SPHERE_VISIBILITY, &visible, AR_INT,1) ||
-      !result->dataIn(_g->AR_BOUNDING_SPHERE_RADIUS,
-        &b.radius, AR_FLOAT, 1) ||
-      !result->dataIn(_g->AR_BOUNDING_SPHERE_POSITION,
-        b.position.v, AR_FLOAT, 3)) {
-    delete result;
+  if (!r->dataIn(_g->AR_BOUNDING_SPHERE_VISIBILITY, &visible, AR_INT,1) ||
+      !r->dataIn(_g->AR_BOUNDING_SPHERE_RADIUS, &b.radius, AR_FLOAT, 1) ||
+      !r->dataIn(_g->AR_BOUNDING_SPHERE_POSITION, b.position.v, AR_FLOAT, 3)) {
+    delete r;
     return NULL;
   }
-  return result;
+  return r;
 }

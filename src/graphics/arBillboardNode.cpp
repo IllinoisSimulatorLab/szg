@@ -69,29 +69,24 @@ void arBillboardNode::draw(arGraphicsContext*){
 
 arStructuredData* arBillboardNode::dumpData(){
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_text, _visibility, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_text, _visibility, false);
 }
 
 bool arBillboardNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_BILLBOARD, inData->getID(), "arBillboardNode"))
     return false;
 
-  const int vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY);
-  _nodeLock.lock();
-  _visibility = vis ? true : false;
+  const bool vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY) ? true : false;
+  arGuard dummy(_nodeLock);
+  _visibility = vis;
   _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
-  _nodeLock.unlock();
   return true;
 }
 
 string arBillboardNode::getText(){
-  _nodeLock.lock();
-  string r = _text;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _text;
 }
 
 void arBillboardNode::setText(const string& text){
@@ -113,20 +108,16 @@ void arBillboardNode::setText(const string& text){
 arStructuredData* arBillboardNode::_dumpData(const string& text,
 					     bool visibility,
                                              bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_BILLBOARD);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_BILLBOARD);
-  }
-  _dumpGenericNode(result,_g->AR_BILLBOARD_ID);
+  arStructuredData* r = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_BILLBOARD) :
+    _g->makeDataRecord(_g->AR_BILLBOARD);
+  _dumpGenericNode(r, _g->AR_BILLBOARD_ID);
   const ARint vis = visibility ? 1 : 0;
-  if ((!result->dataIn(_g->AR_BILLBOARD_VISIBILITY, &vis, AR_INT, 1)
-       || !result->dataInString(_g->AR_BILLBOARD_TEXT, text))){
-    delete result;
+  if (!r->dataIn(_g->AR_BILLBOARD_VISIBILITY, &vis, AR_INT, 1) ||
+      !r->dataInString(_g->AR_BILLBOARD_TEXT, text)){
+    delete r;
     return NULL;
   }
-  return result;
+  return r;
 }
 

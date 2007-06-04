@@ -10,12 +10,9 @@
 arStructuredData* arGraphicsArrayNode::dumpData(){
   // The call to _dumpData must take place within a locked section.
   // _commandBuffer.v can change as the result of a buffer resize.
-  _nodeLock.lock();
-  // The caller is responsible for deleting this record.
-  arStructuredData* result = _dumpData(_commandBuffer.size()/_arrayStride,
-                                       _commandBuffer.v, NULL, false);
-  _nodeLock.unlock();
-  return result;
+  arGuard dummy(_nodeLock);
+  // Caller is responsible for deleting this record.
+  return _dumpData(_commandBuffer.size()/_arrayStride, _commandBuffer.v, NULL, false);
 }
 
 bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
@@ -33,8 +30,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
     return true;
   }
 
-  // Lock before modifying data.
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   if (theIDs[0] == -1){
     // Array elements are packed in order.
     _mergeElements(len, theData);
@@ -45,7 +41,6 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   
   // Bookkeeping.
   _commandBuffer.setType(_recordType);
-  _nodeLock.unlock();
   return true;
 }
 
@@ -84,30 +79,30 @@ arStructuredData* arGraphicsArrayNode::_dumpData(int number,
                                                  void* elements,
 						 int* IDs,
                                                  bool owned){
-  arStructuredData* result =  owned ?
+  arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_recordType) :
     _g->makeDataRecord(_recordType);
-  if (!result){
+  if (!r){
     ar_log_warning() << "arGraphicsArrayNode failed to make record of type " <<
       _g->numstringFromID(_recordType) << ".\n";
     return NULL;
   }
 
-  _dumpGenericNode(result, _IDField);
-  result->setDataDimension(_indexField, number);
-  result->setDataDimension(_dataField, number*_arrayStride);
+  _dumpGenericNode(r, _IDField);
+  r->setDataDimension(_indexField, number);
+  r->setDataDimension(_dataField, number*_arrayStride);
   if (IDs){
-    result->dataIn(_indexField, IDs, AR_INT, number);
+    r->dataIn(_indexField, IDs, AR_INT, number);
   }
   else{
     // Index field gets the identity map.
-    ARint* dataIDs = (ARint*)result->getDataPtr(_indexField, AR_INT);
+    ARint* dataIDs = (ARint*)r->getDataPtr(_indexField, AR_INT);
     for (int i=0; i<number; i++)
       dataIDs[i] = i;
   }
   // Fill in the data field. BUG: THIS RELIES ON THE FACT THAT ALL OUR DATA
   // TYPE HAVE THE SAME SIZE IN MEMORY (i.e. FLOAT AND INT)
-  memcpy(result->getDataPtr(_dataField,_nodeDataType),
+  memcpy(r->getDataPtr(_dataField,_nodeDataType),
          elements, _arrayStride * number * arDataTypeSize(_nodeDataType));
-  return result;
+  return r;
 }

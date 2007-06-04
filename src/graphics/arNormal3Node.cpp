@@ -36,14 +36,14 @@ const float* arNormal3Node::getNormal3(int& number){
 void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(number, normal3, IDs, true);
+      arStructuredData* r = _dumpData(number, normal3, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _mergeElements(number, normal3, IDs);
+      _mergeElements(number, normal3, IDs);
     _nodeLock.unlock();
   }
 }
@@ -53,8 +53,7 @@ void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
 // Thread-safe.
 vector<arVector3> arNormal3Node::getNormal3(){
   vector<arVector3> result;
-  // Must be thread-safe.
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   unsigned int num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
@@ -62,7 +61,6 @@ vector<arVector3> arNormal3Node::getNormal3(){
     result[i][1] = _commandBuffer.v[3*i+1];
     result[i][2] = _commandBuffer.v[3*i+2];
   }
-  _nodeLock.unlock();
   return result;
 }
 
@@ -85,11 +83,7 @@ void arNormal3Node::setNormal3(vector<arVector3>& normal3){
 // Thread-safe.
 void arNormal3Node::setNormal3(vector<arVector3>& normal3,
 			       vector<int>& IDs){
-  unsigned int num = IDs.size();
-  // If there are two many IDs for normal3, cut down on our dimension.
-  if (num > normal3.size()){
-    num = normal3.size();
-  }
+  const unsigned num = min(IDs.size(), normal3.size());
   float* fPtr = new float[3*num];
   int* iPtr = new int[num];
   for (unsigned int i = 0; i < num; i++){
@@ -102,4 +96,3 @@ void arNormal3Node::setNormal3(vector<arVector3>& normal3,
   delete [] fPtr;
   delete [] iPtr;
 }
-

@@ -41,14 +41,14 @@ const float* arPointsNode::getPoints(int& number){
 void arPointsNode::setPoints(int number, float* points, int* IDs){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(number, points, IDs, true);
+      arStructuredData* r = _dumpData(number, points, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _mergeElements(number, points, IDs);
+      _mergeElements(number, points, IDs);
     _nodeLock.unlock();
   }
 }
@@ -58,16 +58,14 @@ void arPointsNode::setPoints(int number, float* points, int* IDs){
 // Thread-safe.
 vector<arVector3> arPointsNode::getPoints(){
   vector<arVector3> result;
-  // Must be thread-safe.
-  _nodeLock.lock();
-  unsigned int num = _commandBuffer.size()/_arrayStride;
+  arGuard dummy(_nodeLock);
+  const unsigned num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
-  for (unsigned int i = 0; i < num; i++){
+  for (unsigned i = 0; i < num; i++){
     result[i][0] = _commandBuffer.v[3*i];
     result[i][1] = _commandBuffer.v[3*i+1];
     result[i][2] = _commandBuffer.v[3*i+2];
   }
-  _nodeLock.unlock();
   return result;
 }
 
@@ -90,11 +88,7 @@ void arPointsNode::setPoints(vector<arVector3>& points){
 // Thread-safe.
 void arPointsNode::setPoints(vector<arVector3>& points,
 			     vector<int>& IDs){
-  unsigned int num = IDs.size();
-  // If there are two many IDs for points, cut down on our dimension.
-  if (num > points.size()){
-    num = points.size();
-  }
+  const unsigned num = min(IDs.size(), points.size());
   float* fPtr = new float[3*num];
   int* iPtr = new int[num];
   for (unsigned int i = 0; i < num; i++){

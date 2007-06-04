@@ -25,11 +25,8 @@ void arGraphicsStateNode::draw(arGraphicsContext*){
 
 arStructuredData* arGraphicsStateNode::dumpData(){
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r 
-    = _dumpData(_stateName, _stateValueInt, _stateValueFloat, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_stateName, _stateValueInt, _stateValueFloat, false);
 }
 
 bool arGraphicsStateNode::receiveData(arStructuredData* data){
@@ -41,7 +38,7 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
     return false;
   }
 
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   _stateName = data->getDataString(_g->AR_GRAPHICS_STATE_STRING);
   _stateID = _convertStringToStateID(_stateName);
   int d[2]; 
@@ -49,30 +46,23 @@ bool arGraphicsStateNode::receiveData(arStructuredData* data){
   _stateValueInt[0] = (arGraphicsStateValue) d[0];
   _stateValueInt[1] = (arGraphicsStateValue) d[1];
   data->dataOut(_g->AR_GRAPHICS_STATE_FLOAT, &_stateValueFloat, AR_FLOAT, 1);
-  _nodeLock.unlock();
   return true;
 }
 
 string arGraphicsStateNode::getStateName(){
-  _nodeLock.lock();
-    const string r(_stateName);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _stateName;
 }
 
 arGraphicsStateID arGraphicsStateNode::getStateID(){
-  _nodeLock.lock();
-    const arGraphicsStateID r = _stateID;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _stateID;
 }
 
 bool arGraphicsStateNode::isFloatState(){
-  _nodeLock.lock();
-    // _isFloatState uses the node's current state.
-    const bool r = _isFloatState();
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  // _isFloatState uses the node's current state.
+  return _isFloatState();
 }
 
 bool arGraphicsStateNode::isFloatState(const string& stateName){
@@ -81,14 +71,12 @@ bool arGraphicsStateNode::isFloatState(const string& stateName){
 
 bool arGraphicsStateNode::getStateValuesInt(arGraphicsStateValue& value1,
 		                            arGraphicsStateValue& value2){
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   if (_isFloatState()){
-    _nodeLock.unlock();
     return false;
   }
   value1 = _stateValueInt[0];
   value2 = _stateValueInt[1];
-  _nodeLock.unlock();
   return true;
 }
 
@@ -123,13 +111,11 @@ string arGraphicsStateNode::getStateValueString(int i){
 }
 
 bool arGraphicsStateNode::getStateValueFloat(float& value){
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   if (!_isFloatState()){
-    _nodeLock.unlock();
     return false;
   }
   value = _stateValueFloat;
-  _nodeLock.unlock();
   return true;
 }
 
@@ -207,10 +193,9 @@ bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
   return true;
 }
 
-// It doesn't matter that this is inefficient since it will likely be
-// executed quite infrequently.
+// Inefficient, but rarely called.
 arGraphicsStateID arGraphicsStateNode::_convertStringToStateID(
-						      const string& stateName){
+  const string& stateName){
   if (stateName == "garbage_state"){
     return AR_G_GARBAGE_STATE;
   }
@@ -364,13 +349,13 @@ arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
                                          arGraphicsStateValue* stateValueInt,
                                          float stateValueFloat,
                                          bool owned ) {
-  arStructuredData* result = owned ?
+  arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE) :
     _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
-  _dumpGenericNode(result, _g->AR_GRAPHICS_STATE_ID);
+  _dumpGenericNode(r, _g->AR_GRAPHICS_STATE_ID);
 
   // Don't use the member variable. Instead, use the function parameter.
-  result->dataInString(_g->AR_GRAPHICS_STATE_STRING, stateName);
+  r->dataInString(_g->AR_GRAPHICS_STATE_STRING, stateName);
 
   // Don't use the member variable. Instead, use the function parameter.
   int data[2];
@@ -379,13 +364,14 @@ arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
     data[1] = stateValueInt[1];
   }
   else{
-    // Sensible defaults.
+    // Defaults.
     data[0] = AR_G_FALSE;
     data[1] = AR_G_FALSE;
   }
-  result->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
+  // todo: test datains' return value, like billboardnode
+  r->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
 
   // Don't use the member variable. Instead, use the function parameter.
-  result->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);
-  return result;
+  r->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);
+  return r;
 }

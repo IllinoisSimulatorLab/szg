@@ -17,25 +17,19 @@ arPerspectiveCameraNode::arPerspectiveCameraNode(){
 
 arStructuredData* arPerspectiveCameraNode::dumpData(){
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_nodeCamera, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_nodeCamera, false);
 }
 
 bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_PERSP_CAMERA, inData->getID(), "arLightNode"))
     return false;
 
-  _nodeLock.lock();
-  inData->dataOut(_g->AR_PERSP_CAMERA_CAMERA_ID,
-                  &_nodeCamera.cameraID, AR_INT, 1);
+  arGuard dummy(_nodeLock);
+  inData->dataOut(_g->AR_PERSP_CAMERA_CAMERA_ID, &_nodeCamera.cameraID, AR_INT, 1);
   inData->dataOut(_g->AR_PERSP_CAMERA_FRUSTUM,_nodeCamera.frustum,AR_FLOAT,6);
   inData->dataOut(_g->AR_PERSP_CAMERA_LOOKAT,_nodeCamera.lookat,AR_FLOAT,9);
-
-  // register it with the database
   _owningDatabase->registerCamera(this,&_nodeCamera);
-  _nodeLock.unlock();
   return true;
 }
 
@@ -45,10 +39,8 @@ void arPerspectiveCameraNode::deactivate(){
 }
 
 arPerspectiveCamera arPerspectiveCameraNode::getCamera(){
-  _nodeLock.lock();
-    const arPerspectiveCamera r = _nodeCamera;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _nodeCamera;
 }
 
 void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
@@ -69,12 +61,13 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
 // NOT thread-safe.
 arStructuredData* arPerspectiveCameraNode::_dumpData
   (const arPerspectiveCamera& camera, bool owned){
-  arStructuredData* result = owned ?
+  arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_PERSP_CAMERA) :
     _g->makeDataRecord(_g->AR_PERSP_CAMERA);
-  _dumpGenericNode(result,_g->AR_PERSP_CAMERA_ID);
-  result->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);
-  result->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6);
-  result->dataIn(_g->AR_PERSP_CAMERA_LOOKAT,camera.lookat,AR_FLOAT,9);
-  return result;
+  _dumpGenericNode(r, _g->AR_PERSP_CAMERA_ID);
+  // todo: test datains' return value
+  r->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);
+  r->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6);
+  r->dataIn(_g->AR_PERSP_CAMERA_LOOKAT,camera.lookat,AR_FLOAT,9);
+  return r;
 }

@@ -38,14 +38,14 @@ const float* arColor4Node::getColor4(int& number){
 void arColor4Node::setColor4(int number, float* color4, int* IDs){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(number, color4, IDs, true);
+      arStructuredData* r = _dumpData(number, color4, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _mergeElements(number, color4, IDs);
+      _mergeElements(number, color4, IDs);
     _nodeLock.unlock();
   }
 }
@@ -55,9 +55,8 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
 // Thread-safe.
 vector<arVector4> arColor4Node::getColor4(){
   vector<arVector4> result;
-  // Must be thread-safe.
-  _nodeLock.lock();
-  unsigned int num = _commandBuffer.size()/_arrayStride;
+  arGuard dummy(_nodeLock);
+  unsigned num = _commandBuffer.size() / _arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
     result[i][0] = _commandBuffer.v[4*i];
@@ -65,7 +64,6 @@ vector<arVector4> arColor4Node::getColor4(){
     result[i][2] = _commandBuffer.v[4*i+2];
     result[i][3] = _commandBuffer.v[4*i+3];
   }
-  _nodeLock.unlock();
   return result;
 }
 
@@ -74,7 +72,7 @@ vector<arVector4> arColor4Node::getColor4(){
 // Thread-safe.
 void arColor4Node::setColor4(vector<arVector4>& color4){
   float* ptr = new float[color4.size()*4];
-  for (unsigned int i = 0; i < color4.size(); i++){
+  for (unsigned i = 0; i < color4.size(); i++){
     ptr[4*i] = color4[i][0];
     ptr[4*i+1] = color4[i][1];
     ptr[4*i+2] = color4[i][2];
@@ -89,15 +87,11 @@ void arColor4Node::setColor4(vector<arVector4>& color4){
 // Thread-safe.
 void arColor4Node::setColor4(vector<arVector4>& color4,
 			     vector<int>& IDs){
-  unsigned int num = IDs.size();
-  // If there are two many IDs for points, cut down on our dimension.
-  if (num > color4.size()){
-    num = color4.size();
-  }
+  const unsigned num = min(IDs.size(), color4.size());
   float* fPtr = new float[4*num];
   int* iPtr = new int[num];
-  for (unsigned int i = 0; i < num; i++){
-    fPtr[4*i] = color4[i][0];
+  for (unsigned i = 0; i < num; i++){
+    fPtr[4*i  ] = color4[i][0];
     fPtr[4*i+1] = color4[i][1];
     fPtr[4*i+2] = color4[i][2];
     fPtr[4*i+3] = color4[i][3];

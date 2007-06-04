@@ -16,27 +16,22 @@ arBlendNode::arBlendNode(){
 
 arStructuredData* arBlendNode::dumpData(){
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_blendFactor, false); 
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_blendFactor, false); 
 }
 
 bool arBlendNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_BLEND, inData->getID(), "arBlendNode"))
     return false;
 
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   _blendFactor = inData->getDataFloat(_g->AR_BLEND_FACTOR);
-  _nodeLock.unlock();
   return true;
 }
 
 float arBlendNode::getBlend(){
-  _nodeLock.lock();
-    const float r = _blendFactor;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _blendFactor;
 }
 
 void arBlendNode::setBlend(float blendFactor){
@@ -56,10 +51,13 @@ void arBlendNode::setBlend(float blendFactor){
 
 // NOT thread-safe.
 arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
-  arStructuredData* result = owned ?
+  arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_BLEND) :
     _g->makeDataRecord(_g->AR_BLEND);
-  _dumpGenericNode(result,_g->AR_BLEND_ID);
-  result->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1);
-  return result;
+  _dumpGenericNode(r, _g->AR_BLEND_ID);
+  if (!r->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1)) {
+    delete r;
+    return NULL;
+  }
+  return r;
 }

@@ -36,14 +36,14 @@ const float* arTex2Node::getTex2(int& number){
 void arTex2Node::setTex2(int number, float* tex2, int* IDs){
   if (active()){
     _nodeLock.lock();
-    arStructuredData* r = _dumpData(number, tex2, IDs, true);
+      arStructuredData* r = _dumpData(number, tex2, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     _nodeLock.lock();
-    _mergeElements(number, tex2, IDs);
+      _mergeElements(number, tex2, IDs);
     _nodeLock.unlock();
   }
 }
@@ -54,15 +54,13 @@ void arTex2Node::setTex2(int number, float* tex2, int* IDs){
 // Thread-safe.
 vector<arVector2> arTex2Node::getTex2(){
   vector<arVector2> result;
-  // Must be thread-safe.
-  _nodeLock.lock();
-  unsigned int num = _commandBuffer.size()/_arrayStride;
+  arGuard dummy(_nodeLock);
+  const unsigned num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
     result[i][0] = _commandBuffer.v[2*i];
     result[i][1] = _commandBuffer.v[2*i+1];
   }
-  _nodeLock.unlock();
   return result;
 }
 
@@ -84,11 +82,7 @@ void arTex2Node::setTex2(vector<arVector2>& tex2){
 // Thread-safe.
 void arTex2Node::setTex2(vector<arVector2>& tex2,
 			 vector<int>& IDs){
-  unsigned int num = IDs.size();
-  // If there are two many IDs for points, cut down on our dimension.
-  if (num > tex2.size()){
-    num = tex2.size();
-  }
+  const unsigned num = min(IDs.size(), tex2.size());
   float* fPtr = new float[2*num];
   int* iPtr = new int[num];
   for (unsigned int i = 0; i < num; i++){

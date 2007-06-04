@@ -13,17 +13,14 @@ arTransformNode::arTransformNode(){
 }
 
 void arTransformNode::draw(arGraphicsContext*){ 
-  _nodeLock.lock();
+  arGuard dummy(_nodeLock);
   glMultMatrixf(_transform.v);
-  _nodeLock.unlock();
 }
 
 arStructuredData* arTransformNode::dumpData(){
-  // It is the responsibility of the caller to delete this record.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_transform, false);
-  _nodeLock.unlock();
-  return r;
+  // Caller deletes this record.
+  arGuard dummy(_nodeLock);
+  return _dumpData(_transform, false);
 }
 
 bool arTransformNode::receiveData(arStructuredData* inData){
@@ -33,17 +30,14 @@ bool arTransformNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_TRANSFORM, inData->getID(), "arTransformNode"))
     return false;
 
-  _nodeLock.lock();
-    inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
-  _nodeLock.unlock();
+  arGuard dummy(_nodeLock);
+  inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
   return true;
 }
 
 arMatrix4 arTransformNode::getTransform(){
-  _nodeLock.lock();
-    const arMatrix4 result(_transform);
-  _nodeLock.unlock();
-  return result;
+  arGuard dummy(_nodeLock);
+  return _transform;
 }
 
 void arTransformNode::setTransform(const arMatrix4& transform){
@@ -64,10 +58,11 @@ void arTransformNode::setTransform(const arMatrix4& transform){
 // NOT thread-safe. Call from within a locked section.
 arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
                                              bool owned){
-  arStructuredData* result = owned ?
+  arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM) :
     _g->makeDataRecord(_g->AR_TRANSFORM);
-  _dumpGenericNode(result,_g->AR_TRANSFORM_ID);
-  result->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16);
-  return result;
+  _dumpGenericNode(r, _g->AR_TRANSFORM_ID);
+  // todo: test return value
+  r->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16);
+  return r;
 }

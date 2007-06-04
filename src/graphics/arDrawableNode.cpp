@@ -201,10 +201,8 @@ void arDrawableNode::draw(arGraphicsContext* context){
 
 arStructuredData* arDrawableNode::dumpData(){
   // Caller is responsible for deleting.
-  _nodeLock.lock();
-  arStructuredData* r = _dumpData(_type, _number, false);
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _dumpData(_type, _number, false);
 }
 
 bool arDrawableNode::receiveData(arStructuredData* inData){
@@ -215,18 +213,15 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_DRAWABLE, inData->getID(), "arDrawableNode"))
     return false;
 
-  _nodeLock.lock();
-    _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
-    _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
-  _nodeLock.unlock();
+  arGuard dummy(_nodeLock);
+  _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
+  _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
   return true;
 }
 
 int arDrawableNode::getType(){
-  _nodeLock.lock();
-    const int r = _type;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _type;
 }
 
 string arDrawableNode::getTypeAsString(){
@@ -234,10 +229,8 @@ string arDrawableNode::getTypeAsString(){
 }
 
 int arDrawableNode::getNumber(){
-  _nodeLock.lock();
-    const int r = _number;
-  _nodeLock.unlock();
-  return r;
+  arGuard dummy(_nodeLock);
+  return _number;
 }
 
 void arDrawableNode::setDrawable(arDrawableType type, int number){
@@ -268,6 +261,7 @@ arStructuredData* arDrawableNode::_dumpData(int type, int number,
     getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE) :
     _g->makeDataRecord(_g->AR_DRAWABLE);
   _dumpGenericNode(r, _g->AR_DRAWABLE_ID);
+  // todo: test dataIn's return value, like e.g. billboardnode
   r->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);
   r->dataIn(_g->AR_DRAWABLE_NUMBER, &number, AR_INT, 1);
   return r;
