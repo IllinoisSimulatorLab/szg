@@ -106,7 +106,7 @@ bool arSharedMemDriver::start() {
 
 void arSharedMemDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  _l.lock();
+  arGuard dummy(_l);
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
@@ -117,7 +117,6 @@ void arSharedMemDriver::_detachMemory() {
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
-  _l.unlock();
 #endif
 }
 

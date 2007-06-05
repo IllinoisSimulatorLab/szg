@@ -2331,16 +2331,14 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "pause" ) {
       if ( messageBody == "on" ) {
-	_pauseLock.lock();
-	  if ( !stopping() )
-	    _pauseFlag = true;
-	_pauseLock.unlock();
+	arGuard dummy(_pauseLock);
+	if ( !stopping() )
+	  _pauseFlag = true;
       }
       else if( messageBody == "off" ) {
-	_pauseLock.lock();
-	  _pauseFlag = false;
-	  _pauseVar.signal();
-	_pauseLock.unlock();
+	arGuard dummy(_pauseLock);
+	_pauseFlag = false;
+	_pauseVar.signal();
       }
       else
         ar_log_warning() << _label <<

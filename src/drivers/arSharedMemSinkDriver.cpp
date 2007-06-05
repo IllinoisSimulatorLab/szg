@@ -112,7 +112,7 @@ bool arSharedMemSinkDriver::start() {
 
 void arSharedMemSinkDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  _l.lock();
+  arGuard dummy(_l);
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
@@ -123,7 +123,6 @@ void arSharedMemSinkDriver::_detachMemory() {
       ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
-  _l.unlock();
 #endif
 }
 

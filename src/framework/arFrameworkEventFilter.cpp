@@ -12,23 +12,20 @@ arFrameworkEventFilter::arFrameworkEventFilter( arSZGAppFramework* fw ) :
 }
 
 void arFrameworkEventFilter::queueEvent( const arInputEvent& event ) {
-  _queueLock.lock();
+  arGuard dummy(_queueLock);
   _queue.appendEvent( event );
-  _queueLock.unlock();
 }
 
 arInputEventQueue arFrameworkEventFilter::getEventQueue() {
-  _queueLock.lock();
+  arGuard dummy(_queueLock);
   arInputEventQueue queue( _queue );
   _queue.clear();
-  _queueLock.unlock();
   return queue;
 }
 
 void arFrameworkEventFilter::flushEventQueue() {
-  _queueLock.lock();
+  arGuard dummy(_queueLock);
   _queue.clear();
-  _queueLock.unlock();
 }
 
 bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {

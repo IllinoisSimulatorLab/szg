@@ -52,18 +52,15 @@ bool arFileSink::stop(){
     return true;
   }
 
-  _logLock.lock();
-    _logging = false;
-    if (_dataFile)
-      fclose(_dataFile);
-  _logLock.unlock();
-
+  arGuard dummy(_logLock);
+  _logging = false;
+  if (_dataFile)
+    fclose(_dataFile);
   return true;
 }
 
 void arFileSink::receiveData(int /*ID*/, arStructuredData* data) const {
-  _logLock.lock();
-  if (_logging)
+  arGuard dummy(_logLock);
+  if (_logging && data)
     data->print(_dataFile);
-  _logLock.unlock();
 }

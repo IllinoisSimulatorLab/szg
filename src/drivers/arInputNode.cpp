@@ -140,14 +140,13 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
     return;
   }
   
-  _lock();
+  arGuard dummy(_dataSerializationLock);
   _remapData( unsigned(channelNumber), data );
 
   _eventQueue.clear();
   if (!ar_setEventQueueFromStructuredData( &_eventQueue, data )) {
     ar_log_warning() << _label << " arInputNode failed to convert received data to event queue.\n";
 LAbort:
-    _unlock();
     return;
   }
   
@@ -169,30 +168,23 @@ LAbort:
   for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
     (*j)->receiveData(channelNumber, data);
   }
-  _unlock();
 }
 
 void arInputNode::processBufferedEvents() {
-  _lock();
-
+  arGuard dummy(_dataSerializationLock);
   _filterEventQueue( _eventBuffer );
-
   // Update node's arInputState (empties queue)
   _updateState( _eventBuffer );
-  
-  _unlock();
 }
 
 // Called when a connected devices has changed its signature.
 // Bug: called too many times, resetting the signature n times instead of just once.
 
 bool arInputNode::sourceReconfig(int whichChannel){
-  _lock();
-
+  arGuard dummy(_dataSerializationLock);
   if (whichChannel < 0 || whichChannel >= (int)_sources.size()) {
     ar_log_warning() << _label << " arInputNode ignoring out-of-range channel "
                    << whichChannel << ".\n";
-    _unlock();
     return false;
   }
 
@@ -204,12 +196,10 @@ bool arInputNode::sourceReconfig(int whichChannel){
     // Found the whichChannel'th member of _sources (std::list is slow, oh well).
     _inputState.remapInputDevice(whichChannel,
       (*i)->getNumberButtons(), (*i)->getNumberAxes(), (*i)->getNumberMatrices());
-    _unlock();
     return true;
   }    
 
   ar_log_warning() << _label << " arInputNode internally missing a channel.\n";
-  _unlock();
   return false;
 }
 
@@ -241,7 +231,7 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
 }
 
 bool arInputNode::removeFilter( int ID ) {
-  _lock();
+  arGuard dummy(_dataSerializationLock);
   unsigned filterNumber = 0;
   for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
     if ((*f)->getID() != ID)
@@ -251,18 +241,16 @@ bool arInputNode::removeFilter( int ID ) {
     _filters.erase(f);
     _iOwnFilters .erase( _iOwnFilters .begin() + filterNumber );
     _filterStates.erase( _filterStates.begin() + filterNumber );
-    _unlock();
     return true;
   }
 
-  _unlock();
   ar_log_warning() << _label << " arInputNode: no filter with ID " << ID << " to remove.\n";
   return false;
 }
 
 
 bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
-  _lock();
+  arGuard dummy(_dataSerializationLock);
   unsigned filterNumber = 0;
   for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
     if ((*f)->getID() != ID)
@@ -273,11 +261,9 @@ bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
     *f = newFilter;
     _iOwnFilters[filterNumber] = iOwnIt;
     _filterStates[filterNumber] = arInputState();
-    _unlock();
     return true;
   }
 
-  _unlock();
   ar_log_warning() << "arInputNode: no filter with ID " << ID << " to replace.\n";
   return false;
 }
@@ -320,14 +306,6 @@ int arInputNode::getNumberAxes() const {
 
 int arInputNode::getNumberMatrices() const {
   return (int)_inputState.getNumberMatrices();
-}
-
-void arInputNode::_lock() {
-  _dataSerializationLock.lock();
-}
-
-void arInputNode::_unlock() {
-  _dataSerializationLock.unlock();
 }
 
 void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
@@ -388,8 +366,8 @@ void arInputNode::_remapData( unsigned channelNumber, arStructuredData* data ) {
   }
 }
 
+// caller must arGuard(_dataSerializationLock);
 void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
-  // todo: assert that _lock() has been called, by setting a flag in _lock().
   unsigned filterNumber = 0;
   std::vector< arInputState >::iterator iterState = _filterStates.begin();
   for (iterFlt f = _filters.begin(); f != _filters.end(); ++f) {
@@ -409,17 +387,18 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
 
 void arInputNode::_updateState( arInputEventQueue& queue ) {
   while (!queue.empty()) {
-    arInputEvent thisEvent(queue.popNextEvent());
-    if (thisEvent){
-      _inputState.update( thisEvent );
-      if (_eventCallback)
-        _eventCallback( thisEvent );
-    }
+    arInputEvent e(queue.popNextEvent());
+    if (!e)
+      continue;
+    _inputState.update( e );
+    if (_eventCallback)
+      _eventCallback( e );
   }
 }
     
 int arInputNode::_findUnusedFilterID() const {
   int id = 1;
+  // Surely this could be less convoluted?
   bool done = false;
   while (!done) {
     done = true;

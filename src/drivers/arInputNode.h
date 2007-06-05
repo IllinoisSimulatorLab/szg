@@ -57,10 +57,7 @@ class SZG_CALL arInputNode: public arInputSink {
     
     arInputState _inputState;
 
-  //protected:
   private:
-    void _lock();
-    void _unlock();
     void _setSignature(int,int,int);
     void _remapData( unsigned channelNumber, arStructuredData* data );
     void _filterEventQueue( arInputEventQueue& queue );

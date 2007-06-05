@@ -29,7 +29,7 @@ class SZG_CALL arFrameworkEventFilter : public arIOFilter {
     arSZGAppFramework* _framework;
     bool _saveEventQueue;
     arInputEventQueue _queue;
-    arLock _queueLock;
+    arLock _queueLock; // guards _queue
 };
 
 class arCallbackEventFilter;

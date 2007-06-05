@@ -22,23 +22,7 @@ arInputState::arInputState() {
 arInputState::arInputState( const arInputState& x ) {
   arInputState& y = const_cast<arInputState&>(x);
   _init();
-  y._lock();
-    _buttons = y._buttons;
-    _axes = y._axes;
-    _matrices = y._matrices;
-    _lastButtons = y._lastButtons;
-    _buttonInputMap = y._buttonInputMap;
-    _axisInputMap = y._axisInputMap;
-    _matrixInputMap = y._matrixInputMap;
-  y._unlock();
-}
-
-arInputState& arInputState::operator=( const arInputState& x ) {
-  if (&x == this)
-    return *this;
-  arInputState& y = const_cast<arInputState&>(x);
-  _lock();
-  y._lock();
+  arGuard dummy(y._l);
   _buttons = y._buttons;
   _axes = y._axes;
   _matrices = y._matrices;
@@ -46,8 +30,21 @@ arInputState& arInputState::operator=( const arInputState& x ) {
   _buttonInputMap = y._buttonInputMap;
   _axisInputMap = y._axisInputMap;
   _matrixInputMap = y._matrixInputMap;
-  y._unlock();
-  _unlock();
+}
+
+arInputState& arInputState::operator=( const arInputState& x ) {
+  if (&x == this)
+    return *this;
+  arInputState& y = const_cast<arInputState&>(x);
+  arGuard dummy1(_l);
+  arGuard dummy2(y._l);
+  _buttons = y._buttons;
+  _axes = y._axes;
+  _matrices = y._matrices;
+  _lastButtons = y._lastButtons;
+  _buttonInputMap = y._buttonInputMap;
+  _axisInputMap = y._axisInputMap;
+  _matrixInputMap = y._matrixInputMap;
   return *this;
 }
 
@@ -58,81 +55,59 @@ arInputState::~arInputState() {
   _lastButtons.clear();
 }
 
-// Call-while-_unlock()'d public methods.
+// Call-while-_unlocked public methods.
 
 unsigned arInputState::getNumberButtons() const {
-  _lock();
-  const unsigned result = _buttons.size();
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _buttons.size();
 }
 unsigned arInputState::getNumberAxes() const {
-  _lock();
-  const unsigned result = _axes.size();
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _axes.size();
 }
 unsigned arInputState::getNumberMatrices() const {
-  _lock();
-  const unsigned result = _matrices.size();
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _matrices.size();
 }
 
 bool arInputState::getOnButton( const unsigned iButton ) const {
-  _lock();
-    const bool result = _getOnButton(iButton);
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _getOnButton(iButton);
 }
 
 bool arInputState::getOffButton( const unsigned iButton ) const {
-  _lock();
-    const bool result = _getOffButton(iButton);
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _getOffButton(iButton);
 }
 
 int arInputState::getButton( const unsigned iButton ) const {
-  _lock();
-    const int result = _getButton(iButton);
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _getButton(iButton);
 }
 
 float arInputState::getAxis( const unsigned iAxis ) const {
-  _lock();
-    const float result = _getAxis(iAxis);
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _getAxis(iAxis);
 }
 
 arMatrix4 arInputState::getMatrix( const unsigned iMatrix ) const {
-  _lock();
-    const arMatrix4 result = _getMatrix(iMatrix);
-  _unlock();
-  return result;
+  arGuard dummy(_l);
+  return _getMatrix(iMatrix);
 }
 
 bool arInputState::setButton( const unsigned iButton, const int value ) {
-  _lock();
-    const bool ok = _setButton(iButton, value);
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _setButton(iButton, value);
 }
 
 bool arInputState::setAxis( const unsigned iAxis, const float value ) {
-  _lock();
-    const bool ok = _setAxis(iAxis, value);
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _setAxis(iAxis, value);
 }
 
 bool arInputState::setMatrix( const unsigned iMatrix, const arMatrix4& value) {
-  _lock();
-    const bool ok = _setMatrix(iMatrix, value);
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _setMatrix(iMatrix, value);
 }
 
 // Mac OS X segfaults when constructors for global vars print to cout.
@@ -142,13 +117,12 @@ void arInputState::setSignature( const unsigned numButtons,
 				 const unsigned numAxes,
 				 const unsigned numMatrices,
                                  bool printWarnings){
-  _lock();
-    _setSignature(numButtons, numAxes, numMatrices, printWarnings);
-  _unlock();
+  arGuard dummy(_l);
+  _setSignature(numButtons, numAxes, numMatrices, printWarnings);
 }
 
 
-// Call-while-_lock()'d private methods.
+// Call-while-_locked private methods.
 
 bool arInputState::_getOnButton( const unsigned iButton ) const {
   return (iButton < _buttons.size()) &&
@@ -269,7 +243,7 @@ bool arInputState::update( const arInputEvent& event ) {
 void arInputState::addInputDevice( const unsigned numButtons,
                                    const unsigned numAxes,
                                    const unsigned numMatrices ) {
-  _lock();
+  arGuard dummy(_l);
   const unsigned bPrev = _buttons.size();
   const unsigned aPrev = _axes.size();
   const unsigned mPrev = _matrices.size();
@@ -280,21 +254,19 @@ void arInputState::addInputDevice( const unsigned numButtons,
   ar_log_remark() << "arInputState added device " <<
     _buttonInputMap.getNumberDevices()-1 << " (" << numButtons << "," <<
     numAxes << "," << numMatrices << ").\n";
-  _unlock();
 }
                          
 void arInputState::remapInputDevice( const unsigned iDevice,
                                      const unsigned numButtons,
                                      const unsigned numAxes,
                                      const unsigned numMatrices ) {
-  _lock();
+  arGuard dummy(_l);
   const int dbutton = numButtons - _buttonInputMap.getNumberDeviceEvents( iDevice );
   const int daxis = numAxes - _axisInputMap.getNumberDeviceEvents( iDevice );
   const int dmatrix = numMatrices - _matrixInputMap.getNumberDeviceEvents( iDevice );
 
   if (dbutton == 0 && daxis == 0 && dmatrix == 0) {
     // Signature didn't change.
-    _unlock();
     return;
   }
 
@@ -322,26 +294,19 @@ void arInputState::remapInputDevice( const unsigned iDevice,
   _setSignature( oldButtons + dbutton, oldAxes + daxis, oldMatrices + dmatrix );
   ar_log_remark() << "arInputState device " << iDevice << " has signature (" << _buttons.size() << ", " <<
     _axes.size() << ", " << _matrices.size() << ").\n";
-  _unlock();
 }
 
 bool arInputState::getButtonOffset( unsigned iDevice, unsigned& offset ) {
-  _lock();
-    const bool ok = _buttonInputMap.getEventOffset( iDevice, offset );
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _buttonInputMap.getEventOffset( iDevice, offset );
 }
 bool arInputState::getAxisOffset(   unsigned iDevice, unsigned& offset ) {
-  _lock();
-    const bool ok = _axisInputMap.getEventOffset( iDevice, offset );
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _axisInputMap.getEventOffset( iDevice, offset );
 }
 bool arInputState::getMatrixOffset( unsigned iDevice, unsigned& offset ) {
-  _lock();
-    const bool ok = _matrixInputMap.getEventOffset( iDevice, offset );
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _matrixInputMap.getEventOffset( iDevice, offset );
 }
 
 bool arInputState::setFromBuffers( const int* const buttonData,
@@ -355,7 +320,7 @@ bool arInputState::setFromBuffers( const int* const buttonData,
     return false;
   }
 
-  _lock();
+  arGuard dummy(_l);
   int i = 0;
   for (i=numButtons-1; i>=0; --i)
     _setButton( unsigned(i), buttonData[i] );
@@ -363,7 +328,6 @@ bool arInputState::setFromBuffers( const int* const buttonData,
     _setAxis( unsigned(i), axisData[i] );
   for (i=numMatrices-1; i>=0; --i)
     _setMatrix( unsigned(i), matrixData + i*16 );
-  _unlock();
   return true;
 }
 
@@ -375,7 +339,7 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
     return false;
   }
 
-  _lock();
+  arGuard dummy(_l);
   unsigned i = 0;
   for (i=0; i<_buttons.size(); i++)
     buttonBuf[i] = _buttons[i];
@@ -383,25 +347,21 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
     axisBuf[i] = _axes[i];
   for (i=0; i<_matrices.size(); i++)
     memcpy( matrixBuf + i*16, _matrices[i].v, 16*sizeof(float) );
-  _unlock();
   return true;
 }
 
 void arInputState::updateLastButtons() {
-  _lock();
-    std::copy( _buttons.begin(), _buttons.end(), _lastButtons.begin() );
-  _unlock();
+  arGuard dummy(_l);
+  std::copy( _buttons.begin(), _buttons.end(), _lastButtons.begin() );
 }
 
 void arInputState::updateLastButton( const unsigned i ) {
-  _lock();
+  arGuard dummy(_l);
   if (i >= _buttons.size()) {
-    _unlock();
     ar_log_warning() << "arInputState updateLastButton's index out of range (" << i << ").\n";
     return;
   }
   _lastButtons[i] = _buttons[i];
-  _unlock();
 }
 
 ostream& operator<<(ostream& os, const arInputState& cinp ) {

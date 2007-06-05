@@ -100,11 +100,9 @@ class SZG_CALL arInputState {
 
   private:    
     void _init();
-    void _lock() const { _l.lock(); }
-    void _unlock() const { _l.unlock(); }
 
-    // Call  setX and  getX only while _unlock()'d.
-    // Call _setX and _getX only while _lock()'d.
+    // Call  setX and  getX only while unlocked.
+    // Call _setX and _getX only while locked (arGuard _l).
 
     void _setSignature( const unsigned maxButtons,
                         const unsigned maxAxes,
