@@ -15,29 +15,19 @@ namespace arNavigationSpace {
   arMatrix4 _navInvMatrix;
   void _set(const arMatrix4&);
   void _bound();
-  void _lock();
-  void _unlock();
 };
-
-void arNavigationSpace::_lock() {
-  arNavigationSpace::_l.lock();
-}
-
-void arNavigationSpace::_unlock() {
-  arNavigationSpace::_l.unlock();
-}
 
 void arNavigationSpace::_bound() {
   if (!arNavigationSpace::_fBbox)
     return;
 
-  // Translate back inside bounding box.
+  // Translate back into bounding box.
   // Use shortcut, the guts of ar_extractTranslation().
   float* pos = (arNavigationSpace::_navMatrix.v + 12);
   for (int i=0; i<3; ++i) {
     if (pos[i] < arNavigationSpace::_vBboxMin[i])
       pos[i] = arNavigationSpace::_vBboxMin[i];
-    else if (pos[i] > arNavigationSpace::_vBboxMax[i])
+    if (pos[i] > arNavigationSpace::_vBboxMax[i])
       pos[i] = arNavigationSpace::_vBboxMax[i];
   }
 }
@@ -49,54 +39,46 @@ inline void arNavigationSpace::_set(const arMatrix4& m) {
 }
 
 void ar_setNavMatrix( const arMatrix4& matrix ) {
-  arNavigationSpace::_lock();
+  arGuard dummy(arNavigationSpace::_l);
   arNavigationSpace::_set(matrix);
-  arNavigationSpace::_unlock();
 }
 
 void ar_navTranslate( const arVector3& vec ) {
-  arNavigationSpace::_lock();
+  arGuard dummy(arNavigationSpace::_l);
   arNavigationSpace::_set(
     arNavigationSpace::_navMatrix * ar_translationMatrix(vec));
-  arNavigationSpace::_unlock();
 }
 
 void ar_navRotate( const arVector3& axis, float degrees ) {
-  arNavigationSpace::_lock();
+  arGuard dummy(arNavigationSpace::_l);
   arNavigationSpace::_navMatrix = arNavigationSpace::_navMatrix *
     ar_rotationMatrix(axis, M_PI/180.*degrees);
   arNavigationSpace::_navInverseDirty = true;
-  arNavigationSpace::_unlock();
 }
 
 void ar_navBoundingbox( const arVector3& v1, const arVector3& v2 ) {
   // v1 and v2 can be *anything* -- _bound() behaves sensibly.
-  arNavigationSpace::_lock();
+  arGuard dummy(arNavigationSpace::_l);
   arNavigationSpace::_fBbox = true;
   for (int i=0; i<3; ++i) {
     arNavigationSpace::_vBboxMin[i] = min(v1.v[i], v2.v[i]);
     arNavigationSpace::_vBboxMax[i] = max(v1.v[i], v2.v[i]);
   }
-  arNavigationSpace::_unlock();
 }
 
 arMatrix4 ar_getNavMatrix() {
-  arNavigationSpace::_lock();
-  arMatrix4 result( arNavigationSpace::_navMatrix );
-  arNavigationSpace::_unlock();
-  return result;
+  arGuard dummy(arNavigationSpace::_l);
+  return arNavigationSpace::_navMatrix;
 }
 
 arMatrix4 ar_getNavInvMatrix() {
-  arNavigationSpace::_lock();
+  arGuard dummy(arNavigationSpace::_l);
   if (arNavigationSpace::_navInverseDirty) {
     // lazy evaluation
     arNavigationSpace::_navInverseDirty = false;
     arNavigationSpace::_navInvMatrix = arNavigationSpace::_navMatrix.inverse();
   }
-  arMatrix4 result( arNavigationSpace::_navInvMatrix );
-  arNavigationSpace::_unlock();
-  return result;
+  return arNavigationSpace::_navInvMatrix;
 }
 
 arMatrix4 ar_matrixToNavCoords( const arMatrix4& matrix ) {

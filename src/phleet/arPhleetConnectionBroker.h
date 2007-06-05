@@ -167,8 +167,6 @@ class SZG_CALL arPhleetConnectionBroker{
   void _resizeComputerPorts(arBrokerComputerData& computer,
                             const int first, const int size);
   bool _portValid(const int port, const arBrokerComputerData&) const;
-  void _lock() const { _l.lock(); }
-  void _unlock() const { _l.unlock(); }
 };
 
 #endif

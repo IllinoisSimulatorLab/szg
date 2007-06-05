@@ -28,6 +28,7 @@ static inline float joystickScale(float j) {
 
 void arInterfaceObject::_ioPollTask(){
   while (true) {
+    ar_usleep(10000);
     const float speedLateral = -joystickScale(_inputDevice->getAxis(0));
     const float speedForward = -joystickScale(_inputDevice->getAxis(1));
     const arMatrix4 mWand(_inputDevice->getMatrix(1));
@@ -40,7 +41,7 @@ void arInterfaceObject::_ioPollTask(){
     const arVector3 vWandForward(m * arVector3(0,0,-1) * speedForward);
     const arVector3 vWandLateral(m * arVector3(1,0,0)  * speedLateral);
 
-    _infoLock.lock();
+    arGuard dummy(_infoLock);
 
     const float inertia = 0.98; // Between 0.01 and 0.99.  Should be database parameter.
     arVector3 vMove((vWandLateral + vWandForward) * _speedMultiplier * .2);
@@ -64,9 +65,6 @@ void arInterfaceObject::_ioPollTask(){
       // End grabbing.
       _grabbed = false;
     }
-
-    _infoLock.unlock();
-    ar_usleep(10000);
   }
 }
       
@@ -106,29 +104,23 @@ bool arInterfaceObject::start(){
 }
 
 void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
-  _infoLock.lock();
-    _mNav = arg;
-  _infoLock.unlock();
+  arGuard dummy(_infoLock);
+  _mNav = arg;
 }
 
 arMatrix4 arInterfaceObject::getNavMatrix() const {
-  _infoLock.lock();
-    const arMatrix4 result(_mNav);
-  _infoLock.unlock();
-  return result;
+  arGuard dummy(_infoLock);
+  return _mNav;
 }
 
 void arInterfaceObject::setObjectMatrix(const arMatrix4& arg){
-  _infoLock.lock();
-    _mObj = arg;
-  _infoLock.unlock();
+  arGuard dummy(_infoLock);
+  _mObj = arg;
 }
 
 arMatrix4 arInterfaceObject::getObjectMatrix() const {
-  _infoLock.lock();
-    const arMatrix4 result(_mObj);
-  _infoLock.unlock();
-  return result;
+  arGuard dummy(_infoLock);
+  return _mObj;
 }
 
 void arInterfaceObject::setSpeedMultiplier(float multiplier){

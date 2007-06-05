@@ -39,14 +39,13 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
                                                      int firstPort, 
                                                      int blockSize){
   arPhleetService result;
-  _lock();
+  arGuard dummy(_l);
   if (_temporaryServices.find(serviceName) != _temporaryServices.end()){
     // Service already exists.  Not abnormal.
     // master/slave applications might see if they can get the master
     // service in order to determine who will be the master.
 LAbort:
     result.valid = false;
-    _unlock();
     return result;
   }
   if (_usedServices.find(serviceName) != _usedServices.end()){
@@ -110,7 +109,6 @@ LAbort:
   // put the Syzygy service record on the temporary service list and return
   // the assigned ports via an arPhleetService
   _temporaryServices.insert(SZGServiceData::value_type(serviceName, tempService));
-  _unlock();
   return tempService;
 }
 
@@ -126,7 +124,7 @@ LAbort:
 // @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
     int componentID, const string& serviceName){
-  _lock();
+  arGuard dummy(_l);
   // the service should exist in the temporary service list (i.e. where
   // services go that have been temporarily registered, but have not had
   // there ports confirmed) and must be owned by the requesting component.
@@ -138,7 +136,6 @@ LAbort:
       // todo: constructor for next 2 lines
       arPhleetService result;
       result.valid = false;
-      _unlock();
       return result;
   }
   if (i->second.componentID != componentID){
@@ -193,7 +190,6 @@ LAbort:
     k->second.temporaryPorts.push_back(port);
   }
   // return the altered service record
-  _unlock();
   return i->second;
 }
 
@@ -209,14 +205,13 @@ LAbort:
 // @param serviceName the name of the offered service
 bool arPhleetConnectionBroker::confirmPorts(int componentID, 
                                             const string& serviceName){
-  _lock();
+  arGuard dummy(_l);
   // find the service on the temporary list. if it does not exist, or is
   // owned by a different component
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i == _temporaryServices.end()){
     cout << "arPhleetConnectionBroker warning: confirmation invoked on unknown service name.\n";
 LAbort:
-    _unlock();
     return false;
   }
   if (i->second.componentID != componentID){
@@ -255,8 +250,6 @@ LAbort:
   // Do not notify components with pending service requests
   // that a compatible service has just been posted. The szgserver,
   // each time it calls this method, also calls getPendingRequests().
-
-  _unlock();
   return true;
 }
 
@@ -268,7 +261,7 @@ LAbort:
 // @param serviceName The full name of the service.
 string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const {
   string info("");
-  _lock();
+  arGuard dummy(_l);
   SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()) {
     info = i->second.info;
@@ -279,12 +272,11 @@ string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const
       info = i->second.info;
     }
   }
-  _unlock();
   return info;
 }
 
 // Attempt to set the "info" for a service, as specified by the given
-// (full) service name. This will fail if the service in question does not
+// (full) service name. Fail if the service does not
 // exist (either on the temporary or used lists) or if the service is not
 // owned by the component with the given ID. It succeeds otherwise and
 // sets the "info" field for the service, returning true.
@@ -295,49 +287,35 @@ string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const
 bool arPhleetConnectionBroker::setServiceInfo(const int componentID, 
                                               const string& serviceName,
                                               const string& info){
-  _lock();
+  arGuard dummy(_l);
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()) {
     if (i->second.componentID != componentID) {
-      // Component in question doesn't own the service.
-      goto LFail;
+      // Component with that ID doesn't own the service.
+      return false;
     }
     goto LDone;
   }
 
   i = _usedServices.find(serviceName);
-  if (i != _usedServices.end() && i->second.componentID == componentID) {
-LDone:
-  // Component in question owns the service.  Set service's info.
-  i->second.info = info;
-  _unlock();
-  return true;
+  if (i == _usedServices.end() || i->second.componentID != componentID) {
+    // Didn't find the service, or component with that ID doesn't own the service.
+    return false;
   }
-  // Didn't find the service.
 
-LFail:
-  _unlock();
-  return false;
+LDone:
+  // Set service's info.
+  i->second.info = info;
+  return true;
 }
 
 // Used to determine if a service is, at this moment, either on the
 // temporary list or the used list. If so, return true. Otherwise, false. 
 // @param serviceName Name of the service to be checked
 bool arPhleetConnectionBroker::checkService(const string& serviceName) const {
-  bool ok = false;
-  _lock();
-  SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
-  if (i != _temporaryServices.end()){
-    ok = true;
-  }
-  else{
-    i = _usedServices.find(serviceName);
-    if (i != _usedServices.end()){
-      ok = true;
-    }
-  }
-  _unlock();
-  return ok;
+  arGuard dummy(_l);
+  return _temporaryServices.find(serviceName) != _temporaryServices.end() ||
+         _usedServices.find(serviceName) != _usedServices.end();
 }
 
 // Used when a component requests a service. First, check to see if a service
@@ -367,7 +345,7 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
                                                  const arSlashString& networks,
                                                  bool   async) {
   arPhleetAddress result;
-  _lock();
+  arGuard dummy(_l);
   // see if the service already exists on the active list
   // if not, insert the service request into the notification 
   // queue. return arPhleetAddress with valid field set to false
@@ -387,7 +365,6 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
       _requestedServices.push_front(temp);
       // LIFO, assuming that that service requests will be filled quickly.
     }
-    _unlock();
     return result;
   }
 
@@ -421,7 +398,6 @@ LFound:
       result.portIDs[nn] = i->second.portIDs[nn];
     }
   }
-  _unlock();
   return result;
 }
 
@@ -435,7 +411,7 @@ LFound:
 SZGRequestList arPhleetConnectionBroker::getPendingRequests
                                            (const string& serviceName){
   SZGRequestList result;
-  _lock();
+  arGuard dummy(_l);
   // push service requests that match the service name onto the queue to
   // be returned
   SZGRequestList::iterator i = _requestedServices.begin();
@@ -449,7 +425,6 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
       ++i;
     }
   }
-  _unlock();
   return result;
 }
 
@@ -457,9 +432,8 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
   SZGRequestList result;
-  _lock();
+  arGuard dummy(_l);
   std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
-  _unlock();
   return result;
 }
 
@@ -468,12 +442,11 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
 // In other words, arSlashString's can't nest!
 string arPhleetConnectionBroker::getServiceNames() const {
   arSemicolonString result;
-  _lock();
+  arGuard dummy(_l);
   for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
       result /= i->first;
   }
-  _unlock();
   return result;
 }
 
@@ -482,12 +455,11 @@ string arPhleetConnectionBroker::getServiceNames() const {
 // getServiceNames(...)
 arSlashString arPhleetConnectionBroker::getServiceComputers() const {
   arSlashString result;
-  _lock();
+  arGuard dummy(_l);
   for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++){
     result /= i->second.computer;
   }
-  _unlock();
   return result;
 }
 
@@ -497,14 +469,13 @@ arSlashString arPhleetConnectionBroker::getServiceComputers() const {
 // arranged in the same order as getServiceNames().
 // Caller's responsible for delete[]'ing IDs.
 int arPhleetConnectionBroker::getServiceComponents(int*& IDs) const {
-  _lock();
+  arGuard dummy(_l);
   const int numServices = _usedServices.size();
   IDs = new int[numServices];
   SZGServiceData::const_iterator iter = _usedServices.begin();
   for (int iService = 0; iService < numServices; ++iService,++iter) {
     IDs[iService] = iter->second.componentID;
   }
-  _unlock();
   return numServices;
 }
 
@@ -512,11 +483,9 @@ int arPhleetConnectionBroker::getServiceComponents(int*& IDs) const {
 // if such exists, and otherwise -1
 // @param serviceName the name of the service in which we are interested
 int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName) const {
-  _lock();
+  arGuard dummy(_l);
   SZGServiceData::const_iterator i = _usedServices.find(serviceName);
-  const int id = (i != _usedServices.end()) ? i->second.componentID : -1;
-  _unlock();
-  return id;
+  return (i == _usedServices.end()) ? -1 : i->second.componentID;
 }
 
 // When the particular service name has been released, notify
@@ -526,12 +495,12 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 						   int match,
                                                    const string& computer,
 						   const string& serviceName){
-  _lock();
+  arGuard dummy(_l);
   SZGServiceData::iterator k = _usedServices.find(serviceName);
   if (k == _usedServices.end()){
-    _unlock();
     return;
   }
+
   // Service exists.
   if (_componentData.find(componentID) == _componentData.end()){
     // Create a component data entry.
@@ -550,7 +519,6 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
   notification.componentID = componentID;
   notification.match = match;
   k->second.notifications.push_back(notification);
-  _unlock();
 }
 
 // Called whenever a service is removed from the "used" pool OR
@@ -604,7 +572,7 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName){
 // for instance, that component might have been offering a service, which
 // now needs to be removed from the internal table of active services.
 void arPhleetConnectionBroker::removeComponent(int componentID){
-  _lock();
+  arGuard dummy(_l);
   // remove any service requests with this component ID
   SZGRequestList::iterator ii = _requestedServices.begin();
   while ( ii != _requestedServices.end() ){
@@ -620,7 +588,6 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   SZGComponentData::iterator i = _componentData.find(componentID);
   if (i == _componentData.end()){
     // Component had no record.  Probably fine, e.g. for the component "dex.exe".
-    _unlock();
     return;
   }
   // todo: factor out i->second from the rest of this function
@@ -685,16 +652,15 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
 	 << computer << "'.\n";
   }
 
-  // finally, remove the component record
+  // Remove the component record.
   _componentData.erase(i);
-  _unlock();
 }
 
 // Print the entire verbose state of the connection broker.
 void arPhleetConnectionBroker::print() const {
   list<int>::const_iterator nn;
   list<string>::const_iterator mm;
-  _lock();
+  arGuard dummy(_l);
   cout << "***************************************************\n";
   for (SZGComputerData::const_iterator i = _computerData.begin();
        i != _computerData.end(); ++i){
@@ -785,7 +751,6 @@ void arPhleetConnectionBroker::print() const {
          << "    Service name = " << l->serviceName << "\n"
          << "    Networks = " << l->networks <<"\n";
   }
-  _unlock();
 }
 
 void arPhleetConnectionBroker::_resizeComputerPorts(arBrokerComputerData& computer,
