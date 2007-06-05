@@ -82,7 +82,7 @@ void arSyncDataClient::_connectionTask(){
     // bug: some copypaste with below
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for wildcat graphics cards.
-    _nullHandshakeLock.lock();
+    arGuard dummy(_nullHandshakeLock);
     // We might be in stop mode.
     if (_nullHandshakeState != 2){
       _nullHandshakeState = 1; // Request that a disconnect callback be issued
@@ -91,9 +91,7 @@ void arSyncDataClient::_connectionTask(){
       }
       _nullHandshakeState = 0;
     }
-    _nullHandshakeLock.unlock();
-
-    ar_log_remark() << getLabel() << " remark: disconnected.\n";
+    ar_log_remark() << getLabel() << " disconnected.\n";
   }
   _connectionThreadRunning = false;
 }
@@ -119,6 +117,7 @@ void arSyncDataClient::_readTask(){
       _barrierClient.requestActivation();
     // read data into back buffer 
     ar_timeval time1 = ar_time();
+
     _stackLock.lock();
     if (_storageStack.empty()){
       // storage for the next network buffer
@@ -129,6 +128,7 @@ void arSyncDataClient::_readTask(){
     pair<char*,int> dataStorage = _storageStack.front();
     _storageStack.pop_front();
     _stackLock.unlock();
+
     const bool ok = _dataClient.getDataQueue(dataStorage.first, dataStorage.second);
     const float temp = ar_difftime(ar_time(), time1);
     _oldRecvTime = temp>0. ? temp : _oldRecvTime;
@@ -148,7 +148,7 @@ void arSyncDataClient::_readTask(){
 
       // Put the stored data on the receive stack, sync or nosync.
       if (syncClient()) {
-        _swapLock.lock();
+        arGuard dummy(_swapLock);
         while (!_bufferSwapReady){
 	  _bufferSwapCondVar.wait(_swapLock);
         }
@@ -156,18 +156,16 @@ void arSyncDataClient::_readTask(){
         _bufferSwapReady = false;
 
         _stackLock.lock();
-        _receiveStack.push_back(dataStorage);
+	  _receiveStack.push_back(dataStorage);
         _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
 
         _dataAvailable = 1;
         _dataWaitCondVar.signal();
-        _swapLock.unlock();
       }
       else{
-        _stackLock.lock();
+        arGuard dummy(_stackLock);
         _receiveStack.push_back(dataStorage);
-        _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
       }
     }
@@ -428,7 +426,7 @@ void arSyncDataClient::consume(){
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for
     // wildcat graphics cards.
-    _nullHandshakeLock.lock();
+    arGuard dummy(_nullHandshakeLock);
     if (_nullHandshakeState == 1){
       // The connection thread registers disconnected and is waiting for
       // us to say we've cleared, so it can then accept a new connection.
@@ -445,11 +443,11 @@ void arSyncDataClient::consume(){
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
     }
-    _nullHandshakeLock.unlock();
   }
   else{
     if (_exitProgram)
       return;
+
     _swapLock.lock();
     // only wait if we are in synchronized read mode
     while (!_dataAvailable && _mode == AR_SYNC_CLIENT){
@@ -492,12 +490,6 @@ void arSyncDataClient::consume(){
       _stackLock.unlock();
       if (_exitProgram)
 	return;
-      
-      
-      // arLock warning: acquired abandoned lock. - when I killed dead szgrender's main thread.  _stackLock.lock() was the EnterCriticalSection on that thread's stack.
-      // killed 2nd thread, nothing happened (msg thread?)
-      // killed 3rd thread, still-living szgrender resumed updating.
-
 
 //      list<pair<char*,int> >::const_iterator iter;
       for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter){
@@ -505,6 +497,7 @@ void arSyncDataClient::consume(){
       }
       if (_exitProgram)
 	return;
+
       // move storage from consume stack to storage stack
       _stackLock.lock();
       for (iter = _consumeStack.begin(); iter != _consumeStack.end(); ++iter){
@@ -516,12 +509,14 @@ void arSyncDataClient::consume(){
       _stackLock.unlock();
       if (_exitProgram)
 	return;
+
       //_consumptionCallback(_bondedObject, _data[1 - _backBuffer]);
       time3 = ar_time();
       _actionCallback(_bondedObject);
       time4 = ar_time();
       if (_exitProgram)
 	return;
+
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
         if (!_barrierClient.sync()) {
@@ -534,10 +529,10 @@ void arSyncDataClient::consume(){
       // Signal that we are ready to swap buffers.
       if (_exitProgram)
 	return;
-      _swapLock.lock(); 
-	_bufferSwapReady = true;
-	_bufferSwapCondVar.signal();
-      _swapLock.unlock();
+
+      arGuard dummy(_swapLock);
+      _bufferSwapReady = true;
+      _bufferSwapCondVar.signal();
     }
     else{
       _dataAvailable = 0;
@@ -582,10 +577,9 @@ inline void arSyncDataClient::_update(float& value, float newValue, float filter
 // On shutdown, make sure that consume() exits, where otherwise
 // it might be blocked waiting for data from the read data thread
 void arSyncDataClient::skipConsumption(){
-  _swapLock.lock();
-    _dataAvailable = 2;
-    _dataWaitCondVar.signal();
-  _swapLock.unlock();
+  arGuard dummy(_swapLock);
+  _dataAvailable = 2;
+  _dataWaitCondVar.signal();
 }
 
 int arSyncDataClient::getServerSendSize() const {

@@ -89,11 +89,10 @@ void arBarrierClient::_dataTask(){
       continue;
     }
     if (ar_rawDataGetID(_dataBuffer) == _handshakeData->getID()){
-      // this must be round 2 of the handshake
-      _activationLock.lock();
+      // Round 2 of the handshake.
+      arGuard dummy(_activationLock);
       _activationResponse = true;
       _activationVar.signal();
-      _activationLock.unlock();
     }
     else if (ar_rawDataGetID(_dataBuffer) == _serverTuningData->getID()){
       // the server has sent a release packet
@@ -187,9 +186,8 @@ bool arBarrierClient::requestActivation(){
   // send a response
   if (!_exitProgram){
     // send 3-way handshake completion
-    _sendLock.lock();
+    arGuard dummy(_sendLock);
     _dataClient.sendData(_responseData);
-    _sendLock.unlock();
   }
   // even if we got here because of stop()... we must pretend we are
   // activated... otherwise, arSyncDataCLient's read thread might block
@@ -240,7 +238,7 @@ bool arBarrierClient::start(){
 }
 
 void arBarrierClient::stop(){
-  // make sure we are not blocking on any calls (like requestActivation(...))
+  // make sure we are not blocking on any calls (like requestActivation())
   // this really is somewhat cheesy SO FAR
   _activationLock.lock();
 

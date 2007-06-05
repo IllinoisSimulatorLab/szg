@@ -93,9 +93,9 @@ class SZG_CALL arSyncDataServer{
   string _channel;
 
   // Variables related to the local connection, if we are operating in 
-  // that mode (i.e. on arSyncDataServer and one arSyncDataClient in a 
-  // single process, as is useful for standalone mode)
-  bool           _locallyConnected;
+  // that mode (i.e. one arSyncDataServer and one arSyncDataClient in a 
+  // single process, when standalone)
+  bool           _locallyConnected; // an arSyncDataClient is in our process
   int            _localConsumerReady;
   arLock         _localConsumerReadyLock; // with _localConsumerReadyVar
   arConditionVar _localConsumerReadyVar;

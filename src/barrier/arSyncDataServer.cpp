@@ -94,10 +94,9 @@ void arSyncDataServer::_sendTaskLocal() {
   }
 
   // Lock, so consumer won't deadlock on exit.
-  _localProducerReadyLock.lock();
-    _localProducerReady = 2;
-    _localProducerReadyVar.signal();
-  _localProducerReadyLock.unlock();
+  arGuard dummy(_localProducerReadyLock);
+  _localProducerReady = 2;
+  _localProducerReadyVar.signal();
   ar_log_debug() << "arSyncDataServer: send thread done.\n";
 }
 
@@ -113,7 +112,7 @@ void arSyncDataServer::_sendTaskRemote() {
     if (_exitProgram)
       break;
 
-    // lock the queue and swap it, releasing the receiveMessage method if blocked
+    // Lock and swap the queue, releasing receiveMessage() if blocked
     _queueLock.lock();
     _dataQueue->swapBuffers(); // This can crash if app is dkill'ed.
     _messageBufferFull = false;
@@ -380,8 +379,8 @@ void arSyncDataServer::swapBuffers(){
 }
 
 arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
-  // Caller must ensure atomicity.
-  _queueLock.lock();
+  // Caller ensures atomicity.
+  arGuard dummy(_queueLock);
   if (_dataQueue->getBackBufferSize() > _sendLimit &&
       _barrierServer.getNumberConnectedActive() > 0 &&
       _mode == AR_SYNC_AUTO_SERVER){
@@ -391,27 +390,23 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
     }
   }
 
-  // Do this after the wait on a full buffer
-  // but before putting the data on the queue!
+  // Do this after the wait on a full buffer, but before queueing the data.
   //
   // If before the wait on full buffer, a connection
   // happening on a blocked buffer could send an initial
   // dump that's one record ahead of the buffer sent to the already 
   // connected clients.
   //
-  // If after putting data on the queue, then we can send the
+  // After queueing the data, send the
   // record to a connected client without crucial info added (like the ID
   // of a new node, as in newNode or insert).
+
   arDatabaseNode* node = _messageCallback(_bondedObject,data); 
 
-  // Only queue the data if there are currently connected processes...
-  // OR if we are purely connected locally (i.e. a arSyncDataClient is
-  // in the same process as us).
-  if (_barrierServer.getNumberConnectedActive() > 0 ||
-      _locallyConnected){
+  if (_barrierServer.getNumberConnectedActive() > 0 || _locallyConnected) {
+    // Something, local or remote, wants our data.  Queue it.
     _dataQueue->forceQueueData(data);
   }
   
-  _queueLock.unlock();
   return node;  
 }
