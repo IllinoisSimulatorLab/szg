@@ -77,21 +77,18 @@ void arSoundDatabase::reset(){
   _filewavNameContainer.clear();
 }
 
-// We return the whole path.
 string arSoundDatabase::getPath() const {
-  _pathLock.lock();
+  arGuard dummy(_pathLock);
   if (_path->empty()){
     return string("NULL");
   }
-  string result;
-  list<string>::const_iterator i;
-  for (i=_path->begin(); i!=_path->end(); i++){
+  string s;
+  for (list<string>::const_iterator i = _path->begin(); i!=_path->end(); i++) {
     if (*i != ""){
-      result += *i + ";"; 
+      s += *i + ";"; 
     }
   }
-  _pathLock.unlock();
-  return result;
+  return s;
 }
     
 // Only arSoundClient, not arSoundServer, should ever call setPath().
@@ -102,7 +99,7 @@ void arSoundDatabase::setPath(const string& thePath){
   string dir(""); // always search local directory
   int cdir = 0;
 
-  _pathLock.lock(); // probably called in a different thread from the data handling
+  arGuard dummy(_pathLock); // probably called in a thread other than the data handling
   delete _path;
   _path = new list<string>;
   _path->push_back(dir);
@@ -114,7 +111,6 @@ void arSoundDatabase::setPath(const string& thePath){
     ++cdir;
     _path->push_back(ar_pathAddSlash(dir));
   }
-  _pathLock.unlock();
   if (cdir <= 0)
     ar_log_warning() << "empty SZG_SOUND/path.\n";
 }
