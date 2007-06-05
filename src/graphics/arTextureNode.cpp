@@ -29,15 +29,6 @@ arTextureNode::~arTextureNode(){
   }
 }
 
-// Caller is responsible for deleting.
-arStructuredData* arTextureNode::dumpData(){
-  arGuard dummy(_nodeLock);
-  return _dumpData(
-      _fileName, _alpha, _width, _height, 
-      _texture ? _texture->getPixels() : NULL,
-      false);
-}
-
 bool arTextureNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_TEXTURE, inData->getID(), "arTextureNode"))
     return false;
@@ -108,11 +99,17 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
   }
 }
 
-// NOT thread-safe.
-arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
-			                   int width, int height, 
-                                           const char* pixels,
-                                           bool owned){
+arStructuredData* arTextureNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(
+      _fileName, _alpha, _width, _height, 
+      _texture ? _texture->getPixels() : NULL,
+      false);
+}
+
+arStructuredData* arTextureNode::_dumpData(
+    const string& fileName, int alpha, int width, int height,
+    const char* pixels, bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_TEXTURE) :
     _g->makeDataRecord(_g->AR_TEXTURE);

@@ -7,14 +7,6 @@
 #include "arGraphicsArrayNode.h"
 #include "arGraphicsDatabase.h"
 
-arStructuredData* arGraphicsArrayNode::dumpData(){
-  // The call to _dumpData must take place within a locked section.
-  // _commandBuffer.v can change as the result of a buffer resize.
-  arGuard dummy(_nodeLock);
-  // Caller is responsible for deleting this record.
-  return _dumpData(_commandBuffer.size()/_arrayStride, _commandBuffer.v, NULL, false);
-}
-
 bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_recordType, inData->getID(), "arGraphicsArrayNode"))
     return false;
@@ -72,13 +64,14 @@ void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs){
   }
 }
 
-// This method is NOT thread-safe. It is the responsbility of the caller
-// to lock the node's lock before calling. Already, various methods
-// (like arGraphicsArrayNode::dumpData) call this from a locked section.
-arStructuredData* arGraphicsArrayNode::_dumpData(int number,
-                                                 void* elements,
-						 int* IDs,
-                                                 bool owned){
+arStructuredData* arGraphicsArrayNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  // _commandBuffer.v can change if _commandBuffer resizes.
+  return _dumpData(_commandBuffer.size()/_arrayStride, _commandBuffer.v, NULL, false);
+}
+
+arStructuredData* arGraphicsArrayNode::_dumpData(
+  int number, void* elements, int* IDs, bool owned){
   arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_recordType) :
     _g->makeDataRecord(_recordType);

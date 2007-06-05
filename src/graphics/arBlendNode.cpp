@@ -14,12 +14,6 @@ arBlendNode::arBlendNode(){
   _blendFactor = 1.0; 
 }
 
-arStructuredData* arBlendNode::dumpData(){
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_blendFactor, false); 
-}
-
 bool arBlendNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_BLEND, inData->getID(), "arBlendNode"))
     return false;
@@ -49,7 +43,11 @@ void arBlendNode::setBlend(float blendFactor){
   }
 }
 
-// NOT thread-safe.
+arStructuredData* arBlendNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_blendFactor, false); 
+}
+
 arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_BLEND) :

@@ -17,12 +17,6 @@ arLightNode::~arLightNode(){
   
 }
 
-arStructuredData* arLightNode::dumpData(){
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_nodeLight, false);
-}
-
 bool arLightNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_LIGHT, inData->getID(), "arLightNode"))
     return false;
@@ -73,7 +67,12 @@ void arLightNode::setLight(arLight& light){
   }
 }
 
-arStructuredData* arLightNode::_dumpData(arLight& light, bool owned){
+arStructuredData* arLightNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_nodeLight, false);
+}
+
+arStructuredData* arLightNode::_dumpData(arLight& light, bool owned) {
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_LIGHT) :
     _g->makeDataRecord(_g->AR_LIGHT);

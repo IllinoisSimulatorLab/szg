@@ -12,12 +12,6 @@ arViewerNode::arViewerNode(){
   _typeString = "viewer";
 }
 
-// Caller is responsible for deleting.
-arStructuredData* arViewerNode::dumpData(){
-  arGuard dummy(_nodeLock);
-  return _dumpData(_head, false);
-}
-
 bool arViewerNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_VIEWER, inData->getID(), "arViewerNode"))
     return false;
@@ -49,7 +43,11 @@ void arViewerNode::setHead(const arHead& head){
   }
 }
 
-// Not thread-safe.
+arStructuredData* arViewerNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_head, false);
+}
+
 arStructuredData* arViewerNode::_dumpData(const arHead& head, const bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_VIEWER) :

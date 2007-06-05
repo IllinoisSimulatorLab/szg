@@ -12,12 +12,6 @@ arMaterialNode::arMaterialNode() {
   _typeString = "material";
 }
 
-arStructuredData* arMaterialNode::dumpData() {
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_lMaterial, false);
-}
-
 bool arMaterialNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_MATERIAL, inData->getID(), "arMaterialNode"))
     return false;
@@ -51,9 +45,12 @@ void arMaterialNode::setMaterial(const arMaterial& material) {
   }
 }
 
-// NOT thread-safe.
-arStructuredData* arMaterialNode::_dumpData(const arMaterial& material,
-                                            bool owned) {
+arStructuredData* arMaterialNode::dumpData() {
+  arGuard dummy(_nodeLock);
+  return _dumpData(_lMaterial, false);
+}
+
+arStructuredData* arMaterialNode::_dumpData(const arMaterial& material, bool owned) {
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL) :
     _g->makeDataRecord(_g->AR_MATERIAL);

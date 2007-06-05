@@ -199,12 +199,6 @@ void arDrawableNode::draw(arGraphicsContext* context){
   }
 }
 
-arStructuredData* arDrawableNode::dumpData(){
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_type, _number, false);
-}
-
 bool arDrawableNode::receiveData(arStructuredData* inData){
   // Deals with the problem that the node is created and then initialized
   // in two different messages.
@@ -249,14 +243,16 @@ void arDrawableNode::setDrawable(arDrawableType type, int number){
   }
 }
 
-void arDrawableNode::setDrawableViaString(const string& type,
-                                          int number){
+void arDrawableNode::setDrawableViaString(const string& type, int number){
   setDrawable(_convertStringToType(type), number);
 }
 
-// NOT thread-safe.
-arStructuredData* arDrawableNode::_dumpData(int type, int number,
-                                            bool owned){
+arStructuredData* arDrawableNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_type, _number, false);
+}
+
+arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE) :
     _g->makeDataRecord(_g->AR_DRAWABLE);

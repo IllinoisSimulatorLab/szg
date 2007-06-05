@@ -14,12 +14,6 @@ arVisibilityNode::arVisibilityNode():
   _typeString = "visibility";
 }
 
-// Responsibility of the caller to delete this message.
-arStructuredData* arVisibilityNode::dumpData(){
-  arGuard dummy(_nodeLock);
-  return _dumpData(_visibility, false);
-}
-
 bool arVisibilityNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_VISIBILITY, inData->getID(), "arVisibilityNode"))
     return false;
@@ -50,7 +44,11 @@ void arVisibilityNode::setVisibility(bool visibility){
   }
 }
 
-// NOT thread-safe.
+arStructuredData* arVisibilityNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_visibility, false);
+}
+
 arStructuredData* arVisibilityNode::_dumpData(bool visibility, bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_VISIBILITY) :

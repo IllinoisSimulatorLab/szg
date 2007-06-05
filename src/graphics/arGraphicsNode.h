@@ -30,6 +30,8 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode{
   virtual void initialize(arDatabase*);
   virtual bool receiveData(arStructuredData*){ return false; };
   virtual arStructuredData* dumpData(){ return NULL; };
+    // Caller deletes returned value.
+    // Subclasses' _dumpData is usually not thread-safe.
 
   // unique to arGraphicsNode
   arMatrix4 accumulateTransform();

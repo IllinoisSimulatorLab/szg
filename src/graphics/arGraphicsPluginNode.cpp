@@ -51,13 +51,6 @@ void arGraphicsPluginNode::draw(arGraphicsContext* context) {
   _object->draw( *win, *vp );
 }
 
-arStructuredData* arGraphicsPluginNode::dumpData() {
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(
-    _fileName, _intData, _longData, _floatData, _doubleData, _stringData, false );
-}
-
 bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   // Get the name change record, for instance, if sent.
   if (arDatabaseNode::receiveData(data)) {
@@ -138,7 +131,12 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   return _isGraphicsServer || !_object || _object->setState( _intData, _longData, _floatData, _doubleData, _stringData );
 }
 
-// NOT thread-safe.
+arStructuredData* arGraphicsPluginNode::dumpData() {
+  arGuard dummy(_nodeLock);
+  return _dumpData(
+    _fileName, _intData, _longData, _floatData, _doubleData, _stringData, false );
+}
+
 arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
                                                      std::vector<int>& intData,
                                                      std::vector<long>& longData,

@@ -23,12 +23,6 @@ arGraphicsStateNode::~arGraphicsStateNode(){
 void arGraphicsStateNode::draw(arGraphicsContext*){
 }
 
-arStructuredData* arGraphicsStateNode::dumpData(){
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_stateName, _stateValueInt, _stateValueFloat, false);
-}
-
 bool arGraphicsStateNode::receiveData(arStructuredData* data){
   // Get the name change record, for instance, if sent.
   if (arDatabaseNode::receiveData(data)){
@@ -344,11 +338,16 @@ bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) const {
   }
 }
 
-// NOT thread-safe.
-arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
-                                         arGraphicsStateValue* stateValueInt,
-                                         float stateValueFloat,
-                                         bool owned ) {
+arStructuredData* arGraphicsStateNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_stateName, _stateValueInt, _stateValueFloat, false);
+}
+
+arStructuredData* arGraphicsStateNode::_dumpData(
+    const string& stateName,
+    arGraphicsStateValue* stateValueInt,
+    float stateValueFloat,
+    bool owned ) {
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE) :
     _g->makeDataRecord(_g->AR_GRAPHICS_STATE);

@@ -18,7 +18,7 @@ arBillboardNode::arBillboardNode():
 }
 
 void arBillboardNode::draw(arGraphicsContext*){
-  // Copy _text and visibility for thread-safety.
+  // Local copies.
   _nodeLock.lock();
     const string text = _text;
     const bool visibility = _visibility;
@@ -32,23 +32,23 @@ void arBillboardNode::draw(arGraphicsContext*){
   format.lineSpacing = 1.0;
   format.color = arVector3(1,1,1);
   format.width = 1;
-  // Want columns to be essentially infinite at first so there is no wrap around in
-  // the calculation of text size.
+  // Avoid wraparound while calculating text size.
   format.columns = 1000;
   format.upperLeft = arVector3(-0.5, 0.5, 0);
   float width = 0;
   float height = 0;
   alphabet->getTextMetrics(parse, format, width, height);
-  // For the width we get back, each character has width 0.001. We want the character to
-  // have width 1.
+
+  // Rescale width from .001 per character to 1.
   width *= 1000;
   height *= 1000;
   format.width = width;
   format.columns = int(ceil(float(width)));
   format.upperLeft = arVector3(-format.width/2.0, height/2.0, 0);
+
   // Render the background.
-  const float cornerY=height/2.0;
-  const float cornerX=width/2.0;
+  const float cornerY = height/2.0;
+  const float cornerX = width/2.0;
   glDisable(GL_LIGHTING);
   glBegin(GL_QUADS);
   glColor3f(0,0,0);
@@ -57,20 +57,16 @@ void arBillboardNode::draw(arGraphicsContext*){
   glVertex3f(cornerX,cornerY,-0.01);
   glVertex3f(cornerX,-cornerY,-0.01);
   glColor3f(1,0,0);
-  float cornerDelta = 0.2;
-  glVertex3f(-cornerX-cornerDelta,-cornerY-cornerDelta,-0.02);
-  glVertex3f(-cornerX-cornerDelta,cornerY+cornerDelta,-0.02);
-  glVertex3f(cornerX+cornerDelta,cornerY+cornerDelta,-0.02);
-  glVertex3f(cornerX+cornerDelta,-cornerY-cornerDelta,-0.02);
+  const float cornerDelta = 0.2;
+  const float z = -0.02;
+  glVertex3f(-cornerX-cornerDelta,-cornerY-cornerDelta, z);
+  glVertex3f(-cornerX-cornerDelta,cornerY+cornerDelta, z);
+  glVertex3f(cornerX+cornerDelta,cornerY+cornerDelta, z);
+  glVertex3f(cornerX+cornerDelta,-cornerY-cornerDelta, z);
   glEnd();
-  // Must render the text second, since it uses transparent.
-  alphabet->renderText(parse, format);
-}
 
-arStructuredData* arBillboardNode::dumpData(){
-  // Caller is responsible for deleting.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_text, _visibility, false);
+  // Render text last, for its transparency.
+  alphabet->renderText(parse, format);
 }
 
 bool arBillboardNode::receiveData(arStructuredData* inData){
@@ -104,10 +100,13 @@ void arBillboardNode::setText(const string& text){
   }
 }
 
-// NOT thread-safe.
-arStructuredData* arBillboardNode::_dumpData(const string& text,
-					     bool visibility,
-                                             bool owned){
+arStructuredData* arBillboardNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_text, _visibility, false);
+}
+
+arStructuredData* arBillboardNode::_dumpData(
+  const string& text, bool visibility, bool owned){
   arStructuredData* r = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_BILLBOARD) :
     _g->makeDataRecord(_g->AR_BILLBOARD);

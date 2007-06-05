@@ -31,12 +31,6 @@ void arBoundingSphereNode::draw(arGraphicsContext*){
   glPopMatrix();
 }
 
-arStructuredData* arBoundingSphereNode::dumpData(){
-  // Caller deletes this record.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_boundingSphere, false);
-}
-
 bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   if (!_g->checkNodeID(_g->AR_BOUNDING_SPHERE, inData->getID(), "arBoundingSphereNode"))
     return false;
@@ -71,9 +65,13 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
   }
 }
 
-// Not thread-safe.
-arStructuredData* arBoundingSphereNode::_dumpData(const arBoundingSphere& b,
-                                                  bool owned){
+arStructuredData* arBoundingSphereNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_boundingSphere, false);
+}
+
+arStructuredData* arBoundingSphereNode::_dumpData(
+  const arBoundingSphere& b, bool owned){
   arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_g->AR_BOUNDING_SPHERE) :
     _g->makeDataRecord(_g->AR_BOUNDING_SPHERE);

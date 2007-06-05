@@ -17,12 +17,6 @@ void arTransformNode::draw(arGraphicsContext*){
   glMultMatrixf(_transform.v);
 }
 
-arStructuredData* arTransformNode::dumpData(){
-  // Caller deletes this record.
-  arGuard dummy(_nodeLock);
-  return _dumpData(_transform, false);
-}
-
 bool arTransformNode::receiveData(arStructuredData* inData){
   // Get the name change record, for instance, if sent.
   if (arDatabaseNode::receiveData(inData))
@@ -55,9 +49,12 @@ void arTransformNode::setTransform(const arMatrix4& transform){
   }
 }
 
-// NOT thread-safe. Call from within a locked section.
-arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
-                                             bool owned){
+arStructuredData* arTransformNode::dumpData(){
+  arGuard dummy(_nodeLock);
+  return _dumpData(_transform, false);
+}
+
+arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform, bool owned){
   arStructuredData* r = owned ?
     _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM) :
     _g->makeDataRecord(_g->AR_TRANSFORM);
