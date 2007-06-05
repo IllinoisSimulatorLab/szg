@@ -2984,7 +2984,7 @@ void arSZGClient::_serverResponseThread() {
 
     // We got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
-    _lock.lock();
+    arGuard dummy(_lock);
     if (_dataRequested) {
       // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
@@ -3021,7 +3021,6 @@ void arSZGClient::_serverResponseThread() {
         }
       }
     }
-    _lock.unlock();
   }
 }
 
@@ -3036,9 +3035,8 @@ void arSZGClient::_timerThread() {
 
     ar_usleep(1500000); // Long, for slow or flaky networks.
 
-    _lock.lock();
-      _dataCondVar.signal();
-    _lock.unlock();
+    arGuard dummy(_lock);
+    _dataCondVar.signal();
   }
 }
 
@@ -3102,7 +3100,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  _lock.lock();
+  arGuard dummy(_lock);
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = name;
@@ -3114,16 +3112,12 @@ bool arSZGClient::discoverSZGServer(const string& name,
   }
   if (_dataRequested) {
     // timeout
-    _lock.unlock();
     return false;
   }
 
-  // to internal storage
   _serverName = string(_responseBuffer+5);
   _IPaddress = string(_responseBuffer+132);
   _port = atoi(_responseBuffer+164);
-
-  _lock.unlock();
   return true;
 }
 
@@ -3148,7 +3142,6 @@ void arSZGClient::printSZGServers(const string& broadcast) {
     }
   _lock.unlock();
   _dataRequested = false;
-
   _justPrinting = false;
   _bufferResponse = false;
 }

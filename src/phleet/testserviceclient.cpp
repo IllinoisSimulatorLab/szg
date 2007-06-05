@@ -22,8 +22,10 @@ void readDataTask(void* num){
   int number = *((int*) num);
   int trial = 0;
   while(true){
+    printLock.lock();
     cout << "&&&&&& Component ID of service " << serviceName[number]
 	 << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
+    printLock.unlock();
     trial++;
     const int whichNetwork = rand()% networks.size();
     const string testNetwork = networks[whichNetwork];
@@ -32,11 +34,11 @@ void readDataTask(void* num){
          << "  trial = " << trial << "\n"
          << "  Discovering service on network " << testNetwork << "\n";
     printLock.unlock();
-    // the call to discoverService uses some async mojo...
-    // the upshot is that discoverService blocks until an appropriate service
-    // is registered
-    arPhleetAddress result 
-      = szgClient.discoverService(serviceName[number], testNetwork, true);
+
+    // discoverService() uses async mojo to
+    // block until an appropriate service is registered
+    arPhleetAddress result =
+      szgClient.discoverService(serviceName[number], testNetwork, true);
     printLock.lock();
     cout << "***** Thread number = " << number << "\n"
          << "  trial = "<< trial << "\n"
@@ -52,11 +54,10 @@ void readDataTask(void* num){
     
     if (!dataClient[number].dialUpFallThrough(result.address.c_str(), 
                                               result.portIDs[0])){
-      printLock.lock();
-      cout << "***** Thread number = " << number << "\n";
-      cout << "  trial = " << trial << "\n";
-      cout << "  error: failed to connect to supposedly registered server.\n";
-      printLock.unlock();
+      arGuard dummy(printLock);
+      cout << "***** Thread number = " << number << "\n"
+           << "  trial = " << trial << "\n"
+           << "  error: failed to connect to supposedly registered server.\n";
       continue;
     }
     arTemplateDictionary* dictionary = dataClient[number].getDictionary();
@@ -65,19 +66,17 @@ void readDataTask(void* num){
     arStructuredData* data = new arStructuredData(dictionary->find("test"));
     for (int k=0; k<10; k++){
       if (!dataClient[number].getData(buffer, bufferSize)){
-        printLock.lock();
-        cout << "***** Thread number = " << number << "\n";
-        cout << "  trial = " << trial << "\n";
-        cout << "  error: szgClient failed to get data.\n";
-        printLock.unlock();
-	// try to discover a new service
+	arGuard dummy(printLock);
+        cout << "***** Thread number = " << number << "\n"
+             << "  trial = " << trial << "\n"
+             << "  error: szgClient failed to get data.\n";
+	// discover a new service
         break;
       }
       data->unpack(buffer);
-      printLock.lock();
+      arGuard dummy(printLock);
       cout << "##### Thread number = " << number << "\n";
       data->print();
-      printLock.unlock();
     }
     dataClient[number].closeConnection();
   }

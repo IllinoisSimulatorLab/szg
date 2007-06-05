@@ -13,6 +13,7 @@ DRVDIRS=language math phleet barrier drivers
 LIBDIRS=$(DRVDIRS) graphics sound obj interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 DEMODIRS=ribbons atlantis coaster hspace cosmos cubes parade schprel
+SZGDEBUG=TRUE
 
 # For 8-cpu salami.isl.uiuc.edu and other multicore multi-cpu hyperthreaded.
 ifeq "$(PLATFORM)" "win32"
