@@ -79,21 +79,18 @@ void arSoundServer::stop(){
   _syncServer.stop();
 }
  
-arDatabaseNode* arSoundServer::alter(arStructuredData* theData,
-                                     bool refNode){
-  // Serialization must occur at this level AND must use the thread-safety lock
-  // for arDatabase.
+arDatabaseNode* arSoundServer::alter(arStructuredData* theData, bool refNode){
+  // Serialize with arDatabase's lock.
   _lock();
-  arDatabaseNode* result = _syncServer.receiveMessage(theData);
-  if (result && refNode){
-    result->ref();
-  }
+    arDatabaseNode* r = _syncServer.receiveMessage(theData);
+    if (r && refNode){
+      r->ref();
+    }
   _unlock();
-  return result;
+  return r;
 }
 
-void arSoundServer::_recSerialize(arDatabaseNode* pNode,
-				     arStructuredData& nodeData){
+void arSoundServer::_recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData){
   // This will fail for the root node
   if (fillNodeData(&nodeData, pNode)){
     _connectionQueue->forceQueueData(&nodeData);
@@ -101,15 +98,16 @@ void arSoundServer::_recSerialize(arDatabaseNode* pNode,
     _connectionQueue->forceQueueData(theData);
     delete theData;
   }
+
   // Thread-safety does NOT require using getChildrenRef instead of 
-  // getChildren. That would result in frequent deadlocks on connection
-  // attempts. This is called from the connection callback (which is
-  // called from within a locked _queueLock in arSyncDataServer). By examining
-  // arSyncDataServer::receiveMessage one easily sees that any alteration to 
-  // the local database occurs protected by _queueLock. Thus, we are OK!
+  // getChildren. That would deadlock connection attempts.
+  // This is called from the connection callback (which is
+  // called from within a locked _queueLock in arSyncDataServer).
+  // In arSyncDataServer::receiveMessage, _queueLock guards alterations to
+  // the local database. Thus, we are OK!
   list<arDatabaseNode*> children = pNode->getChildren();
-  for (list<arDatabaseNode*>::iterator i=children.begin(); 
-       i!=children.end(); i++){
+  for (list<arDatabaseNode*>::const_iterator i = children.begin(); 
+       i != children.end(); ++i){
     _recSerialize(*i, nodeData);
   }
 }
