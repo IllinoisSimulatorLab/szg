@@ -56,10 +56,8 @@ vector<arVector3> arNormal3Node::getNormal3(){
   arGuard dummy(_nodeLock);
   unsigned int num = _commandBuffer.size()/_arrayStride;
   result.resize(num);
-  for (unsigned int i = 0; i < num; i++){
-    result[i][0] = _commandBuffer.v[3*i];
-    result[i][1] = _commandBuffer.v[3*i+1];
-    result[i][2] = _commandBuffer.v[3*i+2];
+  for (unsigned i = 0; i < num; i++){
+    result[i] = arVector3(_commandBuffer.v + 3*i);
   }
   return result;
 }
@@ -68,14 +66,14 @@ vector<arVector3> arNormal3Node::getNormal3(){
 // But this is more convenient for calling from Python.
 // Thread-safe.
 void arNormal3Node::setNormal3(vector<arVector3>& normal3){
-  float* ptr = new float[normal3.size()*3];
+  float* fPtr = new float[normal3.size()*3];
   for (unsigned int i = 0; i < normal3.size(); i++){
-    ptr[3*i] = normal3[i][0];
-    ptr[3*i+1] = normal3[i][1];
-    ptr[3*i+2] = normal3[i][2];
+    fPtr[3*i  ] = normal3[i][0];
+    fPtr[3*i+1] = normal3[i][1];
+    fPtr[3*i+2] = normal3[i][2];
   }
-  setNormal3(normal3.size(), ptr, NULL);
-  delete [] ptr;
+  setNormal3(normal3.size(), fPtr, NULL);
+  delete [] fPtr;
 }
 
 // Adds an additional copy plus dynamic memory allocation.
@@ -87,7 +85,7 @@ void arNormal3Node::setNormal3(vector<arVector3>& normal3,
   float* fPtr = new float[3*num];
   int* iPtr = new int[num];
   for (unsigned int i = 0; i < num; i++){
-    fPtr[3*i] = normal3[i][0];
+    fPtr[3*i  ] = normal3[i][0];
     fPtr[3*i+1] = normal3[i][1];
     fPtr[3*i+2] = normal3[i][2];
     iPtr[i] = IDs[i];
