@@ -6,5 +6,9 @@
 #else
   #include <algorithm>
 #endif
+#if (defined(__GNUC__)&&(__GNUC__>=4))
+  // For gcc 4.1.2 "accumulator"
+  #include <numeric>
+#endif
 
 #endif

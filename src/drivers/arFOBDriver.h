@@ -35,6 +35,8 @@ Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
 
 // Driver for Ascension's Flock of Birds magnetic motion tracker.
 
+void ar_FOBDriverEventTask(void*);
+
 class arFOBDriver: public arInputSource {
   friend void ar_FOBDriverEventTask(void*);
  public:

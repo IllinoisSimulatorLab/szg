@@ -23,19 +23,28 @@
 // looks for soundfiles in SZG_SOUND/path, and
 // renders the arSoundDatabase which arSoundServer and arSoundClients share.
 
+void* SZG_SOUND_CALLBACK ar_soundClientDSPCallback(void*,void*,int,int);
+void ar_soundClientWaveformConnectionTask(void*);
+bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*);
+bool ar_soundClientDisconnectCallback(void*);
+bool ar_soundClientConsumptionCallback(void*, ARchar*);
+bool ar_soundClientActionCallback(void*);
+bool ar_soundClientNullCallback(void*);
+bool ar_soundClientPostSyncCallback(void*);
+
 class SZG_CALL arSoundClient{
   // Needs assignment operator and copy constructor, for pointer members.
   // Probably should be a singleton class, though.
-  friend void* SZG_SOUND_CALLBACK 
-    ar_soundClientDSPCallback(void*,void*,int,int);
+
+  friend void* SZG_SOUND_CALLBACK ar_soundClientDSPCallback(void*,void*,int,int);
   friend void ar_soundClientWaveformConnectionTask(void*);
-  friend bool
-    ar_soundClientConnectionCallback(void*, arTemplateDictionary*);
+  friend bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*);
   friend bool ar_soundClientDisconnectCallback(void*);
   friend bool ar_soundClientConsumptionCallback(void*, ARchar*);
   friend bool ar_soundClientActionCallback(void*);
   friend bool ar_soundClientNullCallback(void*);
   friend bool ar_soundClientPostSyncCallback(void*);
+
  public:
   arSoundClient();
   ~arSoundClient();

@@ -21,28 +21,35 @@
 // Render graphics data using the SZG_GEOMETRY service
 // and draw OpenGL scenes from an arGraphicsDatabase.
 
+class SZG_CALL arGraphicsClient;
+class arGraphicsClientRenderCallback;
+bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
+bool ar_graphicsClientDisconnectCallback(void*);
+void ar_graphicsClientDraw(arGraphicsClient*, arGraphicsWindow&, arViewport&);
+bool ar_graphicsClientConsumptionCallback(void*, ARchar*);
+bool ar_graphicsClientActionCallback(void*);
+bool ar_graphicsClientNullCallback(void*);
+bool ar_graphicsClientPostSyncCallback(void*);
+
 class SZG_CALL arGraphicsClient{
   // Needs assignment operator and copy constructor, for pointer members.
-  friend bool
-    ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
+
+  friend class arGraphicsClientRenderCallback;
+  friend bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
   friend bool ar_graphicsClientDisconnectCallback(void*);
-  friend void ar_graphicsClientDraw( arGraphicsClient* client,
-                                     arGraphicsWindow& win,
-                                     arViewport& view );
+  friend void ar_graphicsClientDraw(arGraphicsClient*, arGraphicsWindow&, arViewport&);
   friend bool ar_graphicsClientConsumptionCallback(void*, ARchar*);
   friend bool ar_graphicsClientActionCallback(void*);
   friend bool ar_graphicsClientNullCallback(void*);
   friend bool ar_graphicsClientPostSyncCallback(void*);
-  friend class arGraphicsClientRenderCallback;
+
  public:
   arGraphicsClient();
   ~arGraphicsClient();
 
-  void setWindowManager(arGUIWindowManager* wm){
-    _windowManager = wm;
-  }
-  arGUIWindowManager* getWindowManager(){ return _windowManager; }
-  arGraphicsWindow* getGraphicsWindow(int ID){  return _windowManager->getGraphicsWindow( ID ); }
+  void setWindowManager(arGUIWindowManager* wm) { _windowManager = wm; }
+  arGUIWindowManager* getWindowManager() { return _windowManager; }
+  arGraphicsWindow* getGraphicsWindow(int ID) { return _windowManager->getGraphicsWindow( ID ); }
   bool configure(arSZGClient*);
   //arGraphicsWindow* getGraphicsWindow(){ return &_graphicsWindow; }
 

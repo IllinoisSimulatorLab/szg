@@ -13,6 +13,8 @@
 
 // Driver for the Faro Arm.
 
+void ar_FaroDriverEventTask(void*);
+
 class arFaroDriver: public arInputSource {
   friend void ar_FaroDriverEventTask(void*);
  public:
