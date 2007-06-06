@@ -109,8 +109,12 @@ void arJoystickDriver::_eventTask() {
 // Don't inline, lest factory break.
 arJoystickDriver::arJoystickDriver() :
   _pollingDone(false),
+#ifdef AR_USE_WIN_32
   _shutdown(false),
   _fFirst(true)
+#else
+  _shutdown(false)
+#endif
 {
 }
 
