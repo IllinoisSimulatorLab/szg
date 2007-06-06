@@ -43,7 +43,6 @@ void arJoystickDriver::_eventTask() {
       cerr << "DirectInput poll failed.\n";
       break;
     }
-    _fFirst = true;
     DIJOYSTATE2	js;
     int rc = _pStick->GetDeviceState(sizeof(js), &js);
     if (FAILED(rc)){
@@ -82,9 +81,11 @@ void arJoystickDriver::_eventTask() {
     if (_fFirst || js.rglSlider[1] != _jsPrev.rglSlider[1])
       queueAxis(7, js.rglSlider[1]);
 
-    for (int j=0; j<128; j++)
-      if (_fFirst || js.rgbButtons[j] != _jsPrev.rgbButtons[j])
-	queueButton(j, (js.rgbButtons[j] == 0) ? 0 : 1);
+    for (int j=0; j<128; j++) {
+      if (_fFirst || js.rgbButtons[j] != _jsPrev.rgbButtons[j]) {
+        queueButton(j, (js.rgbButtons[j] == 0) ? 0 : 1);
+      }
+    }
 
     _fFirst = false;
 
@@ -108,7 +109,8 @@ void arJoystickDriver::_eventTask() {
 // Don't inline, lest factory break.
 arJoystickDriver::arJoystickDriver() :
   _pollingDone(false),
-  _shutdown(false)
+  _shutdown(false),
+  _fFirst(true)
 {
 }
 
