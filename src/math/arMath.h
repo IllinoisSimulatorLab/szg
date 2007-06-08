@@ -18,7 +18,7 @@ using namespace std;
 #define M_PI (3.14159265359)
 #endif
 
-#ifdef AR_USE_WIN_32
+#if defined(AR_USE_WIN_32) || defined(AR_USE_SGI)
 inline float roundf(const float x) { return floor(x + 0.5f); }
 #endif
 
