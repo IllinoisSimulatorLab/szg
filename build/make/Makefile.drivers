@@ -147,9 +147,9 @@ ALL = \
   PForthTest$(EXE) \
   pfconsole$(EXE)
 
-# ifneq ($(strip $(SZG_LINKING)), STATIC) 
-#   ALL += DeviceServer$(EXE) $(LIBS_DRIVER)
-# endif
+ifneq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += $(LIBS_DRIVER)
+endif
 
 include $(SZGHOME)/build/make/Makefile.rules
 
