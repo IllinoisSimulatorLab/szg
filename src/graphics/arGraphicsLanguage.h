@@ -178,8 +178,7 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
 public:
   const char* _stringFromID(const int) const;
   string numstringFromID(const int) const;
-  bool arGraphicsLanguage::checkNodeID(const int idExpected,
-      const int id, const char* name) const;
+  bool checkNodeID(const int idExpected, const int id, const char* name) const;
 };
 
 #endif
