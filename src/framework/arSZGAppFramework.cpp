@@ -327,7 +327,7 @@ void arSZGAppFramework::_loadNavParameters() {
   ar_log_remark() << "arSZGAppFramework: loading SZG_NAV parameters.\n";
   std::string temp;
   if ((___firstNavLoad)||_paramNotOwned( "effector" )) {
-    int params[5] = { 1, 1, 0, 2, 0 };
+    int params[5] = { 1, 1, 0, 4, 0 };
     temp = _SZGClient.getAttribute("SZG_NAV", "effector");
     if (temp != "NULL") {
       if (ar_parseIntString( temp, params, 5 ) != 5) {
