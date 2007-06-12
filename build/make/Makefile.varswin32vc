@@ -1,11 +1,12 @@
 MACHINE_DIR = win32
-# NOTE: The copy-to-bin-directory now occurs either automatically when
-# an executable (or the library) is recompiled (for each such individually).
-# It can also occur upon a manually given copy request (in which case
-# everything is rebuilt (if necessary as determined by make) then copied.
+# Copy-to-bin-directory occurs either automatically when
+# an exe or lib is individually recompiled,
+# or when explicitly requested (in which case make first rebuilds
+# subtargets as needed).
 CP = cp
 
-# suffixes
+# Suffixes.
+
 OBJ_SUFFIX = .obj
 DLL_SUFFIX = .dll
 LIB_SUFFIX = .lib
@@ -13,43 +14,49 @@ PLUGIN_SUFFIX = .dll
 STATIC_SUFFIX=.lib
 EXE = .exe
 
-# compilation
+# Compilation.
+
 COMPILER = cl
-COMMON_COMPILE_FLAGS = -nologo -c -w -W0 -G6 -GX -D "_MBCS" \
- -D "AR_USE_WIN_32" $(SZG_OPT_FLAGS)
-# If using STLport (to improve Visual Studio 6's STL), make it support multithreading.
+COMMON_COMPILE_FLAGS = -nologo -c -w -W0 -D "_MBCS" -D "AR_USE_WIN_32" $(SZG_OPT_FLAGS)
 ifeq ($(strip $(SZG_STLPORT)),TRUE)
+  # Using STLport to improve Visual Studio 6's STL.  Support multithreading.
   COMMON_COMPILE_FLAGS+= -D "_REENTRANT"
 endif
+ifneq ($(strip $(VS71COMTOOLS)),)
+  # Visual Studio 7
+endif
+ifneq ($(strip $(VS80COMTOOLS)),)
+  # Visual Studio 8
+  COMMON_COMPILE_FLAGS+= -EHsc
+else
+  COMMON_COMPILE_FLAGS+= -G6 -GX
+endif
 ifneq ($(strip $(PROGRAMW6432)),)
-  # For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+  # WinXP 64bit with 32-bit C++ compiler v12.00.8168.
   # Testing PROGRAMW6432's existence is a kluge.
   COMMON_COMPILE_FLAGS+= -D "AR_USE_WIN_64"
 endif
 
-# The location of the precompiled header. Using this speeds up windows builds
-# by a substantial margin. This is another place where we assume SZGHOME
-# has been defined. NOTE: It is, indeed, possible to use precompiled
-# headers with your "EASY" projects.
-ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-  PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
-    -Fp$(SZGHOME)/build/win32/language/arPrecompiled.pch
-else
+# Location of the precompiled header. This speeds up windows builds.
+# Needs SZGHOME, whether EASY or not.
+ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
   PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
     -Fp$(SZGHOME)/build/pch/arPrecompiled.pch
+else
+  PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
+    -Fp$(SZGHOME)/build/win32/language/arPrecompiled.pch
 endif
 
 # The default.
 PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_USAGE)
 
-# Sometimes we want to NOT have precompiled headers! (For instance, if
-# we need to compile against a library built with a *slightly* different
-# compiler (i.e. just a patch level away) OR if we need to compile 
-# something debug while linking it with object files compiled nondebug.
+# Disable precompiled headers, e.g. if compiling against
+# against a library built with a *slightly* different
+# compiler (i.e. just a patch level away), of if linking .obj files
+# of which only some, not all, are compiled as debug.
 PRECOMPILED_HEADER_DISABLE = -YX
 
-# If SZG_DEVELOPER_STYLE is EASY, then we will compile WITHOUT using
-# precompiled headers.
+# If SZG_DEVELOPER_STYLE is EASY, then default to no precompiled headers.
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
   PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 endif
@@ -122,7 +129,8 @@ else
   OPTIMIZE_FLAG = 
 endif
 
-# The flags and other definitions pertaining to linking.
+# Linking.
+
 LINKER = link
 STATIC_LINKER = LIB
 LINK_PREFIX = -out:
@@ -143,16 +151,20 @@ else
   SZG_NO_DEFAULT_LIB_DEBUG = -NODEFAULTLIB:MSVCRT.LIB
   SZG_NO_DEFAULT_LIB_NDEBUG = -NODEFAULTLIB:MSVCRTD.LIB 
 endif
-LINK_FLAGS_BASE = -nologo $(SZG_SUBSYSTEM) -incremental:no \
- $(SZG_NO_DEFAULT_LIB)
-LINK_FLAGS_SHARED_BASE = -nologo -incremental:no -dll \
- $(SZG_NO_DEFAULT_LIB)
-ifeq ($(strip $(SZG_STLPORT)),TRUE)
-  LINK_FLAGS_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
-  LINK_FLAGS_SHARED_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
+LINK_FLAGS_BASE = $(SZG_SUBSYSTEM) $(SZG_NO_DEFAULT_LIB)
+LINK_FLAGS_SHARED_BASE = -dll $(SZG_NO_DEFAULT_LIB)
+ifeq ($(strip $(VS80COMTOOLS)),)
+  # *not* Visual Studio 8
+  LINK_FLAGS_NOT_VS8 = -nologo -incremental:no
+  LINK_FLAGS_BASE += $(LINK_FLAGS_NOT_VS8)
+  LINK_FLAGS_SHARED_BASE += $(LINK_FLAGS_NOT_VS8)
 endif
-LINK_FLAGS_DEBUG = $(LINK_FLAGS_BASE) $(SZG_NO_DEFAULT_LIB_DEBUG) \
- -debug 
+ifeq ($(strip $(SZG_STLPORT)),TRUE)
+  LINK_FLAGS_STLPORT = /libpath:$(SZGEXTERNAL)/win32/STLport/lib
+  LINK_FLAGS_BASE += $(LINK_FLAGS_STLPORT)
+  LINK_FLAGS_SHARED_BASE += $(LINK_FLAGS_STLPORT)
+endif
+LINK_FLAGS_DEBUG = $(LINK_FLAGS_BASE) $(SZG_NO_DEFAULT_LIB_DEBUG) -debug 
 LINK_FLAGS_SHARED_DEBUG = $(LINK_FLAGS_SHARED_BASE) \
  $(SZG_NO_DEFAULT_LIB_DEBUG) -debug
 # The default is no debugging
