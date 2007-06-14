@@ -48,6 +48,7 @@ class SZG_CALL arLogStream{
   void setStream(ostream&);
   void setHeader(const string&);
   bool setLogLevel(int);
+  void setTimestamp(const bool);
   string logLevel();
   bool logLevelDefault();
   
@@ -69,14 +70,14 @@ class SZG_CALL arLogStream{
  private:
   ostream* _output;   
 
-  // Should really be replaced by a "thread map" (based on thread ID)
-  // for good interleaving of messages.
+  // todo: map thread ID to buffers, for interleaving messages.
   ostringstream _buffer;
 
   string _header;
   unsigned _maxLineLength;
   int _threshold;
   int _level;
+  bool _fTimestamp;
   
   bool _preAppend();
   void _postAppend(bool flush=false);

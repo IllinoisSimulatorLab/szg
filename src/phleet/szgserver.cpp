@@ -1367,10 +1367,12 @@ void messageAdminCallback(arStructuredData* pd,
     const int messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
     responseOwner = SZGgetMessageOwnerID(messageID);
     if (responseOwner < 0) {
-      ar_log_warning() << "szgserver: unexpected response for messageID " << messageID << ".\n";
+      // No message has this ID.
+      // Owner probably died while one app died and another started.
+      ar_log_debug() << "szgserver ignoring response to unowned message.\n";
     }
     else {
-      // a message with the given ID does exist (and is expecting a response)
+      // A message with this ID expects a response.
       responseDestination = SZGgetMessageOriginatorID(messageID);
       if (responseOwner != dataSocket->getID()) {
         ar_log_warning() << "szgserver: illegal response attempt from component "
@@ -1385,7 +1387,7 @@ void messageAdminCallback(arStructuredData* pd,
 	}
 	else {
 	  // Fill in the match.
-          int match = SZGgetMessageMatch(messageID);
+          const int match = SZGgetMessageMatch(messageID);
           pd->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
           if (!dataServer->sendData(pd, responseSocket)) {
 	    ar_log_warning() << "szgserver: response failed.\n";
@@ -1394,16 +1396,14 @@ void messageAdminCallback(arStructuredData* pd,
 	    status = true;
 	  }
 	}
-        // If the message will not be continued (status field is SZG_CONTINUE),
-	// remove the message from the database.
-        const string responseMode =
-          pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
-        if (responseMode == string("SZG_SUCCESS")) {
+        const string s = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
+        if (s != "SZG_CONTINUE") {
+	  // The message won't be continued.
           SZGremoveMessageFromDB(messageID);
-	}
-	else if (responseMode != string("SZG_CONTINUE")) {
-	  ar_log_warning() << "szgserver: message response had unexpected status field '"
-	       << responseMode << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
+	  if (s != "SZG_SUCCESS") {
+	    ar_log_warning() << "szgserver: message response had unexpected status field '"
+		 << s << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
+	  }
 	}
       }
     }
@@ -2003,6 +2003,7 @@ void SZGdisconnectFunction(void*, arSocket* s) {
 
 int main(int argc, char** argv) {
   ar_log().setLogLevel(AR_LOG_REMARK);
+  ar_log().setTimestamp(true);
 
   if (argc < 3) {
     ar_log_error() << "usage: szgserver name port [mask.1] ... [mask.n]\n" <<

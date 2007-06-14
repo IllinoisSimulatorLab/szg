@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arLogStream.h"
+#include "arDataUtilities.h"
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
@@ -57,8 +58,9 @@ arLogStream::arLogStream():
   _maxLineLength(200),
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
+  _fTimestamp(false),
   _l("Global\\szgLog"),
-  _fLocked(false){
+  _fLocked(false) {
   if (!_l.valid())
     cerr << "arLogStream warning: no locks. Expect interleaving.\n";
 }
@@ -72,7 +74,13 @@ void arLogStream::setStream(ostream& externalStream){
 
 void arLogStream::setHeader(const string& header){
   _lock();
-  _header = header;
+    _header = header;
+  _unlock();
+}
+
+void arLogStream::setTimestamp(const bool f) {
+  _lock();
+    _fTimestamp = f;
   _unlock();
 }
 
@@ -282,7 +290,27 @@ void arLogStream::_flush(const bool addNewline){
   if (_level <= _threshold) {
     // Intermediate variable so there's only one << to _output.
     ostringstream s;
-    s << _header << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
+
+    s << _header << ":" << ar_logLevelToString(_level);
+
+    if (_fTimestamp) {
+      string now(ar_currentTimeString());
+      // Skip past gobbledegook.
+      unsigned pos = now.find('/');
+      now = pos==string::npos ? "" : now.substr(pos+1);
+      // Skip past day-of-week.
+      pos = now.find(' ');
+      now = pos==string::npos ? "" : now.substr(pos+1);
+      // Truncate year.
+      pos = now.find("200");
+      now = pos==string::npos ? now : now.substr(0, pos-1);
+      s << " " << now << ":\n    ";
+    }
+    else {
+      s << ": ";
+    }
+
+    s << _buffer.str();
     if (addNewline) {
       s << "\n";
     }

@@ -985,6 +985,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  ar_log().setTimestamp(true);
   const int argcOriginal = argc;
   // No argvOriginal, because argv isn't modified.
 
