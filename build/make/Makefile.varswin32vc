@@ -132,7 +132,7 @@ endif
 # Linking.
 
 LINKER = link
-STATIC_LINKER = LIB
+STATIC_LINKER = LIB -nologo
 LINK_PREFIX = -out:
 # There are several categories of libraries.
 GENERAL_LIBS = advapi32.lib kernel32.lib user32.lib gdi32.lib Ws2_32.lib
