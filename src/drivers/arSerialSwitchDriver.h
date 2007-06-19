@@ -25,8 +25,8 @@ port 1 in Win32 is COM1, in Linux is /dev/ttys0.
 Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
 */
 
-#ifndef AR_Treadmill_RS232_DRIVER_H
-#define AR_Treadmill_RS232_DRIVER_H
+#ifndef AR_SerialSwitch_RS232_DRIVER_H
+#define AR_SerialSwitch_RS232_DRIVER_H
 
 #include "arInputSource.h"
 #include "arRS232Port.h"
@@ -35,13 +35,21 @@ Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
 
 // Driver for Ascension's Flock of Birds magnetic motion tracker.
 
-void ar_TreadmillDriverEventTask(void*);
+void ar_SerialSwitchDriverEventTask(void*);
 
-class arTreadmillDriver: public arInputSource {
-  friend void ar_TreadmillDriverEventTask(void*);
+SZG_CALL enum arSerialSwitchEventType {
+    AR_NO_SWITCH_EVENT = 0,
+    AR_OPEN_SWITCH_EVENT = 1,
+    AR_CLOSED_SWITCH_EVENT = 2,
+    AR_BOTH_SWITCH_EVENT = 3
+  };
+
+
+class arSerialSwitchDriver: public arInputSource {
+  friend void ar_SerialSwitchDriverEventTask(void*);
  public:
-  arTreadmillDriver();
-  ~arTreadmillDriver();
+  arSerialSwitchDriver();
+  ~arSerialSwitchDriver();
 
   bool init(arSZGClient&);
   bool start();
@@ -57,9 +65,11 @@ class arTreadmillDriver: public arInputSource {
   unsigned       _comPortID;
   bool           _eventThreadRunning;
   bool           _stopped;
-  char           _charBuf;
-  bool            _lastState;
+  char           _outChar;
+  char           _inChar;
+  arSerialSwitchEventType _lastState;
   ar_timeval     _lastEventTime;
+  arSerialSwitchEventType _eventType;
 };
 
 #endif

@@ -202,6 +202,7 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
 #include "arFileSource.h"
 #include "arLogitechDriver.h"
 #include "arPPTDriver.h"
+#include "arSerialSwitchDriver.h"
 
 struct DriverTableEntry {
   const char* arName;
@@ -209,7 +210,7 @@ struct DriverTableEntry {
   const char* printableName;
   const char* netName;
 };
-const int NUM_SERVICES = 20;
+const int NUM_SERVICES = 21;
 // NOTE: there is a really obnoxious kludge below... namely
 // arFileSource should be able to masquerade as any of the other
 // devices/ services, but it is stuck as SZG_INPUT!
@@ -233,7 +234,8 @@ const struct DriverTableEntry driverTable[NUM_SERVICES] = {
   { "arReactionTimer",      "SZG_RT",       "Reaction Timer", NULL},
   { "arPassiveTracker",     "SZG_INPUT",    "Passive Display Tracker", NULL},
   { "arLogitechDriver",     "SZG_LOGITECH", "Logitech Tracker", NULL},
-  { "arPPTDriver",          "SZG_PPT",      "WorldViz PPT Tracker", "USED"}
+  { "arPPTDriver",          "SZG_PPT",      "WorldViz PPT Tracker", "USED"},
+  { "arSerialSwitchDriver", "SZG_SERIALSWITCH", "Switch on serial port send/receive pins", NULL},
 };
 
 bool arInputFactory::configure( arSZGClient& szgClient ) {
@@ -310,6 +312,8 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
       case 18: theSource = new arLogitechDriver;
         break;
       case 19: theSource = new arPPTDriver;
+        break;
+      case 20: theSource = new arSerialSwitchDriver;
         break;
       }
       break;
