@@ -209,8 +209,9 @@ Name of the VRPN device to connect to.
 - Service: SZG_SERIALSWITCH
 
 We use this one to get input from a treadmill, but it's fairly general. The idea
-is that you have a switch. One end of it is connected to the serial port's send
-pin and the other to the receive pin. The port is opened for reading and writing.
+is that you have a switch. One end of it is connected to the serial port's
+"Transmit Data" pin and the other to the "Receive Data" pin. The port is opened
+for reading and writing.
 A character that you specify is repeatedly written to the port and then a single
 character is read. If the switch is closed, then the the value read should be the
 same as the one written. An axis event is generated for each switch transition,
