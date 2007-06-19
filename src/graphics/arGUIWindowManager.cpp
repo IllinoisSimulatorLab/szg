@@ -8,6 +8,7 @@
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
 #include "arGUIXMLParser.h"
+#include "arWildcatUtilities.h"
 
 // Default callbacks for window and keyboard events.
 
@@ -148,6 +149,7 @@ int arGUIWindowManager::startWithoutSwap( void )
 int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
                                    bool useWindowing )
 {
+  cerr << "addWindow().\n";
   arGUIWindow* window = new arGUIWindow( _maxID, windowConfig,
                                          _windowInitGLCallback, _userData );
   // Tell the window who owns it... so events will include this info.
@@ -741,7 +743,7 @@ void arGUIWindowManager::useFramelock( bool isOn )
   // If not (as in the checks in activateFramelock and deactivateFramelock)
   // framelocking will not work (useWildcatFramelock(true) would never get
   // issued).
-  _windows.begin()->second->useWildcatFramelock( isOn );
+  ar_useWildcatFramelock( isOn );
 }
 
 void arGUIWindowManager::findFramelock( void )
@@ -750,19 +752,27 @@ void arGUIWindowManager::findFramelock( void )
   // created (as in createWindows(...)).
   // If not (as in the checks in activateFramelock and deactivateFramelock),
   // findWildcatFramelock() will not get issued.
-  _windows.begin()->second->findWildcatFramelock();
+  ar_findWildcatFramelock();
 }
 
 void arGUIWindowManager::activateFramelock( void )
 {
   if( _windows.size() == 1 && !_threaded ) {
-    _windows.begin()->second->activateWildcatFramelock();
+    ar_activateWildcatFramelock();
+    ar_log_remark() << "arGUIWindowManager activated framelock.\n";
+  } else {
+    ar_log_warning() << "Ignoring attempt to framelock with multiple windows "
+                     << " or rendering threads.\n";
   }
 }
 
 void arGUIWindowManager::deactivateFramelock( void )
 {
   if( _windows.size() == 1 && !_threaded ) {
-    _windows.begin()->second->deactivateWildcatFramelock();
+    ar_deactivateWildcatFramelock();
+    ar_log_remark() << "arGUIWindowManager deactivated framelock.\n";
+  } else {
+    ar_log_warning() << "Ignoring attempt to deactivate framelock with multiple windows "
+                     << " or rendering threads.\n";
   }
 }

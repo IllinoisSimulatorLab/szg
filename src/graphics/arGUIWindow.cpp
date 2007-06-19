@@ -13,7 +13,6 @@
 
 #include "arStructuredData.h"
 #include "arDataUtilities.h"
-#include "arWildcatUtilities.h"
 #include "arLogStream.h"
 #include "arGUIEventManager.h"
 #include "arGUIInfo.h"
@@ -1961,22 +1960,3 @@ int arGUIWindow::makeCurrent( bool release )
   return 0;
 }
 
-void arGUIWindow::useWildcatFramelock( bool isOn )
-{
-  ar_useWildcatFramelock( isOn );
-}
-
-void arGUIWindow::findWildcatFramelock( void )
-{
-  ar_findWildcatFramelock();
-}
-
-void arGUIWindow::activateWildcatFramelock( void )
-{
-  ar_activateWildcatFramelock();
-}
-
-void arGUIWindow::deactivateWildcatFramelock( void )
-{
-  ar_deactivateWildcatFramelock();
-}

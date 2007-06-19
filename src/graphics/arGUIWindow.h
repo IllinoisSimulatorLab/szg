@@ -774,17 +774,6 @@ class SZG_CALL arGUIWindow
   
     void setWindowManager( arGUIWindowManager* wm ) { _windowManager = wm; }
 
-    //@{
-    /** @name arGUIWindow wildcat framelock accessors.
-     *
-     * Operate upon the wildcat framelock.
-     */
-    void useWildcatFramelock( bool isOn );
-    void findWildcatFramelock( void );
-    void activateWildcatFramelock( void );
-    void deactivateWildcatFramelock( void );
-    //@}
-
   private:
 
     /**

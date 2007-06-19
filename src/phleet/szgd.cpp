@@ -209,12 +209,6 @@ string getAppPath( const string& userName, const string& groupName, const string
       actualDirectory = *dirIter;
       break;
     }
-//  FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
-//  if (filePtr) {
-//    ar_fileClose(filePtr);
-//    actualDirectory = *iter;
-//    break;
-//  }
     if (actualDirectory != "NULL") {
       break;
     }
@@ -417,13 +411,13 @@ LNolaunch:
       for (int ind=1; ind < pyArgsString.size(); ++ind) {
         args.push_front( pyArgsString[ind] );
       }
-      arPathString pyExePathString( command );
+      arSemicolonString pyExePathString( command );
       if (pyExePathString.size() != 1) {  // absolute path has not been specified.
         fileName = command;
         command = ar_fileFind( fileName, "", execPath );
         if (command == "NULL") {
-          errStream << "no python exe '" << fileName <<
-	    "' on SZG_EXEC/path " << execPath << ".\n";
+          errStream << "no python exe '" << fileName
+                    << "' on SZG_EXEC/path " << execPath << ".\n";
           goto LAbort;
         }
       }
@@ -435,8 +429,8 @@ LNolaunch:
       fileName = command;
       command = ar_fileFind( fileName, "", execPath );
       if (command == "NULL") {
-        errStream << "no python exe '" << fileName <<
-          "' on SZG_EXEC/path " << execPath << ".\n";
+        errStream << "no python exe '" << fileName
+                  << "' on SZG_EXEC/path " << execPath << ".\n";
         goto LAbort;
       }
       if (!comparePathToBases( command, "SZG_EXEC/path for Python", errStream )) {
@@ -543,13 +537,13 @@ void execProcess(void* i){
     SZGClient->messageResponse(receivedMessageID, info.str());
 LDone:
     delete execInfo;
-    if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-      ar_log_remark() << "szgd post-launch dir is '"
-           << originalWorkingDirectory << "'.\n";
-    } else {
-      ar_log_warning() << "szgd post-launch failed to cd to '"
-           << originalWorkingDirectory << "'.\n";
-    }
+//    if (ar_setWorkingDirectory( originalWorkingDirectory )) {
+//      ar_log_remark() << "szgd post-launch dir is '"
+//           << originalWorkingDirectory << "'.\n";
+//    } else {
+//      ar_log_warning() << "szgd post-launch failed to cd to '"
+//           << originalWorkingDirectory << "'.\n";
+//    }
     return;
   }
 

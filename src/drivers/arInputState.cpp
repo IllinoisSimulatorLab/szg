@@ -125,13 +125,15 @@ void arInputState::setSignature( const unsigned numButtons,
 // Call-while-_locked private methods.
 
 bool arInputState::_getOnButton( const unsigned iButton ) const {
-  return (iButton < _buttons.size()) &&
-    !_lastButtons[iButton] && _buttons[iButton];
+    if ((iButton >= _buttons.size()) || (iButton >= _lastButtons.size()))
+      return false;
+    return (!_lastButtons[iButton]) && _buttons[iButton];
 }
 
 bool arInputState::_getOffButton( const unsigned iButton ) const {
-  return (iButton < _buttons.size()) &&
-    _lastButtons[iButton] && !_buttons[iButton];
+  if ((iButton >= _buttons.size()) || (iButton >= _lastButtons.size()))
+    return false;
+  return _lastButtons[iButton] && !_buttons[iButton];
 }
 
 int arInputState::_getButton( const unsigned iButton ) const {
@@ -352,7 +354,12 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
 
 void arInputState::updateLastButtons() {
   arGuard dummy(_l);
-  std::copy( _buttons.begin(), _buttons.end(), _lastButtons.begin() );
+  if (_lastButtons.size() == _buttons.size()) { // almost always true.
+    std::copy( _buttons.begin(), _buttons.end(), _lastButtons.begin() );
+  } else {
+    _lastButtons.clear();
+    std::copy( _buttons.begin(), _buttons.end(), std::back_inserter(_lastButtons) );
+  }
 }
 
 void arInputState::updateLastButton( const unsigned i ) {

@@ -304,7 +304,7 @@ void arLogStream::_flush(const bool addNewline){
       // Truncate year.
       pos = now.find("200");
       now = pos==string::npos ? now : now.substr(0, pos-1);
-      s << " " << now << ":\n    ";
+      s << " " << now << ": ";
     }
     else {
       s << ": ";

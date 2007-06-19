@@ -362,6 +362,7 @@ bool arAppLauncher::killAll(){
   for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
     namesKill += " " + iter->tradingTag;
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
+    ar_log_debug() << "killAll() " << iter->tradingTag << " id = " << serviceID << ar_endl;
     if (serviceID != -1){
       killList.push_back(serviceID);
     }
