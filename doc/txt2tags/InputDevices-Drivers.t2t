@@ -25,7 +25,7 @@ devices). They are associated with the computer running DeviceServer.
 =Device Drivers in the Base Distribution=
 
 The following device drivers interface with a single hardware device.
-For examples with parameters, replace HOST
+For examples with parameters, replace <computer>
 with the name of the computer running DeviceServer.
 
 ==Joystick==
@@ -65,7 +65,7 @@ gamepad as a DirectInput keyboard, a normal keyboard can also be used.
 
 For a host networked to the base station PC of an Ascension Motionstar Wireless 6DOF Tracker.
 ```
-HOST SZG_TRACKER IPhost XXX.XXX.XXX.XXX
+<computer> SZG_TRACKER IPhost XXX.XXX.XXX.XXX
 XXX.XXX.XXX.XXX is the IP address of the Motionstar base station.
 ```
 
@@ -91,14 +91,14 @@ For a host connected to an Ascension SpacePad motion tracker.
 
 
 ```
-HOST SZG_TRACKER transmitter_offset
+<computer> SZG_TRACKER transmitter_offset
   0.97/0.20/0.12/0/-0.05/0.7/-0.72/0/-0.22/0.69/0.69/0/0.09/6.71/-2.72/1
 ```
   Matrix (16 floats in OpenGL order) by which we post-multiply the device's matrix.
 Corrects for angled transmitter antenna.
 
 ```
-HOST SZG_TRACKER sensor1_rot 0/0/1/-90
+<computer> SZG_TRACKER sensor1_rot 0/0/1/-90
 ```
   A rotation by which we pre-multiply the device's matrix.
 Corrects for sensors mounted at an angle.  Here, sensor 1 (wand) has been
@@ -113,7 +113,7 @@ rolled 90 degrees to the left about the vector (0,0,1), i.e., the z-axis.
 For a host RS232'd to the master unit of a Flock of Birds motion tracker.  Supports the Flock's
 transmitters, extended-range transmitters (ERT's), and birds.  Calibrated like [SpacePad #SpacePad].
 
-``` HOST SZG_FOB config 0/3/0/0
+``` <computer> SZG_FOB config 0/3/0/0
   A list of codes, one per Flock unit, that configures each unit.
 Codes are listed in order of their internal
 Flock IDs. This example shows four units where the first,
@@ -125,23 +125,23 @@ an ERT.@@
 		3: ERT@@
 		4: ERT and bird@@
 
-``` HOST SZG_FOB com_port 4
+``` <computer> SZG_FOB com_port 4
   Serial port to which the Flock-of-Birds is attached. The number is 1-based on
   all platforms, which means that e.g. on Linux you need to add one
   (/dev/xxxxx0 is Syzygy port 1).
 
-``` HOST SZG_FOB baud_rate 38400
+``` <computer> SZG_FOB baud_rate 38400
 Baud rate of the Flock, one of 2400, 4800, 9600, 19200, 38400, 57600, 115200.
 
-``` HOST SZG_FOB hemisphere lower
+``` <computer> SZG_FOB hemisphere lower
   Hemisphere of the transmitter in which the birds fly, one of
 front, rear, upper, lower, left, right.
 
-``` HOST SZG_FOB transmitter_offset 1/0/0/0/0/1/0/0/0/0/1/0/0/0/0/1
+``` <computer> SZG_FOB transmitter_offset 1/0/0/0/0/1/0/0/0/0/1/0/0/0/0/1
   Matrix by which we post-multiply the device's matrix.
 Corrects for angled transmitter, just like [SpacePad #SpacePad].
 
-``` HOST SZG_TRACKER sensor1_rot 0/0/1/90
+``` <computer> SZG_TRACKER sensor1_rot 0/0/1/90
   A rotation by which we pre-multiply the device's matrix, to correct for angled birds.
 Same as [SpacePad #SpacePad].
 
@@ -163,7 +163,7 @@ A [multiplatform FOB driver #FOB] is under development.
 
 For a host networked to an EVaRT optical tracker.
 
-``` HOST SZG_EVART IPhost XXX.XXX.XXX.XXX
+``` <computer> SZG_EVART IPhost XXX.XXX.XXX.XXX
   Specifies the dotted-quad IP address of the EVaRT system.
 
 
@@ -175,16 +175,16 @@ For a host networked to an EVaRT optical tracker.
 
 For any Intersense tracker.  Needs Intersense's own DLL (or .so) installed.
 
-``` HOST SZG_INTERSENSE sleep 10/0
+``` <computer> SZG_INTERSENSE sleep 10/0
   Sleep for 10 msec after polling the tracker.
-``` HOST SZG_INTERSENSE station0_1 0/0/0
+``` <computer> SZG_INTERSENSE station0_1 0/0/0
   The 0th tracker's 1st sensor has 0 buttons and 0 axes.  It's probably a head tracker.
-``` HOST SZG_INTERSENSE station0_2 4/2/0
+``` <computer> SZG_INTERSENSE station0_2 4/2/0
   The 0th tracker's 2nd sensor has 4 buttons and 2 axes.  It's probably a wand.
-``` HOST SZG_INTERSENSE convert0_0 0/0/-1/2
-``` HOST SZG_INTERSENSE convert0_1 1/0/0/1
-``` HOST SZG_INTERSENSE convert0_2 0/-1/0/-2
-``` HOST SZG_INTERSENSE convert0_3 0/0/0/1
+``` <computer> SZG_INTERSENSE convert0_0 0/0/-1/2
+``` <computer> SZG_INTERSENSE convert0_1 1/0/0/1
+``` <computer> SZG_INTERSENSE convert0_2 0/-1/0/-2
+``` <computer> SZG_INTERSENSE convert0_3 0/0/0/1
   A matrix translating Intersense coordinates to Syzygy coordinates.
 The top left 3x3 submatrix is universal, but the fourth column
 (translation) varies from installation to installation.
@@ -198,8 +198,46 @@ The top left 3x3 submatrix is universal, but the fourth column
 
 For a host running a VRPN server that manages VRPN input devices.
 
-``` HOST SZG_VRPN name
+``` <computer> SZG_VRPN name
 Name of the VRPN device to connect to.
+
+
+==Serial-port Switch==
+
+- Loadable module: arSerialSwitchDriver
+- Platform: All
+- Service: SZG_SERIALSWITCH
+
+We use this one to get input from a treadmill, but it's fairly general. The idea
+is that you have a switch. One end of it is connected to the serial port's send
+pin and the other to the receive pin. The port is opened for reading and writing.
+A character that you specify is repeatedly written to the port and then a single
+character is read. If the switch is closed, then the the value read should be the
+same as the one written. An axis event is generated for each switch transition,
+with the absolute value of the event being equal to the time in seconds since the preceding
+event, with the value being negative if it's a 'closed' event.
+
+The following database parameters defined on the computer running the DeviceServer
+affect behavior:
+```
+<computer> SZG_SERIALSWITCH com_port:
+    Which port to use. The number is 1-based on all platforms,
+    which means that e.g. on Linux you need to add one
+    (/dev/xxxxx0 is Syzygy port 1).
+
+<computer> SZG_SERIALSWITCH baud_rate:
+    Baud rate of the port, one of 2400, 4800, 9600, 19200, 38400,
+    57600, 115200.
+
+<computer> SZG_SERIALSWITCH signal_byte: Character to write,
+    defaults to 0x53.
+
+<computer> SZG_SERIALSWITCH event_type:
+    What types of switch events to measure, must be one of 'open',
+    'closed','both' (default='both').  In all cases the absolute
+    value of the transmitted axis event is the time in seconds
+    since the last event of the type specified.
+```
 
 
 ==Record/Playback==

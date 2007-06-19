@@ -29,7 +29,7 @@ OBJS := \
 # it gets built into libarDrivers.
 
 OBJS_DRIVER := \
-  arTreadmillDriver$(OBJ_SUFFIX) \
+  arSerialSwitchDriver$(OBJ_SUFFIX) \
   arBirdWinDriver$(OBJ_SUFFIX) \
   arEVaRTDriver$(OBJ_SUFFIX) \
   arFOBDriver$(OBJ_SUFFIX) \
@@ -191,8 +191,8 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 
 # Shared objects using only Syzygy internals like RS232.
 
-arTreadmillDriver$(PLUGIN_SUFFIX): arTreadmillDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_PLUGIN_FIRST) arTreadmillDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arSerialSwitchDriver$(PLUGIN_SUFFIX): arSerialSwitchDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arSerialSwitchDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 arPPTDriver$(PLUGIN_SUFFIX): arPPTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
