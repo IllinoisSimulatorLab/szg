@@ -147,7 +147,7 @@ bool arSerialSwitchDriver::_poll( void ) {
       } else {
         ar_timeval currTime = ar_time();
         double diffTime = ar_difftime( currTime, _lastEventTime );
-        if (switchState == AR_CLOSED_SWITCH_EVENT) {
+        if (switchState == AR_OPEN_SWITCH_EVENT) {
           diffTime = -diffTime;
         }
         sendAxis( 0, (float)(diffTime/1.e6) );

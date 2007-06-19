@@ -215,7 +215,7 @@ A character that you specify is repeatedly written to the port and then a single
 character is read. If the switch is closed, then the the value read should be the
 same as the one written. An axis event is generated for each switch transition,
 with the absolute value of the event being equal to the time in seconds since the preceding
-event, with the value being negative if it's a 'closed' event.
+event, with the value being negative if it's a 'open' event.
 
 The following database parameters defined on the computer running the DeviceServer
 affect behavior:
