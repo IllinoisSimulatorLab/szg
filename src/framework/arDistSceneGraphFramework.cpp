@@ -453,7 +453,7 @@ void arDistSceneGraphFramework::exitFunction(){
 
 // If the attribute exists, stuff its value into v.
 // Otherwise report v's (unchanged) default value.
-// Sort of copypasted with arScreenObject::_getVector3.
+// Sort of copypasted with arDistSceneGraphFramework::_getVector3.
 void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
   // use the screen name passed from the distributed system
   const string screenName(_SZGClient.getMode("graphics"));

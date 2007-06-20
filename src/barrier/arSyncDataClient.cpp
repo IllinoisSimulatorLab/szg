@@ -361,8 +361,8 @@ void arSyncDataClient::stop(){
 
   // set _exitProgram to true *before* starting the read thread
   _exitProgram = true;
-  // stop the barrier client. so far, this consists of making sure
-  // we are not blocking in requestActivation()
+
+  // Stop the barrier client: don't block in requestActivation().
   _barrierClient.stop();
   // make sure the read thread is not hung waiting to swap buffers
   _swapLock.lock();
@@ -386,6 +386,7 @@ void arSyncDataClient::consume(){
   if (_syncServer){
     // Locally connected.
     // Tell arSyncDataServer that we're ready for data.
+
     _syncServer->_localConsumerReadyLock.lock();
       if (_syncServer->_localConsumerReady == 2){
 	// Everything may be stopping.
@@ -408,6 +409,7 @@ void arSyncDataClient::consume(){
       }
       _syncServer->_localProducerReady = 0;
     _syncServer->_localProducerReadyLock.unlock();
+
     _consumptionCallback(_bondedObject, _syncServer->_dataQueue->getFrontBufferRaw());
     _actionCallback(_bondedObject);
     _postSyncCallback(_bondedObject);
