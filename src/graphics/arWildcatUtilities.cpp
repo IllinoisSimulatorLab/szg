@@ -5,89 +5,88 @@
 
 #include "arPrecompiled.h"
 #include "arWildcatUtilities.h"
-#include "arDataUtilities.h"
 #include "arLogStream.h"
 
 namespace arWildcatNamespace {
-  arLock __wildcatMutex;
-  bool __useWildcatFramelock = false;
-  bool __frameLockInitted = false;
+  arLock lock;
+  bool fUseFramelock = false;
+  bool fActive = false;
 #ifdef AR_USE_WIN_32
   // Hack for Wildcat cards' broken glFinish().  Framelock must be on.
-  typedef BOOL (APIENTRY *WGLENABLEFRAMELOCKI3DFUNCPTR)(VOID);
-  typedef BOOL (APIENTRY *WGLDISABLEFRAMELOCKI3DFUNCPTR)(VOID);
+  typedef BOOL (APIENTRY *pfn)(void);
   static BOOL (__stdcall *__wglEnableFrameLockI3D)(void) = 0;
   static BOOL (__stdcall *__wglDisableFrameLockI3D)(void) = 0;
 #endif
 };
 
-using namespace std;
-using namespace arWildcatNamespace;
-
-void ar_useWildcatFramelock( bool isOn ) {
-  __wildcatMutex.lock();
-  __useWildcatFramelock = isOn;
-  __wildcatMutex.unlock();
+void ar_useWildcatFramelock( bool f ) {
+  arGuard dummy(arWildcatNamespace::lock);
+  arWildcatNamespace::fUseFramelock = f;
 }
 
-// It is really annoying to have Wildcat-specific code in this file.
-// A little bit of a design to-do, I suppose.
-void ar_findWildcatFramelock() {
 #ifdef AR_USE_WIN_32
-  __wildcatMutex.lock();
-  if (__useWildcatFramelock) {
-    // need to try to find the Wildcat card's frame-locking functions here
-      __wglEnableFrameLockI3D 
-        = (WGLENABLEFRAMELOCKI3DFUNCPTR) 
-            wglGetProcAddress("wglEnableFrameLockI3D");
-      if (__wglEnableFrameLockI3D == 0) {
-        ar_log_error() << "wglEnableFrameLockI3D not found.\n";
-      }
-      __wglDisableFrameLockI3D = (WGLDISABLEFRAMELOCKI3DFUNCPTR)
-        wglGetProcAddress("wglDisableFrameLockI3D");
-      if (__wglDisableFrameLockI3D == 0) {
-        ar_log_error() << "wglDisableFrameLockI3D not found.\n";
-      }
+
+// Wildcat-specific code.
+
+void ar_findWildcatFramelock() {
+  arGuard dummy(arWildcatNamespace::lock);
+  if (!arWildcatNamespace::fUseFramelock)
+    return;
+
+  arWildcatNamespace::__wglEnableFrameLockI3D = (arWildcatNamespace::pfn) 
+    wglGetProcAddress("wglEnableFrameLockI3D");
+  if (!arWildcatNamespace::__wglEnableFrameLockI3D) {
+    ar_log_warning() << "No wglEnableFrameLockI3D.\n";
   }
-  __wildcatMutex.unlock();
-#endif
+  arWildcatNamespace::__wglDisableFrameLockI3D = (arWildcatNamespace::pfn)
+    wglGetProcAddress("wglDisableFrameLockI3D");
+  if (!arWildcatNamespace::__wglDisableFrameLockI3D) {
+    ar_log_warning() << "No wglDisableFrameLockI3D.\n";
+  }
 }
 
 void ar_activateWildcatFramelock() {
-#ifdef AR_USE_WIN_32
-  __wildcatMutex.lock();
-  if (!__frameLockInitted) {
-    __frameLockInitted = true;
-
-    if (__wglEnableFrameLockI3D != 0 && __useWildcatFramelock) {
-      if (__wglEnableFrameLockI3D() == FALSE) {
-	ar_log_warning() << "wglEnableFrameLockI3D failed.\n";
-      }
-      else{
-	ar_log_debug() << "wglEnableFrameLockI3D.\n";
-      }
-    }
+  arGuard dummy(arWildcatNamespace::lock);
+  if (arWildcatNamespace::fActive) {
+    ar_log_warning() << "Ignoring duplicate ar_activateWildcatFramelock.\n";
+    return;
   }
-  __wildcatMutex.unlock();
-#endif
+
+  arWildcatNamespace::fActive = true;
+  if (!arWildcatNamespace::__wglEnableFrameLockI3D || !arWildcatNamespace::fUseFramelock)
+    return;
+  
+  if (arWildcatNamespace::__wglEnableFrameLockI3D() == FALSE) {
+    ar_log_warning() << "wglEnableFrameLockI3D failed.\n";
+  }
+  else{
+    ar_log_debug() << "wglEnableFrameLockI3D ok.\n";
+  }
 }
 
 void ar_deactivateWildcatFramelock() {
-#ifdef AR_USE_WIN_32
-  __wildcatMutex.lock();
-  if (__frameLockInitted){
-
-    if (__wglDisableFrameLockI3D != 0 && __useWildcatFramelock) {
-      if (__wglDisableFrameLockI3D() == FALSE) {
-        ar_log_warning() << "wglDisableFrameLockI3D failed.\n";
-      }
-      else{
-        ar_log_debug() << "wglDisableFrameLockI3D.\n";
-      }
-
-      __frameLockInitted = false;
-    }
+  arGuard dummy(arWildcatNamespace::lock);
+  if (!arWildcatNamespace::fActive){
+    ar_log_warning() << "Ignoring duplicate ar_deactivateWildcatFramelock.\n";
+    return;
   }
-  __wildcatMutex.unlock();
-#endif
+
+  arWildcatNamespace::fActive = false;
+  if (!arWildcatNamespace::__wglDisableFrameLockI3D || !arWildcatNamespace::fUseFramelock)
+    return;
+
+  if (arWildcatNamespace::__wglDisableFrameLockI3D() == FALSE) {
+    ar_log_warning() << "wglDisableFrameLockI3D failed.\n";
+  }
+  else{
+    ar_log_debug() << "wglDisableFrameLockI3D ok.\n";
+  }
 }
+
+#else
+
+void ar_findWildcatFramelock() {}
+void ar_activateWildcatFramelock() {}
+void ar_deactivateWildcatFramelock() {}
+
+#endif

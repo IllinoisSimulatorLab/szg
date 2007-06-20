@@ -8,7 +8,7 @@
 
 #include "arGraphicsCalling.h"
 
-SZG_CALL void ar_useWildcatFramelock( bool isOn );
+SZG_CALL void ar_useWildcatFramelock( bool );
 SZG_CALL void ar_findWildcatFramelock();
 SZG_CALL void ar_activateWildcatFramelock();
 SZG_CALL void ar_deactivateWildcatFramelock();
