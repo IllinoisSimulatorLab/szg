@@ -54,13 +54,14 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   _windowCallback( windowCB ? windowCB : ar_windowManagerDefaultWindowFunction),
   _windowInitGLCallback( windowInitGLCB ),
   _maxID( 0 ),
-  _threaded( threaded )
+  _threaded( threaded ),
+  _fActivatedFramelock( false )
 {
 #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
   // seems to be necessary on OS X, not necessarily under linux, but probably
   // doesn't hurt to just always enable it though
   if( XInitThreads() == 0 ) {
-    ar_log_error() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
+    ar_log_warning() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
   }
 #endif
 }
@@ -149,7 +150,6 @@ int arGUIWindowManager::startWithoutSwap( void )
 int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
                                    bool useWindowing )
 {
-  cerr << "addWindow().\n";
   arGUIWindow* window = new arGUIWindow( _maxID, windowConfig,
                                          _windowInitGLCallback, _userData );
   // Tell the window who owns it... so events will include this info.
@@ -736,43 +736,54 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   return 0;
 }
 
-void arGUIWindowManager::useFramelock( bool isOn )
+// useFramelock and findFramelock should work from createWindows(),
+// for the the checks in activateFramelock and deactivateFramelock.
+
+void arGUIWindowManager::useFramelock( bool fUse )
 {
-  // This call should be able to work BEFORE the windows have been
-  // created (as in createWindows(...)).
-  // If not (as in the checks in activateFramelock and deactivateFramelock)
-  // framelocking will not work (useWildcatFramelock(true) would never get
-  // issued).
-  ar_useWildcatFramelock( isOn );
+  ar_useWildcatFramelock( fUse );
 }
 
 void arGUIWindowManager::findFramelock( void )
 {
-  // This call should be able to work BEFORE the windows have been
-  // created (as in createWindows(...)).
-  // If not (as in the checks in activateFramelock and deactivateFramelock),
-  // findWildcatFramelock() will not get issued.
   ar_findWildcatFramelock();
 }
 
+// Hack for Wildcat graphics cards.
 void arGUIWindowManager::activateFramelock( void )
 {
-  if( _windows.size() == 1 && !_threaded ) {
-    ar_activateWildcatFramelock();
-    ar_log_remark() << "arGUIWindowManager activated framelock.\n";
-  } else {
-    ar_log_warning() << "Ignoring attempt to framelock with multiple windows "
-                     << " or rendering threads.\n";
+  if (_fActivatedFramelock)
+    return;
+  _fActivatedFramelock = true;
+
+  if( _threaded ) {
+    ar_log_warning() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
+    return;
   }
+  if( _windows.size() > 1 ) {
+    ar_log_warning() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
+    return;
+  }
+
+  ar_activateWildcatFramelock();
+  ar_log_debug() << "arGUIWindowManager activated framelock.\n";
 }
 
 void arGUIWindowManager::deactivateFramelock( void )
 {
-  if( _windows.size() == 1 && !_threaded ) {
-    ar_deactivateWildcatFramelock();
-    ar_log_remark() << "arGUIWindowManager deactivated framelock.\n";
-  } else {
-    ar_log_warning() << "Ignoring attempt to deactivate framelock with multiple windows "
-                     << " or rendering threads.\n";
+  if (!_fActivatedFramelock)
+    return;
+  _fActivatedFramelock = false;
+
+  if( _threaded ) {
+    ar_log_warning() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
+    return;
   }
+  if( _windows.size() > 1 ) {
+    ar_log_warning() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
+    return;
+  }
+
+  ar_deactivateWildcatFramelock();
+  ar_log_debug() << "arGUIWindowManager deactivated framelock.\n";
 }

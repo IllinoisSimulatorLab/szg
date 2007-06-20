@@ -63,7 +63,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win, arViewpo
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf){
   if (!((arGraphicsClient*)client)->_graphicsDatabase.handleDataQueue(buf)) {
-    ar_log_error() << "arGraphicsClient error: failed to consume buffer.\n";
+    ar_log_warning() << "arGraphicsClient failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -72,15 +72,9 @@ bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf){
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientActionCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
-
-  // Hack for the wildcat graphics cards.
   c->getWindowManager()->activateFramelock();
-
   c->updateHead();
-
-  // Draw all windows (simultaneously if threading is turned on),
-  // blocking until all complete.
-  c->_windowManager->drawAllWindows(true);
+  c->drawAllWindows();
   return true;
 }
 
@@ -97,9 +91,7 @@ bool ar_graphicsClientNullCallback(void* client){
   // Have everything drawn black.
   c->setOverrideColor(arVector3(0,0,0));
 
-  // Draw all windows (simultaneously if threading is turned on),
-  // blocking until all complete.
-  c->_windowManager->drawAllWindows(true);
+  c->drawAllWindows();
 
   // Revert to normal drawing mode.
   c->setOverrideColor(arVector3(-1,-1,-1));
@@ -205,7 +197,7 @@ arGraphicsClient::arGraphicsClient() :
   _screenshotWidth(1),
   _screenshotHeight(1),
   _doScreenshot(false),
-  _whichScreenshot(0){
+  _whichScreenshot(0) {
 
   _cliSync.setConnectionCallback(ar_graphicsClientConnectionCallback);
   _cliSync.setDisconnectCallback(ar_graphicsClientDisconnectCallback);
@@ -214,9 +206,6 @@ arGraphicsClient::arGraphicsClient() :
   _cliSync.setNullCallback(ar_graphicsClientNullCallback);
   _cliSync.setPostSyncCallback(ar_graphicsClientPostSyncCallback);
   _cliSync.setBondedObject(this);
-}
-
-arGraphicsClient::~arGraphicsClient(){
 }
 
 // Get configuration parameters from the Syzygy database.  Setup the object.

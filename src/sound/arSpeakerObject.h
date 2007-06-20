@@ -15,8 +15,7 @@
 class SZG_CALL arSpeakerObject {
  public:
   arSpeakerObject();
-  ~arSpeakerObject() {}
-  bool configure(arSZGClient*);
+  bool configure(arSZGClient&);
   bool loadMatrices(const arMatrix4&);
   void setUnitConversion(float unitConversion)
     { _unitConversion = unitConversion; }

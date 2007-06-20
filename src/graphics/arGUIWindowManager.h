@@ -703,6 +703,7 @@ class SZG_CALL arGUIWindowManager
     int _maxID;         // The maximum window ID, used in creating new windows.
     bool _threaded;           // False iff windowmanager is singlethreaded.
     void* _userData;          // Default user defined data pointer passed to created windows.
+    bool _fActivatedFramelock;
 };
 
 #endif

@@ -45,7 +45,7 @@ class SZG_CALL arGraphicsClient{
 
  public:
   arGraphicsClient();
-  ~arGraphicsClient();
+  ~arGraphicsClient() {}
 
   void setWindowManager(arGUIWindowManager* wm) { _windowManager = wm; }
   arGUIWindowManager* getWindowManager() { return _windowManager; }
@@ -92,17 +92,18 @@ class SZG_CALL arGraphicsClient{
   void toggleFrameworkObjects(){
     _drawFrameworkObjects = !_drawFrameworkObjects;
   }
-  void drawFrameworkObjects(bool state){
-    _drawFrameworkObjects = state;
+  void drawFrameworkObjects(bool fDraw){
+    _drawFrameworkObjects = fDraw;
   }
   void addFrameworkObject(arFrameworkObject* f){
     _frameworkObjects.push_back(f);
   }
-
-  void requestScreenshot(const string& path, int x, int y,
-                         int width, int height);
+  void arGraphicsClient::drawAllWindows() {
+    _windowManager->drawAllWindows(true); // Simultaneously if threaded.  Blocks.
+  }
+  void requestScreenshot(const string& path, int x, int y, int width, int height);
   bool screenshotRequested();
-  void takeScreenshot(bool stereo);
+  void takeScreenshot(bool fStereo);
 
   arSyncDataClient   _cliSync;
 
@@ -121,7 +122,6 @@ class SZG_CALL arGraphicsClient{
   bool _drawFrameworkObjects;
   list<arFrameworkObject*> _frameworkObjects;
 
-  // Information to do with the screenshot mechanism.
   string _screenshotPath;
   int  _screenshotX;
   int  _screenshotY;

@@ -13,7 +13,7 @@
 #include "arSZGClient.h"
 #include "arLogStream.h"
 
-arSoundClient* soundClient = NULL; // Pointer, so language can initialize it.
+arSoundClient* soundClient = NULL;
 
 // Parameter variables.
 char serverIP[1024] = {0}; // todo: fixed size buffer
@@ -30,7 +30,7 @@ bool loadParameters(arSZGClient& cli){
 
   soundClient->addDataBundlePathMap("SZG_DATA", cli.getDataPath());
   soundClient->addDataBundlePathMap("SZG_PYTHON", cli.getDataPathPython());
-  return speakerObject.configure(&cli);
+  return speakerObject.configure(cli);
 }
 
 void messageTask(void* pClient){

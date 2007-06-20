@@ -1449,7 +1449,7 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
 
 bool arMasterSlaveFramework::_sendData( void ) {
   if( !_master ) {
-    ar_log_warning() << _label << " slave ignoring _sendData.\n";
+    ar_log_warning() << _label << ": slave ignoring _sendData.\n";
     return false;
   }
 
@@ -1493,13 +1493,9 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // Pack other data.
   _packInputData();
 
-  // only activates it if necessary (and possible)
-  // ar_activateWildcatFramelock();
   _wm->activateFramelock();
 
-  // Activate pending connections. We queue all connection attempts.
-  // They are "activated" in an orderly fashion at this precise point in
-  // the code.
+  // Activate pending connections in orderly fashion. Queue all connection attempts.
   if( _barrierServer->checkWaitingSockets() ) {
     // The barrierServer (the synchronization engine) will now mark
     // the corresponding connections to the stateServer (the data engine)
@@ -1508,21 +1504,20 @@ bool arMasterSlaveFramework::_sendData( void ) {
     _barrierServer->activatePassiveSockets( _stateServer );
   }
 
-  // Here, all connection attempts that were queued up during the previous
-  // frame have been fulfilled. The number of "active" connections is the
-  // number of slaves to whom we will be sending data in the next 
-  // _stateServer->sendData() (right below).
-  if( _stateServer ) {
-    _numSlavesConnected = _stateServer->getNumberConnected();
-  }
-  else {
-    _numSlavesConnected = -1;
+  // All connection attempts queued up during the previous
+  // frame have been fulfilled. The number of "active" connections is how many
+  // slaves to whom _stateServer->sendData() will send data.
+  _numSlavesConnected = _stateServer ? _stateServer->getNumberConnected() : -1;
+
+  if (!_stateServer) {
+    ar_log_warning() << _label << ": no state server.\n";
+    return false;
   }
 
-  // Send data, if there are any receivers.
+  // Send data to any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
       !_stateServer->sendData( _transferData ) ){
-    ar_log_remark() << _label << " state server failed to send data.\n";
+    ar_log_remark() << _label << ": state server failed to send data.\n";
     return false;
   }
 
@@ -1531,7 +1526,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
 
 bool arMasterSlaveFramework::_getData( void ) {
   if( _master ) {
-    ar_log_warning() << _label << " master ignoring _getData.\n";
+    ar_log_warning() << _label << ": master ignoring _getData.\n";
     return false;
   }
 
@@ -1540,14 +1535,12 @@ bool arMasterSlaveFramework::_getData( void ) {
     return true;
   }
 
-  // We are connected, so request activation from the master.
-  // This call blocks until an activation occurs.
+  // Connected, so request activation from the master.
+  // Block until activated.
   if( !_barrierClient->checkActivation() ) {
     _barrierClient->requestActivation();
   }
 
-  // only activates it if necessary (and possible)
-  // ar_activateWildcatFramelock();
   _wm->activateFramelock();
 
   // Read data, since we will be receiving data from the master.
@@ -2212,8 +2205,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
     _simPtr->configure( _SZGClient );
   }
 
-  // Does nothing?
-  if( !_speakerObject.configure( &_SZGClient ) ) {
+  if( !_speakerObject.configure( _SZGClient ) ) {
     return false;
   }
 
@@ -2236,52 +2228,43 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 }
 
 void arMasterSlaveFramework::_messageTask( void ) {
-  // might be a good idea to shut this down cleanly... BUT currently
-  // there's no way to shut the arSZGClient down cleanly.
+  // todo: cleanly shutdown both this and arSZGClient.
   string messageType, messageBody;
 
   while( !stopping() ) {
-    // NOTE: it is possible for receiveMessage to fail, precisely in the
-    // case that the szgserver has *hard-shutdown* our client object.
     if( !_SZGClient.receiveMessage( &messageType, &messageBody ) ) {
-      // NOTE: the shutdown procedure is the same as for the "quit" message.
-      stop( true );
+      // szgserver has *hard-shutdown* _SZGClient.
 
-      // If we are, in fact, using an external thread of control (i.e. started
-      // without the m/s framework windowing, then DO NOT exit here.
-      // That will occur in the external thread of control.
+      // 5-line copypaste from case "quit" below.
+      // Block until the display thread finishes.
+      stop( true );
       if( !_useExternalThread ) {
         exit(0);
       }
 
-      // We DO NOT want to hit this again! (since things are DISCONNECTED)
-      break;
+      // External thread will exit().  End message task, since it's disconnected.
+      return;
     }
 
     if( messageType == "quit" ) {
-      // At this point, we do our best to bring everything to an orderly halt.
-      // This keeps some programs from seg-faulting on exit, which is bad news
-      // on Win32 since it (using default registry settings) brings up a dialog
-      // box that must be clicked!
-      // NOTE: we block here until the display thread is finished.
-      stop( true );
+      // Bring everything to an orderly halt, lest crashing windows apps
+      // bring up a dialog box that must be clicked.
 
-      // If we are, in fact, using an external thread of control (i.e. started
-      // without the m/s framework windowing, then DO NOT exit here.
-      // That will occur in the external thread of control.
+      // Block until the display thread finishes.
+      stop( true );
       if( !_useExternalThread ) {
         exit( 0 );
       }
+      // External thread will exit().
     }
     else if ( messageType== "performance" ) {
       _showPerformance = messageBody == "on";
     }
     else if ( messageType == "reload" ) {
-      // Yes, this is a little bit bogus. By setting the variable here,
-      // the event loop goes ahead and does the reload over there...
-      // setting _requestReload back to false after it is done.
-      // Consequently, if there are multiple reload messages, sent in quick
-      // succession, some might fail.
+      // Hack: set _requestReload here, to make the
+      // event loop reload over there and then reset _requestReload.
+      // Side effect: only the last of several reload messages, when
+      // sent in quick succession, will work.
       _requestReload = true;
     }
     else if ( messageType == "user" ) {

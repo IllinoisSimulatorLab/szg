@@ -74,29 +74,29 @@ arGraphicsWindow::~arGraphicsWindow() {
 }
 
 bool arGraphicsWindow::configure( arSZGClient& client ){
+  const string screenName(client.getMode("graphics"));
   float colorFilterParams[7];
-
-  string screenName = client.getMode("graphics");
   _useColorFilter = client.getAttributeFloats( screenName, "color_filter", colorFilterParams, 7 );
   if (_useColorFilter) {
     _contrastFilterParameters = arVector4( colorFilterParams );
     _colorScaleFactors = arVector3( colorFilterParams+4 );
-    cout << "arGraphicsWindow remark: saturation/contrast filter parameters = " << _contrastFilterParameters
-         << "\n                         color scale values                    = " << _colorScaleFactors << endl;
+    ar_log_remark() << "arGraphicsWindow saturation/contrast filter parameters = " <<
+      _contrastFilterParameters << "\n  color scale values = " <<
+      _colorScaleFactors << ".\n";
   } else {
-    cout << "arGraphicsWindow remark: no color filter set.\n";
+    ar_log_remark() << "arGraphicsWindow: no " << screenName << "/color_filter.\n";
   }
 
-  // NOTE: We must assume that configure(...) can be called in a different
-  // thread from draw(...). Hence the below lock is needed.
+  // Another thread may be draw()ing.
   lockViewports();
 
-  // Figure out the viewport configuration
+  // Configure viewport.
   const string viewMode(client.getAttribute(screenName, "viewmode",
-                    "|normal|anaglyph|walleyed|crosseyed|overunder|custom|"));
+    "|normal|anaglyph|walleyed|crosseyed|overunder|custom|"));
 
   _useOGLStereo = client.getAttribute( screenName, "stereo", "|false|true|" ) == "true";
-cerr << "Window configuration: viewMode = " << viewMode << ", stereo = " << _useOGLStereo << endl;
+  ar_log_debug() << "arGraphicsWindow config: viewMode = " << viewMode <<
+    ", stereo = " << _useOGLStereo << ".\n";
   _defaultScreen.configure( screenName, client );
 
   if (viewMode != "custom") {

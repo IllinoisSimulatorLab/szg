@@ -21,15 +21,16 @@ arSpeakerObject::arSpeakerObject() :
   _forwardPrev(0,0,0)
 {}
 
-bool arSpeakerObject::configure(arSZGClient*){
-  // If any configuration occurs here,
-  // push the resulting messages on arSZGClient's initResponse,
-  // like arScreenObject::configure().
+bool arSpeakerObject::configure(arSZGClient& cli){
+  (void)cli.initResponse(); // like arGraphicsScreen::configure()
+
+  const string renderMode(cli.getAttribute("SZG_SOUND", "render",
+    "|fmod|fmod_plugins|vss|mmio|"));
+  ar_log_debug() << "mode SZG_SOUND/render '" << renderMode << "'.\n";
   return true;
 }
 
-// This belongs in arMath.h, not here.
-// And as a member of arVector3, not as a global function.
+// todo: move to arMath.h, member of arVector3.
 static inline void Normalize(float* v) {
   float invlen = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
   if (invlen < 1e-6)
@@ -44,18 +45,16 @@ static inline void Normalize(arVector3& a) {
 }
 
 bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
-  arMatrix4 locHeadMatrix = _demoMode ? demoHeadMatrix(headMatrix) : headMatrix;
-  arVector3 midEyePosition = _unitConversion * (locHeadMatrix * _midEyeOffset);
+  const arMatrix4 locHeadMatrix(_demoMode ? demoHeadMatrix(headMatrix) : headMatrix);
+  const arVector3 midEye(_unitConversion * (locHeadMatrix * _midEyeOffset));
 
   // Update listener's attributes.
   const arMatrix4 rot(ar_extractRotationMatrix(locHeadMatrix));
-  const arVector3 pos(midEyePosition);
+  const arVector3 pos(midEye);
   arVector3 up(rot * arVector3(0,1,0));
   arVector3 forward(rot * arVector3(0,0,-1));
   Normalize(up);
   Normalize(forward);
-
-//cerr << "LISTENER: " << pos << ", " << forward << endl;
 
   if (pos!=_posPrev || up!=_upPrev || forward!=_forwardPrev) {
     _posPrev = pos;
