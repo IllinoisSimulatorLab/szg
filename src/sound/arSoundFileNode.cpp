@@ -274,7 +274,7 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
   const int fLoopPrev = _fLoop;
   _fLoop = pdata->getDataInt(_l.AR_FILEWAV_LOOP);
   _amplitude = pdata->getDataFloat(_l.AR_FILEWAV_AMPL);
-  pdata->dataOut(_l.AR_FILEWAV_XYZ, &_point, AR_FLOAT, 3);
+  (void)pdata->dataOut(_l.AR_FILEWAV_XYZ, &_point, AR_FLOAT, 3);
   _fileName = pdata->getDataString(_l.AR_FILEWAV_FILE);
 
   // This is really just in need of fixing. So, we'll let it keep it's
@@ -296,15 +296,14 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
     _action = "pause";
   }
   else if (_fLoop == -1 && fLoopPrev != -1){
-    // NOTE: we need to be able to get around the fact that only the initial
-    // volume and point location can matter in the old (messed-up)
-    // implementation.
+    // Workaround that only the initial volume and point location matter in
+    // the old (messed-up) implementation.
     _action = "trigger";
     _triggerAmplitude = _amplitude;
     _triggerPoint = _point;
   }
 
   // Wait for render to reset _action to "none".  Don't do it here.
-  // Bug: _action ought to be an enum, not a string.
+  // todo: make _action an enum, not a string.
   return true;
 }

@@ -18,7 +18,7 @@ arStreamNode::arStreamNode():
   _msecDuration(0),
   _complained(false){
 
-  // RedHat 8.0's gcc requires these to be *in* the constructor body.
+  // RedHat 8.0's gcc fails if these are initializers, like graphics/ar*Node.cpp.
   _typeCode = AR_S_STREAM_NODE;
   _typeString = "stream"; 
 }
@@ -43,25 +43,25 @@ bool arStreamNode::render(){
   if (_fileName != _fileNamePrev){
     _complained = false;
 
-    // Close the old stream
+    // Close the old stream.
     if (_stream){
-      ar_fmodcheck( FMOD_Sound_Release( _stream ));
+      (void)ar_fmodcheck( FMOD_Sound_Release( _stream ));
       _stream = NULL;
     }
 
     // Open the new stream.
     const string fullName = ar_fileFind(_fileName,"", _owningDatabase->getPath());
     if (fullName != "NULL"){
-      // NOTE: If we want to be able to have a custom DSP work (like for arSoundClient's tap), then
-      // we need this to render in software! (FMOD is now advanced enough to send mp3's to hardware
-      // for decoding... bypassing the DSP chains altogether).
+      // FMOD_SOFTWARE prevents hardware decoding, which bypasses the DSP chain
+      // needed by custom DSP's like arSoundClient's tap.
       if (!ar_fmodcheck( FMOD_System_CreateStream( ar_fmod(),
               fullName.c_str(), FMOD_3D | FMOD_SOFTWARE, 0, &_stream))){
         return false;
       }
     }
-    // Store the length of the new stream.
-    if (_stream){
+
+    // Store the new stream's length.
+    if (_stream) {
       if (!ar_fmodcheck( FMOD_Sound_GetLength( _stream, 
              &_msecDuration, FMOD_TIMEUNIT_MS)) ||
           !ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), 
@@ -91,14 +91,14 @@ bool arStreamNode::render(){
       //   ALWAYS SEEK BACK TO THIS SPOT)
       _msecRequested = -1;
     }
-    if (!ar_fmodcheck(FMOD_Channel_SetPaused( _channel, _paused )) ||
+    if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, _paused )) ||
         !ar_fmodcheck( FMOD_Channel_SetPosition( _channel, _msecNow, FMOD_TIMEUNIT_MS ))) {
       return false;
     }
   }
   else{
     if (!_complained){
-      cerr << "arStreamNode error: failed to create stream '"
+      ar_log_warning() << "arStreamNode failed to create stream '"
 	   << "  " << _fileName << "'\n";
       _complained = true;
     }
@@ -133,10 +133,10 @@ bool arStreamNode::receiveData(arStructuredData* data){
 
   // for detecting changed filename in render()
   _fileNamePrev = _fileName;
+
   _fileName = data->getDataString(_l.AR_STREAM_FILE);
   ar_scrubPath(_fileName);
-  data->dataOut(_l.AR_STREAM_PAUSED, &_paused, AR_INT, 1);
-  data->dataOut(_l.AR_STREAM_AMPLITUDE, &_amplitude, AR_FLOAT, 1);
-  data->dataOut(_l.AR_STREAM_TIME, &_msecRequested, AR_INT, 1);
-  return true;
+  return data->dataOut(_l.AR_STREAM_PAUSED, &_paused, AR_INT, 1) &&
+    data->dataOut(_l.AR_STREAM_AMPLITUDE, &_amplitude, AR_FLOAT, 1) &&
+    data->dataOut(_l.AR_STREAM_TIME, &_msecRequested, AR_INT, 1);
 }

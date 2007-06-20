@@ -33,15 +33,13 @@ arStructuredData* arSoundTransformNode::dumpData(){
 
 bool arSoundTransformNode::receiveData(arStructuredData* inData){
   if (inData->getID() != _l.AR_TRANSFORM){
-    cout << "arTransformNode error: expected "
-         << _l.AR_TRANSFORM
+    ar_log_warning() << "arTransformNode expected " << _l.AR_TRANSFORM
          << " (" << _l._stringFromID(_l.AR_TRANSFORM) << "), not "
          << inData->getID()
-         << " (" << _l._stringFromID(inData->getID()) << ")\n";
+         << " (" << _l._stringFromID(inData->getID()) << ").\n";
     return false;
   }
 
   _commandBuffer.grow(len);
-  inData->dataOut(_l.AR_TRANSFORM_MATRIX, _commandBuffer.v, AR_FLOAT, len);
-  return true;
+  return inData->dataOut(_l.AR_TRANSFORM_MATRIX, _commandBuffer.v, AR_FLOAT, len);
 }

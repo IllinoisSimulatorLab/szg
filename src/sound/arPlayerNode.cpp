@@ -36,8 +36,7 @@ bool arPlayerNode::receiveData(arStructuredData* inData){
     return false;
   }
   _commandBuffer.grow(20);
-  inData->dataOut(_l.AR_PLAYER_MATRIX, _commandBuffer.v, AR_FLOAT,16);
-  inData->dataOut(_l.AR_PLAYER_MID_EYE_OFFSET,_commandBuffer.v+16,AR_FLOAT,3);
-  inData->dataOut(_l.AR_PLAYER_UNIT_CONVERSION,_commandBuffer.v+19,AR_FLOAT,1);
-  return true;
+  return inData->dataOut(_l.AR_PLAYER_MATRIX, _commandBuffer.v, AR_FLOAT,16) &&
+    inData->dataOut(_l.AR_PLAYER_MID_EYE_OFFSET,_commandBuffer.v+16,AR_FLOAT,3) &&
+    inData->dataOut(_l.AR_PLAYER_UNIT_CONVERSION,_commandBuffer.v+19,AR_FLOAT,1);
 }

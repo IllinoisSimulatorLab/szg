@@ -192,19 +192,24 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
   arMatrix4 headMatrix;
   float unitConversion = 1.;
   arDatabaseNode* playerNode = getNode("szg_player", false);
+  bool ok = true;
   if (playerNode){
-    // Get info from the database's player node.
+    // Read the database's player node.
     arStructuredData* pdata = playerNode->dumpData();
-    pdata->dataOut(_langSound.AR_PLAYER_MATRIX,headMatrix.v,AR_FLOAT,16);
-    pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION,
-                   &unitConversion,AR_FLOAT,1);
+    ok &=
+      pdata->dataOut(_langSound.AR_PLAYER_MATRIX,headMatrix.v,AR_FLOAT,16) &&
+      pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion,AR_FLOAT,1);
+      if (!ok)
+        ar_log_warning() << "arSoundDatabase: bogus head or unitConversion.\n";
     delete pdata; // Because dumpData() allocated it.
   }
-  s->setUnitConversion(unitConversion);
+  if (ok) {
+    s->setUnitConversion(unitConversion);
 
-  // This happens once per sound-frame, 5x more often than
-  // arServerFramework::setPlayTransform calls loadMatrices.
-  (void)s->loadMatrices(headMatrix);
+    // Once per sound-frame, 5x more often than
+    // arServerFramework::setPlayTransform calls loadMatrices.
+    (void)s->loadMatrices(headMatrix);
+  }
 }
 
 // Copy of OpenGL's matrix stack, for sound rendering.
