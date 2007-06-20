@@ -90,7 +90,7 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 }
  
 bool ar_soundClientDisconnectCallback(void* client){
-  ar_log_remark() << "arSoundClient disconnected from server.\n";
+  ar_log_remark() << "arSoundClient disconnected.\n";
 
   // Delete the bundle path, which is unique to each connection so
   // an app's sound files be other than "on the sound path."

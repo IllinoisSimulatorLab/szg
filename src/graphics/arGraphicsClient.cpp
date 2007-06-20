@@ -18,15 +18,14 @@ bool ar_graphicsClientDisconnectCallback(void* client){
   // here, since this is not in the graphics thread but in the connection
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;
-  ar_log_remark() << "arGraphicsClient disconnected from server.\n";
+  ar_log_remark() << "arGraphicsClient disconnected.\n";
   // We should *delete* the bundle path information. This
   // is really unique to each connection. This information
   // lets an application have its textures elsewhere than 
   // on the texture path.
   c->setDataBundlePath("NULL","NULL");
   c->reset();
-  // Do not call skipConsumption here! That is done in the
-  // arSyncDataClient proper.
+  // Call skipConsumption from the arSyncDataClient proper, not here.
   return true;
 }
 
@@ -88,9 +87,8 @@ bool ar_graphicsClientNullCallback(void* client){
   // and is called upon disconnect.
   c->getWindowManager()->deactivateFramelock();
 
-  // Have everything drawn black.
+  // Pure black image.
   c->setOverrideColor(arVector3(0,0,0));
-
   c->drawAllWindows();
 
   // Revert to normal drawing mode.
@@ -224,16 +222,17 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   const string displayName = szgClient->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "display " << whichDisplay << "/name undefined, using default.\n";
+    ar_log_warning() << "arGraphicsClient display " << whichDisplay << "/name undefined, using default.\n";
   } else {
-    ar_log_remark() << "displaying on " << whichDisplay << " : "
+    ar_log_remark() << "arGraphicsClient displaying on " << whichDisplay << " : "
                     << displayName << ".\n";
   }
 
-  // By default, arTexture::_loadIntoOpenGL() will abort and print an error message
-  // if you attempt to load a texture whose dimensions are not powers of two. You
-  // can override this behavior by setting this variable
-  bool textureAllowNotPow2 = szgClient->getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
+  // arTexture::_loadIntoOpenGL() complains and aborts
+  // if its texture's dimensions are not powers of two.
+  // SZG_RENDER/allow_texture_not_pow2 overrides this.
+  const bool textureAllowNotPow2 =
+    szgClient->getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
   ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );
 
   _guiParser->setConfig( szgClient->getGlobalAttribute(displayName) );
@@ -243,8 +242,7 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   // copypaste with framework/arMasterSlaveFramework.cpp, end
 
   setTexturePath(szgClient->getAttribute("SZG_RENDER", "texture_path"));
-  // where to look for text textures
-  string textPath = szgClient->getAttribute("SZG_RENDER","text_path");
+  string textPath(szgClient->getAttribute("SZG_RENDER","text_path"));
   ar_pathAddSlash(textPath);
   loadAlphabet(textPath.c_str());
   return true;
@@ -289,10 +287,11 @@ bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
   // start only windowing, not synchronization.
   if (startSynchronization){
     _cliSync.setServiceName("SZG_GEOMETRY");
-    if (!(_cliSync.init(client) && _cliSync.start())){
+    if (!_cliSync.init(client) || !_cliSync.start()){
       return false;
     }
   }
+  // todo: _label = client.getComputerName() or something like that, for ar_log_xxx.
 
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     _guiParser->getWindowingConstruct()->getWindowConstructs();
@@ -309,7 +308,7 @@ bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
     for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
       if( vItr->getCamera()->type() == "arVRCamera" ) {
         ((arVRCamera*) vItr->getCamera())->setHead( &_defaultHead );
-       }
+      }
     }
   }
 
@@ -340,24 +339,15 @@ void arGraphicsClient::takeScreenshot(bool stereo){
   sprintf(numberBuffer,"%i",_whichScreenshot);
   string screenshotName = string("screenshot")+numberBuffer+string(".jpg");
   char* buffer1 = new char[_screenshotWidth*_screenshotHeight*3];
-  if (!stereo){
-    glReadBuffer(GL_FRONT);
+  glReadBuffer(stereo ? GL_FRONT_LEFT : GL_FRONT);
+  glReadPixels(_screenshotX, _screenshotY, _screenshotWidth, _screenshotHeight,
+               GL_RGB, GL_UNSIGNED_BYTE, buffer1);
+  arTexture texture;
+  texture.setPixels(buffer1,_screenshotWidth,_screenshotHeight);
+  if (!texture.writeJPEG(screenshotName.c_str(),_screenshotPath)){
+    ar_log_remark() << "arGraphicsClient failed to write screenshot.\n";
   }
-  else{
-    glReadBuffer(GL_FRONT_LEFT);
-  }
-  glReadPixels(_screenshotX, _screenshotY,
-               _screenshotWidth, _screenshotHeight,
-               GL_RGB,GL_UNSIGNED_BYTE, buffer1);
-  arTexture* texture = new arTexture;
-  texture->setPixels(buffer1,_screenshotWidth,_screenshotHeight);
-  if (!texture->writeJPEG(screenshotName.c_str(),_screenshotPath)){
-    ar_log_remark() << " failed to write screenshot.\n";
-  }
-  delete texture;
   delete buffer1;
-  // don't forget to increment the screenshot number
   _whichScreenshot++;
   _doScreenshot = false;
 }
-
