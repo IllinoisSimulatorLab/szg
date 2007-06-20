@@ -30,54 +30,38 @@ bool arSpeakerObject::configure(arSZGClient& cli){
   return true;
 }
 
-// todo: move to arMath.h, member of arVector3.
-static inline void Normalize(float* v) {
-  float invlen = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-  if (invlen < 1e-6)
-    return;
-  invlen = 1./invlen;
-  v[0] *= invlen;
-  v[1] *= invlen;
-  v[2] *= invlen;
-}
-static inline void Normalize(arVector3& a) {
-  Normalize(a.v);
-}
-
 bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
   const arMatrix4 locHeadMatrix(_demoMode ? demoHeadMatrix(headMatrix) : headMatrix);
   const arVector3 midEye(_unitConversion * (locHeadMatrix * _midEyeOffset));
 
   // Update listener's attributes.
   const arMatrix4 rot(ar_extractRotationMatrix(locHeadMatrix));
+  const arVector3 up((rot * arVector3(0,1,0)).normalize());
+  const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
   const arVector3 pos(midEye);
-  arVector3 up(rot * arVector3(0,1,0));
-  arVector3 forward(rot * arVector3(0,0,-1));
-  Normalize(up);
-  Normalize(forward);
 
-  if (pos!=_posPrev || up!=_upPrev || forward!=_forwardPrev) {
-    _posPrev = pos;
-    _upPrev = up;
-    _forwardPrev = forward;
-    // cout << "listenerpos: " << pos << "\n\t" << forward << "\n\t" << up << endl;;
-    const arVector3 velocityNotUsed(0,0,0);
-#ifdef EnableSound
-    const FMOD_VECTOR fmod_pos(FmodvectorFromArvector(pos));
-    const FMOD_VECTOR fmod_velocityNotUsed(FmodvectorFromArvector(velocityNotUsed));
-    const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
-    const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
-    if (!ar_fmodcheck( FMOD_System_Set3DListenerAttributes( ar_fmod(), 0,
-      &fmod_pos,
-      &fmod_velocityNotUsed, // doppler NYI (units per second, not per frame!)
-      &fmod_forward,
-      &fmod_up)))
-      return false;
-    if (!ar_fmodcheck( FMOD_System_Update( ar_fmod() )))
-      return false;
-#endif
-  }
+  if (pos==_posPrev && up==_upPrev && forward==_forwardPrev)
+    return true;
+
+  _posPrev = pos;
+  _upPrev = up;
+  _forwardPrev = forward;
+  // cout << "listenerpos: " << pos << "\n\t" << forward << "\n\t" << up << endl;;
+  const arVector3 velocityNotUsed(0,0,0);
+#ifndef EnableSound
   return true;
+#else
+  const FMOD_VECTOR fmod_pos(FmodvectorFromArvector(pos));
+  const FMOD_VECTOR fmod_velocityNotUsed(FmodvectorFromArvector(velocityNotUsed));
+  const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
+  const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
+  return ar_fmodcheck( FMOD_System_Set3DListenerAttributes( ar_fmod(), 0,
+    &fmod_pos,
+    &fmod_velocityNotUsed, // doppler NYI (units per second, not per frame!)
+    &fmod_forward,
+    &fmod_up)) &&
+    ar_fmodcheck( FMOD_System_Update( ar_fmod() ));
+#endif
 }
 
 arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*headMatrix*/ ) {
