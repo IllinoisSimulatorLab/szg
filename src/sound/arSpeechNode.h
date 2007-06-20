@@ -9,10 +9,13 @@
 #include "arSoundNode.h"
 #include "arSoundCalling.h"
 
+#ifndef AR_USE_WIN_32
+#undef EnableSpeech
+// Windows SAPI is the only implementation so far.
+#endif
+
 #ifdef EnableSpeech
-  #ifdef AR_USE_WIN_32
-    #include <sapi.h>
-  #endif
+#include <sapi.h>
 #endif
 
 // Utterance in the scene graph.
@@ -32,10 +35,8 @@ class SZG_CALL arSpeechNode : public arSoundNode{
     void _initVoice();
     void _deleteVoice();
     void _speak( const std::string& text );
-#ifdef AR_USE_WIN_32
 #ifdef EnableSpeech
     ISpVoice* _voice;
-#endif
 #endif
 };
 

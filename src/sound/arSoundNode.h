@@ -37,7 +37,7 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
   
   // State.
   arVector3 _point;
-  float _amplitude;
+  float _amplitude; // usually [0,100], default 1.
   // these 2 are perhaps ignored by some node-kinds.
   // used only by arSoundFileNode
 
@@ -52,7 +52,7 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
 
 };
 
-  // arSoundTransformNode is an example of a node with fixed size.
-  // Other arXXXNodes are examples of a node which stores an array of records.
+  // arSoundTransformNode has fixed size.
+  // Other arXXXNodes store arrays of records.
 
 #endif

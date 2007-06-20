@@ -10,11 +10,10 @@
 #include "arSoundDatabase.h"
 #include "arSoundCalling.h"
 
-// Streams a file from disk. This is good for long pieces of music,
-// whereby arSoundFileNode is better for short clips that are either
-// triggered or are looped.
+// Stream a (long music) file from disk.
+// Prefer arSoundFileNode for a short clip that is triggered or looped.
 
-class SZG_CALL arStreamNode: public arSoundNode{
+class SZG_CALL arStreamNode: public arSoundNode {
  public:
   arStreamNode();
   ~arStreamNode();
@@ -37,17 +36,16 @@ class SZG_CALL arStreamNode: public arSoundNode{
   void* _stream;
 #endif
 
-  // Used to determine if a change to this node should open up a new stream.
+  // For determining if a change to this node should open up a new stream.
   string _fileName;
   // For detecting if the stream source has changed after receiveData().
   string _fileNamePrev;
   bool _paused;
 
-  // What is the current loundness of the sound?
-  // Here, we follow the convention of arSoundFileNode, where amplitude
-  // can range between 0 and 100, with 1 giving the sound at its
-  // default loudness.
+  // Current loudness.
+  // Like arSoundFileNode::render, amplitude is in [0,100], with 1 the default.
   float _amplitude;
+
   int _msecRequested;
   unsigned _msecNow;
   unsigned _msecDuration;

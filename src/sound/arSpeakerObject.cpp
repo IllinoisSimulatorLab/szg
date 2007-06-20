@@ -52,6 +52,11 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
 
     // ar_lookatMatrix does this?
     cerr << "yoyoyo get a list of sound sources and tweak them.\n";
+
+    /*
+    Better: FMOD_System_Set3DListenerAttributes just once.
+    Where are 3D attributes of sound sources set?
+    */
   }
 
   if (pos==_posPrev && up==_upPrev && forward==_forwardPrev)

@@ -166,8 +166,6 @@ bool arSoundFileNode::render(){
         return false;
     }
 
-
-
     if (_action == "play"){
       if (!_channel){
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, false, &_channel)))

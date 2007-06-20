@@ -76,21 +76,16 @@ class SZG_CALL arSoundClient{
   bool empty() { return _soundDatabase.empty(); }
   void reset() { _soundDatabase.reset(); }
   arSyncDataClient _cliSync;
-  // THIS METHOD IS NO LONGER SUPPORTED AT THE DATABASE LEVEL. IT IS A
-  // RELIC OF A PREVIOUS TIME!
-  //int getFrameID() const { return _soundDatabase.getFrameID(); }
   string getPath(){ return _soundDatabase.getPath(); }
   void setPath(const string& s) { _soundDatabase.setPath(s); }
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory)
     { _soundDatabase.setDataBundlePath(bundlePathName, bundleSubDirectory); }
   void addDataBundlePathMap(const string& bundlePathName, const string& bundlePath)
     { _soundDatabase.addDataBundlePathMap(bundlePathName, bundlePath); }
-
   void setSpeakerObject(arSpeakerObject* s) { _speakerObject = s; }
-
   bool readFrame();
-
-  bool silent() const { return _fSilent; }
+  bool silent() const
+    { return _fSilent; }
   
  private:
   bool _render();

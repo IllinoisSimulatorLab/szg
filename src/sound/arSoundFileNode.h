@@ -11,7 +11,8 @@
 #include "arSoundNode.h"
 #include "arSoundCalling.h"
 
-// Single sound in the scene graph.
+// Single sound in the scene graph, triggered or looped.
+// Prefer arStreamNode for a long piece of music.
 
 class SZG_CALL arSoundFileNode : public arSoundNode{
  public:
@@ -29,9 +30,9 @@ class SZG_CALL arSoundFileNode : public arSoundNode{
   FMOD_SOUND* _psamp;
   FMOD_CHANNEL* _channel;
 #endif
-  // This _fLoop is a HACK. It variously means
+  // _fLoop is a HACK. It variously means
   //  "start the loop", "pause the loop", "trigger the sound", and
-  //  "prepare to trigger the sound again"
+  //  "prepare to retrigger the sound".
   int _fLoop;
   bool _fComplained[4];
   string _fileName;

@@ -25,7 +25,6 @@ void arSpeechNode::initialize( arDatabase* owner ) {
 
 void arSpeechNode::_initVoice() {
 #ifdef EnableSpeech
-#ifdef AR_USE_WIN_32
   _voice = NULL;
   if (!_owningDatabase->isServer()) {
     if (FAILED(::CoInitialize(NULL))) {
@@ -41,19 +40,16 @@ void arSpeechNode::_initVoice() {
       return;
     }
   }
-#endif
 #endif  
 }
 
 void arSpeechNode::_deleteVoice() {
 #ifdef EnableSpeech
-#ifdef AR_USE_WIN_32
   if (_voice != NULL) {
     _voice->Release();
     _voice = NULL;
     ::CoUninitialize();
   }
-#endif
 #endif
 }
 
@@ -105,7 +101,6 @@ void arSpeechNode::_speak( const std::string& speechText ) {
 #ifndef EnableSpeech
   (void)speechText; // avoid compiler warning
 #else
-#ifdef AR_USE_WIN_32
   if (!_voice) {
     return;
   }
@@ -130,6 +125,5 @@ void arSpeechNode::_speak( const std::string& speechText ) {
   } else {
     (void)_voice->Speak( (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
   }
-#endif
 #endif
 }
