@@ -60,8 +60,9 @@ void drawWand( const arEffector* effector ) {
   dgTransform( wandID, effector->getBaseMatrix()*wandOffsetMat );
 }
 
+#ifdef UNUSED // inputEventQueueCallback instead
 bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& ) {
-  databaseLock.lock();
+  arGuard dummy(databaseLock);
   dragWand.updateState( event );
   headEffector.updateState( event );
   if (event.getType() == AR_EVENT_AXIS) {
@@ -73,16 +74,15 @@ bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackE
   // This callback might be called many times per frame, though.
   fw.loadNavMatrix();
   dragWand.draw();
-  
-  databaseLock.unlock();
   return true;
 }
+#endif
 
 bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
   if (eventQueue.size() == 0) {
     return true;
   }
-  databaseLock.lock();
+  arGuard dummy(databaseLock);
   while (!eventQueue.empty()) {
     arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
@@ -104,22 +104,19 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
   // the navigation matrix should be updated every frame.
   fw.loadNavMatrix();
   dragWand.draw();
-  
-  databaseLock.unlock();
   return true;
 }
 
 void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
-  databaseLock.lock();
+  arGuard dummy(databaseLock);
   int gid = object->getGraphicsTransformID();
   if (gid != -1) {
     dgTransform( gid, matrix );
   }
-  int sid = object->getSoundTransformID();
+  const int sid = object->getSoundTransformID();
   if (sid != -1) {
     dsTransform( sid, matrix );
   }
-  databaseLock.unlock();
 }
 
 bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
@@ -127,9 +124,8 @@ bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
     if (object->grabbed()) {
       int iObject = object - interactionArray;
       if ((iObject >= 0)&&(iObject < NUMBER_OBJECTS)) {
-	databaseLock.lock();
+	arGuard dummy(databaseLock);
         dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
-	databaseLock.unlock();
       }
     }
   }
@@ -163,9 +159,8 @@ void worldAlter(void* f) {
         char buffer[32];
         sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
         const string whichTexture(buffer);
-	databaseLock.lock();
+	arGuard dummy(databaseLock);
         dgTexture(objectTextureID[iObject], whichTexture);
-	databaseLock.unlock();
       }
     }
 
@@ -206,7 +201,7 @@ void worldAlter(void* f) {
     if (count%100 == 0)
       ar_usleep(1000); // CPU throttle
   }
-  cout << framework->getLabel() << " remark: alteration thread stopped.\n";
+  ar_log_remark() << framework->getLabel() << ": alteration thread stopped.\n";
   framework->externalThreadStopped();
 }
 
@@ -294,11 +289,11 @@ recalcpos:
     teapotID = dgPlugin( "teapot", "teapot_transform", "arTeapotGraphicsPlugin",
                           NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
     if (teapotID == -1) {
-      ar_log_error() << "cubes error: failed to create teapot plugin node.\n";
+      ar_log_error() << framework.getLabel() << " failed to create teapot plugin node.\n";
       fTeapot = false;
       return;
     } else {
-      ar_log_remark() << "cubes created teapot plugin node with ID " << teapotID << ar_endl;
+      ar_log_remark() << framework.getLabel() << " created teapot plugin node with ID " << teapotID << ar_endl;
     }
   }
   if (fPython) {
@@ -306,11 +301,11 @@ recalcpos:
     pythonID = dgPython( "python", "python_transform", "pyteapot", "teapot", false,
         NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
     if (pythonID == -1) {
-      ar_log_error() << "cubes error: failed to create python plugin node.\n";
+      ar_log_error() << framework.getLabel() << " failed to create python plugin node.\n";
       fPython = false;
       return;
     } else {
-      ar_log_remark() << "cubes created python plugin node with ID " << pythonID << ar_endl;
+      ar_log_remark() << framework.getLabel() << " created python plugin node with ID " << pythonID << ar_endl;
     }
   }
 }
@@ -357,12 +352,9 @@ int main(int argc, char** argv) {
   dragWand.setInteractionSelector( arDistanceInteractionSelector( 5 ) );
   // Set wand to do a normal drag when you click on button 2 or 6 & 7
   // (the wand triggers)
-  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ),
-                       arWandRelativeDrag() );
-  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 6, 0.5 ),
-                       arWandRelativeDrag() );
-  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 7, 0.5 ),
-                       arWandRelativeDrag() );
+  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ), arWandRelativeDrag() );
+  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 6, 0.5 ), arWandRelativeDrag() );
+  dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 7, 0.5 ), arWandRelativeDrag() );
   dragWand.setTipOffset( arVector3(0,0,-WAND_LENGTH) );
   dragWand.setDrawCallback( drawWand );
   
@@ -384,10 +376,9 @@ int main(int argc, char** argv) {
 
   // Main loop.
   while (true) {
-    databaseLock.lock();
-      framework.setViewer();
-      framework.setPlayer();
-    databaseLock.unlock();
     ar_usleep(1000000/200); // 200 fps cpu throttle
+    arGuard dummy(databaseLock);
+    framework.setViewer();
+    framework.setPlayer();
   }
 }  
