@@ -68,10 +68,9 @@ class SZG_CALL arSharedLib {
 
  private:
   LibHandle _h;
-  arSharedLibFactory    _factory;
+  arSharedLibFactory _factory;
   arSharedLibObjectType _objectType;
-  bool _libraryLoaded;
-  bool _factoryMapped;
+  bool _fLoaded;
 };
 
 #endif
