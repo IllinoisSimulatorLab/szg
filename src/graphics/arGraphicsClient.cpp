@@ -18,7 +18,7 @@ bool ar_graphicsClientDisconnectCallback(void* client){
   // here, since this is not in the graphics thread but in the connection
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;
-  ar_log_remark() << "arGraphicsClient remark: disconnected from server.\n";
+  ar_log_remark() << "arGraphicsClient disconnected from server.\n";
   // We should *delete* the bundle path information. This
   // is really unique to each connection. This information
   // lets an application have its textures elsewhere than 
@@ -238,7 +238,7 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
 
   _guiParser->setConfig( szgClient->getGlobalAttribute(displayName) );
   if (_guiParser->parse() < 0){
-    ar_log_remark() << "szgrender remark: failed to parse XML configuration.\n";
+    ar_log_remark() << "arGraphicsClient failed to parse XML configuration.\n";
   }
   // copypaste with framework/arMasterSlaveFramework.cpp, end
 

@@ -44,10 +44,10 @@ bool arBirdWinDriver::stop(){
   if (_flockWoken) {
     if (_streamingStarted) {
         birdStopFrameStream(_groupID);
-        // ar_log_remark() << "arBirdWinDriver remark: Stopped data stream.\n";
+        // ar_log_remark() << "arBirdWinDriver stopped data stream.\n";
     }
     birdShutDown(_groupID);
-    // ar_log_remark() << "arBirdWinDriver remark: Flock shut down.\n";    
+    // ar_log_remark() << "arBirdWinDriver shut down Flock.\n";    
   }
   return true;
 }
@@ -60,7 +60,7 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
     fobDriver->stop();
     return;
   }
-  // ar_log_remark() << "arBirdWinDriver remark: Started data stream.\n";
+  // ar_log_remark() << "arBirdWinDriver started data stream.\n";
   fobDriver->_streamingStarted = true;
   while (true) {
     const double _INCHES_TO_FEET = 1./12.;
@@ -152,10 +152,10 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   _standAlone = (_numDevices == 1);
   int i = 0;
   if (_standAlone) {  // for standalone, we put the COM port # at array position 0
-    ar_log_remark() << "arBirdWinDriver remark: standalone configuration using COM port " << intComPorts[0] << "\n";
+    ar_log_remark() << "arBirdWinDriver: standalone configuration using COM port " << intComPorts[0] << "\n";
     _comPorts[0] = static_cast<WORD>( intComPorts[0] );
   } else {   // for multiple, we start loading the COM port #s into array at position 1
-    ar_log_remark() << "arBirdWinDriver remark: COM ports: ";
+    ar_log_remark() << "arBirdWinDriver: COM ports: ";
     for (i=0; i<_numDevices; i++) {
       ar_log_remark() << intComPorts[i] << "/";
       _comPorts[i+1] = static_cast<WORD>(intComPorts[i]);
@@ -200,7 +200,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     ar_log_warning() << "arBirdWinDriver error: failed to wake up the flock.\n";
     return false;
   }
-  ar_log_remark() << "arBirdWinDriver remark: Woke up flock consisting of " 
+  ar_log_remark() << "arBirdWinDriver woke flock consisting of " 
        << _numDevices << " devices.\n";
   _flockWoken = true;
   BOOL status = birdGetSystemConfig(_groupID,&_sysConfig);
@@ -242,18 +242,17 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     for (i=1; i<=_numDevices; i++) {
       status = birdGetDeviceConfig(_groupID,i,&_devConfig[i]);
       if (!status) {
-        ar_log_warning() << "arBirdWinDriver error: failed to get config for device #" 
+        ar_log_warning() << "arBirdWinDriver failed to get config for device #" 
              << i << "\n";
         return false;
       }
-      // ar_log_remark() << "arBirdWinDriver remark: Got status for device #" << i << "\n";
     }
     for (i=1; i<=_numDevices; i++) {
       _devConfig[i].byDataFormat = BDF_POSITIONQUATERNION;
       _devConfig[i].byHemisphere = _hemisphereNum;
       status = birdSetDeviceConfig(_groupID,i,&_devConfig[i]);
       if (!status) {
-        ar_log_warning() << "arBirdWinDriver error: failed to set position/quaternion "
+        ar_log_warning() << "arBirdWinDriver failed to set position/quaternion "
        << "mode + hemisphere for device #" << i << "\n";
         return false;
       }

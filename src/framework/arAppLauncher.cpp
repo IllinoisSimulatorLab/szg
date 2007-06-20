@@ -368,7 +368,7 @@ bool arAppLauncher::killAll(){
     }
   }
   if (!killList.empty()) {
-    ar_log_remark() << _exeName << " remark: killing service(s)" << namesKill << ".\n";
+    ar_log_remark() << _exeName << " killing service(s) " << namesKill << ".\n";
   }
   _blockingKillByID(&killList);
   _unlock();
@@ -769,7 +769,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
     // Found the service.  Is it running on the right computer, with the right info tag?
     const arSlashString processLocation(_szgClient->getProcessLabel(serviceID));
     if (processLocation.size() != 2){
-      ar_log_remark() << _exeName << " remark: relaunching disappeared service "
+      ar_log_remark() << _exeName << " relaunching disappeared service "
 	<< iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
       continue;

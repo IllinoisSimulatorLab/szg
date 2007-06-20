@@ -678,7 +678,7 @@ LDone:
     ar_log_warning() << "szgd pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
-    ar_log_remark() << "szgd remark: pre-launch dir for " << execInfo->messageBody
+    ar_log_remark() << "szgd: pre-launch dir for " << execInfo->messageBody
          << "\n    is '" << execInfo->appDirPath << "'.\n";
   }
 
@@ -871,7 +871,7 @@ LDone:
     ar_log_warning() << "szgd pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
-    ar_log_remark() << "szgd remark: pre-launch dir for " << execInfo->messageBody
+    ar_log_remark() << "szgd: pre-launch dir for " << execInfo->messageBody
          << "\n    is '" << execInfo->appDirPath << "'.\n";
   }
 

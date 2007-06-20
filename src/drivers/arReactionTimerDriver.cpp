@@ -18,7 +18,7 @@ double RT_TIMEOUT = 10.;
 const unsigned int BUF_SIZE = 4096;
 
 void ar_RTDriverEventTask(void* theDriver) {
-  ar_log_warning() << "arReactionTimerDriver remark: started event task.\n";
+  ar_log_remark() << "arReactionTimerDriver started event task.\n";
   arReactionTimerDriver* rtDriver = (arReactionTimerDriver*) theDriver;
   rtDriver->_stopped = false;
   rtDriver->_eventThreadRunning = true;
@@ -52,7 +52,7 @@ bool arReactionTimerDriver::init(arSZGClient& SZGClient) {
   _inited = true;
   // 2 buttons, 2 axes, no matrices.
   _setDeviceElements( 2, 2, 0 );
-  ar_log_warning() << "arReactionTimerDriver remark: initialized.\n";
+  ar_log_debug() << "arReactionTimerDriver initialized.\n";
   return true;
 }
 
@@ -74,12 +74,12 @@ bool arReactionTimerDriver::start() {
 }
 
 bool arReactionTimerDriver::stop() {
-  ar_log_warning() << "arReactionTimerDriver remark: stopping.\n";
+  ar_log_debug() << "arReactionTimerDriver stopping.\n";
   _stopped = true;
   arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
     a.sleep();
-  ar_log_warning() << "arReactionTimerDriver remark: event thread exiting.\n";
+  ar_log_debug() << "arReactionTimerDriver event thread exiting.\n";
   _port.ar_close();
   return true;
 }
@@ -105,7 +105,7 @@ bool arReactionTimerDriver::_processInput() {
       return true;
     }
     if (!_imAlive) {
-      ar_log_remark() << "arReactionTimerDriver remark: ReactionTimer reconnected.\n";
+      ar_log_remark() << "arReactionTimerDriver reconnected.\n";
       _imAlive = true;
     }
     std::string messageString( _bufString.substr( 0, crpos ) );

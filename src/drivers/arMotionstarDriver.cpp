@@ -18,10 +18,10 @@ void ar_motionstarDriverEventTask(void* motionstarDriver){
     ar_log_warning() << "arMotionstarDriver error: no response from driver.\n";
     return;
   }
-  ar_log_remark() << "arMotionstarDriver remark: beginning event task.\n";
+  ar_log_remark() << "arMotionstarDriver beginning event task.\n";
   while (d->_getResponse(DATA_PACKET))
     d->_parseData(&d->_response);
-  ar_log_warning() << "arMotionstarDriver error: no response from driver.\n";
+  ar_log_warning() << "arMotionstarDriver: no response from driver.\n";
 }
 
 arMotionstarDriver::arMotionstarDriver():
@@ -50,12 +50,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //  _setVm = true;
 //  long filterBuf[7];
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMin", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMin.\n";
+//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMin.\n";
 //    _setAlphaMin = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver remark: alphaMin value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver: alphaMin value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMin = false;
 //      }
@@ -63,12 +63,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMax", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMax.\n";
+//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMax.\n";
 //    _setAlphaMax = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver remark: alphaMax value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver: alphaMax value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMax = false;
 //      }
@@ -76,12 +76,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "Vm", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/Vm.\n";
+//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/Vm.\n";
 //    _setVm = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0.)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver remark: Vm value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver: Vm value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setVm = false;
 //      }
@@ -137,7 +137,6 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
     _setDeviceElements(sig);
   }
 
-  //ar_log_remark() << "arMotionstarDriver remark: found " << nDevices << " devices.\n";
   // send the system setup
   if (!_setStatusAll(sys)){
     ar_log_warning() << "arMotionstarDriver failed to set system status.\n";

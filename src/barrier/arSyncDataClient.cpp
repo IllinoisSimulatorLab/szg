@@ -64,7 +64,7 @@ void arSyncDataClient::_connectionTask(){
     // Bond the data channel to this sync channel.
     _barrierClient.setBondedSocketID(_dataClient.getSocketIDRemote());
     _stateClientConnected = true;
-    ar_log_remark() << getLabel() << " remark: connected to "
+    ar_log_remark() << getLabel() << " connected to "
 	            << result.address << ":" << result.portIDs[0] << ".\n";
 
     // ugly polling! make sure we cannot block here if stop() was called.
@@ -312,7 +312,7 @@ bool arSyncDataClient::init(arSZGClient& client){
   _serviceNameBarrier =
     client.createComplexServiceName(_serviceName+"_BARRIER");
   _serviceName = client.createComplexServiceName(_serviceName);
-  ar_log_remark() << getLabel() << " remark: initialized with service name "
+  ar_log_remark() << getLabel() << " initialized with service name "
                   << _serviceName << ".\n";
   return true;
 }

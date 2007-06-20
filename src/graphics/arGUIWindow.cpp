@@ -1511,7 +1511,7 @@ int arGUIWindow::move( int newX, int newY )
 arCursor arGUIWindow::setCursor( arCursor cursor )
 {
   if( !_running ) {
-    ar_log_remark() << "arGUIWindow remark: ignoring setCursor while not running.\n";
+    ar_log_remark() << "arGUIWindow ignoring setCursor while not running.\n";
     return _cursor;
   }
 
@@ -1524,8 +1524,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
       break;
 
     default:
-      // print error?
-      ar_log_remark() << "arGUIWindow remark: given an invalid cursor type.\n";
+      ar_log_remark() << "arGUIWindow ignoring invalid cursor type.\n";
       return _cursor;
   }
 

@@ -353,7 +353,7 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
   sprintf( chStation, "station%d_%d", trackerIndex, getID() );
   if (client.getAttributeInts( "SZG_INTERSENSE", chStation, sig, 3 ) ) {
     _setInputCounts( sig[0], sig[1], sig[2] );
-    ar_log_warning() << "IsenseStation remark: Set station " << getID() << " to "
+    ar_log_remark() << "IsenseStation set station " << getID() << " to "
          << sig[0] << ":" << sig[1] << ":" << sig[2] << "\n";
   }
 
@@ -366,7 +366,7 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
            << getID() << " to " << (Bool)useCompass << "\n";
       return false;
     }
-    ar_log_warning() << "IsenseStation remark: Set compass usage for station " 
+    ar_log_remark() << "IsenseStation set compass usage for station " 
          << getID() << " to " << (Bool)useCompass << "\n";
   }
   return true;
@@ -443,7 +443,7 @@ bool IsenseStation::_setUseCompass( unsigned int compassVal ) {
                                      static_cast<WORD>(getID()),
                                      USE_VERBOSE )!= FALSE);
   if (stat) {
-    ar_log_warning() << "IsenseStation remark: Set useCompass "
+    ar_log_remark() << "IsenseStation set useCompass "
          << "for station " << getID() << "\n";
   } else {
     ar_log_warning() << "IsenseStation error: Failed to set useCompass "
@@ -667,10 +667,10 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   int sig[2] = {10,0};
   if (!client.getAttributeInts("SZG_INTERSENSE","sleep",sig,2)) {
     _sleepTime = 10000;
-    ar_log_warning() << "arIntersenseDriver remark: SZG_INTERSENSE/sleep defaulting to "
+    ar_log_warning() << "arIntersenseDriver: SZG_INTERSENSE/sleep defaulting to "
          << _sleepTime << ".\n";
   } else {
-    ar_log_warning() << "arIntersenseDriver remark: SZG_INTERSENSE/sleep set to " 
+    ar_log_remark() << "arIntersenseDriver: SZG_INTERSENSE/sleep set to " 
          << " ( " << sig[0] << " ).\n";
     _sleepTime = sig[0];
   }
@@ -836,14 +836,14 @@ void arIntersenseDriver::handleMessage( const string& messageType, const string&
       return;
     }
     if (_resetHeading((unsigned int)items[0],(unsigned int)items[1])) {
-      ar_log_remark() << "arIntersenseDriver remark: reset heading for tracker #" << items[0]
+      ar_log_remark() << "arIntersenseDriver reset heading for tracker #" << items[0]
            << ", station #" << items[1] << "\n";
     } else {
       ar_log_warning() << "arIntersenseDriver warning: failed to reset heading for tracker #" << items[0]
            << ", station #" << items[1] << "\n";
     }
   } else {
-    ar_log_warning() << "arIntersenseDriver warning: unknown comand " << command << "\n";
+    ar_log_warning() << "arIntersenseDriver: unknown comand " << command << "\n";
   }
 }
 
@@ -854,7 +854,7 @@ bool arIntersenseDriver::_resetHeading( unsigned int trackerID, unsigned int sta
     return false;
   }
   if (stationID >= ISD_MAX_STATIONS) {
-    ar_log_warning() << "arIntersenseDriver error: attempt to reset heading for station "
+    ar_log_warning() << "arIntersenseDriver failed to reset heading for station "
          << stationID << ",\n    max = " << ISD_MAX_STATIONS << "\n";
     return false;
   }

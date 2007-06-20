@@ -733,12 +733,12 @@ ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << 
     static float xMin = 0., xMax = 0., yMin = 0., yMax = 0.;
     if (iInit > 0) {
       if (iInit == cInit)
-	ar_log_remark() << "arUSBDriver remark: calibrating.  Don't wiggle joystick yet.\n";
+	ar_log_warning() << "arUSBDriver calibrating.  Don't wiggle joystick yet.\n";
       xAvg += xUse;
       yAvg += yUse;
       if (--iInit > 0)
 	continue;
-      ar_log_remark() << "arUSBDriver remark: calibrated.  OK to wiggle joystick now.\n";
+      ar_log_warning() << "arUSBDriver calibrated.  OK to wiggle joystick now.\n";
       xAvg /= cInit;
       yAvg /= cInit;
 ar_log_debug() << "\txy average = " << xAvg << ", " << yAvg << "\n";;;;

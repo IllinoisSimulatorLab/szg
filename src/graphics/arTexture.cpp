@@ -103,9 +103,9 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   // inside it. 
   if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
-    ar_log_remark() << "arTexture remark: copied " << numbytes() << " bytes.\n";
+    ar_log_remark() << "arTexture copied " << numbytes() << " bytes.\n";
   } else {
-    ar_log_remark() << "arTexture error: _reallocPixels() failed in operator=().\n";
+    ar_log_warning() << "arTexture: _reallocPixels() failed in operator=().\n";
   }
   return *this;
 }

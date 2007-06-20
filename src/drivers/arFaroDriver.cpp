@@ -65,7 +65,7 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
     return false;
   }
   _probeDimensions = arVector3( floatBuf );
-  ar_log_remark() << "arFaroDriver remark: probe dimensions = " << _probeDimensions << " inches.\n";
+  ar_log_remark() << "arFaroDriver: probe dimensions = " << _probeDimensions << " inches.\n";
   if ((_probeDimensions[2] < 0.)||(_probeDimensions[2] > 120)) { 
     ar_log_warning() << "arFaroDriver::init() warning: You have set a highly improbable probe length\n"
           << "   (SZG_FARO/probe_dimensions[2] == " << _probeDimensions[2] << " in.)" << "\n";
@@ -104,20 +104,20 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
   for (int i=0; i<14; i++)
     inStream >> nums[i];
 
-  int probeNum = int(nums[12]); // what if nums[12] isn't an exact integer?
+  const int probeNum = int(nums[12]); // what if nums[12] isn't an exact integer?
   if (probeNum==1)
-    ar_log_warning() << "arFaroDriver::init() remark: Already using probe 1\n";
+    ar_log_warning() << "arFaroDriver already using probe 1.\n";
   else {
-    ar_log_warning() << "arFaroDriver::init() remark: Setting probe number to 1\n";
+    ar_log_remark() << "arFaroDriver setting probe number to 1.\n";
     _port.ar_write( "_H1" );
     ar_usleep( 10000 );
   }
 
   _defaultProbeDimensions = arVector3( nums );
-  ar_log_warning() << "arFaroDriver remark: probe 1 dimensions = " << _defaultProbeDimensions << " inches." << "\n";
+  ar_log_remark() << "arFaroDriver: probe 1 dimensions = " << _defaultProbeDimensions << " inches." << "\n";
   _defaultProbeDimensions/= 12.;
   _probeDimDiffs = _probeDimensions - _defaultProbeDimensions;
-  ar_log_warning() << "arFaroDriver remark: probe diff. = " << _probeDimDiffs << " feet.\n";
+  ar_log_remark() << "arFaroDriver: probe diff. = " << _probeDimDiffs << " feet.\n";
   _inited = true;
   _setDeviceElements( 1, 0, 1 );
   return true;
@@ -143,73 +143,70 @@ bool arFaroDriver::stop(){
   _stopped = true;
   while (_eventThreadRunning) {
     ar_usleep(10000);
-//    ar_log_warning() << "arFaroDriver remark: waiting for event thread to exit.\n";
   }
-  ar_log_warning() << "arFaroDriver stopped.\n";
+  ar_log_remark() << "arFaroDriver stopped.\n";
   return true;
 }
 
 bool arFaroDriver::_getSendData() {
-  int numWrit = _port.ar_write( "_K" );
+  const int numWrit = _port.ar_write( "_K" );
   if (numWrit != 2) {
     ar_log_warning() << "arFaroDriver error: write() failed in _getSendData().\n";
     return false;
   }
-  int numRead = _port.ar_read( _inbuf, 90 );
+  const int numRead = _port.ar_read( _inbuf, 90 );
   if (numRead!=90) {
-    ar_log_warning() << "arFaroDriver() error: Only " << numRead << " bytes read in _getSendData()\n";
+    ar_log_warning() << "arFaroDriver: only " << numRead << " bytes read in _getSendData()\n";
     return false;
-  } else {
-    string dataString( _inbuf );
-    istringstream dataStream( dataString );
-    float nums[9];
-    for (int i=0; i<9; i++)
-      dataStream >> nums[i];
-    arVector3 initialPosition( nums+1 );
-    arVector3 angles( nums+4 );
-    initialPosition = initialPosition * INCHES_TO_FEET;
-    angles = angles * DEGREES_TO_RADIANS;
-//    ar_log_warning() << nums[0] << "\n";
-    int switches = static_cast<int>( nums[0] );
+  }
 
-    // Had to make this change because one of the buttons on our arm died
-    // (the other is functionally inverted, too, i.e. it reports "on" when
-    // off & vice versa. If you have a working FaroArm, also change the
-    // call to _setDeviceElements() appropriately. 
-    int button0 = !(0x1 & switches);
+  const string dataString( _inbuf );
+  istringstream dataStream( dataString );
+  float nums[9];
+  for (int i=0; i<9; i++)
+    dataStream >> nums[i];
+  arVector3 initialPosition( nums+1 );
+  arVector3 angles( nums+4 );
+  initialPosition = initialPosition * INCHES_TO_FEET;
+  angles = angles * DEGREES_TO_RADIANS;
+//    ar_log_warning() << nums[0] << "\n";
+  const int switches = static_cast<int>( nums[0] );
+
+  // Had to make this change because one of the buttons on our arm died
+  // (the other is functionally inverted, too, i.e. it reports "on" when
+  // off & vice versa. If you have a working FaroArm, also change the
+  // call to _setDeviceElements() appropriately. 
+  int button0 = !(0x1 & switches);
 //    int button0 = 0x1 & switches;
 //    int button1 = (0x2 & switches) >> 1;
 
-    // NOTE: if the Faro manual were to be believed, the angles used here should
-    // all be negated.  But it isn't. So they aren't.
-    // Note also that this is the matrix you need to multiply the probe offset
-    // by to get the tip position, but the probe orientation comes out in a
-    // different coordinate system from that of its position...
-    arMatrix4 rotMatrix( ar_rotationMatrix('z',angles[0]) 
-                         * ar_rotationMatrix('x',angles[1])
-                          * ar_rotationMatrix('z',angles[2]) );
+  // NOTE: if the Faro manual were to be believed, the angles used here should
+  // all be negated.  But it isn't. So they aren't.
+  // Note also that this is the matrix you need to multiply the probe offset
+  // by to get the tip position, but the probe orientation comes out in a
+  // different coordinate system from that of its position...
+  arMatrix4 rotMatrix( ar_rotationMatrix('z',angles[0]) 
+		     * ar_rotationMatrix('x',angles[1])
+		     * ar_rotationMatrix('z',angles[2]) );
 //    arMatrix4 rotMatrix( ar_rotationMatrix('z',-angles[2]) 
-//                         * ar_rotationMatrix('x',-angles[1])
-//                          * ar_rotationMatrix('z',-angles[0]) );
-    arVector3 position = initialPosition + rotMatrix * _probeDimDiffs;
-    
+//                       * ar_rotationMatrix('x',-angles[1])
+//                       * ar_rotationMatrix('z',-angles[0]) );
+  arVector3 position = initialPosition + rotMatrix * _probeDimDiffs;
+  
 //    float iDir(sin(angles[0])*sin(angles[1]));
 //    float jDir(-sin(angles[1])*cos(angles[0]));
 //    float kDir(cos(angles[0]));
 
 //    ar_log_warning() << "Direction cosines: " << iDir << ", " << jDir << ", " << kDir << "\n";
-    // ...so we'll tweak the orientation here after getting the position...
+  // ...so we'll tweak the orientation here after getting the position...
 //    rotMatrix = rotMatrix*ar_rotationMatrix('z',ar_convertToRad(-90));
 //    rotMatrix = ar_rotationMatrix('y',ar_convertToRad(180))*rotMatrix;
 //    rotMatrix = ar_rotationMatrix('z',-angles[0]) 
 //                         * ar_rotationMatrix('x',-angles[1])
 //                          * ar_rotationMatrix('z',-angles[2]);
-    arMatrix4 faroMatrix( ar_translationMatrix(position)*rotMatrix );
-
-    queueMatrix( 0, faroMatrix );
-    queueButton( 0, button0 );
+  queueMatrix( 0, ar_translationMatrix(position)*rotMatrix );
+  queueButton( 0, button0 );
 //    queueButton( 1, button1 );
-    sendQueue();
-  }  
+  sendQueue();
   return true;
 }

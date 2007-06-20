@@ -1043,10 +1043,10 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data) {
   const string name = data->getDataString("name");
   const string action = data->getDataString("action");
   if (action == "remote_path") {
-    ar_log_remark() << "arGraphicsDatabase remark: using texture bundle " << name << "\n";
+    ar_log_remark() << "arGraphicsDatabase using texture bundle " << name << "\n";
     arSlashString bundleInfo(name);
     if (bundleInfo.size() != 2) {
-      ar_log_remark() << "arGraphicsDatabase got garbled texture bundle ID.\n";
+      ar_log_warning() << "arGraphicsDatabase ignoring garbled texture bundle ID.\n";
       return &_rootNode;
     }
     setDataBundlePath(bundleInfo[0], bundleInfo[1]);

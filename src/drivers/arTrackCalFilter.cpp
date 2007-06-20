@@ -42,7 +42,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
         _filterWeights[i] = floatBuf[i];
       }
     }
-    ar_log_warning() << "arTrackCalFilter remark: IIR filter weights are ( "
+    ar_log_remark() << "arTrackCalFilter: IIR filter weights are ( "
          << _filterWeights[0] << ", " << _filterWeights[1]
          << ", " << _filterWeights[2] << " ).\n";
   }
@@ -57,7 +57,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
     return false;
   }
 
-  ar_log_warning() << "arTrackCalFilter remark: loading file " << calFileName << "\n";
+  ar_log_remark() << "arTrackCalFilter loading file " << calFileName << "\n";
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
     ar_log_warning() << "arTrackCalFilter error: table dimension < 1.\n";
@@ -112,7 +112,6 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
     }
   }
   fclose(fp);
-  //ar_log_remark() << "arTrackCalFilter remark: loaded " << 3*_n << " table entries.\n";
   _indexOffsets[0] = 0;
   _indexOffsets[1] = 1;
   _indexOffsets[2] = _nx;
@@ -121,7 +120,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   _indexOffsets[5] = 1+_nx*_ny;
   _indexOffsets[6] = _nx+_nx*_ny;
   _indexOffsets[7] = 1+_nx+_nx*_ny;
-  ar_log_remark() << "arTrackCalFilter remark: using calibration.\n";
+  ar_log_remark() << "arTrackCalFilter using calibration.\n";
   _useCalibration = true;
   return true;
 }

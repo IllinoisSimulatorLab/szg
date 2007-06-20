@@ -99,12 +99,11 @@ bool arPForthFilter::loadProgram(const string& progText) {
   string firstToken;
   parsingStream >> firstToken;
   if (firstToken == ""){
-    // Empty or missing program.
-    // ar_log_remark() << "arPForthFilter remark: no filter program set.\n";
+    // Empty or missing filter program.
     return true;
   }
 
-  ar_log_remark() << "arPForthFilter remark: program text = \n" << progText << "\n";
+  ar_log_remark() << "arPForthFilter: program text = \n" << progText << "\n";
   if (!_pforth.compileProgram( progText )) {
     ar_log_warning() << "arPForthFilter warning: failed to compile program:\n"
          << progText << "\n\n";
@@ -114,8 +113,6 @@ bool arPForthFilter::loadProgram(const string& progText) {
     ar_log_warning() << "arPForthFilter warning: failed to run program.\n";
     return false;
   }
-
-  // ar_log_remark() << "arPForthFilter remark: ran program." << "\n";
   
   vector<string> words = _pforth.getVocabulary();
   vector<string>::const_iterator iter;
@@ -132,7 +129,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
       }
       arPForthProgram* prog = _pforth.getProgram();
       if (!prog) {
-        ar_log_warning() << "arPForthFilter warning: failed to export program.\n";
+        ar_log_warning() << "arPForthFilter failed to export program.\n";
         continue;
       }
       if (word == "filter_all_events") {
