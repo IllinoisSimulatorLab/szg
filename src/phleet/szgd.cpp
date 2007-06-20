@@ -669,18 +669,18 @@ LDone:
     TweakPath(pythonPath);
   }
 
+#ifndef AR_USE_WIN_32
+
+  // Spawn a new process on Linux, OS X, Irix).
+
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
     ar_log_warning() << "szgd pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
-    ar_log_remark() << "szgd remark: pre-launch dir is '" <<
-         execInfo->appDirPath << "'.\n";
+    ar_log_remark() << "szgd remark: pre-launch dir for " << execInfo->messageBody
+         << "\n    is '" << execInfo->appDirPath << "'.\n";
   }
-
-#ifndef AR_USE_WIN_32
-
-  // Spawn a new process on Linux, OS X, Irix).
 
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
@@ -865,6 +865,15 @@ LDone:
   // (another solution: send the spawned process a message)
 
   lockSpawn.lock();
+
+  // Set the current directory to that containing the app
+  if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
+    ar_log_warning() << "szgd pre-launch failed to cd to '" <<
+         execInfo->appDirPath << "'.\n";
+  } else {
+    ar_log_remark() << "szgd remark: pre-launch dir for " << execInfo->messageBody
+         << "\n    is '" << execInfo->appDirPath << "'.\n";
+  }
 
   // Set a few env vars for the child process.
   ar_setenv("SZGUSER",userName);
