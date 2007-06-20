@@ -22,7 +22,8 @@ arSoundFileNode::arSoundFileNode() :
 
   _fComplained[0] = _fComplained[1] = false;
 
-  // redhat 8.0 won't compile if the below are outside the constructor body
+  // Red Hat 8.0 won't compile if these two are initializers.
+  // Like graphics/ar*Node.cpp.
   _typeCode = AR_S_FILE_NODE;
   _typeString = "fileWav";
 }
@@ -107,7 +108,7 @@ bool arSoundFileNode::render(){
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
       _fComplained[0] = true;
-      cerr << "arSoundFileNode warning: '"
+      ar_log_warning() << "arSoundFileNode '"
 	   << _name << "' has negative amplitude " << _amplitude << ".\n";
     }
   }
@@ -118,7 +119,7 @@ bool arSoundFileNode::render(){
   if (_amplitude > 100.) {
     if (!_fComplained[1]) {
       _fComplained[1] = true;
-      cerr << "arSoundFileNode warning: '"
+      ar_log_warning() << "arSoundFileNode '"
 	   << _name << "' has excessive amplitude " << _amplitude << ".\n";
     }
   }
@@ -143,7 +144,7 @@ bool arSoundFileNode::render(){
 
     _psamp = _localSoundFile->psamp();
     if (!_psamp) {
-      cerr << "arSoundFileNode warning: no sound to play.\n";
+      ar_log_warning() << "arSoundFileNode: no sound to play.\n";
       return false;
     }
 
@@ -258,13 +259,12 @@ arStructuredData* arSoundFileNode::dumpData(){
   return pdata;
 }
 
-/** @bug Can't update ampl or xyz of a triggered sound, once it's started.
- *  Workaround:  keep triggered sounds short.
- */
+// Bug: Can't update ampl or xyz of a triggered sound, once it's started.
+// Workaround:  keep triggered sounds short.
 
 bool arSoundFileNode::receiveData(arStructuredData* pdata){
   if (pdata->getID() != _l.AR_FILEWAV){
-    cout << "arSoundFileNode error: expected "
+    ar_log_warning() << "arSoundFileNode expected "
          << _l.AR_FILEWAV
          << " (" << _l._stringFromID(_l.AR_FILEWAV) << "), not "
          << pdata->getID()
