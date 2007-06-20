@@ -121,18 +121,18 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
     return ar_identityMatrix();
   }
 
-  const arVector3 zHat = screen.getNormal().normalize();
-  const arVector3 xHat = zHat * screen.getUp().normalize();  // '*' = cross product
-  const arVector3 yHat = xHat * zHat;
-  const arVector3 yPrime = cos(screen.getFixedHeadHeadUpAngle())*yHat - sin(screen.getFixedHeadHeadUpAngle())*xHat;
-  const arVector3 xPrime = zHat * yPrime;
+  const arVector3 zHat(screen.getNormal().normalize());
+  const arVector3 xHat(zHat * screen.getUp().normalize());  // '*' = cross product
+  const arVector3 yHat(xHat * zHat);
+  const arVector3 yPrime(cos(screen.getFixedHeadHeadUpAngle())*yHat - sin(screen.getFixedHeadHeadUpAngle())*xHat);
+  const arVector3 xPrime(zHat * yPrime);
 
   arMatrix4 demoRotMatrix;
   int j = 0;
-  for (int i=0; i<9; i+=4) {
-    demoRotMatrix[i] = xPrime.v[j];
+  for (int i=0; i<9; i+=4,j++) {
+    demoRotMatrix[i  ] = xPrime.v[j];
     demoRotMatrix[i+1] = yPrime.v[j];
-    demoRotMatrix[i+2] = zHat.v[j++];
+    demoRotMatrix[i+2] = zHat.v[j];
   }
   // NOTE: previously, the screen's fixed_head_pos specified where the head
   // _sensor_ should go in demo mode. The correct behavior is to use it to 
@@ -140,9 +140,6 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
 //  cerr << screen.getFixedHeadHeadPosition() << endl;
   arMatrix4 headMatrix = ar_translationMatrix(screen.getFixedHeadHeadPosition()) * demoRotMatrix;
   arMatrix4 headSensorMatrix = headMatrix * ar_translationMatrix( -1.*_head->getMidEyeOffset() );
-//cerr << headSensorMatrix << endl << endl;
+//cerr << headSensorMatrix << endl;
   return headSensorMatrix;
 }
-
-
-

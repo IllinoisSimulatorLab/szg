@@ -30,6 +30,9 @@ class SZG_CALL arSpeakerObject {
   arVector3 _posPrev, _upPrev, _forwardPrev;
 
   arMatrix4 demoHeadMatrix( const arMatrix4& );
+
+  typedef enum { mode_fmod, mode_fmodplugins, mode_vss, mode_mmio } rendermode;
+  rendermode mode;
 };
 
 #endif

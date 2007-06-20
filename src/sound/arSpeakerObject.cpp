@@ -27,18 +27,32 @@ bool arSpeakerObject::configure(arSZGClient& cli){
   const string renderMode(cli.getAttribute("SZG_SOUND", "render",
     "|fmod|fmod_plugins|vss|mmio|"));
   ar_log_debug() << "mode SZG_SOUND/render '" << renderMode << "'.\n";
+  mode =
+    renderMode == "fmod_plugins" ?  mode_fmodplugins :
+    renderMode == "vss" ?  mode_vss :
+    renderMode == "mmio" ? mode_mmio :
+    mode_fmod;
   return true;
 }
 
-bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
-  const arMatrix4 locHeadMatrix(_demoMode ? demoHeadMatrix(headMatrix) : headMatrix);
-  const arVector3 midEye(_unitConversion * (locHeadMatrix * _midEyeOffset));
+bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
+  const arMatrix4 head(_demoMode ? demoHeadMatrix(mHead) : mHead);
+  const arVector3 midEye(_unitConversion * (head * _midEyeOffset));
 
   // Update listener's attributes.
-  const arMatrix4 rot(ar_extractRotationMatrix(locHeadMatrix));
+  const arMatrix4 rot(ar_extractRotationMatrix(head));
   const arVector3 up((rot * arVector3(0,1,0)).normalize());
   const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
   const arVector3 pos(midEye);
+
+  if (mode == mode_fmodplugins) {
+    // Transform listener and sources so that
+    // listener is pos (0,0,0) fwd (0,0,-1) up (0,1,0).
+    // This hides listener motion from the FMOD plugins.
+
+    // ar_lookatMatrix does this?
+    cerr << "yoyoyo get a list of sound sources and tweak them.\n";
+  }
 
   if (pos==_posPrev && up==_upPrev && forward==_forwardPrev)
     return true;
@@ -64,21 +78,23 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
 #endif
 }
 
-arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*headMatrix*/ ) {
+arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*mHead*/ ) {
 #ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
-  const arVector3 demoHeadPos( ar_extractTranslation(headMatrix) );
-  const arVector3 zHat = _normal/++_normal; // '++' = magnitude
-  const arVector3 xHat = zHat * _up/++_up;  // '*' = cross product
-  const arVector3 yHat = xHat * zHat;
-  const arVector3 yPrime = cos( _demoHeadUpAngle )*yHat - sin( _demoHeadUpAngle )*xHat;
-  const arVector3 xPrime = zHat * yPrime;
+  // copypaste from arVRCamera::_getFixedHeadModeMatrix and
+  // ar_tileScreenOffset and ar_frustumMatrix
+  const arVector3 demoHeadPos( ar_extractTranslation(mHead) );
+  const arVector3 zHat(_normal.normalize());
+  const arVector3 xHat(zHat * _up.normalize());
+  const arVector3 yHat(xHat * zHat);
+  const arVector3 yPrime(cos( _demoHeadUpAngle )*yHat - sin( _demoHeadUpAngle )*xHat);
+  const arVector3 xPrime(zHat * yPrime);
  
   arMatrix4 demoRotMatrix;
   int j = 0;
-  for (int i=0; i<9; i+=4) {
-    demoRotMatrix[i] = xPrime[j];
-    demoRotMatrix[i+1] = yPrime[j];
-    demoRotMatrix[i+2] = zHat[j++];
+  for (int i=0; i<9; i+=4,j++) {
+    demoRotMatrix[i  ] = xPrime.v[j];
+    demoRotMatrix[i+1] = yPrime.v[j];
+    demoRotMatrix[i+2] = zHat.v[j];
   }
   return ar_translationMatrix(demoHeadPos) * demoRotMatrix;
 #else

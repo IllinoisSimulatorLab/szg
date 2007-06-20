@@ -705,22 +705,15 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      float width, float height,
 			      float xTile, int nxTiles,
 			      float yTile, int nyTiles) {
-  if (nxTiles == 0 || nyTiles == 0){
+  if (nxTiles == 0 || nyTiles == 0 ||
+      screenNormal.magnitude() <= 0. || screenUp.magnitude() <= 0.) {
     // Invalid arguments.
     return arVector3(0,0,0);
   }
 
-  // copypaste start
-  float mag = ++screenNormal;
-  if (mag <= 0.)
-    return arVector3(0,0,0);
-  const arVector3 zHat(screenNormal/mag);
-  mag = ++screenUp;
-  if (mag <= 0.)
-    return arVector3(0,0,0);
-  const arVector3 xHat(zHat * screenUp/mag);
+  const arVector3 zHat(screenNormal.normalize());
+  const arVector3 xHat(zHat * screenUp.normalize());
   const arVector3 yHat(xHat * zHat);
-  // copypaste end
 
   const float tileWidth = width/nxTiles;
   const float tileHeight = height/nyTiles;
@@ -734,24 +727,24 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
                             const float halfWidth, const float halfHeight,
                             const float nearClip, const float farClip,
                             const arVector3& eyePosition ) {
-  // copypaste start
-  float mag = screenNormal.magnitude();
-  if (mag <= 0.)
-    return ar_identityMatrix(); // error
-  const arVector3 zHat = screenNormal/mag;
-  const arVector3 xHat = zHat * screenUp/mag;
-  const arVector3 yHat = xHat * zHat;
-  // copypaste end
+  if (screenNormal.magnitude() <= 0. || screenUp.magnitude() <= 0.) {
+LAbort:
+    return ar_identityMatrix();
+  }
 
-  const arVector3 rightEdge = screenCenter + halfWidth * xHat;
-  const arVector3 leftEdge = screenCenter - halfWidth * xHat;
-  const arVector3 topEdge = screenCenter + halfHeight * yHat;
-  const arVector3 botEdge = screenCenter - halfHeight * yHat;
+  const arVector3 zHat(screenNormal.normalize());
+  const arVector3 xHat(zHat * screenUp.normalize());
+  const arVector3 yHat(xHat * zHat);
+
+  const arVector3 rightEdge(screenCenter + halfWidth * xHat);
+  const arVector3 leftEdge(screenCenter - halfWidth * xHat);
+  const arVector3 topEdge(screenCenter + halfHeight * yHat);
+  const arVector3 botEdge(screenCenter - halfHeight * yHat);
 
   // float zEye = (eyePosition - headPosition) % zHat;
-  float screenDistance = ( screenCenter - eyePosition ) % zHat;
+  const float screenDistance = ( screenCenter - eyePosition ) % zHat;
   if (screenDistance == 0.)
-    return ar_identityMatrix(); // error
+    goto LAbort;
 
   const float nearFrust = nearClip;
   const float distScale = nearFrust / screenDistance;
@@ -762,28 +755,29 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
   const float farFrust = screenDistance + farClip;
 
   if (rightFrust == leftFrust || topFrust == botFrust || nearFrust == farFrust)
-    return ar_identityMatrix(); // error
+    goto LAbort;
 
-   // this is necessary because g++ 2.96 is messed up.
-  float funnyElement = (nearFrust+farFrust)/(nearFrust-farFrust);
-  arMatrix4 result = arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
+  // workaround for g++ 2.96 bug
+  const float funnyElement = (nearFrust+farFrust) / (nearFrust-farFrust);
+
+  return arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
 		   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
 		   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
 		   0., 0., -1., 0. );
-  return result;
 }
 
 // in this version, eyePosition has been multiplied by
 // ar_lookatMatrix( screenCenter, screenNormal, screenUp )
-// screenDistance is the distance from the local coordinate system
-// to the image plane
+// screenDistance is the distance from the local coordinate system to the image plane
 arMatrix4 ar_frustumMatrix( const float screenDist,
                             const float halfWidth, const float halfHeight,
                             const float nearClip, const float farClip,
                             const arVector3& locEyePosition ) {
-  float screenDistance = screenDist + locEyePosition.v[2];
-  if (screenDistance == 0.)
-    return ar_identityMatrix(); // error
+  const float screenDistance = screenDist + locEyePosition.v[2];
+  if (screenDistance == 0.) {
+LAbort:
+    return ar_identityMatrix();
+  }
 
   const float nearFrust = nearClip;
   const float distScale = nearFrust / screenDistance;
@@ -794,24 +788,22 @@ arMatrix4 ar_frustumMatrix( const float screenDist,
   const float farFrust = screenDistance + farClip;
 
   if (rightFrust == leftFrust || topFrust == botFrust || nearFrust == farFrust)
-    return ar_identityMatrix(); // error
+    goto LAbort;
 
-   // this is necessary because g++ 2.96 is messed up.
-  float funnyElement = (nearFrust+farFrust)/(nearFrust-farFrust);
-  arMatrix4 result = arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
+  // workaround for g++ 2.96 bug
+  float funnyElement = (nearFrust+farFrust) / (nearFrust-farFrust);
+
+  return arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
 		   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
 		   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
 		   0., 0., -1., 0. );
-  return result;
 }
 
-// ar_lookatMatrix is equivalent to gluLookAt(...).
-// It transforms the frame (a,b,c):
+// Like gluLookAt(), transform the frame (a,b,c) to (x,y,z), where:
 //   c = unit vector pointing from lookatPosition to viewPosition
 //   b = unit vector along the portion of up orthogonal to c
 //   a = b cross c
-// to the frame (x,y,z).
-// NOTE: In OpenGL, the eye is looking in the negative z direction.
+// In OpenGL, the eye looks in the -z direction.
 arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
                            const arVector3& lookatPosition,
                            const arVector3& up ) {
@@ -829,11 +821,10 @@ arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
   return look * ar_translationMatrix( -viewPosition );
 }
 
-// uniform (0.0,1.0) pseudorandom number generater ran1 from Numerical Recipes in C
-// ugly, but we're not ready to trust rand() yet (not to mention RAND_MAX is pathetically
-// small under MS VC++). Not recommended for sequences longer than about 10^8
-// initialize by setting *idum to a negative value.
-// Note never returns 0 or 1
+// Uniform (0.0, 1.0) pseudorandom number generater "ran1" from Numerical Recipes in C.
+// Ugly but more trustworthy than rand() (whose RAND_MAX is too small in VC++).
+// small under MS VC++). Not recommended for sequences longer than 10^8.
+// Initialize by setting *idum to a negative value.
 
 float ar_randUniformFloat(long* idum)
 {
@@ -878,8 +869,5 @@ float ar_randUniformFloat(long* idum)
 }
 
 int ar_randUniformInt(long* idum, int lo, int hi) {
-  // NOTE: ar_randUniformFloat() never returns 0 or 1
-  float r = ar_randUniformFloat(idum);
-  return int(floor( r*(hi-lo+1) ) + lo);
+  return int(floor( ar_randUniformFloat(idum) * (hi-lo+1) ) + lo);
 }
-
