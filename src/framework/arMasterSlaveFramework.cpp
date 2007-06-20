@@ -2184,10 +2184,11 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
       " : " << displayName << ".\n";
   }
 
-  // By default, arTexture::_loadIntoOpenGL() will abort and print an error message
-  // if you attempt to load a texture whose dimensions are not powers of two. You
-  // can override this behavior by setting this variable
-  bool textureAllowNotPow2 = _SZGClient.getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
+  // arTexture::_loadIntoOpenGL() complains and aborts
+  // if its texture's dimensions are not powers of two.
+  // SZG_RENDER/allow_texture_not_pow2 overrides this.
+  const bool textureAllowNotPow2 =
+    _SZGClient.getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
   ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
