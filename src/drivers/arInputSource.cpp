@@ -33,8 +33,7 @@ void arInputSource::sendButton(int i, int value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberButtons) {
-    // ar_log_warning() << "arInputSource warning: ignoring out-of-range index to "
-    // << "sendButton(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "sendButton(" << i << ").\n";
     return;
   }
 
@@ -46,7 +45,7 @@ void arInputSource::sendButton(int i, int value) {
       !_data->dataIn("buttons", &value, AR_INT, 1) || // one button
       !_data->dataIn("axes", 0) || // no axes
       !_data->dataIn("matrices", 0)) { // no matrices
-    ar_log_warning() << "arInputSource warning: problem in sendButton.\n";
+    ar_log_warning() << "arInputSource: problem in sendButton.\n";
   }
   _sendData();
 }
@@ -55,8 +54,7 @@ void arInputSource::sendAxis(int i, float value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberAxes) {
-    //ar_log_warning() << "arInputSource warning: ignoring out-of-range index to sendAxis("
-    //     << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index to sendAxis(" << i << ").\n";
     return;
   }
 
@@ -69,7 +67,7 @@ void arInputSource::sendAxis(int i, float value) {
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", &theValue, AR_FLOAT, 1) ||
       !_data->dataIn("matrices", 0)) {
-    ar_log_warning() << "arInputSource warning: problem in sendAxis.\n";
+    ar_log_warning() << "arInputSource: problem in sendAxis.\n";
   }
   _sendData();
 }
@@ -78,8 +76,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberMatrices) {
-    //ar_log_warning() << "arInputSource warning: ignoring out-of-range index "
-    //	 << "to sendMatrix(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index " << "to sendMatrix(" << i << ").\n";
     return;
   }
 
@@ -91,7 +88,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", 0) ||
       !_data->dataIn("matrices", value.v, AR_FLOAT,16)) {
-    ar_log_warning() << "arInputSource warning: problem in sendMatrix.\n";
+    ar_log_warning() << "arInputSource: problem in sendMatrix.\n";
   }
   _sendData();
 }
@@ -133,7 +130,7 @@ void arInputSource::sendButtonsAxesMatrices(
     }
 
   if (iAll != numThings)
-    cerr << "arInputSource internal error: numThings miscounted.\n";
+    ar_log_warning() << "arInputSource: numThings miscounted.\n";
 
   if (!_fillCommonData(_data) ||
       !_data->dataIn("types", _theTypes, AR_INT, numThings) ||
@@ -141,17 +138,17 @@ void arInputSource::sendButtonsAxesMatrices(
       !_data->dataIn("buttons", rgvalueButtons, AR_INT, numButtons) ||
       !_data->dataIn("axes", rgvalueAxes, AR_FLOAT, numAxes) ||
       !_data->dataIn("matrices", rgvalueMatrices, AR_FLOAT, 16*numMatrices)) {
-    cerr << "arInputSource warning: failed dataIn in sendButtonsAxesMatrices.\n";
+    ar_log_warning() << "arInputSource: dataIn failed in sendButtonsAxesMatrices.\n";
   }
   _sendData();
 }
 
 void arInputSource::queueButton(int i, int value) {
   if (i<0 || i>=_numberButtons) {
-    //cerr << "arInputSource warning: ignoring out-of-range index "
-    //	 << "to queueButton(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index " << "to queueButton(" << i << ").\n";
     return;
   }
+
   _types[_iAll] = AR_EVENT_BUTTON;
   _indices[_iAll++] = i;
   _buttons[_iButton++] = value;
@@ -159,10 +156,10 @@ void arInputSource::queueButton(int i, int value) {
 
 void arInputSource::queueAxis(int i, float value) {
   if (i<0 || i>=_numberAxes) {
-    //cerr << "arInputSource warning: ignoring out-of-range index to "
-    //	 << "queueAxis(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "queueAxis(" << i << ").\n";
     return;
   }
+
   _types[_iAll] = AR_EVENT_AXIS;
   _indices[_iAll++] = i;
   _axes[_iAxis++] = ARfloat(value);
@@ -170,10 +167,10 @@ void arInputSource::queueAxis(int i, float value) {
 
 void arInputSource::queueMatrix(int i, const arMatrix4& value) {
   if (i<0 || i>=_numberMatrices) {
-    //cerr << "arInputSource warning: ignoring out-of-range index to "
-    //	 << "queueMatrix(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "queueMatrix(" << i << ").\n";
     return;
   }
+
   _types[_iAll] = AR_EVENT_MATRIX;
   _indices[_iAll++] = i;
   _matrices[_iMatrix++] = value;
@@ -191,7 +188,7 @@ void arInputSource::sendQueue() {
       !_data->dataIn("buttons", _buttons, AR_INT, _iButton) ||
       !_data->dataIn("axes", _axes, AR_FLOAT, _iAxis) ||
       !_data->dataIn("matrices", _matrices, AR_FLOAT, 16*_iMatrix)) {
-    cerr << "arInputSource warning: problem in sendQueue.\n";
+    ar_log_warning() << "arInputSource: problem in sendQueue.\n";
   }
   _sendData();
   _iAll = _iButton = _iAxis = _iMatrix = 0;
@@ -199,16 +196,29 @@ void arInputSource::sendQueue() {
 
 void arInputSource::_setDeviceElements(int buttons, int axes, int matrices) {
   if (buttons<0) {
-    cerr << "arInputSource warning: ignoring negative number of buttons.\n";
+    ar_log_warning() << "arInputSource ignoring negative number of buttons.\n";
     buttons = 0;
   }
   if (axes<0) {
-    cerr << "arInputSource warning: ignoring negative number of axes.\n";
+    ar_log_warning() << "arInputSource ignoring negative number of axes.\n";
     axes = 0;
   }
   if (matrices<0) {
-    cerr << "arInputSource warning: ignoring negative number of matrices.\n";
+    ar_log_warning() << "arInputSource ignoring negative number of matrices.\n";
     matrices = 0;
+  }
+
+  if (buttons>_maxSize-2) {
+    ar_log_warning() << "arInputSource truncating excessive number of buttons.\n";
+    buttons = _maxSize-2;
+  }
+  if (axes>_maxSize-2) {
+    ar_log_warning() << "arInputSource truncating excessive number of axes.\n";
+    axes = _maxSize-2;
+  }
+  if (matrices>_maxSize-2) {
+    ar_log_warning() << "arInputSource truncating excessive number of matrices.\n";
+    matrices = _maxSize-2;
   }
 
   _numberButtons = buttons;
@@ -226,7 +236,7 @@ bool arInputSource::_fillCommonData(arStructuredData* d) {
 
 void arInputSource::_sendData(arStructuredData* theData) {
   if (!_inputSink) {
-    cerr << "arInputSource warning: undefined input sink.\n";
+    ar_log_warning() << "arInputSource: undefined input sink.\n";
     return;
   }
   if (theData) {
@@ -242,7 +252,7 @@ void arInputSource::_sendData(arStructuredData* theData) {
 
 bool arInputSource::_reconfig() {
   if (!_inputSink) {
-    cerr << "arInputSource warning: undefined input sink.\n";
+    ar_log_warning() << "arInputSource: undefined input sink.\n";
     return false;
   }
   return _inputSink->sourceReconfig(_inputChannelID);
