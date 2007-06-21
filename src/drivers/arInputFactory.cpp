@@ -348,9 +348,11 @@ arInputFactory::~arInputFactory() {
 bool arInputFactory::loadInputSources( arInputNode& inputNode,
                                         int& slotNumber,
                                         bool fNetInput ) {
+  ar_log_debug() << "SLOT NUMBER: " << slotNumber << ar_endl;
   vector<string>::const_iterator iter;
   vector<string>& inputSources = _inputConfig.inputSources;
   for (iter = inputSources.begin(); iter != inputSources.end(); ++iter) {
+  ar_log_debug() << "SLOT NUMBER: " << slotNumber << ar_endl;
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource) {
@@ -361,6 +363,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
         ar_log_error() << "arInputFactory: invalid slot " << slotNumber << ".\n";
         return false;
       }
+      ar_log_debug() << "arInputFactory adding arNetInputSource with slot " << slotNumber << ar_endl;
       ++slotNumber;
       inputNode.addInputSource( netInputSource, true );
     } else {
@@ -375,6 +378,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
       inputNode.addInputSource( theSource, false );
     }
   }
+  ar_log_debug() << "SLOT NUMBER: " << slotNumber << ar_endl;
   if (fNetInput){
     // Add an implicit net input source.
     arNetInputSource* implicitNetInputSource = new arNetInputSource();
@@ -387,8 +391,9 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
       return false;
     }
     // Skip over "slotNumber+1" listening slot.
-    slotNumber += 2;
     inputNode.addInputSource( implicitNetInputSource, true );
+    ar_log_debug() << "arInputFactory added implicit arNetInputSource in slot " << slotNumber << ar_endl;
+    slotNumber += 2;
   }
   return true;
 }
