@@ -158,7 +158,9 @@ unsigned& cb = cSig[0];
 unsigned& ca = cSig[1];
 unsigned& cm = cSig[2];
 
-ARint rgButton[cbMax+1] = {0};
+ARint rgButton   [cbMax+1] = {0};
+ARint rgOnbutton [cbMax+1] = {0}; // technically unused, while rendered only as sound not graphics
+ARint rgOffbutton[cbMax+1] = {0}; // technically unused, while rendered only as sound not graphics
 ARfloat rgAxis[caMax] = {0};
 bool rgfjoy32k[caMax] = {0};
 arMatrix4 rgm[cmMax]; // rgm[0] is head, rest are wands.
@@ -168,6 +170,40 @@ inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
     a = aMax;
   if (a < aMin)
     a = aMin;
+}
+
+void doSounds(bool fPing, bool fPong) {
+  static int idPing = -1;
+  static int idPong = -1;
+  static bool fInit = false;
+  const float xyz[3] = { 2.34,0,0};
+  if (!fInit) {
+    fInit = true;
+    idPing = dsLoop("ping", "root", "q33beep.wav", 0, 0.0, xyz);
+    idPong = dsLoop("pong", "root", "q33collision.wav", 0, 0.0, xyz);
+  }
+
+  static bool fResetPing = true;
+  fPing &= idPing >= 0;
+  if (fPing) {
+    dsLoop(idPing, "q33beep.wav", -1, .3, xyz);
+    fResetPing = false;
+  }
+  else if (!fResetPing) {
+    dsLoop(idPing, "q33beep.wav", 0, 0, xyz);
+    fResetPing = true;
+  }
+
+  static bool fResetPong = true;
+  fPong &= idPong >= 0;
+  if (fPong) {
+    dsLoop(idPong, "q33collision.wav", -1, .2, xyz);
+    fResetPong = false;
+  }
+  else if (!fResetPong) {
+    dsLoop(idPong, "q33collision.wav", 0, 0, xyz);
+    fResetPong = true;
+  }
 }
 
 void callbackPreEx(arMasterSlaveFramework& fw) {
@@ -180,21 +216,30 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
     fComplained = true;
     if (cb > cbMax) {
       cb = cbMax;
-      ar_log_warning() << "cubevars: too many buttons.\n";
+      ar_log_warning() << "cubevars: truncating excessive buttons.\n";
     }
     if (ca > caMax) {
       ca = caMax;
-      ar_log_warning() << "cubevars: too many axes.\n";
+      ar_log_warning() << "cubevars: truncating excessive axes.\n";
     }
     if (cm > cmMax) {
       cm = cmMax;
-      ar_log_warning() << "cubevars: too many matrices.\n";
+      ar_log_warning() << "cubevars: truncating excessive matrices.\n";
     }
   }
 
+  bool fPing = false;
+  bool fPong = false;
   unsigned i;
-  for (i=0; i < cb; ++i)
-    rgButton[i] = fw.getButton(i);
+  for (i=0; i < cb; ++i) {
+    rgButton[i]    = fw.getButton(i);
+    rgOnbutton[i]  = fw.getOnButton(i);
+    rgOffbutton[i] = fw.getOffButton(i);
+    fPing |= rgOnbutton[i];
+    fPong |= rgOffbutton[i];
+  }
+  doSounds(fPing, fPong);
+
   for (i=0; i<ca; ++i) {
     if (rgfjoy32k[i] |= fabs(rgAxis[i] = fw.getAxis(i)) > 16400.)
       rgAxis[i] /= 32768.;
@@ -465,9 +510,11 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
   fw.addTransferField("a", cSig, AR_INT, 3);
   fw.addTransferField("b", rgButton, AR_INT, sizeof(rgButton)/sizeof(ARint));
-  fw.addTransferField("c", rgAxis, AR_FLOAT, sizeof(rgAxis)/sizeof(ARfloat));
-  fw.addTransferField("d", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
-  fw.addTransferField("e", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
+//fw.addTransferField("c", rgOnbutton, AR_INT, sizeof(rgOnbutton)/sizeof(ARint));
+//fw.addTransferField("d", rgOffbutton, AR_INT, sizeof(rgOffbutton)/sizeof(ARint));
+  fw.addTransferField("e", rgAxis, AR_FLOAT, sizeof(rgAxis)/sizeof(ARfloat));
+  fw.addTransferField("f", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
+  fw.addTransferField("g", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
   return true;
 }
 
