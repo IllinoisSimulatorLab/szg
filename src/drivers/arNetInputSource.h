@@ -20,7 +20,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   arNetInputSource();
   ~arNetInputSource() {}
 
-  bool setSlot(int slot);
+  bool setSlot(int);
   bool connected() const
     { return _connected; }
 
@@ -41,6 +41,8 @@ class SZG_CALL arNetInputSource: public arInputSource{
   void _closeConnection();
   void _dataTask();
   void _connectionTask();
+  const string getLabel() const
+    { return (_szgClient ? _szgClient->getLabel() : "uninited") + " arNetInputSource"; }
 };
 
 #endif

@@ -32,11 +32,11 @@ void arNetInputSource::_dataTask(){
   _setDeviceElements(0,0,0);
   _sigOK = _reconfig();
   if (!_sigOK)
-    ar_log_warning() << "arNetInputSource failed to deconfigure source.\n";
+    ar_log_warning() << getLabel() << " failed to deconfigure source.\n";
 }
 
-void ar_netInputSourceConnectionTask(void* inputClient){
-  ((arNetInputSource*)inputClient)->_connectionTask();
+void ar_netInputSourceConnectionTask(void* p){
+  ((arNetInputSource*)p)->_connectionTask();
 }
 
 void arNetInputSource::_connectionTask() {
@@ -49,7 +49,7 @@ void arNetInputSource::_connectionTask() {
 
   arSleepBackoff a(50, 3000, 1.5);
   while (true){
-    ar_log_debug() << "arNetInputSource discovering service '" << 
+    ar_log_debug() << getLabel() << " discovering service '" << 
       serviceName << "' on network '" << networks << "'.\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
     // If the service doesn't exist, this call blocks until said server starts.
@@ -57,11 +57,11 @@ void arNetInputSource::_connectionTask() {
     if (!IPport.valid){
       if (IPport.address == "standalone") {
         // arSZGClient::discoverService hardcodes "standalone"
-        ar_log_error() << "arNetInputSource: no szgserver.\n";
+        ar_log_error() << getLabel() << ": no szgserver.\n";
         _closeConnection();
         break;
       }
-      ar_log_warning() << "arNetInputSource: no service '"
+      ar_log_warning() << getLabel() << ": no service '"
         << serviceName << "' on network '" << networks << "'.\n";
       // Throttle, since service won't reappear that quickly,
       // and szgserver itself may be stopping.
@@ -73,21 +73,21 @@ void arNetInputSource::_connectionTask() {
     // This service has exactly one port.
     const int port = IPport.portIDs[0];
     const string& IP = IPport.address;
-    ar_log_debug() << "arNetInputSource connecting to " <<
+    ar_log_debug() << getLabel() << " connecting to " <<
       serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     if (!_dataClient.dialUpFallThrough(IP, port)){
-      ar_log_warning() << "arNetInputSource reconnecting to " <<
+      ar_log_warning() << getLabel() << " reconnecting to " <<
 	serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
       continue;
     }
 
-    ar_log_remark() << "arNetInputSource connected to "
+    ar_log_remark() << getLabel() << " connected to "
       << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     _connected = true;
 
     _dataTask();
 
-    ar_log_remark() << "arNetInputSource disconnected from "
+    ar_log_remark() << getLabel() << " disconnected from "
       << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
 
     _closeConnection();
@@ -114,30 +114,30 @@ arNetInputSource::arNetInputSource() :
 // @param slot the slot in question
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
-    ar_log_warning() << "arNetInputSource ignoring negative slot.\n";
+    ar_log_warning() << getLabel() << " ignoring negative slot.\n";
     return false;
   }
   _slot = slot;
-  ar_log_debug() << "arNetInputSource using slot " << _slot << ".\n";
+  ar_log_debug() << getLabel() << " using slot " << _slot << ".\n";
   return true;
 }
 
 bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
 
-  // Save arSZGClient for future connection brokering.
   _szgClient = &SZGClient;
-  ar_log_remark() << "arNetInputSource inited.\n";
+  ar_log_remark() << getLabel() << " inited.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
   if (!_szgClient){
-    ar_log_warning() << "arNetInputSource ignoring start before init.\n";
+    ar_log_warning() << getLabel() << " ignoring start before init.\n";
     return false;
   }
+
   arThread dummy(ar_netInputSourceConnectionTask, this);
-  ar_log_remark() << "arNetInputSource started.\n";
+  ar_log_remark() << getLabel() << " started.\n";
   return true;
 }
 
