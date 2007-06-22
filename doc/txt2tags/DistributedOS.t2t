@@ -513,7 +513,9 @@ one of the paths in the base_paths list (For example, on Windows you probably
 do //not// want it to include c:\Windows\).
 Note that for many command shells
 the semicolon is the end-of-command delimiter, so you may need to enclose
-the base_paths argument in quotes if it contains a semicolon.
+the base_paths argument in quotes if it contains a semicolon. Note also that
+the comparison of the various path variables to the base_paths argument is
+currently //case-sensitive//, even though Windows paths are normally not.
 
 ``szgd`` immediately attempts to connect to the szgserver that you are currently
 dlogged into. By default, it exits on failure to connect. If the optional ``-r``
