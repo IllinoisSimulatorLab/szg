@@ -61,7 +61,10 @@ LAbort:
 
   arInputNodeConfig inputConfig;
   const int outputSlot = atoi(argv[2]);
-  int slotNumber = outputSlot;
+
+  ar_log_debug() << "DeviceServer -netinput = " << fNetInput << ", outputSlot = " << outputSlot << ar_endl;
+
+  int slotNumber = outputSlot+1;
   if (fSimple) {
     // As command-line flags, specify only the driver and slot.
     inputConfig.addInputSource( string(argv[1]) );

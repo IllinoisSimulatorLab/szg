@@ -566,7 +566,7 @@ class arHead{
   void setFixedHeadMode( bool onoff );
   bool getFixedHeadMode() const;
 %extend{
-  string __repr__(void){
+  string __str__(void){
     ostringstream s;
     s << "arHead\n";
     s << "eye spacing: " << self->getEyeSpacing() << "\n";
@@ -576,6 +576,29 @@ class arHead{
     s << "far clip: " << self->getFarClip() << "\n";
     s << "unit conversion: " << self->getUnitConversion() << "\n";
     s << "matrix:\n" << self->getMatrix();
+    return s.str();
+  }
+}
+};
+
+
+%{
+#include "arAxisAlignedBoundingBox.h"
+%}
+class arAxisAlignedBoundingBox{
+ public:
+  arAxisAlignedBoundingBox(){ xSize=ySize=zSize=0; }
+  ~arAxisAlignedBoundingBox(){}
+ 
+  arVector3 center;
+  float xSize;
+  float ySize;
+  float zSize;
+%extend{
+  string __str__(void){
+    ostringstream s;
+    s << "arAxisAlignedBoundingBox(center=";
+    s << self->center << ", size=(" << self->xSize << "," << self->ySize << "," << self->zSize << "))"; 
     return s.str();
   }
 }
@@ -707,7 +730,7 @@ class arViewport{
   void setEyeSign(float eyeSign);
   float getEyeSign();
   void setColorMask(GLboolean red, GLboolean green,
-		    GLboolean blue, GLboolean alpha);
+  GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
   void setDrawBuffer( GLenum buf );
   GLenum getDrawBuffer() const;

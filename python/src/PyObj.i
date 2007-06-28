@@ -20,9 +20,9 @@ class arObject {
   virtual bool supportsAnimation(void)=0;
   virtual inline int numberOfFrames();
   virtual inline int currentFrame();
-  virtual bool	setFrame(int);
-  virtual bool	nextFrame();
-  virtual bool	prevFrame();
+  virtual bool  setFrame(int);
+  virtual bool  nextFrame();
+  virtual bool  prevFrame();
   virtual void normalizeModelSize()=0;
   int vertexNodeID();
 };
@@ -38,11 +38,11 @@ class arOBJMaterial {
     map_Bump("none")
   { }
   float     illum;
-  float     Ns;	
-  arVector3 Kd;	
-  arVector3 Ks;	
-  arVector3 Ka;	
-  char	    name[32];
+  float     Ns;  
+  arVector3 Kd;  
+  arVector3 Ks;  
+  arVector3 Ka;  
+  char      name[32];
   string    map_Kd;
   string    map_Bump;
 };
@@ -227,7 +227,7 @@ class arHTR : public arObject {
     bool readHTR(FILE* htrFileHandle);
     bool writeToFile(const string& fileName);
     bool attachMesh(const string& objectName,
-		    const string& parent);
+        const string& parent);
     bool attachMesh(arGraphicsNode* parent, 
                     const string& objectName="");
     bool attachMesh(const string& baseName, 
@@ -241,10 +241,10 @@ class arHTR : public arObject {
     bool nextFrame();
     bool prevFrame();
     bool setBasePosition();
-    int	numberOfFrames();
+    int  numberOfFrames();
     int currentFrame();
-    int	numberOfSegments();
-    int	version();
+    int  numberOfSegments();
+    int  version();
     string nameOfSegment(int i);
     arTransformNode* transformForSegment(int i);
     arTransformNode* preTransformForSegment(int i);
@@ -259,7 +259,7 @@ class arHTR : public arObject {
     int inverseIDForSegment(int i);
     int boundingSphereIDForSegment(int i);
     arMatrix4 segmentBaseTransformRelative(int segmentID);
-    int	numberOfSegment(const string& segmentName);
+    int  numberOfSegment(const string& segmentName);
     arMatrix4 inverseTransformForSegment(int i);
 };
 

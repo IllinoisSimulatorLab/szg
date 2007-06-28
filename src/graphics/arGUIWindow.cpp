@@ -584,7 +584,10 @@ int arGUIWindow::_windowCreation( void )
 
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
   if( _windowConfig.getStereo() ) {
+    ar_log_debug() << "Creating a stereo arGUIWindow.\n";
     dwFlags |= PFD_STEREO;
+  } else {
+    ar_log_debug() << "Creating a non-stereo arGUIWindow.\n";
   }
 
   PIXELFORMATDESCRIPTOR pfd = {

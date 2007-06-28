@@ -46,7 +46,7 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
     case AR_EVENT_BUTTON:
       _numButtons++;
       if (eventIndex >= _buttonSignature) {
-	setSignature( eventIndex+1, _axisSignature, _matrixSignature );
+        setSignature( eventIndex+1, _axisSignature, _matrixSignature );
       }
       break;
     case AR_EVENT_AXIS:
@@ -63,7 +63,7 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
       break;
     default:
       ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
-	<< eventType << ".\n";
+                       << eventType << ".\n";
       return;
   }
   _queue.push_back( inputEvent );
@@ -78,9 +78,9 @@ void arInputEventQueue::appendQueue( const arInputEventQueue& rhs ) {
   std::deque<arInputEvent>::const_iterator iter;
   for (iter = rhs._queue.begin(); iter != rhs._queue.end(); ++iter)
     appendEvent( *iter );
-  setSignature( maxuint( _buttonSignature, rhs.getButtonSignature() ),
-                maxuint( _axisSignature, rhs.getAxisSignature() ),
-                maxuint( _matrixSignature, rhs.getMatrixSignature() ) );
+//  setSignature( maxuint( _buttonSignature, rhs.getButtonSignature() ),
+//                maxuint( _axisSignature, rhs.getAxisSignature() ),
+//                maxuint( _matrixSignature, rhs.getMatrixSignature() ) );
 }
 
 arInputEvent arInputEventQueue::popNextEvent() {
@@ -268,7 +268,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
           ok = false;
         } else {
           buttonBuf[iButton++] = ev.getButton();
-	}
+  }
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= _numAxes) {
@@ -277,7 +277,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
           ok = false;
         } else {
           axisBuf[iAxis++] = ev.getAxis();
-	}
+  }
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= _numMatrices) {
@@ -289,9 +289,9 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
         }
         break;
       default:
-	ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
-	  << eventType << ".\n";
-	break;
+  ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
+    << eventType << ".\n";
+  break;
     }
   }
   return ok;

@@ -215,16 +215,19 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   if (!fComplained) {
     fComplained = true;
     if (cb > cbMax) {
+      ar_log_warning() << "cubevars: " << cb << " is too many buttons. Truncating to "
+                       << cbMax << ".\n";
       cb = cbMax;
-      ar_log_warning() << "cubevars: truncating excessive buttons.\n";
     }
     if (ca > caMax) {
+      ar_log_warning() << "cubevars: " << ca << " is too many axes. Truncating to "
+                       << caMax << ".\n";
       ca = caMax;
-      ar_log_warning() << "cubevars: truncating excessive axes.\n";
     }
     if (cm > cmMax) {
+      ar_log_warning() << "cubevars: " << cm << " is too many matrices. Truncating to "
+                       << cmMax << ".\n";
       cm = cmMax;
-      ar_log_warning() << "cubevars: truncating excessive matrices.\n";
     }
   }
 

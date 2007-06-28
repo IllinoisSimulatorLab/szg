@@ -21,7 +21,7 @@ void arNetInputSource::_dataTask(){
       _setDeviceElements(sig);
       _sigOK = _reconfig();
       if (!_sigOK)
-	ar_log_warning() << "arNetInputSource failed to configure source.\n";
+        ar_log_warning() << "arNetInputSource failed to configure source.\n";
     }
 
     // Relay the data to the input sink

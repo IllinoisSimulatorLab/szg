@@ -3,78 +3,136 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
+// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-
-#include "arDataUtilities.h"
+// MUST come before other szg includes. See arCallingConventions.h for details.
+#define SZG_DO_NOT_EXPORT
+#include <stdio.h>
+#include <stdlib.h>
+#include "arMasterSlaveFramework.h"
 #include "arGlut.h"
 #include "arLargeImage.h"
-#include "arSZGClient.h"
 #include "arTexture.h"
 
-#include <math.h>
 
-arTexture bitmap;
-arLargeImage largeImage;
-int screenWidth = -1;
-int screenHeight = -1;
-
-bool doSyncTest = false;
-bool flipped = false;
-arTimer timer;
 const float FLIP_SECONDS = 2;
 const float TEST_RED = .25;
 const float STRIP_HEIGHT = 10;
 
-void drawSyncTest() {
-  glColorMask( GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE );
-  glColor3f(flipped ? TEST_RED : 0, 0, 0);
-  glBegin( GL_QUADS );
-    glVertex2f( 0, 0 );
-    glVertex2f( screenWidth, 0 );
-    glVertex2f( screenWidth, STRIP_HEIGHT );
-    glVertex2f( 0, STRIP_HEIGHT );
-  glEnd();
-  glColor3f(flipped ? 0 : TEST_RED, 0, 0);
-  glBegin( GL_QUADS );
-    glVertex2f( 0, STRIP_HEIGHT );
-    glVertex2f( screenWidth, STRIP_HEIGHT );
-    glVertex2f( screenWidth, 2*STRIP_HEIGHT );
-    glVertex2f( 0, 2*STRIP_HEIGHT );
-  glEnd();
-  glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );  
+
+class PictureApp: public arMasterSlaveFramework {
+  public:
+    PictureApp();
+    virtual bool onStart( arSZGClient& SZGClient );
+//    virtual void onWindowStartGL( arGUIWindowInfo* );
+    virtual void onPreExchange( void );
+    virtual void onPostExchange( void );
+//    virtual void onWindowInit( void );
+    virtual void onDraw( arGraphicsWindow& win, arViewport& vp );
+//    virtual void onDisconnectDraw( void );
+//    virtual void onPlay( void );
+    virtual void onWindowEvent( arGUIWindowInfo* );
+//    virtual void onCleanup( void );
+//    virtual void onUserMessage( const string& messageBody );
+//    virtual void onOverlay( void );
+//    virtual void onKey( unsigned char key, int x, int y );
+//    virtual void onKey( arGUIKeyInfo* );
+//    virtual void onMouse( arGUIMouseInfo* );
+
+    void drawSyncTest();
+    void showCenteredImage();
+    
+    int doSyncTest;
+    string pictureFilename;
+    
+  private:
+    arTexture _texture;
+    arLargeImage _largeImage;
+    int _screenWidth;
+    int _screenHeight;
+    int _flipped;
+    arTimer _timer;
+};
+
+
+PictureApp::PictureApp() :
+  arMasterSlaveFramework(),
+  doSyncTest(0),
+  pictureFilename("NULL"),
+  _screenWidth(-1),
+  _screenHeight(-1),
+  _flipped(0) {
 }
 
-void idle(void){
-  ar_usleep(50000); // CPU throttle
-  glutPostRedisplay();
+
+// onStart callback method (called in arMasterSlaveFramework::start()
+//
+// Note: DO NOT do OpenGL initialization here; this is now called
+// __before__ window creation. Do it in the onWindowStartGL()
+//
+bool PictureApp::onStart( arSZGClient& szgClient ) {
+
+  const string dataPath = szgClient.getDataPath();
+  if (!_texture.readPPM( pictureFilename, dataPath )) {
+    ar_log_error() << "PictureViewer failed to read picture file '"
+                 << pictureFilename << "' from path '" << dataPath << "'.\n";
+    return false;
+  }
+  // NOTE: we _do_ need to keep the arTexture.
+  _largeImage.setImage(_texture);
+
+  // Register shared memory.
+  //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
+  addTransferField("doSyncTest", &doSyncTest, AR_INT, 1);
+  addTransferField("_flipped", &_flipped, AR_INT, 1);
+
+  return true;
 }
 
-void keyboard(unsigned char key, int, int){
-  switch (key) { 
-    case 27:
-      exit(0);
+
+// Method called before data is transferred from master to slaves. Only called
+// on the master. This is where anything having to do with
+// processing user input or random variables should happen.
+void PictureApp::onPreExchange() {
+  if (_timer.done()) {
+    _flipped = !_flipped;
+    _timer.start( FLIP_SECONDS*1e6 );
   }
 }
 
-void showCenteredImage() {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(-0.5,0.5,-0.5,0.5,0,10);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt(0,0,2, 0,0,0, 0,1,0);
-  largeImage.draw();
+// Method called after transfer of data from master to slaves. Mostly used to
+// synchronize slaves with master based on transferred data.
+void PictureApp::onPostExchange() {
+  // Do stuff after slaves got data and are again in sync with the master.
+  if (!getMaster()) {
+    // Nothing to do.
+  }
 }
 
-void draw() {
-  if (timer.done()) {
-    flipped = !flipped;
-    timer.start( FLIP_SECONDS*1e6 );
+// This is how we have to catch reshape events now, still
+// dealing with the fallout from the GLUT->arGUI conversion.
+// Note that the behavior implemented below is the default.
+void PictureApp::onWindowEvent( arGUIWindowInfo* winInfo ) {
+  // The values are defined in src/graphics/arGUIDefines.h.
+  // arGUIWindowInfo is in arGUIInfo.h
+  // The window manager is in arGUIWindowManager.h
+  if (winInfo->getState() == AR_WINDOW_RESIZE) {
+    const int windowID = winInfo->getWindowID();
+#ifdef UNUSED
+    const int x = winInfo->getPosX();
+    const int y = winInfo->getPosY();
+#endif
+    _screenWidth = winInfo->getSizeX();
+    _screenHeight = winInfo->getSizeY();
+    getWindowManager()->setWindowViewport( windowID, 0, 0, _screenWidth, _screenHeight );
   }
+}
+
+void PictureApp::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glClear(GL_COLOR_BUFFER_BIT);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0,screenWidth,0,screenHeight,-1,1);
+  glOrtho(0,_screenWidth,0,_screenHeight,-1,1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glPixelStorei(GL_UNPACK_ALIGNMENT,1);
@@ -82,85 +140,55 @@ void draw() {
     drawSyncTest();
   }
   showCenteredImage();
-  glutSwapBuffers();
 }
 
-void reshape(int width, int height) {
-  screenWidth = width;
-  screenHeight = height;
-  glViewport(0,0,width,height);
+
+void PictureApp::showCenteredImage() {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-0.5,0.5,-0.5,0.5,0,10);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(0,0,2, 0,0,0, 0,1,0);
+  _largeImage.draw();
 }
 
-int main(int argc, char** argv){
-  // This exe is too different from other syzygy exes.
 
-  arSZGClient szgClient;
-  szgClient.simpleHandshaking(false);
-  const bool fInit = szgClient.init(argc, argv);
-  if (!szgClient)
-    return szgClient.failStandalone(fInit);
+void PictureApp::drawSyncTest() {
+  glColorMask( GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE );
+  glColor3f(_flipped ? TEST_RED : 0, 0, 0);
+  glBegin( GL_QUADS );
+    glVertex2f( 0, 0 );
+    glVertex2f( _screenWidth, 0 );
+    glVertex2f( _screenWidth, STRIP_HEIGHT );
+    glVertex2f( 0, STRIP_HEIGHT );
+  glEnd();
+  glColor3f(_flipped ? 0 : TEST_RED, 0, 0);
+  glBegin( GL_QUADS );
+    glVertex2f( 0, STRIP_HEIGHT );
+    glVertex2f( _screenWidth, STRIP_HEIGHT );
+    glVertex2f( _screenWidth, 2*STRIP_HEIGHT );
+    glVertex2f( 0, 2*STRIP_HEIGHT );
+  glEnd();
+  glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );  
+}
 
-  if ((argc < 2)||(argc > 3)){
+
+int main(int argc, char** argv) {
+
+  PictureApp framework;
+
+  if (!framework.init(argc, argv)) {
+    return 1;
+  }
+
+  if ((argc < 2)||(argc > 3)) {
     ar_log_error() << "usage: PictureViewer filename [synctest]\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
-  doSyncTest = (argc == 3);
-
-  // Lock the screen.
-  const string screenLock = szgClient.getComputerName() + string("/")
-                      + szgClient.getMode("graphics");
-  int graphicsID = -1;
-  if (!szgClient.getLock(screenLock, graphicsID)){
-    cout << "PictureViewer error: failed to get screen resource held "
-	 << "by component "
-         << graphicsID << ".\n(Kill that component to proceed.)\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "PictureViewer error: maybe szgserver died.\n";
-    return 1;
-  }
-
-  const string dataPath = szgClient.getDataPath();
-  if (!bitmap.readPPM(argv[1], dataPath)){
-    ar_log_error() << "PictureViewer failed to read picture file '"
-                 << argv[1] << "' from path '" << dataPath << "'.\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "PictureViewer error: maybe szgserver died.\n";
-    return 1;
-  }
-  // Kluge: undo our PPM reader's horizontal flip.
-  // todo: move that flip command into the PPM reader.
-  if (!bitmap.flipHorizontal()) {
-    ar_log_error() << "PictureViewer failed to flip picture '" << argv[1] << "'.\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "PictureViewer error: maybe szgserver died.\n";
-    return 1;
-  }
-
-  // Draw the "large image" instead of the texture.
-  largeImage.setImage(bitmap);
-  ar_log_remark() << "PictureViewer loaded picture.\n";
-  if (!szgClient.sendInitResponse(true))
-    cerr << "PictureViewer error: maybe szgserver died.\n";
-
-  glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE);
-  glutInitWindowPosition(0,0);
-  glutInitWindowSize(800,600);
-  glutCreateWindow("Picture Viewer");
-  glutDisplayFunc(draw);
-  glutReshapeFunc(reshape);
-  glutKeyboardFunc(keyboard);
-  glutIdleFunc(idle);
-  glutFullScreen();
-
-  ar_log_remark() << "Picture window visible.\n";
-  if (!szgClient.sendStartResponse(true))
-    cerr << "PictureViewer error: maybe szgserver died.\n";
-  arThread dummy(ar_messageTask, &szgClient);
-  timer.start( FLIP_SECONDS * 1e6 );
-  glutMainLoop(); 
-  szgClient.messageTaskStop();
-  return 0;
+  framework.doSyncTest = ( argc == 3 );
+  framework.pictureFilename = string( argv[1] );
+  
+  // Never returns unless something goes wrong
+  return framework.start() ? 0 : 1;
 }
