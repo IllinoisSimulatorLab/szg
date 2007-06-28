@@ -102,17 +102,17 @@ bool getBasePaths( const char* const arg ) {
   arSemicolonString pathsString( arg );
   for (int i=0; i<pathsString.size(); ++i) {
     std::string pathTmp(pathsString[i]);
-    bool exists = false;
-    bool isDirectory = false;
-    if (!ar_directoryExists( pathTmp, exists, isDirectory )) {
+    bool dirExists = false;
+    bool isDir = false;
+    if (!ar_directoryExists( pathTmp, dirExists, isDir )) {
       ar_log_warning() << "szgd: ar_directoryExists() failed.\n";
       return false;
     }
-    if (!exists) {
+    if (!dirExists) {
 #ifdef AR_USE_WIN_32
       bool isFile = false;
-      if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
-        if (!exists) {
+      if (!ar_fileExists( pathTmp+".exe", dirExists, isFile )) {
+        if (!dirExists) {
           ar_log_warning() << "szgd: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
@@ -158,12 +158,12 @@ string getAppPath( const string& userName, const string& groupName, const string
     }
 
     bool dirExists = false;
-    bool isDirectory = false;
+    bool isDir = false;
 
     // If return value is false, 2nd & 3rd args are invalid.
     // If item does not exist (2nd arg == false), 3rd is invalid
     // If item exists, 3rd arg indicates whether or not it is a directory
-    if (!ar_directoryExists( dir, dirExists, isDirectory )) {
+    if (!ar_directoryExists( dir, dirExists, isDir )) {
       warnTwice( errStream, "internal error composing " + groupName +
         "/path: ar_directoryExists() for directory " + dir + ".\n");
       return "NULL";
@@ -171,12 +171,12 @@ string getAppPath( const string& userName, const string& groupName, const string
 
     if (!dirExists) {
       warnTwice( errStream, "composing " + groupName + "/path: nonexistent " + dir + ".\n");
-      return "NULL";
+      continue;
     }
 
-    if (!isDirectory) {
+    if (!isDir) {
       warnTwice( errStream, "composing " + groupName + "/path: nondirectory " + dir + ".\n");
-      return "NULL";
+      continue;
     }
 
     dirsToSearch.push_back( dir );
