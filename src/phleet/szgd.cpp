@@ -568,31 +568,28 @@ LDone:
   // the arSZGClient cannot be used after the Unix fork.
   // Also, a description of the dynamic search paths follows:
 
-  // The library search path must be altered for each user. This is
-  // necessary to let multiple users (with different ways of arranging and
-  // loading dynamic libraries) to use szgd at once from another user's 
-  // account.
-  // By convention, we make the system search for libraries in the
-  // following order:
-  //   1. Directory on the exec path where the executable resides.
+  // The library search path is modified for each user, so
+  // multiple users (with different ways of arranging and
+  // loading dynamic libraries) can use the same szgd.
+  // Libraries are searched for in this order:
+  //   1. Directory on the exec path containing the exe.
   //   2. SZG_NATIVELIB/path
   //   3. SZG_EXEC/path
   //   4. The native DLL search path (i.e. LD_LIBRARY_PATH or
-  //      DYLD_LIBRARY_PATH or LD_LIBRARYN32_PATH or PATH) as held by the
-  //      user running the szgd.
-  // NOTE: This path must be altered both in the case of "native" AND "python"
-  // executables. 
+  //      DYLD_LIBRARY_PATH or LD_LIBRARYN32_PATH or PATH)
+  //      as held by the user running szgd.
+  // This path is altered for both "native" AND "python" exes. 
 
-  // The python module search path must also be modified for each user, for
-  // similar reasons. It seems like python, by default, will prepend the
-  // directory in which the .py file lives.
-  //   1. SZG_PYTHON/path (python modules can be put in the top level of
+  // The python module search path is modified for each user,
+  // for similar reasons. By default, python seems to prepend
+  // the directory containing the .py file.
+  //   1. SZG_PYTHON/path (put python modules in the top level of
   //      your "application bundle directory")
-  //   2. SZG_PYTHON/lib_path (conceived of as where python modules might go,
+  //   2. SZG_PYTHON/lib_path (for python modules
   //      but not "application bundles")
-  //   3. SZG_EXEC/path (PySZG.py and PySZG.so (or .dll depending on platform)
+  //   3. SZG_EXEC/path (PySZG.py and PySZG.so, or .dll,
   //      must be in the same directory and on the PYTHONPATH).
-  //   4. PYTHONPATH, as held by the user running the szgd.
+  //   4. PYTHONPATH, as held by the user running szgd.
 
   const string envDLLPath =
 #ifdef AR_USE_LINUX
@@ -609,11 +606,18 @@ LDone:
 #endif
 
   const string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path","");
-  const string DLLPathPrev = ar_getenv(envDLLPath.c_str());
   const string nativeLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
+
   // Construct the new dynamic library path.
+#ifdef AR_USE_WIN_32
+  // guard around ar_getenv/ar_setenv/ar_setenv(DLLPathPrev),
+  // lest, when spawning several things at once,
+  // one spawn thread get another's already-ar_setenv'd path.
+  lockSpawn.lock();
+#endif
+  const string DLLPathPrev = ar_getenv(envDLLPath.c_str());
+  const string appPath = ar_exePath(newCommand);
   string DLLPath;
-  string appPath = ar_exePath(newCommand);
   if (appPath != "") {
     DLLPath = appPath;
   }
@@ -864,8 +868,6 @@ LDone:
   // (another solution: pass in an altered environment block)
   // (another solution: send the spawned process a message)
 
-  lockSpawn.lock();
-
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
     ar_log_warning() << "szgd pre-launch failed to cd to '" <<
@@ -894,8 +896,7 @@ LDone:
     ar_setenv("PYTHONPATH", pythonPath);
   }
 
-  // Stagger launches so the cluster's file server isn't hit so hard.
-  randomDelay();
+  // Don't randomDelay(), because lockSpawn already serializes launches.
 
   const unsigned iLog = messageContext.find("log=");
   if (iLog != string::npos) {
