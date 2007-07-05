@@ -2335,10 +2335,9 @@ void arMasterSlaveFramework::_messageTask( void ) {
 // Handle connections.
 void arMasterSlaveFramework::_connectionTask( void ) {
   _connectionThreadRunning = true;
-
   if( _master ) {
-    while( !stopping() ) {
 
+    while( !stopping() ) {
       // todo: nonblocking connection accept.
       // Workaround: pretend connection thread isn't running.
       _connectionThreadRunning = false;
@@ -2349,22 +2348,20 @@ void arMasterSlaveFramework::_connectionTask( void ) {
         break;
 
       if( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
-        // something bad happened.  Don't keep trying infinitely.
+        // Something bad happened.  Don't retry infinitely.
         _exitProgram = true;
 	break;
       }
 
-      ar_log_remark() << _label << " slave connected to master";
-      const int num = _stateServer->getNumberConnected();
-
-      if ( num > 1 ) {
-	ar_log_remark() << " (" << num << " in all)";
-      }
-      ar_log_remark() << ".\n";
+      // getNumberConnected before ar_log, so ar_log's output doesn't fragment.
+      const int n = _stateServer->getNumberConnected();
+      ar_log_remark() << _label << " master got slave #" << n << ".\n";
     }
+
   }
   else {
     // slave
+
     while( !stopping() ) {
       arSleepBackoff a(40, 100, 1.1);
       while( !_barrierClient->checkConnection() && !stopping() ) {
@@ -2386,8 +2383,8 @@ void arMasterSlaveFramework::_connectionTask( void ) {
         break;
       _connectionThreadRunning = true;
 
-      ar_log_remark() << _label << " connecting to "
-	              << result.address << ":" << result.portIDs[ 0 ] << ar_endl;
+      ar_log_remark() << _label << " slave connecting to "
+	              << result.address << ":" << result.portIDs[0] << ".\n";
 
       if( !result.valid ||
           !_stateClient.dialUpFallThrough( result.address, result.portIDs[ 0 ] ) ) {
@@ -2399,9 +2396,9 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _barrierClient->setBondedSocketID( _stateClient.getSocketIDRemote() );
       _stateClientConnected = true;
 
-      ar_log_remark() << _label << " slave connected to master.\n";
+      ar_log_remark() << _label << " slave connected.\n";
       while( _stateClientConnected && !stopping() ) {
-        ar_usleep( 300000 );
+        ar_usleep( 200000 );
       }
 
       if (stopping())
@@ -2410,8 +2407,8 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       ar_log_remark() << _label << " slave disconnected.\n";
       _stateClient.closeConnection();
     }
-  }
 
+  }
   _connectionThreadRunning = false;
 }
 
