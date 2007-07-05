@@ -66,19 +66,18 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
       arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
+    arGuard dummy(_nodeLock);
     _fileName = fileName;
     _alpha = alpha;
-    if (_texture){
+    if (_texture) {
       _texture->unref();
     }
     _texture = new arTexture();
     _texture->readImage(fileName.c_str(), _alpha, true);
     _locallyHeldTexture = true;
-    _nodeLock.unlock();
   }
 }
 
@@ -92,10 +91,9 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    _nodeLock.lock();
-      // No other object will use this.
-      _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    // No other object will use this.
+    _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
   }
 }
 
@@ -111,8 +109,7 @@ arStructuredData* arTextureNode::_dumpData(
     const string& fileName, int alpha, int width, int height,
     const char* pixels, bool owned){
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_TEXTURE) :
-    _g->makeDataRecord(_g->AR_TEXTURE);
+    getStorage(_g->AR_TEXTURE) : _g->makeDataRecord(_g->AR_TEXTURE);
   _dumpGenericNode(r, _g->AR_TEXTURE_ID);
   if (fileName != ""){
     // Zero the data dimension of _width, to tell

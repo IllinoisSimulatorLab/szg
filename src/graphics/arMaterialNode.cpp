@@ -37,11 +37,10 @@ void arMaterialNode::setMaterial(const arMaterial& material) {
       arStructuredData* r = _dumpData(material, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   } else {
-    _nodeLock.lock();
-      _lMaterial = material;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _lMaterial = material;
   }
 }
 
@@ -52,8 +51,7 @@ arStructuredData* arMaterialNode::dumpData() {
 
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material, bool owned) {
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL) :
-    _g->makeDataRecord(_g->AR_MATERIAL);
+    getStorage(_g->AR_MATERIAL) : _g->makeDataRecord(_g->AR_MATERIAL);
   _dumpGenericNode(r, _g->AR_MATERIAL_ID);
   // todo: test datain ret val, like billboardnode
   r->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3);

@@ -34,12 +34,11 @@ void arViewerNode::setHead(const arHead& head){
       arStructuredData* r = _dumpData(head, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _head = head;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _head = head;
   }
 }
 
@@ -50,8 +49,7 @@ arStructuredData* arViewerNode::dumpData(){
 
 arStructuredData* arViewerNode::_dumpData(const arHead& head, const bool owned){
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_VIEWER) :
-    _g->makeDataRecord(_g->AR_VIEWER);
+    getStorage(_g->AR_VIEWER) : _g->makeDataRecord(_g->AR_VIEWER);
   _dumpGenericNode(r, _g->AR_VIEWER_ID);
   if (!r->dataIn(_g->AR_VIEWER_MATRIX, head._matrix.v, AR_FLOAT, 16) ||
       !r->dataIn(_g->AR_VIEWER_MID_EYE_OFFSET, head._midEyeOffset.v, AR_FLOAT, 3) ||

@@ -100,8 +100,7 @@ void arDatabaseNode::setName(const string& name){
       r->dataInString(_dLang->AR_NAME_INFO, _info);
     _lockInfo.unlock();
     getOwner()->alter(r);
-    // Must recycle or there will be a memory leak.
-    getOwner()->getDataParser()->recycle(r);
+    recycle(r); // avoid memory leak
   }
   else{
     _setName(name);
@@ -133,7 +132,7 @@ void arDatabaseNode::setInfo(const string& info){
     _lockName.unlock();
     r->dataInString(_dLang->AR_NAME_INFO, info);
     getOwner()->alter(r);
-    getOwner()->getDataParser()->recycle(r);
+    recycle(r);
   }
   else{
     arGuard dummy(_lockInfo);
@@ -542,4 +541,33 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s)
   }
   // Since we ref'ed the list of nodes, must unref.
   ar_unrefNodeList(childList);
+}
+
+bool arDatabaseNode::isroot() const { 
+  // Equivalently, getName() == "root".  But this method is faster.
+  return _ID == 0;
+}
+
+int arDatabaseNode::getID() const { 
+  return _ID; 
+}
+
+arDatabase* arDatabaseNode::getOwner() const {
+  return _databaseOwner;
+}
+
+arDatabaseNode* arDatabaseNode::getParent() const { 
+  return _parent; 
+}
+
+arStructuredDataParser* arDatabaseNode::getParser() const {
+  return getOwner()->getDataParser();
+}
+
+arStructuredData* arDatabaseNode::getStorage(int id) const {
+  return getParser()->getStorage(id);
+}
+
+inline void arDatabaseNode::recycle(arStructuredData* r) const {
+  getParser()->recycle(r);
 }

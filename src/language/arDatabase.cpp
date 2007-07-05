@@ -151,7 +151,7 @@ arDatabaseNode* arDatabase::findNodeRef(const string& name) {
 
 arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
 			             bool refNode) {
-  if (!node || !node->active() || node->getOwner() != this){
+  if (!_check(node)) {
     ar_log_warning() << "arDatabaseNode::findNode from non-owned node.\n";
     return NULL;
   }
@@ -170,7 +170,7 @@ arDatabaseNode* arDatabase::findNodeRef(arDatabaseNode* node, const string& name
 arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node, 
                                            const string& nodeType,
 			                   bool refNode){
-  if (!node || !node->active() || node->getOwner() != this){
+  if (!_check(node)) {
     ar_log_warning() << "arDatabase can't find from null, inactive, or unowned node.\n";
     return NULL;
   }
@@ -197,22 +197,20 @@ arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
   // Make sure this is a *active* node owned by this database.
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
-  if (!node || !node->active() || node->getOwner() != this)
+  if (!_check(node))
     return NULL;
 
-  // We CANNOT call arDatabaseNode::getParentRef here, since that
-  // will simply lead to another call to arDatabase::getParentRef (an
-  // infinite recursion).
+  // Don't call arDatabaseNode::getParentRef, lest that call
+  // arDatabase::getParentRef and recurse infinitely.
   return _ref(node->getParent(), true);
 }
 
 list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
   list<arDatabaseNode*> l;
   arGuard dummy(_l);
-  // Make sure this is a *active* node owned by this database.
-  // Here, active means that the node is owned AND has a parent (or is the
-  // root node).
-  if (!node || !node->active() || node->getOwner() != this)
+  // Ensure this node is active, owned by this database,
+  // and has a parent (or is the root node).
+  if (!_check(node))
     return l;
 
   // NOTE: We CANNOT call arDatabaseNode::getChildrenRef here, since that
@@ -227,7 +225,7 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& type,
                                     const string& name,
                                     bool refNode){
-  if (!parent || !parent->active() || parent->getOwner() != this){
+  if (!_check(parent)) {
     ar_log_warning() << "arDatabaseNode::newNode got non-owned parent.\n";
     return NULL;
   }
@@ -269,23 +267,15 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 
   // The parent node can't be NULL and must be owned by this database.
   // If the child node is not NULL, it must be owned by this database as well.
-  if (!parent || !parent->active() || parent->getOwner() != this ||
+  if (!_check(parent) ||
       (child && (!child->active() || child->getOwner() != this))){
     ar_log_warning() << "arDatabaseNode: can't insert with non-owned nodes.\n";
     return NULL;
   }
 
-  string nodeName = name;
-  if (nodeName == ""){
-    nodeName = _getDefaultName();
-  }
-  
-  int parentID = parent->getID();
-  // If child is NULL, then we want to use the "invalid" ID of -1.
-  int childID = -1;
-  if (child){
-    childID = child->getID();
-  }
+  const string nodeName = name=="" ? _getDefaultName() : name;
+  const int parentID = parent->getID();
+  const int childID = child ? child->getID() : -1;
   arStructuredData* data = _dataParser->getStorage(_lang->AR_INSERT);
   data->dataIn(_lang->AR_INSERT_PARENT_ID, &parentID, AR_INT, 1);
   data->dataIn(_lang->AR_INSERT_CHILD_ID, &childID, AR_INT, 1);
@@ -309,7 +299,7 @@ arDatabaseNode* arDatabase::insertNodeRef(arDatabaseNode* parent,
 }
 
 bool arDatabase::cutNode(arDatabaseNode* node){
-  if (!node || !node->active() || node->getOwner() != this){
+  if (!_check(node)) {
     ar_log_warning() << "arDatabaseNode: can't cut non-owned node.\n";
     return false;
   }
@@ -327,7 +317,7 @@ bool arDatabase::cutNode(int ID){
 }
 
 bool arDatabase::eraseNode(arDatabaseNode* node){
-  if (!node || !node->active() || node->getOwner() != this){
+  if (!_check(node)) {
     ar_log_warning() << "arDatabaseNode: can't erase non-owned node.\n";
     return false;
   }
@@ -346,9 +336,9 @@ bool arDatabase::eraseNode(int ID){
 
 void arDatabase::permuteChildren(arDatabaseNode* parent,
 		                 list<arDatabaseNode*>& children){
-  int size = children.size();
+  const int size = children.size();
   if (size == 0){
-    // There's nothing to do. Just return.
+    // Nothing to do.
     return;
   }
   arStructuredData* data = _dataParser->getStorage(_lang->AR_PERMUTE);
@@ -356,9 +346,8 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
   data->dataIn(_lang->AR_PERMUTE_PARENT_ID, &parentID, AR_INT, 1);
   int* IDs = new int[size];
   int count = 0;
-  for (list<arDatabaseNode*>::iterator i = children.begin(); 
-       i != children.end(); i++){
-    if (*i && (*i)->active() && (*i)->getOwner() == this){
+  for (list<arDatabaseNode*>::iterator i = children.begin(); i != children.end(); i++){
+    if (_check(*i)) {
       IDs[count] = (*i)->getID();
       count++;
     }
@@ -385,8 +374,7 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
     }
   }
   permuteChildren(parent, l);
-  // Must unref to prevent a memory leak.
-  ar_unrefNodeList(l);
+  ar_unrefNodeList(l); // Avoid memory leak.
 }
 
 // When transfering the database state, we often want to dump the structure

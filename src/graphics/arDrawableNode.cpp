@@ -233,13 +233,12 @@ void arDrawableNode::setDrawable(arDrawableType type, int number){
       arStructuredData* r = _dumpData(type, number, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _type = type;
-      _number = number;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _type = type;
+    _number = number;
   }
 }
 
@@ -254,8 +253,7 @@ arStructuredData* arDrawableNode::dumpData(){
 
 arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned){
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE) :
-    _g->makeDataRecord(_g->AR_DRAWABLE);
+    getStorage(_g->AR_DRAWABLE) : _g->makeDataRecord(_g->AR_DRAWABLE);
   _dumpGenericNode(r, _g->AR_DRAWABLE_ID);
   // todo: test dataIn's return value, like e.g. billboardnode
   r->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);

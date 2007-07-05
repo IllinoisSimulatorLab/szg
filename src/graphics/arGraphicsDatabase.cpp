@@ -840,7 +840,7 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
     ar_log_warning() << "arGraphicsDatabase: no light pointer.\n";
     return false;
   }
-  if (!node || !node->active() || node->getOwner() != this) {
+  if (!_check(node)) {
     ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
@@ -858,7 +858,7 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
 
 // Only call from arLightNode::deactivate and arGraphicsDatabase::registerLight.
 bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
-  if (!node || !node->active() || node->getOwner() != this) {
+  if (!_check(node)) {
     ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
@@ -877,12 +877,11 @@ void arGraphicsDatabase::activateLights() {
   for (int i=0; i<8; ++i) {
     if (_lightContainer[i].first) {
       // A light has been registered for this ID.
-      // Don't call _lock() again: use accumulateTransform not accumulateTransform(int).
-      const arMatrix4 lightPositionTransform(
-	_lightContainer[i].first->accumulateTransform());
-      _lightContainer[i].second->activateLight(lightPositionTransform);
+      // Don't re-_lock(): use accumulateTransform not accumulateTransform(int).
+      _lightContainer[i].second->activateLight(
+        _lightContainer[i].first->accumulateTransform());
     } else {
-      // No light in this slot. Disable.
+      // No light in this slot.
       const GLenum lights[8] = {
         GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3,
         GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7
@@ -899,7 +898,7 @@ void arGraphicsDatabase::activateLights() {
 // Thread-safe.
 arHead* arGraphicsDatabase::getHead() {
   arViewerNode* viewerNode = NULL;
-  // Thread-safety requires using getNodeRef instead of getNode.
+  // getNodeRef not getNode, for thread safety.
   if (_viewerNodeID != -1)
     viewerNode = (arViewerNode*) getNodeRef(_viewerNodeID);
   if (!viewerNode)
@@ -925,8 +924,8 @@ bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
     ar_log_warning() << "arGraphicsDatabase: camera has invalid ID.\n";
     return false;
   }
-  if (!node || !node->active() || node->getOwner() != this) {
-    ar_log_warning() << "arGraphicsDatabase: invalid node ID for registerCamera.\n";
+  if (!_check(node)) {
+    ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
   // Just in case the camera ID has changed, must remove it from other slots.
@@ -939,7 +938,7 @@ bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
 // Should only be called from arPerspectiveCamera::deactivate and
 // arGraphicsDatabase::registerCamera.
 bool arGraphicsDatabase::removeCamera(arGraphicsNode* node) {
-  if (!node || !node->active() || node->getOwner() != this) {
+  if (!_check(node)) {
     ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
@@ -955,7 +954,7 @@ bool arGraphicsDatabase::removeCamera(arGraphicsNode* node) {
 arPerspectiveCamera* arGraphicsDatabase::getCamera( unsigned int cameraID ) {
   // Do not need to check < 0 since the parameter is unsigned int.
   if (cameraID > 7) {
-    ar_log_warning() << "arGraphicsDatabase: invlid camera ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: invalid camera ID.\n";
     return NULL;
   }
   return _cameraContainer[cameraID].second;

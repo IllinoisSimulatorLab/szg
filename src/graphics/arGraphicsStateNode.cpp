@@ -137,16 +137,15 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
                                     _stateValueFloat, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else {
-    _nodeLock.lock();
+    arGuard dummy(_nodeLock);
     _stateValueFloat = -1.;
     _stateName = stateName;
     _stateID = id;
     _stateValueInt[0] = value1;
     _stateValueInt[1] = value2;
-    _nodeLock.unlock();
   }
   return true;
 }
@@ -175,14 +174,13 @@ bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
     delete r;
   }
   else {
-    _nodeLock.lock();
+    arGuard dummy(_nodeLock);
     _stateName = stateName;
     _stateID = id;
     // Sensible defaults.
     _stateValueInt[0] = AR_G_FALSE;
     _stateValueInt[1] = AR_G_FALSE;
     _stateValueFloat = stateValueFloat;
-    _nodeLock.unlock();
   }
   return true;
 }
@@ -349,14 +347,13 @@ arStructuredData* arGraphicsStateNode::_dumpData(
     float stateValueFloat,
     bool owned ) {
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE) :
-    _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
+    getStorage(_g->AR_GRAPHICS_STATE) : _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
   _dumpGenericNode(r, _g->AR_GRAPHICS_STATE_ID);
 
-  // Don't use the member variable. Instead, use the function parameter.
+  // Use the function arg, not the member variable.
   r->dataInString(_g->AR_GRAPHICS_STATE_STRING, stateName);
 
-  // Don't use the member variable. Instead, use the function parameter.
+  // Use the function arg, not the member variable.
   int data[2];
   if (stateValueInt){
     data[0] = stateValueInt[0];
@@ -370,7 +367,7 @@ arStructuredData* arGraphicsStateNode::_dumpData(
   // todo: test datains' return value, like billboardnode
   r->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
 
-  // Don't use the member variable. Instead, use the function parameter.
+  // Use the function arg, not the member variable.
   r->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);
   return r;
 }

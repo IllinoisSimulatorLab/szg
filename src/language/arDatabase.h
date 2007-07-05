@@ -161,6 +161,9 @@ class SZG_CALL arDatabase{
   void _lock() { _l.lock(); }
   void _unlock() { _l.unlock(); }
 
+  bool _check(arDatabaseNode* n) const
+    { return n && n->active() && n->getOwner()==this; }
+
   int    _typeCode; // what "kind" of database
   string _typeString;
 

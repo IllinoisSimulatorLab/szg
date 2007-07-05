@@ -91,12 +91,11 @@ void arBillboardNode::setText(const string& text){
     arStructuredData* r = _dumpData(text, _visibility, true);
     _nodeLock.unlock();
     getOwner()->alter(r);
-    getOwner()->getDataParser()->recycle(r);
+    recycle(r);
   }
   else{
-    _nodeLock.lock();
+    arGuard dummy(_nodeLock);
     _text = text;
-    _nodeLock.unlock();
   }
 }
 
@@ -108,8 +107,7 @@ arStructuredData* arBillboardNode::dumpData(){
 arStructuredData* arBillboardNode::_dumpData(
   const string& text, bool visibility, bool owned){
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_BILLBOARD) :
-    _g->makeDataRecord(_g->AR_BILLBOARD);
+    getStorage(_g->AR_BILLBOARD) : _g->makeDataRecord(_g->AR_BILLBOARD);
   _dumpGenericNode(r, _g->AR_BILLBOARD_ID);
   const ARint vis = visibility ? 1 : 0;
   if (!r->dataIn(_g->AR_BILLBOARD_VISIBILITY, &vis, AR_INT, 1) ||

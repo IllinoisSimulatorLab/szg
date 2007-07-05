@@ -49,12 +49,11 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
       arStructuredData* r = _dumpData(camera, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _nodeCamera = camera;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _nodeCamera = camera;
   }
 }
 
@@ -62,8 +61,7 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
 arStructuredData* arPerspectiveCameraNode::_dumpData
   (const arPerspectiveCamera& camera, bool owned){
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_PERSP_CAMERA) :
-    _g->makeDataRecord(_g->AR_PERSP_CAMERA);
+    getStorage(_g->AR_PERSP_CAMERA) : _g->makeDataRecord(_g->AR_PERSP_CAMERA);
   _dumpGenericNode(r, _g->AR_PERSP_CAMERA_ID);
   // todo: test datains' return value
   r->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);

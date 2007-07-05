@@ -58,12 +58,11 @@ void arLightNode::setLight(arLight& light){
       arStructuredData* r = _dumpData(light, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _nodeLight = light;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _nodeLight = light;
   }
 }
 
@@ -74,8 +73,7 @@ arStructuredData* arLightNode::dumpData(){
 
 arStructuredData* arLightNode::_dumpData(arLight& light, bool owned) {
   arStructuredData* r = owned ?
-    getOwner()->getDataParser()->getStorage(_g->AR_LIGHT) :
-    _g->makeDataRecord(_g->AR_LIGHT);
+    getStorage(_g->AR_LIGHT) : _g->makeDataRecord(_g->AR_LIGHT);
   _dumpGenericNode(r, _g->AR_LIGHT_ID); 
   // todo: test datain ret val, like billboardnode
   r->dataIn(_g->AR_LIGHT_LIGHT_ID,&light.lightID,AR_INT,1);
