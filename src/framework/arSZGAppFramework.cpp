@@ -203,7 +203,7 @@ arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion 
 bool arSZGAppFramework::getOnButton( const unsigned i ) const {
   if (!_inputState) {
     ar_log_warning() << "arSZGAppFramework: no input state.\n";
-    return 0;
+    return false;
   }
   return _inputState->getOnButton( i );
 }
@@ -211,7 +211,7 @@ bool arSZGAppFramework::getOnButton( const unsigned i ) const {
 bool arSZGAppFramework::getOffButton( const unsigned i ) const {
   if (!_inputState) {
     ar_log_warning() << "arSZGAppFramework: no input state.\n";
-    return 0;
+    return false;
   }
   return _inputState->getOffButton( i );
 }
