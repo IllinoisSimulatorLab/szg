@@ -127,7 +127,9 @@ void arInputEventQueue::setSignature( unsigned numButtons,
       numButtons = maxIndex+1;
     }
   }
+#ifdef OBNOXIOUSLY_VERBOSE
   bool changed = (_buttonSignature != numButtons);
+#endif
   _buttonSignature = numButtons;
     
   if (numAxes < _axisSignature) {
@@ -143,7 +145,9 @@ void arInputEventQueue::setSignature( unsigned numButtons,
       numAxes = maxIndex+1;
     }
   }
+#ifdef OBNOXIOUSLY_VERBOSE
   changed |= (_axisSignature != numAxes);
+#endif
   _axisSignature = numAxes;
     
   if (numMatrices < _matrixSignature) {
@@ -159,15 +163,19 @@ void arInputEventQueue::setSignature( unsigned numButtons,
       numMatrices = maxIndex+1;
     }
   }
+#ifdef OBNOXIOUSLY_VERBOSE
   changed |= (_matrixSignature != numMatrices);
+#endif
   _matrixSignature = numMatrices;
 
+#ifdef OBNOXIOUSLY_VERBOSE
   if (changed){
     ar_log_debug() << "arInputEventQueue sig is ("
       << _buttonSignature << ","
       << _axisSignature << ","
       << _matrixSignature << ").\n";
   }
+#endif
 }
 
 bool arInputEventQueue::setFromBuffers( const int* const typeData,
