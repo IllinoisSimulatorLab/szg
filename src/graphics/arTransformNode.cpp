@@ -40,12 +40,11 @@ void arTransformNode::setTransform(const arMatrix4& transform){
       arStructuredData* r = _dumpData(transform, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _transform = transform;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _transform = transform;
   }
 }
 

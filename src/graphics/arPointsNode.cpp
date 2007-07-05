@@ -29,7 +29,7 @@ void arPointsNode::initialize(arDatabase* database){
 // Fast access to points node contents.
 // Cannot *change* the point values using this pointer (that would break
 // sharing). Also, since the pointer can get invalidated if the array
-// gets expanded, this must be called within node->lock()/node->unlock().
+// gets expanded, this must be called while _nodeLock()'d.
 const float* arPointsNode::getPoints(int& number){
   // DO NOT lock the node here. We are assuming this method is called from
   // within a locked node lock.
@@ -44,12 +44,11 @@ void arPointsNode::setPoints(int number, float* points, int* IDs){
       arStructuredData* r = _dumpData(number, points, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _mergeElements(number, points, IDs);
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _mergeElements(number, points, IDs);
   }
 }
 

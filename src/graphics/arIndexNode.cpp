@@ -41,12 +41,11 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
     arStructuredData* r = _dumpData(number, indices, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
+    arGuard dummy(_nodeLock);
     _mergeElements(number, indices, IDs);
-    _nodeLock.unlock();
   }
 }
 

@@ -41,12 +41,11 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
       arStructuredData* r = _dumpData(number, color4, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _mergeElements(number, color4, IDs);
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _mergeElements(number, color4, IDs);
   }
 }
 
@@ -56,7 +55,7 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
 vector<arVector4> arColor4Node::getColor4(){
   vector<arVector4> result;
   arGuard dummy(_nodeLock);
-  unsigned num = _commandBuffer.size() / _arrayStride;
+  const unsigned num = _commandBuffer.size() / _arrayStride;
   result.resize(num);
   for (unsigned int i = 0; i < num; i++){
     result[i][0] = _commandBuffer.v[4*i];

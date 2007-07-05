@@ -59,9 +59,8 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    _nodeLock.lock();
-      _boundingSphere = b;
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _boundingSphere = b;
   }
 }
 

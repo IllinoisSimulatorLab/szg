@@ -39,12 +39,11 @@ void arTex2Node::setTex2(int number, float* tex2, int* IDs){
       arStructuredData* r = _dumpData(number, tex2, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
   }
   else{
-    _nodeLock.lock();
-      _mergeElements(number, tex2, IDs);
-    _nodeLock.unlock();
+    arGuard dummy(_nodeLock);
+    _mergeElements(number, tex2, IDs);
   }
 }
 
