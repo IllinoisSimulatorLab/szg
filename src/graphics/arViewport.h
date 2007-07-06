@@ -21,18 +21,23 @@ class SZG_CALL arViewport {
               GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha,
               GLenum oglDrawBuf,
               bool clearZBuf );
+  arViewport( const float* lbwh,
+              const arGraphicsScreen& screen,
+              arCamera* cam,
+              float eyeSign,
+              const GLboolean* rgba,
+              GLenum oglDrawBuf,
+              bool clearZBuf );
   arViewport( const arViewport& x );
   arViewport& operator=( const arViewport& x );
   virtual ~arViewport();
 
   void setViewport( arVector4& viewport );
-  void setViewport( float left, float bottom,
-                    float width, float height );
-  arVector4 getViewport() const { return arVector4( _left, _bottom, _width, _height ); }
+  void setViewport( float left, float bottom, float width, float height );
+  arVector4 getViewport() const { return arVector4(_left, _bottom, _width, _height); }
   void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
   arGraphicsScreen* getScreen() { return &_screen; }
-  // NOTE: the viewport now owns its camera.
-  // It makes a copy here & returns the address of the copy
+  // The viewport owns its camera.  It makes a copy here and returns the copy's address.
   arCamera* setCamera( arCamera* camera);
   arCamera* getCamera();
   void setEyeSign(float eyeSign);
@@ -46,9 +51,8 @@ class SZG_CALL arViewport {
   void activate();
 
  private:
-  // these define the viewport, in relative coordinates.
-  // The floats are between 0 and 1. So the left half of the window would
-  // be given by (0,0,0.5,0.5)
+  // Viewport in normalized coordinates.
+  // For example, the left half of the window is (0, 0, 0.5, 0.5).
   float _left;
   float _bottom;
   float _width;

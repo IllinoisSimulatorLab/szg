@@ -47,6 +47,31 @@ arViewport::arViewport( float left, float bottom, float width, float height,
   }
 }
 
+arViewport::arViewport( const float* lbwh,
+                        const arGraphicsScreen& screen,
+                        arCamera* cam,
+                        float eyeSign,
+                        const GLboolean* rgba,
+                        GLenum oglDrawBuf,
+                        bool clearZBuf ) :
+  _left(lbwh[0]),
+  _bottom(lbwh[1]),
+  _width(lbwh[2]),
+  _height(lbwh[3]),
+  _screen(screen),
+  _camera(0),
+  _eyeSign(eyeSign),
+  _red(rgba[0]),
+  _green(rgba[1]),
+  _blue(rgba[2]),
+  _alpha(rgba[3]),
+  _oglDrawBuffer(oglDrawBuf),
+  _clearDepthBuffer(clearZBuf) {
+  if (cam) {
+    _camera = cam->clone();
+  }
+}
+
 arViewport::arViewport( const arViewport& v ) :
   _left( v._left ),
   _bottom( v._bottom ),
