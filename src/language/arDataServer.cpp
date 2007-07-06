@@ -193,12 +193,6 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
     return false;
   }
 
-  // Silence means it worked:  all "return false" above print a diagnostic.
-  //if (_interfaceIP != "NULL" /* less noisy */ ){
-  //  cout << "arDataServer remark: bound to " 
-  //	 << _interfaceIP
-  //	 << ":" << _portNumber << ".\n";
-  //  }
   _listeningSocket->ar_listen(256); 
   return true;
 }
@@ -622,7 +616,7 @@ void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
 int arDataServer::dialUpFallThrough(const string& s, int port){
   arSocket* socket = new arSocket(AR_STANDARD_SOCKET);
   if (socket->ar_create() < 0) {
-    cerr << "arDataServer error: dialUp(" << s << ":" << port
+    ar_log_warning() << "arDataServer: dialUp(" << s << ":" << port
          << ") failed to create socket.\n";
     return -1;
   }
@@ -630,7 +624,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     return -1;
   }
   if (!socket->smallPacketOptimize(_smallPacketOptimize)){
-    cerr << "arDataServer error: dialUp(" << s << ":" << port
+    ar_log_warning() << "arDataServer: dialUp(" << s << ":" << port
          << ") failed to smallPacketOptimize.\n";
     return -1;
   }
@@ -651,7 +645,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   arStreamConfig remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
     if (remoteStreamConfig.refused){
-      cout << "arDataServer remark: remote data point closed connection.\n"
+      ar_log_remark() << "arDataServer: remote data point closed connection.\n"
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
@@ -670,7 +664,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   }
   const ARint totalSize = ar_translateInt(sizeBuffer,remoteStreamConfig);
   if (totalSize < AR_INT_SIZE){
-    cerr << "arDataServer error: dialUp failed to translate dictionary.\n";
+    ar_log_warning() << "arDataServer: dialUp failed to translate dictionary.\n";
     socket->ar_close();
     return -1;
   }
@@ -678,7 +672,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
-    cerr << "arDataServer error: dialUp failed to get dictionary.\n";
+    ar_log_warning() << "arDataServer: dialUp got no dictionary.\n";
     delete [] dataBuffer;
     return -1;
   }

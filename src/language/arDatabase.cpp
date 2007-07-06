@@ -1188,7 +1188,7 @@ arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
   int ID = data->getDataInt(_lang->AR_CUT_ID);
   arDatabaseNode* node = _getNodeNoLock(ID);
   if (!node){
-    cout << "arDatabase remark: _cutNode failed. No such node.\n";
+    ar_log_warning() << "arDatabaseNode: no such node to cut.\n";
     return NULL;
   }
   _cutNode(node);
@@ -1203,7 +1203,7 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   int ID = inData->getDataInt(_lang->AR_ERASE_ID);
   arDatabaseNode* startNode = _getNodeNoLock(ID);
   if (!startNode){
-    cerr << "arDatabase::_eraseNode failed: no such node.\n";
+    ar_log_warning() << "arDatabaseNode: no such node to erase.\n";
     return NULL;
   }
   // Delete the startNode from the child list of its parent
@@ -1216,14 +1216,13 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
 }
 
 arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
-  // This algorithm is pretty inefficient. We are assuming that the number
-  // of permuted children is not "large".
-  // NOTE: data is guaranteed to be the right type because alter(...)
+  // Inefficient. Assumes not many permuted children.
+  // Data is guaranteed to be the right type because alter()
   // sends messages to handlers (like this one) based on type information.
-  int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
+  const int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
   arDatabaseNode* parent = _getNodeNoLock(ID);
   if (!parent){
-    cout << "arDatabase:: _permuteDatabaseNodes failed: no such parent.\n";
+    ar_log_warning() << "arDatabaseNode: _permuteDatabaseNodes failed: no such parent.\n";
     return NULL;
   }
   int* IDs = (int*) data->getDataPtr(_lang->AR_PERMUTE_CHILD_IDS, AR_INT);

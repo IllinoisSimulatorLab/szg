@@ -84,22 +84,16 @@ void arQueuedData::swapBuffers(){
 }
 
 void arQueuedData::forceQueueData(arStructuredData* theData){
-  // THERE WAS A LONG-HIDDEN MISTAKE IN HERE!
-  // DO NOT GROW BOTH BUFFERS AT THE SAME TIME. ONLY GROW THE BACK
-  // BUFFER. OTHERWISE, forceQueueData IS NOT THREAD-SAFE WITH RESPECT
-  // TO READING FROM THE BUFFER IN ANOTHER THREAD.
+  // Grow only _backBuffer.  Another thread's reading _frontBuffer.
   const int recordSize = theData->size();
   const int actualSize = _bufferLocation + recordSize;
-  int currentStorageDimension 
-    = _backBuffer->getStorageDimension(BUFFER);
+  int currentStorageDimension = _backBuffer->getStorageDimension(BUFFER);
   if (actualSize > currentStorageDimension){
     currentStorageDimension *= 2;
     if (currentStorageDimension < actualSize)
       currentStorageDimension = actualSize;
-    // WHY DOESN't setStorageDimension work here? THIS MIGHT BE A BUG!
+    // Bug? why does setStorageDimension fail here?
     _backBuffer->setDataDimension(BUFFER, currentStorageDimension);
-//  cerr << "arQueuedData remark: _maxBufferSize increased to "
-//       << currentStorageDimension << ".\n";
   }
 
   ARchar* bufferPtr = (ARchar*) _backBuffer->getDataPtr(BUFFER,AR_CHAR);

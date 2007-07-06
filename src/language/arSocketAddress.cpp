@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arSocketAddress.h"
+#include "arLogStream.h"
 
 arSocketAddress::arSocketAddress() :
   _addressLength(sizeof(_theAddress)){
@@ -167,41 +168,38 @@ bool arSocketAddress::checkMask(list<string>& criteria){
     return true;
   }
 
-  for (list<string>::iterator i = criteria.begin(); i != criteria.end();
-       i++){
-    // Is this an IP/mask pair or is this a single IP address?
-    unsigned int position = (*i).find("/");
+  for (list<string>::iterator i = criteria.begin(); i != criteria.end(); i++) {
+    unsigned position = i->find("/");
     if (position == string::npos){
-      // Must be single IP address.
-      if (getRepresentation() == *i){
-	return true;
-      }
+      // Single IP address.
+      return getRepresentation() == *i;
     }
-    else{
-      // Check to make sure the / is not the last character.
-      if (position == (*i).length() - 1){
-	continue;
-      }
-      // Must be IP/mask.
-      string IPaddr = (*i).substr(0, position);
-      string maskAddr =(*i).substr(position + 1, (*i).length() - position - 1);
-      arSocketAddress tmpAddress;
-      if (!tmpAddress.setAddress(IPaddr.c_str(), 0)){
-	cout << "arSocketAddress remark: invalid address = "
-	     << IPaddr << "\n";
-	continue;
-      }
-      string maskedValue = tmpAddress.mask(maskAddr.c_str());
-      if (maskedValue == "NULL"){
-        cout << "arSocketAddress remark: invalid mask = "
-	     << maskAddr << "\n";
-	continue;
-      }
-      if (maskedValue == mask(maskAddr.c_str())){
-	return true;
-      }
+
+    if (position == i->length() - 1){
+      // IP/ without a following mask.  Weird.
+      continue;
+    }
+
+    // IP/mask.
+    const string IPaddr(i->substr(0, position++));
+    const string maskAddr(i->substr(position, i->length() - position));
+    arSocketAddress tmp;
+    if (!tmp.setAddress(IPaddr.c_str(), 0)){
+      ar_log_warning() << "arSocketAddress: invalid address '" << IPaddr << "'.\n";
+      continue;
+    }
+
+    const string maskedValue(tmp.mask(maskAddr.c_str()));
+    if (maskedValue == "NULL"){
+      ar_log_warning() << "arSocketAddress: invalid mask '" << maskAddr << "'.\n";
+      continue;
+    }
+
+    if (maskedValue == mask(maskAddr.c_str())){
+      return true;
     }
   }
-  // Didn't match one of the criteria in the list. Fail.
+
+  // Matched no criteria in the list.
   return false;
 }

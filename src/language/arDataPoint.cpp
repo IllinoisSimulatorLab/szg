@@ -11,9 +11,10 @@
   #include <netinet/tcp.h>
 #endif
 
-// The includes for the handshake.
 #include "arStructuredDataParser.h"
 #include "arSocketTextStream.h"
+#include "arLogStream.h"
+
 #include <sstream>
 using namespace std;
 
@@ -111,12 +112,11 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
 
 void arDataPoint::setBufferSize(int numBytes){
   if (numBytes < 256) {
-    cout << "syzygy remark: rounding buffer size " << numBytes << " up to 256.\n";
+    ar_log_debug() << "arDataPoint rounding buffer size " << numBytes << " up to 300.\n";
     numBytes = 300;
   }
   else if (numBytes > 1000000) {
-    cout << "syzygy remark: rounding buffer size "
-         << numBytes << " down to 1000000.\n";
+    ar_log_debug() << "arDataPoint rounding buffer size " << numBytes << " down to 1000000.\n";
     numBytes = 1000000;
   }
   _bufferSize = numBytes;

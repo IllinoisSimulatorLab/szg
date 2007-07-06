@@ -40,7 +40,7 @@ void eventCallback(arInputEvent& inputEvent){
     cout << "\n";
     FILE* outputFile = fopen("temp-config.txt","w");
     if (!outputFile){
-      cout << "DeskCalibrator remark: cannot write file.\n";
+      cout << "DeskCalibrator: cannot write file.\n";
     }
     else{
       for (i=0; i<16; i++)
@@ -68,7 +68,7 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
         numberEventsLogged = 0;
         filled = true;
       }
-      cout << "event logged" << endl;
+      cout << "DeskCalibrator: event logged.\n";
     break;
     
     case 's':
@@ -80,7 +80,7 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
       cout << "\n";
 	FILE* outputFile = fopen("temp-config.txt","w");
       if (!outputFile){
-	cout << "DeskCalibrator remark: cannot write file.\n";
+	cout << "DeskCalibrator: cannot write file.\n";
       }
       else{
 	for (i=0; i<16; i++)

@@ -110,7 +110,7 @@ bool arDeltaGrabCondition::check( arEffector* effector ) {
   }
   if (fabs( _currentValue ) >= _threshold) {
     _currentState = !_currentState;
-    cerr << "arDeltaGrabCondition() remark: state = " << _currentState << endl;
+    ar_log_remark() << "arDeltaGrabCondition(): state = " << _currentState << ".\n";
   }
   return _currentState;
 }
@@ -118,4 +118,3 @@ bool arDeltaGrabCondition::check( arEffector* effector ) {
 arGrabCondition* arDeltaGrabCondition::copy() const {
   return (arGrabCondition*)new arDeltaGrabCondition( _index, _isOnButtonEvent, _currentState );
 }
-

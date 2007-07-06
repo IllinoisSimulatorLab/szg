@@ -292,10 +292,10 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
       // Accept mask allowed a connection.
       break;
 
-    cout << "arSocket remark: refused connection from "
+    ar_log_warning() << "arSocket: refused connection from "
 	 << socketAddress.getRepresentation() << "\n";
     communicationSocket->ar_close();
-    // Try again.
+    // Retry.
   }
 
   if (addr)

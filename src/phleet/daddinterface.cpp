@@ -11,12 +11,12 @@
 int main(int argc, char** argv){
   arPhleetConfig config;
   if (argc != 3 && argc != 4){
-    cout << "usage: daddinterface name address [netmask]\n";
+    cerr << "usage: daddinterface name address [netmask]\n";
     return 1;
   }
   if (!config.read()) {
     // Maybe this is the first time the program has been run.
-    cout << "daddinterface remark: writing new config file.\n";
+    cout << "daddinterface writing new config file.\n";
   }
 
   const string netmask((argc == 4) ? argv[3] : "255.255.255.0");
