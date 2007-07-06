@@ -7,37 +7,40 @@
 #include "arPointsNode.h"
 #include "arGraphicsDatabase.h"
 
-arPointsNode::arPointsNode(){
+arPointsNode::arPointsNode() : arGraphicsArrayNode(AR_FLOAT, 3) {
   _name = "points_node";
   _typeCode = AR_G_POINTS_NODE;
   _typeString = "points";
-  _nodeDataType = AR_FLOAT;
-  _arrayStride = 3;
   _commandBuffer.grow(1);
 }
 
 void arPointsNode::initialize(arDatabase* database){
-  // _g (the graphics language) is set in this call.
   arGraphicsNode::initialize(database);
-  _recordType = _g->AR_POINTS;
-  _IDField = _g->AR_POINTS_ID;
-  _indexField = _g->AR_POINTS_POINT_IDS;
-  _dataField = _g->AR_POINTS_POSITIONS;
-  _commandBuffer.setType(_g->AR_POINTS);
+  arGraphicsArrayNode::initialize(
+    _g->AR_POINTS,
+    _g->AR_POINTS_ID,
+    _g->AR_POINTS_POINT_IDS,
+    _g->AR_POINTS_POSITIONS,
+    _g->AR_POINTS);
 }
 
-// Fast access to points node contents.
-// Cannot *change* the point values using this pointer (that would break
-// sharing). Also, since the pointer can get invalidated if the array
-// gets expanded, this must be called while _nodeLock()'d.
+// Speedy accessor.  Not thread-safe, so call while _nodeLock'd.
 const float* arPointsNode::getPoints(int& number){
-  // DO NOT lock the node here. We are assuming this method is called from
-  // within a locked node lock.
-  number = _commandBuffer.size()/_arrayStride;
+  number = _numElements();
   return _commandBuffer.v;
 }
 
-// Fast way to get data into the node. 
+// Slow, thread-safe, Python-compatible accessor.
+vector<arVector3> arPointsNode::getPoints(){
+  arGuard dummy(_nodeLock);
+  const unsigned num = _numElements();
+  vector<arVector3> r(num);
+  for (unsigned i = 0; i < num; ++i){
+    r[i].set(_commandBuffer.v + _arrayStride * i);
+  }
+  return r;
+}
+
 void arPointsNode::setPoints(int number, float* points, int* IDs){
   if (active()){
     _nodeLock.lock();
@@ -52,48 +55,24 @@ void arPointsNode::setPoints(int number, float* points, int* IDs){
   }
 }
 
-// Slower way to get the points data (there are several extra copy 
-// operations). However, this is more convenient for calling from Python.
-// Thread-safe.
-vector<arVector3> arPointsNode::getPoints(){
-  vector<arVector3> result;
-  arGuard dummy(_nodeLock);
-  const unsigned num = _commandBuffer.size()/_arrayStride;
-  result.resize(num);
-  for (unsigned i = 0; i < num; i++){
-    result[i][0] = _commandBuffer.v[3*i];
-    result[i][1] = _commandBuffer.v[3*i+1];
-    result[i][2] = _commandBuffer.v[3*i+2];
-  }
-  return result;
-}
-
-// Adds an additional copy plus dynamic memory allocation. 
-// But this is more convenient for calling from Python.
-// Thread-safe.
+// Slow, Python-compatible.
 void arPointsNode::setPoints(vector<arVector3>& points){
-  float* ptr = new float[points.size()*3];
-  for (unsigned int i = 0; i < points.size(); i++){
-    ptr[3*i] = points[i][0];
-    ptr[3*i+1] = points[i][1];
-    ptr[3*i+2] = points[i][2];
+  const unsigned num = points.size();
+  float* fPtr = new float[num*_arrayStride];
+  for (unsigned i = 0; i < num; ++i){
+    points[i].get(fPtr + _arrayStride*i);
   }
-  setPoints(points.size(), ptr, NULL);
-  delete [] ptr;
+  setPoints(num, fPtr, NULL);
+  delete [] fPtr;
 }
 
-// Adds an additional copy plus dynamic memory allocation.
-// But this is more convenient for calling from Python.
-// Thread-safe.
-void arPointsNode::setPoints(vector<arVector3>& points,
-			     vector<int>& IDs){
+// Slow, Python-compatible.
+void arPointsNode::setPoints(vector<arVector3>& points, vector<int>& IDs){
   const unsigned num = min(IDs.size(), points.size());
-  float* fPtr = new float[3*num];
+  float* fPtr = new float[_arrayStride*num];
   int* iPtr = new int[num];
-  for (unsigned int i = 0; i < num; i++){
-    fPtr[3*i] = points[i][0];
-    fPtr[3*i+1] = points[i][1];
-    fPtr[3*i+2] = points[i][2];
+  for (unsigned i = 0; i < num; ++i){
+    points[i].get(fPtr + _arrayStride*i);
     iPtr[i] = IDs[i];
   }
   setPoints(num, fPtr, iPtr);

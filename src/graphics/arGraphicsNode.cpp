@@ -13,19 +13,11 @@ arGraphicsNode::arGraphicsNode() :
 }
 
 arGraphicsNode::~arGraphicsNode(){
-  // Nothing specifically here to delete. Memory management is delegated to
-  // subclasses, as they need it.
 }
 
 void arGraphicsNode::initialize(arDatabase* owner){
-  // When looking at this as an arDatabase node, we need to see the owning
-  // database as an arDatabase.
-  //_databaseOwner = owner;
-  //_dLang = &(_owningDatabase->_gfx);
   arDatabaseNode::initialize(owner);
-  // When looking at this as an arGraphicsDatabase node, we want to see the
-  // owning database as an arGraphicsDatabase. True, these pointers refer to
-  // the same objects, but this lets us not have casts everywhere.
+  // Aliased pointer, to avoid casts.
   _owningDatabase = (arGraphicsDatabase*) owner;
   _g = &(_owningDatabase->_gfx);
 }
@@ -38,12 +30,12 @@ void arGraphicsNode::initialize(arDatabase* owner){
 // NOTE: This gives the accumulated transform ABOVE the current node, and
 // so does not include OUR transform if this is an arTransformNode.
 arMatrix4 arGraphicsNode::accumulateTransform(){
-  arMatrix4 result;
+  arMatrix4 r;
   arGraphicsNode* g = (arGraphicsNode*) getParent();
   if (g){
-    _accumulateTransform(g, result);
+    _accumulateTransform(g, r);
   }
-  return result;
+  return r;
 }
 
 void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m){

@@ -39,7 +39,7 @@ template<class T> arBuffer<T>::arBuffer(int numElements){
   _numElements = numElements;
   data = new T[_numElements];
 
-  // This is where a new element will be pushed.
+  // Where a new element will be pushed.
   pushPosition = 0;
 }
 
@@ -79,8 +79,7 @@ template <class T> void arBuffer<T>::push(T element){
     // This isn't strictly correct...
     grow(2*_numElements + 1);
   }
-  data[pushPosition] = element;
-  pushPosition++;
+  data[pushPosition++] = element;
 }
 
 #endif

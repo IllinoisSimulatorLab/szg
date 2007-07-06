@@ -7,30 +7,39 @@
 #include "arTex2Node.h"
 #include "arGraphicsDatabase.h"
 
-arTex2Node::arTex2Node(){
+arTex2Node::arTex2Node() : arGraphicsArrayNode(AR_FLOAT, 2) {
   _name = "tex2_node";
   _typeCode = AR_G_TEX2_NODE;
   _typeString = "tex2";
-  _nodeDataType = AR_FLOAT;
-  _arrayStride = 2;
   _commandBuffer.grow(1);
 }
 
 void arTex2Node::initialize(arDatabase* database){
   // _g (the graphics language) is set in this call.
   arGraphicsNode::initialize(database);
-  _recordType = _g->AR_TEX2;
-  _IDField = _g->AR_TEX2_ID;
-  _indexField = _g->AR_TEX2_TEX_IDS;
-  _dataField = _g->AR_TEX2_COORDS;
-  _commandBuffer.setType(_g->AR_TEX2);
+  arGraphicsArrayNode::initialize(
+    _g->AR_TEX2,
+    _g->AR_TEX2_ID,
+    _g->AR_TEX2_TEX_IDS,
+    _g->AR_TEX2_COORDS,
+    _g->AR_TEX2);
 }
 
-// Included for speedy access. This is NOT thread-safe and instead must
-// be called from within a locked section. 
+// Speedy accessor.  Not thread-safe, so call while _nodeLock'd.
 const float* arTex2Node::getTex2(int& number){
-  number = _commandBuffer.size()/_arrayStride;
+  number = _numElements();
   return _commandBuffer.v;
+}
+
+// Slow, thread-safe, Python-compatible accessor.
+vector<arVector2> arTex2Node::getTex2(){
+  arGuard dummy(_nodeLock);
+  const unsigned num = _numElements();
+  vector<arVector2> r(num);
+  for (unsigned i = 0; i < num; ++i){
+    r[i].set(_commandBuffer.v + _arrayStride*i);
+  }
+  return r;
 }
 
 void arTex2Node::setTex2(int number, float* tex2, int* IDs){
@@ -47,46 +56,24 @@ void arTex2Node::setTex2(int number, float* tex2, int* IDs){
   }
 }
 
-
-// Slower way to get the tex coord data (there are several extra copy 
-// operations). However, this is more convenient for calling from Python.
-// Thread-safe.
-vector<arVector2> arTex2Node::getTex2(){
-  vector<arVector2> result;
-  arGuard dummy(_nodeLock);
-  const unsigned num = _commandBuffer.size()/_arrayStride;
-  result.resize(num);
-  for (unsigned int i = 0; i < num; i++){
-    result[i][0] = _commandBuffer.v[2*i];
-    result[i][1] = _commandBuffer.v[2*i+1];
-  }
-  return result;
-}
-
-// Adds an additional copy plus dynamic memory allocation. 
-// But this is more convenient for calling from Python.
-// Thread-safe.
+// Slow, Python-compatible.
 void arTex2Node::setTex2(vector<arVector2>& tex2){
-  float* ptr = new float[tex2.size()*2];
-  for (unsigned int i = 0; i < tex2.size(); i++){
-    ptr[2*i] = tex2[i][0];
-    ptr[2*i+1] = tex2[i][1];
+  const unsigned num = tex2.size();
+  float* ptr = new float[num*_arrayStride];
+  for (unsigned i = 0; i < num; ++i){
+    tex2[i].get(ptr + _arrayStride*i);
   }
-  setTex2(tex2.size(), ptr, NULL);
+  setTex2(num, ptr, NULL);
   delete [] ptr;
 }
 
-// Adds an additional copy plus dynamic memory allocation.
-// But this is more convenient for calling from Python.
-// Thread-safe.
-void arTex2Node::setTex2(vector<arVector2>& tex2,
-			 vector<int>& IDs){
+// Slow, Python-compatible.
+void arTex2Node::setTex2(vector<arVector2>& tex2, vector<int>& IDs){
   const unsigned num = min(IDs.size(), tex2.size());
-  float* fPtr = new float[2*num];
+  float* fPtr = new float[_arrayStride*num];
   int* iPtr = new int[num];
-  for (unsigned int i = 0; i < num; i++){
-    fPtr[2*i] = tex2[i][0];
-    fPtr[2*i+1] = tex2[i][1];
+  for (unsigned i = 0; i < num; ++i){
+    tex2[i].get(fPtr + _arrayStride*i);
     iPtr[i] = IDs[i];
   }
   setTex2(num, fPtr, iPtr);

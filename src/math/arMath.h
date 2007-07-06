@@ -27,7 +27,7 @@ enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
 
 class arQuaternion;
 
-// Vector of 2 points. For instance, a 2D texture coordinate.
+// Vector of 2 points, e.g. a 2D texture coordinate.
 
 class SZG_CALL arVector2{
  public:
@@ -36,9 +36,13 @@ class SZG_CALL arVector2{
   arVector2(float x, float y){ v[0] = x; v[1] = y; }
   ~arVector2(){}
   float& operator[] (int i){ return v[i]; }
+  void set(const float* p)
+    { memcpy(v, p, sizeof(v)); }
+  void get(float* p) const
+    { memcpy(p, v, sizeof(v)); }
 };
 
-// Vector of 3 points.  Position or direction in 3-space.
+// Vector of 3 points, e.g. position or direction in 3-space.
 
 class SZG_CALL arVector3{
  public:
@@ -73,6 +77,10 @@ class SZG_CALL arVector3{
 
   void set(float x, float y, float z)
     { v[0]=x; v[1]=y; v[2]=z; }
+  void set(const float* p)
+    { memcpy(v, p, sizeof(v)); }
+  void get(float* p) const
+    { memcpy(p, v, sizeof(v)); }
   float magnitude2() const { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]; }
   float magnitude() const { return sqrt(magnitude2()); }
   arVector3 normalize() const {
@@ -119,6 +127,10 @@ class SZG_CALL arVector4{
 
   void set(float x, float y, float z, float w)
     { v[0]=x; v[1]=y; v[2]=z; v[3] = w;}
+  void set(const float* p)
+    { memcpy(v, p, sizeof(v)); }
+  void get(float* p) const
+    { memcpy(p, v, sizeof(v)); }
   float magnitude2() const 
     { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+v[3]*v[3]; }
   float magnitude() const { return sqrt(magnitude2()); }

@@ -24,7 +24,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
 
   arGuard dummy(_nodeLock);
   if (theIDs[0] == -1){
-    // Array elements are packed in order.
+    // Pack array elements in order.
     _mergeElements(len, theData);
   }
   else{
@@ -36,9 +36,9 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-// NOT thread-safe. Caller must _nodeLock.lock().
+// NOT thread-safe. Call while _nodeLock'd.
 // Methods like arPointsNode::setPoints and arGraphicsArrayNode::receiveData
-// call this from a locked section, so we can't lock in here lest deadlocks ensue.
+// call this while _nodeLock'd, so we can't lock in here lest deadlocks ensue.
 void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs){
   const int numbytes = arDataTypeSize(_nodeDataType);
   if (!IDs){
@@ -65,9 +65,9 @@ void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs){
 }
 
 arStructuredData* arGraphicsArrayNode::dumpData(){
+  // Guard because _commandBuffer.v may change if _commandBuffer resizes.
   arGuard dummy(_nodeLock);
-  // _commandBuffer.v can change if _commandBuffer resizes.
-  return _dumpData(_commandBuffer.size()/_arrayStride, _commandBuffer.v, NULL, false);
+  return _dumpData(_numElements(), _commandBuffer.v, NULL, false);
 }
 
 arStructuredData* arGraphicsArrayNode::_dumpData(
@@ -90,7 +90,7 @@ arStructuredData* arGraphicsArrayNode::_dumpData(
   else{
     // Index field gets the identity map.
     ARint* dataIDs = (ARint*)r->getDataPtr(_indexField, AR_INT);
-    for (int i=0; i<number; i++)
+    for (int i=0; i<number; ++i)
       dataIDs[i] = i;
   }
   // Fill in the data field. BUG: THIS RELIES ON THE FACT THAT ALL OUR DATA
