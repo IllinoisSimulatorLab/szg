@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arMasterSlaveDataRouter.h"
+#include "arLogStream.h"
 
 arMasterSlaveDataRouter::arMasterSlaveDataRouter() :
   _parser(NULL),
@@ -59,10 +60,10 @@ bool arMasterSlaveDataRouter::start(){
 bool arMasterSlaveDataRouter::registerFrameworkObject
                                 (arFrameworkObject* object){
   if (_started){
-    cerr << "arMasterSlaveDataRouter error: cannot register object after start.\n";
+    ar_log_warning() << "arMasterSlaveDataRouter cannot register object after start.\n";
   }
   if (!object){
-    cerr << "arMasterSlaveDataRouter error: registerFrameworkObject(NULL).\n";
+    ar_log_warning() << "arMasterSlaveDataRouter: registerFrameworkObject(NULL).\n";
     return false;
   }
 
@@ -73,7 +74,7 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
   for (i = templateDictionary->begin(); 
        i != templateDictionary->end(); i++){
     if (i->second->getAttributeID("szg_router_id") == -1){
-      cerr << "arMasterSlaveDataRouter error: template lacks ID field.\n";
+      ar_log_warning() << "arMasterSlaveDataRouter: template lacks ID field.\n";
       return false;
     }
   }
@@ -139,7 +140,7 @@ bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
                                                delta,
                                                _remoteStreamConfig);
     if (!message){
-      cerr << "arMasterSlaveDataRouter error: failed to parse data.\n";
+      ar_log_warning() << "arMasterSlaveDataRouter failed to parse data.\n";
       return false;
     }
 
@@ -148,15 +149,14 @@ bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
     // before going on, remember to send record to framework object
     int objectID = -1;
     message->dataOut("szg_router_id",&objectID,AR_INT,1);
-    map<int, arFrameworkObject*, less<int> >::iterator i =
-      _objectTable.find(objectID);
+    map<int, arFrameworkObject*, less<int> >::iterator i = _objectTable.find(objectID);
     if (i != _objectTable.end()){
       if (!i->second->receiveData(message)){
-        cerr << "arMasterSlaveDataRouter error: receiveData failed.\n";
+        ar_log_warning() << "arMasterSlaveDataRouter: receiveData failed.\n";
       }
     }
     else{
-      cerr << "arMasterSlaveDataRouter error: no object in table.\n";
+      ar_log_warning() << "arMasterSlaveDataRouter: no such object in table.\n";
     }
     _parser->recycle(message);
   }
@@ -188,7 +188,7 @@ void arMasterSlaveDataRouter::_addStructuredDataToBuffer
     // _buffer will be updated. NOTE: we rely on the fact that existing
     // data will be copied! (so ar_growBuffer is not suitable!)
     _buffer.grow(2*newBufferPosition);
-    cout << "arMasterSlaveDataRouter remark: growing buffer to size = "
+    ar_log_remark() << "arMasterSlaveDataRouter growing buffer to size = "
 	 << 2*newBufferPosition << "\n";
   }
   data->pack((_buffer.data)+_bufferPosition);

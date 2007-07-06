@@ -13,7 +13,7 @@ DriverFactory(arPPTDriver, "arInputSource")
 const unsigned int BUF_SIZE = 4096;
 
 void ar_PPTDriverEventTask(void* theDriver) {
-  ar_log_warning() << "arPPTDriver remark: started event task.\n";
+  ar_log_remark() << "arPPTDriver started event task.\n";
   arPPTDriver* pptDriver = (arPPTDriver*) theDriver;
   pptDriver->_stopped = false;
   pptDriver->_eventThreadRunning = true;
@@ -46,7 +46,7 @@ bool arPPTDriver::init(arSZGClient& SZGClient) {
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PPT", "com_port"));
   _inited = true;
   _setDeviceElements( 0, 0, 1 );
-  ar_log_warning() << "arPPTDriver remark: initialized.\n";
+  ar_log_remark() << "arPPTDriver initialized.\n";
   return true;
 }
 
@@ -68,7 +68,7 @@ bool arPPTDriver::start() {
 }
 
 bool arPPTDriver::stop() {
-  ar_log_warning() << "arPPTDriver remark: stopping.\n";
+  ar_log_warning() << "arPPTDriver stopping.\n";
   _stopped = true;
   arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
@@ -88,13 +88,13 @@ bool arPPTDriver::_processInput() {
   unsigned numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
   if (numRead == 0) {
     if (_statusTimer.done() && _imAlive) {
-      ar_log_warning() << "arPPTDriver remark: lost communication with PPT.\n";
+      ar_log_warning() << "arPPTDriver lost communication with PPT.\n";
       _imAlive = false;
     }
     return true; 
   }
   if (!_imAlive) {
-    ar_log_warning() << "arPPTDriver remark: established communication with PPT.\n";
+    ar_log_warning() << "arPPTDriver established communication with PPT.\n";
     _imAlive = true;
   }
   _resetStatusTimer();

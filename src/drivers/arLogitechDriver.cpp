@@ -63,24 +63,22 @@ arLogitechDriver::~arLogitechDriver() {
   if (_woken) {
     stop();
   }
-  cerr << "arLogitechDriver remark: closing COM port.\n";
+  ar_log_debug() << "arLogitechDriver closing COM port.\n";
   _comPort.ar_close();
 }
 
 bool arLogitechDriver::init(arSZGClient& SZGClient) {
-  // 0 buttons, 0 axes, 1 matrix
   _setDeviceElements( 0, 0, 1 );
-  unsigned int comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_LOGITECH", "com_port"));
-  // Open the serial port.
+  const unsigned comPortID = static_cast<unsigned>
+    (SZGClient.getAttributeInt("SZG_LOGITECH", "com_port"));
   if (!_comPort.ar_open( comPortID, 19200, 8, 1, "none" )){
-    cerr << "arLogitechDriver error: could not open serial port " << comPortID
-	 << ".\n";
+    ar_log_warning() << "arLogitechDriver failed to open serial port " << comPortID << ".\n";
     return false;
   }
-  cerr << "arLogitechDriver remark: COM port open.\n";
+  ar_log_debug() << "arLogitechDriver opened serial port.\n";
 
   if (!_comPort.setReadTimeout(10)){
-    cerr << "arLogitechDriver error: failed to set 1-second timeout for COM port.\n";
+    ar_log_warning() << "arLogitechDriver failed to set 1-second timeout for COM port.\n";
     return false;
   }
   
@@ -90,7 +88,7 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
 
 bool arLogitechDriver::start(){
   if (!_woken) {
-    cerr << "arLogitechDriver error: start() called with un-inited tracker.\n";
+    ar_log_warning() << "arLogitechDriver ignoring start() before init().\n";
     return false;
   }
 
@@ -121,10 +119,10 @@ bool arLogitechDriver::stop(){
 }
 
 bool arLogitechDriver::_reset() {
-  // Activate 6-D mode
+  // Activate 6D mode
   const int cb = _comPort.ar_write( "*R" );
   if (cb < 2) {
-    cerr << "arLogitechDriver error: _reset wrote only " << cb << " bytes.\n";
+    ar_log_warning() << "arLogitechDriver: _reset wrote only " << cb << " bytes.\n";
     return false;
   }
 
@@ -135,7 +133,7 @@ bool arLogitechDriver::_reset() {
 bool arLogitechDriver::_startStreaming() {
   const int cb = _comPort.ar_write("*S");
   if (cb < 2) {
-    cerr << "arLogitechDriver error: _startStreaming wrote only " << cb << " bytes.\n";
+    ar_log_warning() << "arLogitechDriver: _startStreaming wrote only " << cb << " bytes.\n";
     return false;
   }
   return true;

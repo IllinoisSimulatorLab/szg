@@ -581,10 +581,10 @@ bool arIntersenseDriver::init(arSZGClient& client){
   int sig[2] = {10,0};
   if (!client.getAttributeInts(ISENSE_GROUP_NAME,"sleep",sig,2)) {
     m_sleepTime = 10;
-    cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
+    ar_log_remark() << "arIntersenseDriver: " << ISENSE_GROUP_NAME <<
       "/sleep defaulting to " << m_sleepTime << ".\n";
   } else {
-    cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
+    ar_log_remark() << "arIntersenseDriver: " << ISENSE_GROUP_NAME <<
       "/sleep set to " << sig[0] << ".\n";
     m_sleepTime = sig[0];
   }

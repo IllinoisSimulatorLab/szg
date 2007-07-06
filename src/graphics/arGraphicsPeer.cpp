@@ -885,10 +885,9 @@ void arGraphicsPeer::useLocalDatabase(bool state) {
   _localDatabase = state;
 }
 
-// By default, the peer alters its local database immediately upon
-// receiving messages. However, this is not desirable if it is also
-// being drawn, for instance. In that case, we manually choose when to
-// draw the peer. The default is false.
+// By default, alter the peer's local database immediately
+// upon receiving messages. But if it's being drawn, instead 
+// manually choose when to draw the peer.
 void arGraphicsPeer::queueData(bool state) {
   _queueingData = state;
 }
@@ -896,8 +895,8 @@ void arGraphicsPeer::queueData(bool state) {
 // If our peer is displaying graphics, it is desirable to only alter
 // its database between draws, not during draws.
 int arGraphicsPeer::consume() {
-  // We must release a pending ping reply. _queueConsumeLock goes
-  // first to ensure that pings are registered atomically with buffer swap
+  // Release a pending ping reply. _queueConsumeLock goes
+  // first, to ensure that pings register atomically with buffer swap
   // and buffer consumption.
   _queueConsumeLock.lock();
   _queueLock.lock();
@@ -921,29 +920,25 @@ int arGraphicsPeer::consume() {
 // return the ID for the proxy objects.
 // THIS IS A NON-BLOCKING CALL.
 int arGraphicsPeer::connectToPeer(const string& name) {
-  // First, make sure that we haven't already connected to a peer of the same
-  // name.
-  int ID = _dataServer->getFirstIDWithLabel(name);
+  // Ensure that we haven't already connected to a peer of the same name.
+  const int ID = _dataServer->getFirstIDWithLabel(name);
   if (ID != -1) {
     // The above returns -1 if it can't find a connection... so otherwise
     // we COULD find a connection.
-    cerr << "arGraphicsPeer remark: cannot make duplicate connection.\n";
+    ar_log_remark() << "arGraphicsPeer cannot make duplicate connection.\n";
     return -1;
   }
-  // PLEASE NOTE: Previously, we were using arSZGClient's 
-  // creatComplexServiceName method, but no longer!
-  arPhleetAddress result 
-    = _client->discoverService(
-         "szg-rp-"+name,
-         _client->getNetworks("default"), false);
+
+  const arPhleetAddress result =
+    _client->discoverService("szg-rp-"+name, _client->getNetworks("default"), false);
   if (!result.valid) {
-    cerr << "arGraphicsPeer remark: could not connect to named peer.\n";
+    ar_log_warning() << "arGraphicsPeer failed to connect to named peer.\n";
     return -1;
   }
-  int socketID = _dataServer->dialUpFallThrough(result.address, 
-					        result.portIDs[0]);
+
+  const int socketID = _dataServer->dialUpFallThrough(result.address, result.portIDs[0]);
   if (socketID < 0) {
-    cerr << "arGraphicsPeer remark: failed to connect to brokered ports.\n";
+    ar_log_warning() << "arGraphicsPeer failed to connect to brokered ports.\n";
     return -1;
   }
   // WE WANT THIS LABEL SET!
@@ -953,10 +948,10 @@ int arGraphicsPeer::connectToPeer(const string& name) {
   // NOTE: we are guaranteed that this key is unique since
   // IDs are not reused.
   _lock();
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  // There is a race condition whereby a new connection that
+  // Bug: race condition. a new connection that
   // disappeared *immediately* might not be correctly handled.
   // ANOTHER REASON TO HANDLE DISCONNECT EVENTS DIFFERENTLY
+  // todo: constructor for next 5 lines
   arGraphicsPeerConnection* newConnection = new arGraphicsPeerConnection();
   newConnection->remoteName = name;
   newConnection->connectionID = socket->getID();
@@ -964,10 +959,9 @@ int arGraphicsPeer::connectToPeer(const string& name) {
   newConnection->rootMapNode = &_rootNode;
   _connectionContainer.insert(
     map<int, arGraphicsPeerConnection*, less<int> >::value_type(
-      socket->getID(),
-      newConnection));
+      socket->getID(), newConnection));
   _unlock();
-  // set the remote socket with our name
+  // Give the remote socket our name.
   _setRemoteLabel(socket, _name);
   return socket->getID();
 }
