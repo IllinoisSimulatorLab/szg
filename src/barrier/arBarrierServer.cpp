@@ -51,12 +51,12 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
 void ar_connectionFunction(void* barrierServer){
   arBarrierServer* s = (arBarrierServer*) barrierServer;
   while (s->_runThreads) {
-    // cout << "arBarrierServer remark: about to accept a connection!\n";
+    // Accept a connection.
     if (!s->_dataServer.acceptConnectionNoSend()) {
       s->_runThreads = false;
       break; // something bad happened.  Don't keep trying infinitely.
       }
-    // cout << "arBarrierServer remark: connected.\n";
+    // Connected.
   }
 }
 
