@@ -88,6 +88,7 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
   return NULL;
 }
 
+#ifdef UNUSED
 
 // Generates local frame for each vertex of object
 /** Given a set of vertices, connectivity information, and texture coords,
@@ -105,7 +106,7 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
 //              exactly one triangle, or NULL if in consecutive order
 // \param tangent3 (output) Pointer to array populated with per-vertex tangents
 // \param binormal3 (output) Pointer to array populated with per-vertex binormals
-/*bool arGenerateLocalFrame(int numVerts, float* vertices, // input
+bool arGenerateLocalFrame(int numVerts, float* vertices, // input
 			  float *normals, float *texCoords,
 			  int numFaces, int *indices,
 			  float* tangent3, float* binormal3) { // output
@@ -121,14 +122,13 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
       const int nextV = 3*(i+(j+1)%3);
       const int nextT = 2*(i+(j+1)%3);
       // vector pointing to next vertex
-      const arVector3 edge = arVector3(vertices[nextV+0],vertices[nextV+1],vertices[nextV+2]) - 
-	     arVector3(vertices[3*(i+j)+0],vertices[3*(i+j)+1],vertices[3*(i+j)+2]);
+      const arVector3 edge(arVector3(vertices+nextV) - arVector3(vertices+3*(i+j)));
       // change in texCoord u value
       const float du = (texCoords[nextT+0]-texCoords[2*(i+j)+0]);
       //const float dv = (texCoords[nextT+1]-texCoords[2*(i+j)+1]);
       // gradient of u at this vertex
-      const arVector3 duVec = arVector3(edge.x?du/edge.x:du, edge.y?du/edge.y:du, edge.z?du/edge.z:du);
-      //const arVector3 dvVec = arVector3(edge.x?dv/edge.x:dv, edge.y?dv/edge.y:dv, edge.z?dv/edge.z:dv);
+      const arVector3 duVec(edge.x?du/edge.x:du, edge.y?du/edge.y:du, edge.z?du/edge.z:du);
+      //const arVector3 dvVec(edge.x?dv/edge.x:dv, edge.y?dv/edge.y:dv, edge.z?dv/edge.z:dv);
 
       // add gradient to both vertices
       duList[i+j] += duVec;
@@ -142,19 +142,16 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
   tangents = new float[numVerts*3];
   binormals = new float[numVerts*3];
   for (i=0; i<numVerts; i++) {
-    const arvector3 tempN(normals[3*i], normals[3*i+1], normals[3*i+2]);
-    const arvector3 tempT = ++(-(tempN % duList[i])*tempN);
-    const arvector3 tempB = tempN * tempT; // dot prod for right angle
-    tangents[3*i]   = tempT.x;
-    tangents[3*i+1] = tempT.y;
-    tangents[3*i+2] = tempT.z
-    binormals[3*i]   = tempB.x;
-    binormals[3*i+1] = tempB.y;
-    binormals[3*i+2] = tempB.z
+    const arvector3 tempN(normals + 3*i);
+    const arvector3 tempT(++(-(tempN % duList[i]) * tempN));
+    tempT.get(tangents + 3*i);
+    // binormal: dot product
+    (tempN * tempT).get(binormals + 3*i);
   }
 
   delete [] duList;
   // delete [] dvList;
   return true;
 }
-*/
+
+#endif

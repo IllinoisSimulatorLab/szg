@@ -111,9 +111,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
   // Vertex array stuff has problems on some
   // boxen (specifically some Win2K w/ Nvidia cards)
 
-  // UNFORTUNATELY... THIS STUFF DOES NOT WORK WITH BLENDING! (at least with
-  // my blend factor hack). BUT... it could be that the blend factor hack is
-  // a bad idea anyway
+  // Fails with blending, with the blend factor hack.  So remove that hack?
   unsigned int opType = 0;
   if (indices)
     opType |= 1;

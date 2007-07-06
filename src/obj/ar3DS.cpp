@@ -273,6 +273,7 @@ void ar3DS::attachChildNode(const string &baseName,
       //           newName + indexModifier     + materialNames[i],
       //           diffuse, ambient, specular, emmissive,
       //	         11.-0.1*materials[i]->shininess);
+      // todo: constructor for next 5 lines
       arMaterial material;
       material.diffuse = diffuse;
       material.ambient = ambient;
