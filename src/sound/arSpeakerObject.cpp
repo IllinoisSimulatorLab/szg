@@ -53,10 +53,28 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
     // ar_lookatMatrix does this?
     cerr << "yoyoyo get a list of sound sources and tweak them.\n";
 
-    /*
+    /***************
+
     Better: FMOD_System_Set3DListenerAttributes just once.
-    Where are 3D attributes of sound sources set?
-    */
+    As listener moves,
+      arSoundFileNode::render calls
+      arSoundFileNode::_adjust calls
+      FMOD_Channel_Set3DAttributes.
+
+    In arSoundDatabase::render, pre-push inverse of listener, i.e. the lookat matrix.
+    dtms?
+      Inject matrix there.
+
+      arSoundClient::_render() {
+        _soundDatabase.setPlayTransform(_speakerObject);
+	  calls _speakerObject->loadMatrices(mHead), THIS function.
+	return _soundDatabase.render();
+      }
+
+    ok, that's kindasorta how to move the listener.
+    what about how to move the soundsources?
+
+    ***************/
   }
 
   if (pos==_posPrev && up==_upPrev && forward==_forwardPrev)

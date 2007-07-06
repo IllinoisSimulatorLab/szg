@@ -10,7 +10,7 @@
 arSoundDatabase::arSoundDatabase() :
   _path(new list<string>)
 {
-  // todo: initializers.
+  // todo: initializers.  (unless these two fail in red hat 8, like other nodes)
   _typeCode = AR_SOUND_DATABASE;
   _typeString = "sound";
   
@@ -20,13 +20,13 @@ arSoundDatabase::arSoundDatabase() :
   // Have to add the processing callback for the "sound admin"
   // message.
   arDataTemplate* t = _lang->find("sound_admin");
-  _databaseReceive[t->getID()] 
-    = (arDatabaseProcessingCallback)&arSoundDatabase::_processAdmin;
+  _databaseReceive[t->getID()] =
+    (arDatabaseProcessingCallback)&arSoundDatabase::_processAdmin;
   
   // Initialize the path list.
   _path->push_back(string("")); // local directory
 
-  // make the external parsing storage
+  // External storage for parsing.
   arTemplateDictionary* d = _langSound.getDictionary();
   transformData = new arStructuredData(d, "transform");
   filewavData = new arStructuredData(d, "fileWav");
@@ -43,21 +43,16 @@ arSoundDatabase::arSoundDatabase() :
 }
 
 arSoundDatabase::~arSoundDatabase(){
-  if (transformData){
+  if (transformData)
     delete transformData;
-  }
-  if (filewavData){
+  if (filewavData)
     delete filewavData;
-  }
-  if (playerData){
+  if (playerData)
     delete playerData;
-  }
-  if (speechData){
+  if (speechData)
     delete speechData;
-  }
-  if (streamData){
+  if (streamData)
     delete streamData;
-  }
 }
 
 arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData, bool refNode){
@@ -82,6 +77,7 @@ string arSoundDatabase::getPath() const {
   if (_path->empty()){
     return string("NULL");
   }
+
   string s;
   for (list<string>::const_iterator i = _path->begin(); i!=_path->end(); i++) {
     if (*i != ""){
@@ -94,9 +90,8 @@ string arSoundDatabase::getPath() const {
 // Only arSoundClient, not arSoundServer, should ever call setPath().
 void arSoundDatabase::setPath(const string& thePath){
   // Parse the path.
-  int nextChar = 0;
   const int length = thePath.length();
-  string dir(""); // always search local directory
+  string dir; // always search local directory
   int cdir = 0;
 
   arGuard dummy(_pathLock); // probably called in a thread other than the data handling
@@ -104,7 +99,7 @@ void arSoundDatabase::setPath(const string& thePath){
   _path = new list<string>;
   _path->push_back(dir);
 
-  while (nextChar < length){
+  for (int nextChar=0; nextChar < length; ){
     dir = ar_pathToken(thePath, nextChar); // updates nextChar
     if (dir == "NULL")
       continue;
@@ -174,12 +169,12 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     }
     if (!fComplained){
       fComplained = true;
-      ar_log_error() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
+      ar_log_warning() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
       std::vector<std::string>::iterator iter;
       for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
-        ar_log_error() << *iter << " ";
+        ar_log_warning() << *iter << " ";
       }
-      ar_log_error() << ".\n";
+      ar_log_warning() << ".\n";
     }
   }
   triedPaths.clear();
@@ -218,30 +213,27 @@ stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 bool arSoundDatabase::render(){
   ar_transformStack.push(ar_identityMatrix());
     //ar_mutex_lock(&_eraseLock);
-      const bool ok = _render((arSoundNode*)&_rootNode);
+    const bool ok = _render((arSoundNode*)&_rootNode);
     //ar_mutex_unlock(&_eraseLock);
   ar_transformStack.pop();
   return ok;
 }
 
 bool arSoundDatabase::_render(arSoundNode* node){
-  bool ok = true;
-  if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
-    // Push current onto the matrix stack.
+  const bool fTransform = node->getTypeCode() == AR_S_TRANSFORM_NODE;
+  if (fTransform)
     ar_transformStack.push(ar_transformStack.top());
-  }
-  if (node->getID() != 0){
-    // We are not the root node, so it is OK to render.
-    ok &= node->render();
-  }
+
+  // Don't render the root node.
+  bool ok = node->getID()==0 || node->render();
+
   list<arDatabaseNode*> children = node->getChildren();
-  for (list<arDatabaseNode*>::iterator i = children.begin();
-       i != children.end(); ++i){
+  for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i){
     ok &= _render((arSoundNode*)*i);
   }
-  if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
+  if (fTransform)
     ar_transformStack.pop();
-  }
+
   return ok;
 }
 
@@ -261,13 +253,13 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
 }
 
 arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
-  const string name = data->getDataString("name");
+  const string name(data->getDataString("name"));
   const arSlashString bundleInfo(name);
   if (bundleInfo.size() == 2) {
     setDataBundlePath(bundleInfo[0], bundleInfo[1]);
     ar_log_remark() << "arSoundDatabase using sound bundle '" << name << "'\n";
   } else {
-    ar_log_warning() << "arSoundDatabase: garbled sound bundle id for '" << name << "'.\n";
+    ar_log_warning() << "arSoundDatabase ignoring garbled sound bundle id for '" << name << "'.\n";
   }
   return &_rootNode;
 }

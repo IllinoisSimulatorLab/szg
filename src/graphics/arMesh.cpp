@@ -16,21 +16,14 @@ const int texcoordsPerTri = 3;
 
 void ar_adjustPoints(const arMatrix4& m, int number, float* data){
   for (int i=0; i<number; i++){
-    arVector3 v(m * arVector3(data[i*3], data[i*3+1], data[i*3+2]));
-    data[i*3  ] = v[0];
-    data[i*3+1] = v[1];
-    data[i*3+2] = v[2];
+    (m * arVector3(data+i*3)).get(data+i*3);
   }
 }
 
 void ar_adjustNormals(const arMatrix4& m, int number, float* data){
   for (int i=0; i<number; i++){
     // Normals transform without the translational component.
-    arVector3 v(m * arVector3(data[i*3], data[i*3+1], data[i*3+2]) -
-      m * arVector3(0,0,0));
-    data[i*3  ] = v[0];
-    data[i*3+1] = v[1];
-    data[i*3+2] = v[2];
+    (m * arVector3(data+i*3) - m * arVector3(0,0,0)).get(data+i*3);
   }
 }
 
@@ -215,22 +208,20 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     pointIDs[i] = i;
     if (i<_numberDivisions){
       // bottom
-      location = arVector3
+      location.set
         (_bottomRadius*cos( (6.283*i)/_numberDivisions ),
          _bottomRadius*sin( (6.283*i)/_numberDivisions ),
          -0.5);
     }
     else{
       // top
-      location = arVector3
+      location.set
 	(_topRadius*cos( (6.283*i)/_numberDivisions ),
 	 pointPositions[3*i+1] = _topRadius*sin( (6.283*i)/_numberDivisions),
          0.5);
     }
     //location = _matrix*location;
-    pointPositions[3*i  ] = location[0];
-    pointPositions[3*i+1] = location[1];
-    pointPositions[3*i+2] = location[2];
+    location.get(pointPositions+3*i);
   }
   // populate the triangles array
   for (i=0; i<2*_numberDivisions; i++){
@@ -280,21 +271,15 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   }
 
   if (_useEnds){
-    // we are constructing polygons for the ends
+    // construct polygons for the ends
     const int topPoint = 2*_numberDivisions;
     const int bottomPoint = topPoint + 1;
     pointIDs[topPoint] = topPoint;
     pointIDs[bottomPoint] = bottomPoint;
-    location = arVector3(0,0,0.5);
-    pointPositions[3*topPoint  ] = location[0];
-    pointPositions[3*topPoint+1] = location[1];
-    pointPositions[3*topPoint+2] = location[2];
-    location = arVector3(0,0,-0.5);
-    pointPositions[3*bottomPoint  ] = location[0];
-    pointPositions[3*bottomPoint+1] = location[1];
-    pointPositions[3*bottomPoint+2] = location[2];
+    arVector3(0, 0,  0.5).get(pointPositions + 3*topPoint);
+    arVector3(0, 0, -0.5).get(pointPositions + 3*bottomPoint);
     for (i=0; i<_numberDivisions; i++){
-      const int j=(i+1) % _numberDivisions;
+      const int j = (i+1) % _numberDivisions;
       const int topTriangle = 2*_numberDivisions+i;
       const int bottomTriangle = 3*_numberDivisions+i;
       triangleIDs[topTriangle] = topTriangle;
@@ -336,10 +321,8 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
       texCoords[6*bottomTriangle+1] = 0.5+0.5*sin((6.283*i)/_numberDivisions);
       texCoords[6*bottomTriangle+2] = 0.5;
       texCoords[6*bottomTriangle+3] = 0.5;
-      texCoords[6*bottomTriangle+4] =
-        0.5+0.5*cos((6.283*(i+1))/_numberDivisions);
-      texCoords[6*bottomTriangle+5] =
-        0.5+0.5*sin((6.283*(i+1))/_numberDivisions);
+      texCoords[6*bottomTriangle+4] = 0.5+0.5*cos((6.283*(i+1))/_numberDivisions);
+      texCoords[6*bottomTriangle+5] = 0.5+0.5*sin((6.283*(i+1))/_numberDivisions);
       
     }
   }
@@ -447,19 +430,16 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
 
   // populate the points array
   int i=0, j=0;
-  float z=0., radius=0.;
   int iPoint = 0;
   for (j=0; j<_numberDivisions+1; j++){
     for (i=0; i<_numberDivisions; i++){
-      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
-      radius = (z*z>=1) ? 0. : sqrt(1-z*z);
-      arVector3 location(
+      const float z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+      const float radius = (z*z>=1) ? 0. : sqrt(1-z*z);
+      arVector3(
         radius*cos( (2*M_PI*i)/_numberDivisions),
         radius*sin( (2*M_PI*i)/_numberDivisions),
-        z);
-      pointPositions[iPoint++] = location[0];
-      pointPositions[iPoint++] = location[1];
-      pointPositions[iPoint++] = location[2];
+        z).get(pointPositions+iPoint);
+	iPoint += 3;
     }
   }
 
@@ -475,8 +455,8 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
       triangleVertices[6*iTriangle+4] = (j+1)*_numberDivisions + k;
       triangleVertices[6*iTriangle+5] = j    *_numberDivisions + k;
 
-      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
-      radius = sqrt(1-z*z);
+      float z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+      float radius = sqrt(1-z*z);
       normals[18*iTriangle   ] = radius*cos((2*M_PI*i)/_numberDivisions);
       normals[18*iTriangle+1 ] = radius*sin((2*M_PI*i)/_numberDivisions);
       normals[18*iTriangle+2 ] = z;
@@ -632,7 +612,7 @@ void arTorusMesh::_reset(int numberBigAroundQuads, int numberSmallAroundQuads,
   _surfaceNormals = new float[3*normalsPerTri*_numberTriangles];
   _textureCoordinates = new float[2*texcoordsPerTri*_numberTriangles];
 
-  // should build tables of cos(6.283*k/numberXXX) and sin(ditto)
+  // todo: build tables of cos(6.283*k/numberXXX) and sin(ditto)
 
   for (int i=0; i<numberBigAroundQuads;i++){
     for (int j=0; j<numberSmallAroundQuads; j++){
@@ -641,13 +621,13 @@ void arTorusMesh::_reset(int numberBigAroundQuads, int numberSmallAroundQuads,
       // small around angle
       const float phi = (6.283 * j)/numberSmallAroundQuads;
       const int whichPoint = i*numberSmallAroundQuads+j;
-      _pointPositions[3*whichPoint] =
+      _pointPositions[3*whichPoint  ] =
         bigRadius*cos(theta) + smallRadius*cos(theta)*cos(phi);
       _pointPositions[3*whichPoint+1] =
         bigRadius*sin(theta) + smallRadius*sin(theta)*cos(phi);
       _pointPositions[3*whichPoint+2] = smallRadius*sin(phi);
 
-      _triangleVertices[6*whichPoint] = i*numberSmallAroundQuads+j;
+      _triangleVertices[6*whichPoint  ] = i*numberSmallAroundQuads+j;
       _triangleVertices[6*whichPoint+1] = _modAdd(numberBigAroundQuads,i,1)
                                    *numberSmallAroundQuads+j;
       _triangleVertices[6*whichPoint+2] = i*numberSmallAroundQuads
@@ -730,7 +710,7 @@ void arTorusMesh::_reset(int numberBigAroundQuads, int numberSmallAroundQuads,
       _textureCoordinates[12*whichPoint+7 ]=float(j)/numberSmallAroundQuads;
       _textureCoordinates[12*whichPoint+8 ]=float(i+1)/numberBigAroundQuads;
       _textureCoordinates[12*whichPoint+9 ]=float(j+1)/numberSmallAroundQuads;
-      _textureCoordinates[12*whichPoint+10]= float(i)/numberBigAroundQuads;
+      _textureCoordinates[12*whichPoint+10]=float(i)/numberBigAroundQuads;
       _textureCoordinates[12*whichPoint+11]=float(j+1)/numberSmallAroundQuads;
     }
   }

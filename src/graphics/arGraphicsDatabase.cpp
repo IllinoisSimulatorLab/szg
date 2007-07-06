@@ -723,26 +723,24 @@ float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
     ar_log_warning() << "arGraphicsDatabase: no points node for drawable.\n";
     return -1;
   }
-  arGraphicsNode* i = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
-  int number = d->getNumber();
+
+  const int number = d->getNumber();
   float* points = p->getBuffer();
-  int* index = NULL;
-  if (i) {
-    index = (int*)i->getBuffer();
-  }
+  arGraphicsNode* i = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
+  const int* index = i ? (int*)i->getBuffer() : NULL;
   float bestDistance = -1;
   float dist;
   arVector3 a, b, c;
   for (int j = 0; j < number; j++) {
     if (index) {
-      a = arVector3(points + 3*index[3*j]);
-      b = arVector3(points + 3*index[3*j+1]);
-      c = arVector3(points + 3*index[3*j+2]);
+      a.set(points + 3*index[3*j  ]);
+      b.set(points + 3*index[3*j+1]);
+      c.set(points + 3*index[3*j+2]);
     }
     else {
-      a = arVector3(points + 9*j);
-      b = arVector3(points + 9*j+3);
-      c = arVector3(points + 9*j+6);
+      a.set(points + 9*j  );
+      b.set(points + 9*j+3);
+      c.set(points + 9*j+6);
     }
     dist = ar_intersectRayTriangle(theRay, a, b, c);
     if (dist >= 0 && (bestDistance < 0 || dist < bestDistance)) {

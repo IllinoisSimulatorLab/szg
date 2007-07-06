@@ -110,14 +110,12 @@ void arCubeEnvironment::attachMesh(const string& name,
     int triangleVertices[6] = {2,0,1, 2,3,0};
     float texCoords[12] = {1,0, 0,1, 1,1, 1,0, 0,0, 0,1};
     float normals[18] = {0};
-    arVector3 normalDir =
+    arVector3 normalDir(
       (arVector3(pointPositions+6) - arVector3(pointPositions)) *
-      (arVector3(pointPositions+3) - arVector3(pointPositions));
+      (arVector3(pointPositions+3) - arVector3(pointPositions)));
     normalDir.normalize();
     for (int k=0; k<6; k++){
-      normals[3*k] = normalDir[0];
-      normals[3*k+1] = normalDir[1];
-      normals[3*k+2] = normalDir[2];
+      normalDir.get(normals + 3*k);
     }
     const char index = '0'+i;
     dgTexture(name+index+" texture",parentName,_texFileName[i]);
@@ -140,10 +138,10 @@ void arCubeEnvironment::attachMesh(const string& name,
   float* texCoords = new float[6*_numberWalls];
 
   for (i=0; i<_numberWalls; i++){
-    pointPositions[3*i] = _cornerX[i];
+    pointPositions[3*i  ] = _cornerX[i];
     pointPositions[3*i+1] = _vertBound + _origin[2];
     pointPositions[3*i+2] = _cornerZ[i];
-    normals[9*i] = 0;
+    normals[9*i  ] = 0;
     normals[9*i+1] = -1;
     normals[9*i+2] = 0;
     normals[9*i+3] = 0;
@@ -152,15 +150,15 @@ void arCubeEnvironment::attachMesh(const string& name,
     normals[9*i+6] = 0;
     normals[9*i+7] = -1;
     normals[9*i+8] = 0;
-    const int j = (i+1 == _numberWalls) ? 0 : i+1;
+    const int j = (i+1) % _numberWalls;
 
     // swap i and j
     // to draw the ceiling's polygons in reversed orientation
     // so alpha-channel texture maps on buildings look nicer.
-    triangleVertices[3*i] = _numberWalls;
+    triangleVertices[3*i  ] = _numberWalls;
     triangleVertices[3*i+1] = j;
     triangleVertices[3*i+2] = i;
-    texCoords[6*i] = 0.5;
+    texCoords[6*i  ] = 0.5;
     texCoords[6*i+1] = 0.5;
     texCoords[6*i+2] = 0.5+0.5*cos((6.283*j)/_numberWalls);
     texCoords[6*i+3] = 0.5+0.5*sin((6.283*j)/_numberWalls);
@@ -168,7 +166,7 @@ void arCubeEnvironment::attachMesh(const string& name,
     texCoords[6*i+5] = 0.5+0.5*sin((6.283*i)/_numberWalls);
   }
 
-  pointPositions[_numberWalls*3] = _origin[0];
+  pointPositions[_numberWalls*3  ] = _origin[0];
   pointPositions[_numberWalls*3+1] = _vertBound + _origin[2];
   pointPositions[_numberWalls*3+2] = _origin[1];
 
@@ -189,17 +187,17 @@ void arCubeEnvironment::attachMesh(const string& name,
   delete [] triangleVertices;
   delete [] texCoords;
 
-  // do the floor
+  // floor
   pointPositions = new float[(_numberWalls+1)*3];
   triangleVertices = new int[_numberWalls*3];
   normals = new float[9*_numberWalls];
   texCoords = new float[6*_numberWalls];
 
   for (i=0; i<_numberWalls; i++){
-    pointPositions[3*i] = _cornerX[i];
+    pointPositions[3*i  ] = _cornerX[i];
     pointPositions[3*i+1] = -_vertBound + _origin[2];
     pointPositions[3*i+2] = _cornerZ[i];
-    normals[9*i] = 0;
+    normals[9*i  ] = 0;
     normals[9*i+1] = -1;
     normals[9*i+2] = 0;
     normals[9*i+3] = 0;
@@ -208,11 +206,11 @@ void arCubeEnvironment::attachMesh(const string& name,
     normals[9*i+6] = 0;
     normals[9*i+7] = -1;
     normals[9*i+8] = 0;
-    const int j = (i+1 == _numberWalls) ? 0 : i+1;
-    triangleVertices[3*i] = _numberWalls;
+    const int j = (i+1) % _numberWalls;
+    triangleVertices[3*i  ] = _numberWalls;
     triangleVertices[3*i+1] = i;
     triangleVertices[3*i+2] = j;
-    texCoords[6*i] = 0.5;
+    texCoords[6*i  ] = 0.5;
     texCoords[6*i+1] = 0.5;
     texCoords[6*i+2] = 0.5+0.5*cos((6.283*i)/_numberWalls);
     texCoords[6*i+3] = 0.5+0.5*sin((6.283*i)/_numberWalls);
@@ -220,7 +218,7 @@ void arCubeEnvironment::attachMesh(const string& name,
     texCoords[6*i+5] = 0.5+0.5*sin((6.283*j)/_numberWalls);
   }
 
-  pointPositions[_numberWalls*3] = _origin[0];
+  pointPositions[_numberWalls*3  ] = _origin[0];
   pointPositions[_numberWalls*3+1] = -_vertBound + _origin[2];
   pointPositions[_numberWalls*3+2] = _origin[1];
 
@@ -248,4 +246,3 @@ void arCubeEnvironment::_calculateRegularWalls(){
     _cornerZ[i] = _origin[1] + _radius*sin( (2*M_PI*i)/_numberWalls );
   }
 }
-
