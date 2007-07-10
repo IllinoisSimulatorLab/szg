@@ -483,7 +483,7 @@ class arGraphicsStateNode: public arGraphicsNode{
 
 class arGraphicsArrayNode:public arGraphicsNode{
  public:
-  arGraphicsArrayNode();
+  arGraphicsArrayNode( const arDataType t, const unsigned s );
   virtual ~arGraphicsArrayNode();
 };
 
