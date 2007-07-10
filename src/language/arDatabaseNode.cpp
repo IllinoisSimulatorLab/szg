@@ -568,6 +568,4 @@ arStructuredData* arDatabaseNode::getStorage(int id) const {
   return getParser()->getStorage(id);
 }
 
-inline void arDatabaseNode::recycle(arStructuredData* r) const {
-  getParser()->recycle(r);
-}
+

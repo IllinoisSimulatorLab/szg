@@ -88,8 +88,9 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* getParent() const;
   arStructuredDataParser* getParser() const;
   arStructuredData* getStorage(int) const;
-  void recycle(arStructuredData*) const;
-
+  inline void recycle(arStructuredData* r) const {
+    getParser()->recycle(r);
+  }
   // A version of getParent() that is thread-safe with respect to database
   // manipulations. The arDatabaseNode ptr returned has an extra reference
   // added to it (will not be deleted out from under us, for instance).
