@@ -423,12 +423,17 @@ string arSZGClient::getAllAttributes(const string& substring) {
 bool arSZGClient::parseAssignmentString(const string& text) {
   stringstream parsingStream(text);
   string computer, group, name, value;
+  unsigned int count(0);
   while (true) {
     // Will skip whitespace(this is a default)
     parsingStream >> computer;
     if (parsingStream.fail()) {
       if (parsingStream.eof()) {
         // End of assignment block, so it's okay.
+        if (count > 0) {
+          ar_log_warning() << "Replaced " << count << " occurrences of 'USER_NAME' with '"
+                           << _userName << "' in assign block.\n";
+        }
         return true;
       }
       goto LFail;
@@ -449,14 +454,9 @@ LFail:
 
     if (_userName != "NULL") {
       string::size_type index;
-      unsigned int count(0);
       while ((index = value.find("USER_NAME")) != string::npos) {
         value.replace( index, 9, _userName );
         ++count;
-      }
-      if (count > 0) {
-        ar_log_warning() << "Replaced " << count << " occurrences of USER_NAME with "
-                         << _userName << " in assign block.\n";
       }
     }
     if (group.substr(0,10) == "SZG_SCREEN") {
