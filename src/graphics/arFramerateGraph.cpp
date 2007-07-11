@@ -7,11 +7,12 @@
 #include "arFramerateGraph.h"
 #include "arGraphicsHeader.h"
 
-arPerformanceElement::arPerformanceElement(){
-  _data = NULL;
-  scale = 1; 
-  color = arVector3(1,1,1);
-  _numberEntries = 0;
+arPerformanceElement::arPerformanceElement() :
+  scale(1.),
+  color(1,1,1),
+  _data(NULL),
+  _numberEntries(0)
+{
 }
 
 arPerformanceElement::~arPerformanceElement(){
@@ -21,15 +22,10 @@ arPerformanceElement::~arPerformanceElement(){
 }
 
 void arPerformanceElement::setNumberEntries(int number){
-  float* newData = new float[number];
   if (_data){
-    float* temp = _data;
-    _data = newData;
-    delete [] temp;
+    delete [] _data;
   }
-  else{
-    _data = newData;
-  }
+  _data = new float[number];
   _numberEntries = number;
 }
 
