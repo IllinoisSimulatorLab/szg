@@ -14,19 +14,24 @@
 
 class SZG_CALL arPerformanceElement{
  public:
-  arPerformanceElement();
+  arPerformanceElement(const int, const float, const arVector3&, const int, const string&);
   ~arPerformanceElement();
 
-  void setNumberEntries(int number);
-  void pushNewValue(float value);
+  void setNumberEntries(const int);
+  void pushNewValue(float);
   void draw();
 
-  float     scale;
-  arVector3 color;
+  const float     scale;
+  const arVector3 color;
  private:
   float* _data;
-  int    _numberEntries;
+  int  _numberEntries;
+  bool _fInit;
+  const int _i;
+  const string _name;
 };
+
+typedef map<string, arPerformanceElement*, less<string> > arPerfElts;
 
 class SZG_CALL arFramerateGraph: public arFrameworkObject{
  public:
@@ -37,12 +42,13 @@ class SZG_CALL arFramerateGraph: public arFrameworkObject{
   virtual void drawWithComposition();
   void drawPlaced(const float startX, const float startY, const float widthX, const float widthY);
 
-  // Functions specific to the graph
-  void addElement(const string& name, int numberEntries, float scale, const arVector3& color);
+  // graph-specific
+  void addElement(const string& name, int numberEntries, const float scale,
+    const arVector3& color);
   arPerformanceElement* getElement(const string& name) const;
 
  private:
-  map<string, arPerformanceElement*, less<string> > _valueContainer;
+  arPerfElts _valueContainer;
 };
 
 #endif

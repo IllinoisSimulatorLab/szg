@@ -275,7 +275,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _randSynchError( 0 ),
   _firstTransfer( 1 ),
 
-  // For user messages.
+  // User messages.
   _framerateThrottle( false ),
   _screenshotFlag( false ),
   _screenshotStartX( 0 ),
@@ -319,13 +319,13 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // instead of a default color
   _masterPort[ 0 ] = -1;
 
-  // Initialize the performance graph.
+  // Performance graphs.
   const arVector3 white  (1,1,1);
   const arVector3 yellow (1,1,0);
   const arVector3 cyan   (0,1,1);
-  _framerateGraph.addElement( "framerate", 300, 100, white );
-  _framerateGraph.addElement( "compute", 300, 100, yellow );
-  _framerateGraph.addElement( "sync", 300, 100, cyan );
+  _framerateGraph.addElement( "      fps", 250,   100, white  );
+  _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
+  _framerateGraph.addElement( "sync usec", 250, 10000, cyan   );
   _showPerformance = false;
 
   // _defaultCamera.setHead( &_head );
@@ -346,11 +346,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
 // \bug memory leak for several pointer members
 arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
-  // DO NOT DELETE _screenObject in here. WE MIGHT NOT OWN IT.
-
   arTransferFieldData::iterator iter;
   for( iter = _internalTransferFieldData.begin();
-       iter != _internalTransferFieldData.end(); iter++) {
+       iter != _internalTransferFieldData.end(); ++iter) {
     if( iter->second.data ) {
       ar_deallocateBuffer( iter->second.data );
     }
@@ -364,6 +362,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
   delete _wm;
   delete _guiXMLParser;
+  // Don't delete _screenObject, since we might not own it.
 }
 
 // Initializes the syzygy objects, but does not start any threads
@@ -722,18 +721,10 @@ void arMasterSlaveFramework::preDraw( void ) {
     _soundClient->_cliSync.consume();
   }
   
-  // Report current frametime to the framerate graph.
-  // Bug: computed in _pollInputData, useless for slaves.
-  arPerformanceElement* framerateElement = _framerateGraph.getElement( "framerate" );
-  framerateElement->pushNewValue( 1000.0 / _lastFrameTime );
-  
-  // Compute time is in microseconds and the graph element is scaled to 100 ms.
-  arPerformanceElement* computeElement   = _framerateGraph.getElement( "compute" );
-  computeElement->pushNewValue( _lastComputeTime / 1000.0 );
-  
-  // Sync time is in microseconds and the graph element is scaled to 100 ms.
-  arPerformanceElement* syncElement = _framerateGraph.getElement( "sync" );
-  syncElement->pushNewValue(_lastSyncTime / 1000.0 );
+  // Frame rate bug: computed in _pollInputData, useless for slaves.
+  _framerateGraph.getElement( "      fps" )->pushNewValue(1000. / _lastFrameTime);
+  _framerateGraph.getElement( " cpu usec" )->pushNewValue(_lastComputeTime);
+  _framerateGraph.getElement( "sync usec" )->pushNewValue(_lastSyncTime);
   
   // Get performance metrics.
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );

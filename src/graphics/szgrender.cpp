@@ -178,7 +178,7 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
+  framerateGraph.addElement("fps", 300, 100, arVector3(1,1,1));
   graphicsClient.addFrameworkObject(&framerateGraph);
 
   if (!szgClient.sendInitResponse(true)){
@@ -236,7 +236,7 @@ int main(int argc, char** argv){
     }
 
     windowManager->processWindowEvents();
-    framerateGraph.getElement("framerate")->pushNewValue(
+    framerateGraph.getElement("fps")->pushNewValue(
       1000000.0 / ar_difftimeSafe(ar_time(), time1));
   }
   szgClient.messageTaskStop();

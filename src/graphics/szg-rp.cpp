@@ -425,9 +425,9 @@ void display(){
   double dataTime = 0;
   int dataAmount = 0;
   for (i = peers.begin(); i != peers.end(); i++){
-    const ar_timeval time1 = ar_time();
+    const ar_timeval time9 = ar_time();
     dataAmount += i->second.peer->consume();
-    dataTime += ar_difftime(ar_time(), time1)/1000.0;
+    dataTime += ar_difftime(ar_time(), time9)/1000.0;
     glPushMatrix();
       glMultMatrixf(i->second.transform.v);
       i->second.peer->activateLights();
@@ -507,9 +507,9 @@ void display(){
   for (i=peers.begin(); i!=peers.end(); i++){
     i->second.peer->broadcastFrameTime(averageFrameTime(frametime));
   }
-  framerateGraph.getElement("framerate")->pushNewValue(1000000.0/frametime);
-  framerateGraph.getElement("consume")->pushNewValue(dataTime);
-  framerateGraph.getElement("bytes")->pushNewValue(dataAmount);
+  framerateGraph.getElement("           fps")->pushNewValue(1000000.0/frametime);
+  framerateGraph.getElement("consume() msec")->pushNewValue(dataTime);
+  framerateGraph.getElement("consume()   kB")->pushNewValue(dataAmount/1000.);
   peerLock.unlock();
 }
 
@@ -532,9 +532,9 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
 }
 
 int main(int argc, char** argv){
-  framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
-  framerateGraph.addElement("consume", 300, 100, arVector3(1,1,0));
-  framerateGraph.addElement("bytes", 300, 500000, arVector3(0,1,1));
+  framerateGraph.addElement("           fps", 300, 100, arVector3(1,1,1));
+  framerateGraph.addElement("consume() msec", 300, 100, arVector3(1,1,0));
+  framerateGraph.addElement("consume()   kB", 300, 500, arVector3(0,1,1));
   
   globalCamera.setSides(-0.1, 0.1, -0.1, 0.1);
   globalCamera.setNearFar(0.2, 200);
