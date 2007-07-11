@@ -8,11 +8,10 @@ Header3
 This chapter will show you how to configure Syzygy to work with your
 input devices.
 
-Note that this section is only relevant to running programs in
-Cluster Mode (see [Distributed OS DistributedOS.html]); you can't use input devices in
-[Standalone Mode Standalone.html] (input devices require a network
-connection), just the [inputsimulator TrackingSim.html]
-program.
+//New in Syzygy 1.2//: This section is now relevant to running programs in
+[Standalone Mode Standalone.html] as well as in Cluster Mode
+(see [Distributed OS DistributedOS.html]); applications can now load
+input device drivers in Standalone Mode.
 
 % Table of Contents
 %%toc
@@ -49,7 +48,10 @@ four fields:
   are separate by spaces in the ``<input_sources>`` field.
 
 
-- Input Sinks: (NOTE: I don't really know what these are for).
+- Input Sinks: These represent modules that send data to other software
+  that isn't part of the cluster. The only examples so far are the
+  arFileSink for writing data to a file and the arSharedMemSinkDriver for pushing
+  data into an IRIX shared memory segment.
 
 
 - Filters: You may specify one or more C++ filter modules
@@ -94,6 +96,15 @@ that connect via serial interface may require e.g.:
 ...and more. These are specified as local parameters on the computer that the
 device is hooked up to. The chapter on [Supported Input Devices InputDevices-drivers.html]
 describes the parameters that must be configured to operate any particular device.
+
+
+===Standalone Mode Local Parameter===
+
+When you want to load an input device in [Standalone Mode Standalone.html],
+you must set the variable SZG_STANDALONE/input_config in the parameter file
+to the name of a global input device definition record. Note that currently
+if you specify an input device the [tracking simulator TrackingSim.html]
+is deactivated.
 
 
 ==Virtual Computer Input-device Parameters==

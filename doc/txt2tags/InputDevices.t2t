@@ -51,7 +51,7 @@ deleted by [filters InputFilters.html] at tree nodes.
 These filters are usually written in [PForth PForth.html],
 but C++ offers more flexibility and pain.
 
-Each computer with input hardware runs its own DeviceServer.
+In cluster mode, each computer with input hardware runs its own DeviceServer.
 Each DeviceServer has a //service name//
 corresponding to a group of Syzygy database parameters,
 determined by the device driver it is running.
@@ -59,6 +59,9 @@ To listen to that device through a particular IP address and port,
 an application checks this group of database parameters.
 Here is a list
 of [supported input devices InputDevices-Drivers.html].
+
+//New in Syzygy 1.2//: Applications running in [Standalone Mode Standalone.html]
+can now load device drivers.
 
 The input framework includes standard
 [navigation methods Navigation.html] that work with both
@@ -74,7 +77,7 @@ hooks for implementing other user-initiated object manipulation.
 
 The input framework has two programs that produce input events.
 The first, ``DeviceServer``, wraps
-dynamically loaded device-driver libraries. The second, ``inputsimulator``,
+device-driver libraries. The second, ``inputsimulator``,
 is a GUI emulating a traditional VR tracked wand and head.  Both publish
 their input events on the network for other Syzyzy programs to read.
 The generic event-reader DeviceClient can listen to either of these two

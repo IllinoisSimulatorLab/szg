@@ -12,10 +12,10 @@ Note: On OS X, run X11 before running Syzygy graphical programs.
 For complete functionality, Syzygy programs have to be run in Cluster Mode.
 However, it's often more convenient to run a single instance of a program in
 Standalone Mode. The advantage of Standalone Mode is that no Syzygy server
-or supporting programs are required; the main disadvantage is that standalone
-programs can't load input device drivers, but must instead use the
-[tracking simulator interface TrackingSim.html] (although we plan to fix this
-in version 1.2).
+or supporting programs are required.
+
+//New in Syzygy 1.2//: it is now possible to load [input device drivers #devices]
+in Standalone Mode.
 
 
 =How a Program Determines Whether to Run in Standalone Mode=
@@ -110,18 +110,14 @@ of the parameter SZG_DATA/path, it will look for an environment variable
 named SZG_DATA_path containing the value.
 
 
-==Device Drivers in Standalone Mode==
+==Device Drivers in Standalone Mode==[devices]
 
 Prior to Syzygy 1.2, applications running in standalone mode could not use
 input devices; instead, they loaded and displayed the
 [tracking simulator TrackingSim.html], which allows the user to simulate
 a tracked head and wand using the mouse and keyboard.
 
-Now, however, standalone applications can load input device drivers
-//provided they are built with dynamic linking enabled// (dynamic vs.
-static linking is discussed in [Getting the Software GettingSoftware.html],
-[Compiling C++ Programs CompileCPP.html], and
-[Environment Variables SyzygyEnvironmentVariables.html]). The choice
+Now, however, standalone applications can load input device drivers. The choice
 between the tracking simulator and a device driver is made using the
 database parameter SZG_STANDALONE/input_config, which defaults to
 "simulator". If given any other value, this is assumed to be the name

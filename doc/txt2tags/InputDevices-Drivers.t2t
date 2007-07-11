@@ -10,9 +10,8 @@ Header3
 =Background=
 
 Input devices usually transmit data to other
-Syzygy programs through the program DeviceServer, which 
-dynamically loads device driver libraries (see
-[Input Devices InputDevices.html]).
+Syzygy programs through the program DeviceServer, which
+loads device driver libraries (see [Input Devices InputDevices.html]).
 
 This chapter lists loadable device drivers included in Syzygy.
 Of course, you can write your own drivers too.
