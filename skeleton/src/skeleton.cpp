@@ -147,29 +147,27 @@ void windowStartGL( arMasterSlaveFramework&, arGUIWindowInfo* ) {
   glClearColor(0,0,0,0);
 }
 
-// Callback called before data is transferred from master to slaves. Only really makes
-// sense to do anything here on the master. This is where anything having to do with
+// Callback called before data is transferred from master to slaves. Only called
+// on the master. This is where anything having to do with
 // processing user input or random variables should happen.
 void preExchange( arMasterSlaveFramework& fw ) {
   // Do stuff on master before data is transmitted to slaves.
-  if (fw.getMaster()) {
 
-    // handle joystick-based navigation (drive around). The resulting
-    // navigation matrix is automagically transferred to the slaves.
-    fw.navUpdate();
+  // handle joystick-based navigation (drive around). The resulting
+  // navigation matrix is automagically transferred to the slaves.
+  fw.navUpdate();
 
-    // update the input state (placement matrix & button states) of our effector.
-    theEffector.updateState( fw.getInputState() );
+  // update the input state (placement matrix & button states) of our effector.
+  theEffector.updateState( fw.getInputState() );
 
-    // Handle any interaction with the square (see interaction/arInteractionUtilities.h).
-    // Any grabbing/dragging happens in here.
-    ar_pollingInteraction( theEffector, (arInteractable*)&theSquare );
+  // Handle any interaction with the square (see interaction/arInteractionUtilities.h).
+  // Any grabbing/dragging happens in here.
+  ar_pollingInteraction( theEffector, (arInteractable*)&theSquare );
 
-    // Pack data destined for slaves into appropriate variables
-    // (bools transfer as ints).
-    squareHighlightedTransfer = (int)theSquare.getHighlight();
-    squareMatrixTransfer = theSquare.getMatrix();
-  }
+  // Pack data destined for slaves into appropriate variables
+  // (bools transfer as ints).
+  squareHighlightedTransfer = (int)theSquare.getHighlight();
+  squareMatrixTransfer = theSquare.getMatrix();
 }
 
 // Callback called after transfer of data from master to slaves. Mostly used to

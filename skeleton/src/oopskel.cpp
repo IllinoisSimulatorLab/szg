@@ -179,29 +179,27 @@ void SkeletonFramework::onWindowStartGL( arGUIWindowInfo* ) {
 }
 
 
-// Method called before data is transferred from master to slaves. Only really makes
-// sense to do anything here on the master. This is where anything having to do with
+// Method called before data is transferred from master to slaves. Only called
+// on the master. This is where anything having to do with
 // processing user input or random variables should happen.
 void SkeletonFramework::onPreExchange() {
   // Do stuff on master before data is transmitted to slaves.
-  if (getMaster()) {
 
-    // handle joystick-based navigation (drive around). The resulting
-    // navigation matrix is automagically transferred to the slaves.
-    navUpdate();
+  // handle joystick-based navigation (drive around). The resulting
+  // navigation matrix is automagically transferred to the slaves.
+  navUpdate();
 
-    // update the input state (placement matrix & button states) of our effector.
-    _effector.updateState( getInputState() );
+  // update the input state (placement matrix & button states) of our effector.
+  _effector.updateState( getInputState() );
 
-    // Handle any interaction with the square (see interaction/arInteractionUtilities.h).
-    // Any grabbing/dragging happens in here.
-    ar_pollingInteraction( _effector, (arInteractable*)&_square );
+  // Handle any interaction with the square (see interaction/arInteractionUtilities.h).
+  // Any grabbing/dragging happens in here.
+  ar_pollingInteraction( _effector, (arInteractable*)&_square );
 
-    // Pack data destined for slaves into appropriate variables
-    // (bools transfer as ints).
-    _squareHighlightedTransfer = (int)_square.getHighlight();
-    _squareMatrixTransfer = _square.getMatrix();
-  }
+  // Pack data destined for slaves into appropriate variables
+  // (bools transfer as ints).
+  _squareHighlightedTransfer = (int)_square.getHighlight();
+  _squareMatrixTransfer = _square.getMatrix();
 }
 
 // Method called after transfer of data from master to slaves. Mostly used to
