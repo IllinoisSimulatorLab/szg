@@ -46,7 +46,11 @@ void arSpeechNode::_initVoice() {
 void arSpeechNode::_deleteVoice() {
 #ifdef EnableSpeech
   if (_voice != NULL) {
+#if defined(__cplusplus) && !defined(CINTERFACE)
     _voice->Release();
+#else
+    ISpVoice_Release( _voice );
+#endif
     _voice = NULL;
     ::CoUninitialize();
   }
@@ -119,11 +123,19 @@ void arSpeechNode::_speak( const std::string& speechText ) {
     }
     text[numChars] = (WCHAR)0;
 
+#if defined(__cplusplus) && !defined(CINTERFACE)
     (void)_voice->Speak( (const WCHAR *)text, SPF_ASYNC | SPF_IS_XML, NULL );
+#else
+    (void)ISpVoice_Speak( _voice, (const WCHAR *)text, SPF_ASYNC | SPF_IS_XML, NULL );
+#endif
     
     delete[] text;
   } else {
+#if defined(__cplusplus) && !defined(CINTERFACE)
     (void)_voice->Speak( (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
+#else
+    (void)ISpVoice_Speak( _voice, (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
+#endif
   }
 #endif
 }

@@ -15,7 +15,7 @@
 #endif
 
 #ifdef EnableSpeech
-#include <sapi.h>
+#include "arSapi.h"
 #endif
 
 // Utterance in the scene graph.

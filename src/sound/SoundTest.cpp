@@ -13,6 +13,7 @@
 int fooID = -1;
 int barID = -1;
 int zipID = -1;
+int speechID = -1;
 
 #ifdef AR_USE_WIN_32
 inline float drand48(){
@@ -34,6 +35,7 @@ void initDatabase(){
   fooID = dsLoop("foo", "root", "parade.wav", 0, 0.0, xyz);
   barID = dsLoop("bar", "root", "q33move.mp3", 1, 0.3, xyz);
   zipID = dsLoop("zip", "root", "q33collision.wav", 0, 0.0, xyz);
+  speechID = dsSpeak("speech", "root", "Starting up" );
   (void)dsLoop("unchanging", "root", "q33beep.wav", 1, 0.1, xyz);
 
   /* A picture of this database:
@@ -67,6 +69,7 @@ void changeDatabase(){
   dsLoop(fooID, "parade.wav", (trigger%20==0)?-1:0, 0.8, xyz);
   dsLoop(barID, "q33move.mp3", 1, 0.2, xyz);
   dsLoop(zipID, "q33collision.wav", (trigger%6==0)?-1:0, .8, xyz);
+  dsSpeak(speechID, "I can talk." );
 }
 
 int main(int argc, char** argv){
@@ -93,8 +96,8 @@ int main(int argc, char** argv){
   initDatabase();
 
   while (szgClient.running()){
+    ar_usleep(5000000);
     changeDatabase();
-    ar_usleep(500000);
   }
   szgClient.messageTaskStop();
   return 0;
