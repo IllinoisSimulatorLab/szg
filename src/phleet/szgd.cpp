@@ -1069,7 +1069,7 @@ LGonnaRetry:
 
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_remark() << "szgd set log level to " << messageBody << ar_endl;
+        ar_log_critical() << "szgd set log level to " << messageBody << ar_endl;
       } else {
         ar_log_error() << "szgd ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";

@@ -55,7 +55,7 @@ LQuit:
 
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_remark() << "SoundRender set log level to " << messageBody << ar_endl;
+        ar_log_critical() << "SoundRender set log level to " << messageBody << ar_endl;
       } else {
         ar_log_error() << "SoundRender ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";

@@ -180,7 +180,7 @@ LDie:
     }
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_remark() << "DeviceServer set log level to " << messageBody << ar_endl;
+        ar_log_critical() << "DeviceServer set log level to " << messageBody << ar_endl;
       } else {
         ar_log_error() << "DeviceServer ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";

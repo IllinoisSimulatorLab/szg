@@ -67,7 +67,7 @@ void messageTask(void* pClient){
 
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_remark() << "szgrender set log level to " << messageBody << ar_endl;
+        ar_log_critical() << "szgrender set log level to " << messageBody << ar_endl;
       } else {
         ar_log_error() << "szgrender ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";

@@ -2251,7 +2251,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_remark() << getLabel() << " set log level to " << messageBody << ar_endl;
+        ar_log_critical() << getLabel() << " set log level to " << messageBody << ar_endl;
       } else {
         ar_log_error() << getLabel() << " ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";
