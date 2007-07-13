@@ -39,8 +39,10 @@ int main(int argc, char** argv) {
   // automatically.  Ascension Spacepad needs Win98.
   const bool fInit = szgClient.init(argc, argv, "DeviceServer");
   if (!szgClient) {
+    ar_log_error() << "DeviceServer failed to init arSZGClient.\n";
     return szgClient.failStandalone(fInit);
   }
+  ar_log_debug() << "DeviceServer inited arSZGClient.\n";
 
   // At most one instance per host.
   int ownerID = -1;
@@ -175,6 +177,14 @@ LDie:
     }
     else if (messageType=="dumpoff") {
       fileSink.stop();
+    }
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << "DeviceServer set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << "DeviceServer ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
     } else {
       arInputSource* driver = driverFactory.findInputSource( messageType );
       if (driver) {
@@ -182,7 +192,7 @@ LDie:
 	                      << "/" << messageBody << ".\n";
         driver->handleMessage( messageType, messageBody );
       } else {
-        ar_log_warning() << "DeviceServer ignoring unrecognized messageType '"
+        ar_log_error() << "DeviceServer ignoring unrecognized messageType '"
                          << messageType << "'.\n";
       }
     }

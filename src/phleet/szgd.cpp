@@ -1066,6 +1066,15 @@ LGonnaRetry:
         userName, messageBody, messageContext, receivedMessageID, timeoutMsec));
 	// new is matched by execProcess()'s delete.
     }
+
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << "szgd set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << "szgd ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
+    }
   }
   return 1;
 }

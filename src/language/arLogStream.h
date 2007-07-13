@@ -32,6 +32,7 @@ enum{
 
 SZG_CALL int ar_stringToLogLevel(const string&);
 SZG_CALL string ar_logLevelToString(int);
+SZG_CALL bool ar_setLogLevel( const string& level );
 
 class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_log_critical();

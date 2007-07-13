@@ -65,6 +65,15 @@ void messageTask(void* pClient){
       graphicsClient.drawFrameworkObjects(fDrawPerformance);
     }
 
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << "szgrender set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << "szgrender ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
+    }
+
     else if (messageType=="screenshot"){
       // copypaste with framework/arMasterSlaveFramework.cpp
       if (dataPath == "NULL"){

@@ -9,6 +9,11 @@
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
+bool ar_setLogLevel( const string& level ) {
+  return ar_log().setLogLevel( ar_stringToLogLevel( level ) );
+}
+
+
 int ar_stringToLogLevel(const string& logLevel){
   if (logLevel == "SILENT")
     return AR_LOG_SILENT;

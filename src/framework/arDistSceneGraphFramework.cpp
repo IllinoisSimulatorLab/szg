@@ -37,6 +37,14 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       f->stop(true);
       exit(0);
     }
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << f->getLabel() << " set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << f->getLabel() << " ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
+    }
     else if (messageType=="demo") {
       f->setFixedHeadMode(messageBody=="on");
     }

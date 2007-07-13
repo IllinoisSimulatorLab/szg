@@ -2249,6 +2249,14 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
       // External thread will exit().
     }
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << getLabel() << " set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << getLabel() << " ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
+    }
     else if ( messageType== "performance" ) {
       _showPerformance = messageBody == "on";
     }

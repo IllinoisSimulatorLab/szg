@@ -220,6 +220,8 @@ private:
 
   bool _resetHeading( unsigned  int trackerID, unsigned  int stationID );
 
+  void _closeAll();
+
   vector< IsenseTracker > _trackers;
 
   int _sleepTime; // How many ticks to pause at each polling of trackers.

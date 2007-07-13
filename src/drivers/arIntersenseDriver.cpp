@@ -123,6 +123,7 @@ bool IsenseTracker::configure( arSZGClient& client ) {
         done if it fails unless you can unload the Dll.
     */
 bool IsenseTracker::ar_close() {
+  ar_log_warning() << "Closing tracker with id = " << _id << ar_endl;
   Bool success = TRUE;
   if ( _isValidHandle( _handle ) ) {
     success = ISD_CloseTracker( _handle );
@@ -625,6 +626,7 @@ arIntersenseDriver::arIntersenseDriver() {
 }
 
 arIntersenseDriver::~arIntersenseDriver() {
+//  _closeAll();
   _trackers.clear();
 }
 
@@ -756,9 +758,7 @@ bool arIntersenseDriver::_open( DWORD port ) {
   }
   // Close down if we cannot start.
   if ( !created ) {
-    for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
-      iter->ar_close();
-    }
+    _closeAll();
   }
   return created;
 }
@@ -860,3 +860,12 @@ bool arIntersenseDriver::_resetHeading( unsigned int trackerID, unsigned int sta
   }
   return ISD_ResetHeading( _trackers[trackerID].getHandle(), stationID );
 }
+
+void arIntersenseDriver::_closeAll() {
+  vector< IsenseTracker >::iterator iter;
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    iter->ar_close();
+  }
+  ar_log_warning() << "All Intersense trackers closed.\n";
+}
+

@@ -52,6 +52,16 @@ LQuit:
       if (!loadParameters(*cli))
         exit(0);
     }
+
+    else if (messageType=="log") {
+      if (ar_setLogLevel( messageBody )) {
+        ar_log_remark() << "SoundRender set log level to " << messageBody << ar_endl;
+      } else {
+        ar_log_error() << "SoundRender ignoring unrecognized loglevel '"
+                         << messageBody << "'.\n";
+      }
+    }
+
     else if (messageType=="szg_sound_stream_info"){
       const string response(soundClient->processMessage(messageType,messageBody));
       cli->messageResponse(sendID, response);
