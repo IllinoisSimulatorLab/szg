@@ -29,7 +29,7 @@ void arFrameworkEventFilter::flushEventQueue() {
 }
 
 bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {
-  if (_saveEventQueue) {
+  if (_saveEventQueue && (inputEvent.getType() != AR_EVENT_GARBAGE)) {
     queueEvent( inputEvent );
   }
   return true;
@@ -49,7 +49,7 @@ bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {
     }
     ok = _callback( *_framework, inputEvent, *this );
   }
-  if (_saveEventQueue) {
+  if (_saveEventQueue && (inputEvent.getType() != AR_EVENT_GARBAGE)) {
     queueEvent( inputEvent );
   }
   return ok;

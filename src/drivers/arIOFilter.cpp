@@ -37,10 +37,15 @@ bool arIOFilter::filter( arInputEventQueue* inputQueue, arInputState* inputState
       if (event) {
         _outputQueue.appendEvent( event );
         inputState->update( event ); // value may have changed
-      } else {
-        // Was trashed, so zero out appropriate slot in state.
-        inputState->update( arInputEvent( eventType, eventIndex ) );
       }
+      // I'm thinking this was a mistake; if event was deleted,
+      // it should have no effect on input state.
+//      else {
+        // Was trashed, so zero out appropriate slot in state.
+//        inputState->update( arInputEvent( eventType, eventIndex ) );
+//      }
+      // _tempQueue only contains events (if any) inserted by call
+      // to insertNewEvent() inside _processEvent().
       _outputQueue.appendQueue( _tempQueue );
       while (!_tempQueue.empty()) {
         event = _tempQueue.popNextEvent();

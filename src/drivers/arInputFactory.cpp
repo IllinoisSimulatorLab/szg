@@ -181,7 +181,7 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
   return theFilter;
 }
 
-#else
+#else // AR_LINKING_STATIC
 
 // Various device driver headers.
 

@@ -101,13 +101,13 @@ the STLPort STL headers or Visual Studio .NET without)
 or the MinGW implementation of the GNU g++ compiler and linker.
 Note that not all functionality is available when compiling
 with g++ on Windows: You can't currently compile scene graph plugins
-or Python bindings, and speech synthesis and .3ds file support are
+or Python bindings, and .3ds file support is
 also unavailable. The device drivers for joysticks, Intel gamepads,
 and the SpacePad are also unavailable (see
 [Supported Input Devices InputDevices-Drivers.html].
 However, we can supply you with precompiled binaries of
-the device drivers, Python bindings, and SoundRender for speech
-synthesis in Cluster Mode.
+the device drivers and Python bindings. //New in 1.2//: Speech synthesis
+is now supported when using the MinGW g++ compiler.
 
   - You will need a Unix-like environment for Windows that provides a
 GNU make utility. We have tested two, MinGW/MSYS and Cygwin. If you're

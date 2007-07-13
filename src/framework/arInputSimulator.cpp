@@ -38,31 +38,31 @@ arInputSimulator::arInputSimulator() :
 
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
-  if (mouseButtonString == "NULL") {
+  if (mouseButtonString != "NULL") {
+    const int numItems = mouseButtonString.size();
+    int* mouseButtons = new int[numItems];
+    if (!mouseButtons) {
+      ar_log_warning() << "arInputSimulator out of memory.\n";
+      return false;
+    }
+    const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
+    if (numValues != numItems) {
+      ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
+      delete[] mouseButtons;
+    } else {
+      vector<unsigned> mouseButtonsVector;
+      for (int i=0; i<numValues; ++i) {
+        mouseButtonsVector.push_back( mouseButtons[i] );
+      }
+      delete[] mouseButtons;
+      if (!setMouseButtons( mouseButtonsVector )) {
+        ar_log_warning() << "arInputSimulator setMouseButtons() failed in configure().\n";
+      }
+    }
+  } else {
     ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
-    return false;
   }
 
-  const int numItems = mouseButtonString.size();
-  int* mouseButtons = new int[numItems];
-  if (!mouseButtons) {
-    ar_log_warning() << "arInputSimulator out of memory.\n";
-    return false;
-  }
-  const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
-  if (numValues != numItems) {
-    ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
-    delete[] mouseButtons;
-  } else {
-    vector<unsigned> mouseButtonsVector;
-    for (int i=0; i<numValues; ++i) {
-      mouseButtonsVector.push_back( mouseButtons[i] );
-    }
-    delete[] mouseButtons;
-    if (!setMouseButtons( mouseButtonsVector )) {
-      ar_log_warning() << "arInputSimulator setMouseButtons() failed in configure().\n";
-    }
-  }
   const int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
     ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events " << numButtonEvents
