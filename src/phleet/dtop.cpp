@@ -42,11 +42,22 @@ void messageTask(void* pClient)
         }
     }
     else {
-      // szgserver might have died.
+      // szgserver probably died
       fDone = 2;
       return;
       }
   }
+}
+
+// Handle window-resize (from putty or xterm).
+#include <signal.h>
+void resizeHandler(int /*sig*/)
+{
+  int nh, nw;
+  getmaxyx(stdscr, nh, nw);
+  endwin();
+  resizeterm(nh, nw);
+  refresh();
 }
 
 void update(const string& lines)
@@ -105,12 +116,12 @@ void update(const string& lines)
 	// previously inserted
         break;
       }
-    for (ihost=0; ihost<chost; ihost++)
+    for (ihost=0; ihost<chost; ++ihost)
       {
       if (strcmp(host, hosts[ihost]))
         continue;
-      // found the host.  append task to that host's list.
-      for (int itask=0; itask<ctask; itask++)
+      // Found the host.  Append task to that host's list.
+      for (int itask=0; itask<ctask; ++itask)
         {
 	if (!*tasks[ihost][itask])
 	  {
@@ -120,7 +131,7 @@ void update(const string& lines)
 	}
       }
 LBreak:
-    for (int itask=0; itask<ctask; itask++)
+    for (int itask=0; itask<ctask; ++itask)
       {
       if (!*taskOrder[itask])
         {
@@ -138,34 +149,25 @@ LBreak:
   }
 
   // Traverse the data structure and print it out.
-  for (int ihost=0; ihost<chost; ihost++)
-    {
+  for (int ihost=0; ihost<chost; ihost++) {
     if (!*hosts[ihost])
       // end of list
       break;
 
     if (fColor){
-#ifndef AR_USE_SGI
-      //************* not sure if this is necessary... but SGI chokes
-      // on this statement
       color_set(7, NULL);
-#endif
     }
     else{
       standout();
     }
     mvprintw(++y, 1, "%s", hosts[ihost]);
     if (fColor){
-#ifndef AR_USE_SGI
-      //************** not sure if this is necessary... but SGI chokes 
-      // on this statement
       color_set(0, NULL);
-#endif
     }
     else{
       standend();
     }
-    for (int itask=0; itask<ctask; itask++)
+    for (int itask=0; itask<ctask; ++itask)
       {
       const char* task = tasks[ihost][itask];
       if (!*task)
@@ -188,13 +190,9 @@ LBreak:
 	    break;
 	    }
 	  }
-#ifndef AR_USE_SGI
-	//******* not sure if this is necessary... but SGI chokes
-	// on this statement
         color_set(taskColor, NULL);
-#endif
 	}
-      int x = 12 + itask * (cchTask+1);
+      const int x = 12 + itask * (cchTask+1);
       mvprintw(y, x, "%s ", task);
       }
     }
@@ -203,6 +201,7 @@ LBreak:
 }
 
 int main(int argc, char** argv){
+  signal(SIGWINCH, &resizeHandler);
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -264,13 +263,13 @@ LUsage:
 
   arThread dummy(messageTask, &szgClient);
   while (!fDone) { 
-    const string& s(szgClient.getProcessList());
     if (fVisible) {
-      update(s);
+      update(szgClient.getProcessList());
       if (getch() == 'q')
 	break;
     }
   }
+
   endwin();
   szgClient.messageTaskStop();
   if (fDone == 2)
