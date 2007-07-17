@@ -29,6 +29,7 @@ OBJS := \
 # it gets built into libarDrivers.
 
 OBJS_DRIVER := \
+  arJoystickDriver$(OBJ_SUFFIX) \
   arSerialSwitchDriver$(OBJ_SUFFIX) \
   arBirdWinDriver$(OBJ_SUFFIX) \
   arEVaRTDriver$(OBJ_SUFFIX) \
@@ -51,7 +52,6 @@ OBJS_DRIVER := \
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
   OBJS_DRIVER += \
   arSpacepadDriver$(OBJ_SUFFIX) \
-  arJoystickDriver$(OBJ_SUFFIX) \
   arIntelGamepadDriver$(OBJ_SUFFIX)
 endif
 
@@ -97,7 +97,9 @@ ifeq ($(strip $(MACHINE)),WIN32)
   PRE_LINK_GAMEPAD = $(GAMEPAD_LIBS)
   POST_LINK_GAMEPAD =
 
-  POST_LINK_TIMER = winmm.lib
+	ifneq ($(strip $(SZG_COMPILER)),MINGW)
+		POST_LINK_TIMER = winmm.lib
+  endif
 else
   PRE_LINK_VRPN = 
   POST_LINK_VRPN = $(SZG_LINK_VRPN)

@@ -16,7 +16,7 @@ EXE = .exe
 # compilation
 COMPILER = g++
 COMPILE_FLAGS_NDEBUG = -DAR_USE_WIN_32 -DAR_USE_MINGW -DGLUT_NO_LIB_PRAGMA \
-  -DGLUT_NO_WARNING_DISABLE -DGLUT_DISABLE_ATEXIT_HACK -c -O2 -Wall -W  -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
+  -DGLUT_NO_WARNING_DISABLE -DGLUT_DISABLE_ATEXIT_HACK -c -O2 -Wall -W -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
 COMPILE_FLAGS_DEBUG = -DAR_USE_WIN_32 -DAR_USE_MINGW -DGLUT_NO_LIB_PRAGMA \
   -DGLUT_NO_WARNING_DISABLE -DGLUT_DISABLE_ATEXIT_HACK -c -g -Wall -W -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
 # Do NOT use ":=" in defining COMPILE_FLAGS, since this allows more
@@ -49,7 +49,7 @@ LINK_FLAGS = -o
 LINK_FLAGS_DEBUG = $(LINK_FLAGS)
 LINK_FLAGS_SHARED = -shared -o
 LINK_FLAGS_PLUGIN = -shared -o
-GENERAL_LIBS = -ladvapi32 -lkernel32 -luser32 -lgdi32 -lwsock32
+GENERAL_LIBS = -ladvapi32 -lkernel32 -luser32 -lgdi32 -lwsock32 -lwinmm
 # NOTE: glut does not appear below but is instead dealt with in
 # Makefile.libscan (we might not want to install a glut, but instead
 # use one from SZGEXTERNAL)
@@ -61,7 +61,7 @@ PRE_LIB_SEARCH_FLAGS =
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
   LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
 else
-  LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup
+  LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup --enable-runtime-pseudo-reloc --compat-implib
 endif
 
 PRE_LINK_LINE_LIB= 

@@ -37,15 +37,19 @@ Windows users need to take some extra care in compiling their programs.
   be a problem. The Visual Studio linker is called "link" and some installs of
   cygwin may also install a "link" program. If, during your build, you see
   an error message like:
-
 ```
   link error: too many arguments
 ```
-
-You will know you are getting the cygwin "link" program by mistake. You can
-solve this problem by typing "which link", seeing where the cygwin "link"
-resides, and removing it, or you can make sure your PATH environment
-variable has the Visual Studio program in it first.
+  You will know you are getting the cygwin "link" program by mistake. You can
+  solve this problem by typing "which link", seeing where the cygwin "link"
+  resides, and removing it, or you can make sure your PATH environment
+  variable has the Visual Studio program in it first.
+- If you are using the MinGW g++ on Windows (environment variable SZG_COMPILER=MINGW)
+  then you can only build static-link versions of the Syzygy libraries
+  (environment variable SZG_LINKING=STATIC). The build will skip
+  the arSpacepadDriver and arIntelGamepadDriver input device drivers.
+  However, unlike the Microsoft compilers, MinGW g++ can compile the
+  Syzygy Python bindings with static linking enabled.
 
 
 =Environment Variables=[Environment]
@@ -138,7 +142,8 @@ the **first** non-comment line in every .cpp file must be:
 ```
   #include "arPrecompiled.h"
 ```
-On Unix this does nothing.  On Windows, omitting this causes compile errors.
+On Unix this does nothing.  On Windows (using Visual C++, anyway), omitting this
+causes compile errors.
 
 - Within the Syzygy core, the **last** Syzygy include file in, say, drivers/*.cpp 
 must be:

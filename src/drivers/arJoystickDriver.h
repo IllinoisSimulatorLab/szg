@@ -13,6 +13,25 @@
 
 // Driver for (USB) joysticks or gamepads.
 
+#ifdef AR_USE_MINGW
+
+#define MAX_JOYSTICKS	16
+#define MAX_AXES	6	// per joystick
+#define MAX_BUTTONS	32	// ditto
+
+struct JoystickInfo {
+	unsigned index;
+	int numAxes;
+	int axes[MAX_AXES];
+  int axisOffsets[MAX_AXES];
+  float axisScales[MAX_AXES];
+	int numButtons;
+	unsigned int buttons[MAX_BUTTONS];
+  UINT systemID;
+  JOYCAPS capabilities;
+};
+#endif
+
 class SZG_CALL arJoystickDriver: public arInputSource{
   friend void ar_joystickDriverEventTask(void*);
  public:
@@ -33,9 +52,15 @@ class SZG_CALL arJoystickDriver: public arInputSource{
 #endif
   
 #ifdef AR_USE_WIN_32
+#ifdef AR_USE_MINGW
+  void _printMMError( const string funcName, int errCode );
+  int _numJoysticks;
+  struct JoystickInfo _joysticks[MAX_JOYSTICKS];
+#else
   IDirectInputDevice2* _pStick;
   DIJOYSTATE2 _jsPrev;
   bool _fFirst;
+#endif
 #endif
 };
 

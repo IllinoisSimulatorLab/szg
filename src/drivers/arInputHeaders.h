@@ -14,12 +14,12 @@
 #endif
 
 #ifdef AR_USE_WIN_32
+#include <mmsystem.h>
 #ifndef AR_USE_MINGW
 // Force DirectInput 7, so the device type is JOYSTICK_GAMEPAD.
 // Later DirectInputs have seperate JOYSTICK and gamepad types, yuck.
 #define DIRECTINPUT_VERSION 0x700
 #include <dinput.h>
-#include <mmsystem.h>
 static BOOL CALLBACK DIDevCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
   // Return the FIRST joystick to the arJoystickDriver.

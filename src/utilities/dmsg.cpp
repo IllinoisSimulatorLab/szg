@@ -127,20 +127,20 @@ LPrintUsage:
       launcher.setSZGClient(&szgClient);
       launcher.setVircomp(argv[1]);
       if (!launcher.setParameters()){
-	cout << "dmsg error: invalid virtual computer definition.\n";
-	return 1;
+        cout << "dmsg error: invalid virtual computer definition.\n";
+        return 1;
       }
       const string lockName = launcher.getMasterName();
       if (!szgClient.getLock(lockName, componentID)){
-	// something is indeed running on the master screen
-	messageType = string(argv[2]);
-	messageBody = argc == 4 ? string(argv[3]) : string("NULL");
+        // something is indeed running on the master screen
+        messageType = string(argv[2]);
+        messageBody = argc == 4 ? string(argv[3]) : string("NULL");
       }
       else{
-	// nobody was holding the lock
-	szgClient.releaseLock(lockName);
-	cout << "dmsg error: no component running on master screen.\n";
-	return 1;
+        // nobody was holding the lock
+        szgClient.releaseLock(lockName);
+        cout << "dmsg error: no component running on master screen.\n";
+        return 1;
       }
     }
     break;
@@ -154,20 +154,20 @@ LPrintUsage:
       launcher.setSZGClient(&szgClient);
       launcher.setVircomp(argv[1]);
       if (!launcher.setParameters()){
-	cout << "dmsg error: invalid virtual computer definition.\n";
-	return 1;
+        cout << "dmsg error: invalid virtual computer definition.\n";
+        return 1;
       }
       const string lockName = launcher.getScreenName(atoi(argv[2]));
       if (!szgClient.getLock(lockName, componentID)){
-	// something is indeed running on the screen in question
-	messageType = string(argv[3]);
-	messageBody = argc == 5 ? string(argv[4]) : string("NULL");
+        // something is indeed running on the screen in question
+        messageType = string(argv[3]);
+        messageBody = argc == 5 ? string(argv[4]) : string("NULL");
       }
       else{
-	// nobody else was holding the lock
-	szgClient.releaseLock(lockName);
-	cout << "dmsg error: no component running on specified screen.\n";
-	return 1;
+        // nobody else was holding the lock
+        szgClient.releaseLock(lockName);
+        cout << "dmsg error: no component running on specified screen.\n";
+        return 1;
       }
     }
     break;
@@ -241,18 +241,18 @@ LPrintUsage:
       int remoteMatch;
       const int status = szgClient.getMessageResponse(tags, responseBody, remoteMatch);
       if (status == 0){
-	// failure
+        // failure
         cout << "dmsg error: no message response.\n";
-	break;
+        break;
       }
       else if (status == -1){
-	// continuation
-	cout << responseBody << "\n";
+        // continuation
+        cout << responseBody << "\n";
       }
       else if (status == 1){
-	// final response
-	cout << responseBody << "\n";
-	break;
+        // final response
+        cout << responseBody << "\n";
+        break;
       }
       else
         cout << "dmsg error: unexpected message response status " << status << ".\n";

@@ -151,7 +151,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool allSlavesReady();
   // How many slaves are currently connected?
   int getNumberSlavesConnected( void ) const;
-  
+
+  bool sendMasterMessage( const string& messageBody );
 
   // Three ways to share data from the master to the slaves.
 

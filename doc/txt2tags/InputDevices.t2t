@@ -83,6 +83,7 @@ their input events on the network for other Syzyzy programs to read.
 The generic event-reader DeviceClient can listen to either of these two
 and print out the events it receives.
 
+
 ==Running a DeviceServer and testing it with DeviceClient==
 
 ```
@@ -115,6 +116,7 @@ DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
   DeviceServer.  If you pick a different input_slot, of course, the DeviceClient
   will "tune to a different station" and listen to any DeviceServer
   transmitting on that slot.
+
 
 ==Sending joystick data from one computer to other computers==
 
@@ -162,6 +164,7 @@ and reverses axis 1:
 ```
   DeviceServer -s arJoystickDriver 0 joystick_scaledown
 ```
+
 
 ==Configuration of Input Devices==
 

@@ -1207,6 +1207,24 @@ int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
   return _numSlavesConnected;
 }
 
+bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
+  const string lockName = _launcher.getMasterName();
+  int processID;
+  if (_SZGClient.getLock( lockName, processID )) {
+    // nobody was holding the lock, i.e. no master present
+    _SZGClient.releaseLock( lockName );
+    ar_log_error() << "sendMasterMessage() couldn't get the master process ID.\n";
+    return false;
+  }
+  int responseMatchIndex = _SZGClient.sendMessage( "user", messageBody, processID, false );
+  if (responseMatchIndex == -1) {
+    ar_log_error() << "sendMasterMessage() failed to send the message.\n";
+    return false;
+  }
+  return true;
+}
+
+
 bool arMasterSlaveFramework::addTransferField( string fieldName,
                                                void* data,
                                                arDataType dataType,

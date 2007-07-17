@@ -47,9 +47,9 @@ example) SZG_IMPORT_LANGUAGE symbol, but our .cpp is not part of the dll).
       #define SZG_CALL __declspec(dllimport)
     #else
       #ifdef SZG_IMPORT_LIBRARY
-	#define SZG_CALL __declspec(dllimport)
+        #define SZG_CALL __declspec(dllimport)
       #else
-	#define SZG_CALL __declspec(dllexport)
+        #define SZG_CALL __declspec(dllexport)
       #endif
     #endif
   #else

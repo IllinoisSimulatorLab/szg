@@ -485,6 +485,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   int getNumberSlavesExpected();
   bool allSlavesReady();
   int getNumberSlavesConnected( void ) const;
+  bool sendMasterMessage( const string& messageBody );
   
   double getTime() const;
   double getLastFrameTime() const;

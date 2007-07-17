@@ -117,7 +117,9 @@ input devices; instead, they loaded and displayed the
 [tracking simulator TrackingSim.html], which allows the user to simulate
 a tracked head and wand using the mouse and keyboard.
 
-Now, however, standalone applications can load input device drivers. The choice
+Now, however, standalone applications can load input device drivers
+//provided they are linked against dynamic-link versions of the Syzygy libraries//
+(i.e. SZG_LINKING=DYNAMIC). The choice
 between the tracking simulator and a device driver is made using the
 database parameter SZG_STANDALONE/input_config, which defaults to
 "simulator". If given any other value, this is assumed to be the name

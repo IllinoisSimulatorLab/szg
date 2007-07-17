@@ -57,12 +57,6 @@ used to produce the executables on Mac OS X.
 used to produce the executables on Irix.
 
 
-==Development Template Packages==
-
-  - szg_app_template-1.1.tar.gz: A cross-platform build structure
-for C++ projects.
-
-
 =A Note about GLUT=
 
 We're gradually phasing the GLUT dependency out of Syzygy. GLUT is no longer used
@@ -70,8 +64,6 @@ for window mangagement, but it is still used in a few places for rendering
 (e.g. using glutWireSphere() to draw a wireframe sphere). These are the only
 GLUT commands that you can use in your programs, and if you do use them you should
 include the header arGlut.h.
-
-Hopefully the GLUT dependency will be completely removed by version 1.2.
 
 
 =OS-Specific Build Instructions=[OSBuildInstructions]
@@ -100,14 +92,16 @@ Visual Studio compiler and linker (either Visual Studio 6 with
 the STLPort STL headers or Visual Studio .NET without)
 or the MinGW implementation of the GNU g++ compiler and linker.
 Note that not all functionality is available when compiling
-with g++ on Windows: You can't currently compile scene graph plugins
-or Python bindings, and .3ds file support is
-also unavailable. The device drivers for joysticks, Intel gamepads,
+with g++ on Windows: You can't currently compile scene graph plugins.
+The device drivers for Intel wireless gamepads,
 and the SpacePad are also unavailable (see
 [Supported Input Devices InputDevices-Drivers.html].
 However, we can supply you with precompiled binaries of
-the device drivers and Python bindings. //New in 1.2//: Speech synthesis
-is now supported when using the MinGW g++ compiler.
+the device drivers. //New in 1.2//: Speech synthesis, .3ds model files,
+and joysticks are now supported when using the MinGW g++ compiler. It
+turns out that it was possible to build the Python bindings all along,
+presumably because the MinGW runtime is linked against the dynamic-linked
+Microsoft runtime library.
 
   - You will need a Unix-like environment for Windows that provides a
 GNU make utility. We have tested two, MinGW/MSYS and Cygwin. If you're
@@ -260,7 +254,8 @@ systems:
   //New in Syzygy 1.2//: You can now compile input device drivers and the
   DeviceServer program with static linking. The device drivers are linked
   directly into the DeviceServer executable instead of each comprising its
-  own shared library.
+  own shared library. Building the Python bindings with static linking enabled
+  appears to work with the MinGW g++ compiler, but scene graph plugins don't.
 
 - SZG_DEVELOPER_STYLE: (optional, and no longer supported) If set to "EASY", the build
   assumes that the Syzygy headers and libraries are arranged as in one of
@@ -298,13 +293,13 @@ for your platform (if any):
 
   - If using Visual Studio 6, you must install STLport as
     outlined [here SupportingLibraries.html],
-    and SZG_STLPORT must be set to "TRUE". 
+    and SZG_STLPORT must be set to "TRUE".
 
   - If using Visual Studio .NET, do NOT use STLport.
-    SZG_STLPORT must be unset or "FALSE". 
+    SZG_STLPORT must be unset or "FALSE".
 
   - Remember to set paths appropriately as outlined in
-  [Syzygy Build Environment Variables #BuildEnvVar]. 
+  [Syzygy Build Environment Variables #BuildEnvVar].
 
 - OS X: Because Syzygy depends on X11, you must have the
   developer version installed on your machine.

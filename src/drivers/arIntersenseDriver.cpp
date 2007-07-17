@@ -52,9 +52,11 @@ bool IsenseTracker::ar_open( DWORD port = 0 ) {
       statIter->setTrackerHandle( _handle );
     }
   } else {   
-    ar_log_warning() << "IntersenseDriver::failed to open tracker on port "
-         << port << ".  "
-         << "Set verbosity to true to see reason for failure." << "\n";
+    ar_log_error() << "IntersenseDriver::failed to open tracker on port "
+         << port << ".\n";
+    if (!USE_VERBOSE) {
+      ar_log_error() << "Set verbosity to true to see reason for failure.\n";
+    }
   }
   return success;
 }

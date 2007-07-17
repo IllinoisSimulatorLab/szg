@@ -10,7 +10,6 @@
 #define AR_INTERSENSE_DRIVER_H 1
 
 #include "arInputSource.h"
-#include "arInputHeaders.h"
 #include "isense.h"
 
 #include "arDriversCalling.h"

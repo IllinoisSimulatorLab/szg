@@ -21,11 +21,13 @@ These parameters have a service name corresponding to a
 parameter group (e.g., SZG_JOYSTICK for joystick
 devices). They are associated with the computer running DeviceServer.
 
+
 =Device Drivers in the Base Distribution=
 
 The following device drivers interface with a single hardware device.
 For examples with parameters, replace <computer>
 with the name of the computer running DeviceServer.
+
 
 ==Joystick==
 
@@ -35,7 +37,10 @@ with the name of the computer running DeviceServer.
 
 For a host with a joystick.@@
 Linux uses /dev/js0.@@
-Windows uses the default DirectInput joystick.@@
+Windows uses the default DirectInput joystick if the driver was built
+using one of the Microsoft compilers. If built with MinGW g++, it
+detects //all// connected joysticks and amalgamates them into a single
+input device.@@
 Has 20 axes and 20 buttons.@@
 
 
@@ -103,6 +108,7 @@ Corrects for angled transmitter antenna.
 Corrects for sensors mounted at an angle.  Here, sensor 1 (wand) has been
 rolled 90 degrees to the left about the vector (0,0,1), i.e., the z-axis.
 
+
 ==Ascension Flock of Birds==[FOB]
 
 - Loadable module: arFOBDriver
@@ -143,6 +149,7 @@ Corrects for angled transmitter, just like [SpacePad #SpacePad].
 ``` <computer> SZG_TRACKER sensor1_rot 0/0/1/90
   A rotation by which we pre-multiply the device's matrix, to correct for angled birds.
 Same as [SpacePad #SpacePad].
+
 
 ==Ascension Flock of Birds (proprietary)==
 

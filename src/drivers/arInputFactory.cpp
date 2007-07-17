@@ -186,11 +186,11 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
 // Various device driver headers.
 
 #ifndef AR_USE_MINGW
-#include "arJoystickDriver.h"
 #include "arIntelGamepadDriver.h"
 #include "arSpacepadDriver.h"
 #endif
 
+#include "arJoystickDriver.h"
 #include "arMotionstarDriver.h"
 #include "arFOBDriver.h"
 #include "arBirdWinDriver.h"
@@ -254,11 +254,8 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
       // ConcreteFactory (see Design Patterns).
       switch (iService) {
       case 0:
-#ifndef AR_USE_MINGW
         theSource = new arJoystickDriver;
-#else
         ar_log_error() << "arJoystickDriver not supported with g++ (MinGW compiler) on Windows.\n";
-#endif
         break;
       case 1:
 #ifndef AR_USE_MINGW

@@ -11,7 +11,8 @@ input devices.
 //New in Syzygy 1.2//: This section is now relevant to running programs in
 [Standalone Mode Standalone.html] as well as in Cluster Mode
 (see [Distributed OS DistributedOS.html]); applications can now load
-input device drivers in Standalone Mode.
+input device drivers in Standalone Mode, provided the Syzygy libraries were
+built as dynamic-link libraries.
 
 % Table of Contents
 %%toc

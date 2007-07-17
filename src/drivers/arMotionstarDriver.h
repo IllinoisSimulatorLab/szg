@@ -7,7 +7,6 @@
 #define AR_MOTIONSTAR_DRIVER_H
 
 #include "arInputSource.h"
-#include "arInputHeaders.h"
 #include "birdnet.h"
 
 #include "arDriversCalling.h"

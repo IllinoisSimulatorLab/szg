@@ -6,6 +6,17 @@
 #include "arPrecompiled.h"
 #include "arJoystickDriver.h"
 
+#ifdef AR_USE_MINGW
+
+#define AXIS_MIN	-32768  /* minimum value for axis coordinate */
+#define AXIS_MAX	32767   /* maximum value for axis coordinate */
+/* limit axis to 256 possible positions to filter out noise */
+#define JOY_AXIS_THRESHOLD      (((AXIS_MAX)-(AXIS_MIN))/256)
+#define JOY_BUTTON_FLAG(n)	(1<<n)
+
+#endif
+
+
 DriverFactory(arJoystickDriver, "arInputSource")
 
 void ar_joystickDriverEventTask(void* joystickDriver){
@@ -35,6 +46,75 @@ void arJoystickDriver::_eventTask() {
 #endif
 
 #ifdef AR_USE_WIN_32
+#ifdef AR_USE_MINGW
+	MMRESULT result;
+	int i,j;
+	DWORD flags[MAX_AXES] = { JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ, 
+				  JOY_RETURNR, JOY_RETURNU, JOY_RETURNV };
+	DWORD pos[MAX_AXES];
+	int value, change;
+	JOYINFOEX joyInfo;
+  int axisNum;
+  int buttonNum;
+
+  while (!_shutdown) {
+    ar_usleep(10000); // 100 Hz
+    axisNum = 0;
+    buttonNum = 0;
+    for (j=0; j<_numJoysticks; ++j) {
+      struct JoystickInfo *joystick = _joysticks+j;
+      joyInfo.dwSize = sizeof(joyInfo);
+      joyInfo.dwFlags = JOY_RETURNALL|JOY_RETURNPOVCTS;
+      joyInfo.dwFlags &= ~(JOY_RETURNPOV|JOY_RETURNPOVCTS);
+      result = joyGetPosEx( joystick->systemID, &joyInfo );
+      if (result != JOYERR_NOERROR) {
+        _printMMError( "joyGetPosEx", result );
+        return;
+      }
+      pos[0] = joyInfo.dwXpos;
+      pos[1] = joyInfo.dwYpos;
+      pos[2] = joyInfo.dwZpos;
+      pos[3] = joyInfo.dwRpos;
+      pos[4] = joyInfo.dwUpos;
+      pos[5] = joyInfo.dwVpos;
+
+      for (i=0; i<joystick->numAxes; ++i) {
+        if (joyInfo.dwFlags & flags[i]) {
+          value = (int)(((float)pos[i] + joystick->axisOffsets[i]) * joystick->axisScales[i]);
+          change = (value - joystick->axes[i]);
+          if ( (change < -JOY_AXIS_THRESHOLD) || (change > JOY_AXIS_THRESHOLD) ) {
+            joystick->axes[i] = value;
+            queueAxis( axisNum, value );
+          }
+        }
+        ++axisNum;
+      }
+
+      /* joystick button events */
+      if (joyInfo.dwFlags & JOY_RETURNBUTTONS) {
+        for (i=0; i<joystick->numButtons; ++i) {
+          if (joyInfo.dwButtons & JOY_BUTTON_FLAG(i)) {
+            if (!joystick->buttons[i]) {
+              joystick->buttons[i] = 1;
+              queueButton( buttonNum, 1 );
+              ar_log_debug() << "Button " << buttonNum << " pressed.\n";
+            }
+          } else {
+            if (joystick->buttons[i]) {
+              joystick->buttons[i] = 0;
+              queueButton( buttonNum, 0 );
+              ar_log_debug() << "Button " << buttonNum << " released.\n";
+            }
+          }
+          ++buttonNum;
+        }
+      }
+
+      sendQueue();
+    }
+  }
+  
+#else
 // Poll pStick.
   memset(&_jsPrev, 0, sizeof(_jsPrev));
   while (!_shutdown){
@@ -99,6 +179,7 @@ void arJoystickDriver::_eventTask() {
   // Clean up.
   _pStick->Unacquire();
 #endif
+#endif
 
   // Thread ends.  Signal stop.
   arGuard dummy(_shutdownLock);
@@ -110,8 +191,12 @@ void arJoystickDriver::_eventTask() {
 arJoystickDriver::arJoystickDriver() :
   _pollingDone(false),
 #ifdef AR_USE_WIN_32
+#ifdef AR_USE_MINGW
+  _shutdown(false)
+#else
   _shutdown(false),
   _fFirst(true)
+#endif
 #else
   _shutdown(false)
 #endif
@@ -149,6 +234,77 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
 #endif
 
 #ifdef AR_USE_WIN_32
+#ifdef AR_USE_MINGW
+	int	i,j;
+	int maxDevices;
+	int numDevices;
+	JOYINFOEX joyInfo;
+	JOYCAPS	joyCaps;
+	MMRESULT result;
+	int fCapabilities[MAX_AXES-2] =
+		{ JOYCAPS_HASZ, JOYCAPS_HASR, JOYCAPS_HASU, JOYCAPS_HASV };
+	int axisMins[MAX_AXES], axisMaxes[MAX_AXES];
+
+
+	for (i=0; i<MAX_JOYSTICKS; ++i) {
+    _joysticks[i].systemID = 0;
+	}
+
+	/* Loop over all potential joystick devices */
+	numDevices = 0;
+	maxDevices = joyGetNumDevs();
+	for (i=JOYSTICKID1; i<maxDevices && numDevices<MAX_JOYSTICKS; ++i) {
+		joyInfo.dwSize = sizeof(joyInfo);
+		joyInfo.dwFlags = JOY_RETURNALL;
+		result = joyGetPosEx( _joysticks[i].systemID, &joyInfo );
+		if (result == JOYERR_NOERROR) {
+			result = joyGetDevCaps(i, &joyCaps, sizeof(joyCaps));
+			if (result == JOYERR_NOERROR) {
+        _joysticks[numDevices].systemID = i;
+        _joysticks[numDevices].capabilities = joyCaps;
+				numDevices++;
+			}
+		}
+	}
+  _numJoysticks = numDevices;
+  ar_log_critical() << "Found " << _numJoysticks << " joysticks.\n";
+  
+  for (j=0; j<_numJoysticks; ++j) {
+    struct JoystickInfo* joystick = _joysticks+j;
+    joystick->index = j;
+    JOYCAPS *capabilities = &(joystick->capabilities);
+    axisMins[0] = capabilities->wXmin;
+    axisMaxes[0] = capabilities->wXmax;
+    axisMins[1] = capabilities->wYmin;
+    axisMaxes[1] = capabilities->wYmax;
+    axisMins[2] = capabilities->wZmin;
+    axisMaxes[2] = capabilities->wZmax;
+    axisMins[3] = capabilities->wRmin;
+    axisMaxes[3] = capabilities->wRmax;
+    axisMins[4] = capabilities->wUmin;
+    axisMaxes[4] = capabilities->wUmax;
+    axisMins[5] = capabilities->wVmin;
+    axisMaxes[5] = capabilities->wVmax;
+
+    for (i=0; i<MAX_AXES; ++i) {
+      if ((i<2) || (capabilities->wCaps & fCapabilities[i-2])) {
+        joystick->axisOffsets[i] = AXIS_MIN-axisMins[i];
+        joystick->axisScales[i] = (float)(AXIS_MAX-AXIS_MIN)/(axisMaxes[i]-axisMins[i]);
+      } else {
+        joystick->axisOffsets[i] = 0;
+        joystick->axisScales[i] = 1.;
+      }
+    }
+
+    /* fill nbuttons, naxes, and nhats fields */
+    joystick->numButtons = capabilities->wNumButtons;
+    joystick->numAxes = capabilities->wNumAxes;
+
+    ar_log_critical() << "Joystick #" << j << " has " << joystick->numButtons
+                      << " buttons and " << joystick->numAxes << " axes.\n";
+  }
+  
+#else
   // Initialize pStick.
   IDirectInput* pDI = NULL;
   _pStick = NULL;
@@ -209,6 +365,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     return false;
   }
 #endif
+#endif
   ar_log_debug() << "arJoystickDriver inited.\n";
   return true;
 }
@@ -228,3 +385,35 @@ bool arJoystickDriver::stop(){
   ar_log_debug() << "arJoystickDriver polling thread done.\n";
   return true;
 }
+
+#ifdef AR_USE_MINGW
+void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
+	static char *error;
+	static char  errbuf[1024];
+	errbuf[0] = 0;
+	switch (errCode) {
+		case MMSYSERR_NODRIVER:
+			error = "Joystick driver not present";
+      break;
+		case MMSYSERR_INVALPARAM:
+		case JOYERR_PARMS:
+			error = "Invalid parameter(s)";
+      break;
+		case MMSYSERR_BADDEVICEID:
+			error = "Bad device ID";
+      break;
+		case JOYERR_UNPLUGGED:
+			error = "Joystick not attached";
+      break;
+		case JOYERR_NOCANDO:
+			error = "Can't capture joystick input";
+      break;
+		default:
+      ar_log_error() << funcName << ": Unknown Multimedia system error: 0x" << errCode << ar_endl;
+      break;
+	}
+	if (!errbuf[0]) {
+    ar_log_error() << funcName << ": " << errCode << ar_endl;
+	}
+}
+#endif
