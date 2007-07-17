@@ -7,6 +7,9 @@ Header3
 
 This chapter contains some special graphics configuration examples.
 
+It assumes that you've built Syzygy with dynamic linking (i.e.,
+not with g++ in Windows).
+
 % Table of Contents
 %%toc
 
@@ -377,8 +380,7 @@ currently executing upon.
 
   <assign>
     NULL SZG_DATA path ./
-    NULL SZG_DEMO control_mode joystick
-    NULL SZG_PFORTH program_names joystick
+    NULL SZG_STANDALONE input_config joystick
     NULL SZG_DISPLAY0 name passive_stereo
   </assign>
 </szg_config>
