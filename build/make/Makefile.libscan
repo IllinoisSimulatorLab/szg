@@ -18,6 +18,8 @@ SZG_SHARED_COPY = $(SZGHOME)/build/make/blessing.txt
 SZG_SHARED_COPY_ACTION :=
 
 ifeq ($(strip $(MACHINE)), LINUX)
+	SZG_LINK_PYTHON := $(SZG_PYLIB)
+
   GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7
   INC_GLUT := $(wildcard $(GLUT_DIR)/include)
   LINK_GLUT := -lglut
@@ -153,18 +155,13 @@ ifeq ($(strip $(MACHINE)), LINUX)
 endif
 
 ifeq ($(strip $(MACHINE)), WIN32)
-  PYTHON_DIR := $(SZGEXTERNAL)/win32/Python24
-  INC_PYTHON := $(wildcard $(PYTHON_DIR)/include)
-  LIB_PYTHON := $(wildcard $(PYTHON_DIR)/lib/python24.lib)
-  OBJ_PYTHON := $(wildcard $(PYTHON_DIR)/lib/Bird.dll)
 
-  ifneq ($(strip $(INC_PYTHON)),)
-  ifneq ($(strip $(LIB_PYTHON)),)
-    # libPYTHON include file AND library exist.
-    SZG_INCLUDE_PYTHON = -I$(INC_PYTHON)
-    SZG_LINK_PYTHON = $(LIB_PYTHON)
-  endif
-  endif
+#   If Python-building environment variables are not set, try
+#   appropriate directories in SZGEXTERNAL
+  ifeq ($(strip $(SZG_PYLIB)),)
+		SZG_PYLIB := $(SZGEXTERNAL)/win32/Python24/libs/Python24.lib
+		SZG_PYINCLUDE := $(SZGEXTERNAL)/win32/Python24/include
+	endif
 
   STLPORT_DIR := $(SZGEXTERNAL)/win32/STLport
   LIB_STLPORT := $(wildcard $(STLPORT_DIR)/lib)
@@ -469,6 +466,8 @@ endif
 
 ifeq ($(strip $(MACHINE)), DARWIN)
 
+	SZG_LINK_PYTHON := $(SZG_PYLIB)
+
 	FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-4
 	INC_FMOD := $(wildcard $(FMOD_DIR)/include)
 	LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.dylib)
@@ -507,6 +506,8 @@ endif
 
 ifeq ($(strip $(MACHINE)), SGI)
 
+	SZG_LINK_PYTHON := $(SZG_PYLIB)
+	
   # If glut is in SZGEXTERNAL, use that.
   # Otherwise, assume everything is in the standard locations.
 

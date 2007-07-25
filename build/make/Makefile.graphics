@@ -99,12 +99,22 @@ ALL = \
 ifneq ($(strip $(SZG_LINKING)), STATIC) 
   ALL += \
     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
-ifneq ($(strip $(SZG_INCLUDE_PYTHON)),)
-ifneq ($(strip $(SZG_LINK_PYTHON)),)
+# else
+# ifneq ($(strip $(MACHINE)),WIN32)
+#     ALL += \
+#       arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+# else
+# ifeq ($(strip $(SZG_COMPILER)),MINGW)
+#   ALL += \
+#     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+# endif
+# endif
+# ifneq ($(strip $(SZG_INCLUDE_PYTHON)),)
+# ifneq ($(strip $(SZG_LINK_PYTHON)),)
 #   ALL += \
 #     arPythonGraphicsPlugin$(PLUGIN_SUFFIX)
-endif
-endif
+# endif
+# endif
 endif
 
 include $(SZGHOME)/build/make/Makefile.rules
