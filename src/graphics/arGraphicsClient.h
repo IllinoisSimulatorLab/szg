@@ -98,7 +98,7 @@ class SZG_CALL arGraphicsClient{
   void addFrameworkObject(arFrameworkObject* f){
     _frameworkObjects.push_back(f);
   }
-  void arGraphicsClient::drawAllWindows() {
+  void drawAllWindows() {
     _windowManager->drawAllWindows(true); // Simultaneously if threaded.  Blocks.
   }
   void requestScreenshot(const string& path, int x, int y, int width, int height);

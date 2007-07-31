@@ -67,6 +67,10 @@ bool arSharedMemSinkDriver::init(arSZGClient& c) {
   return true;
 }
 
+void ar_ShmSinkDriverDataTask(void* pv) {
+  ((arSharedMemSinkDriver*)pv)->_dataThread();
+}
+
 bool arSharedMemSinkDriver::start() {
 #ifdef AR_USE_WIN_32
   ar_log_warning() << "arSharedMemSinkDriver error: unsupported under Windows.\n";
@@ -136,10 +140,6 @@ bool arSharedMemSinkDriver::stop() {
   while (_eventThreadRunning)
     a.sleep();
   return true;
-}
-
-void ar_ShmSinkDriverDataTask(void* pv) {
-  ((arSharedMemSinkDriver*)pv)->_dataThread();
 }
 
 #ifdef AR_USE_WIN_32
