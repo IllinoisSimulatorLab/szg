@@ -50,13 +50,10 @@ bool arSocket::setSendBufferSize(int size)
 ```
 bool arSocket::smallPacketOptimize(bool flag)
 ```
-  If flag is "true",
-  [Nagle's Algorithm http://en.wikipedia.org/wiki/Nagle's_Algorithm]
-  is disabled. If flag
-  is set to "false", Nagle's Algorithm is enabled. By default,
-  most TCP implementations will have Nagle's Algorithm enabled,
-  which interferes with the real-time performance of applications
-  that send small packets at a relatively slow rate.
+  Disable [Nagle's Algorithm http://en.wikipedia.org/wiki/Nagle\047s_Algorithm]
+  iff flag is "true".  Many TCP implementations enable Nagle's Algorithm,
+  which reduces the performance of real-time applications
+  that send small packets relatively slowly.
 
 ```
 bool arSocket::reuseAddress(bool flag)

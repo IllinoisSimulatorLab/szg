@@ -95,7 +95,7 @@ that connect via serial interface may require e.g.:
 - A 'parity' setting.
 
 ...and more. These are specified as local parameters on the computer that the
-device is hooked up to. The chapter on [Supported Input Devices InputDevices-drivers.html]
+device is hooked up to. The chapter on [Supported Input Devices InputDevices-Drivers.html]
 describes the parameters that must be configured to operate any particular device.
 
 

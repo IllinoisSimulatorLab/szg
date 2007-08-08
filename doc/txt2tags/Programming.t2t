@@ -320,7 +320,7 @@ by installing a function.
 
 The directory szg/skeleton represents a build template for master/slave applications.
 Copy that entire directory wherever you want (re-name it if you want).
-See the relevant section of [Compiling C++ Programs CompileCpp.html#Template]
+See the relevant section of [Compiling C++ Programs CompileCPP.html#Template]
 for more information. szg/skeleton/src contains two files, skeleton.cpp
 and oopskel.cpp. These do exactly the same thing, but skeleton.cpp
 does it by installing callbacks and oopskel.cpp does it by

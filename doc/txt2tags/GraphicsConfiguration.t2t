@@ -187,9 +187,11 @@ parameters:
   view, or for monocular viewing (0.). This information is used by a Syzygy VR camera
   (see [Cameras #Cameras] above) to modify its frustum appropriately for stereoscopic
   viewing. The Perspective and Ortho cameras ignore the eye sign.
-- **ogldrawbuf**: many possible values, find "Selecting Color Buffers for Writing" in
-  [Chapter 10 of the OpenGL Programming Guide http://www.rush3d.com/reference/opengl-redbook-1.1/chapter10.html].
-  If in doubt, choose 'GL_BACK_LEFT'.
+- **ogldrawbuf**: many possible values (GL_BACK_LEFT is safe).
+  See the OpenGL Programming Guide ("red book"), chapter 10,
+  "Selecting Color Buffers for Writing."
+
+
 Note that you can specify more than one viewport in the same part of the window, in
 fact it's sometimes necessary. For example, to manually specify a red/cyan anaglyph
 stereo window (this is unnecessary, as we'll see below), you would create two viewports
