@@ -99,6 +99,36 @@ arDragBehavior* arWandTranslationDrag::copy() const {
   return (arDragBehavior*)new arWandTranslationDrag( *this );
 }
 
+arWandRotationDrag::arWandRotationDrag() :
+  arDragBehavior(),
+  _positionMatrix(),
+  _orientDiffMatrix() {
+}
+
+arWandRotationDrag::arWandRotationDrag( const arWandRotationDrag& wtd ) :
+  arDragBehavior(),
+  _positionMatrix( wtd._positionMatrix ),
+  _orientDiffMatrix( wtd._orientDiffMatrix ) {
+}
+
+void arWandRotationDrag::init( const arEffector* const effector,
+                                  const arInteractable* const object ) {
+  _positionMatrix = ar_extractTranslationMatrix( object->getMatrix() );
+  _orientDiffMatrix = ar_extractRotationMatrix( effector->getMatrix().inverse() * object->getMatrix() );
+}
+
+void arWandRotationDrag::update( const arEffector* const effector,
+                         arInteractable* const object,
+                         const arGrabCondition* const /*grabCondition*/ ) {
+  object->setMatrix( _positionMatrix * 
+      ar_extractRotationMatrix(effector->getMatrix()) * _orientDiffMatrix );
+}
+
+
+arDragBehavior* arWandRotationDrag::copy() const {
+  return (arDragBehavior*)new arWandRotationDrag( *this );
+}
+
 arNavTransDrag::arNavTransDrag( const arVector3& displacement ) :
   _direction( displacement.normalize() ),
   _speed( displacement.magnitude() ) {

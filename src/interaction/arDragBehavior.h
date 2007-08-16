@@ -99,6 +99,22 @@ class SZG_CALL arWandTranslationDrag : public arDragBehavior {
     arMatrix4 _objectOrientationMatrix;
 };
 
+class SZG_CALL arWandRotationDrag : public arDragBehavior {
+  public:
+    arWandRotationDrag();
+    arWandRotationDrag( const arWandRotationDrag& wrd );
+    ~arWandRotationDrag() {}
+    void init( const arEffector* const effector,
+               const arInteractable* const object );
+    void update( const arEffector* const effector,
+                 arInteractable* const object,
+                 const arGrabCondition* const grabCondition );
+    arDragBehavior* copy() const;
+  private:
+    arMatrix4 _positionMatrix;
+    arMatrix4 _orientDiffMatrix;
+};
+
 class SZG_CALL arNavTransDrag : public arDragBehavior {
   public:
     arNavTransDrag() : _direction(0,0,-1), _speed(0) {}
