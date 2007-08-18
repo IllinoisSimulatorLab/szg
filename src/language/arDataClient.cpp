@@ -224,9 +224,19 @@ bool arDataClient::_dialUpConnect(const char* address, int port) {
 }
 
 bool arDataClient::dialUpFallThrough(const char* address, int port){
-  return _dialUpInit(address, port) &&
-         _dialUpConnect(address, port) &&
-	 _dialUpActivate();
+  if (!_dialUpInit(address, port)) {
+    ar_log_debug() << "arDataClient._dialUpInit() failed.\n";
+    return false;
+  }
+  if (!_dialUpConnect(address, port)) {
+    ar_log_debug() << "arDataClient._dialUpConnect() failed.\n";
+    return false;
+  }
+  if (!_dialUpActivate()) {
+    ar_log_debug() << "arDataClient._dialUpActivate() failed.\n";
+    return false;
+  }
+  return true;
 }
 
 bool arDataClient::dialUp(const char* address, int port){

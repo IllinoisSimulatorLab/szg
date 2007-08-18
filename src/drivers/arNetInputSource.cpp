@@ -53,9 +53,9 @@ void arNetInputSource::_connectionTask() {
       serviceName << "' on network '" << networks << "'.\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
     // If the service doesn't exist, this call blocks until said server starts.
-    const arPhleetAddress IPport = _szgClient->discoverService(serviceName, networks, true);
-    if (!IPport.valid){
-      if (IPport.address == "standalone") {
+    const arPhleetAddress netAddress = _szgClient->discoverService(serviceName, networks, true);
+    if (!netAddress.valid){
+      if (netAddress.address == "standalone") {
         // arSZGClient::discoverService hardcodes "standalone"
         ar_log_error() << getLabel() << ": no szgserver.\n";
         _closeConnection();
@@ -71,8 +71,8 @@ void arNetInputSource::_connectionTask() {
     a.reset();
 
     // This service has exactly one port.
-    const int port = IPport.portIDs[0];
-    const string& IP = IPport.address;
+    const int port = netAddress.portIDs[0];
+    const string& IP = netAddress.address;
     ar_log_debug() << getLabel() << " connecting to " <<
       serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     if (!_dataClient.dialUpFallThrough(IP, port)){

@@ -27,6 +27,22 @@ using namespace std;
 #include <time.h>
 #include <iostream>
 
+string ar_getLastWin32ErrorString() {
+  DWORD errCode = GetLastError();
+  LPTSTR s;
+  if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+            FORMAT_MESSAGE_FROM_SYSTEM, NULL, errCode,
+            0, (LPTSTR)&s, 0, NULL) == 0) { /* failed */
+    ostringstream os;
+    os << "Failed to get win32 error message for error code "
+       << errCode;
+    return os.str();
+  }
+  string result(s);
+  LocalFree(s);
+  return result;
+}
+
 // todo: call WSACleanup somewhere!
 
 bool ar_winSockInit(){

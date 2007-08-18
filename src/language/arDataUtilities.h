@@ -26,6 +26,7 @@ using namespace std;
 
 #ifdef AR_USE_WIN_32
 bool SZG_CALL ar_winSockInit();
+string SZG_CALL ar_getLastWin32ErrorString();
 #endif
 
 // Small utility classes.

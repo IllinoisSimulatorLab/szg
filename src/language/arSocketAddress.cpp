@@ -177,6 +177,7 @@ bool arSocketAddress::checkMask(list<string>& criteria){
 
     if (position == i->length() - 1){
       // IP/ without a following mask.  Weird.
+      ar_log_warning() << "checkMask() skipping weird address/netmask string '" << *i << ";.\n";
       continue;
     }
 

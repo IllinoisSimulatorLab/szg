@@ -72,6 +72,11 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   return true;
 }
 
+void arSZGAppFramework::_appendUserMessage( const std::string& messageBody ) {
+  arGuard guard( _userMessageLock );
+  _userMessageQueue.push_back( messageBody );
+}
+
 void arSZGAppFramework::_handleStandaloneInput() {
   // Which mode are we using? The simulator mode is the default.
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_STANDALONE", "input_config" );

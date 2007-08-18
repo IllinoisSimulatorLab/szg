@@ -138,6 +138,7 @@ int arSocket::ar_connect(const char* IPaddress, int port){
   if (_type != AR_STANDARD_SOCKET){
     return -1;
   }
+  ar_log_debug() << "arSocket connecting to " << IPaddress << ":" << port << ar_endl;
   sockaddr_in servAddr;
   memset(&servAddr,0,sizeof(servAddr));
   servAddr.sin_family = AF_INET;
@@ -212,7 +213,15 @@ LError:
 
   fcntl(_socketFD, F_SETFL, fOriginal);
 #endif
-
+  if (ok) {
+    ar_log_debug() << "Connection succeeded.\n";
+  } else {
+    ar_log_debug() << "Connection failed.\n";
+#ifdef AR_USE_WIN_32
+    int errCode = WSAGetLastError();
+    ar_log_debug() << "\tWinsock error code = " << errCode << ar_endl;
+#endif
+  }
   return ok;
 }
 
@@ -292,8 +301,6 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
       // Accept mask allowed a connection.
       break;
 
-    ar_log_warning() << "arSocket: refused connection from "
-	 << socketAddress.getRepresentation() << "\n";
     communicationSocket->ar_close();
     // Retry.
   }

@@ -672,6 +672,8 @@ void arMasterSlaveFramework::preDraw( void ) {
   if (stopping())
     return;
   
+  _processUserMessages();
+  
   // Do this before the pre-exchange callback.
   // The user might want to use current input data via
   // arMasterSlaveFramework::getButton() or some other method in that callback.
@@ -692,7 +694,7 @@ void arMasterSlaveFramework::preDraw( void ) {
     _inputEventQueue = _callbackFilter.getEventQueue();
     arInputEventQueue myQueue( _inputEventQueue );
     onProcessEventQueue( myQueue );
-    
+
     if (!(_harmonyInUse && !_harmonyReady)) {
       onPreExchange();
     }
@@ -1749,6 +1751,18 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 }
 
 //************************************************************************
+// functions pertaining to user messages
+//************************************************************************
+void arMasterSlaveFramework::_processUserMessages() {
+  arGuard guard( _userMessageLock );
+  std::deque< std::string >::const_iterator iter;
+  for (iter = _userMessageQueue.begin(); iter != _userMessageQueue.end(); ++iter) {
+    onUserMessage( *iter );
+  }
+  _userMessageQueue.clear();
+}
+
+//************************************************************************
 // functions pertaining to starting the application
 //************************************************************************
 
@@ -2286,7 +2300,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       _requestReload = true;
     }
     else if ( messageType == "user" ) {
-      onUserMessage( messageBody );
+      _appendUserMessage( messageBody );
     }
     else if( messageType == "color" ) {
       if ( messageBody == "NULL" || messageBody == "off") {

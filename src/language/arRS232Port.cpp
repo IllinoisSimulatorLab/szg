@@ -175,8 +175,29 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
 #ifdef AR_USE_WIN_32
   DWORD baudRate = 0;
   switch (baud) {
+    case 110:
+      baudRate = CBR_110;
+      break;
+    case 300:
+      baudRate = CBR_300;
+      break;
+    case 600:
+      baudRate = CBR_600;
+      break;
+    case 1200:
+      baudRate = CBR_1200;
+      break;
+    case 2400:
+      baudRate = CBR_2400;
+      break;
+    case 4800:
+      baudRate = CBR_4800;
+      break;
     case 9600:
       baudRate = CBR_9600;
+      break;
+    case 14400:
+      baudRate = CBR_14400;
       break;
     case 19200:
       baudRate = CBR_19200;
@@ -190,8 +211,16 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
     case 115200:
       baudRate = CBR_115200;
       break;
+    case 128000:
+      baudRate = CBR_128000;
+      break;
+    case 256000:
+      baudRate = CBR_256000;
+      break;
     default:
-      ar_log_warning() << "arRS232Port: baud rate must be one of 9600, 19200, 38400, 57600, 115200.\n";
+      ar_log_warning() << "arRS232Port: baud rate must be one of the following:\n"
+        << "\t110\n\t300\n\t600\n\t1200\n\t2400\n\t4800\n\t9600\n"
+        << "\t14400\n\t19200\n\t38400\n\t57600\n\t115200\n\t128000\n\t256000\n";
       return false;
   }
   if (dBits < 4 || dBits > 8) {
@@ -501,8 +530,11 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
     numToRead = numBytesAvailable; 
 
   // Do one blocking read with a total timeout.
-  if (!ReadFile(_portHandle, buf, numToRead, &bytesThisTime, NULL))
+  if (!ReadFile(_portHandle, buf, numToRead, &bytesThisTime, NULL)) {
+    ar_log_error() << "ar_read() failed for the following reason:\n"
+                   << ar_getLastWin32ErrorString() << ar_endl;
     return -1;
+  }
 
 #if 0
   static int myLimit = 20;

@@ -224,6 +224,8 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
+  ar_log_remark() << "Accepted connection from "
+                  << addr.getRepresentation() << ar_endl;
  
   arGuard dummy(_lockTransfer);
   _addSocketToDatabase(newSocketFD);

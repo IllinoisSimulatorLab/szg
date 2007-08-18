@@ -2002,7 +2002,7 @@ void SZGdisconnectFunction(void*, arSocket* s) {
 }
 
 int main(int argc, char** argv) {
-  ar_log().setLogLevel(AR_LOG_REMARK);
+  ar_setLogLevel("REMARK");
   ar_log().setTimestamp(true);
 
   if (argc < 3) {
@@ -2012,7 +2012,12 @@ int main(int argc, char** argv) {
   }
   if (argc > 3) {
     for (int i = 3; i < argc; i++) {
-      serverAcceptMask.push_back(string(argv[i]));
+      string arg( argv[i] );
+      if (arg == "-debug") {
+        ar_setLogLevel("DEBUG");
+      } else {
+        serverAcceptMask.push_back(string(argv[i]));
+      }
     }
   }
 
@@ -2062,7 +2067,7 @@ int main(int argc, char** argv) {
   if (!dataServer->setInterface("INADDR_ANY") ||
       !dataServer->setPort(serverPort)) {
     ar_log_error() << "szgserver's data server has invalid IP:port "
-         << serverIP  << ":" << serverPort << ".\n";
+                   << serverIP  << ":" << serverPort << ".\n";
     return 1;
   }
 

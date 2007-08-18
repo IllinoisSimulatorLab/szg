@@ -378,6 +378,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
+  
+  // User-message functions
+  void _processUserMessages();
 
   // Draw-related utility functions.
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );

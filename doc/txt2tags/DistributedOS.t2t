@@ -71,14 +71,14 @@ These ports must be allowed through a firewall:
 
 - Each computer that is part of the cluster will require a block of
   ports for Syzygy components to connect to one another. This
-  block is defaults to port number 4700-48999, but it can be set
+  block defaults to ports 4700-4899, but it can be set
   manually using the ``dports`` command. TCP connections to this block of ports
   must be let through your firewall.
 
 - Besides this block of ports, UDP port 4620 is used for automated
   discovery of Syzygy servers. It's not a major problem if this port is unavailable, it just
   means that you have to use the more specific form of the ``dlogin`` command (see
-  [Commandline Programs for Logging Into and Out of a Server #dlogin]) and the
+  [Creating the Login File #dlogin]) and the
   ``dhunt`` command won't find your server.
 
 

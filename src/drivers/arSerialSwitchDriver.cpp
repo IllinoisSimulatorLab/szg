@@ -129,8 +129,10 @@ bool arSerialSwitchDriver::_poll( void ) {
     ar_log_warning() << "arSerialSwitchDriver ar_write failed.\n";
     return false;
   }
-  if (_comPort.ar_read( &_inChar, 1) != 1) {
-    ar_log_warning() << "arSerialSwitchDriver ar_read failed.\n";
+  int bytesRead = _comPort.ar_read( &_inChar, 1);
+  if (bytesRead != 1) {
+    ar_log_warning() << "arSerialSwitchDriver ar_read failed ("
+                     << bytesRead << " bytes).\n";
     return false;
   }
 
@@ -145,7 +147,9 @@ bool arSerialSwitchDriver::_poll( void ) {
         if (switchState == AR_OPEN_SWITCH_EVENT) {
           diffTime = -diffTime;
         }
-        sendAxis( 0, float(diffTime/1.e6) );
+        float dt = float(diffTime*1.e-6);
+        ar_log_debug() << dt << ar_endl;
+        sendAxis( 0, dt );
         _lastEventTime = now;
       }
     }

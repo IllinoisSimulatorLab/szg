@@ -1322,6 +1322,7 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     self._classFactoryDict = {}
     self.addTypes( classData )
     self.pushKey = 0
+    self.__started = False
   def addTypes( self, classData ):
     import types
     if type(classData) != types.TupleType and type(classData) != types.ListType:
@@ -1346,7 +1347,9 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
   def start( self, framework ):  # call in framework onStart() method or start callback
     """ d.start( framework ).
     Should be called in your framework's onStart() (start callback)."""
-    framework.initSequenceTransfer( self._name )
+    if not self.__started:
+      framework.initSequenceTransfer( self._name )
+    self.__started = True
   def packState( self, framework ):
     """ d.packState( framework ).
     Should be called in your framework's onPreExchange(). It iterates through the dictionary's contents, calls each
@@ -1563,5 +1566,20 @@ class arMasterSlaveListSync:
       for i in range(myNumItems,numItems):
         self.objList.append( self.classFactory( stateList[i] ) )
 
+class SzgRunner(object):
+  app = None
+  def __init__( self, app=None ):
+    if app:
+      self.app = app
+  def __call__( self ):
+    if not self.app.init(sys.argv):
+      raise RuntimeError,'Unable to init framework.'
+    print 'Framework inited.'
+    # Never returns unless something goes wrong
+    if not self.app.start():
+      raise RuntimeError,'Unable to start framework.'
+
+def szgrun( appClass ):
+  SzgRunner( app=appClass() )()
 
 %}

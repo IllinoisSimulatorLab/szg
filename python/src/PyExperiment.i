@@ -579,21 +579,21 @@ long arPythonExperiment::getLongSubjectParameter( const  std::string& sname ) {
 }
 
 double arPythonExperiment::getDoubleSubjectParameter( const  std::string& sname ) {
-  double* tmp;
+  double tmp;
   // Allow one exception because this one is already universally defined to be a float
   if (sname == "eye_spacing_cm") {
-    float *ftmp;
-    if (!arExperiment::getSubjectParameter( sname, AR_FLOAT, (void*)ftmp )) {
+    float ftmp;
+    if (!arExperiment::getSubjectParameter( sname, AR_FLOAT, (void*)&ftmp )) {
       PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getDoubleSubjectParameter() failed to get parameter");
       return -1.;
     }
-    return (double)*ftmp;
+    return (double)ftmp;
   }
-  if (!arExperiment::getSubjectParameter( sname, AR_DOUBLE, (void*)tmp )) {
+  if (!arExperiment::getSubjectParameter( sname, AR_DOUBLE, (void*)&tmp )) {
     PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getDoubleSubjectParameter() failed to get parameter");
     return -1.;
   }
-  return *tmp;
+  return tmp;
 }
 
 std::string arPythonExperiment::getStringSubjectParameter( const  std::string& theName ) {
@@ -1187,7 +1187,8 @@ class arGluTessObject : public arInteractableThing {
     void setScaleFactors( const arVector3& scales );
     void setScaleFactors( float x, float y, float z );
     arVector3 getScaleFactors();
-    void setTextureScale( float texScale );
+    void setTextureScales( float sScale, float tScale );
+    void setTextureOffsets( float sOffset, float tOffset );
     void useDisplayList( bool use );
     bool buildDisplayList();
     virtual void draw();
@@ -1252,9 +1253,9 @@ PyObject* addContour( PyObject* vertexSequence  ) {
     for (unsigned int j=0; j<3; ++j) {
       PyObject* tmpNum = PySequence_GetItem( vecSeq, j );
       if (PyFloat_Check( tmpNum )) {
-        tmpVec.v[i] = (float)PyFloat_AsDouble( tmpNum );
+        tmpVec.v[j] = (float)PyFloat_AsDouble( tmpNum );
       } else if (PyInt_Check( tmpNum )) {
-        tmpVec.v[i] = (float)PyInt_AsLong( tmpNum );
+        tmpVec.v[j] = (float)PyInt_AsLong( tmpNum );
       } else {
         PyErr_SetString(PyExc_ValueError, 
            "arGluTessObject.addContour() error: each sequence in vertexSequence must contain 3 numbers.");
@@ -1266,6 +1267,7 @@ PyObject* addContour( PyObject* vertexSequence  ) {
     contVec.push_back( tmpVec );
   }
   self->addContour( contVec );
+  Py_RETURN_NONE;
 }
 } // extend
 

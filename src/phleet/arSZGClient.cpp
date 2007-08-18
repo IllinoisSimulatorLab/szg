@@ -220,6 +220,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     _connected = false;
     return false;
   }
+  ar_log_debug() << "Connected to server.\n";
 
   // Connected to the szgserver. 
   _connected = true;
@@ -2109,7 +2110,7 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   _dataParser->recycle(data);
 
   ar_log_debug() << _exeName << " awaiting service '" <<
-    serviceName << "' on network '" << networks << (async ? "', async.\n" : "'.\n");
+    serviceName << "' on network(s) '" << networks << (async ? "', async.\n" : "'.\n");
 
   // Get response.
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
@@ -2127,6 +2128,8 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
     result.address = data->getDataString(_l.AR_SZG_BROKER_RESULT_ADDRESS);
     result.numberPorts = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
     data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs, AR_INT, result.numberPorts);
+    ar_log_debug() << "Service parameters: address=" << result.address
+                   << ", # ports=" << result.numberPorts << ar_endl;
   }
   else{
     result.valid = false;
@@ -2510,8 +2513,9 @@ bool arSZGClient::_dialUpFallThrough() {
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)) {
     // Connect to the specified szgserver.
-    ar_log_warning() << _exeName << ": no szgserver at " << _IPaddress << ":" << _port << ".\n" <<
-      "\t(First dlogin;  dhunt finds szgservers.)\n";
+    ar_log_warning() << _exeName << ": dialUpFallThrough() finds no szgserver at "
+                     << _IPaddress << ":" << _port << ".\n"
+                     << "\t(First dlogin;  dhunt finds szgservers.)\n";
       // todo: don't advise dlogin or dhunt if this app IS one of those two!
     return false;
   }
