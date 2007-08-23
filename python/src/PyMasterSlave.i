@@ -273,10 +273,12 @@ static void pyNewDrawCallback( arMasterSlaveFramework& fw,
 //  void setUserMessageCallback(void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
 //
 static PyObject *pyUserMessageFunc = NULL;
-static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
+static void pyUserMessageCallback(arMasterSlaveFramework& fw, 
+         const int messageID,
+         const string & messageBody) {
     PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
                              SWIGTYPE_p_arMasterSlaveFramework, 0);
-    PyObject *arglist=Py_BuildValue("(O,s)",fwobj,s.c_str());
+    PyObject *arglist=Py_BuildValue("(O,i,s)", fwobj, messageID, messageBody.c_str());
     PyObject *result=PyEval_CallObject(pyUserMessageFunc, arglist);
     if (result==NULL) {
         if (PyErr_Occurred() != NULL) {
@@ -1159,6 +1161,17 @@ def ar_doPythonPrompt():
 class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def __init__(self):
     arMasterSlaveFramework.__init__(self)
+    try:
+      import inspect
+      numUserMessageArgs = len(inspect.getargspec( self.onUserMessage )[0])
+      if numUserMessageArgs != 3:
+        errmsg = """Obsolete framework onUserMessage() method signature:
+    should be onUserMessage( self, messageID, messageBody )
+You can reply to messages using:
+    self.getSZGClient().messageResponse( messageID, responseString )."""
+        raise SyntaxError, errmsg
+    except ImportError:
+      pass
     self.setStartCallback( self.startCallback )
     self.setWindowStartGLCallback( self.windowStartGLCallback )
     self.setWindowEventCallback( self.windowEventCallback )
@@ -1239,9 +1252,9 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onKey( key, mouseX, mouseY )
   def onKey( self, key, mouseX, mouseY ):
     pass
-  def userMessageCallback( self, framework, messageBody ):
-    self.onUserMessage( messageBody )
-  def onUserMessage( self, messageBody ):
+  def userMessageCallback( self, framework, messageID, messageBody ):
+    self.onUserMessage( messageID, messageBody )
+  def onUserMessage( self, messageID, messageBody ):
     pass
   def exitCallback( self, framework ):
     self.onExit()

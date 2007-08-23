@@ -414,8 +414,14 @@ string arAppLauncher::getMasterName() const {
 
 // Return the name of host running the app's trigger instance.
 string arAppLauncher::getTriggerName() const {
-  if (!_szgClientOK() || !_vircompDefined)
+  if (!_szgClientOK()) {
+    ar_log_debug() << "getTriggerName(): szgClient not OK.\n";
     return "NULL";
+  }
+  if (!_vircompDefined) {
+    ar_log_debug() << "getTriggerName(): no virtual computer defined.\n";
+    return "NULL";
+  }
 
   ar_log_debug() << _exeName << " getting trigger map " << _vircomp << "/SZG_TRIGGER/map.\n";
   return _getAttribute("SZG_TRIGGER", "map", "");

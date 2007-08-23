@@ -40,6 +40,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void exitFunction();
   
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
+                 int messageID,
+							   const string& messageBody ));
+  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
 							   const string& messageBody ));
   arGraphicsDatabase* getDatabase();
 
@@ -67,7 +70,10 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;
 
-  void (*_userMessageCallback)(arDistSceneGraphFramework&, const string&);
+  void (*_userMessageCallback)( arDistSceneGraphFramework&,
+      int messageID, const string& messageBody );
+  void (*_oldUserMessageCallback)( arDistSceneGraphFramework&,
+      const string& messageBody );
   
   arTransformNode* _graphicsNavNode;
   int _soundNavMatrixID;

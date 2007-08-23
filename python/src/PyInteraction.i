@@ -504,6 +504,12 @@ class arWandTranslationDrag : public arDragBehavior {
     virtual ~arWandTranslationDrag();
 };
 
+class arWandRotationDrag : public arDragBehavior {
+  public:
+    arWandRotationDrag();
+    virtual ~arWandRotationDrag();
+};
+
 class arPythonDragBehavior : public arDragBehavior {
   public:
     arPythonDragBehavior();

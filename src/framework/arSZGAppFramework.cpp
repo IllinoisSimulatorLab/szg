@@ -72,9 +72,9 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   return true;
 }
 
-void arSZGAppFramework::_appendUserMessage( const std::string& messageBody ) {
+void arSZGAppFramework::_appendUserMessage( int messageID, const std::string& messageBody ) {
   arGuard guard( _userMessageLock );
-  _userMessageQueue.push_back( messageBody );
+  _userMessageQueue.push_back( arUserMessageInfo( messageID, messageBody ) );
 }
 
 void arSZGAppFramework::_handleStandaloneInput() {

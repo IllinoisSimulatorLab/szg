@@ -112,6 +112,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onPlay( void );
   virtual void onWindowEvent( arGUIWindowInfo* );
   virtual void onCleanup( void );
+  virtual void onUserMessage( const int messageID, const string& messageBody );
   virtual void onUserMessage( const string& messageBody );
   virtual void onOverlay( void );
   virtual void onKey( unsigned char key, int x, int y );
@@ -132,7 +133,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setPlayCallback( void (*play)( arMasterSlaveFramework& ) );
   void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&, arGUIWindowInfo* ) );
   void setExitCallback( void (*cleanup)( arMasterSlaveFramework& ) );
-  void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&, const std::string& messageBody ) );
+  void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&,
+        const int messageID, const std::string& messageBody ) );
+  void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&,
+        const std::string& messageBody ) );
   void setOverlayCallback( void (*overlay)( arMasterSlaveFramework& ) );
   // Old-style keyboard callback.
   void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&, unsigned char, int, int ) );
@@ -291,7 +295,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_windowEventCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
   void (*_windowStartGLCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
   void (*_cleanup)( arMasterSlaveFramework& );
-  void (*_userMessageCallback)( arMasterSlaveFramework&, const std::string& );
+  void (*_userMessageCallback)( arMasterSlaveFramework&,
+      const int messageID, const std::string& messageBody );
+  void (*_oldUserMessageCallback)( arMasterSlaveFramework&,
+      const std::string& messageBody );
   void (*_overlay)( arMasterSlaveFramework& );
   void (*_keyboardCallback)( arMasterSlaveFramework&, unsigned char key, int x, int y );
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );

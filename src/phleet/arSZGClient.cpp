@@ -1467,6 +1467,7 @@ int arSZGClient::sendMessage(const string& type, const string& body,
       if (ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS)
             != string("SZG_SUCCESS")) {
         ar_log_warning() << _exeName << ": message send failed.\n";
+        match = -1;
       }
       _dataParser->recycle(ack);
     }
@@ -1736,6 +1737,7 @@ int arSZGClient::getKillNotification(list<int> tags,
 // component's ID.  Return true iff the lock is acquired.
 bool arSZGClient::getLock(const string& lockName, int& ownerID) {
   if (!_connected) {
+    ar_log_debug() << "arSZGClient::getLock(): not connected.\n";
     return false;
   }
   // Must get storage for the message.
@@ -1747,17 +1749,13 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID) {
                                      lockName) ||
       !_dataClient.sendData(lockRequestData)) {
     ar_log_warning() << _exeName << " failed to request lock.\n";
-  }
-  else{
+  } else {
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack) {
       ar_log_warning() << _exeName << ": no response to lock request.\n";
-    }
-    else{
+    } else {
       ownerID = ack->getDataInt(_l.AR_SZG_LOCK_RESPONSE_OWNER);
-      state =
-        ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS)
-        == string("SZG_SUCCESS");
+      state = ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS) == string("SZG_SUCCESS");
       _dataParser->recycle(ack);
     }
   }

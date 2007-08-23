@@ -959,10 +959,30 @@ void arMasterSlaveFramework::onCleanup( void ) {
   }
 }
 
-void arMasterSlaveFramework::onUserMessage( const string& messageBody ) {
-  if( _userMessageCallback ) {
+void arMasterSlaveFramework::onUserMessage( const int messageID, const string& messageBody ) {
+  if (_userMessageCallback) {
     try {
-      _userMessageCallback( *this, messageBody );
+      _userMessageCallback( *this, messageID, messageBody );
+    } catch (arMSCallbackException exc) {
+      ar_log_error() << "The following error occurred in the arMasterSlaveFramework userMessage callback:\n\t"
+           << exc.message << ar_endl;
+      stop(false);
+    }
+  } else if (_oldUserMessageCallback) {
+    try {
+      _oldUserMessageCallback( *this, messageBody );
+    } catch (arMSCallbackException exc) {
+      ar_log_error() << "The following error occurred in the arMasterSlaveFramework userMessage callback:\n\t"
+           << exc.message << ar_endl;
+      stop(false);
+    }
+  }
+}
+
+void arMasterSlaveFramework::onUserMessage( const string& messageBody ) {
+  if( _oldUserMessageCallback ) {
+    try {
+      _oldUserMessageCallback( *this, messageBody );
     } catch (arMSCallbackException exc) {
       ar_log_error() << "The following error occurred in the arMasterSlaveFramework userMessage callback:\n\t"
            << exc.message << ar_endl;
@@ -1097,8 +1117,17 @@ void arMasterSlaveFramework::setExitCallback
 // using this callback. A message w/ type "user" and value "foo" will
 // be passed into this callback, if set, with "foo" going into the string.
 void arMasterSlaveFramework::setUserMessageCallback
-  ( void (*userMessageCallback)(arMasterSlaveFramework&, const string& )){
+  ( void (*userMessageCallback)(arMasterSlaveFramework&,
+                                const int messageID,
+                                const string& messageBody )){
   _userMessageCallback = userMessageCallback;
+  _oldUserMessageCallback = NULL;
+}
+void arMasterSlaveFramework::setUserMessageCallback
+  ( void (*userMessageCallback)(arMasterSlaveFramework&,
+                                const string& messageBody )){
+  _oldUserMessageCallback = userMessageCallback;
+  _userMessageCallback = NULL;
 }
 
 // In general, the graphics window can be a complicated sequence of
@@ -1755,9 +1784,9 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 //************************************************************************
 void arMasterSlaveFramework::_processUserMessages() {
   arGuard guard( _userMessageLock );
-  std::deque< std::string >::const_iterator iter;
+  std::deque< arUserMessageInfo >::const_iterator iter;
   for (iter = _userMessageQueue.begin(); iter != _userMessageQueue.end(); ++iter) {
-    onUserMessage( *iter );
+    onUserMessage( iter->messageID, iter->messageBody );
   }
   _userMessageQueue.clear();
 }
@@ -2256,7 +2285,8 @@ void arMasterSlaveFramework::_messageTask( void ) {
   string messageType, messageBody;
 
   while( !stopping() ) {
-    if( !_SZGClient.receiveMessage( &messageType, &messageBody ) ) {
+    int messageID = _SZGClient.receiveMessage( &messageType, &messageBody );
+    if (!messageID) {
       // szgserver has *hard-shutdown* _SZGClient.
 
       // 5-line copypaste from case "quit" below.
@@ -2271,6 +2301,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
 
     if( messageType == "quit" ) {
+      _SZGClient.messageResponse( messageID, getLabel()+" quitting" );
       // Bring everything to an orderly halt, lest crashing windows apps
       // bring up a dialog box that must be clicked.
 
@@ -2284,13 +2315,21 @@ void arMasterSlaveFramework::_messageTask( void ) {
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
         ar_log_critical() << getLabel() << " set log level to " << messageBody << ar_endl;
+        _SZGClient.messageResponse( messageID, getLabel()+" set log level to "+messageBody );
       } else {
         ar_log_error() << getLabel() << " ignoring unrecognized loglevel '"
                          << messageBody << "'.\n";
+        _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
+            " ignoring unrecognized loglevel '"+messageBody+"'." );
       }
     }
     else if ( messageType== "performance" ) {
       _showPerformance = messageBody == "on";
+      if (_showPerformance) {
+        _SZGClient.messageResponse( messageID, getLabel()+" showing performance graph" );
+      } else {
+        _SZGClient.messageResponse( messageID, getLabel()+" hiding performance graph" );
+      }
     }
     else if ( messageType == "reload" ) {
       // Hack: set _requestReload here, to make the
@@ -2298,27 +2337,28 @@ void arMasterSlaveFramework::_messageTask( void ) {
       // Side effect: only the last of several reload messages, when
       // sent in quick succession, will work.
       _requestReload = true;
+      _SZGClient.messageResponse( messageID, getLabel()+" reloading rendering parameters." );
     }
     else if ( messageType == "user" ) {
-      _appendUserMessage( messageBody );
+      _appendUserMessage( messageID, messageBody );
     }
-    else if( messageType == "color" ) {
+    else if ( messageType == "color" ) {
       if ( messageBody == "NULL" || messageBody == "off") {
         _noDrawFillColor = arVector3( -1.0f, -1.0f, -1.0f );
-      }
-      else {
-	float tmp[ 3 ];
-	ar_parseFloatString( messageBody, tmp, 3 );
-	// todo: error checking
+      } else {
+        float tmp[ 3 ];
+        ar_parseFloatString( messageBody, tmp, 3 );
+        // todo: error checking
         memcpy( _noDrawFillColor.v, tmp, 3 * sizeof( AR_FLOAT ) );
       }
     }
     else if( messageType == "screenshot" ) {
       // copypaste with graphics/szgrender.cpp
       if ( _dataPath == "NULL" ) {
-	ar_log_warning() << _label << " screenshot failed: undefined SZG_DATA/path.\n";
-      }
-      else{
+        ar_log_warning() << _label << " screenshot failed: undefined SZG_DATA/path.\n";
+        _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
+            " screenshot failed: undefined SZG_DATA/path." );
+      } else {
         _screenshotFlag = true;
         if( messageBody != "NULL" ) {
           int tmp[ 4 ];
@@ -2328,11 +2368,18 @@ void arMasterSlaveFramework::_messageTask( void ) {
       	  _screenshotStartY = tmp[ 1 ];
       	  _screenshotWidth  = tmp[ 2 ];
       	  _screenshotHeight = tmp[ 3 ];
-	}
+        }
+        _SZGClient.messageResponse( messageID, getLabel()+" took screenshot." );
       }
     }
-    else if( messageType == "demo" ) {
-      setFixedHeadMode(messageBody=="on");
+    else if (( messageType == "demo" )||(messageType == "fixedhead")) {
+      bool useFixedHead(messageBody=="on");
+      setFixedHeadMode(useFixedHead);
+      if (useFixedHead) {
+        _SZGClient.messageResponse( messageID, getLabel()+" enabled fixed-head mode." );
+      } else {
+        _SZGClient.messageResponse( messageID, getLabel()+" disabled fixed-head mode." );
+      }
     }
 
     //*********************************************************
@@ -2342,22 +2389,31 @@ void arMasterSlaveFramework::_messageTask( void ) {
     //*********************************************************
     if( messageType == "delay" ) {
       _framerateThrottle = messageBody == "on";
-        _framerateThrottle = true;
+      if (_framerateThrottle) {
+        _SZGClient.messageResponse( messageID, getLabel()+" enabled frame-rate throttle." );
+      } else {
+        _SZGClient.messageResponse( messageID, getLabel()+" disabled frame-rate throttle." );
+      }
     }
     else if ( messageType == "pause" ) {
       if ( messageBody == "on" ) {
-	arGuard dummy(_pauseLock);
-	if ( !stopping() )
-	  _pauseFlag = true;
+        _SZGClient.messageResponse( messageID, getLabel()+" pausing." );
+        arGuard dummy(_pauseLock);
+        if ( !stopping() )
+          _pauseFlag = true;
       }
       else if( messageBody == "off" ) {
-	arGuard dummy(_pauseLock);
-	_pauseFlag = false;
-	_pauseVar.signal();
+        _SZGClient.messageResponse( messageID, getLabel()+" continueing." );
+        arGuard dummy(_pauseLock);
+        _pauseFlag = false;
+        _pauseVar.signal();
       }
-      else
+      else {
         ar_log_warning() << _label <<
-	  " ignoring unexpected pause arg '" << messageBody << "'.\n";
+            " ignoring unexpected pause arg '" << messageBody << "'.\n";
+        _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
+            " ignoring unexpected pause arg '"+messageBody+"'." );
+      }
     }
 
   }

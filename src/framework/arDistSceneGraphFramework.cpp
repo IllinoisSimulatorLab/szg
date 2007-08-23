@@ -28,10 +28,11 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       exit(0);
     }
     if (messageType=="quit"){
+      f->_SZGClient.messageResponse( messageID, f->getLabel()+" quitting" );
       if (f->_vircompExecution){
         // we have an arAppLauncher object piggy-backing on us,
-	// controlling a virtual computer's execution
-	f->_launcher.killApp();
+        // controlling a virtual computer's execution
+        f->_launcher.killApp();
       }
       // stop the framework
       f->stop(true);
@@ -53,7 +54,9 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
     }
     else if (messageType== "user"){
       if (f->_userMessageCallback){
-        f->_userMessageCallback(*f, messageBody);
+        f->_userMessageCallback(*f, messageID, messageBody);
+      } else if (f->_oldUserMessageCallback) {
+        f->_oldUserMessageCallback(*f, messageBody);
       }
       // Don't return.
       continue;
@@ -199,6 +202,7 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
   _usedGraphicsDatabase(NULL),
   _userMessageCallback(NULL),
+  _oldUserMessageCallback(NULL),
   _graphicsNavNode(NULL),
   _soundNavMatrixID(-1),
   _VRCameraID(-1),
@@ -217,8 +221,15 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
 // using this callback. A message w/ type "user" and value "foo" will
 // be passed into this callback, if set, with "foo" going into the string.
 void arDistSceneGraphFramework::setUserMessageCallback
-  (void (*userMessageCallback)(arDistSceneGraphFramework&, const string&)){
+  (void (*userMessageCallback)(arDistSceneGraphFramework&, int messageID, const string&)){
   _userMessageCallback = userMessageCallback;
+  _oldUserMessageCallback = NULL;
+}
+
+void arDistSceneGraphFramework::setUserMessageCallback
+  (void (*userMessageCallback)(arDistSceneGraphFramework&, const string&)){
+  _oldUserMessageCallback = userMessageCallback;
+  _userMessageCallback = NULL;
 }
 
 // Control additional locations where the databases (both sound and graphics)

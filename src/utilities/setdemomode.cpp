@@ -23,13 +23,21 @@ int main(int argc, char** argv) {
   launcher.setSZGClient(&szgClient);
   if (argc == 3){
     // Explicitly set the virtual computer.
-    launcher.setVircomp(argv[1]);
+    if (!launcher.setVircomp(argv[1])) {
+      ar_log_error() << "setdemomode: failed to set virtual computer.\n";
+      return 1;
+    }
     ar_log_debug() << "setdemomode: set virtual computer to " << argv[1] << ar_endl;
   } else {
     // Try to get the virtual computer from the "context".
     launcher.setVircomp();
     ar_log_debug() << "setdemomode: virtual computer is " << launcher.getVircomp() << ar_endl;
   }
+  if (!launcher.setParameters()) {
+    ar_log_error() << "setdemomode: arAppLauncher::setParameters() failed.\n";
+    return 1;
+  }
+  ar_log_debug() << "setdemomode: arAppLauncher::setParameters() succeeded.\n";
 
   if (argc != 2 && argc != 3) {
 Usage:    
@@ -45,10 +53,11 @@ Usage:
   // copypaste from dmsg.cpp
   const string lockName = launcher.getLocation()+"/SZG_DEMO/app";
   int componentID;
-  if (szgClient.getLock(lockName, componentID)){
+  if (szgClient.getLock(lockName, componentID)) {
     // nobody else was holding the lock
     szgClient.releaseLock(lockName);
-    cerr << "setdemomode error: no trigger component running.\n";
+    ar_log_error() << "setdemomode error: no trigger component running.\n";
+    ar_log_debug() << lockName << " lock-holder component ID = " << componentID << ar_endl;
     return 1;
   }
   const string messageBody = (paramVal == "true")? "on" : "off";

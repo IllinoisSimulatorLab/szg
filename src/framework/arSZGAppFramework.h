@@ -26,6 +26,17 @@
 #include <set>
 #include <deque>
 
+class arUserMessageInfo {
+ public:
+  arUserMessageInfo( int id, const string& body ):
+    messageID( id ),
+    messageBody( body )
+    {}
+
+  int messageID;
+  string messageBody;
+};
+
 class SZG_CALL arSZGAppFramework {
   public:
     arSZGAppFramework();
@@ -167,7 +178,7 @@ class SZG_CALL arSZGAppFramework {
     arFrameworkEventFilter _defaultUserFilter;
     arFrameworkEventFilter* _userEventFilter;
   
-    std::deque< std::string > _userMessageQueue;
+    std::deque< arUserMessageInfo > _userMessageQueue;
     arLock _userMessageLock;
 
     // Misc. member variables.
@@ -222,7 +233,7 @@ class SZG_CALL arSZGAppFramework {
     void _installFilters();
     virtual bool _loadParameters() = 0;
     void _loadNavParameters();
-    void _appendUserMessage( const std::string& messageBody );
+    void _appendUserMessage( int messageID, const std::string& messageBody );
     bool _parseNavParamString( const string& theString,
                                arInputEventType& type,
                                unsigned& index,
