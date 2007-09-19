@@ -2898,8 +2898,7 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
     _localParameters.find(query);
   const string value = (i!=_localParameters.end()) ?
     i->second : ar_getenv(groupName+"_"+parameterName);
-  return _changeToValidValue(groupName, parameterName,
-    value, validValues);
+  return _changeToValidValue(groupName, parameterName, value, validValues);
 }
 
 // When standalone, use a locally parsed config file.
@@ -2921,14 +2920,14 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
   return true;
 }
 
-// When standalone ("local"), get a "global" attribute (i.e. one not tied to a computer).
+// When standalone ("local"), get a "global" attribute.
 string arSZGClient::_getGlobalAttributeLocal(const string& attributeName) {
   map<string, string, less<string> >::iterator i =
     _localParameters.find(attributeName);
   return (i == _localParameters.end()) ? "NULL" : i->second;
 }
 
-// When standalong ("local"), set a "global" attribute.
+// When standalone ("local"), set a "global" attribute.
 bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
 					   const string& attributeValue) {
   map<string, string, less<string> >::iterator i =
@@ -2940,9 +2939,9 @@ bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
   return true;
 }
 
-// For a string constant in the parameter database,
-// check if it's in a list of valid values.
-// If not, return the first item and print a warning.
+// Check if a list of valid values contains
+// a string constant in the parameter database.
+// If not, return the list's first item and warn.
 string arSZGClient::_changeToValidValue(const string& groupName,
                                         const string& parameterName,
                                         const string& value,
@@ -2950,26 +2949,22 @@ string arSZGClient::_changeToValidValue(const string& groupName,
   if (validValues != "") {
     // String format is "|foo|bar|zip|baz|bletch|".
     if (validValues[0] != '|' || validValues[validValues.length()-1] != '|') {
-      ar_log_warning() << _exeName
-                       << ": getAttribute ignoring malformed validValues\n\t'"
-                       << validValues << "'.\n";
+      ar_log_warning() << _exeName <<
+        ": getAttribute ignoring malformed validValues '" << validValues << "'.\n";
       return value;
     }
     if (validValues.find('|'+value+'|') == string::npos) {
       const int end = validValues.find('|', 1);
       const string valueNew(validValues.substr(1, end-1));
       if (value != "NULL") {
-	// Value was explicitly set to something invalid.
-	ar_log_warning() << _exeName << ": "
-	                 << groupName+'/'+parameterName << " should be one of "
-	                 << validValues << ",\n    but is " << value
-	                 << ".  Using default instead (" << valueNew << ").\n";
+	ar_log_warning() << _exeName << " expected " <<
+	  groupName+'/'+parameterName << " to be one of " << validValues <<
+	  ", not '" << value << "'.  Defaulting to " << valueNew << ".\n";
       }
       return valueNew;
     }
   }
-  // Either the valid values string is undefined,
-  // or our value matches one of the valid values.
+  // Either validValues was undefined, or we got one of its entries.
   return value;
 }
 
@@ -2984,7 +2979,7 @@ void arSZGClient::_serverResponseThread() {
       a.sleep();
     }
 
-    // We got a packet.
+    // Got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
     arGuard dummy(_lock);
     if (_dataRequested) {
@@ -3007,16 +3002,15 @@ void arSZGClient::_serverResponseThread() {
             }
           }
           if (!found) {
-            // Should not be an ar_log_*.  Really print to the console.
+            // Explicitly cout, not an ar_log_xxx().
             if (_justPrinting) {
               cout << serverInfo.str() << "\n";
             }
             _foundServers.push_back(serverInfo.str());
           }
         } else {
-          // If this matches the requested name, stop, discarding
-          // subsequent packets.
           if (_requestedName == string(_responseBuffer+5)) {
+	    // Stop, discarding subsequent packets.
             _dataRequested = false;
             _dataCondVar.signal();
           }

@@ -471,14 +471,14 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
   if( !node || !node->ToElement() )
     return false;
 
-  // Don't pass NULL to strcmp.
-  if( !node->ToElement()->Attribute( value.c_str() ) )
+  const char* pch = node->ToElement()->Attribute( value.c_str() );
+  if (!pch)
     return false;
 
-  string attrVal( node->ToElement()->Attribute( value.c_str() ) );
+  const string attrVal( pch );
   if ((attrVal != "yes")&&(attrVal != "no")&&(attrVal != "true")&&(attrVal != "false")) {
-    ar_log_warning() << "arGUIXML: attribute '" << value << "' should be one of "
-                   << "yes/no/true/false, but is instead '" << attrVal << "'.\n";
+    ar_log_warning() << "arGUIXML expected attribute '" << value <<
+      "' to be one of yes/no/true/false, not '" << attrVal << "'.  Defaulting to 'no'.\n";
     return false;
   }
 
