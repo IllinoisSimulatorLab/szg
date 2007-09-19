@@ -224,7 +224,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
-  ar_log_remark() << "Accepted connection from "
+  ar_log_remark() << "arDataServer got connection from "
                   << addr.getRepresentation() << ar_endl;
  
   arGuard dummy(_lockTransfer);
@@ -235,8 +235,7 @@ LAbort:
     return NULL;
   }
 
-  // Based on the connection-acceptance state,
-  // add the new socket to either the active or the passive list
+  // Add the new socket to either the active or the passive list.
   (addToActive ? _connectionSockets : _passiveSockets).push_back(newSocketFD);
 
   if (!_theDictionary){
@@ -647,7 +646,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   arStreamConfig remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
     if (remoteStreamConfig.refused){
-      ar_log_remark() << "arDataServer: remote data point closed connection.\n"
+      ar_log_remark() << "arDataServer: remote data point disconnected.\n"
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
