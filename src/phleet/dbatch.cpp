@@ -15,7 +15,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
   
   if (argc < 2){
-    cerr << "usage: dbatch filename.txt\n";
+    cerr << "usage: dbatch filename.xml\n";
     return 1;
   }
 
