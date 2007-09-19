@@ -30,14 +30,14 @@ std::vector< std::string > basePathsGlobal;
 // Print warnings to console AND return them to dex.
 void warnTwice( ostringstream& errStream, const string& msg ) {
   // to console
-  ar_log_warning() << "szgd: " << msg << "\n";
+  ar_log_warning() << msg << "\n";
   const bool fTerminated = msg[msg.size()-1] == '\n';
   if (!fTerminated)
     ar_log_warning() << '\n';
 
   if (errStream != cerr && errStream != cout) {
     // to dex
-    errStream << "szg: szgd on " << SZGClient->getComputerName() << ": " << msg;
+    errStream << "szgd on " << SZGClient->getComputerName() << ": " << msg;
     if (!fTerminated)
       errStream << '\n';
   }
@@ -105,7 +105,7 @@ bool getBasePaths( const char* const arg ) {
     bool dirExists = false;
     bool isDir = false;
     if (!ar_directoryExists( pathTmp, dirExists, isDir )) {
-      ar_log_warning() << "szgd: ar_directoryExists() failed.\n";
+      ar_log_warning() << "ar_directoryExists() failed.\n";
       return false;
     }
     if (!dirExists) {
@@ -113,16 +113,16 @@ bool getBasePaths( const char* const arg ) {
       bool isFile = false;
       if (!ar_fileExists( pathTmp+".exe", dirExists, isFile )) {
         if (!dirExists) {
-          ar_log_warning() << "szgd: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
+          ar_log_warning() << "no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
         if (!isFile) {
-          ar_log_warning() << "szgd: executable '" << pathTmp << ".exe' is not a file.\n";
+          ar_log_warning() << "executable '" << pathTmp << ".exe' is not a file.\n";
           return false;
         }
       }
 #else
-      ar_log_warning() << "szgd: no directory '" << pathTmp << "'.\n";
+      ar_log_warning() << "no directory '" << pathTmp << "'.\n";
       return false;
 #endif
     }
@@ -188,7 +188,7 @@ string getAppPath( const string& userName, const string& groupName, const string
       }
     }
   }
-  ar_log_remark() << "szgd scanning for " << appFile << ":\n";
+  ar_log_remark() << "scanning for " << appFile << ":\n";
   for (dirIter=dirsToSearch.begin(); dirIter != dirsToSearch.end(); ++dirIter) {
     ar_log_remark() << *dirIter << "\n";
     string potentialFile(*dirIter);
@@ -205,7 +205,7 @@ string getAppPath( const string& userName, const string& groupName, const string
       return "NULL";
     }
     if (fileExists && isFile) {
-      ar_log_remark() << "szgd found " << potentialFile << "\n";
+      ar_log_remark() << "found " << potentialFile << "\n";
       actualDirectory = *dirIter;
       break;
     }
@@ -218,7 +218,7 @@ string getAppPath( const string& userName, const string& groupName, const string
     warnTwice( errStream, "No file '" + appFile + "' on user " + userName + "'s " +
       groupName + "/path '" + appPath+"'.\n");
   } else {
-    ar_log_remark() << "szgd: app dir for " << userName << "/" << groupName <<
+    ar_log_remark() << "app dir for " << userName << "/" << groupName <<
       "/path is '" << actualDirectory << "'.\n";
   }
   return actualDirectory;
@@ -370,7 +370,7 @@ LAbort:
         errStream << "Don't append .exe;  Windows does that for you.\n";
 #endif
 LNolaunch:
-      ar_log_warning() << "szgd: " << errStream.str();
+      ar_log_warning() << errStream.str();
       return errStream.str();
     }
   }
@@ -451,7 +451,7 @@ LNolaunch:
     break;
   }
 
-  ar_log_remark() << "szgd:\n"
+  ar_log_remark()
        << "  user = " << userName << "\n"
        << "  exe  = " << execInfo->formatname() << " " << command << "\n"
        << "  args = " << argsAsList(args);
@@ -538,10 +538,10 @@ void execProcess(void* i){
 LDone:
     delete execInfo;
 //    if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-//      ar_log_remark() << "szgd post-launch dir is '"
+//      ar_log_remark() << "post-launch dir is '"
 //           << originalWorkingDirectory << "'.\n";
 //    } else {
-//      ar_log_warning() << "szgd post-launch failed to cd to '"
+//      ar_log_warning() << "post-launch failed to cd to '"
 //           << originalWorkingDirectory << "'.\n";
 //    }
     return;
@@ -558,7 +558,7 @@ LDone:
   const string tradingKey(SZGClient->getComputerName() + "/" 
                           + tradingStr + "/"
 	                  + symbolicCommand);
-  ar_log_debug() << "szgd trading key = " << tradingKey << ".\n";
+  ar_log_debug() << "trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
 
   // Two dynamic search paths (as embodied in environment variables) need
@@ -679,16 +679,16 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    ar_log_warning() << "szgd pre-launch failed to cd to '" <<
+    ar_log_warning() << "pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
-    ar_log_remark() << "szgd: pre-launch dir for " << execInfo->messageBody
+    ar_log_remark() << "pre-launch dir for " << execInfo->messageBody
          << "\n    is '" << execInfo->appDirPath << "'.\n";
   }
 
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
-    ar_log_warning() << "szgd failed to create pipe.\n";
+    ar_log_warning() << "failed to create pipe.\n";
     goto LDone;
   }
 
@@ -699,7 +699,7 @@ LDone:
   char numberBuffer[8] = {0};
   const int PID = fork();
   if (PID < 0) {
-    ar_log_warning() << "szgd failed to fork.\n";
+    ar_log_warning() << "failed to fork.\n";
     goto LDone;
   }
 
@@ -734,7 +734,7 @@ LDone:
       }
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
-        ar_log_warning() << "szgd internal error: ignoring bogus numberBuffer value "
+        ar_log_warning() << "internal error: ignoring bogus numberBuffer value "
 	           << *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
@@ -783,10 +783,10 @@ LDone:
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingStr);
   
-  ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
+  ar_log_remark() << "libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
-    ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
+    ar_log_remark() << "python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
   info << "szgd running " << symbolicCommand << " on path\n" << execPath << ".\n";
@@ -806,8 +806,8 @@ LDone:
   }
 
   char** argv = buildUnixStyleArgList(newCommand, argsMangled);
-  ar_log_remark() << "szgd cmd  = " << newCommand
-                << "\n     args = " << argsAsList(argsMangled);
+  ar_log_remark() << "cmd  = " << newCommand
+                << "\nargs = " << argsAsList(argsMangled);
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
   (void)execv(newCommand.c_str(), argv);
@@ -838,16 +838,16 @@ LDone:
   const string terminalOutput = info.str();
   numberBuffer[0] = 0; // magic number for "launch failed"
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)) {
-    ar_log_remark() << "szgd failed to send failure code over pipe.\n";
+    ar_log_remark() << "failed to send failure code over pipe.\n";
   }
   *((int*)numberBuffer) = terminalOutput.length();
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, sizeof(int))) {
-     ar_log_remark() << "szgd failed to complete pipe-based handshake.\n";
+     ar_log_remark() << "failed to complete pipe-based handshake.\n";
   }   
   if (!ar_safePipeWrite( pipeDescriptors[1],
                          terminalOutput.c_str(),
 			 terminalOutput.length())) {
-    ar_log_remark() << "szgd failed to complete pipe-based handshake, text stage.\n";
+    ar_log_remark() << "failed to complete pipe-based handshake, text stage.\n";
   }
 
   // Kill the child, so the orphaned process doesn't restart on the message loop.
@@ -870,10 +870,10 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    ar_log_warning() << "szgd pre-launch failed to cd to '" <<
+    ar_log_warning() << "pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
-    ar_log_remark() << "szgd: pre-launch dir for " << execInfo->messageBody
+    ar_log_remark() << "pre-launch dir for " << execInfo->messageBody
          << "\n    is '" << execInfo->appDirPath << "'.\n";
   }
 
@@ -889,10 +889,10 @@ LDone:
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingStr);
 
-  ar_log_remark() << "szgd libpath =\n  " << DLLPath << "\n";
+  ar_log_remark() << "libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
-    ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
+    ar_log_remark() << "python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
 
@@ -920,7 +920,7 @@ LDone:
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
-  ar_log_remark() << "szgd cmd  = " << command << "\n     args = " << argsBuffer << "\n";
+  ar_log_remark() << "cmd = " << command << ", args = " << argsBuffer << "\n";
   // The spawnee might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,
@@ -990,6 +990,7 @@ int main(int argc, char** argv) {
   }
 
   ar_log().setTimestamp(true);
+  ar_log().setHeader("szgd");
   const int argcOriginal = argc;
   // No argvOriginal, because argv isn't modified.
 
@@ -1014,7 +1015,7 @@ LGonnaRetry:
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
-    ar_log_error() << "szgd already running (pid = " << ownerID << ").\n";
+    ar_log_error() << "already running (pid = " << ownerID << ").\n";
     // todo: if we can't communicate with that pid,
     // then assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.
@@ -1052,11 +1053,11 @@ LGonnaRetry:
         const bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
         if (ok) {
-	  ar_log_remark() << "szgd timeout is " << temp <<
+	  ar_log_remark() << "timeout is " << temp <<
 	    " msec, msg body is '" << messageBody << "'.\n";
           timeoutMsec = temp;
         } else {
-          ar_log_warning() << "szgd ignoring invalid timeout string '" << timeoutString << "'.\n";
+          ar_log_warning() << "ignoring invalid timeout string '" << timeoutString << "'.\n";
         }
       }
 
@@ -1069,10 +1070,9 @@ LGonnaRetry:
 
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "szgd set log level to " << messageBody << ar_endl;
+        ar_log_critical() << "set log level to " << messageBody << ar_endl;
       } else {
-        ar_log_error() << "szgd ignoring unrecognized loglevel '"
-                         << messageBody << "'.\n";
+        ar_log_error() << "ignoring unrecognized loglevel '" << messageBody << "'.\n";
       }
     }
   }

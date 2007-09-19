@@ -293,11 +293,9 @@ void arLogStream::_flush(const bool addNewline){
     return;
 
   if (_level <= _threshold) {
-    // Intermediate variable so there's only one << to _output.
+    // Accumulator, so there's only one << to _output.
     ostringstream s;
-
-    s << _header << ":" << ar_logLevelToString(_level);
-
+    s << _header;
     if (_fTimestamp) {
       string now(ar_currentTimeString());
       // Skip past gobbledegook.
@@ -309,13 +307,9 @@ void arLogStream::_flush(const bool addNewline){
       // Truncate year.
       pos = now.find("200");
       now = pos==string::npos ? now : now.substr(0, pos-1);
-      s << " " << now << ": ";
+      s << " " << now;
     }
-    else {
-      s << ": ";
-    }
-
-    s << _buffer.str();
+    s << " " << ar_logLevelToString(_level) << ": " << _buffer.str();
     if (addNewline) {
       s << "\n";
     }
