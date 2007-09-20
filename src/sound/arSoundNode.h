@@ -35,18 +35,16 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
   arSoundDatabase* _owningDatabase;
   arSoundLanguage  _l;
   
-  // State.
+  // State.  Ignored by some kinds of node.
   arVector3 _point;
   float _amplitude; // usually [0,100], default 1.
-  // these 2 are perhaps ignored by some node-kinds.
-  // used only by arSoundFileNode
 
   // Generic array of data, either floats or ints.
-  // These are 'arguments' to the 'command' _commandID, for some kinds of node.
+  // 'Arguments' to the 'command' _commandID, for some kinds of node.
   arLightFloatBuffer _commandBuffer;
 
   // State referred to by (not actually stored in, nor allocated by) this node.
-  // _texture is inherited from parent, if parent exists
+  // _texture is inherited from parent, if any
   arSoundFile** _arSoundFiles; //;; was _texture. ?rename to _inheritedGlobalData
   arSoundFile*  _localSoundFile; //;; was _localTexture. ?rename to _globalDatum
 
