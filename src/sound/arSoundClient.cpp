@@ -155,7 +155,7 @@ bool arSoundClient::configure(arSZGClient* client){
 //  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_RIGHT, 0., 1.  );
 //  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_LEFT, 0., 1.  );
 //  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_RIGHT, 0., 1.  );
-  
+
   return true;
 }
 
@@ -260,8 +260,7 @@ bool arSoundClient::startDSP(){
   x.length = 44100 * sizeof(short) * x.numchannels * 5;
   if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), NULL,
           FMOD_3D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1 ))) {
-//  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), NULL,
-//          FMOD_3D | FMOD_HARDWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1 ))) {
+//  try FMOD_HARDWARE instead of FMOD_SOFTWARE ?
     return false;
   }
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
@@ -304,30 +303,16 @@ void arSoundClient::setDSPTap(void (*callback)(float*)){
 }
 
 bool arSoundClient::microphoneVolume(int volume){
-  if (volume < 0){
-    _microphoneVolume = 0;
-  }
-  else if (volume > 255){
-    _microphoneVolume = 255;
-  }
-  else{
-    _microphoneVolume = volume;
-  }
+  _microphoneVolume = (volume < 0) ? 0 : (volume > 255) ? 255 : volume;
 #ifdef EnableSound
-  if (_recordChannel){
-    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _recordChannel, _microphoneVolume / 255 )))
+  if (_recordChannel) {
+    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _recordChannel, _microphoneVolume / 255. )))
       return false;
 
-    // bug: don't make the same call twice in a row.
-    if (_microphoneVolume == 0){
-      // Save CPU, it's silent anyways.
-      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, true )))
-        return false;
-    }
-    else{
-      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, false )))
-        return false;
-    }
+    // bug: don't make the same SetPaused call twice in a row.
+    // zero-check saves CPU, it's silent anyways.
+    if (!ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, _microphoneVolume == 0 )))
+      return false;
   }
 #endif
   return true;
@@ -380,7 +365,7 @@ string arSoundClient::_processStreamInfo(const string& body){
 
   // node->getTypeCode() confirms that this cast is valid.
   arStreamNode* tmp = (arStreamNode*)node;
-  stringstream result;
-  result << tmp->getCurrentTime() << "/" << tmp->getStreamLength();
-  return result.str();
+  stringstream s;
+  s << tmp->getCurrentTime() << "/" << tmp->getStreamLength();
+  return s.str();
 }
