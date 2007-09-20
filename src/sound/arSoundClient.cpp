@@ -182,6 +182,7 @@ bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
 }
 
 bool arSoundClient::_render() {
+  // In this order: update listener's state before sound sources'.
   _soundDatabase.setPlayTransform(_speakerObject);
   return _soundDatabase.render();
 }
