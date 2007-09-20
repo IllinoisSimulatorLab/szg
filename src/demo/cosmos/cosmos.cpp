@@ -178,18 +178,18 @@ int main(int argc, char** argv){
   // We could dispense with the pointer, but it *might* cause that
   // intermittent constructor-hang.  To be tested more.
   arDistSceneGraphFramework* framework = new arDistSceneGraphFramework;
-  // MUST set the buffer swap mode BEFORE init!
-  framework->setAutoBufferSwap(false);
+
+  framework->setAutoBufferSwap(false); // Must be before init().
   if (!framework->init(argc,argv)){
     return 1;
   }
   
-  // Where we can put the textures and sounds.
+  // Location of textures and sounds.
   framework->setDataBundlePath("SZG_DATA", "cosmos");
   arInterfaceObject interfaceObject;
   interfaceObject.setInputDevice(framework->getInputNode());
-  // The following is VERY important... otherwise the navigation is
-  // WAY too fast.
+
+  // Slow down navigation.
   interfaceObject.setSpeedMultiplier(0.15);
   
   worldInit(framework);
@@ -198,7 +198,7 @@ int main(int argc, char** argv){
   framework->setEyeSpacing( 6/(2.54*12) );
   framework->setClipPlanes( .3, 1000. );
   framework->setUnitConversion( 1. );
-  // More initializing.
+
   if (!framework->start() || !interfaceObject.start()){
     return 1;
   }
@@ -209,6 +209,7 @@ int main(int argc, char** argv){
   const arVector3 xyz(0,0,0);
   const int idLoop = dsLoop("ambience", "world", "cosmos.mp3", 1, 1, xyz);
   const int idBeep = dsLoop("beep", "world", "q33beep.wav",  0, 0.0, xyz);
+
   // Main loop.
   while (true) {
     navTransform = interfaceObject.getNavMatrix().inverse();
@@ -222,12 +223,10 @@ int main(int argc, char** argv){
 
     worldAlter();
 
-    // DO NOT TURN THE AMBIENT SOUND ON/OFF, THIS IS A NICE TEST OF
-    // "IS SPATIALIZED SOUNDS WORKING" AND TURNING ON/OFF MESSES THAT
-    // UP.
+    // Verify spatialized sound.  (Don't turn it on/off.)
     (void)dsLoop(idLoop, "cosmos.mp3", 1, 1, xyz);
 
-    // Play a beep sporadically.
+    // Sporadically play a beep.
     if (rand() % 200 == 0) {
       (void)dsLoop(idBeep, "q33beep.wav", -1, 1, xyz);
       (void)dsLoop(idBeep, "q33beep.wav",  0, 0, xyz);
@@ -237,8 +236,7 @@ int main(int argc, char** argv){
     framework->setViewer();
     framework->setPlayer();
 
-    // and now we go ahead and force a buffer swap (which we are controlling
-    // manually)
+    // Manually force a buffer swap.
     framework->swapBuffers();
   }
   return 0;
