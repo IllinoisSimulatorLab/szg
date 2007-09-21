@@ -41,6 +41,8 @@ arSoundFileNode::~arSoundFileNode(){
 #endif
 }
 
+extern arMatrix4 __globalSoundListener;
+
 bool arSoundFileNode::_adjust(bool useTrigger){
 #ifndef EnableSound
   (void)useTrigger; // avoid compiler warning
@@ -51,55 +53,46 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   if (!_channel)
     return false;
 
-  FMOD_MODE m;
-  if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
-    // _channel was invalid.
-    (void) FMOD_Channel_Stop( _channel );
-    _channel = NULL;
-    return false;
-  }
-
-  const float a = useTrigger ? _triggerAmplitude : _amplitude;
-  if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, a )))
-    return false;
-
-  if (m & FMOD_2D) {
-    // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-    if (!_fComplained[2]) {
-      _fComplained[2] = true;
-      ar_log_debug() << "2D sound won't be 3D-updated.\n";
+  {
+    FMOD_MODE m;
+    if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
+      // _channel was invalid.
+      (void) FMOD_Channel_Stop( _channel );
+      _channel = NULL;
+      return false;
     }
-    return true;
-  }
 
-  // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
-  if (!(m & FMOD_3D)) {
-    // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-    if (!_fComplained[3]) {
-      _fComplained[3] = true;
-      ar_log_remark() << "2D sound won't be 3D-updated, and I mean it this time.\n";
+    const float a = useTrigger ? _triggerAmplitude : _amplitude;
+    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, a )))
+      return false;
+
+    if (m & FMOD_2D) {
+      // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
+      if (!_fComplained[2]) {
+	_fComplained[2] = true;
+	ar_log_debug() << "2D sound won't be 3D-updated.\n";
+      }
+      return true;
     }
-    return true;
+
+    // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
+    if (!(m & FMOD_3D)) {
+      // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
+      if (!_fComplained[3]) {
+	_fComplained[3] = true;
+	ar_log_debug() << "2D sound won't be 3D-updated, and I mean it this time.\n";
+      }
+      return true;
+    }
   }
 
   const arMatrix4 mat = ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top();
-//cerr << "MATRIX: " << mat << endl;
   const arVector3& p = useTrigger ? _triggerPoint : _point;
-  const arVector3 point(mat * p);
-//cerr << "SOUND POINT 1: " << p << endl;
-//cerr << "SOUND POINT 2: " << point << endl;
-//float x, y;
-//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_LEFT, &x, &y );
-//cerr << "FRONT LEFT  SPEAKER POSITION: " << x << ", " << y << endl;
-//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_RIGHT, &x, &y );
-//cerr << "FRONT RIGHT SPEAKER POSITION: " << x << ", " << y << endl << endl;
-//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_LEFT, &x, &y );
-//cerr << "SIDE  LEFT  SPEAKER POSITION: " << x << ", " << y << endl;
-//FMOD_System_GetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_SIDE_RIGHT, &x, &y );
-//cerr << "SIDE  RIGHT SPEAKER POSITION: " << x << ", " << y << endl << endl;
-  const FMOD_VECTOR tmp(FmodvectorFromArvector(point)); // doppler velocity nyi
-  const FMOD_VECTOR velocity(FmodvectorFromArvector(arVector3(0,0,0)));
-  return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity ));
+  const arVector3 point((__globalSoundListener * mat) * p);
+
+  static const FMOD_VECTOR velocity_unused(FmodvectorFromArvector(arVector3(0,0,0))); // doppler nyi
+  const FMOD_VECTOR tmp(FmodvectorFromArvector(point));
+  return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity_unused ));
 #endif
 }
 
@@ -277,16 +270,12 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
   (void)pdata->dataOut(_l.AR_FILEWAV_XYZ, &_point, AR_FLOAT, 3);
   _fileName = pdata->getDataString(_l.AR_FILEWAV_FILE);
 
-  // This is really just in need of fixing. So, we'll let it keep it's
-  // broken behavior until it gets modified in the great increasing
-  // of object orientedness. The problem is that... the infrastructure for 
-  // graphics maps awkwardly onto an infrastructure for sound. Sound, more 
-  // than graphics, is naturally conceived as a stream of events.
+  // Design problem: graphics maps poorly onto sound, which
+  // is better conceived as a stream of events.
 
-  // The action to be taken at the next render frame is determined.
+  // Determine what to do at the next render frame.
   // Changing things too quickly in the API will discard actions.
-
-  // Here, we RELY on the fact that sound rendering is distinct from the
+  // Rely on the fact that sound rendering is distinct from the
   // actual modifying of the nodes.
 
   if (_fLoop == 1 && fLoopPrev == 0){
@@ -296,7 +285,7 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
     _action = "pause";
   }
   else if (_fLoop == -1 && fLoopPrev != -1){
-    // Workaround that only the initial volume and point location matter in
+    // Workaround that only the initial volume and location matter in
     // the old (messed-up) implementation.
     _action = "trigger";
     _triggerAmplitude = _amplitude;

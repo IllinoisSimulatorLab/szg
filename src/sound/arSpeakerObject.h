@@ -22,17 +22,24 @@ class SZG_CALL arSpeakerObject {
 
  private:
   float _unitConversion;
+#ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   bool _demoMode;
   float _demoHeadUpAngle;
   arVector3 _normal;
   arVector3 _up;
+#endif
   arVector3 _midEyeOffset; // vector from head tracker to midpoint of eyes, in feet
-  arVector3 _posPrev, _upPrev, _forwardPrev;
+  arMatrix4 _headPrev;
+  bool _fFmodPluginInited;
 
   arMatrix4 demoHeadMatrix( const arMatrix4& );
 
   typedef enum { mode_fmod, mode_fmodplugins, mode_vss, mode_mmio } rendermode;
-  rendermode mode;
+  rendermode _mode;
+    // fmod:        thin wrapper around 'gamer' 2-speaker style.
+    // fmodplugins: transform sources to compensate for stationary listener
+    // vss:         todo, as library, not separate exe
+    // mmio:        todo, windows legacy code (fallback if fmod's missing).
 };
 
 #endif

@@ -134,11 +134,9 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   
   bool fDone = false;
   string potentialFileName;
-  // Look at the bundle path, if it's been set.
-  map<string, string, less<string> >::iterator iter 
-    = _bundlePathMap.find(_bundlePathName);
-  if (_bundlePathName != "NULL" && _bundleName != "NULL"
-      && iter != _bundlePathMap.end()){
+  map<string, string, less<string> >::const_iterator iter(_bundlePathMap.find(_bundlePathName));
+  if (_bundlePathName != "NULL" && _bundleName != "NULL" && iter != _bundlePathMap.end()){
+    // Try the bundle path.
     arSemicolonString bundlePath(iter->second);
     for (int n=0; n<bundlePath.size() && !fDone; n++){
       potentialFileName = bundlePath[n];
@@ -152,10 +150,9 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     }
   }
 
-  // Try everything in the sound path.
+  // Try the sound path.
   _pathLock.lock();
-  for (list<string>::iterator i = _path->begin();
-       !fDone && i != _path->end(); ++i){
+  for (list<string>::iterator i = _path->begin(); i != _path->end() && !fDone; ++i){
     potentialFileName = *i + name;
     ar_scrubPath(potentialFileName);
     triedPaths.push_back( potentialFileName );
@@ -184,27 +181,27 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
 }
 
 void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
-  arMatrix4 headMatrix;
+  arDatabaseNode* n = getNode("szg_player", false);
   float unitConversion = 1.;
-  arDatabaseNode* playerNode = getNode("szg_player", false);
-  bool ok = true;
-  if (playerNode){
-    // Read the database's player node.
-    arStructuredData* pdata = playerNode->dumpData();
-    ok &=
-      pdata->dataOut(_langSound.AR_PLAYER_MATRIX,headMatrix.v,AR_FLOAT,16) &&
-      pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion,AR_FLOAT,1);
-      if (!ok)
-        ar_log_warning() << "arSoundDatabase: bogus head or unitConversion.\n";
-    delete pdata; // Because dumpData() allocated it.
-  }
-  if (ok) {
-    s->setUnitConversion(unitConversion);
+  arMatrix4 mHead;
 
-    // Once per sound-frame, 5x more often than
-    // arServerFramework::setPlayTransform calls loadMatrices.
-    (void)s->loadMatrices(headMatrix);
+  if (n) {
+    arStructuredData* pdata = n->dumpData();
+    const bool ok =
+      pdata->dataOut(_langSound.AR_PLAYER_MATRIX,mHead.v,AR_FLOAT,16) &&
+      pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion,AR_FLOAT,1);
+    if (!ok)
+      ar_log_warning() << "arSoundDatabase: bogus head or unitConversion.\n";
+    delete pdata; // Because dumpData() allocated it.
+    if (!ok)
+      return;
   }
+
+  s->setUnitConversion(unitConversion);
+
+  // Once per sound-frame, 5x more often than
+  // arServerFramework::setPlayTransform calls loadMatrices.
+  (void)s->loadMatrices(mHead);
 }
 
 // Copy of OpenGL's matrix stack, for sound rendering.
@@ -225,7 +222,7 @@ bool arSoundDatabase::_render(arSoundNode* node){
     ar_transformStack.push(ar_transformStack.top());
 
   // Don't render the root node.
-  bool ok = node->getID()==0 || node->render();
+  bool ok = node->isroot() || node->render();
 
   list<arDatabaseNode*> children = node->getChildren();
   for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i){
@@ -248,7 +245,7 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
     return (arDatabaseNode*) new arSpeechNode();
   if (type=="stream")
     return (arDatabaseNode*) new arStreamNode();
-  ar_log_warning() << "arSoundDatabase: makeNode factory got unknown type '" << type << "'.\n";
+  ar_log_warning() << "arSoundDatabase: makeNode got unknown type '" << type << "'.\n";
   return NULL;
 }
 

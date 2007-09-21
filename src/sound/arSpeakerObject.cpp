@@ -11,15 +11,18 @@
 
 arSpeakerObject::arSpeakerObject() :
   _unitConversion(1.),
+#ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   _demoMode(false),
   _demoHeadUpAngle(0.),
   _normal( 0,0,-1 ),
   _up( 0,1,0 ),
+#endif
   _midEyeOffset(-6./(2.54*12),0,0),
-  _posPrev(0,0,0),
-  _upPrev(0,0,0),
-  _forwardPrev(0,0,0)
-{}
+  _fFmodPluginInited(false)
+{
+  // Force first loadMatrices() to run.
+  memset(&_headPrev, 0, sizeof(_headPrev));
+}
 
 bool arSpeakerObject::configure(arSZGClient& cli){
   (void)cli.initResponse(); // like arGraphicsScreen::configure()
@@ -27,78 +30,82 @@ bool arSpeakerObject::configure(arSZGClient& cli){
   const string renderMode(cli.getAttribute("SZG_SOUND", "render",
     "|fmod|fmod_plugins|vss|mmio|"));
   ar_log_debug() << "mode SZG_SOUND/render '" << renderMode << "'.\n";
-  mode =
-    renderMode == "fmod_plugins" ?  mode_fmodplugins :
-    renderMode == "vss" ?  mode_vss :
-    renderMode == "mmio" ? mode_mmio :
-    mode_fmod;
+  _mode =
+    renderMode == "fmod_plugins" ?
+      mode_fmodplugins :
+    renderMode == "vss" ?
+      mode_vss :
+    renderMode == "mmio" ?
+      mode_mmio :
+      mode_fmod;
   return true;
 }
 
+arMatrix4 __globalSoundListener;
+extern arMatrix4 __globalSoundListener;
+
 bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
-  const arMatrix4 head(_demoMode ? demoHeadMatrix(mHead) : mHead);
-  const arVector3 midEye(_unitConversion * (head * _midEyeOffset));
+  arMatrix4 head(/*_demoMode ? demoHeadMatrix(mHead) :*/ mHead);
 
-  // Update listener's attributes.
-  const arMatrix4 rot(ar_extractRotationMatrix(head));
-  const arVector3 up((rot * arVector3(0,1,0)).normalize());
-  const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
-  const arVector3 pos(midEye);
+  if (head == _headPrev)
+    return true;
+  _headPrev = head;
 
-  if (mode == mode_fmodplugins) {
-    // Transform listener and sources so that
-    // listener is pos (0,0,0) fwd (0,0,-1) up (0,1,0).
-    // This hides listener motion from the FMOD plugins.
+  // Listener moved, so update listener's attributes.
 
-    // ar_lookatMatrix does this?
-    cerr << "yoyoyo get a list of sound sources and tweak them.\n";
+  switch (_mode) {
 
-    /***************
+  case mode_fmodplugins:
+    // Hide listener motion from the FMOD plugins:
+    // transform listener and sources so listener is
+    // pos (0,0,0) fwd (0,0,-1) up (0,1,0).
+    __globalSoundListener = head.inverse();
 
-    Better: FMOD_System_Set3DListenerAttributes just once.
-    As listener moves,
-      arSoundFileNode::render calls
-      arSoundFileNode::_adjust calls
-      FMOD_Channel_Set3DAttributes.
-
-    In arSoundDatabase::render, pre-push inverse of listener, i.e. the lookat matrix.
-    dtms?
-      Inject matrix there.
-
-      arSoundClient::_render() {
-        _soundDatabase.setPlayTransform(_speakerObject);
-	  calls _speakerObject->loadMatrices(mHead), THIS function.
-	return _soundDatabase.render();
-      }
-
-    ok, that's kindasorta how to move the listener.
-    what about how to move the soundsources?
-
-    ***************/
-  }
-
-  if (pos==_posPrev && up==_upPrev && forward==_forwardPrev)
+    if (!_fFmodPluginInited) {
+      _fFmodPluginInited = true;
+      head = ar_identityMatrix();
+      // Set listener exactly once.
+      goto LFmod;
+    }
     return true;
 
-  _posPrev = pos;
-  _upPrev = up;
-  _forwardPrev = forward;
-  // cout << "listenerpos: " << pos << "\n\t" << forward << "\n\t" << up << endl;;
-  const arVector3 velocityNotUsed(0,0,0);
+  case mode_fmod:
+  LFmod: {
+    const arMatrix4 rot(ar_extractRotationMatrix(head));
+    const arVector3 up((rot * arVector3(0,1,0)).normalize());
+    const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
+    const arVector3 pos(_unitConversion * (head * _midEyeOffset));
+
+    //cout << "mode_fmod listenerpos:\n\t" << pos << "\n\t" << forward << "\n\t" << up << "\n\n";;
+    const arVector3 velocityNotUsed(0,0,0);
 #ifndef EnableSound
-  return true;
+    return true;
 #else
-  const FMOD_VECTOR fmod_pos(FmodvectorFromArvector(pos));
-  const FMOD_VECTOR fmod_velocityNotUsed(FmodvectorFromArvector(velocityNotUsed));
-  const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
-  const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
-  return ar_fmodcheck( FMOD_System_Set3DListenerAttributes( ar_fmod(), 0,
-    &fmod_pos,
-    &fmod_velocityNotUsed, // doppler NYI (units per second, not per frame!)
-    &fmod_forward,
-    &fmod_up)) &&
-    ar_fmodcheck( FMOD_System_Update( ar_fmod() ));
+    const FMOD_VECTOR fmod_pos(FmodvectorFromArvector(pos));
+    const FMOD_VECTOR fmod_velocityNotUsed(FmodvectorFromArvector(velocityNotUsed));
+    const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
+    const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
+    return ar_fmodcheck( FMOD_System_Set3DListenerAttributes( ar_fmod(), 0,
+      &fmod_pos,
+      &fmod_velocityNotUsed, // doppler NYI (units per second, not per frame!)
+      &fmod_forward,
+      &fmod_up)) &&
+      ar_fmodcheck( FMOD_System_Update( ar_fmod() ));
 #endif
+  }
+
+  case mode_vss:
+    ar_log_warning() << "mode SZG_SOUND/render vss NYI.\n";
+    return false;
+
+  case mode_mmio:
+    ar_log_warning() << "mode SZG_SOUND/render mmio NYI.\n";
+    return false;
+
+  default:
+    ar_log_warning() << "internal error with SZG_SOUND/render.\n";
+    return false;
+  }
 }
 
 arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*mHead*/ ) {
