@@ -216,7 +216,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   // Accept connections in a different thread from the one sending data.
   arSocket* newSocketFD = new arSocket(AR_STANDARD_SOCKET);
   if (!newSocketFD){
-    cerr << "arDataServer error: no socket in _acceptConnection.\n";
+    ar_log_warning() << "arDataServer: no socket in _acceptConnection.\n";
     return NULL;
   }
   arSocketAddress addr;
@@ -224,7 +224,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
-  ar_log_remark() << "arDataServer got connection from "
+  ar_log_remark() << "arDataServer connected from "
                   << addr.getRepresentation() << ar_endl;
  
   arGuard dummy(_lockTransfer);
@@ -240,7 +240,7 @@ LAbort:
 
   if (!_theDictionary){
     // We expected to SEND the dictionary to the connected data point.
-    cout << "arDataServer error: no dictionary.\n";
+    ar_log_warning() << "arDataServer: no dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
     goto LAbort;
   }
@@ -252,8 +252,7 @@ LAbort:
   arStreamConfig remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
   if (!remoteStreamConfig.valid) {
     string sSymptom;
-    const int ver = remoteStreamConfig.version;
-    switch (ver) {
+    switch (const int ver = remoteStreamConfig.version) {
     // todo: unify magic numbers -X with arDataPoint::_fillConfig
     case -1:
       sSymptom = "not Syzygy";
