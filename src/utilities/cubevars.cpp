@@ -159,8 +159,8 @@ unsigned& ca = cSig[1];
 unsigned& cm = cSig[2];
 
 ARint rgButton   [cbMax+1] = {0};
-ARint rgOnbutton [cbMax+1] = {0}; // technically unused, while rendered only as sound not graphics
-ARint rgOffbutton[cbMax+1] = {0}; // technically unused, while rendered only as sound not graphics
+ARint rgOnbutton [cbMax+1] = {0}; // technically unused, while rendered only as sound
+ARint rgOffbutton[cbMax+1] = {0}; // technically unused, while rendered only as sound
 ARfloat rgAxis[caMax] = {0};
 bool rgfjoy32k[caMax] = {0};
 arMatrix4 rgm[cmMax]; // rgm[0] is head, rest are wands.
@@ -172,36 +172,41 @@ inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
     a = aMin;
 }
 
-void doSounds(bool fPing, bool fPong) {
+void doSounds(int iPing, bool fPing, bool fPong) {
   static int idPing = -1;
   static int idPong = -1;
   static bool fInit = false;
-  const float xyz[3] = { 2.34,0,0};
+  const float xyz[4][3] = // left, front, right, default
+    { {-5,4,0}, {0,4,-5}, {5,4,0}, {2.34,0,0} };
+  const int iPingDefault = 3;
+  if (iPing < 0 || iPing > 2) {
+    iPing = iPingDefault;
+  }
   if (!fInit) {
     fInit = true;
-    idPing = dsLoop("ping", "root", "q33beep.wav", 0, 0.0, xyz);
-    idPong = dsLoop("pong", "root", "q33collision.wav", 0, 0.0, xyz);
+    idPing = dsLoop("ping", "root", "q33beep.wav", 0, 0.0, xyz[iPingDefault]);
+    idPong = dsLoop("pong", "root", "q33collision.wav", 0, 0.0, xyz[iPingDefault]);
   }
 
   static bool fResetPing = true;
   fPing &= idPing >= 0;
   if (fPing) {
-    dsLoop(idPing, "q33beep.wav", -1, .3, xyz);
+    dsLoop(idPing, "q33beep.wav", -1, .3, xyz[iPing]);
     fResetPing = false;
   }
   else if (!fResetPing) {
-    dsLoop(idPing, "q33beep.wav", 0, 0, xyz);
+    dsLoop(idPing, "q33beep.wav", 0, 0, xyz[iPing]);
     fResetPing = true;
   }
 
   static bool fResetPong = true;
   fPong &= idPong >= 0;
   if (fPong) {
-    dsLoop(idPong, "q33collision.wav", -1, .2, xyz);
+    dsLoop(idPong, "q33collision.wav", -1, .2, xyz[iPingDefault]);
     fResetPong = false;
   }
   else if (!fResetPong) {
-    dsLoop(idPong, "q33collision.wav", 0, 0, xyz);
+    dsLoop(idPong, "q33collision.wav", 0, 0, xyz[iPingDefault]);
     fResetPong = true;
   }
 }
@@ -215,15 +220,15 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   if (!fComplained) {
     fComplained = true;
     if (cb > cbMax) {
-      ar_log_warning() << cb << " is too many buttons. Truncating to " << cbMax << ".\n";
+      ar_log_warning() << "cubevars: " << cb << " is too many buttons. Truncating to " << cbMax << ".\n";
       cb = cbMax;
     }
     if (ca > caMax) {
-      ar_log_warning() << ca << " is too many axes. Truncating to " << caMax << ".\n";
+      ar_log_warning() << "cubevars: " << ca << " is too many axes. Truncating to " << caMax << ".\n";
       ca = caMax;
     }
     if (cm > cmMax) {
-      ar_log_warning() << cm << " is too many matrices. Truncating to " << cmMax << ".\n";
+      ar_log_warning() << "cubevars: " << cm << " is too many matrices. Truncating to " << cmMax << ".\n";
       cm = cmMax;
     }
   }
@@ -231,14 +236,17 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   bool fPing = false;
   bool fPong = false;
   unsigned i;
+  int iPing = -1;
   for (i=0; i < cb; ++i) {
     rgButton[i]    = fw.getButton(i);
     rgOnbutton[i]  = fw.getOnButton(i);
     rgOffbutton[i] = fw.getOffButton(i);
+    if (rgOnbutton[i])
+      iPing = int(i);
     fPing |= rgOnbutton[i];
     fPong |= rgOffbutton[i];
   }
-  doSounds(fPing, fPong);
+  doSounds(iPing, fPing, fPong);
 
   for (i=0; i<ca; ++i) {
     if (rgfjoy32k[i] |= fabs(rgAxis[i] = fw.getAxis(i)) > 16400.)
@@ -519,7 +527,6 @@ bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
 }
 
 int main(int argc, char** argv){
-  ar_log().setHeader("szg cubevars");
   arMasterSlaveFramework fw;
   fw.setStartCallback(callbackStart);
   fw.setDrawCallback(callbackDraw);
