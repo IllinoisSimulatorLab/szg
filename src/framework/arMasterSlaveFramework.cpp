@@ -925,8 +925,8 @@ void arMasterSlaveFramework::onDisconnectDraw( void ) {
 }
 
 void arMasterSlaveFramework::onPlay( void ) {
+  setPlayTransform();
   if( _playCallback ) {
-    setPlayTransform();
     try {
       _playCallback( *this );
     } catch (arMSCallbackException exc) {
@@ -1217,8 +1217,8 @@ bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
     ar_log_error() << "sendMasterMessage() couldn't get the master process ID.\n";
     return false;
   }
-  int responseMatchIndex = _SZGClient.sendMessage( "user", messageBody, processID, false );
-  if (responseMatchIndex == -1) {
+  const int iResponseMatch = _SZGClient.sendMessage( "user", messageBody, processID, false );
+  if (iResponseMatch == -1) {
     ar_log_error() << "sendMasterMessage() failed to send the message.\n";
     return false;
   }
@@ -1252,10 +1252,8 @@ bool arMasterSlaveFramework::addTransferField( string fieldName,
   }
 
   _transferTemplate.addAttribute( realName, dataType );
-
   const arTransferFieldDescriptor descriptor( dataType, data, size );
   _transferFieldData.insert( arTransferFieldData::value_type( realName, descriptor ) );
-
   return true;
 }
 
@@ -1285,10 +1283,8 @@ bool arMasterSlaveFramework::addInternalTransferField( string fieldName,
   }
 
   _transferTemplate.addAttribute( realName, dataType );
-
   const arTransferFieldDescriptor descriptor( dataType, data, size );
   _internalTransferFieldData.insert( arTransferFieldData::value_type( realName,descriptor ) );
-
   return true;
 }
 
@@ -1378,25 +1374,22 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
   _lastRandVal = value;
   ++_numRandCalls;
 
-  if( _randSynchError & 1 ) {
-    ar_log_warning() << _label << ": unequal numbers of calls to randUniformFloat() "
-                     << "on different hosts.\n";
+  if ( _randSynchError & 1 ) {
+    ar_log_warning() << _label <<
+      ": hosts have unequal numbers of randUniformFloat() calls.\n";
   }
 
-  if(_randSynchError & 2 ) {
-    ar_log_warning() << _label << ": random number seeds diverging "
-                     << "on different hosts.\n";
+  if (_randSynchError & 2 ) {
+    ar_log_warning() << _label << ": hosts have divergent random number seeds.\n";
   }
 
-  if( _randSynchError & 4 ) {
-    ar_log_warning() << _label << ": random number values diverging "
-                     << "on different hosts.\n";
+  if ( _randSynchError & 4 ) {
+    ar_log_warning() << _label << ": hosts have divergent random number values.\n";
   }
 
-  bool success = ( _randSynchError == 0 );
+  const bool ok = _randSynchError == 0;
   _randSynchError = 0;
-
-  return success;
+  return ok;
 }
 
 
