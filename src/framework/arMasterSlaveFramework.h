@@ -80,8 +80,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool start();
   bool start(bool useWindowing, bool useEventLoop);
 
-  // Shutdown for much (BUT NOT ALL YET) of the arMasterSlaveFramework services.
-  // if the parameter is set to true, block until the display thread exits
+  // Shutdown for many arMasterSlaveFramework services.
+  // Optionally block until the display thread exits.
   void stop( bool blockUntilDisplayExit );
 
   bool createWindows(bool useWindowing);
@@ -380,6 +380,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startObjects( void );
   bool _start( bool useWindowing, bool useEventLoop );
   bool _startrespond( const std::string& s );
+
+  // stop() when a callback has an error.
+  void _stop(const char*, const arMSCallbackException&);
 
   // Systems level functions.
   bool _loadParameters( void );
