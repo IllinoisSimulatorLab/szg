@@ -9,25 +9,42 @@
 #include "arLogStream.h"
 #include "fmodStub.h"
 
-// AARGH! The DSP callback DOES NOT let us pass in an object. Consequently,
-// we need this global... and, consequently, we cannot have more than ONE
-// arSoundClient in a process!
+// This global passes an object to the DSP (instead of an arg, (still?)
+// not supported).  Thus, at most one arSoundClient per process.
 arSoundClient* __globalSoundClient = NULL;
 
 #ifdef EnableSound
 FMOD_SYSTEM* ar_fmod() {
   static FMOD_SYSTEM* s = NULL;
   static bool fFailed = false;
-  // if fFailed, returning NULL will likely crash this exe.  Oh well,
-  // they can read the diagnostic.
+  // If fFailed, returning NULL will likely crash this exe.
+  // Oh well, they can read the diagnostic.
   if (s || fFailed)
     return s;
+
+  // ar_log_xxx() fails silently in here,
+  // perhaps because it's too early, still in constructors, before main().
+
   const FMOD_RESULT r = FMOD_System_Create(&s);
   if (r != FMOD_OK) {
     fFailed = true;
-    ar_log_warning() << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
+    cerr << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
+    s = NULL;
+    return s;
+  }
+
+  unsigned t;
+  if (!ar_fmodcheck( FMOD_System_GetVersion( ar_fmod(), &t ))) {
+    cerr << "arSoundClient failed to verify fmod version.\n";
+    s = NULL;
+    return s;
+  }
+  if (t < FMOD_VERSION) {
+    cerr << "fmod dll has version " << hex << t <<
+      ", expected at least " << FMOD_VERSION << ".\n";
     s = NULL;
   }
+  // FMOD_VERSION == 0x40305 is known to work as of September 2007.
   return s;
 }
 
