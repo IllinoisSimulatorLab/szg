@@ -44,7 +44,7 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
   arLightFloatBuffer _commandBuffer;
 
   // State referred to by (not actually stored in, nor allocated by) this node.
-  // _texture is inherited from parent, if any
+  // _texture is inherited from parent, if any.
   arSoundFile** _arSoundFiles; //;; was _texture. ?rename to _inheritedGlobalData
   arSoundFile*  _localSoundFile; //;; was _localTexture. ?rename to _globalDatum
 
