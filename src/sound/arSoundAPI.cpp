@@ -10,6 +10,11 @@ static arSoundDatabase* __database = NULL;
 static arSoundLanguage  __lang;
 
 void dsSetSoundDatabase(arSoundDatabase* database){
+  if (!database) {
+    cerr << "syzygy error: dsSetSoundDatabase(NULL).\n";
+    return;
+  }
+
   __database = database;
 }
 
