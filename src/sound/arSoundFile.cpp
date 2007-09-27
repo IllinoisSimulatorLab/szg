@@ -17,12 +17,13 @@
 bool arSoundFile::read(const char* filename, bool fLoop) {
   // bug: check that fmod's been init()'d in arSoundClient.cpp, to avoid a crash.
 
-  const int fd = filename ? open(filename, O_RDONLY) : -1;
-  if (fd < 0){
-    // Don't complain.  Our caller arSoundDatabase::addFile()
-    // may try another filename from the path in a moment.
+  // If can't read file, don't complain.  Our caller arSoundDatabase::addFile()
+  // may try another filename from the path in a moment.
+  if (!filename)
     return false;
-  }
+  const int fd = open(filename, O_RDONLY);
+  if (fd < 0)
+    return false;
 
   close(fd);
   _name = filename;
