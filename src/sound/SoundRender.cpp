@@ -9,7 +9,6 @@
 #include "arSoundDatabase.h"
 #include "arSoundClient.h"
 #include "arMath.h"
-#include "arSoundFile.h"
 #include "arSZGClient.h"
 #include "arLogStream.h"
 
