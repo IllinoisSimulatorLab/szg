@@ -28,7 +28,7 @@ class SZG_CALL arSoundFile {
 
   bool read(const char* filename, bool fLoop);
   bool dummy();
-  const string& name() const { return _name; } // convenient for debugging
+  const string& name() const { return _name; } // for debugging
 #ifdef EnableSound
   FMOD_SOUND* psamp() { return _psamp; }
 #endif
