@@ -107,6 +107,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Set the component's name
   // using the command-line args, since some component management uses names.
   _exeName = ar_stripExeName(string(argv[0]));
+  ar_setLogLabel( _exeName );
   
   // On Unix, we might need to finish a handshake with szgd,
   // telling it we've been successfully forked.
@@ -2532,6 +2533,7 @@ arStructuredData* arSZGClient::_getDataByID(int recordID) {
   return _dataParser->getNextInternal(recordID);
 }
 
+// timeout in msec.
 arStructuredData* arSZGClient::_getTaggedData(int tag, int recordID, int timeout) {
   list<int> tags;
   tags.push_back(tag);
