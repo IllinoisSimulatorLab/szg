@@ -105,11 +105,10 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
 void ar3DS::attachChildNode(const string &baseName, 
                             arGraphicsNode* parent,
                             Lib3dsNode* node){
-  // Since 3DS nodes can share names, add a uniqueness number.
-  ++_uniqueName;
-  char uniquenessBuffer[128];
-  sprintf(uniquenessBuffer,":%i",_uniqueName);
-  const string newName(baseName + "." + string(node->name)+uniquenessBuffer);
+  // Disambiguate 3DS nodes which share names.
+  const string newName(
+    baseName + "." + node->name + ":" + ar_intToString(++_uniqueName));
+
   // Bug: lib3DS does not use a matrix stack,
   // so that the matrix value at a node is the absolute value,
   // not the value relative to the branch on which it resides.

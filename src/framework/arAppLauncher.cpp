@@ -196,16 +196,14 @@ bool arAppLauncher::setParameters(){
     string info(device);
 
     // The input device in slot 0 actually connects to the app,
-    // so it comes FIRST in the <virtual computer>/SZG_INPUT0/map listing.
+    // so it comes FIRST in the <virtual computer>/SZG_INPUT0/map list.
     // After that come slave devices.
-    char buffer[32];
-    sprintf(buffer,"%i",i/2);
+    const string iDev(ar_intToString(i/2));
     
-    device = (device == "inputsimulator" ? "" : "DeviceServer ") +
-      device + " " + string(buffer);
+    device = (device == "inputsimulator" ? "" : "DeviceServer ") + device + " " + iDev;
     if (i < numTokens-2)
       device += " -netinput";
-    _addService(computer, device, _getInputContext(), "SZG_INPUT"+string(buffer), info);
+    _addService(computer, device, _getInputContext(), "SZG_INPUT"+iDev, info);
   }
 
   // Sound.
@@ -810,9 +808,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 }
 
 string arAppLauncher::_screenName(int i) const {
-  char buf[20];
-  sprintf(buf, "SZG_DISPLAY%d", i);
-  return string(buf);
+  return "SZG_DISPLAY" + ar_intToString(i);
 }
 
 string arAppLauncher::_getRenderContext(const int i) const {

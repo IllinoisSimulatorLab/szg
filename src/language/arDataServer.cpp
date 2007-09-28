@@ -264,12 +264,10 @@ LAbort:
       sSymptom = "unparseable Syzygy version key";
       break;
     default:
-      char buf[180];
-      sprintf(buf, "wrong Syzygy version %d", ver);
-      sSymptom = string(buf);
+      sSymptom = "wrong Syzygy version " + ar_intToString(ver);
       break;
     }
-    ar_log_warning() << "arDataServer: rejected connection from " <<
+    ar_log_warning() << "arDataServer rejected connection from " <<
       addr.getRepresentation() << ": " << sSymptom << ".\n";
     _deleteSocketFromDatabase(newSocketFD);
     goto LAbort;
@@ -468,12 +466,10 @@ void arDataServer::setDisconnectObject(void* disconnectObject){
 
 string arDataServer::dumpConnectionLabels(){
   string s;
-  char buffer[16];
   arGuard dummy(_lockTransfer);
   for (map<int,string,less<int> >::const_iterator iLabel(_connectionLabels.begin());
        iLabel != _connectionLabels.end(); ++iLabel){
-    sprintf(buffer, "%i", iLabel->first);
-    s += iLabel->second + "/" + buffer + ":";
+    s += iLabel->second + "/" + ar_intToString(iLabel->first) + ":";
   }
   return s;
 }

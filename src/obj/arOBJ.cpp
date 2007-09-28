@@ -190,7 +190,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
     triangleMaterialIDs[_triangle[thisGroup[tri]].material].push_back(tri);
   }
 
-  char matIDBuf[32];
+  string matIDBuf;
   bool useTexture;
 
   for (unsigned matID=0; matID<_material.size(); ++matID) {
@@ -244,7 +244,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
       }
     }
 
-    sprintf(matIDBuf, "%i", matID);
+    matIDBuf = ar_intToString(matID);
     // Three colors per triangle.
     arIndexNode* indexNode = (arIndexNode*) where->newNode("index", baseName+".indices"+matIDBuf );
     indexNode->setIndices( 3*numTriUsingMaterial, indices );

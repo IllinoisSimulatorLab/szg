@@ -334,20 +334,18 @@ bool arGraphicsClient::screenshotRequested(){
   return _doScreenshot;
 }
 
+// copypaste with arMasterSlaveFramework::_handleScreenshot
 void arGraphicsClient::takeScreenshot(bool stereo){
-  char numberBuffer[5];
-  sprintf(numberBuffer,"%i",_whichScreenshot);
-  string screenshotName = string("screenshot")+numberBuffer+string(".jpg");
-  char* buffer1 = new char[_screenshotWidth*_screenshotHeight*3];
+  const string screenshotName = "screenshot" + ar_intToString(_whichScreenshot++) + ".jpg";
+  char* buf = new char[_screenshotWidth*_screenshotHeight*3];
   glReadBuffer(stereo ? GL_FRONT_LEFT : GL_FRONT);
   glReadPixels(_screenshotX, _screenshotY, _screenshotWidth, _screenshotHeight,
-               GL_RGB, GL_UNSIGNED_BYTE, buffer1);
+               GL_RGB, GL_UNSIGNED_BYTE, buf);
   arTexture texture;
-  texture.setPixels(buffer1,_screenshotWidth,_screenshotHeight);
+  texture.setPixels(buf,_screenshotWidth,_screenshotHeight);
+  delete buf;
   if (!texture.writeJPEG(screenshotName.c_str(),_screenshotPath)){
     ar_log_remark() << "arGraphicsClient failed to write screenshot.\n";
   }
-  delete buffer1;
-  _whichScreenshot++;
   _doScreenshot = false;
 }

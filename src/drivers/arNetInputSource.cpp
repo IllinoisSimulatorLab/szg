@@ -42,9 +42,8 @@ void ar_netInputSourceConnectionTask(void* p){
 void arNetInputSource::_connectionTask() {
   // todo: designate a particular network.
   // todo: use a service name specific to a virtual computer, or specific to a user.
-  char buffer[32];
-  sprintf(buffer, "SZG_INPUT%i", _slot);
-  const string serviceName(_szgClient->createComplexServiceName(buffer));
+  const string serviceName(
+    _szgClient->createComplexServiceName("SZG_INPUT" + ar_intToString(_slot)));
   const arSlashString networks(_szgClient->getNetworks("input"));
 
   arSleepBackoff a(50, 3000, 1.5);
