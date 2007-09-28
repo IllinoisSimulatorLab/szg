@@ -15,7 +15,7 @@ class SZG_CALL arSocketTextStream: public arTextStream{
   arSocketTextStream();
   virtual ~arSocketTextStream(){}
 
-  void setSource(arSocket* socket){ _socket = socket; }
+  void setSource(arSocket* socket) { _socket = socket; }
   virtual int ar_getc();
   virtual void ar_ungetc(int ch);
  private:
