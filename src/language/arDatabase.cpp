@@ -28,7 +28,7 @@ arDatabase::arDatabase() :
   // insertion commands use the parent's internally stored database owner.
   _rootNode._setOwner(this);
 
-  // Reset the function pointers.
+  // Clear the function pointers.
   memset(_databaseReceive, 0, sizeof(_databaseReceive));
   memset(_parsingData, 0, sizeof(_parsingData));
   memset(_routingField, 0, sizeof(_routingField));
@@ -45,25 +45,22 @@ arDatabase::~arDatabase(){
     delete _dataParser;
 }
 
-// Sometimes, we want to store supporting objects like textures or
-// sound clips in an application directory,
-// much like standard application data files. In many ways, this is
-// superior to storing them all in the same directory (which is
-// really unmaintainable). Conceptually, each application has its
-// own directory where it can store supporting objects, as installed on one
-// of the Syzygy system directory paths (like SZG_DATA or SZG_PYTHON).
-// When the arDatabase subclass (like arGraphicsDatabase or
-// arSoundDatabase) is initialized, its owning
-// program creates a "bundle path map" (by talking to the Phleet or by 
-// reading a local config file, depending upon mode of operation).
+// Textures or soundfiles are stored in an app's own dir
+// (like the app's data files), for maintainability.
+// Each app has its own such dir, a subdir of SZG_DATA or SZG_PYTHON.
+//
+// When the arDatabase subclass (arGraphicsDatabase or arSoundDatabase)
+// is initialized, its owning program creates a "bundle path map"
+// (from the Phleet or from a local config file).
 // This associates a bundlePathName (SZG_DATA, SZG_PYTHON) with a
-// file system path like my_directory_1;my_directory_2;my_directory3.
-// If bundlePathName maps to a path like so, is not "NULL", and bundleSubDirectory
-// is not "NULL", then addTexture (for arGraphicsDatabase) or
-// addFile (arSoundDatabase)  will look for the supporting object
-// (texture or sound file) on the path
-// my_directory_1/bundleSubDirectory;my_directory_2/bundleSubDirectory;
-// my_directory_3/bundleSubDirectory, in addition to the texture path.
+// file system path like myDir1;myDir2;myDir.
+//
+// If bundlePathName maps to such a path, !="NULL", and bundleSubDirectory!="NULL",
+// then arGraphicsDatabase::addTexture or arSoundDatabase::addFile
+// looks for the (texture or sound file) on the path
+// myDir1/bundleSubDirectory;myDir2/bundleSubDirectory;
+// myDir3/bundleSubDirectory, in addition to the texture path.
+
 void arDatabase::setDataBundlePath(const string& bundlePathName,
 			           const string& bundleSubDirectory){
   _bundlePathName = bundlePathName;
@@ -71,7 +68,7 @@ void arDatabase::setDataBundlePath(const string& bundlePathName,
 }
 
 // Associate a bundle path name (SZG_DATA, SZG_PYTHON) with
-// a file system path my_directory_1;my_directory_2;my_directory_3.
+// a file system path myDir1;myDir2;myDir3.
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                                       const string& bundlePath){
   if (bundlePath == "NULL") {
