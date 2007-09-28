@@ -59,7 +59,7 @@ string ar_logLevelToString(int l){
 
 arLogStream::arLogStream():
   _output(&cout),
-  _header("szg"),
+  _header("NULL"),
   _maxLineLength(200),
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
@@ -295,7 +295,10 @@ void arLogStream::_flush(const bool addNewline){
   if (_level <= _threshold) {
     // Accumulator, so there's only one << to _output.
     ostringstream s;
-    s << _header;
+    string label = (_header=="NULL")?(ar_getLogLabel()):(_header);
+
+    s << label;
+
     if (_fTimestamp) {
       string now(ar_currentTimeString());
       // Skip past gobbledegook.
@@ -307,9 +310,9 @@ void arLogStream::_flush(const bool addNewline){
       // Truncate year.
       pos = now.find("200");
       now = pos==string::npos ? now : now.substr(0, pos-1);
-      s << " " << now;
+      s << ":" << now;
     }
-    s << " " << ar_logLevelToString(_level) << ": " << _buffer.str();
+    s << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
     if (addNewline) {
       s << "\n";
     }
@@ -370,3 +373,20 @@ arLogStream& ar_hex(arLogStream& s){
   s._finish();
   return s;
 }
+
+static string __processLabel("szg");
+static arLock __processLabelLock;
+
+void ar_setLogLabel( const string& label ) {
+  __processLabelLock.lock();
+  __processLabel = label;
+  __processLabelLock.unlock();
+}
+
+string ar_getLogLabel() {
+  __processLabelLock.lock();
+  string label = __processLabel;
+  __processLabelLock.unlock();
+  return label;
+}
+

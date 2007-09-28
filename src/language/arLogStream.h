@@ -104,4 +104,7 @@ SZG_CALL arLogStream& ar_log_debug();
 SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
 SZG_CALL arLogStream& ar_hex(arLogStream& logStream);
 
+SZG_CALL void ar_setLogLabel( const string& label );
+SZG_CALL string ar_getLogLabel();
+
 #endif
