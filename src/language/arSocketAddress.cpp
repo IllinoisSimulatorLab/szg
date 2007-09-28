@@ -110,7 +110,6 @@ string arSocketAddress::broadcastAddress(const char* maskAddress){
 
 string arSocketAddress::getRepresentation(){
 #ifdef AR_USE_WIN_32
-  // Win32 code
   char* sa = inet_ntoa(getAddress()->sin_addr);
   if (!sa){
     cerr << "arSocketAddress error: internal address format invalid.\n";
@@ -118,7 +117,6 @@ string arSocketAddress::getRepresentation(){
   }
   return string(sa);
 #else
-  // Unix code
   char buffer[256];
   if (!inet_ntop(AF_INET, &(getAddress()->sin_addr), buffer, 256)){
     cerr << "arSocketAddress error: internal address format invalid.\n";
