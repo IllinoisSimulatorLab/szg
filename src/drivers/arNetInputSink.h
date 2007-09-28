@@ -25,7 +25,7 @@ class SZG_CALL arNetInputSink: public arInputSink{
   void setInfo(const string& info);
   virtual void receiveData(int,arStructuredData*);
  private:
-  arSZGClient* _client;
+  arSZGClient* _szgClient;
   arDataServer _dataServer;
   unsigned _slot;
   string _interface;

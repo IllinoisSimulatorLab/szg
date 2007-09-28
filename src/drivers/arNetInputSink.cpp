@@ -14,7 +14,7 @@ void ar_netInputSinkConnectionTask(void* sink){
 }
 
 arNetInputSink::arNetInputSink() :
-  _client(NULL),
+  _szgClient(NULL),
   _dataServer(1000),
   _slot(0),
   _interface(string("NULL")),
@@ -37,13 +37,13 @@ void arNetInputSink::setInfo(const string& info){
 
 bool arNetInputSink::init(arSZGClient& SZGClient){
   // cache the arSZGClient for connection brokering
-  _client = &SZGClient;
+  _szgClient = &SZGClient;
   ar_log_remark() << "arNetInputSink initialized.\n";
   return true;
 }
 
 bool arNetInputSink::start(){
-  if (!_client){
+  if (!_szgClient){
     // todo: unify "start before init" checks in many classes.
     ar_log_warning() << "arNetInputSink can't start before init.\n";
     return false;
@@ -59,11 +59,10 @@ bool arNetInputSink::start(){
   }
 
   // Bug: handle service naming issues.
-  char buffer[32];
-  sprintf(buffer, "SZG_INPUT%i", _slot);
-  const string serviceName(_client->createComplexServiceName(buffer));
+  const string serviceName(
+    _szgClient->createComplexServiceName("SZG_INPUT" + ar_intToString(_slot)));
   int port = -1;
-  if (!_client->registerService(serviceName,"input",1,&port)){
+  if (!_szgClient->registerService(serviceName,"input",1,&port)){
     ar_log_warning() << "arNetInputSink failed to register service '" <<
       serviceName << "'.\n  (Does dservices already list that service?)\n";
     return false;
@@ -76,16 +75,16 @@ bool arNetInputSink::start(){
   for (int trials=0;
        !_dataServer.beginListening(_inp.getDictionary()); ){
     ar_log_warning() << "arNetInputSink failed to listen on port " << port << ".\n";
-    _client->requestNewPorts(serviceName,"input",1,&port);
+    _szgClient->requestNewPorts(serviceName,"input",1,&port);
     if (++trials >= 10)
       return false;
   }
   
-  _client->confirmPorts(serviceName,"input",1,&port);
+  _szgClient->confirmPorts(serviceName,"input",1,&port);
   _fValid = true;
   arThread dummy(ar_netInputSinkConnectionTask, this);
 
-  if (!_client->setServiceInfo(serviceName, _info)){
+  if (!_szgClient->setServiceInfo(serviceName, _info)){
     ar_log_remark() << "arNetInputSink failed to set info type for service.\n";
   }
 
