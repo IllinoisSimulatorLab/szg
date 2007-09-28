@@ -538,10 +538,26 @@ bool ar_longToIntValid( const long theLong, int& theInt ) {
   return true;
 }
 
+// Returns 0 on error (string too long, or atoi fails).
+int ar_stringToInt(const string& s)
+{
+  const unsigned int maxlen = 30;
+  char buf[maxlen+2]; // Fixed size buffer is okay here, for a single int.
+  if (s.length() > maxlen) {
+    ar_log_warning() << "arStringToInt: '" << s << "' too long, returning 0.\n";
+    return 0;
+  }
+
+  ar_stringToBuffer(s, buf, sizeof(buf));
+  return atoi(buf);
+}
+
 string ar_intToString(const int i) {
-  char s[80];
-  sprintf(s, "%d", i);
-  return string(s);
+  const unsigned int maxlen = 30;
+  char buf[maxlen+2]; // Fixed size buffer is okay here, for a single int.
+  // snprintf(buf, maxlen, "%d", i);
+  sprintf(buf, "%d", i);
+  return string(buf);
 }
 
 bool ar_stringToIntValid( const string& theString, int& theInt ) {
@@ -568,6 +584,24 @@ bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
     return false;
   }
   return true;
+}
+
+void ar_stringToBuffer(const string& s, char* buf, int len){
+  if (len <= 0) {
+    ar_log_warning() << "ar_stringToBuffer: nonpositive length.\n";
+    *buf = '\0';
+    return;
+  }
+
+  if (s.length() < unsigned(len)) {
+    strcpy(buf, s.c_str());
+  }
+  else {
+    ar_log_warning() << "ar_stringToBuffer truncating '" << s << "' after " <<
+      len << " characters.\n";
+    strncpy(buf, s.c_str(), len);
+    buf[len-1] = '\0';
+  }
 }
 
 bool ar_doubleToFloatValid( const double theDouble, float& theFloat ) {
@@ -720,38 +754,6 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
     outArray[numValues++] = l;
   }
   return numValues;
-}
-
-void ar_stringToBuffer(const string& s, char* buf, int len){
-  if (len <= 0) {
-    ar_log_warning() << "ar_stringToBuffer: nonpositive length.\n";
-    *buf = '\0';
-    return;
-  }
-
-  if (s.length() < unsigned(len)) {
-    strcpy(buf, s.c_str());
-  }
-  else {
-    ar_log_warning() << "ar_stringToBuffer truncating '" << s << "' after " <<
-      len << " characters.\n";
-    strncpy(buf, s.c_str(), len);
-    buf[len-1] = '\0';
-  }
-}
-
-// Returns 0 on error (string too long, or atoi fails).
-int ar_stringToInt(const string& s)
-{
-  const unsigned int maxlen = 30;
-  char buf[maxlen+2]; // Fixed size buffer is okay here, for a single int.
-  if (s.length() > maxlen) {
-    ar_log_warning() << "arStringToInt: '" << s << "' too long, returning 0.\n";
-    return 0;
-  }
-
-  ar_stringToBuffer(s, buf, sizeof(buf));
-  return atoi(buf);
 }
 
 // todo: unify arPathToken with ar_semicolonstring; use an iterator pattern.
