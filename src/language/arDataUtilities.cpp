@@ -115,28 +115,28 @@ ar_timeval ar_time(){
 
 #endif
 
-// Take two times closer than 4000000000 usec and report their diff in usec.
+// Take two timevals closer than 4000000000 usec, and report their diff in usec.
 
 double ar_difftime(const ar_timeval& a, const ar_timeval& b){
   return 1e6*(a.sec-b.sec) + (a.usec-b.usec);
 }
 
-// Return a nonzero value, safe to divide by for e.g. computing fps.
+// Return a nonzero value, safe to divide by, e.g. for computing fps.
 double ar_difftimeSafe(const ar_timeval& a, const ar_timeval& b){
   const double diff = ar_difftime(a, b);
   return diff > 1. ? diff : 1.;
 }
 
-// Add two ar_timeval's together.
-// Returning a reference is safe since it's one of the arguments.
+// Add two ar_timeval's.  Return (a ref to) the first argument.
 
-ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend){
-  result.sec += addend.sec;
-  if ((result.usec += addend.usec) >= 1000000) {
-    result.usec -= 1000000;
-    ++result.sec;
+ar_timeval& ar_addtime(ar_timeval& lhs, const ar_timeval& rhs){
+  lhs.sec += rhs.sec;
+  if ((lhs.usec += rhs.usec) >= 1000000) {
+    // Carry.
+    lhs.usec -= 1000000;
+    ++lhs.sec;
   }
-  return result;
+  return lhs;
 }
 
 // Returns current date & time in following format:
@@ -146,20 +146,22 @@ string ar_currentTimeString() {
   time_t timeVal;
   time( &timeVal );
   struct tm* t = localtime( &timeVal );
-  if (t==NULL)
+  if (!t)
     return string("");
-  ostringstream stringStream;
-  stringStream << (t->tm_year)+1900 << ":" << t->tm_yday << ":"
-               << (t->tm_hour)*3600 + (t->tm_min)*60 + t->tm_sec;
+
+  ostringstream s;
+  s << (t->tm_year)+1900 << ":" << t->tm_yday << ":"
+    << (t->tm_hour)*3600 + (t->tm_min)*60 + t->tm_sec;
   char* timePtr = ctime( &timeVal );
-  if (timePtr==NULL)
-    return stringStream.str();;
-//   strip trailing carriage return
-  int n = strlen(timePtr);
+  if (!timePtr)
+    return s.str();
+
+  // strip trailing carriage return
+  const int n = strlen(timePtr);
   if (timePtr[n-1] == '\n')
     timePtr[n-1] = '\0';
-  stringStream << "/" << timePtr;
-  return stringStream.str();
+  s << "/" << timePtr;
+  return s.str();
 }
 
 arTimer::arTimer( double dur ) :
@@ -173,10 +175,13 @@ arTimer::arTimer( double dur ) :
 }
 
 void arTimer::start( double dur ) {
-  if (_firstStart || dur > 0.)
+  if (_firstStart || dur > 0.) {
     reset();
-  else if (_running) // calling start while running resets lap timer
+  }
+  else if (_running) {
+    // reset lap timer
     stop();
+  }
   _lastStart = ar_time();
   _duration = dur;
   _running = true;
