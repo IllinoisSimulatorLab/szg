@@ -51,7 +51,7 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
       arStructuredData* r = _dumpData(number, color4, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);

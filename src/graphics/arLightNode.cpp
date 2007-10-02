@@ -27,7 +27,7 @@ bool arLightNode::receiveData(arStructuredData* inData){
   inData->dataOut(_g->AR_LIGHT_DIFFUSE,_nodeLight.diffuse.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_LIGHT_AMBIENT,_nodeLight.ambient.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_LIGHT_SPECULAR,_nodeLight.specular.v,AR_FLOAT,3);
-  // Each data member should get a seperate field. THIS IS A PROBLEM.
+  // bug: each data member should get a seperate field.
   float temp[5];
   inData->dataOut(_g->AR_LIGHT_ATTENUATE,temp,AR_FLOAT,3);
   _nodeLight.constantAttenuation = temp[0];
@@ -58,7 +58,7 @@ void arLightNode::setLight(arLight& light){
       arStructuredData* r = _dumpData(light, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -72,26 +72,29 @@ arStructuredData* arLightNode::dumpData(){
 }
 
 arStructuredData* arLightNode::_dumpData(arLight& light, bool owned) {
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_LIGHT) : _g->makeDataRecord(_g->AR_LIGHT);
+  arStructuredData* r = _getRecord(owned, _g->AR_LIGHT);
   _dumpGenericNode(r, _g->AR_LIGHT_ID); 
-  // todo: test datain ret val, like billboardnode
-  r->dataIn(_g->AR_LIGHT_LIGHT_ID,&light.lightID,AR_INT,1);
-  r->dataIn(_g->AR_LIGHT_POSITION,light.position.v,AR_FLOAT,4);
-  r->dataIn(_g->AR_LIGHT_DIFFUSE,light.diffuse.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_LIGHT_AMBIENT,light.ambient.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_LIGHT_SPECULAR,light.specular.v,AR_FLOAT,3);
-  // Each data member should get a seperate field. THIS IS A PROBLEM.
+  bool ok =
+    r->dataIn(_g->AR_LIGHT_LIGHT_ID,&light.lightID,AR_INT,1) &&
+    r->dataIn(_g->AR_LIGHT_POSITION,light.position.v,AR_FLOAT,4) &&
+    r->dataIn(_g->AR_LIGHT_DIFFUSE,light.diffuse.v,AR_FLOAT,3) &&
+    r->dataIn(_g->AR_LIGHT_AMBIENT,light.ambient.v,AR_FLOAT,3) &&
+    r->dataIn(_g->AR_LIGHT_SPECULAR,light.specular.v,AR_FLOAT,3);
+  // bug: each data member should get a seperate field.
   float temp[5];
   temp[0] = light.constantAttenuation;
   temp[1] = light.linearAttenuation;
   temp[2] = light.quadraticAttenuation;
-  r->dataIn(_g->AR_LIGHT_ATTENUATE,temp,AR_FLOAT,3);
+  ok &= r->dataIn(_g->AR_LIGHT_ATTENUATE,temp,AR_FLOAT,3);
   temp[0] = light.spotDirection[0];
   temp[1] = light.spotDirection[1];
   temp[2] = light.spotDirection[2];
   temp[3] = light.spotCutoff;
   temp[4] = light.spotExponent;
-  r->dataIn(_g->AR_LIGHT_SPOT,&temp,AR_FLOAT,5);
+  ok &= r->dataIn(_g->AR_LIGHT_SPOT,&temp,AR_FLOAT,5);
+  if (!ok) {
+    delete r;
+    return NULL;
+  }
   return r;
 }

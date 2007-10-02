@@ -137,7 +137,7 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
                                     _stateValueFloat, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else {
     arGuard dummy(_nodeLock);
@@ -346,8 +346,7 @@ arStructuredData* arGraphicsStateNode::_dumpData(
     arGraphicsStateValue* stateValueInt,
     float stateValueFloat,
     bool owned ) {
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_GRAPHICS_STATE) : _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
+  arStructuredData* r = _getRecord(owned, _g->AR_GRAPHICS_STATE);
   _dumpGenericNode(r, _g->AR_GRAPHICS_STATE_ID);
 
   // Use the function arg, not the member variable.
@@ -364,10 +363,12 @@ arStructuredData* arGraphicsStateNode::_dumpData(
     data[0] = AR_G_FALSE;
     data[1] = AR_G_FALSE;
   }
-  // todo: test datains' return value, like billboardnode
-  r->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
-
   // Use the function arg, not the member variable.
-  r->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);
+  if (!r->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2) ||
+      !r->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1)) {
+    delete r;
+    return NULL;
+  }
+
   return r;
 }

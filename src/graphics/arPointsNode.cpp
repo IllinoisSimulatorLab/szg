@@ -47,7 +47,7 @@ void arPointsNode::setPoints(int number, float* points, int* IDs){
       arStructuredData* r = _dumpData(number, points, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);

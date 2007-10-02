@@ -34,7 +34,7 @@ void arBlendNode::setBlend(float blendFactor){
       arStructuredData* r = _dumpData(blendFactor, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -48,8 +48,7 @@ arStructuredData* arBlendNode::dumpData(){
 }
 
 arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_BLEND) : _g->makeDataRecord(_g->AR_BLEND);
+  arStructuredData* r = _getRecord(owned, _g->AR_BLEND);
   _dumpGenericNode(r, _g->AR_BLEND_ID);
   if (!r->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1)) {
     delete r;

@@ -72,15 +72,7 @@ arStructuredData* arGraphicsArrayNode::dumpData(){
 
 arStructuredData* arGraphicsArrayNode::_dumpData(
   int number, void* elements, int* IDs, bool owned){
-  arStructuredData* r = owned ?
-    _owningDatabase->getDataParser()->getStorage(_recordType) :
-    _g->makeDataRecord(_recordType);
-  if (!r){
-    ar_log_warning() << "arGraphicsArrayNode failed to make record of type " <<
-      _g->numstringFromID(_recordType) << ".\n";
-    return NULL;
-  }
-
+  arStructuredData* r = _getRecord(owned, _recordType);
   _dumpGenericNode(r, _IDField);
   r->setDataDimension(_indexField, number);
   r->setDataDimension(_dataField, number*_arrayStride);

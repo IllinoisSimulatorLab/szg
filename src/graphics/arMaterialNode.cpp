@@ -37,7 +37,7 @@ void arMaterialNode::setMaterial(const arMaterial& material) {
       arStructuredData* r = _dumpData(material, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   } else {
     arGuard dummy(_nodeLock);
     _lMaterial = material;
@@ -50,15 +50,16 @@ arStructuredData* arMaterialNode::dumpData() {
 }
 
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material, bool owned) {
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_MATERIAL) : _g->makeDataRecord(_g->AR_MATERIAL);
+  arStructuredData* r = _getRecord(owned, _g->AR_MATERIAL);
   _dumpGenericNode(r, _g->AR_MATERIAL_ID);
-  // todo: test datain ret val, like billboardnode
-  r->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_MATERIAL_AMBIENT,material.ambient.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_MATERIAL_SPECULAR,material.specular.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_MATERIAL_EMISSIVE,material.emissive.v,AR_FLOAT,3);
-  r->dataIn(_g->AR_MATERIAL_EXPONENT,&material.exponent,AR_FLOAT,1);
-  r->dataIn(_g->AR_MATERIAL_ALPHA,&material.alpha,AR_FLOAT,1);
+  if (!r->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3) ||
+      !r->dataIn(_g->AR_MATERIAL_AMBIENT,material.ambient.v,AR_FLOAT,3) ||
+      !r->dataIn(_g->AR_MATERIAL_SPECULAR,material.specular.v,AR_FLOAT,3) ||
+      !r->dataIn(_g->AR_MATERIAL_EMISSIVE,material.emissive.v,AR_FLOAT,3) ||
+      !r->dataIn(_g->AR_MATERIAL_EXPONENT,&material.exponent,AR_FLOAT,1) ||
+      !r->dataIn(_g->AR_MATERIAL_ALPHA,&material.alpha,AR_FLOAT,1)) {
+    delete r;
+    return NULL;
+  }
   return r;
 }

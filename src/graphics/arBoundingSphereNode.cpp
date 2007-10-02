@@ -56,7 +56,7 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
       arStructuredData* r = _dumpData(b, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -71,9 +71,7 @@ arStructuredData* arBoundingSphereNode::dumpData(){
 
 arStructuredData* arBoundingSphereNode::_dumpData(
   const arBoundingSphere& b, bool owned){
-  arStructuredData* r = owned ?
-    _owningDatabase->getDataParser()->getStorage(_g->AR_BOUNDING_SPHERE) :
-    _g->makeDataRecord(_g->AR_BOUNDING_SPHERE);
+  arStructuredData* r = _getRecord(owned, _g->AR_BOUNDING_SPHERE);
   _dumpGenericNode(r, _g->AR_BOUNDING_SPHERE_ID);
   const ARint visible = b.visibility ? 1 : 0;
   if (!r->dataIn(_g->AR_BOUNDING_SPHERE_VISIBILITY, &visible, AR_INT,1) ||

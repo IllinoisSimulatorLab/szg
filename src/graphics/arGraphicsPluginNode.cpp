@@ -144,8 +144,7 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
                                                      std::vector<double>& doubleData,
                                                      std::vector< std::string >& stringData,
                                                      bool owned ) {
-  arStructuredData* r = owned ?
-    getStorage( _g->AR_GRAPHICS_PLUGIN ) : _g->makeDataRecord( _g->AR_GRAPHICS_PLUGIN );
+  arStructuredData* r = _getRecord(owned, _g->AR_GRAPHICS_PLUGIN);
   _dumpGenericNode( r, _g->AR_GRAPHICS_PLUGIN_ID );
 
   // Use the function arg, not the member variable.

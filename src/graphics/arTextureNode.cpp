@@ -66,7 +66,7 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
       arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -88,7 +88,7 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
       _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r);
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -108,12 +108,10 @@ arStructuredData* arTextureNode::dumpData(){
 arStructuredData* arTextureNode::_dumpData(
     const string& fileName, int alpha, int width, int height,
     const char* pixels, bool owned){
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_TEXTURE) : _g->makeDataRecord(_g->AR_TEXTURE);
+  arStructuredData* r = _getRecord(owned, _g->AR_TEXTURE);
   _dumpGenericNode(r, _g->AR_TEXTURE_ID);
   if (fileName != ""){
-    // Zero the data dimension of _width, to tell
-    // the remote node to not render pixels.
+    // Tell the remote node to not render pixels.
     r->setDataDimension(_g->AR_TEXTURE_WIDTH, 0);
     // Don't send unnecessary pixels.
     r->setDataDimension(_g->AR_TEXTURE_PIXELS, 0);

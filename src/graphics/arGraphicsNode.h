@@ -42,10 +42,10 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode {
  protected:
   arGraphicsDatabase* _owningDatabase;
   arGraphicsLanguage* _g;
-  
   arLightFloatBuffer _commandBuffer;
 
   void _accumulateTransform(arGraphicsNode* g, arMatrix4& m);
+  arStructuredData* _getRecord(const bool owned, const int id);
 };
 
 #endif

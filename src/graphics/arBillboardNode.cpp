@@ -106,8 +106,7 @@ arStructuredData* arBillboardNode::dumpData(){
 
 arStructuredData* arBillboardNode::_dumpData(
   const string& text, bool visibility, bool owned){
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_BILLBOARD) : _g->makeDataRecord(_g->AR_BILLBOARD);
+  arStructuredData* r = _getRecord(owned, _g->AR_BILLBOARD);
   _dumpGenericNode(r, _g->AR_BILLBOARD_ID);
   const ARint vis = visibility ? 1 : 0;
   if (!r->dataIn(_g->AR_BILLBOARD_VISIBILITY, &vis, AR_INT, 1) ||
@@ -117,4 +116,3 @@ arStructuredData* arBillboardNode::_dumpData(
   }
   return r;
 }
-

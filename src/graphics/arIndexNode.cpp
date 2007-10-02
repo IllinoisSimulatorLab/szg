@@ -51,7 +51,7 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
       arStructuredData* r = _dumpData(number, indices, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);

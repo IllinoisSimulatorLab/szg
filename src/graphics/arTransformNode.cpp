@@ -40,7 +40,7 @@ void arTransformNode::setTransform(const arMatrix4& transform){
       arStructuredData* r = _dumpData(transform, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -54,11 +54,11 @@ arStructuredData* arTransformNode::dumpData(){
 }
 
 arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform, bool owned){
-  arStructuredData* r = owned ?
-    _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM) :
-    _g->makeDataRecord(_g->AR_TRANSFORM);
+  arStructuredData* r = _getRecord(owned, _g->AR_TRANSFORM);
   _dumpGenericNode(r, _g->AR_TRANSFORM_ID);
-  // todo: test return value
-  r->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16);
+  if (!r->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16)) {
+    delete r;
+    return NULL;
+  }
   return r;
 }

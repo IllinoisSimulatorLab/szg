@@ -8,7 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arGraphicsNode::arGraphicsNode() :
-  _owningDatabase(NULL)
+  _owningDatabase(NULL),
+  _g(NULL)
 {
 }
 
@@ -22,17 +23,16 @@ void arGraphicsNode::initialize(arDatabase* owner){
   _g = &(_owningDatabase->_gfx);
 }
 
-// Not thread-safe with respect to the owning database (since we aren't using
-// the global lock). This feature is used, for instance, in
-// arGraphicsDatabase::activateLights()... because there we depend on the
-// fact that the global arDatabase lock is not used. If a thread-safe
-// method is desired, use arGraphicsDatabase::accumulateTransform.
-// NOTE: This gives the accumulated transform ABOVE the current node, and
-// so does not include OUR transform if this is an arTransformNode.
+// Return the accumulated transform ABOVE the current node,
+// excluding the node's own transform if it's an arTransformNode.
+//
+// Not thread-safe w.r.t. _owningDatabase (not using the global arDatabase lock),
+// because e.g. arGraphicsDatabase::activateLights() needs that unlocked.
+// For thread safety, use arGraphicsDatabase::accumulateTransform().
 arMatrix4 arGraphicsNode::accumulateTransform(){
   arMatrix4 r;
   arGraphicsNode* g = (arGraphicsNode*) getParent();
-  if (g){
+  if (g) {
     _accumulateTransform(g, r);
   }
   return r;
@@ -41,10 +41,19 @@ arMatrix4 arGraphicsNode::accumulateTransform(){
 void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m){
   if (g->getTypeCode() == AR_G_TRANSFORM_NODE){
     arTransformNode* t = (arTransformNode*) g;
-    m = t->getTransform()*m;
+    m = t->getTransform() * m;
   }
   arGraphicsNode* p = (arGraphicsNode*) g->getParent();
-  if (p){
+  if (p) {
     _accumulateTransform(p, m);
   }
+}
+
+arStructuredData* arGraphicsNode::_getRecord(const bool owned, const int id) {
+  arStructuredData* r = owned ? getStorage(id) : _g->makeDataRecord(id);
+  if (!r) {
+    ar_log_warning() << "arGraphicsNode got no record of type " <<
+      _g->numstringFromID(id) << ".\n";
+  }
+  return r;
 }

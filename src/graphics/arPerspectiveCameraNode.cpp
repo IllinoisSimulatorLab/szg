@@ -49,7 +49,7 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
       arStructuredData* r = _dumpData(camera, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
-    _owningDatabase->getDataParser()->recycle(r); // why not getOwner() ?
+    recycle(r);
   }
   else{
     arGuard dummy(_nodeLock);
@@ -60,12 +60,13 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
 // NOT thread-safe.
 arStructuredData* arPerspectiveCameraNode::_dumpData
   (const arPerspectiveCamera& camera, bool owned){
-  arStructuredData* r = owned ?
-    getStorage(_g->AR_PERSP_CAMERA) : _g->makeDataRecord(_g->AR_PERSP_CAMERA);
+  arStructuredData* r = _getRecord(owned, _g->AR_PERSP_CAMERA);
   _dumpGenericNode(r, _g->AR_PERSP_CAMERA_ID);
-  // todo: test datains' return value
-  r->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);
-  r->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6);
-  r->dataIn(_g->AR_PERSP_CAMERA_LOOKAT,camera.lookat,AR_FLOAT,9);
+  if (!r->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1) ||
+      !r->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6) ||
+      !r->dataIn(_g->AR_PERSP_CAMERA_LOOKAT,camera.lookat,AR_FLOAT,9)) {
+    delete r;
+    return NULL;
+  }
   return r;
 }
