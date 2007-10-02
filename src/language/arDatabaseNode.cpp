@@ -409,9 +409,9 @@ void arDatabaseNode::_stealChildren(arDatabaseNode* node){
   node->_children.clear();
 }
 
-// The given children (if they are children of the node) will be moved to
-// the front of the list, in the order given.
-// Inefficient for large lists of nodes.
+// Move the given children (if they are children of the node)
+// to the front of the list, in the order given.
+// Inefficient for large lists.
 void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
   childList.reverse();
   for (list<arDatabaseNode*>::iterator i = childList.begin();
@@ -425,7 +425,7 @@ void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
 	arDatabaseNode* node = *j;
         _children.erase(j);
         _children.push_front(node);
-	// We're done with the search.
+	// Search is done.
 	break;
       }
     }
@@ -433,12 +433,14 @@ void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
 }
 
 //***************************************************************************
-// Various helper functions, mostly for recursions.
+// Helper functions, mostly for recursion.
 //***************************************************************************
 
-void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
+void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField){
+  if (!r)
+    return;
   int ID = getID();
-  (void)theData->dataIn(IDField,&ID,AR_INT,1);
+  (void)r->dataIn(IDField, &ID, AR_INT, 1);
 }
 
 // Not thread-safe (uses getChildren instead of getChildrenRef).
@@ -454,7 +456,7 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
     return;
   }
 
-  // Search breadth-first.
+  // Breadth-first.  Search children.
   list<arDatabaseNode*> children = getChildren();
   list<arDatabaseNode*>::const_iterator i;
   // If a node map has been passed, do NOT find an already mapped node.
@@ -467,15 +469,12 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
     }
   }
   // Recurse.
-  for (i = children.begin(); i != children.end(); i++){
-    if (success){
-      return;
-    }
+  for (i = children.begin(); i != children.end() && !success; i++){
     (*i)->_findNode(result, name, success, nodeMap, true);
   }
 }
 
-// See comments re: thread-safety above findNode.
+// Not thread-safe (uses getChildren instead of getChildrenRef).
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
@@ -488,11 +487,9 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
     return;
   }
   list<arDatabaseNode*> children = getChildren();
-  // We are doing a breadth-first search (maybe..), check the children first
-  // then recurse
+  // Breadth-first.  Search children.
   list<arDatabaseNode*>::iterator i;
-  // If a node map has been passed, make sure we do NOT find an already mapped
-  // node.
+  // If a node map has been passed, do NOT find an already mapped node.
   for (i = children.begin(); i != children.end(); i++){
     if ( (*i)->getTypeString() == nodeType &&
          (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
@@ -501,12 +498,8 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
       return;
     }
   }
-  // now, recurse...
-  for (i = children.begin(); i != children.end(); i++){
-    if (success){
-      // we're already done.
-      return;
-    }
+  // Recurse.
+  for (i = children.begin(); i != children.end() && !success; i++){
     (*i)->_findNodeByType(result, nodeType, success, nodeMap, true);
   }
 }
