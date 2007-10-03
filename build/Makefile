@@ -18,7 +18,7 @@ DEMODIRS=ribbons atlantis coaster hspace cosmos cubes parade schprel
 ifeq "$(PLATFORM)" "win32"
 ifneq "$(NUMBER_OF_PROCESSORS)" ""
 ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)
-  JOBS=$(NUMBER_OF_PROCESSORS)
+  JOBS=$(eval( $(NUMBER_OF_PROCESSORS) * 3))
 endif
 endif
 endif
