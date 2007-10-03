@@ -296,34 +296,46 @@ void arLogStream::_flush(const bool addNewline){
     // Accumulator, so there's only one << to _output.
     ostringstream s;
 
-    s << (_header=="NULL") ? ar_getLogLabel() : _header;
+    // () forces ?: before <<.
+    s << (_header=="NULL" ? ar_getLogLabel() : _header);
 
     if (_fTimestamp) {
       string now(ar_currentTimeString());
+
       // Skip past gobbledegook.
       unsigned pos = now.find('/');
-      now = pos==string::npos ? "" : now.substr(pos+1);
+      if (pos == string::npos)
+        goto LDone;
+      now = now.substr(pos+1);
+
       // Skip past day-of-week.
       pos = now.find(' ');
-      now = pos==string::npos ? "" : now.substr(pos+1);
+      if (pos == string::npos)
+        goto LDone;
+      now = now.substr(pos+1);
+
       // Truncate year.
       pos = now.find("200");
       if (pos != string::npos)
 	now = now.substr(0, pos-1);
+
       // Strip leading zero of day-of-month.
       pos = now.find(" 0");
       if (pos != string::npos) {
 	// now == "Oct 02 08:01:24"
 	now = now.substr(0,pos+1) + now.substr(pos+2);
 	}
+
       // Strip leading zero of hour.
-      pos = now.find(" 0");
+      pos = now.find(" 0", pos+5);
       if (pos != string::npos) {
 	// now == "Oct 2 08:01:24"
 	now = now.substr(0,pos+1) + now.substr(pos+2);
 	}
+
       s << " " << now;
     }
+LDone:
     s << " " << ar_logLevelToString(_level) << ": " << _buffer.str();
     if (addNewline) {
       s << "\n";
@@ -387,7 +399,7 @@ arLogStream& ar_hex(arLogStream& s){
 }
 
 static string __processLabel("szg");
-static arLock __processLabelLock;
+static arLock __processLabelLock; // guard __processLabel
 
 void ar_setLogLabel( const string& label ) {
   __processLabelLock.lock();
@@ -397,8 +409,7 @@ void ar_setLogLabel( const string& label ) {
 
 string ar_getLogLabel() {
   __processLabelLock.lock();
-  string label = __processLabel;
+  const string label(__processLabel);
   __processLabelLock.unlock();
   return label;
 }
-
