@@ -239,15 +239,14 @@ void arDistSceneGraphFramework::setUserMessageCallback
 // For python programs, it might be convenient to put the data in SZG_PYTHON.
 void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
                                                   const string& bundleSubDirectory) {
-  _graphicsServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   // The graphics client is only used for drawing in "standalone" mode.
   // It isn't used at all in "Phleet" mode. However, in the "standalone"
   // mode case, the connection process in the arGraphicsServer code
   // never occurs (client/server are just connected from the beginning).
   // Hence, we need to do this here, as well.
+  _graphicsServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   _graphicsClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
-  // Must be done analogously for the sound (both texture files and sound
-  // files live in the bundles).
+
   _soundServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   _soundClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
@@ -527,10 +526,8 @@ void arDistSceneGraphFramework::_initDatabases(){
     // With manual buffer swapping, use "nosync" mode so
     // Python can use only one thread.  This avoids deadlock.
     _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_NOSYNC_MANUAL_SERVER);
-    _graphicsClient._cliSync.registerLocalConnection
-      (&_graphicsServer._syncServer);
-    _soundClient._cliSync.registerLocalConnection
-      (&_soundServer._syncServer);
+    _graphicsClient._cliSync.registerLocalConnection(&_graphicsServer._syncServer);
+    _soundClient._cliSync.registerLocalConnection(&_soundServer._syncServer);
     if (!_soundClient.init())
       ar_log_warning() << "silent.\n";
   }
@@ -769,24 +766,30 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
     }
   }
   
-  // Gets the sound and graphics database going. These must be initialized
-  // AFTER the virtual computer reshuffle (launchApp). Some OS configurations
-  // may only allow ONE connection to the sound card, meaning that 
-  // _soundClient.init() may block until a previous application goes away.
-  // Thus, if _soundClient.init() occurs before launchApp (which will kill
-  // other running applications, at least if virtual computers are being used
-  // correctly) there can be a deadlock!
+  // Init sound and graphics databases, AFTER the virtual computer
+  // reshuffle (launchApp). Some OS's allow only ONE connection
+  // to the sound card, blocking _soundClient.init() until a previous
+  // app ends.  This might deadlock, if _soundClient.init() occurs before
+  // launchApp (which kills other apps on the v.c.).
   _initDatabases();
   
-  // Get the input device going
+  // Init input device.
   if (!_initInput()){
     return false;
   }
     
-  // NOTE: we choose either graphics server or peer, based on init.
+  // Choose either graphics server or peer, based on init.
+  // No sound server in peer mode, so multiple peers can run.
   if (_peerName == "NULL"){
     if (!_graphicsServer.init(_SZGClient)){
       ar_log_error() << _label << " error: graphics server failed to init. (Is another app running?)\n";
+      if (!_SZGClient.sendInitResponse(false)){
+        cerr << _label << " error: maybe szgserver died.\n";
+      }
+      return false;
+    }
+    if (!_soundServer.init(_SZGClient)){
+      ar_log_error() << _label << ": audio failed to init. (Is another app running?)\n";
       if (!_SZGClient.sendInitResponse(false)){
         cerr << _label << " error: maybe szgserver died.\n";
       }
@@ -803,20 +806,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
     }
   }
   
-  // The sound server is disabled in the peer case. Otherwise, multiple
-  // apps using this framework cannot run simultaneously.
-  if (_peerName == "NULL"){
-    if (!_soundServer.init(_SZGClient)){
-      ar_log_error() << _label << " error: sound server failed to init.\n"
-                     << "  (Is another application running?)\n";
-      if (!_SZGClient.sendInitResponse(false)){
-        cerr << _label << " error: maybe szgserver died.\n";
-      }
-      return false;
-    }
-  }
-  
-  // init(...) succeeded.
+  // init() succeeded.
   if (!_SZGClient.sendInitResponse(true)){
     cerr << _label << " error: maybe szgserver died.\n";
   }
@@ -853,19 +843,15 @@ bool arDistSceneGraphFramework::_startPhleetMode(){
     }
   }
   
-  // Don't start the input device if we are in peer mode!
+  // Don't start the input device or sound server if in peer mode,
+  // so multiple peers can run.
   if (_peerName == "NULL" && !_inputDevice->start()){
     return _startRespond("failed to start input device.");
   }
   
-  
-  // Don't start the sound server if we are in peer mode! Otherwise, multiple
-  // peers won't be able to simultaneously run (using this framework).
   if (_peerName == "NULL" && !_soundServer.start()){
     return _startRespond("sound server failed to listen.");
   }
   
-  // Returns true. (_standRespond is a little cute)
   return _startRespond("", true);
 }
-
