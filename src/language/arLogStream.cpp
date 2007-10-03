@@ -295,9 +295,8 @@ void arLogStream::_flush(const bool addNewline){
   if (_level <= _threshold) {
     // Accumulator, so there's only one << to _output.
     ostringstream s;
-    string label = (_header=="NULL")?(ar_getLogLabel()):(_header);
 
-    s << label;
+    s << (_header=="NULL") ? ar_getLogLabel() : _header;
 
     if (_fTimestamp) {
       string now(ar_currentTimeString());
@@ -309,16 +308,29 @@ void arLogStream::_flush(const bool addNewline){
       now = pos==string::npos ? "" : now.substr(pos+1);
       // Truncate year.
       pos = now.find("200");
-      now = pos==string::npos ? now : now.substr(0, pos-1);
-      s << ":" << now;
+      if (pos != string::npos)
+	now = now.substr(0, pos-1);
+      // Strip leading zero of day-of-month.
+      pos = now.find(" 0");
+      if (pos != string::npos) {
+	// now == "Oct 02 08:01:24"
+	now = now.substr(0,pos+1) + now.substr(pos+2);
+	}
+      // Strip leading zero of hour.
+      pos = now.find(" 0");
+      if (pos != string::npos) {
+	// now == "Oct 2 08:01:24"
+	now = now.substr(0,pos+1) + now.substr(pos+2);
+	}
+      s << " " << now;
     }
-    s << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
+    s << " " << ar_logLevelToString(_level) << ": " << _buffer.str();
     if (addNewline) {
       s << "\n";
     }
     *_output << s.str();
   }
-  // Clear internal buffer.
+
   static const string empty;
   _buffer.str(empty);
 }
@@ -332,8 +344,8 @@ inline arLogStream& arLogStream::_setLevel(int l){
 }
 
 arLogStream& ar_log(){
-  static arLogStream logStream;
-  return logStream;
+  static arLogStream l;
+  return l;
 }
 
 arLogStream& ar_log_critical(){
