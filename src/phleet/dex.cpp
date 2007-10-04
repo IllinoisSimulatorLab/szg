@@ -66,24 +66,33 @@ bool isVirtualComputer(arSZGClient& szgClient, const char* host){
 
 int main(int argc, char** argv){
   int i=0, j=0;
+
   // Default is no timeouts.
   int msecTimeoutLocal = -1;
   int msecTimeoutRemote = -1;
-
-  float t;
-  string sz = ar_getenv("SZG_DEX_LOCALTIMEOUT");
-  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t>0.)
+  float t = -1.;
+  string sz(ar_getenv("SZG_DEX_LOCALTIMEOUT"));
+  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t > 0.)
     msecTimeoutLocal = int(t*1000);
   sz = ar_getenv("SZG_DEX_TIMEOUT");
-  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t>0.)
+  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t > 0.)
     msecTimeoutRemote = int(t*1000);
 
   // parse and remove the command-line options
-  bool verbosity = false;
+  bool fVerbose = true;
 
   for (i=0; i<argc; i++){
+
+    if (!strcmp(argv[i],"-q")){
+      fVerbose = false;
+      // remove the arg from the list
+      for (j=i; j<argc-1; j++)
+        argv[j] = argv[j+1];
+      argc--;
+    }
+
     if (!strcmp(argv[i],"-v")){
-      verbosity = true;
+      fVerbose = true;
       // remove the arg from the list
       for (j=i; j<argc-1; j++)
         argv[j] = argv[j+1];
@@ -139,10 +148,11 @@ int main(int argc, char** argv){
   }
 
   if (argc <= 1) {
-    cerr << "usage: dex [-v] [-lt localtimeoutsec] [-t timeoutsec] executable_name\n"
-         << "  dex [-v] [-lt localtimeoutsec] [-t timeoutsec] hostname executable_name [args]\n"
+    cerr << "usage: dex [-v] [-q] [-lt localtimeoutsec] [-t timeoutsec] exe_name\n"
+         << "       dex [-v] [-q] [-lt localtimeoutsec] [-t timeoutsec] hostname exe_name [args]\n"
          << "  localtimeoutsec is how long dex waits for a reply.\n"
-         << "  timeoutsec is how long szgd gives the app to launch before aborting it.\n";
+         << "  timeoutsec is how long szgd waits before aborting the exe's launch.\n";
+    // -v is verbose (default), -q is quiet.
     return 1;
     }
 
@@ -158,11 +168,11 @@ int main(int argc, char** argv){
 
   getHostsRunningSzgd(szgClient);
   const string localhost(szgClient.getComputerName());
-  bool runningOnVirtual = false;
+  bool fVirtual = false;
   string hostName;
   string exeName;
 
-  // dex is complicated because it can be used in several ways:
+  // dex can run in several ways:
   //  a. dex virtual_computer arg0 arg1 arg2
   //  b. dex actual_computer arg0 arg1 arg2
   //  c. dex arg0 arg1 arg2
@@ -176,20 +186,15 @@ int main(int argc, char** argv){
   //  b. Is argv[1] a computer running szgd? If so, interpret command that way.
   //  c. Otherwise, interpret command as (c) above.
 
-  // This block of code determines which of the 3 cases,
-  // and packs the args into a string to be sent to szgd.
   if (argc == 2) {
     // Execute on the local machine.
     hostName = localhost;
     exeName = argv[1];
   } else {
-    // The over-riding consideration is:
-    //  "Are we running on a virtual computer?"
-    runningOnVirtual = isVirtualComputer(szgClient, argv[1]);
-    // If argv[1] refers to an actual or virtual computer,
-    // pack the args like so... (same either way)
-    if (runningOnVirtual || isRunningSzgd(argv[1])) {
-      // Run argv[2..] on argv[1].
+    fVirtual = isVirtualComputer(szgClient, argv[1]);
+    if (fVirtual || isRunningSzgd(argv[1])) {
+      // argv[1] is an actual or virtual computer.
+      // Pack the args thus: Run argv[2..] on argv[1].
       hostName = argv[1];
       for (i=2; i<argc; ++i) {
         exeName.append(argv[i]);
@@ -210,15 +215,14 @@ int main(int argc, char** argv){
     }
   }
 
-  string messageContext("NULL");
-  if (runningOnVirtual) {
+  string msgContext("NULL");
+  if (fVirtual) {
     const string trigger(szgClient.getTrigger(hostName));
     if (trigger == "NULL") {
       cerr << argv[0] << " error: no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
-    messageContext = szgClient.createContext(
-      hostName, "default", "trigger", "default", "NULL");
+    msgContext = szgClient.createContext(hostName, "default", "trigger", "default", "NULL");
     hostName = trigger;
   }
 
@@ -227,55 +231,37 @@ int main(int argc, char** argv){
   const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
     cerr << argv[0] << " error: no szgd on host " << hostName << ".\n";
-    if (runningOnVirtual){
-      cerr << "  (which is the trigger of virtual computer '" << argv[1] << "')\n";
+    if (fVirtual){
+      cerr << "  (That host is the trigger of virtual computer '" << argv[1] << "')\n";
     }
     // Don't reinterpret or retry.  Just fail.
     return 1;
   }
 
-  string messageBody( exeName );
+  string msgBody( exeName );
   if (msecTimeoutRemote > -1) {
-    ostringstream tempStream;
-    tempStream << msecTimeoutRemote;
-    // Hack. This will get unpacked by szgd.
-    messageBody += "||||"+tempStream.str();
+    // Hack, unpacked by szgd.
+    msgBody += "||||" + ar_intToString(msecTimeoutRemote);
   } 
-  int match = szgClient.sendMessage("exec", messageBody, messageContext, szgdID, true);
+  int match = szgClient.sendMessage("exec", msgBody, msgContext, szgdID, true);
   if (match < 0) {
     cerr << "dex error: failed to send message.\n";
     return 1;
   }
-  list<int> tags;
-  tags.push_back(match);
 
   // Default body, e.g. for timeouts.
-  string body("dex error: got no response.");
+  string body("dex error: no response.");
 
-  // We only get a message response with "match" from the tags list.
-  // The variable match is filled-in with the "match" we received, which
-  // is redundant in this case since there's just one thing in the list.
+  // We only get a message response with "match" from the one-element list "tags".
+  list<int> tags;
+  tags.push_back(match);
   while (szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal) < 0) {
-    if (verbosity){
-      cout << body << "\n";
-    } else {
-      // Print lines beginning with "szg:".
-      vector< string > lines;
-      string line;
-      istringstream ist;
-      ist.str( body );
-      while (getline( ist, line, '\n' )) {
-        lines.push_back( line );
-      }
-      vector< string >::const_iterator iter;
-      for (iter = lines.begin(); iter != lines.end(); ++iter) {
-        if (iter->find( "szg:", 0 ) == 0) {
-          cout << *iter << endl;
-        }
-      }
-    }
+    if (fVerbose)
+      cout << body << "\n"; // Newline separates successive bodies.
   }
-  // Print the final response.
-  cout << body << "\n";
+
+  // Final response.
+  if (fVerbose)
+    cout << body;
   return 0;
 }
