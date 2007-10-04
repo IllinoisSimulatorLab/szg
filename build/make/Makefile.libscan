@@ -182,6 +182,19 @@ ifeq ($(strip $(MACHINE)), WIN32)
   # q33 demo. Allow it to be added in SZGEXTERNAL
   GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
 
+	ifeq ($(strip $(SZG_COMPILER)), MINGW)
+		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-mingw
+		INC_5DT := $(wildcard $(5DT_DIR)/include)
+		LIB_5DT := $(wildcard $(5DT_DIR)/lib/lib5dt.a)
+		LINK_5DT := -l5dt
+		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
+	else
+		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-msvc
+		INC_5DT := $(wildcard $(5DT_DIR)/include)
+		LIB_5DT := $(wildcard $(5DT_DIR)/lib/fglove.lib)
+		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
+	endif
+
 	FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4
 	INC_FMOD := $(wildcard $(FMOD_DIR)/include)
 	ifeq ($(strip $(SZG_COMPILER)), MINGW)
@@ -429,6 +442,22 @@ ifeq ($(strip $(MACHINE)), WIN32)
     SZG_LINK_WIN_BIRD = $(LIB_WIN_BIRD)
   endif
   endif
+
+  ifneq ($(strip $(INC_5DT)),)
+  ifneq ($(strip $(LIB_5DT)),)
+    # lib5DT include file AND library exist.
+    SZG_OPT_FLAGS += -D "Enable5DT"
+    SZG_SHARED_COPY += $(OBJ_5DT)
+    SZG_INCLUDE_5DT = -I$(INC_5DT)
+  ifneq ($(strip $(SZG_COMPILER)), MINGW)
+    SZG_LINK_5DT = $(LIB_5DT)
+	else
+    SZG_PRE_LIB_SEARCH_FLAGS_5DT = -L$(5DT_DIR)/lib
+    SZG_LINK_5DT = $(LINK_5DT)
+	endif
+  endif
+  endif
+
 
 # NOTE: This only applies to one of the dynamically loadable input drivers.
 # Hence it does not add anything to the global link lines/includes.

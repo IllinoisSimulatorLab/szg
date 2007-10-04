@@ -327,6 +327,12 @@ result at addr3.
 Scalar-vector multiplication: multiplies vector at addr1 by x, stores
 the result at addr2.
 
+**vectorMagnitude** ``( addr1 -- x )``
+Pushes the magnitude of the vector at addr1 onto the stack.
+
+**vectorNormalize** ``( addr1 addr2 -- )``
+Normalizes the vector at addr1 and stores the resulting vector at addr2.
+
 **vectorTransform** ``( addr1 addr2 addr3 -- )``
 Matrix-vector multiplication: multiplies vector at addr2 by matrix at
 addr1, stores the result at addr3.
@@ -372,6 +378,10 @@ at addr.
 **rotationMatrixV** ``( x addr1 addr2 -- )``
 Generates a rotation matrix for a rotation through angle x (degrees)
 about the vector at addr1 and stores it at addr2.
+
+**rotationMatrixVectorToVector** ``( addr1 addr2 addr3 -- )``
+Generates a rotation matrix to rotate the vector at addr1 to the vector at addr2
+and stores it at addr3.
 
 **extractTranslation** ``( addr1 addr2 -- )``
 Extracts the translation vector from the matrix at addr1 and stores it
@@ -443,6 +453,9 @@ then both will be called, with the more general one (**filter_all_matrices**) co
 In all of these cases, the word has access to the current event and to the most recent state
 of all other events via the following words:
 
+
+===Current-Event Words===
+
 **getCurrentEventIndex** ``( -- n1 )``
 Places the index of the current event on the
 stack.
@@ -480,17 +493,33 @@ otherwise throws an exception and prints an error message.
 Flags the current event for deletion by the
 filter.
 
-**getbutton** ``( n1 -- n2 )``
+
+===Event-State Words===
+
+**getButton** ``( n1 -- n2 )``
 Gets the value of button event # n1 and pushes
 it on the stack. Returns 0 if that button event doesn't exist.
 
-**getaxis** ``( n1 -- x1 )``
+**getOnButton** ``( n1 -- n2 )``
+Returns (pushes on the stack) 1 if button event # n1 has just transitioned
+from 0 to 1 (i.e. the button has just been pressed) and 0 otherwise.
+Returns 0 if that button event doesn't exist.
+
+**getOffButton** ``( n1 -- n2 )``
+Returns (pushes on the stack) 1 if button event # n1 has just transitioned
+from 1 to 0 (i.e. the button has just been released) and 0 otherwise.
+Returns 0 if that button event doesn't exist.
+
+**getAxis** ``( n1 -- x1 )``
 Gets the value of axis event #n1 and pushes
 it onto the stack. Returns 0.0 if it doesn't exist.
 
-**getmatrix** ``( addr n1 -- )`` Stores matrix event n1 in the data cells
+**getMatrix** ``( addr n1 -- )`` Stores matrix event n1 in the data cells
 pointed to by addr.&nbsp; Returns identity matrix if event doesn't
 exist.
+
+
+===Event-Creation Words===
 
 **insertButtonEvent** ``( n1 n2 -- )``
 Creates a new button event with value n1 and index n2 and inserts it

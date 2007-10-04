@@ -252,7 +252,8 @@ LAbort:
   arStreamConfig remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
   if (!remoteStreamConfig.valid) {
     string sSymptom;
-    switch (const int ver = remoteStreamConfig.version) {
+    const int ver = remoteStreamConfig.version;
+    switch (ver) {
     // todo: unify magic numbers -X with arDataPoint::_fillConfig
     case -1:
       sSymptom = "not Syzygy";

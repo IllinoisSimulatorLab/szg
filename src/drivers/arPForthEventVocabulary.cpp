@@ -176,6 +176,42 @@ bool GetButton::run( arPForth* pf ) {
   return true;
 }
 
+class GetOnButton : public arPForthAction {
+  public:
+    bool run( arPForth* pf );
+};
+bool GetOnButton::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  arPForthFilter* f = ar_PForthGetFilter();
+  if (f == 0)
+    throw arPForthException("NULL filter");
+  int buttonNumber = (int)pf->stackPop();
+  if (buttonNumber < 0)
+    throw arPForthException("negative event index.");
+  bool temp = f->getOnButton( buttonNumber );
+  pf->stackPush( (float) temp );
+  return true;
+}
+
+class GetOffButton : public arPForthAction {
+  public:
+    bool run( arPForth* pf );
+};
+bool GetOffButton::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  arPForthFilter* f = ar_PForthGetFilter();
+  if (f == 0)
+    throw arPForthException("NULL filter");
+  int buttonNumber = (int)pf->stackPop();
+  if (buttonNumber < 0)
+    throw arPForthException("negative event index.");
+  bool temp = f->getOffButton( buttonNumber );
+  pf->stackPush( (float) temp );
+  return true;
+}
+
 class GetAxis : public arPForthAction {
   public:
     bool run( arPForth* pf );
@@ -316,6 +352,10 @@ bool ar_PForthAddEventVocabulary( arPForth* pf ) {
   if (!pf->addSimpleActionWord( "deleteCurrentEvent", new arPForthSpace::DeleteCurrentEvent() ))
     return false;
   if (!pf->addSimpleActionWord( "getButton", new arPForthSpace::GetButton() ))
+    return false;
+  if (!pf->addSimpleActionWord( "getOnButton", new arPForthSpace::GetOnButton() ))
+    return false;
+  if (!pf->addSimpleActionWord( "getOffButton", new arPForthSpace::GetOffButton() ))
     return false;
   if (!pf->addSimpleActionWord( "getAxis", new arPForthSpace::GetAxis() ))
     return false;

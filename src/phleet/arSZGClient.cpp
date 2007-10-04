@@ -316,7 +316,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
   if (!_ignoreMessageResponses && _dexHandshaking && !_simpleHandshaking) {
     // Return s to dex.
     if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)) {
-      ar_log_warning() << _exeName << ": response failed during " << sz << ".\n";
+      cout << _exeName << ": response failed during " << sz << ".\n";
       return false;
     }
   } else {

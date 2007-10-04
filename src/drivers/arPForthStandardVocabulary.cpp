@@ -355,6 +355,40 @@ bool VecScalarMultiply::run( arPForth* pf ) {
   return true;
 }
 
+class VecMagnitude : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool VecMagnitude::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long address = (long)pf->stackPop();
+  arVector3 V;
+  pf->getDataArray( address, V.v, 3 );
+  float mag = V.magnitude();
+  pf->stackPush( mag );
+  return true;
+}
+
+class VecNormalize : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool VecNormalize::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
+  arVector3 V;
+  pf->getDataArray( inAddress, V.v, 3 );
+  float mag = V.magnitude();
+  if (mag > 1.e-6) {
+    V /= mag;
+  }
+  pf->putDataArray( outAddress, V.v, 3 );
+  return true;
+}
+
 class AddArrays : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -622,6 +656,25 @@ bool RotationMatrixV::run( arPForth* pf ) {
   arVector3 V;
   pf->getDataArray( aAxis, V.v, 3 );
   pf->putDataMatrix( aOut, ar_rotationMatrix( V, angle ) );
+  return true;
+}
+
+class RotationMatrixVecToVec : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool RotationMatrixVecToVec::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long aOut = (long)pf->stackPop();
+  const long aToVec = (long)pf->stackPop();
+  const long aFromVec = (long)pf->stackPop();
+  arVector3 vFrom;
+  arVector3 vTo;
+  pf->getDataArray( aFromVec, vFrom.v, 3 );
+  pf->getDataArray( aToVec, vTo.v, 3 );
+  arMatrix4 R = ar_rotateVectorToVector( vFrom, vTo );
+  pf->putDataMatrix( aOut, R );
   return true;
 }
 
@@ -1043,6 +1096,8 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "vectorAdd", new AddVectors() ) &&
     pf->addSimpleActionWord( "vectorSubtract", new SubVectors() ) &&
     pf->addSimpleActionWord( "vectorScale", new VecScalarMultiply() ) &&
+    pf->addSimpleActionWord( "vectorMagnitude", new VecMagnitude() ) &&
+    pf->addSimpleActionWord( "vectorNormalize", new VecNormalize() ) &&
     pf->addSimpleActionWord( "vectorTransform", new MatVecMultiply() ) &&
     pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ) &&
     pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ) &&
@@ -1055,6 +1110,7 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "translationMatrix", new TranslationMatrix() ) &&
     pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ) &&
     pf->addSimpleActionWord( "rotationMatrixV", new RotationMatrixV() ) &&
+    pf->addSimpleActionWord( "rotationMatrixVectorToVector", new RotationMatrixVecToVec() ) &&
     pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ) &&
     pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ) &&
     pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ) &&
