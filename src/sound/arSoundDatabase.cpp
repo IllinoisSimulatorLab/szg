@@ -8,6 +8,7 @@
 #include "arStreamNode.h"
 
 arSoundDatabase::arSoundDatabase() :
+  _renderMode(mode_fmod),
   _path(new list<string>)
 {
   // todo: initializers.  (unless these two fail in red hat 8, like other nodes)
@@ -110,16 +111,15 @@ void arSoundDatabase::setPath(const string& thePath){
     ar_log_warning() << "empty SZG_SOUND/path.\n";
 }
 
-// Only the client, not the server,
-// loads the soundfiles (or even verify that the files exist --
-// client and server may be different machines with different disks mounted).
+// Only clients, not the server, load soundfiles or even check that they exist.
+// Client and server may be different machines, mounting different disks).
 
 // Only arSoundClient, not arSoundServer, should ever call addFile().
 arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
-  // If our arDatabase is a server, not a client, then we don't do anything
-  // with these files.
-  if (_server)
+  if (_server) {
+    // arDatabase is a server.  Nothing to do.
     return NULL;
+  }
 
   const map<string,arSoundFile*,less<string> >::const_iterator
     iFind(_filewavNameContainer.find(name));
@@ -127,16 +127,13 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     return iFind->second;
   }
 
-  std::vector<std::string> triedPaths;
-
-  // A new sound file.
   arSoundFile* theFile = new arSoundFile;
-  
   bool fDone = false;
   string potentialFileName;
+  vector<string> triedPaths;
   map<string, string, less<string> >::const_iterator iter(_bundlePathMap.find(_bundlePathName));
   if (_bundlePathName != "NULL" && _bundleName != "NULL" && iter != _bundlePathMap.end()){
-    // Try the bundle path.
+    // Bundle path.
     arSemicolonString bundlePath(iter->second);
     for (int n=0; n<bundlePath.size() && !fDone; n++){
       potentialFileName = bundlePath[n];
@@ -146,23 +143,23 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
       potentialFileName += name;
       ar_scrubPath(potentialFileName);
       triedPaths.push_back( potentialFileName );
-      fDone = theFile->read(potentialFileName.c_str(), fLoop);
+      fDone = theFile->read(potentialFileName.c_str(), fLoop, _renderMode);
     }
   }
 
-  // Try the sound path.
+  // Sound path.
   _pathLock.lock();
-  for (list<string>::iterator i = _path->begin(); i != _path->end() && !fDone; ++i){
+  for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i){
     potentialFileName = *i + name;
     ar_scrubPath(potentialFileName);
     triedPaths.push_back( potentialFileName );
-    fDone = theFile->read(potentialFileName.c_str(), fLoop);
+    fDone = theFile->read(potentialFileName.c_str(), fLoop, _renderMode);
   }
   _pathLock.unlock();
   static bool fComplained = false;
   if (!fDone){
     if (!theFile->dummy()) {
-      ar_log_error() << "arSoundDatabase: failed to create dummy sound.\n";
+      ar_log_error() << "arSoundDatabase failed to create dummy sound.\n";
     }
     if (!fComplained){
       fComplained = true;
@@ -176,7 +173,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   }
   triedPaths.clear();
   _filewavNameContainer.insert(
-    map<string,arSoundFile*,less<string> >::value_type(name,theFile));
+    map<string,arSoundFile*,less<string> >::value_type(name, theFile));
   return theFile; 
 }
 
@@ -201,7 +198,7 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
 
   // Once per sound-frame, 5x more often than
   // arServerFramework::setPlayTransform calls loadMatrices.
-  (void)s->loadMatrices(mHead);
+  (void)s->loadMatrices(mHead, _renderMode);
 }
 
 // Copy of OpenGL's matrix stack, for sound rendering.

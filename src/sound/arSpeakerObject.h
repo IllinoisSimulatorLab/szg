@@ -16,8 +16,8 @@ class SZG_CALL arSpeakerObject {
  public:
   arSpeakerObject();
   bool configure(arSZGClient&);
-  bool loadMatrices(const arMatrix4&);
-  void setUnitConversion(float unitConversion)
+  bool loadMatrices(const arMatrix4&, const int rendermode);
+  void setUnitConversion(const float unitConversion)
     { _unitConversion = unitConversion; }
 
  private:
@@ -33,13 +33,6 @@ class SZG_CALL arSpeakerObject {
   bool _fFmodPluginInited;
 
   arMatrix4 demoHeadMatrix( const arMatrix4& );
-
-  typedef enum { mode_fmod, mode_fmodplugins, mode_vss, mode_mmio } rendermode;
-  rendermode _mode;
-    // fmod:        thin wrapper around 'gamer' 2-speaker style.
-    // fmodplugins: transform sources to compensate for stationary listener
-    // vss:         todo, as library, not separate exe
-    // mmio:        todo, windows legacy code (fallback if fmod's missing).
 };
 
 #endif

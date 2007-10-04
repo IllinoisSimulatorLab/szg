@@ -77,6 +77,7 @@ class SZG_CALL arSoundClient{
   void reset() { _soundDatabase.reset(); }
   arSyncDataClient _cliSync;
   string getPath(){ return _soundDatabase.getPath(); }
+  void _setMode(const int m) { _soundDatabase.setMode(m); }
   void setPath(const string& s) { _soundDatabase.setPath(s); }
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory)
     { _soundDatabase.setDataBundlePath(bundlePathName, bundleSubDirectory); }

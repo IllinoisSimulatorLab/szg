@@ -26,7 +26,7 @@ class SZG_CALL arSoundFile {
     {}
   ~arSoundFile();
 
-  bool read(const char* filename, bool fLoop);
+  bool read(const char* filename, bool fLoop, const int renderMode);
   bool dummy();
   const string& name() const { return _name; } // for debugging
 #ifdef EnableSound
@@ -39,10 +39,6 @@ class SZG_CALL arSoundFile {
   FMOD_SOUND* _psamp;        // looped
   FMOD_SOUND* _psampTrigger; // non-looped
 #endif
-
-  // For dummy sound, when a soundfile fails to load.
-  static bool _fInit;
-  static short _buf[];
 };
 
 #endif

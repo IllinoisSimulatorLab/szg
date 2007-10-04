@@ -7,6 +7,7 @@
 
 #include "arPrecompiled.h"
 #include "arSpeakerObject.h"
+#include "arSoundDatabase.h" // for mode_vss etc.
 #include "fmodStub.h"
 
 arSpeakerObject::arSpeakerObject() :
@@ -26,25 +27,13 @@ arSpeakerObject::arSpeakerObject() :
 
 bool arSpeakerObject::configure(arSZGClient& cli){
   (void)cli.initResponse(); // like arGraphicsScreen::configure()
-
-  const string renderMode(cli.getAttribute("SZG_SOUND", "render",
-    "|fmod|fmod_plugins|vss|mmio|"));
-  ar_log_debug() << "mode SZG_SOUND/render '" << renderMode << "'.\n";
-  _mode =
-    renderMode == "fmod_plugins" ?
-      mode_fmodplugins :
-    renderMode == "vss" ?
-      mode_vss :
-    renderMode == "mmio" ?
-      mode_mmio :
-      mode_fmod;
   return true;
 }
 
 arMatrix4 __globalSoundListener;
 extern arMatrix4 __globalSoundListener;
 
-bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
+bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
   arMatrix4 head(/*_demoMode ? demoHeadMatrix(mHead) :*/ mHead);
 
   if (head == _headPrev)
@@ -53,7 +42,7 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead) {
 
   // Listener moved, so update listener's attributes.
 
-  switch (_mode) {
+  switch (mode) {
 
   case mode_fmodplugins:
     // Hide listener motion from the FMOD plugins:

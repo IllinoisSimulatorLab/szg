@@ -20,7 +20,13 @@
 
 // Scene graph for sound.
 
-class SZG_CALL arSoundDatabase: public arDatabase{
+enum { mode_fmod, mode_fmodplugins, mode_vss, mode_mmio };
+  // fmod:        thin wrapper around 'gamer' 2-speaker style.
+  // fmodplugins: transform sources to compensate for stationary listener
+  // vss:         todo, as library, not separate exe
+  // mmio:        todo, windows legacy code (fallback if fmod's missing).
+
+class SZG_CALL arSoundDatabase: public arDatabase {
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arSoundDatabase();
@@ -36,6 +42,9 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   void setPlayTransform(arSpeakerObject*);
   bool render();
 
+  int getMode() const { return _renderMode; };
+  void setMode(const int m) { _renderMode = m; };
+
   // Deliberately public, for external data input.
   arStructuredData* transformData;
   arStructuredData* filewavData;
@@ -46,6 +55,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   arSoundLanguage _langSound;  
 
  protected:
+  int _renderMode;
   mutable arLock _pathLock; // Guard _path.
   list<string>*  _path;
   map<string,arSoundFile*,less<string> > _filewavNameContainer;

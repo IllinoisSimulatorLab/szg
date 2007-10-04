@@ -53,46 +53,45 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   if (!_channel)
     return false;
 
-  {
-    FMOD_MODE m;
-    if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
-      // _channel was invalid.
-      (void) FMOD_Channel_Stop( _channel );
-      _channel = NULL;
-      return false;
-    }
-
-    const float a = useTrigger ? _triggerAmplitude : _amplitude;
-    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, a )))
-      return false;
-
-    if (m & FMOD_2D) {
-      // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-      if (!_fComplained[2]) {
-	_fComplained[2] = true;
-	ar_log_debug() << "2D sound won't be 3D-updated.\n";
-      }
-      return true;
-    }
-
-    // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
-    if (!(m & FMOD_3D)) {
-      // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-      if (!_fComplained[3]) {
-	_fComplained[3] = true;
-	ar_log_debug() << "2D sound won't be 3D-updated, and I mean it this time.\n";
-      }
-      return true;
-    }
+  FMOD_MODE m;
+  if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
+    // _channel was invalid.
+    (void) FMOD_Channel_Stop( _channel );
+    _channel = NULL;
+    return false;
   }
+
+  const float aRaw = useTrigger ? _triggerAmplitude : _amplitude;
+  if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw )))
+    return false;
 
   const arMatrix4 mat = ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top();
   const arVector3& p = useTrigger ? _triggerPoint : _point;
   const arVector3 point((__globalSoundListener * mat) * p);
 
-  static const FMOD_VECTOR velocity_unused(FmodvectorFromArvector(arVector3(0,0,0))); // doppler nyi
-  const FMOD_VECTOR tmp(FmodvectorFromArvector(point));
-  return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity_unused ));
+  if (m & FMOD_2D) {
+    const float r = 1.5;
+    const float& x = point.v[0];
+    const float pan = x<-r ? -1. : x>r ? 1. : x/r;
+    const float dist = point.magnitude() / r;
+    const float aDist = dist<1. ? 1. : 1. / dist; // hack: inverse not inverse square
+    ar_log_debug() << "2D sound from " << point << ", pan " << pan <<
+      ", ampl " << aDist << ".\n";
+    return ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw * aDist)) &&
+           ar_fmodcheck( FMOD_Channel_SetPan( _channel, pan));
+  }
+
+  if (m & FMOD_3D) {
+    static const FMOD_VECTOR velocity_unused(
+      FmodvectorFromArvector(arVector3(0,0,0))); // doppler nyi
+    const FMOD_VECTOR tmp(FmodvectorFromArvector(point));
+    return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity_unused ));
+  }
+
+  // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
+  ar_log_warning() << "internal FMOD mode error.\n";
+  return true;
+
 #endif
 }
 

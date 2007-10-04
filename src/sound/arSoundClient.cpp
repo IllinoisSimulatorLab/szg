@@ -28,7 +28,7 @@ FMOD_SYSTEM* ar_fmod() {
   const FMOD_RESULT r = FMOD_System_Create(&s);
   if (r != FMOD_OK) {
     fFailed = true;
-    cerr << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
+    cerr << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ".\n";
     s = NULL;
     return s;
   }
@@ -78,7 +78,7 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     unsigned length, 
     int  inchannels, 
     int  /*outchannels*/){
-  unsigned int i;
+  unsigned i;
   for (i=0; i<length; i++){
     // average the right and left channel
     // incorrectly assumes inchannels is 2, outchannels is 1
@@ -163,8 +163,20 @@ arSoundClient::~arSoundClient(){
 
 // Configure the sound rendering object (i.e. the arSoundClient) using
 // the Syzygy parameter database
-bool arSoundClient::configure(arSZGClient* client){
-  setPath(client->getAttribute("SZG_SOUND", "path"));
+bool arSoundClient::configure(arSZGClient* cli){
+  setPath(cli->getAttribute("SZG_SOUND", "path"));
+
+  const string renderMode(cli->getAttribute("SZG_SOUND", "render",
+    "|fmod|fmod_plugins|vss|mmio|"));
+  ar_log_debug() << "mode SZG_SOUND/render '" << renderMode << "'.\n";
+  _setMode(
+    renderMode == "fmod_plugins" ?
+      mode_fmodplugins :
+    renderMode == "vss" ?
+      mode_vss :
+    renderMode == "mmio" ?
+      mode_mmio :
+      mode_fmod);
 
   // Hack in some sound system parameter values
   // (to be replaced eventually by database parameter values).
