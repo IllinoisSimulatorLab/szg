@@ -164,21 +164,21 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // with the framework (the transfer fields). Every frame,
   // the master dumps its values to the slaves.
   // Each field has a fixed size.
-  bool addTransferField( std::string fieldName, void* data,
-                         arDataType dataType, int size );
+  bool addTransferField( const string& fieldName, void* data,
+                         arDataType dataType, unsigned size );
 
   // 2: the framework manages the memory blocks, so they can resize.
   // Add an internally-allocated transfer field.
   // Resize them on the master, and the slaves automatically follow.
-  bool addInternalTransferField( std::string fieldName,
+  bool addInternalTransferField( const string& fieldName,
                                  arDataType dataType,
-                                 int size );
-  bool setInternalTransferFieldSize( std::string fieldName,
+                                 unsigned size );
+  bool setInternalTransferFieldSize( const string& fieldName,
                                      arDataType dataType,
-                                     int newSize );
+                                     unsigned newSize );
   // Get a pointer to an externally- or internally-stored
   // transfer field.  Internally stored fields are resizable.
-  void* getTransferField( std::string fieldName,
+  void* getTransferField( const string& fieldName,
                           arDataType dataType,
                           int& size );
 
@@ -394,6 +394,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // Draw-related utility functions.
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
+
+ private:
+  bool _addTransferField( const string&, void*, const arDataType, const int, arTransferFieldData&);
 };
 
 #endif
