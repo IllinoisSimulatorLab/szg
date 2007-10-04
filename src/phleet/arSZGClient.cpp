@@ -304,9 +304,9 @@ bool arSZGClient::_sendResponse(stringstream& s,
 
   // Append a standard success or failure message.
   if (ok)
-    ar_log_remark() << _exeName << " " << sz << "ed.\n";
+    ar_log_remark() << sz << "ed.\n";
   else
-    ar_log_error()  << _exeName << " " << sz << " failed.\n";
+    ar_log_error()  << sz << " failed.\n";
 
   // Do not send the response if:
   //  - The message trade failed in init(), likely because the launcher timed out;
@@ -2512,7 +2512,7 @@ bool arSZGClient::_dialUpFallThrough() {
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)) {
     // Connect to the specified szgserver.
-    ar_log_warning() << _exeName << ": dialUpFallThrough() finds no szgserver at "
+    ar_log_warning() << _exeName << " dialUpFallThrough(): no szgserver at "
                      << _IPaddress << ":" << _port << ".\n"
                      << "\t(First dlogin;  dhunt finds szgservers.)\n";
       // todo: don't advise dlogin or dhunt if this app IS one of those two!
@@ -2663,8 +2663,7 @@ bool arSZGClient::_parsePair(const string& thePair,
 
   const unsigned length = thePair.length() - 1;
   if (i == length) {
-    ar_log_warning() << _exeName <<
-      ": nothing after '=' in context pair '" << thePair << "'.\n";
+    ar_log_warning() << "nothing after '=' in context pair '" << thePair << "'.\n";
     return false;
   }
 
@@ -2684,7 +2683,7 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
       continue;
 
     if (i+1 >= argc) {
-      ar_log_warning() << _exeName << " expected something after -szg flag.\n";
+      ar_log_warning() << "expected something after -szg flag.\n";
       return false;
     }
 
@@ -2748,7 +2747,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
 
   if (pair1Type == "mode") {
     if (pair1.size() != 2) {
-      ar_log_warning() << _exeName << ": no channel in parseContextPair()'s mode data.\n";
+      ar_log_warning() << "no channel in parseContextPair()'s mode data.\n";
       return false;
     }
     const string modeChannel(pair1[1]);
@@ -2758,7 +2757,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
     else if (modeChannel == "graphics") {
       _graphicsMode = pair2;
     } else {
-      ar_log_warning() << _exeName << ": parseContextPair() got invalid mode channel.\n";
+      ar_log_warning() << "parseContextPair() got invalid mode channel.\n";
       return false;
     }
     return true;
@@ -2768,7 +2767,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
     // Return true iff the networks value is valid,
     // and set _networks and _addresses appropriately.
     if (pair1.size() != 2) {
-      ar_log_warning() << _exeName << ": no channel in parseContextPair()'s networks data.\n";
+      ar_log_warning() << "no channel in parseContextPair()'s networks data.\n";
       return false;
     }
     return _checkAndSetNetworks(pair1[1], pair2);
@@ -2782,7 +2781,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
   if (pair1Type == "server") {
     arSlashString serverLocation(pair2);
     if (serverLocation.size() != 2) {
-      ar_log_warning() << _exeName << " expected ipaddress/port after 'server'.\n";
+      ar_log_warning() << "expected ipaddress/port after 'server'.\n";
       return false;
     }
     _IPaddress = serverLocation[0];
@@ -2800,7 +2799,8 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
   if (pair1Type == "log") {
     const int temp = ar_stringToLogLevel(pair2);
     if (!ar_log().setLogLevel(temp)) {
-      ar_log_critical() << _exeName << " bad log level '" << pair2 << "', expected one of: SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
+      ar_log_critical() << "bad log level '" << pair2 <<
+        "', expected one of: SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
       return false;
     }
 
@@ -2808,8 +2808,8 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
     return true;
   }
 
-  ar_log_error() << _exeName << ": bad type in context pair '"
-		 << pair1Type << "', expected one of: virtual, mode, networks, parameter_file, server, user, log.\n";
+  ar_log_error() << "bad type in context pair '" << pair1Type <<
+    "', expected one of: virtual, mode, networks, parameter_file, server, user, log.\n";
   return false;
 }
 
@@ -2819,8 +2819,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
       && channel != "sound") {
-    ar_log_error() << _exeName << ": _checkAndSetNetworks() got unknown channel '"
-                   << channel << "'.\n";
+    ar_log_error() << "_checkAndSetNetworks() got unknown channel '" << channel << "'.\n";
     return false;
   }
 
@@ -2835,7 +2834,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 	match = true;
     }
     if (!match) {
-      ar_log_error() << _exeName << ": virtual computer's network '"
+      ar_log_error() << "virtual computer's network '"
                      << networks[i] << "' is undefined in szg.conf.\n";
       return false;
     }
@@ -2871,7 +2870,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
     _inputAddresses = newAddresses;
     return true;
   }
-  ar_log_error() << _exeName << " ignoring unknown channel '" << channel <<
+  ar_log_error() << "ignoring unknown channel '" << channel <<
     "', expected one of: default, graphics, sound, input.\n";
   return false;
 }
@@ -2951,15 +2950,15 @@ string arSZGClient::_changeToValidValue(const string& groupName,
   if (validValues != "") {
     // String format is "|foo|bar|zip|baz|bletch|".
     if (validValues[0] != '|' || validValues[validValues.length()-1] != '|') {
-      ar_log_warning() << _exeName <<
-        ": getAttribute ignoring malformed validValues '" << validValues << "'.\n";
+      ar_log_warning() << "getAttribute ignoring malformed validValues '" <<
+        validValues << "'.\n";
       return value;
     }
     if (validValues.find('|'+value+'|') == string::npos) {
       const int end = validValues.find('|', 1);
       const string valueNew(validValues.substr(1, end-1));
       if (value != "NULL") {
-	ar_log_warning() << _exeName << " expected " <<
+	ar_log_warning() << "expected " <<
 	  groupName+'/'+parameterName << " to be one of " << validValues <<
 	  ", not '" << value << "'.  Defaulting to " << valueNew << ".\n";
       }
@@ -3045,7 +3044,7 @@ void arSZGClient::_dataThread() {
       // Don't complain if the destructor has already been invoked.
       // Disconnect?
       _keepRunning = false;
-      ar_log_error() << _exeName << ": no szgserver.\n";
+      ar_log_error() << "no szgserver.\n";
       break;
     }
 
@@ -3059,7 +3058,7 @@ void arSZGClient::_dataThread() {
       _dataParser->parseIntoInternal(_receiveBuffer, size);
     }
     else if (ar_rawDataGetID(_receiveBuffer) == _l.AR_KILL) {
-      ar_log_error() << _exeName << ": szgserver forcibly disconnected.\n";
+      ar_log_error() << "szgserver forcibly disconnected.\n";
       break;
     }
     else {
@@ -3094,7 +3093,7 @@ void arSZGClient::_sendDiscoveryPacket(const string& name,
 bool arSZGClient::discoverSZGServer(const string& name,
                                     const string& broadcast) {
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()) {
-    ar_log_error() << _exeName << ": failed to launch discovery threads.\n";
+    ar_log_error() << "failed to launch discovery threads.\n";
     return false;
   }
 
