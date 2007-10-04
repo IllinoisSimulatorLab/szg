@@ -5,9 +5,14 @@
 
 #include "arPrecompiled.h"
 #include "ar5DTGloveDriver.h"
+
+#ifdef Enable5DT
 #include "fglove.h"
+#endif
 
 DriverFactory(ar5DTGloveDriver, "arInputSource")
+
+#ifdef Enable5DT
 
 static fdGlove *__pGlove    = NULL;
 
@@ -55,7 +60,6 @@ string __getGloveHandedNess(void) {
 }
 
 
-#ifdef Enable5DT
 void ar_5dtGloveDriverEventTask(void* gloveDriver){
   ar5DTGloveDriver* g = (ar5DTGloveDriver*) gloveDriver;
 
