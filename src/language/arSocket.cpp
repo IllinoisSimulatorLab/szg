@@ -204,7 +204,7 @@ typedef int socklen_t;
 	if (err != 0) {
 	  errno = err; // hack
 LError:
-	  perror("ar_socket connection worked only partially");
+	  perror("arSocket connection worked only partially");
 	  ok = -1;
 	}
       }
@@ -213,15 +213,16 @@ LError:
 
   fcntl(_socketFD, F_SETFL, fOriginal);
 #endif
-  if (ok) {
-    ar_log_debug() << "Connection succeeded.\n";
-  } else {
-    ar_log_debug() << "Connection failed.\n";
+
+  if (ok < 0) {
 #ifdef AR_USE_WIN_32
-    int errCode = WSAGetLastError();
-    ar_log_debug() << "\tWinsock error code = " << errCode << ar_endl;
+    ar_log_debug() << "arSocket connection failed, winsock error " <<
+      WSAGetLastError() << ".\n";
+#else
+    ar_log_debug() << "arSocket connection failed.\n";
 #endif
   }
+
   return ok;
 }
 
@@ -247,8 +248,8 @@ int arSocket::ar_bind(const char* IPaddress, int port){
   const int err = bind(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
   if (err < 0)
     {
-    ar_log_warning() << "arSocket error: bind to " <<
-      (IPaddress == NULL ? "(localhost)" : IPaddress) << ":" << port << " failed: ";
+    ar_log_warning() << "arSocket bind failed to " <<
+      (IPaddress == NULL ? "(localhost)" : IPaddress) << ":" << port << ": ";
     perror("");
     }
   return err;
