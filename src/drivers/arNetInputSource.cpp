@@ -21,7 +21,7 @@ void arNetInputSource::_dataTask(){
       _setDeviceElements(sig);
       _sigOK = _reconfig();
       if (!_sigOK)
-        ar_log_warning() << "arNetInputSource failed to configure source.\n";
+        ar_log_warning() << "netinput failed to configure source.\n";
     }
 
     // Relay the data to the input sink
@@ -32,7 +32,7 @@ void arNetInputSource::_dataTask(){
   _setDeviceElements(0,0,0);
   _sigOK = _reconfig();
   if (!_sigOK)
-    ar_log_warning() << getLabel() << " failed to deconfigure source.\n";
+    ar_log_warning() << "failed to deconfigure source.\n";
 }
 
 void ar_netInputSourceConnectionTask(void* p){
@@ -48,20 +48,19 @@ void arNetInputSource::_connectionTask() {
 
   arSleepBackoff a(50, 3000, 1.5);
   while (true){
-    ar_log_debug() << getLabel() << " discovering service '" << 
-      serviceName << "' on network '" << networks << "'.\n";
+    string svc = "service '" + serviceName +  "' on network '" + networks + "'.\n";
+    ar_log_debug() << "discovering " << svc;
     // Ask szgserver for IP:port of service "SZG_INPUT0".
     // If the service doesn't exist, this call blocks until said server starts.
     const arPhleetAddress netAddress = _szgClient->discoverService(serviceName, networks, true);
     if (!netAddress.valid){
       if (netAddress.address == "standalone") {
         // arSZGClient::discoverService hardcodes "standalone"
-        ar_log_error() << getLabel() << ": no szgserver.\n";
+        ar_log_error() << "netinput: no szgserver.\n";
         _closeConnection();
         break;
       }
-      ar_log_warning() << getLabel() << ": no service '"
-        << serviceName << "' on network '" << networks << "'.\n";
+      ar_log_warning() << "no " << svc;
       // Throttle, since service won't reappear that quickly,
       // and szgserver itself may be stopping.
       a.sleep();
@@ -72,23 +71,18 @@ void arNetInputSource::_connectionTask() {
     // This service has exactly one port.
     const int port = netAddress.portIDs[0];
     const string& IP = netAddress.address;
-    ar_log_debug() << getLabel() << " connecting to " <<
-      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+    svc = serviceName +  ", slot " + ar_intToString(_slot) + ", " + IP + ":" +
+          ar_intToString(port) + ".\n";
+    ar_log_debug() << "connecting to " << svc;
     if (!_dataClient.dialUpFallThrough(IP, port)){
-      ar_log_warning() << getLabel() << " reconnecting to " <<
-	serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+      ar_log_warning() << "reconnecting to " << svc;
       continue;
     }
 
-    ar_log_remark() << getLabel() << " connected to "
-      << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+    ar_log_remark() << "connected to " << svc;
     _connected = true;
-
     _dataTask();
-
-    ar_log_remark() << getLabel() << " disconnected from "
-      << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
-
+    ar_log_remark() << "disconnected from " << svc;
     _closeConnection();
   }
 }
@@ -113,11 +107,11 @@ arNetInputSource::arNetInputSource() :
 // @param slot the slot in question
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
-    ar_log_warning() << getLabel() << " ignoring negative slot.\n";
+    ar_log_warning() << "ignoring negative slot.\n";
     return false;
   }
   _slot = slot;
-  ar_log_debug() << getLabel() << " using slot " << _slot << ".\n";
+  ar_log_debug() << "using slot " << _slot << ".\n";
   return true;
 }
 
@@ -125,18 +119,18 @@ bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
 
   _szgClient = &SZGClient;
-  ar_log_remark() << getLabel() << " inited.\n";
+  ar_log_remark() << " netinput inited.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
   if (!_szgClient){
-    ar_log_warning() << getLabel() << " ignoring start before init.\n";
+    ar_log_warning() << "netinput ignoring start before init.\n";
     return false;
   }
 
   arThread dummy(ar_netInputSourceConnectionTask, this);
-  ar_log_remark() << getLabel() << " started.\n";
+  ar_log_remark() << "netinput started.\n";
   return true;
 }
 
