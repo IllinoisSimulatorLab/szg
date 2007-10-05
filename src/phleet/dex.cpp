@@ -79,12 +79,12 @@ int main(int argc, char** argv){
     msecTimeoutRemote = int(t*1000);
 
   // parse and remove the command-line options
-  bool fVerbose = true;
+  int iVerbose = 1;
 
   for (i=0; i<argc; i++){
 
     if (!strcmp(argv[i],"-q")){
-      fVerbose = false;
+      iVerbose = 0;
       // remove the arg from the list
       for (j=i; j<argc-1; j++)
         argv[j] = argv[j+1];
@@ -92,7 +92,7 @@ int main(int argc, char** argv){
     }
 
     if (!strcmp(argv[i],"-v")){
-      fVerbose = true;
+      iVerbose = 2;
       // remove the arg from the list
       for (j=i; j<argc-1; j++)
         argv[j] = argv[j+1];
@@ -108,16 +108,15 @@ int main(int argc, char** argv){
         return 1;
       }
       if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
-        cerr << "dex error: the local timeout must be a number.\n";
+        cerr << "dex error: local timeout must be a number.\n";
         return 1;
       }
       if (t <= 0.){
-        cerr << "dex error: the local timeout must be a number of seconds > 0.\n";
+        cerr << "dex error: local timeout must be a number of seconds > 0.\n";
         return 1;
-      } else {
-        msecTimeoutLocal = int(t*1000);
-        cout << "dex remark: local timeout = " << msecTimeoutLocal << " milliseconds.\n";
       }
+      msecTimeoutLocal = int(t*1000);
+      cout << "dex remark: local timeout = " << msecTimeoutLocal << " milliseconds.\n";
       for (j=i; j<argc-2; j++)
         argv[j] = argv[j+2];
       argc -= 2;
@@ -130,16 +129,15 @@ int main(int argc, char** argv){
         return 1;
       }
       if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
-        cerr << "dex error: the timeout must be a number.\n";
+        cerr << "dex error: timeout must be a number.\n";
         return 1;
       }
       if (t <= 0.){
-        cerr << "dex error: the timeout must be a number of seconds > 0.\n";
+        cerr << "dex error: timeout must be a number of seconds > 0.\n";
         return 1;
-      } else {
-        msecTimeoutRemote = int(t*1000);
-        cout << "dex remark: remote timeout = " << msecTimeoutRemote << " milliseconds.\n";
       }
+      msecTimeoutRemote = int(t*1000);
+      cout << "dex remark: remote timeout = " << msecTimeoutRemote << " milliseconds.\n";
       for (j=i; j<argc-2; j++)
         argv[j] = argv[j+2];
       argc -= 2;
@@ -148,11 +146,11 @@ int main(int argc, char** argv){
   }
 
   if (argc <= 1) {
-    cerr << "usage: dex [-v] [-q] [-lt localtimeoutsec] [-t timeoutsec] exe_name\n"
-         << "       dex [-v] [-q] [-lt localtimeoutsec] [-t timeoutsec] hostname exe_name [args]\n"
+    cerr << "usage: dex [-vq] [-lt localtimeoutsec] [-t timeoutsec] exe\n"
+         << "       dex [-vq] [-lt localtimeoutsec] [-t timeoutsec] host exe [args]\n"
          << "  localtimeoutsec is how long dex waits for a reply.\n"
          << "  timeoutsec is how long szgd waits before aborting the exe's launch.\n";
-    // -v is verbose (default), -q is quiet.
+    // -v is verbose (include context), -q is quiet (exclude ar_log's).
     return 1;
     }
 
@@ -255,13 +253,42 @@ int main(int argc, char** argv){
   // We only get a message response with "match" from the one-element list "tags".
   list<int> tags;
   tags.push_back(match);
-  while (szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal) < 0) {
-    if (fVerbose)
-      cout << body << "\n"; // Newline separates successive bodies.
-  }
+  int r = -1;
+  for (;;) {
+    r = szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal);
 
-  // Final response.
-  if (fVerbose)
-    cout << body;
+    switch (iVerbose) {
+    default:
+      break;
+    case 1: {
+	// Print body's lines, but exclude context (prefixed with "  |").
+	vector< string > lines;
+	string line;
+	istringstream ist;
+	ist.str( body );
+	while (getline( ist, line, '\n' )) {
+	  lines.push_back( line );
+	}
+	vector< string >::const_iterator iter;
+	for (iter = lines.begin(); iter != lines.end(); ++iter) {
+	  if (iter->find( "  |", 0 ) != 0) {
+	    cout << *iter << endl;
+	  }
+	}
+      break;
+      }
+    case 2:
+      cout << body;
+      break;
+    }
+
+    if (r >= 0)
+      break;
+
+    if (iVerbose > 1) {
+      // Delimit successive bodies.
+      cout << "\n";
+    }
+  }
   return 0;
 }

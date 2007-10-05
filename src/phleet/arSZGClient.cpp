@@ -2844,15 +2844,15 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 }
 
 string arSZGClient::launchinfo(const string& u, const string& c) const {
-  // Pretty indentation.
-  return "  user=" + u +
-       "\n  computer=" + _computerName +
-       "\n  context=\n    " + ar_replaceAll(c, ";", "\n    ") + "\n";
+  // Pretty indentation.  Prefix "  |" lets dex filter it out.
+  return "  |user=" + u +
+       "\n  |computer=" + _computerName +
+       "\n  |context=\n  |  " + ar_replaceAll(c, ";", "\n  |  ") + "\n";
 }
 
 // Header of messages returned to dex from a launched exe.
 string arSZGClient::_generateLaunchInfoHeader() {
-  return "  exe=" + _exeName + "\n" + launchinfo(_userName, createContext());
+  return "  |exe=" + _exeName + "\n" + launchinfo(_userName, createContext());
 }
 
 // When standalone, use a locally parsed config file.
