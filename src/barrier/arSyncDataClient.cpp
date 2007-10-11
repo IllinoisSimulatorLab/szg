@@ -42,30 +42,27 @@ void arSyncDataClient::_connectionTask(){
     if (_exitProgram)
       break;
 
-    // we can now go on about our business
+    const string IPport =
+      result.address + ":" + ar_intToString(result.portIDs[0]) + ".\n";
     if (!result.valid){
-      ar_log_error() << getLabel() << " error: no valid address on server discovery.\n";
+      ar_log_warning() << "no valid address on server discovery.\n";
       continue;
     }
     if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      ar_log_error() << getLabel() << " error: failed to connect to brokered "
-	             << result.address << ":" << result.portIDs[0] << ".\n";
+      ar_log_warning() << "failed to connect to brokered " << IPport;
       continue;
     }
-    if (_connectionCallback){
-      _connectionCallback(_bondedObject, _dataClient.getDictionary());
-    }
-    else {
-      ar_log_error() << getLabel() << " error: undefined connection callback for "
-	             << result.address << ":" << result.portIDs[0] << ".\n";
+    if (!_connectionCallback){
+      ar_log_warning() << "no connection callback for " << IPport;
       _connectionThreadRunning = false;
       return;
     }
+
+    _connectionCallback(_bondedObject, _dataClient.getDictionary());
     // Bond the data channel to this sync channel.
     _barrierClient.setBondedSocketID(_dataClient.getSocketIDRemote());
     _stateClientConnected = true;
-    ar_log_remark() << getLabel() << " connected to "
-	            << result.address << ":" << result.portIDs[0] << ".\n";
+    ar_log_remark() << "connected to " << IPport;
 
     // ugly polling! make sure we cannot block here if stop() was called.
     while (_stateClientConnected && !_exitProgram)
@@ -91,7 +88,7 @@ void arSyncDataClient::_connectionTask(){
       }
       _nullHandshakeState = 0;
     }
-    ar_log_remark() << getLabel() << " disconnected.\n";
+    ar_log_remark() << "disconnected.\n";
   }
   _connectionThreadRunning = false;
 }
@@ -135,7 +132,7 @@ void arSyncDataClient::_readTask(){
     if (ok && _firstConsumption){
       // if in sync read mode, request another buffer right away for double-buffering
       if (syncClient() && !_barrierClient.sync()){
-	ar_log_warning() << getLabel() << ": _readTask()'s barrier client failed to sync.\n";
+	ar_log_warning() << "_readTask()'s barrier client failed to sync.\n";
       }
       _firstConsumption = false;
     }
@@ -256,8 +253,7 @@ void arSyncDataClient::setBondedObject(void* bondedObject){
 
 bool arSyncDataClient::setMode(int mode){
   if (mode != AR_SYNC_CLIENT && mode != AR_NOSYNC_CLIENT){
-    ar_log_error() << getLabel() << " error: ignoring unrecognized mode "
-                   << mode << ".\n";
+    ar_log_warning() << "ignoring unrecognized mode " << mode << ".\n";
     return false;
   } 
   _mode = mode;
@@ -304,27 +300,25 @@ void arSyncDataClient::setNetworks(string networks){
 
 bool arSyncDataClient::init(arSZGClient& client){
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: can't init() when locally connected.\n";
+    ar_log_warning() << "ignoring init() while locally connected.\n";
     return false;
   }
 
   _client = &client;
-  _serviceNameBarrier =
-    client.createComplexServiceName(_serviceName+"_BARRIER");
+  _serviceNameBarrier = client.createComplexServiceName(_serviceName+"_BARRIER");
   _serviceName = client.createComplexServiceName(_serviceName);
-  ar_log_remark() << getLabel() << " initialized with service name "
-                  << _serviceName << ".\n";
+  ar_log_remark() << "initialized with service name " << _serviceName << ".\n";
   return true;
 }
 
 bool arSyncDataClient::start(){
   if (_syncServer){
-    ar_log_error() << getLabel() << " can't start() when locally connected.\n";
+    ar_log_warning() << "ignoring start() while locally connected.\n";
     return false;
   }
 
   if (!_client){
-    ar_log_error() << getLabel() << " can't start() before init().\n";
+    ar_log_warning() << "ignoring start() before init().\n";
     return false;
   }
 
@@ -332,7 +326,7 @@ bool arSyncDataClient::start(){
   _barrierClient.setServiceName(_serviceNameBarrier);
   _barrierClient.setNetworks(_networks);
   if (!_barrierClient.init(*_client) || !_barrierClient.start()){
-    ar_log_error() << getLabel() << " failed to start barrier client.\n";
+    ar_log_warning() << "failed to start barrier client.\n";
     return false;
   }
   
@@ -340,22 +334,22 @@ bool arSyncDataClient::start(){
   _dataClient.smallPacketOptimize(true);
 
   if (!_connectionThread.beginThread(ar_syncDataClientConnectionTask, this)) {
-    ar_log_error() << getLabel() << " failed to start connection thread.\n";
+    ar_log_warning() << "failed to start connection thread.\n";
     return false;
   }
 
   if (!_readThread.beginThread(ar_syncDataClientReadTask, this)) {
-    ar_log_error() << getLabel() << " failed to start read thread.\n";
+    ar_log_warning() << "failed to start read thread.\n";
     return false;
   }
 
-  ar_log_remark() << getLabel() << " arSyncDataClient started.\n";
+  ar_log_remark() << "started.\n";
   return true;
 }
 
 void arSyncDataClient::stop(){
   if (_syncServer){
-    ar_log_warning() << getLabel() << " ignoring stop() when locally connected.\n";
+    ar_log_warning() << "ignoring stop() while locally connected.\n";
     return;
   }
 
@@ -440,7 +434,7 @@ void arSyncDataClient::consume(){
         _disconnectCallback(_bondedObject);
       }
       else {
-        ar_log_error() << "arSyncDataClient: no disconnection callback.\n";
+        ar_log_warning() << "no disconnection callback.\n";
       }
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
@@ -522,7 +516,7 @@ void arSyncDataClient::consume(){
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
         if (!_barrierClient.sync()) {
-	  ar_log_warning() << getLabel() << ": consume()'s barrier client failed to sync.\n";
+	  ar_log_warning() << "consume()'s barrier client failed to sync.\n";
 	}
       }
       if (_exitProgram)
@@ -549,10 +543,9 @@ void arSyncDataClient::consume(){
 
   const float drawTime = ar_difftime(time4, time3);
   const float procTime = ar_difftime(time3, time2);
-  const float temp = ar_difftime(ar_time(), time1);
-  const float usecFilter =
-    temp>100000 ? .5 : temp>50000 ? .08 : temp>25000 ? .04 : .02;
-  _update(_frameTime, temp, usecFilter);
+  const float t = ar_difftime(ar_time(), time1);
+  const float usecFilter = t>100000 ? .5 : t>50000 ? .08 : t>25000 ? .04 : .02;
+  _update(_frameTime, t, usecFilter);
   _update(_serverSendSize, _barrierClient.getServerSendSize(), usecFilter);
   _update(_recvTime, _oldRecvTime, usecFilter);
   _update(_recvSize, _oldRecvSize, usecFilter);

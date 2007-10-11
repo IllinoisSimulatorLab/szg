@@ -155,16 +155,14 @@ LAbort:
     const int sendID = szgClient.receiveMessage(&messageType, &messageBody);
     if (!sendID) {
       // Shutdown "forced."
-      // Copypaste from below.
-      inputNode.stop();
 LDie:
-      ar_log_debug() << "DeviceServer shutdown.\n";
+      inputNode.stop();
+      ar_log_debug() << "shutdown.\n";
       return 0;
     }
 
     if (messageType=="quit") {
-      ar_log_debug() << "DeviceServer shutting down...\n";
-      inputNode.stop();
+      ar_log_debug() << "shutting down...\n";
       goto LDie;
     }
 
@@ -179,21 +177,16 @@ LDie:
       fileSink.stop();
     }
     else if (messageType=="log") {
-      if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "DeviceServer set log level to " << messageBody << ar_endl;
-      } else {
-        ar_log_error() << "DeviceServer ignoring unrecognized loglevel '"
-                         << messageBody << "'.\n";
-      }
+      (void)ar_setLogLevel( messageBody );
     } else {
       arInputSource* driver = driverFactory.findInputSource( messageType );
       if (driver) {
-        ar_log_remark() << "DeviceServer handling message " << messageType 
-	                      << "/" << messageBody << ".\n";
+        ar_log_remark() << "handling message " <<
+	  messageType << "/" << messageBody << ".\n";
         driver->handleMessage( messageType, messageBody );
       } else {
-        ar_log_error() << "DeviceServer ignoring unrecognized messageType '"
-                         << messageType << "'.\n";
+        ar_log_warning() << "ignoring unrecognized messageType '" <<
+	  messageType << "'.\n";
       }
     }
   }
