@@ -388,9 +388,7 @@ bool arJoystickDriver::stop(){
 
 #ifdef AR_USE_MINGW
 void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
-	static char *error;
-	static char  errbuf[1024];
-	errbuf[0] = 0;
+	string error;
 	switch (errCode) {
 		case MMSYSERR_NODRIVER:
 			error = "Joystick driver not present";
@@ -410,10 +408,8 @@ void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
       break;
 		default:
       ar_log_error() << funcName << ": Unknown Multimedia system error: 0x" << errCode << ar_endl;
-      break;
+      return;
 	}
-	if (!errbuf[0]) {
-    ar_log_error() << funcName << ": " << errCode << ar_endl;
-	}
+  ar_log_error() << funcName << ": " << error << ar_endl;
 }
 #endif
