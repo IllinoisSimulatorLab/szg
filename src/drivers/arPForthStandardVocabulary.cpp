@@ -22,9 +22,9 @@ class Equals : public arPForthAction {
 bool Equals::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val2 = pf->stackPop();  
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1==val2);
+  const float num2 = pf->stackPop();  
+  const float num1 = pf->stackPop();
+  pf->stackPush((float)num1==num2);
   return true;
 }  
 
@@ -35,9 +35,9 @@ class LessThan : public arPForthAction {
 bool LessThan::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val2 = pf->stackPop();  
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1<val2);
+  const float num2 = pf->stackPop();  
+  const float num1 = pf->stackPop();
+  pf->stackPush((float)num1<num2);
   return true;
 }  
 
@@ -48,9 +48,9 @@ class GreaterThan : public arPForthAction {
 bool GreaterThan::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val2 = pf->stackPop();  
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1>val2);
+  const float num2 = pf->stackPop();  
+  const float num1 = pf->stackPop();
+  pf->stackPush((float)num1>num2);
   return true;
 }  
 
@@ -61,9 +61,9 @@ class LessEquals : public arPForthAction {
 bool LessEquals::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val2 = pf->stackPop();  
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1<=val2);
+  const float num2 = pf->stackPop();  
+  const float num1 = pf->stackPop();
+  pf->stackPush((float)num1<=num2);
   return true;
 }  
 
@@ -74,9 +74,9 @@ class GreaterEquals : public arPForthAction {
 bool GreaterEquals::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val2 = pf->stackPop();  
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1>=val2);
+  const float num2 = pf->stackPop();  
+  const float num1 = pf->stackPop();
+  pf->stackPush((float)num1>=num2);
   return true;
 }  
 
@@ -87,9 +87,9 @@ class StringEquals : public arPForthAction {
 bool StringEquals::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address1 = (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  pf->stackPush((float)(pf->getString( address1 )==pf->getString( address2 )));
+  const long a1 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  pf->stackPush((float)(pf->getString( a1 )==pf->getString( a2 )));
   return true;
 }  
 
@@ -101,8 +101,8 @@ class Not : public arPForthAction {
 bool Not::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float val1 = pf->stackPop();
-  pf->stackPush((float)val1<1.0);
+  const float num = pf->stackPop();
+  pf->stackPush((float)num<1.0);
   return true;
 }  
 
@@ -113,9 +113,9 @@ class Fetch : public arPForthAction {
 bool Fetch::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->testFailAddress( address, 1 );
-  pf->stackPush( pf->getDataValue( address ) );
+  const long a = (long)pf->stackPop();
+  pf->testFailAddress( a, 1 );
+  pf->stackPush( pf->getDataValue( a ) );
   return true;
 }
 
@@ -126,9 +126,9 @@ class Store : public arPForthAction {
 bool Store::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  const float temp = pf->stackPop();
-  pf->putDataValue( address, temp );
+  const long a = (long)pf->stackPop();
+  const float num = pf->stackPop();
+  pf->putDataValue( a, num );
   return true;
 }
 
@@ -139,9 +139,9 @@ class Duplicate : public arPForthAction {
 bool Duplicate::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const float temp = pf->stackPop();
-  pf->stackPush( temp );
-  pf->stackPush( temp );
+  const float num = pf->stackPop();
+  pf->stackPush( num );
+  pf->stackPush( num );
   return true;
 }
 
@@ -152,13 +152,13 @@ class MatStore : public arPForthAction {
 bool MatStore::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->testFailAddress( address, 16 );
-  arMatrix4 tempMat;
-  float* matPtr = tempMat.v+15;
+  const long a = (long)pf->stackPop();
+  pf->testFailAddress( a, 16 );
+  arMatrix4 M;
+  float* matPtr = M.v+15;
   for (int i=0; i<16; i++)
     *matPtr-- = pf->stackPop();
-  pf->putDataMatrix( address, tempMat );
+  pf->putDataMatrix( a, M );
   return true;
 }
 
@@ -169,13 +169,13 @@ class VecStore : public arPForthAction {
 bool VecStore::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->testFailAddress( address, 3 );
-  arVector3 temp;
-  float* ptr = temp.v+2;
+  const long a = (long)pf->stackPop();
+  pf->testFailAddress( a, 3 );
+  arVector3 V;
+  float* ptr = V.v+2;
   for (int i=0; i<3; i++)
     *ptr-- = pf->stackPop();
-  pf->putDataArray( address, temp.v, 3 );
+  pf->putDataVector3( a, V );
   return true;
 }
 
@@ -186,8 +186,8 @@ class MatTranspose : public arPForthAction {
 bool MatTranspose::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->putDataMatrix( address, pf->getDataMatrix( address ).transpose() );
+  const long a = (long)pf->stackPop();
+  pf->putDataMatrix( a, pf->getDataMatrix( a ).transpose() );
   return true;
 }
 
@@ -198,13 +198,13 @@ class MatStoreTranspose : public arPForthAction {
 bool MatStoreTranspose::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->testFailAddress( address, 16 );
-  arMatrix4 tempMat;
-  float* matPtr = tempMat.v+15;
+  const long a = (long)pf->stackPop();
+  pf->testFailAddress( a, 16 );
+  arMatrix4 M;
+  float* matPtr = M.v+15;
   for (int i=0; i<16; i++)
     *matPtr-- = pf->stackPop();
-  pf->putDataMatrix( address, tempMat.transpose() );
+  pf->putDataMatrix( a, M.transpose() );
   return true;
 }
 
@@ -215,9 +215,9 @@ class MatCopy : public arPForthAction {
 bool MatCopy::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  pf->putDataMatrix( address2, pf->getDataMatrix( address1 ) );
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataMatrix( a2, pf->getDataMatrix( a1 ) );
   return true;
 }
 
@@ -228,11 +228,9 @@ class VecCopy : public arPForthAction {
 bool VecCopy::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  arVector3 temp;
-  pf->getDataArray( address1, temp.v, 3 );
-  pf->putDataArray( address2, temp.v, 3 );
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataVector3( a2, pf->getDataVector3( a1 ) );
   return true;
 }
 
@@ -243,11 +241,10 @@ class MatMultiply : public arPForthAction {
 bool MatMultiply::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  pf->putDataMatrix( address3,
-    pf->getDataMatrix( address1 ) * pf->getDataMatrix( address2 ) );
+  const long a3 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataMatrix( a3, pf->getDataMatrix( a1 ) * pf->getDataMatrix( a2 ) );
   return true;
 }
 
@@ -258,13 +255,10 @@ class MatVecMultiply : public arPForthAction {
 bool MatVecMultiply::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  arVector3 V;
-  pf->getDataArray( address2, V.v, 3 );
-  arVector3 result( pf->getDataMatrix(address1) * V );
-  pf->putDataArray( address3, result.v, 3 );
+  const long a3 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataVector3( a3, pf->getDataMatrix(a1) * pf->getDataVector3(a2) );
   return true;
 }
 
@@ -322,14 +316,10 @@ class AddVectors : public arPForthAction {
 bool AddVectors::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  arVector3 V1, V2;
-  pf->getDataArray( address1, V1.v, 3 );
-  pf->getDataArray( address2, V2.v, 3 );
-  const arVector3 V3( V1+V2 );
-  pf->putDataArray( address3, V3.v, 3 );
+  const long a3 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataVector3( a3, pf->getDataVector3( a1 ) + pf->getDataVector3( a2 ) );
   return true;
 }
 
@@ -340,14 +330,10 @@ class SubVectors : public arPForthAction {
 bool SubVectors::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  arVector3 V1, V2;
-  pf->getDataArray( address1, V1.v, 3 );
-  pf->getDataArray( address2, V2.v, 3 );
-  const arVector3 V3( V1-V2 );
-  pf->putDataArray( address3, V3.v, 3 );
+  const long a3 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataVector3( a3, pf->getDataVector3( a1 ) - pf->getDataVector3( a2 ) );
   return true;
 }
 
@@ -358,13 +344,10 @@ class VecScalarMultiply : public arPForthAction {
 bool VecScalarMultiply::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
   const float scaleFactor = pf->stackPop();
-  arVector3 V1;
-  pf->getDataArray( address1, V1.v, 3 );
-  const arVector3 V2( scaleFactor*V1 );
-  pf->putDataArray( address2, V2.v, 3 );
+  pf->putDataVector3( a2, scaleFactor * pf->getDataVector3( a1 ) );
   return true;
 }
 
@@ -375,11 +358,8 @@ class VecMagnitude : public arPForthAction {
 bool VecMagnitude::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  arVector3 V;
-  pf->getDataArray( address, V.v, 3 );
-  float mag = V.magnitude();
-  pf->stackPush( mag );
+  const long a = (long)pf->stackPop();
+  pf->stackPush( pf->getDataVector3( a ).magnitude() );
   return true;
 }
 
@@ -390,15 +370,14 @@ class VecNormalize : public arPForthAction {
 bool VecNormalize::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  arVector3 V;
-  pf->getDataArray( inAddress, V.v, 3 );
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  arVector3 V(pf->getDataVector3( aIn ));
   float mag = V.magnitude();
   if (mag > 1.e-6) {
     V /= mag;
   }
-  pf->putDataArray( outAddress, V.v, 3 );
+  pf->putDataVector3( aOut, V );
   return true;
 }
 
@@ -409,12 +388,12 @@ class AddArrays : public arPForthAction {
 bool AddArrays::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long num =      (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a3  = (long)pf->stackPop();
+  const long num = (long)pf->stackPop();
+  const long a2  = (long)pf->stackPop();
+  const long a1  = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
-    pf->putDataValue( address3+i, pf->getDataValue( address1+i )+pf->getDataValue( address2+i ) );
+    pf->putDataValue( a3+i, pf->getDataValue( a1+i ) + pf->getDataValue( a2+i ) );
   }
   return true;
 }
@@ -426,12 +405,12 @@ class SubArrays : public arPForthAction {
 bool SubArrays::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long num =      (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a3  = (long)pf->stackPop();
+  const long num = (long)pf->stackPop();
+  const long a2  = (long)pf->stackPop();
+  const long a1  = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
-    pf->putDataValue( address3+i, pf->getDataValue( address1+i )-pf->getDataValue( address2+i ) );
+    pf->putDataValue( a3+i, pf->getDataValue( a1+i ) - pf->getDataValue( a2+i ) );
   }
   return true;
 }
@@ -443,12 +422,12 @@ class MultArrays : public arPForthAction {
 bool MultArrays::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long num =      (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a3  = (long)pf->stackPop();
+  const long num = (long)pf->stackPop();
+  const long a2  = (long)pf->stackPop();
+  const long a1  = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
-    pf->putDataValue( address3+i, pf->getDataValue( address1+i )*pf->getDataValue( address2+i ) );
+    pf->putDataValue( a3+i, pf->getDataValue( a1+i ) * pf->getDataValue( a2+i ) );
   }
   return true;
 }
@@ -460,12 +439,12 @@ class DivArrays : public arPForthAction {
 bool DivArrays::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address3 = (long)pf->stackPop();
-  const long num =      (long)pf->stackPop();
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a3  = (long)pf->stackPop();
+  const long num = (long)pf->stackPop();
+  const long a2  = (long)pf->stackPop();
+  const long a1  = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
-    pf->putDataValue( address3+i, pf->getDataValue( address1+i )/pf->getDataValue( address2+i ) );
+    pf->putDataValue( a3+i, pf->getDataValue( a1+i ) / pf->getDataValue( a2+i ) );
   }
   return true;
 }
@@ -540,9 +519,9 @@ bool ArrayPrint::run( arPForth* pf ) {
   if (!pf)
     return false;
   const long num = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
+  const long a = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
-    cout << pf->getDataValue( address1+i ) << " ";
+    cout << pf->getDataValue( a+i ) << " ";
   }
   cout << endl;
   return true;
@@ -555,9 +534,9 @@ class VectorPrint : public arPForthAction {
 bool VectorPrint::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address1 = (long)pf->stackPop();
+  const long a = (long)pf->stackPop();
   for (long i=0; i<3; ++i) {
-    cout << pf->getDataValue( address1+i ) << " ";
+    cout << pf->getDataValue( a+i ) << " ";
   }
   cout << endl;
   return true;
@@ -570,8 +549,8 @@ class MatrixPrint : public arPForthAction {
 bool MatrixPrint::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  cout << pf->getDataMatrix( address ) << endl;
+  const long a = (long)pf->stackPop();
+  cout << pf->getDataMatrix( a ) << endl;
   return true;
 }
 
@@ -593,8 +572,8 @@ class StringPrint : public arPForthAction {
 bool StringPrint::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  cout << pf->getString( address ) << endl;
+  const long a = (long)pf->stackPop();
+  cout << pf->getString( a ) << endl;
   return true;
 }
 
@@ -605,8 +584,8 @@ class IdentityMatrix : public arPForthAction {
 bool IdentityMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
-  pf->putDataMatrix( address, ar_identityMatrix() );
+  const long a = (long)pf->stackPop();
+  pf->putDataMatrix( a, ar_identityMatrix() );
   return true;
 }
   
@@ -617,11 +596,11 @@ class TranslationMatrix : public arPForthAction {
 bool TranslationMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
+  const long a = (long)pf->stackPop();
   const float z = pf->stackPop();
   const float y = pf->stackPop();
   const float x = pf->stackPop();
-  pf->putDataMatrix( address, ar_translationMatrix( x, y, z ) );
+  pf->putDataMatrix( a, ar_translationMatrix( x, y, z ) );
   return true;
 }
   
@@ -632,11 +611,9 @@ class TranslationMatrixFromVector : public arPForthAction {
 bool TranslationMatrixFromVector::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address2 = (long)pf->stackPop();
-  const long address1 = (long)pf->stackPop();
-  arVector3 V;
-  pf->getDataArray( address1, V.v, 3 );
-  pf->putDataMatrix( address2, ar_translationMatrix( V ) );
+  const long a2 = (long)pf->stackPop();
+  const long a1 = (long)pf->stackPop();
+  pf->putDataMatrix( a2, ar_translationMatrix( pf->getDataVector3( a1 ) ) );
   return true;
 }
   
@@ -647,12 +624,12 @@ class RotationMatrix : public arPForthAction {
 bool RotationMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long address = (long)pf->stackPop();
+  const long a = (long)pf->stackPop();
   const long axis = (long)pf->stackPop();
   const float angle = ar_convertToRad( pf->stackPop() );
   if ((axis < 0)||(axis > 2))
     throw arPForthException("illegal rotation axis, must be 0(x)-2(z).");
-  pf->putDataMatrix( address, ar_rotationMatrix( 'x'+axis, angle ) );
+  pf->putDataMatrix( a, ar_rotationMatrix( 'x'+axis, angle ) );
   return true;
 }
 
@@ -666,8 +643,7 @@ bool RotationMatrixV::run( arPForth* pf ) {
   const long aOut = (long)pf->stackPop();
   const long aAxis = (long)pf->stackPop();
   const float angle = ar_convertToRad( pf->stackPop() );
-  arVector3 V;
-  pf->getDataArray( aAxis, V.v, 3 );
+  const arVector3 V(pf->getDataVector3( aAxis ));
   pf->putDataMatrix( aOut, ar_rotationMatrix( V, angle ) );
   return true;
 }
@@ -680,14 +656,11 @@ bool RotationMatrixVecToVec::run( arPForth* pf ) {
   if (!pf)
     return false;
   const long aOut = (long)pf->stackPop();
-  const long aToVec = (long)pf->stackPop();
-  const long aFromVec = (long)pf->stackPop();
-  arVector3 vFrom;
-  arVector3 vTo;
-  pf->getDataArray( aFromVec, vFrom.v, 3 );
-  pf->getDataArray( aToVec, vTo.v, 3 );
-  arMatrix4 R = ar_rotateVectorToVector( vFrom, vTo );
-  pf->putDataMatrix( aOut, R );
+  const long aTo = (long)pf->stackPop();
+  const long aFrom = (long)pf->stackPop();
+  const arVector3 VFrom(pf->getDataVector3( aFrom ));
+  const arVector3 VTo(pf->getDataVector3( aTo ));
+  pf->putDataMatrix( aOut, ar_rotateVectorToVector( VFrom, VTo ) );
   return true;
 }
 
@@ -714,7 +687,7 @@ bool ExtractTranslationVector::run( arPForth* pf ) {
   const long aOut = (long)pf->stackPop();
   const long aIn = (long)pf->stackPop();
   const arVector3 result( ar_extractTranslation( pf->getDataMatrix( aIn ) ) );
-  pf->putDataArray( aOut, result.v, 3 );
+  pf->putDataVector3( aOut, result );
   return true;
 }
   
@@ -741,7 +714,7 @@ bool ExtractEulerAngles::run( arPForth* pf ) {
   const long aOut = (long)pf->stackPop();
   const long aIn = (long)pf->stackPop();
   arVector3 rot(ar_extractEulerAngles( pf->getDataMatrix( aIn ) ) );
-  pf->putDataArray( aOut, ar_convertToDeg(rot).v, 3 );
+  pf->putDataVector3( aOut, ar_convertToDeg(rot) );
   return true;
 }
   
@@ -754,15 +727,12 @@ bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
     return false;
   const long aOut = (long)pf->stackPop();
   const long aIn = (long)pf->stackPop();
-  arVector3 V;
-  pf->getDataArray( aIn, V.v, 3 );
+  const arVector3 V(pf->getDataVector3( aIn ));
   ar_convertToRad(V);
-  const arMatrix4 result(
+  pf->putDataMatrix( aOut,
     ar_rotationMatrix('y',  V.v[0]) *
     ar_rotationMatrix('x',  V.v[1]) *
-    ar_rotationMatrix('z',  V.v[2])
-    );
-  pf->putDataMatrix( aOut, result );
+    ar_rotationMatrix('z',  V.v[2]));
   return true;
 }
 

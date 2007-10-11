@@ -141,7 +141,7 @@ class SZG_CALL arPForthProgram {
 
 class SZG_CALL arPForth {
   public:
-    // "user" interface
+    // "User" interface.
     arPForth();
     virtual ~arPForth();
     bool compileProgram( const string sourceCode );
@@ -150,9 +150,8 @@ class SZG_CALL arPForth {
     arPForthProgram* getProgram();
     vector<string> getVocabulary();
     
-    // "programmer" interface (for adding new words).
-    // be prepared to catch arPForthExceptions if you call some
-    // of these other than as part of a normal compile or run.
+    // "Programmer" interface (for adding new words).
+    // Catch arPForthExceptions if you call these outside a normal compile or run.
     bool compileWord( const string theWord,
                       vector<arPForthSpace::arPForthAction*>& actionList );
     bool runSubprogram( vector<arPForthSpace::arPForthAction*>& actionList );
@@ -180,6 +179,10 @@ class SZG_CALL arPForth {
     void putDataMatrix( long address, const arMatrix4& val );
     void getDataArray( long address, float* const ptr, unsigned long size );
     void putDataArray( long address, const float* const ptr, unsigned long size );
+    arVector3 getDataVector3( long address )
+      { arVector3 V; getDataArray(address, V.v, 3); return V; }
+    void putDataVector3( long address, const arVector3& val )
+      { putDataArray(address, val.v, 3); }
     string getString( long address );
     void putString( long address, const string& val );
     bool operator!() const { return !_valid; }
