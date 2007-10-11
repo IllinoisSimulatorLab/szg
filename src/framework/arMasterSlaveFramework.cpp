@@ -504,7 +504,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     goto fail;
   }
   
-  // init the objects, either master or slave
+  // Init the objects.
   if( getMaster() ) {
     if( !_initMasterObjects() ) {
       goto fail;
@@ -1867,11 +1867,10 @@ LAbort:
     return false;
   }
 
-  ar_log_remark() << "initialized master's objects.\n";
+  ar_log_debug() << "master's objects inited.\n";
   return true;
 }
 
-// Starts the objects needed by the master.
 bool arMasterSlaveFramework::_startMasterObjects() {
   // Start the master's service.
   _stateServer = new arDataServer( 1000 );
@@ -1936,7 +1935,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
     
   _soundActive = true;
 
-  ar_log_remark() << "started master's objects.\n";
+  ar_log_debug() << "master's objects started.\n";
   return true;
 }
 
@@ -1969,14 +1968,12 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
 
   _barrierClient->setNetworks( _networks );
   _barrierClient->setServiceName( _serviceNameBarrier );
-
   if( !_barrierClient->init( _SZGClient ) ) {
     ar_log_warning() << "slave failed to start barrier client.\n";
     return false;
   }
 
   _inputState = new arInputState();
-
   if( !_inputState ) {
     ar_log_warning() << "slave failed to construct input state.\n";
     return false;
@@ -1986,19 +1983,17 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   // doing the following
   _stateClient.smallPacketOptimize( true );
 
-  ar_log_remark() << "initialized slaves' objects.\n";
+  ar_log_debug() << "slaves' objects inited.\n";
   return true;
 }
 
-// Starts the objects needed by the slaves
 bool arMasterSlaveFramework::_startSlaveObjects() {
-  // the barrier client is the only object to start
   if( !_barrierClient->start() ) {
     ar_log_warning() << "barrier client failed to start.\n";
     return false;
   }
 
-  ar_log_remark() << "started slaves' objects.\n";
+  ar_log_debug() << "slaves' objects started.\n";
   return true;
 }
 
@@ -2008,9 +2003,8 @@ bool arMasterSlaveFramework::_startObjects( void ){
   // Create the language.
   _transferLanguage.add( &_transferTemplate );
   _transferData = new arStructuredData( &_transferTemplate );
-
   if( !_transferData ) {
-    ar_log_warning() << "master failed to construct _transferData.\n";
+    ar_log_warning() << "failed to construct _transferData.\n";
     return false;
   }
 
@@ -2039,7 +2033,6 @@ bool arMasterSlaveFramework::_startObjects( void ){
 
   _graphicsDatabase.loadAlphabet( _textPath );
   _graphicsDatabase.setTexturePath( _texturePath );
-
   return true;
 }
 
@@ -2051,7 +2044,7 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   _useWindowing = useWindowing;
   if ( !_parametersLoaded ) {
     if ( _SZGClient ) {
-      ar_log_warning() << "can't start() before init().\n";
+      ar_log_warning() << "ignoring start before init.\n";
       if( !_SZGClient.sendInitResponse( false ) ) {
         cerr << _label << ": maybe szgserver died.\n";
       }
@@ -2076,10 +2069,8 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   // Do user-defined init.  After _startDetermineMaster(),
   // so _startCallback knows if this instance is master or slave.
   if( !onStart( _SZGClient ) ) {
-    if( _SZGClient ) {
-      return _startrespond( "arMasterSlaveFramework start callback failed." );
-    }
-    return false;
+    return _SZGClient &&
+      _startrespond( "arMasterSlaveFramework start callback failed." );
   }
 
   if (!createWindows(_useWindowing)){
@@ -2092,14 +2083,11 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
     _graphicsDatabase.setTexturePath( _texturePath );
     _startStandaloneObjects();
   }
-  else {
-    if( !_startObjects() ) {
-      return _startrespond( "Objects failed to start." );
-    }
+  else if( !_startObjects() ) {
+    return _startrespond( "Objects failed to start." );
   }
 
   _startCalled = true;
-
   if(_SZGClient) {
     if (!_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
@@ -2221,7 +2209,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
   string messageType, messageBody;
 
   while( !stopping() ) {
-    int messageID = _SZGClient.receiveMessage( &messageType, &messageBody );
+    const int messageID = _SZGClient.receiveMessage( &messageType, &messageBody );
     if (!messageID) {
       // szgserver has *hard-shutdown* _SZGClient.
 
@@ -2238,8 +2226,8 @@ void arMasterSlaveFramework::_messageTask( void ) {
 
     if( messageType == "quit" ) {
       _SZGClient.messageResponse( messageID, getLabel()+" quitting" );
-      // Bring everything to an orderly halt, lest crashing windows apps
-      // bring up a dialog box that must be clicked.
+      // Halt everything gracefully, lest crashing windows apps
+      // show a dialog box that must be clicked.
 
       // Block until the display thread finishes.
       stop( true );
@@ -2250,21 +2238,16 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if (messageType=="log") {
       if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "set log level to " << messageBody << ar_endl;
-        _SZGClient.messageResponse( messageID, getLabel()+" set log level to "+messageBody );
+        _SZGClient.messageResponse( messageID, getLabel()+" set loglevel to "+messageBody );
       } else {
-        ar_log_error() << "ignoring unrecognized loglevel '" << messageBody << "'.\n";
         _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
             " ignoring unrecognized loglevel '"+messageBody+"'." );
       }
     }
     else if ( messageType== "performance" ) {
       _showPerformance = messageBody == "on";
-      if (_showPerformance) {
-        _SZGClient.messageResponse( messageID, getLabel()+" showing performance graph" );
-      } else {
-        _SZGClient.messageResponse( messageID, getLabel()+" hiding performance graph" );
-      }
+      _SZGClient.messageResponse( messageID,
+        getLabel() + (_showPerformance ? " show" : " hid") + "ing performance graph" );
     }
     else if ( messageType == "reload" ) {
       // Hack: set _requestReload here, to make the
@@ -2298,7 +2281,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         if( messageBody != "NULL" ) {
           int tmp[ 4 ];
           ar_parseIntString( messageBody, tmp, 4 );
-	        // todo: error checking
+	  // todo: error checking
           _screenshotStartX = tmp[ 0 ];
       	  _screenshotStartY = tmp[ 1 ];
       	  _screenshotWidth  = tmp[ 2 ];

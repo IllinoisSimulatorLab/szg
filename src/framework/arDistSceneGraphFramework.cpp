@@ -17,16 +17,15 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   arDistSceneGraphFramework* f = (arDistSceneGraphFramework*) framework;
   string messageType, messageBody;
   while (true) {
-    int messageID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
+    const int messageID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
     if (!messageID){
-      // We have been disconnected from the szgserver.
-      // Quit. We cannot kill the stuff elsewhere since we are
-      // disconnected (i.e. we cannot manipulate the system anymore)
-      
+      // szgserver disconnected, so the phleet is unreachable.  Quit.
+LDie:
       // Stop the framework (only master/slave framework uses the arg.)
       f->stop(true);
       exit(0);
     }
+
     if (messageType=="quit"){
       f->_SZGClient.messageResponse( messageID, f->getLabel()+" quitting" );
       if (f->_vircompExecution){
@@ -34,17 +33,20 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
         // controlling a virtual computer's execution
         f->_launcher.killApp();
       }
-      // stop the framework
-      f->stop(true);
-      exit(0);
+      goto LDie;
     }
-    else if (messageType=="log") {
-      if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << f->getLabel() << " set log level to " << messageBody << ar_endl;
-      } else {
-        ar_log_error() << f->getLabel() << " ignoring unrecognized loglevel '"
-                         << messageBody << "'.\n";
+
+    if (messageType== "user"){
+      if (f->_userMessageCallback){
+        f->_userMessageCallback(*f, messageID, messageBody);
+      } else if (f->_oldUserMessageCallback) {
+        f->_oldUserMessageCallback(*f, messageBody);
       }
+      continue;
+    }
+
+    if (messageType=="log") {
+      (void)ar_setLogLevel( messageBody );
     }
     else if (messageType=="demo") {
       f->setFixedHeadMode(messageBody=="on");
@@ -52,36 +54,24 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
     else if (messageType=="reload"){
       f->_loadParameters();
     }
-    else if (messageType== "user"){
-      if (f->_userMessageCallback){
-        f->_userMessageCallback(*f, messageID, messageBody);
-      } else if (f->_oldUserMessageCallback) {
-        f->_oldUserMessageCallback(*f, messageBody);
-      }
-      // Don't return.
-      continue;
-    }
     else if (messageType=="print"){
       f->getDatabase()->printStructure();
     }
-    
+
     if (f->_peerName != "NULL" || f->_externalPeer){
-      // Handle messages to the peer.
-      // Strip the initial leading peer name.
+      // Message to the peer.
       (void) ar_graphicsPeerStripName(messageBody);
       arGraphicsPeer* messagePeer = f->_peerName == "NULL" ?
         f->_externalPeer : &f->_graphicsPeer;
-      const string responseBody(ar_graphicsPeerHandleMessage(
-        messagePeer, messageType, messageBody));
-      if (!f->_SZGClient.messageResponse(messageID, responseBody)){
-        cerr << "szg-rp error: message response failed.\n";
+      if (!f->_SZGClient.messageResponse(messageID,
+          ar_graphicsPeerHandleMessage(messagePeer, messageType, messageBody))) {
+        ar_log_warning() << "szg-rp got no message response.\n";
       }
     }
   }
 }
 
-// In standalone mode, we might actually like to run our own window,
-// instead of having an szgrender do it.
+// Standalone, run our own window instead of using szgrender.
 void ar_distSceneGraphFrameworkWindowTask(void* f){
   arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
   // If there is only one window, then the window manager will be in single-threaded 
