@@ -179,6 +179,18 @@ bool VecStore::run( arPForth* pf ) {
   return true;
 }
 
+class MatTranspose : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool MatTranspose::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long address = (long)pf->stackPop();
+  pf->putDataMatrix( address, pf->getDataMatrix( address ).transpose() );
+  return true;
+}
+
 class MatStoreTranspose : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -234,7 +246,8 @@ bool MatMultiply::run( arPForth* pf ) {
   const long address3 = (long)pf->stackPop();
   const long address2 = (long)pf->stackPop();
   const long address1 = (long)pf->stackPop();
-  pf->putDataMatrix( address3, pf->getDataMatrix( address1 )*pf->getDataMatrix( address2 ) );
+  pf->putDataMatrix( address3,
+    pf->getDataMatrix( address1 ) * pf->getDataMatrix( address2 ) );
   return true;
 }
 
@@ -1104,6 +1117,7 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ) &&
     pf->addSimpleActionWord( "matrixStore", new MatStore() ) &&
     pf->addSimpleActionWord( "matrixStoreTranspose", new MatStoreTranspose() ) &&
+    pf->addSimpleActionWord( "matrixTranspose", new MatTranspose() ) &&
     pf->addSimpleActionWord( "matrixCopy", new MatCopy() ) &&
     pf->addSimpleActionWord( "matrixMultiply", new MatMultiply() ) &&
     pf->addSimpleActionWord( "concatMatrices", new ConcatMatrices() ) &&
