@@ -713,8 +713,8 @@ bool ExtractEulerAngles::run( arPForth* pf ) {
     return false;
   const long aOut = (long)pf->stackPop();
   const long aIn = (long)pf->stackPop();
-  arVector3 rot(ar_extractEulerAngles( pf->getDataMatrix( aIn ) ) );
-  pf->putDataVector3( aOut, ar_convertToDeg(rot) );
+  pf->putDataVector3( aOut,
+    ar_convertToDeg( ar_extractEulerAngles( pf->getDataMatrix( aIn ))));
   return true;
 }
   
@@ -727,12 +727,11 @@ bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
     return false;
   const long aOut = (long)pf->stackPop();
   const long aIn = (long)pf->stackPop();
-  const arVector3 V(pf->getDataVector3( aIn ));
-  ar_convertToRad(V);
+  const arVector3 V(ar_convertToRad(pf->getDataVector3( aIn )));
   pf->putDataMatrix( aOut,
-    ar_rotationMatrix('y',  V.v[0]) *
-    ar_rotationMatrix('x',  V.v[1]) *
-    ar_rotationMatrix('z',  V.v[2]));
+    ar_rotationMatrix('y', V.v[0]) *
+    ar_rotationMatrix('x', V.v[1]) *
+    ar_rotationMatrix('z', V.v[2]));
   return true;
 }
 
