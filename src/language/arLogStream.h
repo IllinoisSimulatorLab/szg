@@ -14,6 +14,7 @@
 
 using namespace std;
 
+// SILENT:   Absolutely nothing.
 // CRITICAL: Essential state and unrecoverable errors (app terminates).
 // ERROR:    Errors that affect appearance.
 // WARNING:  Things that will likely surprise the user.
@@ -32,7 +33,7 @@ enum{
 
 SZG_CALL int ar_stringToLogLevel(const string&);
 SZG_CALL string ar_logLevelToString(int);
-SZG_CALL bool ar_setLogLevel( const string& level );
+SZG_CALL bool ar_setLogLevel( const string& level, const bool fVerbose = true );
 
 class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_log_critical();

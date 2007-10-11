@@ -2002,20 +2002,21 @@ void SZGdisconnectFunction(void*, arSocket* s) {
 }
 
 int main(int argc, char** argv) {
-  ar_setLogLevel("REMARK");
-  ar_log().setTimestamp(true);
+  (void)ar_setLogLevel("REMARK", false);
   ar_log().setHeader("szgserver");
 
   if (argc < 3) {
-    ar_log_error() << "usage: szgserver name port [mask.1] ... [mask.n]\n" <<
-      "\texample: szgserver yoyodyne 8888\n";
+    ar_log_error() <<
+      "usage: szgserver name port [mask.1 ...]\n\texample: szgserver yoyodyne 8888\n";
     return 1;
   }
+
+  ar_log().setTimestamp(true);
   if (argc > 3) {
     for (int i = 3; i < argc; i++) {
       string arg( argv[i] );
       if (arg == "-debug") {
-        ar_setLogLevel("DEBUG");
+        (void)ar_setLogLevel("DEBUG", false);
       } else {
         serverAcceptMask.push_back(string(argv[i]));
       }
@@ -2030,8 +2031,7 @@ int main(int argc, char** argv) {
   serverName = string(argv[1]);
   // todo: errorcheck serverPort, so it's outside the block of ports for connection brokering
   serverPort = atoi(argv[2]);
-  // Determine serverIP, so we can tell client where to connect
-  // while we bind to INADDR_ANY.
+  // Determine serverIP, to tell client where to connect while we bind to INADDR_ANY.
   arPhleetConfig config;
   if (!config.read()) {
     ar_log_error() << "syntax error in config file. (Try dconfig.)\n";

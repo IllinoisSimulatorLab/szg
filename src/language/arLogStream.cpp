@@ -9,10 +9,17 @@
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
-bool ar_setLogLevel( const string& level ) {
-  return ar_log().setLogLevel( ar_stringToLogLevel( level ) );
+bool ar_setLogLevel( const string& level, const bool fVerbose ) {
+  const bool ok = ar_log().setLogLevel( ar_stringToLogLevel( level ) );
+  if (fVerbose) {
+    if (ok) {
+      ar_log_critical() << "loglevel is " << level << ".\n";
+    } else {
+      ar_log_critical() << "ignoring unrecognized loglevel '" << level << "'.\n";
+    }
+  }
+  return ok;
 }
-
 
 int ar_stringToLogLevel(const string& logLevel){
   if (logLevel == "SILENT")

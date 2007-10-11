@@ -202,13 +202,12 @@ int main(int argc, char** argv){
         }
       }
     } else {
-      cerr << argv[0] << " error: no virtual computer '" << argv[1]
-           << "', and no szgd on host '" << argv[1] << "'.\n";
       const string s = szgClient.getVirtualComputers();
-      if (s.empty())
-        cout << "  (No virtual computers defined.  Did you run dbatch?)\n";
-      else
-        cout << "  (Known virtual computers are: " << s << ".)\n";
+      ar_log_error() << "no virtual computer '" << argv[1] <<
+        "', and no szgd on host '" << argv[1] << "'.\n" <<
+        (s.empty() ?
+	  "  (No virtual computers defined.  Did you run dbatch?)\n" :
+	  "  (Known virtual computers are: " + s + ".)\n" );
       return 1;
     }
   }
@@ -217,7 +216,7 @@ int main(int argc, char** argv){
   if (fVirtual) {
     const string trigger(szgClient.getTrigger(hostName));
     if (trigger == "NULL") {
-      cerr << argv[0] << " error: no trigger for virtual computer '" << hostName << "'.\n";
+      ar_log_error() << "no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
     msgContext = szgClient.createContext(hostName, "default", "trigger", "default", "NULL");
@@ -228,9 +227,9 @@ int main(int argc, char** argv){
   // either from the command line OR the trigger of the virtual computer.
   const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
-    cerr << argv[0] << " error: no szgd on host " << hostName << ".\n";
-    if (fVirtual){
-      cerr << "  (That host is the trigger of virtual computer '" << argv[1] << "')\n";
+    ar_log_error() << "no szgd on host " << hostName << ".\n";
+    if (fVirtual) {
+      ar_log_error() << "  (That host is the trigger of virtual computer '" << argv[1] << "')\n";
     }
     // Don't reinterpret or retry.  Just fail.
     return 1;
@@ -255,30 +254,28 @@ int main(int argc, char** argv){
   tags.push_back(match);
   int r = -1;
   for (;;) {
-    r = szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal);
+    r = szgClient.getMessageResponse(tags, body, match, msecTimeoutLocal);
 
     switch (iVerbose) {
     default:
       break;
     case 1: {
-	// Print body's lines, but exclude context (prefixed with "  |").
+	// Remove lines of context (prefixed with "  |") from body.
 	vector< string > lines;
 	string line;
 	istringstream ist;
 	ist.str( body );
-	while (getline( ist, line, '\n' )) {
+	body = "";
+	while (getline( ist, line, '\n' ))
 	  lines.push_back( line );
-	}
-	vector< string >::const_iterator iter;
-	for (iter = lines.begin(); iter != lines.end(); ++iter) {
-	  if (iter->find( "  |", 0 ) != 0) {
-	    cout << *iter << endl;
-	  }
-	}
-      break;
+	vector< string >::const_iterator i;
+	for (i = lines.begin(); i != lines.end(); ++i)
+	  if (i->find( "  |", 0 ) != 0)
+	    body += *i + "\n";
+	// fallthrough
       }
     case 2:
-      cout << body;
+      cout << body; // e.g., "cubevars launched.\n"
       break;
     }
 

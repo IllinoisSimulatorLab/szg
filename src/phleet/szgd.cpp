@@ -1069,11 +1069,7 @@ LGonnaRetry:
     }
 
     else if (messageType=="log") {
-      if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "set log level to " << messageBody << ar_endl;
-      } else {
-        ar_log_error() << "ignoring unrecognized loglevel '" << messageBody << "'.\n";
-      }
+      (void)ar_setLogLevel( messageBody );
     }
   }
   return 1;

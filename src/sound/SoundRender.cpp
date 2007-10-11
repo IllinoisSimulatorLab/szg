@@ -23,7 +23,7 @@ arSpeakerObject speakerObject;
 bool loadParameters(arSZGClient& cli){
   soundClient->configure(&cli);
   if (soundClient->getPath() == "NULL"){
-    ar_log_warning() << "SoundRender: undefined or invalid SZG_SOUND/path '"
+    ar_log_warning() << "undefined or invalid SZG_SOUND/path '"
                      << soundClient->getPath() << "'.\n";
   }
 
@@ -38,7 +38,7 @@ void messageTask(void* pClient){
   while (cli->running()) {
     const int sendID = cli->receiveMessage(&messageType,&messageBody);
     if (!sendID){
-      ar_log_debug() << "SoundRender shutdown.\n";
+      ar_log_debug() << "shutdown.\n";
       goto LQuit;
     }
     if (messageType=="quit"){
@@ -53,12 +53,7 @@ LQuit:
     }
 
     else if (messageType=="log") {
-      if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "SoundRender set log level to " << messageBody << ar_endl;
-      } else {
-        ar_log_error() << "SoundRender ignoring unrecognized loglevel '"
-                         << messageBody << "'.\n";
-      }
+      (void)ar_setLogLevel( messageBody );
     }
 
     else if (messageType=="szg_sound_stream_info"){
@@ -78,12 +73,11 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   // Only one SoundRender per host.
-  // copy-pasted (more or less) from szgd.cpp
+  // copypasted (more or less) from szgd.cpp
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
-    ar_log_error()
-      << "SoundRender error: another copy is already running (pid = " 
-      << ownerID << ").\n";
+    ar_log_error() << "another copy is already running (pid = " << ownerID << ").\n";
+LDie:
     if (!szgClient.sendInitResponse(false)){
       cerr << "SoundRender error: maybe szgserver died.\n";
     }
@@ -91,10 +85,7 @@ int main(int argc, char** argv){
   }
 
   if (!loadParameters(szgClient)){
-    if (!szgClient.sendInitResponse(false)){
-      cerr << "SoundRender error: maybe szgserver died.\n";
-    }
-    return 1;
+    goto LDie;
   }
 
   // init succeeded
@@ -105,7 +96,7 @@ int main(int argc, char** argv){
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
   if (!soundClient->init()) {
-    ar_log_warning() << "SoundRender silent.\n";
+    ar_log_warning() << "silent.\n";
     return 1;
   }
 
@@ -125,8 +116,7 @@ int main(int argc, char** argv){
   arThread dummy(messageTask, &szgClient);
   while (szgClient.running()) {
     soundClient->_cliSync.consume();
-    // Only the LAN throttles arSoundClient/ arSoundServer communication,
-    // allowing thousands of updates per second.  Throttle down to 50 FPS.
+    // Throttle fps to 50 from a few thousand (between arSoundClient/arSoundServer).
     ar_usleep(1000000/50);
   }
   szgClient.messageTaskStop();

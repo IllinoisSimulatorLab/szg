@@ -66,12 +66,7 @@ void messageTask(void* pClient){
     }
 
     else if (messageType=="log") {
-      if (ar_setLogLevel( messageBody )) {
-        ar_log_critical() << "szgrender set log level to " << messageBody << ar_endl;
-      } else {
-        ar_log_error() << "szgrender ignoring unrecognized loglevel '"
-                         << messageBody << "'.\n";
-      }
+      (void)ar_setLogLevel( messageBody );
     }
 
     else if (messageType=="screenshot"){
