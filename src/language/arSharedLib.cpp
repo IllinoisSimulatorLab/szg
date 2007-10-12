@@ -120,11 +120,9 @@ bool arSharedLib::createFactory(const string& sharedLibName,
                                 const string& path,
                                 const string& type,
                                 string& error) {
-  ostringstream msg;
   if (_fLoaded) {
-    msg << "arSharedLib: library already loaded.\n";
+    error = "arSharedLib: library already loaded.\n";
 LAbort:
-    error = msg.str();
     return false;
   }
 
@@ -135,8 +133,7 @@ LAbort:
 
   // Attempt to load the shared library.
   if (!arSharedLib::open(sharedLibName,execPath)) {
-    msg << "arSharedLib failed to load '"
-	<< sharedLibName << "' on path '" << execPath << "'.\n";
+    error = "arSharedLib failed to load '" + sharedLibName + "' on path '" + execPath + "'.\n";
     goto LAbort;
   }
   _fLoaded = true;
@@ -144,22 +141,20 @@ LAbort:
   // make sure that we have the right type.
   _objectType = (arSharedLibObjectType) arSharedLib::sym("baseType");
   if (!_objectType) {
-    msg << "arSharedLib: no baseType function in '" << sharedLibName << "'.\n";
+    error = "arSharedLib: no baseType function in '" + sharedLibName + "'.\n";
     goto LAbort;
   }
   char typeBuffer[256];
   _objectType(typeBuffer, 256);
   if (strcmp(typeBuffer, type.c_str())) {
-    msg << "arSharedLib: wrong type '" << typeBuffer << "' in '"
-	<< sharedLibName << "'.\n";
+    error = "arSharedLib: wrong type '" + string(typeBuffer) + "' in '" + sharedLibName + "'.\n";
     goto LAbort;
   }
 
-  // Get the factory function
   _factory = (arSharedLibFactory) arSharedLib::sym("factory");
   if (!_factory) {
     // Calls to createObject() will fail.
-    msg << "arSharedLib: no factory function in '" << sharedLibName << "'.\n";
+    error = "arSharedLib: no factory function in '" + sharedLibName + "'.\n";
     goto LAbort;
   }
   return true;
@@ -168,7 +163,7 @@ LAbort:
 // Once the internal factory has been successfully created, create an object.
 void* arSharedLib::createObject() {
   if (!_factory) {
-    // Factory wasn't created.
+    // createFactory() had failed.
     ar_log_warning() << "arSharedLib: unmapped factory.\n";
     return NULL;
   }

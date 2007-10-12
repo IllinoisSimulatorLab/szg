@@ -23,13 +23,7 @@ void arGraphicsPeerCullObject::insert(int ID, int state) {
   else{
     if (i->second != state) {
       i->second = state;
-      if (state) {
-	// Now on.
-	cullChangeOn.push_back(ID);
-      }
-      else{
-	cullChangeOff.push_back(ID);
-      }
+      (state ? cullChangeOn : cullChangeOff).push_back(ID);
     }
   }
 }
@@ -42,27 +36,23 @@ arGraphicsPeerConnection::arGraphicsPeerConnection() {
   // By default, send all updates.
   sendLevel = AR_TRANSIENT_NODE;
   remoteFrameTime = 0;
-  // Without doing this, the children of the root node will never 
-  // get automatically mapped to a feedback peer! Choose the most permissive
-  // send level. (because we send updates if the node level is <= the
-  // filter level)
+  // Let the children of the root node get automatically mapped
+  // to a feedback peer.  Choose the most permissive send level,
+  // because we send updates if node level <= filter level.
   outFilter.insert(map<int,int,less<int> >::value_type(0,AR_TRANSIENT_NODE));
 }
 
 string arGraphicsPeerConnection::print() { 
-  stringstream result;
-  result << "connection = " << remoteName << "/"
-         << connectionID << ":";
-  for (list<int>::iterator i = nodesLockedLocal.begin();
+  string s("connection = " + remoteName + "/" + ar_intToString(connectionID) + ":");
+  for (list<int>::const_iterator i = nodesLockedLocal.begin();
        i != nodesLockedLocal.end();
        i++) {
     if (i != nodesLockedLocal.begin()) {
-      result << "/";
+      s += "/";
     }
-    result << *i;
+    s += *i;
   }
-  result << "\n";
-  return result.str();
+  return s + "\n";
 }
 
 class arGraphicsPeerSerializeInfo{ 
@@ -88,7 +78,6 @@ void ar_graphicsPeerSerializeFunction(void* info) {
                              i->remoteSendLevel,
 			     i->localSendLevel);
   i->peer->_serializeDoneNotify(i->socket);
-  // It is our responsibility to delete this.
   delete i;
 }
 

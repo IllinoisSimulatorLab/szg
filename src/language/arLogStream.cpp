@@ -301,10 +301,7 @@ void arLogStream::_flush(const bool addNewline){
 
   if (_level <= _threshold) {
     // Accumulator, so there's only one << to _output.
-    ostringstream s;
-
-    // () forces ?: before <<.
-    s << (_header=="NULL" ? ar_getLogLabel() : _header);
+    string s(_header=="NULL" ? ar_getLogLabel() : _header);
 
     if (_fTimestamp) {
       string now(ar_currentTimeString());
@@ -340,14 +337,14 @@ void arLogStream::_flush(const bool addNewline){
 	now = now.substr(0,pos+1) + now.substr(pos+2);
 	}
 
-      s << " " << now;
+      s += " " + now;
     }
 LDone:
-    s << " " << ar_logLevelToString(_level) << ": " << _buffer.str();
+    s += " " + ar_logLevelToString(_level) + ": " + _buffer.str();
     if (addNewline) {
-      s << "\n";
+      s += "\n";
     }
-    *_output << s.str();
+    *_output << s;
   }
 
   static const string empty;

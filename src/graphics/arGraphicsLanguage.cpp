@@ -229,9 +229,7 @@ const char* arGraphicsLanguage::_stringFromID(const int id) const {
 }
 
 string arGraphicsLanguage::numstringFromID(const int id) const {
-  ostringstream s;
-  s << id << " (" << _stringFromID(id) << ")";
-  return s.str();
+  return ar_intToString(id) + " (" + _stringFromID(id) + ")";
 }
 
 bool arGraphicsLanguage::checkNodeID(const int idExpected,
@@ -240,8 +238,7 @@ bool arGraphicsLanguage::checkNodeID(const int idExpected,
     return true;
 
   ar_log_warning() << name << " expected " <<
-    numstringFromID(idExpected) << ", not " <<
-    numstringFromID(id) << ".\n";
+    numstringFromID(idExpected) << ", not " << numstringFromID(id) << ".\n";
 
   // Caller could pass in its getName() for an even more specific warning.
   return false;

@@ -209,17 +209,14 @@ string arDataPoint::_remoteConfigString(arSocket* fd){
 }
 
 string arDataPoint::_constructConfigString(const arStreamConfig& config){
-  stringstream s;
   // Manually build up the string to send out,
   // instead of relying on the arStructuredData infrastructure.
   // Note the MAGIC version number.
-  s << "<config> <keys> "
-    << "endian=" 
-    << (config.endian == AR_LITTLE_ENDIAN ? "little" : "big")
-    << " version=" << SZG_VERSION_NUMBER
-    << " ID=" << config.ID
-    << "</keys> </config>";
-  return s.str();
+  return "<config> <keys> endian=" +
+    string(config.endian == AR_LITTLE_ENDIAN ? "little" : "big") +
+    " version=" + ar_intToString(SZG_VERSION_NUMBER) +
+    " ID=" + ar_intToString(config.ID) +
+    "</keys> </config>";
 }
 
 map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
@@ -249,39 +246,35 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
 
 void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
   config.refused = false;
+  config.valid = false;
 
-  map<string,string,less<string> > table = _parseKeyValueBlock(text);
-  map<string,string,less<string> >::iterator iter;
-
-  iter = table.find("version");
+  const map<string,string,less<string> > table = _parseKeyValueBlock(text);
+  map<string,string,less<string> >::const_iterator iter = table.find("version");
   if (iter == table.end()){
     // No version key.
     config.version = -2;
-    config.valid = false;
     return;
   }
-  stringstream versionParser;
-  versionParser.str(iter->second);
-  versionParser >> config.version;
-  if (versionParser.fail()){
+
+  if (!ar_stringToIntValid(iter->second, config.version)) {
     // Unparseable version key.
     config.version = -3;
-    config.valid = false;
     return;
   }
+
   if (config.version != SZG_VERSION_NUMBER){
     // Version mismatch.
-    config.valid = false;
     return;
   }
-  // Next, extract the endian-ness of the remote connection.
+
+  // Extract the endian-ness of the remote connection.
   iter = table.find("endian");
   if (iter == table.end()){
     // No endian key.
     config.endian = AR_UNDEFINED_ENDIAN;
-    config.valid = false;
     return;
   }
+
   if (iter->second == "little"){
     config.endian = AR_LITTLE_ENDIAN;
   }
@@ -290,24 +283,19 @@ void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
   }
   else{
     config.endian = AR_GARBAGE_ENDIAN;
-    config.valid = false;
     return;
   }
 
   // Extract the ID of the remote connection.
   iter = table.find("ID");
   if (iter == table.end()){
-    // There is no ID tag.
-    config.valid = false;
+    // No ID tag.
     return;
   }
 
-  stringstream IDparser;
-  IDparser.str(iter->second);
-  IDparser >> config.ID;
-  if (IDparser.fail()){
-    config.valid = false;
+  if (!ar_stringToIntValid(iter->second, config.ID)) {
     return;
   }
+
   config.valid = true;
 }

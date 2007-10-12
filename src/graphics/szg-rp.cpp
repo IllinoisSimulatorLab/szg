@@ -122,151 +122,125 @@ string getTail(const string& text){
 // szg-rp program.
 
 string handleCreate(const string& messageBody){
-  stringstream result;
   PeerContainer::iterator i = peers.find(messageBody);
   if (i != peers.end()){
-    result << "szg-rp error: "
-	   << "tried to create over existing reality peer.\n";
+    return "szg-rp error: tried to create over existing reality peer.\n";
   }
-  else{
-    arGraphicsPeer* peer = createNewPeer(messageBody);
-    if (!peer){
-      result << "szg-rp error: failed to create peer.\n"
-	     << "  (another peer elsewhere on the network might have "
-	     << "this name)\n";
-    }
-    else{
-      PeerDescription temp;
-      temp.peer = peer;
-      peerLock.lock();
-	// Lock, since another thread draws and uses this iterator.
-	peers.insert(PeerContainer::value_type(messageBody, temp));
-      peerLock.unlock();
-      result << "szg-rp success: inserted peer " << messageBody << ".\n";
-    }
+
+  arGraphicsPeer* peer = createNewPeer(messageBody);
+  if (!peer){
+    return "szg-rp error: failed to create peer (name already used?).\n";
   }
-  return result.str();
+
+  PeerDescription temp;
+  temp.peer = peer;
+  peerLock.lock();
+    // Lock, since another thread draws and uses this iterator.
+    peers.insert(PeerContainer::value_type(messageBody, temp));
+  peerLock.unlock();
+  return "szg-rp success: inserted peer " + messageBody + ".\n";
 }
 
 string handleDelete(const string& messageBody){
-stringstream result;
   PeerContainer::iterator i = peers.find(messageBody);
   if (i == peers.end()){
-    result << "szg-rp error: cannot delete nonexistent peer.\n";
+    return "szg-rp error: cannot delete nonexistent peer.\n";
   }
-  else{
-    arGraphicsPeer* peer = i->second.peer;
-    peer->closeAllAndReset();
-    // Lock, since another thread draws and uses this iterator.
-    peerLock.lock();
-      peers.erase(i);
-    peerLock.unlock();
-    // delete peer; // Memory leak: delete may be unsafe.
-    result << "szg-rp success: deleted peer.\n";  
-  }
-  return result.str();
+
+  arGraphicsPeer* peer = i->second.peer;
+  peer->closeAllAndReset();
+  // Lock, since another thread draws and uses this iterator.
+  peerLock.lock();
+    peers.erase(i);
+  peerLock.unlock();
+  // delete peer; // Memory leak: delete may be unsafe.
+  return "szg-rp success: deleted peer.\n";  
 }
 
 string handleTranslation(const string& messageBody){
-  stringstream result;
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 4){
-    result << "szg-rp error: body format must be local peer followed by translation.\n";
-    return result.str();
+    return "szg-rp error: body format must be local peer followed by translation.\n";
   }
+
   PeerContainer::iterator i = peers.find(bodyList[0]);
   if (i == peers.end()){
-    result << "szg-rp error: no such named local peer.\n"
-	   << "  (" << bodyList[0] << ")\n";
-    return result.str();
+    return "szg-rp error: no local peer named '" + bodyList[0] + "'.\n";
   }
-  float trans[3];
-  ar_parseFloatString(getTail(bodyList), trans, 3);
-  result << "szg-rp success: translation = " << trans[0] << " "
-         << trans[1] << " " 
-         << trans[2] << "\n";
-  i->second.transform = ar_translationMatrix(trans[0], trans[1], trans[2]);
-  return result.str();
+
+  arVector3 trans;
+  ar_parseFloatString(getTail(bodyList), trans.v, 3);
+  i->second.transform = ar_translationMatrix(trans);
+  stringstream s;
+  s << "szg-rp success: translation = " << trans << "\n";
+  return s.str();
 }
 
 string handleLabelTranslate(const string& messageBody){
-  stringstream result;
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 4){
-    result << "szg-rp error: body format must be local peer followed by translation.\n";
-    return result.str();
+    return "szg-rp error: body format must be local peer followed by translation.\n";
   }
+
   PeerContainer::iterator i = peers.find(bodyList[0]);
   if (i == peers.end()){
-    result << "szg-rp error: no local peer named '" << bodyList[0] << "'\n";
-    return result.str();
+    return "szg-rp error: no local peer named '" + bodyList[0] + "'.\n";
   }
-  string tail = getTail(bodyList);
-  float trans[3];
-  ar_parseFloatString(tail, trans, 3);
-  result << "szg-rp success: label translation = " << trans[0] << " "
-         << trans[1] << " " 
-         << trans[2] << "\n";
-  i->second.labelTransform 
-    = ar_translationMatrix(trans[0], trans[1], trans[2]);
-  return result.str();
+
+  arVector3 trans;
+  ar_parseFloatString(getTail(bodyList), trans.v, 3);
+  i->second.labelTransform = ar_translationMatrix(trans);
+  stringstream s;
+  s << "szg-rp success: label translation = " << trans << "\n";
+  return s.str();
 }
 
 string handleCommentSet(const string& messageBody){
-  stringstream result;
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 2){
-    result << "szg-rp error: need peer/comment.\n";
-    return result.str();
+    return "szg-rp error: need peer/comment.\n";
   }
+
   PeerContainer::iterator i = peers.find(bodyList[0]);
   if (i == peers.end()){
-    result << "szg-rp error: failed to find specified local peer.\n"
-	   << "  (" << bodyList[0] << ")\n";
-    return result.str();
+    return "szg-rp error: no local peer named '" + bodyList[0] + "'.\n";
   }
+
   i->second.comment = bodyList[1];
-  result << "szg-rp success: comment set for peer " << bodyList[0] << "\n";
-  return result.str();
+  return "szg-rp success: comment set for peer " + bodyList[0] + "\n";
 }
 
 string handleCommentGet(const string& messageBody){
-  stringstream result;
   PeerContainer::iterator i = peers.find(messageBody);
   if (i == peers.end()){
-    result << "szg-rp error: failed to find specified local peer.\n"
-	   << "  (" << messageBody << ")\n";
-    return result.str();
+    return "szg-rp error: no local peer named '" + messageBody + "'.\n";
   }
-  result << "szg-rp success: " << i->second.comment << "\n";
-  return result.str();
+
+  return "szg-rp success: " + i->second.comment + "\n";
 }
 
 string handleList(){
-  stringstream result;
-  result << "szg-rp success: peer list follows:\n\n";
-  for (PeerContainer::iterator i = peers.begin(); i != peers.end(); i++){
-    result << "peer name = " << i->first << "\n"
-	   << "comment = " << i->second.comment << "\n"
-           << i->second.peer->printConnections() << "\n\n";  
+  string s("szg-rp success: peer list:\n");
+  for (PeerContainer::const_iterator i = peers.begin(); i != peers.end(); ++i){
+    s += "peer name = " + i->first +
+	 "\ncomment = " + i->second.comment + "\n" +
+         i->second.peer->printConnections() + "\n\n";  
   }
-  return result.str();
+  return s;
 }
 
 string handleLabel(const string& messageBody){
-  stringstream result;
   if (messageBody == "on"){
     drawLabels = true;
-    result << "szg-rp success: labels on.\n";
+    return "szg-rp success: labels on.\n";
   }
-  else if (messageBody == "off"){
+
+  if (messageBody == "off"){
     drawLabels = false;
-    result << "szg-rp success: labels off.\n";
+    return "szg-rp success: labels off.\n";
   }
-  else{
-    result << "szg-rp error: invalid body (must be on or off).\n";
-  }
-  return result.str();
+
+  return "szg-rp error: invalid body (must be on or off).\n";
 }
 
 string handleCamera(const string& messageBody){
@@ -279,23 +253,12 @@ string handleCamera(const string& messageBody){
   for (i=0; i<9; i++){
     globalCamera.lookat[i] = temp[i+6];
   }
-  stringstream result;
-  result << "szg-rp success: camera modified.\n";
-  return result.str();
+  return "szg-rp success: camera modified.\n";
 }
 
 string handleMotionCull(const string& messageBody){
-  stringstream result;
-  result << "szg-rp success: ";
-  if (messageBody == "on"){
-    useMotionCull = true;
-    result << "motion cull on.\n";
-  }
-  else{
-    useMotionCull = false;
-    result << "motion cull off.\n";
-  }
-  return result.str();
+  useMotionCull = messageBody == "on";
+  return "szg-rp success: motion cull " + string(useMotionCull ? "on" : "off") + ".\n";
 }
 
 void messageTask(void* pClient){
@@ -306,8 +269,8 @@ void messageTask(void* pClient){
   while (true) {
     const int messageID = cli->receiveMessage(&messageType,&messageBody);
     if (!messageID){
-      // This should only occur when the szgserver quits.
-      ar_log_error() << "szg-rp error: problem in receiving message.\n";
+      // szgserver has quit.
+      cerr << "szg-rp error: problem receiving message.\n";
       exit(0);
     }
     if (messageType == "quit"){
@@ -352,11 +315,10 @@ void messageTask(void* pClient){
       // By convention, the messageBody will be peer_name/stuff (though /stuff
       // is optional). The following call seperates out the peer name and
       // strips messageBody in place.
-      string peerName = ar_graphicsPeerStripName(messageBody);
-      PeerContainer::iterator i = peers.find(peerName);
+      const string peerName(ar_graphicsPeerStripName(messageBody));
+      const PeerContainer::iterator i = peers.find(peerName);
       if (i == peers.end()){
-        responseBody = string("szg-rp error: failed to find specified local ")
-                       + string("peer.\n  (") + peerName + string(")\n");
+        responseBody = "szg-rp error: no local peer '" + peerName + "'\n";
         peerLock.unlock();
       }
       else{

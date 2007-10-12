@@ -28,17 +28,15 @@ using namespace std;
 #include <iostream>
 
 string ar_getLastWin32ErrorString() {
-  DWORD errCode = GetLastError();
+  const DWORD errCode = GetLastError();
   LPTSTR s;
   if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
             FORMAT_MESSAGE_FROM_SYSTEM, NULL, errCode,
-            0, (LPTSTR)&s, 0, NULL) == 0) { /* failed */
-    ostringstream os;
-    os << "Failed to get win32 error message for error code "
-       << errCode;
-    return os.str();
+            0, (LPTSTR)&s, 0, NULL) == 0) {
+    return "no win32 error message for error code " + ar_intToString(errCode);
   }
-  string result(s);
+
+  const string result(s);
   LocalFree(s);
   return result;
 }
@@ -149,19 +147,18 @@ string ar_currentTimeString() {
   if (!t)
     return string("");
 
-  ostringstream s;
-  s << (t->tm_year)+1900 << ":" << t->tm_yday << ":"
-    << (t->tm_hour)*3600 + (t->tm_min)*60 + t->tm_sec;
-  char* timePtr = ctime( &timeVal );
-  if (!timePtr)
-    return s.str();
+  string s(ar_intToString(1900+t->tm_year) + ":" +
+      ar_intToString(t->tm_yday) + ":" + ar_intToString(3600*t->tm_hour) +
+      ar_intToString(60*t->tm_min) + ar_intToString(t->tm_sec));
+  char* pch = ctime( &timeVal );
+  if (!pch)
+    return s;
 
-  // strip trailing carriage return
-  const int n = strlen(timePtr);
-  if (timePtr[n-1] == '\n')
-    timePtr[n-1] = '\0';
-  s << "/" << timePtr;
-  return s.str();
+  // strip trailing \n
+  const int n = strlen(pch);
+  if (pch[n-1] == '\n')
+    pch[n-1] = '\0';
+  return s + "/" + pch;
 }
 
 arTimer::arTimer( double dur ) :
@@ -994,20 +991,15 @@ void ar_setenv(const string& variable, const string& value){
   putenv(buf);
 }
 
-void ar_setenv(const string& variableName, int variableValue){
-  // bug: overkill.  Just use sprintf.
-  stringstream theValue;
-  theValue << variableValue;
-  ar_setenv(variableName, theValue.str().c_str());
+void ar_setenv(const string& variableName, int val){
+  ar_setenv(variableName, ar_intToString(val));
 }
 
 string ar_getenv(const string& variable){
   char buf[1024]; // todo: fixed size buffer
   ar_stringToBuffer(variable, buf, sizeof(buf));
   const char* res = getenv(buf);
-  if (!res)
-    return string("NULL");
-  return string(res);
+  return string(res ? res : "NULL");
 }
 
 string ar_getUser(){
@@ -1023,14 +1015,14 @@ string ar_getUser(){
   // be an API function... this environment variable
   // scheme isn't guarenteed OK
   //***************************************************
-  const char* res = getenv("USER");
-  return string(res ? res : "NULL");
+  const char* s = getenv("USER");
+  return string(s ? s : "NULL");
 #endif
 }
 
-// If return value is false, 2nd & 3rd args are invalid.
+// Returns false if 2nd & 3rd args are invalid.
 // If item does not exist (2nd arg == false), 3rd is invalid
-// If item exists, 3rd arg indicates whether or not it is a regular file
+// If item exists, 3rd arg indicates if it is a regular file
 bool ar_fileExists( const string name, bool& exists, bool& isFile ) {
   if (!ar_fileItemExists( name, exists ))
     return false;
@@ -1039,9 +1031,9 @@ bool ar_fileExists( const string name, bool& exists, bool& isFile ) {
   return true;
 }
 
-// If return value is false, 2nd & 3rd args are invalid.
+// Returns false if 2nd & 3rd args are invalid.
 // If item does not exist (2nd arg == false), 3rd is invalid
-// If item exists, 3rd arg indicates whether or not it is a directory
+// If item exists, 3rd arg indicates if it is a directory
 bool ar_directoryExists( const string name, bool& exists, bool& isDirectory ) {
   if (!ar_fileItemExists( name, exists ))
     return false;
