@@ -987,7 +987,7 @@ int main(int argc, char** argv) {
   }
 
   ar_log().setTimestamp(true);
-  ar_log().setHeader("szgd");
+  ar_log().setHeader("szgd"); // No need to append getProcessID: only 1 szgd per host.
   const int argcOriginal = argc;
   // No argvOriginal, because argv isn't modified.
 
