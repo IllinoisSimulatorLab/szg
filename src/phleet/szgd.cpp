@@ -552,12 +552,9 @@ LDone:
   // Increment the "trading number" that makes this request unique.
   // Since many threads can execute this simultaneously, use a lock.
   // So every trading key is unique, increment tradingNum each time.
-  stringstream tradingNumStream;
-  tradingNumStream << ++tradingNum;
-  const string tradingStr(tradingNumStream.str());
-  const string tradingKey(SZGClient->getComputerName() + "/" 
-                          + tradingStr + "/"
-	                  + symbolicCommand);
+  const string tradingStr(ar_intToString(++tradingNum));
+  const string tradingKey(
+    SZGClient->getComputerName() + "/" + tradingStr + "/" + symbolicCommand);
   ar_log_debug() << "trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
 
