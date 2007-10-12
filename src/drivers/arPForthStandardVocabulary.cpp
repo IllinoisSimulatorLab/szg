@@ -9,7 +9,6 @@
 
 using std::vector;
 using std::string;
-using std::istringstream;
 
 namespace arPForthSpace {
 

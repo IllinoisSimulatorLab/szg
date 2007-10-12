@@ -79,9 +79,7 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
 
   float temp[4]; 
   for(int j = 0; j < _FOB_MAX_DEVICES; j++) {
-    stringstream ss;
-    ss << j;
-    const string sensorNum( "sensor" + ss.str() + "_rot" );
+    const string sensorNum( "sensor" + ar_intToString(j) + "_rot" );
     const string sensorRotValue(SZGClient.getAttribute("SZG_FOB",sensorNum));
     if (sensorRotValue != "NULL") {
       ar_parseFloatString(sensorRotValue, temp, 4);

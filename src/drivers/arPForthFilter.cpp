@@ -8,15 +8,15 @@
 #include "arFileTextStream.h"
 
 arFilteringPForth::arFilteringPForth(){
-  _valid = _valid && ar_PForthAddEventVocabulary(this)
-                  && ar_PForthAddDatabaseVocabulary(this);
+  _valid &= ar_PForthAddEventVocabulary(this) && ar_PForthAddDatabaseVocabulary(this);
 }
 
 arFilteringPForth::~arFilteringPForth(){
 }
 
-arPForthFilter::arPForthFilter( const unsigned int progNumber ) :
+arPForthFilter::arPForthFilter( const unsigned progNumber ) :
     _progNumber( progNumber ),
+    _progName("arPForthFilter(" + ar_intToString(_progNumber) + ")"),
     _valid(false),
     _allEventsFilterProgram(0),
     _allButtonsFilterProgram(0),
@@ -28,10 +28,6 @@ arPForthFilter::arPForthFilter( const unsigned int progNumber ) :
   _matrixFilterPrograms.reserve(256);
   ar_PForthSetFilter(this);
 
-  // Simplest way of inserting a number into a string, sigh.
-  std::stringstream s;
-  s <<  "arPForthFilter(" << _progNumber << ")";
-  s >> _progName;
 }
 
 arPForthFilter::~arPForthFilter() {
