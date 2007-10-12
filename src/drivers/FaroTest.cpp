@@ -15,9 +15,10 @@ using namespace std;
 int main(int, char **) {
   arRS232Port port;
   if (!port.ar_open( 1, 9600, 8, 1, "none" )) {
-    cout << "failed to open port\n";
+    cerr << "failed to open port\n";
     return -1;
   }
+
   port.setReadTimeout( 10 );
   port.ar_write( "_G" );
   char inbuf[4096];
@@ -26,6 +27,7 @@ int main(int, char **) {
     cerr << "No bytes read from Faro Arm\n";
     return -1;
   }
+
   inbuf[numRead] = '\0';
   string inString( inbuf );
   cerr << "String read: " << inString << "\n";
@@ -35,6 +37,7 @@ int main(int, char **) {
     cerr << "Didn't find expected endl's\n";
     return -1;
   }
+
   inString = inString.substr( n1+2, n2-(n1+2) );
   if (inString.length()==0) {
     cerr << "Bad string returned: " << inString << "\n";
@@ -81,9 +84,9 @@ int main(int, char **) {
       break;
     const int button2 = (0x2 & switches) >> 1;
     if (button2) {
-      cerr << "Position:" << position;
-      cerr << "; Angles:" << angles;
-      cerr << "; Buttons:" << button1 << "," << button2 << "\n";
+      cerr << "Position:" << position
+           << "; Angles:" << angles
+           << "; Buttons:" << button1 << "," << button2 << "\n";
     }
   }
   
