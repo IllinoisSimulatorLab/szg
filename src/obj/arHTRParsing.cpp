@@ -334,9 +334,8 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   char *token[MAXTOKENS] = {0};
   htrSegmentData *newSegmentData = NULL;
   htrFrame *newFrame = NULL;
-  // First, we need to create storage for each segment's data.
-  // The arHTR object stores all data for a segment together
-  // (i.e. values for all frames) in an htrSegmentData object.
+  // Create storage for each segment's data.
+  // Store values for all frames in an htrSegmentData object.
   for (int j=0; j<numSegments; j++){
     newSegmentData = new htrSegmentData();
     htrSegmentHierarchy* segment = childParent[j];
@@ -345,32 +344,28 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   }
   for (int i=0; i<numFrames; i++){
     newSegmentData = new htrSegmentData;
-    // Skip over comments, blank lines, etc. until the magic "Frame n:".
     bool found = false;
     value = (char *)1;
     while (!found && value){
       value = fgets(textLine, MAXLINE, htrFileHandle);
-      // Skip if comment or newline. Note how we need to handle '\r' so
-      // that 
-      if (textLine[0] == '\n' || textLine[0] == '#' || textLine[0] == '\r')
-        found = false;
-      else
-        if (value)
-          found = true;
+      if (textLine[0] == '\n' || textLine[0] == '#' || textLine[0] == '\r') {
+	// Comment or newline.
+        continue;
+      }
+      if (value)
+	found = true;
     }
     if (!found){
-      ar_log_error() << "arHTR error: premature end of file.\n";
+      ar_log_warning() << "arHTR: premature end of file.\n";
       return false;
     }
-    // Check that we've found the correct marker for the
-    // beginning of the frame data. 
-    stringstream checkStream;
-    checkStream << "Frame " << i << ":";
-    if (false && strcmp(textLine, checkStream.str().c_str())){
-      ar_log_error() << "arHTR error: failed to find correct frame marker "
-	             << "for frame=" << i << " (" << textLine << ").\n";
+
+    const string check("Frame " + ar_intToString(i) + ":");
+    if (false && textLine != check) {
+      ar_log_warning() << "arHTR: no marker for frame " << i << " (" << textLine << ").\n";
       return false;
     }
+    // Found marker "Frame n:" for start of frame data.
   
     for (int k=0; k<numSegments; k++){
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
@@ -392,7 +387,7 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   return true;
 }
 
-// parses the frame data of .htr file
+// Parse the frame data of .htr file
 // @param htrFileHandle the HTR file
 bool arHTR::parseSegmentData(FILE* htrFileHandle){
   if (fileVersion == 1){
@@ -401,8 +396,7 @@ bool arHTR::parseSegmentData(FILE* htrFileHandle){
   if (fileVersion == 2){
     return parseSegmentData2(htrFileHandle);
   }
-  ar_log_error() << "arHTR error: unhandled HTR file version = "
-                 << fileVersion << ".\n";
+  ar_log_warning() << "arHTR: unhandled HTR file version " << fileVersion << ".\n";
   return false;
 }
 

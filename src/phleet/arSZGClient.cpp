@@ -128,7 +128,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     if (pipeID >= 0) {
       char numberBuffer[8] = "\001";
       if (!ar_safePipeWrite(pipeID, numberBuffer, 1)) {
-        ar_log_error() << "unterminated pipe-based handshake.\n";
+        ar_log_warning() << "unterminated pipe-based handshake.\n";
       }
     }
   }
@@ -274,7 +274,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 			   _generateLaunchInfoHeader() +
 			   _exeName + string(" launched.\n"),
 			   !_simpleHandshaking)) {
-	ar_log_error() << "response failed during launch.\n";
+	ar_log_warning() << "response failed during launch.\n";
       }
     }
   }
@@ -284,7 +284,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
 int arSZGClient::failStandalone(bool fInited) const {
   if (!*this) {
-    ar_log_error() << (fInited ?
+    ar_log_warning() << (fInited ?
       "standalone unsupported. First dlogin.\n" :
       "failed to init arSZGClient.\n");
   }
@@ -304,7 +304,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
   if (ok)
     ar_log_remark() << sz << "ed.\n";
   else
-    ar_log_error()  << sz << " failed.\n";
+    ar_log_warning()  << sz << " failed.\n";
 
   // Do not send the response if:
   //  - The message trade failed in init(), likely because the launcher timed out;
@@ -447,7 +447,7 @@ bool arSZGClient::parseAssignmentString(const string& text) {
     parsingStream >> value;
     if (parsingStream.fail()) {
 LFail:
-      ar_log_error() << "malformed assignment string '" << text << "'.\n";
+      ar_log_warning() << "malformed assignment string '" << text << "'.\n";
       return false;
     }
 
@@ -529,7 +529,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   arFileTextStream fileStream;
   if (!fileStream.ar_open(fileName, dataPath)) {
     if (warn) {
-      ar_log_error() << " failed to open batch file '" << fileName <<
+      ar_log_warning() << " failed to open batch file '" << fileName <<
         "' on SZG_SCRIPT/path '" << dataPath << "'\n";
     }
     return false;
@@ -614,7 +614,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   }
 
   fileStream.ar_close();
-  ar_log_warning() << "parsing pre-0.7 config file.\n";
+  ar_log_warning() << "parsing pre-Syzygy-0.7 config file.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile) {
     ar_log_warning() << "failed to open config file '" << fileName << "'\n";
@@ -962,24 +962,21 @@ while foo/szg_window[1] refers to:
 the configuration data for arGUI is stored in "attributes". They look like
 this in the XML:
 
-<szg_viewport_list viewmode="custom" />
+  <szg_viewport_list viewmode="custom" />
 
 Here, viewmode is an attribute of the szg_viewport_list element. If a path
 parses down to an attribute BEFORE getting to its final member, an error
 occurs (return "NULL").
 
-4. Syzygy allows the XML documents to be stored in multiple global
-parameters, which facilitates reuse of individual pieces of complex configs.
-This feat is accomplished via "pointers" embedded in the XML in a standard
-way. For instance,
+4. "Variable substitution." Syzygy lets XML documents be stored in
+multiple global parameters, simplifying reuse of individual pieces of
+complex configs.  This uses XML "pointers" such as
 
-<szg_window usenamed="foo" />
+  <szg_window usenamed="foo" />
 
-In this case, if we encounter this element while parsing the path, we
-replace the current element with that contained in the global parameter
-"foo" and continue parsing from there. Any alteration to an attribute value
-from this point forward will occur inside the XML document inside the
-global parameter "foo".
+This element is substituted with the value of global parameter "foo."
+Alteration to an attribute value from this point forward will occur
+inside the XML doc inside the global parameter "foo".
 
 NOTE: There is an exception to the aforementioned pointer parsing rule. We
 need to be able to change the usenamed attribute instead of just following
@@ -1000,77 +997,69 @@ if there is an error in the parsing).
 string arSZGClient::getSetGlobalXML(const string& userName,
                                     const arSlashString& pathList,
                                     const string& attributeValue = "NULL") {
-  int pathPlace = 0;
-  // The first element in the path gives the name of the global attribute
-  // where the XML document is stored.
-  string szgDocLocation = pathList[0];
+  int iPath = 0;
+
+  // The global attribute storing the XML doc.
+  string szgDocLocation(pathList[iPath]);
+
   // The XML document itself, in string format.
   string docString = getGlobalAttribute(userName, szgDocLocation);
   TiXmlDocument doc;
   doc.Clear();
   doc.Parse(docString.c_str());
   if (doc.Error()) {
-    ar_log_error() << "dget error: in parsing gui config xml on line: " 
-                   << doc.ErrorRow() << ar_endl;
+    ar_log_warning() << "syntax error in gui config xml, line " << doc.ErrorRow() << ".\n";
     return string("NULL");
   }
+
   TiXmlNode* node = doc.FirstChild();
   if (!node || !node->ToElement()) {
-    ar_log_error() << "dget error: malformed XML (global parameter).\n";
+    ar_log_warning() << "malformed XML (global parameter).\n";
     return string("NULL");
   }
+
+  // Traverse the XML tree, using the path defined by pathList.
   TiXmlNode* child = node;
-  pathPlace = 1;
-  // Walk down the XML tree, using the path defined by pathList.
-  while (pathPlace < pathList.size()) {
-    // As we are searching down the doc tree, we allow an array syntax for
-    // picking out child elements.
-    // For instance,
-    //     szg_viewport[0]
-    // or
-    //     szg_viewport
-    // mean the first szg_viewport child, while
-    //     szg_viewport[1]
-    // means the second child.
-    unsigned int firstArrayLoc;
-    // The default is to use the first child element with the appropriate name.
+  for (iPath = 1; iPath < pathList.size(); ++iPath) {
+    // Searching down the doc tree, an array syntax picks out child elements.
+    // For instance, the first szg_viewport child is
+    // szg_viewport[0] or szg_viewport; the second child is szg_viewport[1].
+
+    // Default to the first child element with the appropriate name.
     int actualArrayIndex = 0;
-    // This is the actual type of the element. The default is the current step
-    // in the path... but this could change if there is an array index.
-    string actualElementType = pathList[pathPlace];
+
+    // Actual type of the element. Default is the current step
+    // in the path, but an array index can override that.
+    string actualElementType(pathList[iPath]);
+
     // If there is an array index, remove it.
-    if ( (firstArrayLoc = pathList[pathPlace].find('[')) 
-	  != string::npos ) {
+    const unsigned firstArrayLoc = pathList[iPath].find('[');
+    if ( firstArrayLoc != string::npos ) {
       // There might be a valid array index.
-      unsigned int lastArrayLoc 
-        = pathList[pathPlace].find_last_of("]");
+      const unsigned lastArrayLoc = pathList[iPath].find_last_of("]");
       if (lastArrayLoc == string::npos) {
-	// It seems like we should have a valid array index, but we do not.
-	ar_log_error() << "dget error: invalid array index in "
-	               << pathList[pathPlace] << ".\n";
+	ar_log_warning() << "invalid array index in " << pathList[iPath] << ".\n";
 	return string("NULL");
       }
-      string potentialIndex 
-        = pathList[pathPlace].substr(firstArrayLoc+1, 
-                                      lastArrayLoc-firstArrayLoc-1);
-      stringstream indexStream;
-      indexStream << potentialIndex;
-      indexStream >> actualArrayIndex;
-      if (indexStream.fail()) {
-	ar_log_error() << "dget error: invalid array index " << potentialIndex
-	               << ".\n";
+
+      const string potentialIndex(
+        pathList[iPath].substr(firstArrayLoc+1, lastArrayLoc-firstArrayLoc-1));
+      if (!ar_stringToIntValid(potentialIndex, actualArrayIndex)) {
+	ar_log_warning() << "invalid array index " << potentialIndex << ".\n";
 	return string("NULL");
       }
+
       if (actualArrayIndex < 0) {
-	ar_log_error() << "dget error: array index cannot be negative.\n";
+	ar_log_warning() << "negative array index " << actualArrayIndex << ".\n";
 	return string("NULL");
       }
-      // We now strip out the index. We've got the actualArrayIndex already.
-      actualElementType = pathList[pathPlace].substr(0, firstArrayLoc);
+
+      // Strip out the index.  We already have actualArrayIndex.
+      actualElementType = pathList[iPath].substr(0, firstArrayLoc);
     }
-    // Must get the first child. If we want something further (i.e. we are
-    // trying to use an array index, as tested for above), iterate from that 
-    // starting place.
+
+    // Get the first child. If we want something further (i.e. we are
+    // trying to use an array index, as tested for above), iterate from there.
     TiXmlNode* newChild = child->FirstChild(actualElementType);
     int which = 1;
     if (newChild) {
@@ -1084,8 +1073,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     // array index) or we've got an error (maybe there weren't enough elements
     // of this type in the doc tree to justify the array index).
     if (which < actualArrayIndex) {
-      ar_log_error() << "dget error: could not find elements of type "
-	             << actualElementType << " up to index " 
+      ar_log_warning() << "no elements of type " << actualElementType << ", up to index " 
 	             << actualArrayIndex << ".\n";
       return string("NULL");
     }
@@ -1095,45 +1083,38 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     // final step in the path and does not have an array index).
     if (!newChild) {
       // This might still be OK. It could be an "attribute".
-      if (!child->ToElement()->Attribute(pathList[pathPlace])) {
-	// Neither an "element" or an "attribute". This is an error.
-	ar_log_error() << "dget error: " << pathList[pathPlace]
-	               << " is neither an element or an attribute.\n";
+      if (!child->ToElement()->Attribute(pathList[iPath])) {
+	ar_log_warning() << "expected element or attribute, not '" <<
+	  pathList[iPath] << ".\n";
 	return string("NULL");
       }
-      else{
-	// OK, it's an attribute. This is an error if it isn't the last
-	// value on the path.
-        string attribute = child->ToElement()->Attribute(pathList[pathPlace]);
-        if (pathPlace != pathList.size() -1) {
-	  ar_log_error() << "dget error: attribute name ("
-	                 << pathList[pathPlace] << ") not last in path list.\n";
-	  return string("NULL");
-	}
-        if (attributeValue != "NULL") {
-          // We are altering the XML document residing in the parameter
-	  // database.
-          child->ToElement()->SetAttribute(pathList[pathPlace],
-					   attributeValue.c_str());
-          string databaseValue;
-	  databaseValue << doc;
-          setGlobalAttribute(szgDocLocation, databaseValue);
-	  // We just wanted to alter the parameter database. Don't need
-	  // to get a value back, just an indication of success.
-          return string("SZG_SUCCESS");
-        }
-	// Actually want the value of the attribute back.
-	// (i.e. attributeValue == "NULL")
-	return attribute;
+
+      string attribute = child->ToElement()->Attribute(pathList[iPath]);
+      if (iPath != pathList.size() - 1) {
+	ar_log_warning() << "attribute name '" << pathList[iPath] << "' not last in path list.\n";
+	return string("NULL");
       }
+      if (attributeValue != "NULL") {
+	// Alter the XML doc in the parameter database.
+	child->ToElement()->SetAttribute(pathList[iPath], attributeValue.c_str());
+	string databaseValue;
+	databaseValue << doc;
+	setGlobalAttribute(szgDocLocation, databaseValue);
+	// We just wanted to alter the parameter database. Don't need
+	// to get a value back, just an indication of success.
+	return string("SZG_SUCCESS");
+      }
+      // Actually want the value of the attribute back.
+      // (i.e. attributeValue == "NULL")
+      return attribute;
     }
     else{
       // Check to make sure this is valid XML. 
       if (!newChild->ToElement()) {
-	ar_log_error() << "dget error: malformed XML in " << pathList[pathPlace] 
-                       << ".\n";
+	ar_log_warning() << "malformed XML in " << pathList[iPath] << ".\n";
         return string("NULL");
       }
+
       // Valid XML. Continue the walk down the tree.
       // NOTE: Syzygy supports POINTERS. So, a node might really be stored
       // inside another global parameter. Like so:
@@ -1143,8 +1124,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       // very next step in the path is "usenamed" then do not retrieve the
       // pointed-to data.
       if (newChild->ToElement()->Attribute("usenamed")
-          && (pathPlace+1 >= pathList.size() 
-              || pathList[pathPlace+1] != "usenamed")) {
+          && (iPath+1 >= pathList.size() 
+              || pathList[iPath+1] != "usenamed")) {
 	// Keep track of which sub-document we are in fact
 	// holding, as we search down the tree of pointers.
 	szgDocLocation = newChild->ToElement()->Attribute("usenamed");
@@ -1154,26 +1135,23 @@ string arSZGClient::getSetGlobalXML(const string& userName,
         doc.Parse(newDocString.c_str());
         newChild = doc.FirstChild();
 	if (!newChild || !newChild->ToElement()) {
-          ar_log_error() << "dget error: malformed XML in pointer ("
-	                 << szgDocLocation << ").\n";
+          ar_log_warning() << "malformed XML in pointer '" << szgDocLocation << "'.\n";
 	  return string("NULL");
 	}
       }
       child = newChild;
     }
-    pathPlace++;
   }
   // By making it out here, we know that the final piece of the path refers
   // to an element (not an attribute).
   //
-  // NOTE: This is an ERROR if we were trying to set an attribute to a new
-  // value. Why? Because the parameter path didn't end in an attribute!
-  // (but instead in an XML element).
+  // DOn't set an attribute to a new value, because the parameter path ended in
+  // an XML element, not an attribute.
   if (attributeValue != "NULL") {
     return string("NULL");
   }
-  // In this case, we are just querying a value. It could be that we want to
-  // get a whole XML document from the szg parameter database.
+
+  // Query a value, perhaps to get a whole XML doc from the parameter database.
   std::string output;
   output << *child;
   return output;
@@ -2492,7 +2470,7 @@ bool arSZGClient::_dialUpFallThrough() {
 
   _connected = true;
   if (!_clientDataThread.beginThread(arSZGClientDataThread, this)) {
-    ar_log_error() << "failed to start client data thread.\n";
+    ar_log_warning() << "failed to start client data thread.\n";
     return false;
   }
 
@@ -2776,7 +2754,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
     return true;
   }
 
-  ar_log_error() << "bad type in context pair '" << pair1Type <<
+  ar_log_warning() << "bad type in context pair '" << pair1Type <<
     "', expected one of: virtual, mode, networks, parameter_file, server, user, log.\n";
   return false;
 }
@@ -2787,7 +2765,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
       && channel != "sound") {
-    ar_log_error() << "_checkAndSetNetworks() got unknown channel '" << channel << "'.\n";
+    ar_log_warning() << "_checkAndSetNetworks() got unknown channel '" << channel << "'.\n";
     return false;
   }
 
@@ -2802,7 +2780,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 	match = true;
     }
     if (!match) {
-      ar_log_error() << "virtual computer's network '"
+      ar_log_warning() << "virtual computer's network '"
                      << networks[i] << "' is undefined in szg.conf.\n";
       return false;
     }
@@ -2838,7 +2816,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
     _inputAddresses = newAddresses;
     return true;
   }
-  ar_log_error() << "ignoring unknown channel '" << channel <<
+  ar_log_warning() << "ignoring unknown channel '" << channel <<
     "', expected one of: default, graphics, sound, input.\n";
   return false;
 }
@@ -2957,32 +2935,29 @@ void arSZGClient::_serverResponseThread() {
           buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1) {
         memcpy(_responseBuffer,buffer,200);
         if (_bufferResponse) {
-          // Print the contents of this packet.
-          stringstream serverInfo;
-          serverInfo << _responseBuffer+5  << "/"
-                     << _responseBuffer+132 << ":"
-                     << _responseBuffer+164;
+          // Print this packet's contents.
+          const string serverInfo(
+	    string(_responseBuffer+5)  + "/" +
+	    string(_responseBuffer+132) + ":" +
+	    string(_responseBuffer+164));
           bool found = false;
-          for (vector<string>::const_iterator i = _foundServers.begin(); i != _foundServers.end(); ++i) {
-            if (*i == serverInfo.str()) {
+          for (vector<string>::const_iterator i = _foundServers.begin();
+	    i != _foundServers.end(); ++i) {
+            if (*i == serverInfo) {
               // Found it already (someone else broadcast a response packet?).
               found = true;
               break;
             }
           }
-          if (!found) {
-            // Explicitly cout, not an ar_log_xxx().
-            if (_justPrinting) {
-              cout << serverInfo.str() << "\n";
-            }
-            _foundServers.push_back(serverInfo.str());
-          }
-        } else {
-          if (_requestedName == string(_responseBuffer+5)) {
-	    // Stop, discarding subsequent packets.
-            _dataRequested = false;
-            _dataCondVar.signal();
-          }
+          // Not found.  Explicitly cout, not ar_log_xxx().
+	  if (_justPrinting) {
+	    cout << serverInfo << "\n";
+	  }
+	  _foundServers.push_back(serverInfo);
+        } else if (_requestedName == string(_responseBuffer+5)) {
+	  // Stop, discarding subsequent packets.
+	  _dataRequested = false;
+	  _dataCondVar.signal();
         }
       }
     }
