@@ -1022,27 +1022,25 @@ bool arDatabase::_initDatabaseLanguage(){
 // Convert an ID into a node pointer while already _lock()'d.
 arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
   const arNodeIDIterator i(_nodeIDContainer.find(ID));
-  if (i == _nodeIDContainer.end()) {
-    if (fWarn){
-      ar_log_warning() << "arDatabase: no node with ID " << ID <<
-	   (empty() ? " in empty database.\n" : ".\n");
-      ar_log_debug() << "arDatabase: nodes are (ID, name, info):\n";
-      for (arNodeIDIterator j(_nodeIDContainer.begin());
-        j != _nodeIDContainer.end(); ++j) {
-        ar_log_debug() << "\t" << j->first << ", " << j->second->getName() << ", " <<
-	  j->second->getInfo() << "\n";
-      }
+  if (i != _nodeIDContainer.end())
+    return i->second;
+
+  if (fWarn) {
+    ar_log_warning() << "arDatabase: no node with ID " << ID <<
+	 (empty() ? " in empty database.\n" : ".\n");
+    ar_log_debug() << "arDatabase: nodes are (ID, name, info):\n";
+    for (arNodeIDIterator j(_nodeIDContainer.begin());
+      j != _nodeIDContainer.end(); ++j) {
+      ar_log_debug() << "\t" << j->first << ", " << j->second->getName() <<
+        ", " << j->second->getInfo() << "\n";
     }
-    return NULL;
   }
-  return i->second;
+  return NULL;
 }
 
 string arDatabase::_getDefaultName(){
-  stringstream s;
   arGuard dummy(_l);
-  s << "szg_default_" << _nextAssignedID;
-  return s.str();
+  return "szg_default_" + ar_intToString(_nextAssignedID);
 }
 
 // When the database receives a message demanding creation of a node,
