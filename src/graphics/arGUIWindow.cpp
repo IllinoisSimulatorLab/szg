@@ -164,6 +164,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
                           void (*windowInitGLCallback)( arGUIWindowInfo* ),
                           void* userData ) :
   _ID( ID ),
+  _className(windowConfig.getTitle() + ar_intToString(ID)),
   _windowConfig( windowConfig ),
   _drawCallback( NULL ),
   _windowInitGLCallback( windowInitGLCallback ),
@@ -174,18 +175,15 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _decorate( true ),
   _zorder( AR_ZORDER_TOP ),
   _cursor( AR_CURSOR_NONE ),
+  _lastFrameTime(ar_time()),
+  _GUIEventManager(new arGUIEventManager( userData )),
+  _windowBuffer(new arGUIWindowBuffer( true )),
   _creationFlag( false ),
   _destructionFlag( false ),
   _userData( userData ),
   _windowManager( NULL ),
   _graphicsWindow( NULL )
 {
-  // construct a unique class name for window registration under Win32
-  std::stringstream ss; ss << _ID;
-  _className = std::string( _windowConfig.getTitle() + ss.str() );
-  _windowBuffer = new arGUIWindowBuffer( true );
-  _GUIEventManager = new arGUIEventManager( _userData );
-  _lastFrameTime = ar_time();
 }
 
 arGUIWindow::~arGUIWindow( void )
