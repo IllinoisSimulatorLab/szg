@@ -73,8 +73,7 @@ int main(int argc, char** argv){
 
     // Test the arStructuredData data rate!
     int i = 0;
-    // Very large records (here the memory copying will dominate the 
-    // decoding).
+    // Very large records (here the memory copying will dominate the decoding).
     bool errorFlag = false;
     for (i=0; i<10; i++){
       if (!testData.dataIn(CHAR_DATA_ID,charData,AR_CHAR,numberSentChars/10) ||
@@ -90,12 +89,10 @@ int main(int argc, char** argv){
     if (errorFlag){
       continue;
     }
-    // Small records (here the field manipulation should dominate the 
-    // decoding).
+    // Small records (here the field manipulation should dominate the decoding).
     errorFlag = false;
     for (i=0; i<10000; i++){
-      if (!testData.dataIn(CHAR_DATA_ID,charData,AR_CHAR,
-                           numberSentChars/10000) ||
+      if (!testData.dataIn(CHAR_DATA_ID,charData,AR_CHAR, numberSentChars/10000) ||
           !testData.dataIn(INT_DATA_ID,intData,AR_INT,10) ||
           !testData.dataIn(FLOAT_DATA_ID,floatData,AR_FLOAT,10) ||
           !testData.dataIn(DOUBLE_DATA_ID,doubleData,AR_DOUBLE,10) ||
@@ -131,13 +128,11 @@ int main(int argc, char** argv){
     testData.print(s);
     string socketOutput = s.str();
     if (!comm->ar_safeWrite(socketOutput.c_str(), socketOutput.length())){
-      cerr << argv[0] << " warning: sending text version of test data "
-	   << "failed (1).\n";
+      cerr << argv[0] << " warning: sending text version of test data failed (1).\n";
       continue;
     }
     if (!comm->ar_safeWrite(socketOutput.c_str(), socketOutput.length())){
-      cerr << argv[0] << " warning: sending text version of test data "
-	   << "failed (2).\n";
+      cerr << argv[0] << " warning: sending text version of test data failed (2).\n";
       continue;
     }
     string extraTag("    <extra_tag>      ");
@@ -146,16 +141,14 @@ int main(int argc, char** argv){
       continue;
     }
     if (!comm->ar_safeWrite(socketOutput.c_str(), socketOutput.length())){
-      cerr << argv[0] << " warning: sending text version of test data "
-	   << "failed (3).\n";
+      cerr << argv[0] << " warning: sending text version of test data failed (3).\n";
       continue;
     }
     if (!comm->ar_safeWrite(socketOutput.c_str(), socketOutput.length())){
-      cerr << argv[0] << " warning: sending text version of test data "
-	   << "failed (3).\n";
+      cerr << argv[0] << " warning: sending text version of test data failed (4).\n";
       continue;
     }
-    // Finally, test the speed of XML record sending...
+    // Test the speed of XML record sending.
     for (i=0; i<1000; i++){
       stringstream s2;
       testData.print(s2);
