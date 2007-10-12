@@ -63,10 +63,11 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
   }
 
-  const int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
+  const int numButtonEvents =
+    SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
-    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events " << numButtonEvents
-                     << " < 2, so defaulting to 8.\n";
+    ar_log_warning() << "SZG_INPUTSIM/number_button_events " << numButtonEvents <<
+      " < 2, so defaulting to 8.\n";
     return false;
   }
   setNumberButtonEvents( unsigned(numButtonEvents) );
@@ -81,7 +82,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
   vector<unsigned>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
     if (_mouseButtons.find( *buttonIter ) != _mouseButtons.end()) {
-      ar_log_warning() << "arInputSimulator: duplicate mouse button indices in setMouseButtons().\n";
+      ar_log_warning() << "duplicate mouse button indices in setMouseButtons().\n";
       _mouseButtons = buttonsPrev;
       return false;
     }
@@ -89,7 +90,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
     _mouseButtons[*buttonIter] = (i == buttonsPrev.end()) ? 0 : i->second;
   }
   if ((_mouseButtons.find(0) == _mouseButtons.end())||(_mouseButtons.find(2) == _mouseButtons.end())) {
-    ar_log_warning() << "arInputSimulator: mouse buttons must include 0 (left) and 2 (right).\n";
+    ar_log_warning() << "mouse buttons must include 0 (left) and 2 (right).\n";
     _mouseButtons = buttonsPrev;
     return false;
   }
@@ -117,11 +118,8 @@ void arInputSimulator::setNumberButtonEvents( unsigned numButtonEvents ) {
   _numButtonEvents = numButtonEvents;
   _driver.setSignature(_numButtonEvents,2,2);
   _buttonLabels.clear();
-  ostringstream os;
   for (unsigned i=0; i<_numButtonEvents; ++i) {
-    os.str("");
-    os << i;
-    _buttonLabels.push_back( char(os.str()[0]) );
+    _buttonLabels.push_back( char((i % 10) + '0') );
   }
 }
 
@@ -182,7 +180,7 @@ void arInputSimulator::advance(){
   _driver.queueAxis(1,_axis[1]);
 
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
-    ar_log_warning() << "arInputSimulator: numbers of new & last button values out of sync.\n";
+    ar_log_warning() << "numbers of new & last button values out of sync.\n";
     return;
   }
 
@@ -217,7 +215,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
   case ' ':
     {
     if (rowLength == 0 || numRows == 0) {
-      ar_log_warning() << "arInputSimulator: no buttons in keyboard().\n";
+      ar_log_warning() << "no buttons in keyboard().\n";
       break;
     }
     // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
@@ -468,7 +466,7 @@ void arInputSimulator::_drawGamepad() const {
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
-    ar_log_warning() << "arInputSimulator: no buttons in _drawGamepad().\n";
+    ar_log_warning() << "no buttons in _drawGamepad().\n";
     return;
   }
 
@@ -527,7 +525,7 @@ void arInputSimulator::_drawGamepad() const {
           glColor3f(0,0.6,0);
         glutSolidSphere(.4*BUTTON_SPACING,8,8);
         if (i >= _buttonLabels.size()) {
-          ar_log_warning() << "arInputSimulator: _buttonLabels too short in _drawGamepad().\n";
+          ar_log_warning() << "_buttonLabels too short in _drawGamepad().\n";
         } else {
           glDisable(GL_DEPTH_TEST);
           glColor3f( 1, 1, 1 );
