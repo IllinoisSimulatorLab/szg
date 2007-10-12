@@ -104,8 +104,8 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 // but Win98 gives at best a name in all caps.  (Warn if those two mismatch.)
 
 bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
-  // Set the component's name
-  // using the command-line args, since some component management uses names.
+  // Set the component's name from argv[0],
+  // since some component management uses names.
   _exeName = ar_stripExeName(string(argv[0]));
   ar_setLogLabel( _exeName );
   
@@ -221,6 +221,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     _connected = false;
     return false;
   }
+  ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
   ar_log_debug() << "connected to szgserver.\n";
 
   _connected = true;
@@ -1340,6 +1341,8 @@ int arSZGClient::getProcessID(const string& computer,
 
 // Return the ID of the process which is "me".
 int arSZGClient::getProcessID(void) {
+  // todo: _pid caches theID, once it's gotten a valid value.
+
   if (!_connected)
     return -1;
 
