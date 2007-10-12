@@ -18,8 +18,7 @@ would be appreciated but is not required.
 2. Altered source versions must be plainly marked as such, and
 must not be misrepresented as being the original software.
 
-3. This notice may not be removed or altered from any source
-distribution.
+3. This notice may not be removed or altered from any source distribution.
 */
 
 #include "arPrecompiled.h"
@@ -52,9 +51,7 @@ const char* TiXmlBase::errorString[ TIXML_ERROR_STRING_COUNT ] =
 
 bool TiXmlBase::condenseWhiteSpace = true;
 
-  // Note tha "PutString" hardcodes the same list. This
-// is less flexible than it appears. Changing the entries
-// or order will break putstring.
+// PutString hardcodes these entries, in this order.
 TiXmlBase::Entity TiXmlBase::entity[ NUM_ENTITY ] =
 {
 	{ "&amp;",  5, '&' },
@@ -64,9 +61,8 @@ TiXmlBase::Entity TiXmlBase::entity[ NUM_ENTITY ] =
 	{ "&apos;", 6, '\'' }
 };
 
-// Bunch of unicode info at:
-//		http://www.unicode.org/faq/utf_bom.html
-// Including the basic of this table, which determines the #bytes in the
+// Unicode info: www.unicode.org/faq/utf_bom.html
+// This unicode table determines the #bytes in the
 // sequence from the lead byte. 1 placed for invalid sequences --
 // although the result will be junk, pass it through as much as possible.
 // Beware of the non-characters in UTF-8:
@@ -139,7 +135,6 @@ void TiXmlBase::ConvertUTF32ToUTF8( unsigned long input, char* output, int* leng
 	}
 }
 
-
 /*static*/ int TiXmlBase::IsAlpha( unsigned char anyByte, TiXmlEncoding /*encoding*/ )
 {
 	// This will only work for low-ascii, everything else is assumed to be a valid
@@ -160,7 +155,6 @@ void TiXmlBase::ConvertUTF32ToUTF8( unsigned long input, char* output, int* leng
 //	}
 }
 
-
 /*static*/ int TiXmlBase::IsAlphaNum( unsigned char anyByte, TiXmlEncoding /*encoding*/ )
 {
 	// This will only work for low-ascii, everything else is assumed to be a valid
@@ -180,7 +174,6 @@ void TiXmlBase::ConvertUTF32ToUTF8( unsigned long input, char* output, int* leng
 //		return isalnum( anyByte );
 //	}
 }
-
 
 class TiXmlParsingData
 {
@@ -205,7 +198,6 @@ class TiXmlParsingData
 	const char*		stamp;
 	int				tabsize;
 };
-
 
 void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 {
@@ -324,7 +316,6 @@ void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 	assert( stamp );
 }
 
-
 const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 {
 	if ( !p || !*p )
@@ -371,7 +362,6 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 		while ( *p && IsWhiteSpace( *p ) || *p == '\n' || *p =='\r' )
 			++p;
 	}
-
 	return p;
 }
 
@@ -531,7 +521,6 @@ const char* TiXmlBase::GetEntity( const char* p, char* value, int* length, TiXml
 	*value = *p;	// Don't put back the last one, since we return it!
 	return p+1;
 }
-
 
 bool TiXmlBase::StringEqual( const char* p,
 							 const char* tag,
@@ -2331,7 +2320,6 @@ void TiXmlElement::StreamOut( TIXML_OSTREAM * stream ) const
 	}
 }
 
-
 void TiXmlElement::CopyTo( TiXmlElement* target ) const
 {
 	// superclass:
@@ -2354,7 +2342,6 @@ void TiXmlElement::CopyTo( TiXmlElement* target ) const
 	}
 }
 
-
 TiXmlNode* TiXmlElement::Clone() const
 {
 	TiXmlElement* clone = new TiXmlElement( Value() );
@@ -2364,7 +2351,6 @@ TiXmlNode* TiXmlElement::Clone() const
 	CopyTo( clone );
 	return clone;
 }
-
 
 TiXmlDocument::TiXmlDocument() : TiXmlNode( TiXmlNode::DOCUMENT )
 {
@@ -2379,7 +2365,6 @@ TiXmlDocument::TiXmlDocument( const char * documentName ) : TiXmlNode( TiXmlNode
 	ClearError();
 }
 
-
 #ifdef TIXML_USE_STL
 TiXmlDocument::TiXmlDocument( const std::string& documentName ) : TiXmlNode( TiXmlNode::DOCUMENT )
 {
@@ -2389,19 +2374,16 @@ TiXmlDocument::TiXmlDocument( const std::string& documentName ) : TiXmlNode( TiX
 }
 #endif
 
-
 TiXmlDocument::TiXmlDocument( const TiXmlDocument& copy ) : TiXmlNode( TiXmlNode::DOCUMENT )
 {
 	copy.CopyTo( this );
 }
-
 
 void TiXmlDocument::operator=( const TiXmlDocument& copy )
 {
 	Clear();
 	copy.CopyTo( this );
 }
-
 
 bool TiXmlDocument::LoadFile( TiXmlEncoding encoding )
 {
@@ -2413,7 +2395,6 @@ bool TiXmlDocument::LoadFile( TiXmlEncoding encoding )
 
 	return false;
 }
-
 
 bool TiXmlDocument::SaveFile() const
 {
@@ -2497,7 +2478,6 @@ bool TiXmlDocument::SaveFile( const char * filename ) const
 	return false;
 }
 
-
 void TiXmlDocument::CopyTo( TiXmlDocument* target ) const
 {
 	TiXmlNode::CopyTo( target );
@@ -2512,7 +2492,6 @@ void TiXmlDocument::CopyTo( TiXmlDocument* target ) const
 	}
 }
 
-
 TiXmlNode* TiXmlDocument::Clone() const
 {
 	TiXmlDocument* clone = new TiXmlDocument();
@@ -2522,7 +2501,6 @@ TiXmlNode* TiXmlDocument::Clone() const
 	CopyTo( clone );
 	return clone;
 }
-
 
 void TiXmlDocument::Print( FILE* cfile, int depth ) const
 {
@@ -2548,7 +2526,6 @@ void TiXmlDocument::StreamOut( TIXML_OSTREAM * out ) const
 			break;
 	}
 }
-
 
 const TiXmlAttribute* TiXmlAttribute::Next() const
 {
@@ -2598,7 +2575,6 @@ void TiXmlAttribute::Print( FILE* cfile, int /*depth*/ ) const
 	else
 		fprintf (cfile, "%s='%s'", n.c_str(), v.c_str() );
 }
-
 
 void TiXmlAttribute::StreamOut( TIXML_OSTREAM * stream ) const
 {
@@ -2656,19 +2632,16 @@ double  TiXmlAttribute::DoubleValue() const
 	return atof (value.c_str ());
 }
 
-
 TiXmlComment::TiXmlComment( const TiXmlComment& copy ) : TiXmlNode( TiXmlNode::COMMENT )
 {
 	copy.CopyTo( this );
 }
-
 
 void TiXmlComment::operator=( const TiXmlComment& base )
 {
 	Clear();
 	base.CopyTo( this );
 }
-
 
 void TiXmlComment::Print( FILE* cfile, int depth ) const
 {
@@ -2687,12 +2660,10 @@ void TiXmlComment::StreamOut( TIXML_OSTREAM * stream ) const
 	(*stream) << "-->";
 }
 
-
 void TiXmlComment::CopyTo( TiXmlComment* target ) const
 {
 	TiXmlNode::CopyTo( target );
 }
-
 
 TiXmlNode* TiXmlComment::Clone() const
 {
@@ -2705,7 +2676,6 @@ TiXmlNode* TiXmlComment::Clone() const
 	return clone;
 }
 
-
 void TiXmlText::Print( FILE* cfile, int /*depth*/ ) const
 {
 	TIXML_STRING buffer;
@@ -2713,18 +2683,15 @@ void TiXmlText::Print( FILE* cfile, int /*depth*/ ) const
 	fprintf( cfile, "%s", buffer.c_str() );
 }
 
-
 void TiXmlText::StreamOut( TIXML_OSTREAM * stream ) const
 {
 	PutString( value, stream );
 }
 
-
 void TiXmlText::CopyTo( TiXmlText* target ) const
 {
 	TiXmlNode::CopyTo( target );
 }
-
 
 TiXmlNode* TiXmlText::Clone() const
 {
@@ -2738,7 +2705,6 @@ TiXmlNode* TiXmlText::Clone() const
 	return clone;
 }
 
-
 TiXmlDeclaration::TiXmlDeclaration( const char * _version,
 									const char * _encoding,
 									const char * _standalone )
@@ -2748,7 +2714,6 @@ TiXmlDeclaration::TiXmlDeclaration( const char * _version,
 	encoding = _encoding;
 	standalone = _standalone;
 }
-
 
 #ifdef TIXML_USE_STL
 TiXmlDeclaration::TiXmlDeclaration(	const std::string& _version,
@@ -2762,20 +2727,17 @@ TiXmlDeclaration::TiXmlDeclaration(	const std::string& _version,
 }
 #endif
 
-
 TiXmlDeclaration::TiXmlDeclaration( const TiXmlDeclaration& copy )
 	: TiXmlNode( TiXmlNode::DECLARATION )
 {
 	copy.CopyTo( this );
 }
 
-
 void TiXmlDeclaration::operator=( const TiXmlDeclaration& copy )
 {
 	Clear();
 	copy.CopyTo( this );
 }
-
 
 void TiXmlDeclaration::Print( FILE* cfile, int /*depth*/ ) const
 {
@@ -2815,7 +2777,6 @@ void TiXmlDeclaration::StreamOut( TIXML_OSTREAM * stream ) const
 	(*stream) << "?>";
 }
 
-
 void TiXmlDeclaration::CopyTo( TiXmlDeclaration* target ) const
 {
 	TiXmlNode::CopyTo( target );
@@ -2824,7 +2785,6 @@ void TiXmlDeclaration::CopyTo( TiXmlDeclaration* target ) const
 	target->encoding = encoding;
 	target->standalone = standalone;
 }
-
 
 TiXmlNode* TiXmlDeclaration::Clone() const
 {
@@ -2837,7 +2797,6 @@ TiXmlNode* TiXmlDeclaration::Clone() const
 	return clone;
 }
 
-
 void TiXmlUnknown::Print( FILE* cfile, int depth ) const
 {
 	for ( int i=0; i<depth; i++ )
@@ -2845,18 +2804,15 @@ void TiXmlUnknown::Print( FILE* cfile, int depth ) const
 	fprintf( cfile, "<%s>", value.c_str() );
 }
 
-
 void TiXmlUnknown::StreamOut( TIXML_OSTREAM * stream ) const
 {
 	(*stream) << "<" << value << ">";		// Don't use entities here! It is unknown.
 }
 
-
 void TiXmlUnknown::CopyTo( TiXmlUnknown* target ) const
 {
 	TiXmlNode::CopyTo( target );
 }
-
 
 TiXmlNode* TiXmlUnknown::Clone() const
 {
@@ -2869,20 +2825,17 @@ TiXmlNode* TiXmlUnknown::Clone() const
 	return clone;
 }
 
-
 TiXmlAttributeSet::TiXmlAttributeSet()
 {
 	sentinel.next = &sentinel;
 	sentinel.prev = &sentinel;
 }
 
-
 TiXmlAttributeSet::~TiXmlAttributeSet()
 {
 	assert( sentinel.next == &sentinel );
 	assert( sentinel.prev == &sentinel );
 }
-
 
 void TiXmlAttributeSet::Add( TiXmlAttribute* addMe )
 {
@@ -2943,12 +2896,10 @@ TIXML_ISTREAM & operator >> (TIXML_ISTREAM & in, TiXmlNode & base)
 	TIXML_STRING tag;
 	tag.reserve( 8 * 1000 );
 	base.StreamIn( &in, &tag );
-
 	base.Parse( tag.c_str(), 0, TIXML_DEFAULT_ENCODING );
 	return in;
 }
 #endif
-
 
 TIXML_OSTREAM & operator<< (TIXML_OSTREAM & out, const TiXmlNode & base)
 {
@@ -2956,18 +2907,15 @@ TIXML_OSTREAM & operator<< (TIXML_OSTREAM & out, const TiXmlNode & base)
 	return out;
 }
 
-
 #ifdef TIXML_USE_STL
 std::string & operator<< (std::string& out, const TiXmlNode& base )
 {
    std::ostringstream os_stream( std::ostringstream::out );
    base.StreamOut( &os_stream );
-
    out.append( os_stream.str() );
    return out;
 }
 #endif
-
 
 TiXmlHandle TiXmlHandle::FirstChild() const
 {
@@ -2980,7 +2928,6 @@ TiXmlHandle TiXmlHandle::FirstChild() const
 	return TiXmlHandle( 0 );
 }
 
-
 TiXmlHandle TiXmlHandle::FirstChild( const char * value ) const
 {
 	if ( node )
@@ -2991,7 +2938,6 @@ TiXmlHandle TiXmlHandle::FirstChild( const char * value ) const
 	}
 	return TiXmlHandle( 0 );
 }
-
 
 TiXmlHandle TiXmlHandle::FirstChildElement() const
 {
@@ -3004,7 +2950,6 @@ TiXmlHandle TiXmlHandle::FirstChildElement() const
 	return TiXmlHandle( 0 );
 }
 
-
 TiXmlHandle TiXmlHandle::FirstChildElement( const char * value ) const
 {
 	if ( node )
@@ -3015,7 +2960,6 @@ TiXmlHandle TiXmlHandle::FirstChildElement( const char * value ) const
 	}
 	return TiXmlHandle( 0 );
 }
-
 
 TiXmlHandle TiXmlHandle::Child( int count ) const
 {
@@ -3035,7 +2979,6 @@ TiXmlHandle TiXmlHandle::Child( int count ) const
 	return TiXmlHandle( 0 );
 }
 
-
 TiXmlHandle TiXmlHandle::Child( const char* value, int count ) const
 {
 	if ( node )
@@ -3054,7 +2997,6 @@ TiXmlHandle TiXmlHandle::Child( const char* value, int count ) const
 	return TiXmlHandle( 0 );
 }
 
-
 TiXmlHandle TiXmlHandle::ChildElement( int count ) const
 {
 	if ( node )
@@ -3072,7 +3014,6 @@ TiXmlHandle TiXmlHandle::ChildElement( int count ) const
 	}
 	return TiXmlHandle( 0 );
 }
-
 
 TiXmlHandle TiXmlHandle::ChildElement( const char* value, int count ) const
 {
