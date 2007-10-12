@@ -418,47 +418,47 @@ int arGUIWindowManager::_doEvent(const int ID, const arGUIWindowInfo& event) {
 
 int arGUIWindowManager::resizeWindow( const int ID, int width, int height )
 {
-  arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_RESIZE );
-  e.setSize(width, height);
+  
   // call the user's window callback with a resize event?
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, -1, 0, -1, -1, width, height ));
 }
 
 int arGUIWindowManager::moveWindow( const int ID, int x, int y )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_MOVE, -1, 0, x, y );
   // call the user's window callback with a move event?
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, -1, 0, x, y ));
 }
 
 int arGUIWindowManager::setWindowViewport( const int ID, int x, int y, int width, int height )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT, -1, 0, x, y, width, height);
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT, -1, 0, x, y, width, height));
 }
 
 int arGUIWindowManager::fullscreenWindow( const int ID )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_FULLSCREEN );
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_FULLSCREEN ));
 }
 
 int arGUIWindowManager::decorateWindow( const int ID, bool decorate )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_DECORATE, -1, decorate?1:0 );
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DECORATE, -1, decorate?1:0 ));
 }
 
 int arGUIWindowManager::raiseWindow( const int ID, arZOrder zorder )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_RAISE, -1, int(zorder) );
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RAISE, -1, int(zorder) ));
 }
 
 int arGUIWindowManager::setWindowCursor( const int ID, arCursor cursor )
 {
-  const arGUIWindowInfo e( AR_WINDOW_EVENT, AR_WINDOW_CURSOR, -1, int(cursor) );
-  return _doEvent(ID, e);
+  return _doEvent(ID,
+    arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CURSOR, -1, int(cursor) ));
 }
 
 int arGUIWindowManager::getBpp( const int ID )
@@ -483,18 +483,20 @@ void arGUIWindowManager::setTitle( const int ID, const std::string& title )
 
 void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwrite )
 {
-  const bool fOneWindow = _windows.size() == 1; // bug? this is true more often than it should be?
+#ifdef NEVER_TRUE
+  const bool fManyWindows = _windows.size() != 1; // Bug. *always* true!
+#endif
   for (WindowIterator iter = _windows.begin(); iter != _windows.end(); ++iter) {
     arGUIWindow* win = iter->second;
     if (!overwrite && !win->untitled())
       continue;
 
-    std::string title = baseTitle;
-    if (!fOneWindow) {
-      ostringstream os;
-      os << iter->first;
-      title += " #" + os.str();
+    std::string title(baseTitle);
+#ifdef NEVER_TRUE
+    if (fManyWindows) {
+      title += " #" + ar_intToString(iter->first);
     }
+#endif
     win->setTitle( title );
   }
 }
