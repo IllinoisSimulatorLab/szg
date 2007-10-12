@@ -12,9 +12,7 @@
 #include "arNetInputSource.h"
 #include "arPForthFilter.h"
 
-
 using std::string;
-
 
 // The input node configuration looks like this:
 // <szg_device>
@@ -31,8 +29,6 @@ using std::string;
 //     ... either empty (all whitespace) or a pforth program ...
 //   </pforth>
 // </szg_device>
-
-
 
 bool arInputNodeConfig::_parseTokenList(arStringTextStream& tokenStream,
                                         const string& tagType,
@@ -477,4 +473,3 @@ bool arInputFactory::loadFilters( arInputNode& inputNode, const string& namedPFo
   }
   return true;
 }
-
