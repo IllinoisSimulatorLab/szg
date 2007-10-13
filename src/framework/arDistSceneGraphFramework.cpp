@@ -255,7 +255,7 @@ arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
 
 void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
   if (_initCalled){
-    ar_log_warning() << _label << ": can't setAutoBufferSwap() after init().\n";
+    ar_log_warning() << "can't setAutoBufferSwap() after init().\n";
     return;
   }
 
@@ -265,7 +265,7 @@ void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
 
 void arDistSceneGraphFramework::swapBuffers(){
   if (_autoBufferSwap){
-    ar_log_warning() <<  _label << ": ignoring manual buffer swap in automatic swap mode.\n";
+    ar_log_warning() << "ignoring manual buffer swap in automatic swap mode.\n";
     return;
   }
 
@@ -329,11 +329,11 @@ void arDistSceneGraphFramework::setPlayer(){
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_initCalled){
-    ar_log_error() << _label << ": ignoring duplicate init().\n";
+    ar_log_error() << "ignoring duplicate init().\n";
     return false;
   }
   if (_startCalled){
-    ar_log_error() << _label << ": can't init() after start().\n";
+    ar_log_error() << "can't init() after start().\n";
     return false;
   }
   _label = ar_stripExeName(string(argv[0]));
@@ -366,12 +366,12 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
 
 bool arDistSceneGraphFramework::start(){
   if (!_initCalled){
-    ar_log_error() << _label << ": can't start() before init().\n";
+    ar_log_error() << "can't start() before init().\n";
     return false;
   }
 
   if (_startCalled){
-    ar_log_error() << _label << ": ignoring duplicate start().\n";
+    ar_log_error() << "ignoring duplicate start().\n";
     return false;
   }
 
@@ -406,7 +406,7 @@ void arDistSceneGraphFramework::stop(bool){
   arSleepBackoff a(50, 100, 1.1);
   while (_useExternalThread && _externalThreadRunning)
     a.sleep();
-  ar_log_remark() << _label << ": threads stopped.\n";
+  ar_log_remark() << "threads stopped.\n";
   _stopped = true;
 }
 
@@ -419,7 +419,7 @@ bool arDistSceneGraphFramework::createWindows(bool){
 
   const bool ok = _graphicsClient.start(_SZGClient, false);
   if (!ok){
-    ar_log_warning() << _label << ": failed to start windowing.\n"; 
+    ar_log_warning() << "failed to start windowing.\n"; 
 #ifdef AR_USE_DARWIN
     ar_log_warning() << "  (Ensure that X11 is running.)\n";
 #endif	
@@ -466,8 +466,8 @@ void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
   // use the screen name passed from the distributed system
   const string screenName(_SZGClient.getMode("graphics"));
   if (!_SZGClient.getAttributeFloats(screenName, param, v.v, 3)) {
-    ar_log_remark() << _label << ": screen " << screenName
-                    << "/" << param  << " defaulting to " << v << ar_endl;
+    ar_log_remark() << "screen " << screenName << "/" << param  <<
+      " defaulting to " << v << ".\n";
   }
 }
 
@@ -546,7 +546,7 @@ void arDistSceneGraphFramework::_initDatabases(){
 bool arDistSceneGraphFramework::_initInput(){
   _inputDevice = new arInputNode;
   if (!_inputDevice) {
-    ar_log_warning() << _label << ": failed to create input device.\n";
+    ar_log_warning() << "failed to create input device.\n";
     return false;
   }
   _inputState = &(_inputDevice->_inputState);
@@ -554,7 +554,7 @@ bool arDistSceneGraphFramework::_initInput(){
   if (!_standalone){
     _inputDevice->addInputSource(&_netInputSource,false);
     if (!_netInputSource.setSlot(0)) {
-      ar_log_warning() << _label << ": failed to set slot 0.\n";
+      ar_log_warning() << "failed to set slot 0.\n";
       return false;
     }
     _inputState = &(_inputDevice->_inputState);
@@ -566,7 +566,7 @@ bool arDistSceneGraphFramework::_initInput(){
   _installFilters();
 
   if (!_inputDevice->init(_SZGClient) && !_standalone){
-    ar_log_warning() << _label << " warning: failed to init input device.\n";
+    ar_log_warning() << "failed to init input device.\n";
     if (!_SZGClient.sendInitResponse(false)){
       cerr << _label << " error: maybe szgserver died.\n";
     }
@@ -580,7 +580,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
     if (!strcmp(argv[i],"-dsg")){
       // we have found an arg that might need to be removed.
       if (i+1 >= argc){
-        ar_log_warning() << _label << ": -dsg flag is last in arg list.\n";
+        ar_log_warning() << "-dsg flag is last in arg list.\n";
 	return false;
       }
 
@@ -590,12 +590,12 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       const string thePair(argv[i+1]);
       unsigned int location = thePair.find('=');
       if (location == string::npos){
-        ar_log_warning() << _label << ": context pair has no '='.\n";
+        ar_log_warning() << "context pair has no '='.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1){
-        ar_log_warning() << _label << ": context pair ends with '='.\n";
+        ar_log_warning() << "context pair ends with '='.\n";
         return false;
       }
       // So far, the only special key-value pair is:
@@ -605,12 +605,12 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       string value(thePair.substr(location+1, thePair.length()-location));
       if (key == "peer"){
         _peerName = value;
-        ar_log_remark() << _label << " setting peer name = " << _peerName << "\n";
+        ar_log_remark() << "setting peer name = " << _peerName << "\n";
         _graphicsPeer.setName(_peerName);
       }
       else if (key == "mode"){
         if (value != "feedback"){
-          ar_log_warning() << _label << ": illegal value '" << value << "' for mode.\n";
+          ar_log_warning() << "illegal mode value '" << value << "'.\n";
 	  return false;
 	}
 	_peerMode = value;
@@ -622,7 +622,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 	_remoteRootID = atoi(value.c_str());
       }
       else{
-	ar_log_warning() << _label << ": illegal key '" << key << "' in arg pair.\n";
+	ar_log_warning() << "arg pair has illegal key '" << key << "'.\n";
 	return false;
       }
       
@@ -643,7 +643,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 // string and returns false. Otherwise, it just returns true.
 bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
   if (!f){
-    ar_log_error() << _label << " error: " << s << ar_endl;
+    ar_log_error() << " error: " << s << "\n";
   }
   if (!_SZGClient.sendStartResponse(f)){
     cerr << _label << " error: maybe szgserver died.\n";
@@ -658,7 +658,7 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
   if (!_initInput()){
     return false;
   }
-  ar_log_remark() << _label << ": standalone objects initialized.\n";
+  ar_log_remark() << "standalone objects inited.\n";
   return true;
 }
 
@@ -716,7 +716,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
       return false;
     }
   }
-  ar_log_remark() << _label << ": standalone objects started.\n";
+  ar_log_remark() << "standalone objects started.\n";
   return true;
 }
 
@@ -724,7 +724,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   _loadParameters();
   
   if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask, this)) {
-    ar_log_error() << _label << " error: failed to start message thread.\n";
+    ar_log_error() << "failed to start message thread.\n";
     if (!_SZGClient.sendInitResponse(false)){
       cerr << _label << " error: maybe szgserver died.\n";
     }
@@ -735,25 +735,22 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   if (_SZGClient.getMode("default") == "trigger"){
     const string vircomp = _SZGClient.getVirtualComputer();
     const string defaultMode = _SZGClient.getMode("default");
-    ar_log_remark() << _label << " executing on virtual computer '"
-      << vircomp << "' with default mode '"
-      << defaultMode << "'.\n";
     
     (void)_launcher.setSZGClient(&_SZGClient);
     _vircompExecution = true;
     _launcher.setAppType("distgraphics");
     _launcher.setRenderProgram("szgrender");
     
-    // Reorganizes the system...
+    // Reorganize the cluster.
     if (!_launcher.launchApp()){
-      ar_log_error() << _label 
-		     << " error: failed to launch on virtual computer "
-                     << vircomp << ".\n";
+      ar_log_error() << "failed to launch on virtual computer " << vircomp << ".\n";
       if (!_SZGClient.sendInitResponse(false)){
         cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
+    ar_log_remark() << "launched on virtual computer " << vircomp <<
+      ", default mode " << defaultMode << ".\n";
   }
   
   // Init sound and graphics databases, AFTER the virtual computer
@@ -772,14 +769,14 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   // No sound server in peer mode, so multiple peers can run.
   if (_peerName == "NULL"){
     if (!_graphicsServer.init(_SZGClient)){
-      ar_log_error() << _label << " error: graphics server failed to init. (Is another app running?)\n";
+      ar_log_error() << "graphics server failed to init. (Is another app running?)\n";
       if (!_SZGClient.sendInitResponse(false)){
         cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
     if (!_soundServer.init(_SZGClient)){
-      ar_log_error() << _label << ": audio failed to init. (Is another app running?)\n";
+      ar_log_error() << "audio failed to init. (Is another app running?)\n";
       if (!_SZGClient.sendInitResponse(false)){
         cerr << _label << " error: maybe szgserver died.\n";
       }
@@ -788,7 +785,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   }
   else{
     if (!_graphicsPeer.init(_SZGClient)){
-      ar_log_error() << _label << " error: graphics peer failed to init.\n";
+      ar_log_error() << "graphics peer failed to init.\n";
       if (!_SZGClient.sendInitResponse(false)){
         cerr << _label << " error: maybe szgserver died.\n";
       }
@@ -804,7 +801,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
 }
 
 bool arDistSceneGraphFramework::_startPhleetMode(){
-  ar_log_critical() << _label << " running in cluster mode.\n";
+  ar_log_critical() << "cluster mode.\n";
   // szgrender will display graphics.
 
   // Start the graphics database.
@@ -825,11 +822,9 @@ bool arDistSceneGraphFramework::_startPhleetMode(){
       if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
         return _startRespond("graphics peer failed to connect to requested target=" + _peerTarget + ".");
       }
-      // The following sets up a feedback relationship between the local and remote peers!
-      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
-			       AR_TRANSIENT_NODE,
-			       AR_TRANSIENT_NODE,
-			       AR_TRANSIENT_NODE);
+      // Set up feedback to the remote peer.
+      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0,
+	AR_TRANSIENT_NODE, AR_TRANSIENT_NODE, AR_TRANSIENT_NODE);
     }
   }
   
