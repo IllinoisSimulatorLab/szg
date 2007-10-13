@@ -878,14 +878,11 @@ LDone:
   ar_setenv("SZGUSER",userName);
   ar_setenv("SZGCONTEXT", messageContext);
 
-  // Even though we only use the pipe to communicate with the child
-  // in unix, we still need to tell the
-  // child that it was launched by szgd not the command line.
-  // The -1 guarantees that we aren't on the Unix side
-  // (where this would be a file descriptor)
+  // Although the pipe *communicates* with the child only in unix, still
+  // tell the child that it was launched by szgd, not from the command line.
+  // -1 (invalid file descriptor) says this isn't unix.
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingStr);
-
   ar_log_remark() << "libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
