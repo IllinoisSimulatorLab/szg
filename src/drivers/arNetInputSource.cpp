@@ -119,7 +119,7 @@ bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
 
   _szgClient = &SZGClient;
-  ar_log_remark() << " netinput inited.\n";
+  ar_log_remark() << "netinput inited.\n";
   return true;
 }
 

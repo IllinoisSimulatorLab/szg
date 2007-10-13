@@ -131,7 +131,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
     ar_log_debug() << "arSpacepadDriver: sensor 1 rotation = " << _sensorRot[1] <<".\n";
   }
   _reset_through_isa();
-  ar_log_debug() << "arSpacepadDriver initialized.\n";
+  ar_log_debug() << "arSpacepadDriver inited.\n";
   return true;
 }
 

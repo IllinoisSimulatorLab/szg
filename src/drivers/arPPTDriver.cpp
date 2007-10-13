@@ -46,7 +46,7 @@ bool arPPTDriver::init(arSZGClient& SZGClient) {
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PPT", "com_port"));
   _inited = true;
   _setDeviceElements( 0, 0, 1 );
-  ar_log_remark() << "arPPTDriver initialized.\n";
+  ar_log_remark() << "arPPTDriver inited.\n";
   return true;
 }
 

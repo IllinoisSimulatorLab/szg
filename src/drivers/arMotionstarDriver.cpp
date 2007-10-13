@@ -185,7 +185,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
       return false;
     }
   }
-  ar_log_debug() << "arMotionstarDriver initialized.\n";
+  ar_log_debug() << "arMotionstarDriver inited.\n";
   return true; 
 }
 

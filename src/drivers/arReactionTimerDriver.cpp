@@ -52,7 +52,7 @@ bool arReactionTimerDriver::init(arSZGClient& SZGClient) {
   _inited = true;
   // 2 buttons, 2 axes, no matrices.
   _setDeviceElements( 2, 2, 0 );
-  ar_log_debug() << "arReactionTimerDriver initialized.\n";
+  ar_log_debug() << "arReactionTimerDriver inited.\n";
   return true;
 }
 

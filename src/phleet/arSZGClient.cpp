@@ -273,7 +273,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
       // send a partial response (i.e. there will be more responses).
       if (!messageResponse(_launchingMessageID,
 			   _generateLaunchInfoHeader() +
-			   _exeName + string(" launched.\n"),
+			     "dex launched pid " + ar_intToString(getProcessID()) +
+			     ", " + _exeName + ".\n",
 			   !_simpleHandshaking)) {
 	ar_log_warning() << "response failed during launch.\n";
       }

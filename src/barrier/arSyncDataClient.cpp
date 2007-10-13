@@ -307,7 +307,7 @@ bool arSyncDataClient::init(arSZGClient& client){
   _client = &client;
   _serviceNameBarrier = client.createComplexServiceName(_serviceName+"_BARRIER");
   _serviceName = client.createComplexServiceName(_serviceName);
-  ar_log_remark() << "initialized with service name " << _serviceName << ".\n";
+  ar_log_remark() << "inited, service '" << _serviceName << "'.\n";
   return true;
 }
 

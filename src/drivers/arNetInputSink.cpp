@@ -38,7 +38,7 @@ void arNetInputSink::setInfo(const string& info){
 bool arNetInputSink::init(arSZGClient& SZGClient){
   // cache the arSZGClient for connection brokering
   _szgClient = &SZGClient;
-  ar_log_remark() << "arNetInputSink initialized.\n";
+  ar_log_remark() << "arNetInputSink inited.\n";
   return true;
 }
 
