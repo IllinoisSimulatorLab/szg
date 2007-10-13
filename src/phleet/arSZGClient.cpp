@@ -2047,6 +2047,8 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
     return result;
   }
 
+  result.valid = false;
+
   // Pack data and send request.
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_REQUEST_SERVICE);
   data->dataInString(_l.AR_SZG_REQUEST_SERVICE_COMPUTER, _computerName);
@@ -2057,49 +2059,47 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
 
   if (!_dataClient.sendData(data)) {
     ar_log_warning() << "failed to request service.\n";
-    result.valid = false;
     _dataParser->recycle(data);
     return result;
   }
+
   _dataParser->recycle(data);
 
-  const string svc = "service '" + serviceName + "' on network(s) '" + networks + (async ? "', async.\n" : "'.\n");
+  const string svc = "service " + serviceName + " on network(s) '" + networks +
+    (async ? "', async.\n" : "'.\n");
   ar_log_debug() << "awaiting " << svc;
 
   // Get response.
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
   if (!data) {
     ar_log_warning() << "no " << svc;
-    result.valid = false;
     return result;
   }
-  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
 
   // Parse response.
+  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
   if (data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS") {
     result.valid = true;
     result.address = data->getDataString(_l.AR_SZG_BROKER_RESULT_ADDRESS);
     result.numberPorts = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
     data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs, AR_INT, result.numberPorts);
-    ar_log_debug() << "Service params: IP=" << result.address << ", " <<
+    ar_log_debug() << "service " << serviceName << " from " << result.address << ", " <<
       result.numberPorts << " port(s).\n";
-  }
-  else{
-    result.valid = false;
   }
   _dataParser->recycle(data);
   return result;
 }
 
-// The code to print either pending service requests or active services
+// Print either pending service requests or active services.
+// Argument "type" is "registered" or "active".
 void arSZGClient::_printServices(const string& type) {
   if (!_connected) {
     return;
   }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
   int match = _fillMatchField(data);
 
-  // type is "registered" or "active".
   data->dataInString(_l.AR_SZG_GET_SERVICES_TYPE, type);
 
   // "NULL" asks szgserver to return all services, not just a particular one.
@@ -2118,6 +2118,7 @@ void arSZGClient::_printServices(const string& type) {
     ar_log_warning() << "got no service list.\n";
     return;
   }
+
   const string services(data->getDataString(_l.AR_SZG_GET_SERVICES_SERVICES));
   const arSlashString computers(data->getDataString(_l.AR_SZG_GET_SERVICES_COMPUTERS));
   const int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, AR_INT);
@@ -2140,6 +2141,7 @@ int arSZGClient::requestServiceReleaseNotification(const string& serviceName) {
   if (!_connected) {
     return -1;
   }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_RELEASE);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_RELEASE_NAME, serviceName);

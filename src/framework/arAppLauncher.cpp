@@ -758,8 +758,8 @@ void arAppLauncher::_relaunchIncompatibleServices(
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
       // No component offers this service.
-      ar_log_remark() << "starting service " << iter->tradingTag << " on host " <<
-        iter->computer << ".\n";
+      ar_log_remark() << "host " << iter->computer << " starting service " <<
+        iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
       continue;
     }
@@ -779,14 +779,15 @@ void arAppLauncher::_relaunchIncompatibleServices(
       const string info(_szgClient->getServiceInfo(iter->tradingTag));
       if (info != iter->info){
 	// Perhaps a DeviceServer running the wrong driver.
-	ar_log_remark() << "restarting service " << iter->tradingTag << " on host " <<
-	  iter->computer << ", because of mismatched info '" << iter->info << "'.\n";
+	ar_log_remark() << "host " << iter->computer << " restarting service " <<
+	  iter->tradingTag << ", because of mismatched info '" << iter->info << "'.\n";
 	serviceKillList.push_back(serviceID);
 	appsToLaunch.push_back(*iter);
       }
       else{
 	// Service is already running.
-	ar_log_debug() << "keeping service " << iter->tradingTag << ".\n";
+	ar_log_debug() << "host " << iter->computer << " keeping service " <<
+	  iter->tradingTag << ".\n";
       }
     }
     else{

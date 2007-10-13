@@ -222,10 +222,9 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   const string displayName = szgClient->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "arGraphicsClient display " << whichDisplay << "/name undefined, using default.\n";
+    ar_log_warning() << "no display " << whichDisplay << "/name, using default.\n";
   } else {
-    ar_log_remark() << "arGraphicsClient displaying on " << whichDisplay << " : "
-                    << displayName << ".\n";
+    ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }
 
   // arTexture::_loadIntoOpenGL() complains and aborts

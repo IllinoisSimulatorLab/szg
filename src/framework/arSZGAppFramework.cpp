@@ -340,8 +340,8 @@ void arSZGAppFramework::_loadNavParameters() {
       }
     }
     temp = "effector is ";
-    for (unsigned i=0; i<6; i++) {
-      temp += ar_intToString(params[i]) + (i==5 ? "\n" : "/");
+    for (unsigned i=0; i<5; i++) {
+      temp += ar_intToString(params[i]) + (i==4 ? ".\n" : "/");
     }
     ar_log_remark() << temp;
     _navManager.setEffector(

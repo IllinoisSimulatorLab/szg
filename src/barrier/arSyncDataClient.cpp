@@ -307,7 +307,7 @@ bool arSyncDataClient::init(arSZGClient& client){
   _client = &client;
   _serviceNameBarrier = client.createComplexServiceName(_serviceName+"_BARRIER");
   _serviceName = client.createComplexServiceName(_serviceName);
-  ar_log_remark() << "inited, service '" << _serviceName << "'.\n";
+  ar_log_debug() << "inited service " << _serviceName << ".\n";
   return true;
 }
 
@@ -343,7 +343,7 @@ bool arSyncDataClient::start(){
     return false;
   }
 
-  ar_log_remark() << "started.\n";
+  ar_log_remark() << "started service " << _serviceName << ".\n";
   return true;
 }
 

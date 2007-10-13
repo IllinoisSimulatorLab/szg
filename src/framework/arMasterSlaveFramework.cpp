@@ -470,7 +470,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
     
     // This application instance, the trigger, only launches other instances.
-    ar_log_remark() << "trigger launched app's components.\n";
+    ar_log_debug() << "trigger launched components.\n";
     
     if( !_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
@@ -2138,10 +2138,8 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
 //**************************************************************************
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
+  ar_log_debug() << "reloading parameters.\n";
 
-  ar_log_remark() << "reloading parameters.\n";
-
-  // some things depend on the SZG_RENDER
   _texturePath = _SZGClient.getAttribute( "SZG_RENDER","texture_path" );
   string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
@@ -2154,10 +2152,9 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "display " << whichDisplay << "/name undefined, using default.\n";
+    ar_log_warning() << "no display " << whichDisplay << "/name, using default.\n";
   } else {
-    ar_log_remark() << "displaying on " << whichDisplay <<
-      " : " << displayName << ".\n";
+    ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }
 
   // arTexture::_loadIntoOpenGL() complains and aborts
