@@ -56,11 +56,13 @@ void arDataServer::_readDataTask(){
   map<int,arStreamConfig,less<int> >::iterator iter = 
     _connectionConfigs.find(newFD->getID());
   if (iter == _connectionConfigs.end()) {
-    cout << "arDataServer error: read thread launched without stream "
-	 << "config (socket ID = " << newFD->getID() << ".\n";
+    ar_log_warning() <<
+      "arDataServer: read thread launched without stream config (socket ID = " <<
+      newFD->getID() << ".\n";
     _threadLaunchSignal.sendSignal();
     return;
   }
+
   arStreamConfig remoteConfig = iter->second;
   _threadLaunchSignal.sendSignal();
 
@@ -79,7 +81,7 @@ void arDataServer::_readDataTask(){
 	break;
     if (!fEndianMode) {
       if (!_theDictionary) {
-	cerr << "arDataServer error: no dictionary.\n";
+	ar_log_warning() << "arDataServer: no dictionary.\n";
 	break;
       }
       const ARint recordID = ar_translateInt(transBuffer+AR_INT_SIZE, remoteConfig);
@@ -87,7 +89,7 @@ void arDataServer::_readDataTask(){
       arGuard dummy(_lockConsume);
       arDataTemplate* t = _theDictionary->find(recordID);
       if (!t || t->translate(dest,transBuffer,remoteConfig) <= 0) {
-	cerr << "arDataServer warning: failed to translate record.\n";
+	ar_log_warning() << "arDataServer failed to translate record.\n";
         break;
       }
     }
@@ -105,7 +107,7 @@ void arDataServer::_readDataTask(){
       _lockConsume.unlock();
     }
     if (!inData) {
-      cerr << "arDataServer warning: failed to parse record.\n";
+      ar_log_warning() << "arDataServer failed to parse record.\n";
       break;
     }
   }
@@ -133,17 +135,18 @@ void arDataServer::atomicReceive(bool atomicReceive){
 
 bool arDataServer::setPort(int thePort){
   if (thePort < 1024 || thePort > 50000){
-    cerr << "arDataServer warning: ignoring port value " << thePort
-	<< ": out of range 1024 to 50000.\n";
+    ar_log_warning() << "arDataServer ignoring out-of-range (1024-50000) port value " <<
+      thePort << ".\n";
     return false;
   }
+
   _portNumber = thePort;
   return true;
 }
 
 bool arDataServer::setInterface(const string& theInterface){
   if (theInterface == "NULL"){
-    cerr << "arDataServer warning: ignoring NULL setInterface.\n";
+    ar_log_warning() << "arDataServer ignoring NULL setInterface.\n";
     return false;
   }
   _interfaceIP = theInterface;
@@ -152,13 +155,15 @@ bool arDataServer::setInterface(const string& theInterface){
 
 bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
   if (_portNumber == -1){
-    cerr << "arDataServer warning: failed to listen on undefined port.\n";
+    ar_log_warning() << "arDataServer failed to listen on undefined port.\n";
     return false;
   }
+
   if (!theDictionary){
     cerr << "arDataServer error: no dictionary.\n";
     return false;
   }
+
   _theDictionary = theDictionary;
   if (!_dataParser){
     _dataParser = new arStructuredDataParser(_theDictionary);
@@ -169,7 +174,7 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
   if (_listeningSocket->ar_create() < 0 ||
       !setReceiveBufferSize(_listeningSocket) ||
       !_listeningSocket->reuseAddress(true)) {
-    cerr << "arDataServer error: failed to begin listening.\n";
+    ar_log_warning() << "arDataServer failed to begin listening.\n";
     _listeningSocket->ar_close(); // avoid memory leak
     return false;
   }
@@ -181,14 +186,11 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
   // ar_bind needs C string, not std::string
   char addressBuffer[256];
   ar_stringToBuffer(_interfaceIP, addressBuffer, sizeof(addressBuffer));
-  if (_listeningSocket->ar_bind(_interfaceIP == "INADDR_ANY" 
-                                   ? NULL : addressBuffer,
-                                _portNumber) < 0){
-    cerr << "arDataServer warning: failed to bind to "
+  if (_listeningSocket->
+      ar_bind(_interfaceIP == "INADDR_ANY" ? NULL : addressBuffer, _portNumber) < 0){
+    ar_log_warning() << "arDataServer failed to bind to "
          << _interfaceIP << ":" << _portNumber
-         << "\n\t(maybe " << _interfaceIP
-         << " is not this host's address,\n\tor port "
-         << _portNumber << " is already in use.)\n";
+         << "\n\t(not this host's IP address?  port in use?).\n";
     _listeningSocket->ar_close(); // avoid memory leak
     return false;
   }
@@ -224,8 +226,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
-  ar_log_remark() << "arDataServer connected from "
-                  << addr.getRepresentation() << ar_endl;
+  ar_log_remark() << "arDataServer connected from " << addr.getRepresentation() << ".\n";
  
   arGuard dummy(_lockTransfer);
   _addSocketToDatabase(newSocketFD);
@@ -280,7 +281,7 @@ LAbort:
   // Send the dictionary.
   const int theSize = _theDictionary->size();
   if (theSize<=0){
-    cout << "arDataServer error: failed to pack dictionary.\n";
+    ar_log_warning() << "arDataServer failed to pack dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
     goto LAbort;
   }
@@ -288,7 +289,7 @@ LAbort:
   ARchar* buffer = new ARchar[theSize]; // Storage for the dictionary.
   _theDictionary->pack(buffer);
   if (!newSocketFD->ar_safeWrite(buffer,theSize)){
-    cerr << "arDataServer error: failed to send dictionary.\n";
+    ar_log_warning() << "arDataServer failed to send dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
     goto LAbort;
   }
@@ -303,7 +304,7 @@ LAbort:
     _nextConsumer = newSocketFD;
     arThread* dummy = new arThread; // memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
-      cerr << "arDataServer error: failed to start read thread.\n";
+      ar_log_warning() << "arDataServer failed to start read thread.\n";
       return NULL;
     } 
     // Wait until ar_readDataThread reads _nextConsumer into local storage.
@@ -394,12 +395,12 @@ bool arDataServer::sendData(arStructuredData* pData, arSocket* fd){
 
 bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
   if (!fd){
-    cerr << "arDataServer warning: ignoring data-send to NULL socket.\n";
+    ar_log_warning() << "arDataServer ignoring send to NULL socket.\n";
     return false;
   }
   const int theSize = pData->size();
   if (!ar_growBuffer(_dataBuffer, _dataBufferSize, theSize)) {
-    cerr << "arDataServer warning: failed to grow buffer.\n";
+    ar_log_warning() << "arDataServer failed to grow buffer.\n";
     return false;
   }
   pData->pack(_dataBuffer);
@@ -408,7 +409,7 @@ bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
 
 bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd){
   if (!fd){
-    cerr << "arDataServer warning: ignoring data-queue-send to NULL socket.\n";
+    ar_log_warning() << "arDataServer ignoring queue-send to NULL socket.\n";
     return false;
   }
   arGuard dummy(_lockTransfer);
@@ -420,7 +421,7 @@ bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket*
   // Caller ensures that fd != NULL.
   if (fd->ar_safeWrite(theBuffer,theSize))
     return true;
-  cerr << "arDataServer warning: failed to send data to specific socket.\n";
+  ar_log_warning() << "arDataServer failed to send data to specific socket.\n";
   _deleteSocketFromDatabase(fd);
   return false;
 }
@@ -437,7 +438,7 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
       ok = true;
     }
     else{
-      cerr << "arDataServer warning: failed to send data.\n";
+      ar_log_warning() << "arDataServer failed to send data.\n";
       removalList.push_back(*i);
     }
   }
@@ -569,7 +570,7 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
 
   // Delete the socket from the label table.
   if (!_delSocketLabel(theSocket))
-    cerr << "arDataServer warning: internal socket databases are inconsistent.\n";
+    ar_log_warning() << "arDataServer: inconsistent internal socket databases.\n";
 
   // Remove the socket*.
   for (list<arSocket*>::iterator removalIterator(_connectionSockets.begin());
@@ -599,7 +600,7 @@ void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
   map<int,arStreamConfig,less<int> >::iterator
     iter(_connectionConfigs.find(theSocket->getID()));
   if (iter != _connectionConfigs.end()){
-    cerr << "arDataServer warning: erasing duplicate socket ID.\n";
+    ar_log_warning() << "arDataServer erasing duplicate socket ID.\n";
     _connectionConfigs.erase(iter);
   }
   _connectionConfigs.insert
@@ -608,8 +609,7 @@ void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
 }
 
 // -1 is returned on error. Otherwise the ID of the new socket.
-// THIS IS VERY BAD COPY-PASTE FROM arDataClient. PLEASE LEAVE IT
-// UNTIL IT GETS CLEANED-UP.
+// Unlike arDataClient, which returns bool.  Beware!
 int arDataServer::dialUpFallThrough(const string& s, int port){
   arSocket* socket = new arSocket(AR_STANDARD_SOCKET);
   if (socket->ar_create() < 0) {
@@ -617,17 +617,20 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
          << ") failed to create socket.\n";
     return -1;
   }
+
   if (!setReceiveBufferSize(socket)){
     return -1;
   }
+
   if (!socket->smallPacketOptimize(_smallPacketOptimize)){
     ar_log_warning() << "arDataServer: dialUp(" << s << ":" << port
          << ") failed to smallPacketOptimize.\n";
     return -1;
   }
+
   arSocketAddress addr;
   if (socket->ar_connect(s.c_str(), port) < 0){
-    cerr << "arDataServer error: dialUp failed.\n";
+    ar_log_warning() << "arDataServer failed to dialUp.\n";
     socket->ar_close();
     // delete socket?
     return -1;
@@ -642,23 +645,23 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   arStreamConfig remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
     if (remoteStreamConfig.refused){
-      ar_log_remark() << "arDataServer: remote data point disconnected.\n"
-	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
-      return false;
+      ar_log_remark() << "arDataServer disconnected (host not on szgserver's whitelist?).\n";
+      return -1;
     }
-    ar_log_warning() << "arDataServer: remote data point has wrong szg protocol version "
+    ar_log_warning() << "arDataServer got wrong Syzygy protocol version "
          << remoteStreamConfig.version << ".\n";
-    return false;
+    return -1;
   }
   
   ARchar sizeBuffer[AR_INT_SIZE];
-  // arDataServer doesn't actually use sizeBuffer (as opposed to arDataClient).
-  // In arDataClient, a statement would go here storing the remote socket ID.
+  // Unlike arDataClient, don't *use* sizeBuffer.
+  // arDataClient would store the remote socket ID here.
   if (!socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << "arDataServer error: dialUp failed to get dictionary size.\n";
+    ar_log_warning() << "arDataServer: dialUp got no dictionary size.\n";
     socket->ar_close();
     return -1;
   }
+
   const ARint totalSize = ar_translateInt(sizeBuffer,remoteStreamConfig);
   if (totalSize < AR_INT_SIZE){
     ar_log_warning() << "arDataServer: dialUp failed to translate dictionary.\n";
@@ -674,7 +677,6 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     return -1;
   }
 
-  // Success!
   delete [] dataBuffer;
 
   arGuard dummy(_lockTransfer);
@@ -694,7 +696,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     _nextConsumer = socket;
     arThread* dummy = new arThread; // \bug memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
-      cerr << "arDataServer error: failed to start read thread.\n";
+      ar_log_warning() << "arDataServer failed to start read thread.\n";
       return -1;
     } 
     // Wait until the new thread reads _nextConsumer into local storage.
