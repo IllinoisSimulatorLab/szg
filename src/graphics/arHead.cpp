@@ -8,26 +8,36 @@
 #include "arGraphicsScreen.h"
 
 ostream& operator<<(ostream& s, arHead& h) {
-  s << "Matrix:\n" << h.getMatrix()
-    << "  MidEyeOffset   " << h.getMidEyeOffset() << endl
+  s << "  Matrix         ";
+  const arMatrix4 m(h.getMatrix());
+  if (m==ar_identityMatrix())
+    s << "identity\n";
+  else
+    s << m;
+
+  s << "  MidEyeOffset   " << h.getMidEyeOffset() << endl
     << "  EyeDirection   " << h.getEyeDirection() << endl
     << "  EyeSpacing     " << h.getEyeSpacing() << endl
-    << "  ClipPlanes     " << h.getNearClip() << ", " 
-                              << h.getFarClip() << endl
+    << "  ClipPlanes     " << h.getNearClip() << " " << h.getFarClip() << endl
     << "  UnitConversion " << h.getUnitConversion() << endl
     << "  FixedHeadMode  " << h.getFixedHeadMode() << endl;
   return s;
 }
 
 arLogStream& operator<<(arLogStream& s, arHead& h) {
-  s << "Matrix:\n" << h.getMatrix()
-  << "  MidEyeOffset   " << h.getMidEyeOffset() << ar_endl
-  << "  EyeDirection   " << h.getEyeDirection() << ar_endl
-  << "  EyeSpacing     " << h.getEyeSpacing() << ar_endl
-  << "  ClipPlanes     " << h.getNearClip() << ", " 
-  << h.getFarClip() << ar_endl
-  << "  UnitConversion " << h.getUnitConversion() << ar_endl
-  << "  FixedHeadMode  " << h.getFixedHeadMode() << ar_endl;
+  s << "  Matrix         ";
+  const arMatrix4 m(h.getMatrix());
+  if (m==ar_identityMatrix())
+    s << "identity\n";
+  else
+    s << m;
+
+  s << "  MidEyeOffset   " << h.getMidEyeOffset() << ar_endl
+    << "  EyeDirection   " << h.getEyeDirection() << ar_endl
+    << "  EyeSpacing     " << h.getEyeSpacing() << ar_endl
+    << "  ClipPlanes     " << h.getNearClip() << " " << h.getFarClip() << ar_endl
+    << "  UnitConversion " << h.getUnitConversion() << ar_endl
+    << "  FixedHeadMode  " << h.getFixedHeadMode() << ar_endl;
   return s;
 }
 
@@ -55,30 +65,25 @@ bool arHead::configure( arSZGClient& client ) {
   }
 
   _fixedHeadMode = client.getAttribute("SZG_HEAD", "fixed_head_mode", "|false|true|") == "true";
-
-  ar_log_remark() << "Head: " << *this;
+  ar_log_remark() << "Head:\n" << *this;
   return true;
 }
 
-arVector3 arHead::getEyePosition( float eyeSign, const arMatrix4* useMatrix ) const {
-  const arMatrix4* matPtr = useMatrix ? useMatrix : &_matrix;
-  const arVector3 eyeOffsetVector(_midEyeOffset +
+arVector3 arHead::getEyePosition( float eyeSign, const arMatrix4* M ) const {
+  const arVector3 offset(_midEyeOffset +
     0.5 *eyeSign * _eyeSpacing * _eyeDirection.normalize());
-  // The eye position is a quantity we need computed.
-  return _unitConversion * (*matPtr * eyeOffsetVector);
+  return _unitConversion * ((M ? *M : _matrix) * offset);
 }
 
-arVector3 arHead::getMidEyePosition( const arMatrix4* useMatrix ) const {
-  const arMatrix4* matPtr = useMatrix ? useMatrix : &_matrix;
-  // The mid-eyes position is a quantity we need computed.
-  return _unitConversion * (*matPtr * _midEyeOffset);
+arVector3 arHead::getMidEyePosition( const arMatrix4* M ) const {
+  return _unitConversion * ((M ? *M : _matrix) * _midEyeOffset);
 }
 
 arMatrix4 arHead::getMidEyeMatrix() const {
-  arMatrix4 mat(_matrix * ar_translationMatrix(_midEyeOffset) );
+  arMatrix4 M(_matrix * ar_translationMatrix(_midEyeOffset) );
   if (ar_angleBetween( arVector3(1,0,0), _eyeDirection ) > .01)
-    mat = mat * ar_rotateVectorToVector( arVector3(1,0,0),_eyeDirection );
+    M = M * ar_rotateVectorToVector( arVector3(1,0,0), _eyeDirection );
   for (int i=12; i<15; ++i)
-    mat.v[i] *= _unitConversion;
-  return mat;
+    M.v[i] *= _unitConversion;
+  return M;
 }
