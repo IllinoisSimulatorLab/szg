@@ -210,26 +210,26 @@ arMatrix4::operator arQuaternion() const {
 }
 
 istream& operator>>(istream& is, arMatrix4& x){
-  is >>x.v[0]     >>x.v[4]     >>x.v[8]     >>x.v[12]
-     >>x.v[1]     >>x.v[5]     >>x.v[9]     >>x.v[13]
+  is >>x.v[0]     >>x.v[4]     >>x.v[8 ]    >>x.v[12]
+     >>x.v[1]     >>x.v[5]     >>x.v[9 ]    >>x.v[13]
      >>x.v[2]     >>x.v[6]     >>x.v[10]    >>x.v[14]
      >>x.v[3]     >>x.v[7]     >>x.v[11]    >>x.v[15];
   return is;
 }
 
 ostream& operator<<(ostream& os, const arMatrix4& x){
-  os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8]<<" "<<x.v[12]<<"\n"
-     <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9]<<" "<<x.v[13]<<"\n"
+  os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8 ]<<" "<<x.v[12]<<"\n"
+     <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9 ]<<" "<<x.v[13]<<"\n"
      <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
      <<x.v[3]<<" "<<x.v[7]<<" "<<x.v[11]<<" "<<x.v[15]<<"\n";
   return os;
 }
 
 arLogStream& operator<<(arLogStream& os, const arMatrix4& x){
-  os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8]<<" "<<x.v[12]<<"\n"
-  <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9]<<" "<<x.v[13]<<"\n"
-  <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
-  <<x.v[3]<<" "<<x.v[7]<<" "<<x.v[11]<<" "<<x.v[15]<<"\n";
+  os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8 ]<<" "<<x.v[12]<<"\n"
+     <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9 ]<<" "<<x.v[13]<<"\n"
+     <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
+     <<x.v[3]<<" "<<x.v[7]<<" "<<x.v[11]<<" "<<x.v[15]<<"\n";
   return os;
 }
 
@@ -262,12 +262,10 @@ arQuaternion::arQuaternion( const float* numAddress ) :
 }
 
 arQuaternion arQuaternion::inverse() const {
-  float m = magsqr();
-  if (fabs(m) < 1.e-6) {
-    return arQuaternion(0,0,0,0);
-  } else {
-    return conjugate() / m;
-  }
+  const float m = magsqr();
+  return (fabs(m) < 1.e-6) ?
+    arQuaternion(0,0,0,0) :
+    conjugate() / m;
 }
 
 arQuaternion::operator arMatrix4() const {
@@ -283,8 +281,8 @@ arQuaternion::operator arMatrix4() const {
   const float b1b3 = 2*pure.v[0]*pure.v[2];
   return arMatrix4(
     aa+b1b1-b2b2-b3b3, -ab32+b1b2,        ab22+b1b3, 0,
-    ab32+b1b2,        aa+b2b2-b1b1-b3b3, -ab12+b2b3, 0,
-    -ab22+b1b3,         ab12+b2b3,        aa+b3b3-b1b1-b2b2, 0,
+    ab32+b1b2,         aa+b2b2-b1b1-b3b3, -ab12+b2b3, 0,
+    -ab22+b1b3,        ab12+b2b3,         aa+b3b3-b1b1-b2b2, 0,
     0, 0, 0, 1);
 }
 
