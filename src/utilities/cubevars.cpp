@@ -163,6 +163,7 @@ ARint rgOnbutton [cbMax+1] = {0}; // technically unused, while rendered only as 
 ARint rgOffbutton[cbMax+1] = {0}; // technically unused, while rendered only as sound
 ARfloat rgAxis[caMax] = {0};
 bool rgfjoy32k[caMax] = {0};
+bool fWhitewalls = false;
 arMatrix4 rgm[cmMax]; // rgm[0] is head, rest are wands.
 
 inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
@@ -237,14 +238,21 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   bool fPong = false;
   unsigned i;
   int iPing = -1;
+  int cOn = 0;
   for (i=0; i < cb; ++i) {
     rgButton[i]    = fw.getButton(i);
     rgOnbutton[i]  = fw.getOnButton(i);
     rgOffbutton[i] = fw.getOffButton(i);
-    if (rgOnbutton[i])
+    if (rgOnbutton[i]) {
       iPing = int(i);
+      ++cOn;
+    }
     fPing |= rgOnbutton[i];
     fPong |= rgOffbutton[i];
+  }
+  // Mash several buttons *at once* to toggle white walls.
+  if (cOn > 1) {
+    fWhitewalls = !fWhitewalls;
   }
   doSounds(iPing, fPing, fPong);
 
@@ -286,6 +294,12 @@ inline void drawSliderCube() {
 }
 
 void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
+
+  if (fWhitewalls)
+    glClearColor(1,1,1,0);
+  else
+    glClearColor(0,0,0,0);
+  glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
@@ -436,7 +450,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   glLineWidth(1);
 
-  // Draw axes and buttons near first wand.
+  // Axes and buttons near first wand.
   if (cm > 1)
     glMultMatrixf(ar_ETM(rgm[1]).v);
 
@@ -523,6 +537,7 @@ bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
   fw.addTransferField("e", rgAxis, AR_FLOAT, sizeof(rgAxis)/sizeof(ARfloat));
   fw.addTransferField("f", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
   fw.addTransferField("g", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
+  fw.addTransferField("h", &fWhitewalls, AR_INT, 1);
   return true;
 }
 
