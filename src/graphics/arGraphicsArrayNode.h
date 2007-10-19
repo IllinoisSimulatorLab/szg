@@ -39,6 +39,8 @@ class SZG_CALL arGraphicsArrayNode : public arGraphicsNode {
   unsigned _numElements() const
     { return _commandBuffer.size() / _arrayStride; }
   void _mergeElements(int number, void* elements, int* IDs = NULL);
+
+  // NOT a specialization of virtual void arGraphicsNode::initialize(arDatabase*).
   void initialize(const int a, const int b, const int c, const int d, const int e)
     {
     _recordType = a;
