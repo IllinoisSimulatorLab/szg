@@ -216,41 +216,47 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   ar_usleep(30000); // Might improve stability.  Probably unnecessary.
 
   // Accept connections in a different thread from the one sending data.
-  arSocket* newSocketFD = new arSocket(AR_STANDARD_SOCKET);
-  if (!newSocketFD){
+  arSocket* sockNew = new arSocket(AR_STANDARD_SOCKET);
+  if (!sockNew){
     ar_log_warning() << "arDataServer: no socket in _acceptConnection.\n";
     return NULL;
   }
   arSocketAddress addr;
-  if (_listeningSocket->ar_accept(newSocketFD, &addr) < 0) {
+  if (_listeningSocket->ar_accept(sockNew, &addr) < 0) {
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
+  // Possible bug, e.g. server is masterslave app, client is SoundRender:
+  // if there was only 1 client, which disconnected and then reconnected from a different IP
+  // (on a different subnet), then we should ar_log_warning().
+  // But how can we distinguish this case from the general multiple-client case?
+  // Caching a single addr as a member variable is too simplistic.
+
   ar_log_remark() << "arDataServer connected from " << addr.getRepresentation() << ".\n";
  
   arGuard dummy(_lockTransfer);
-  _addSocketToDatabase(newSocketFD);
-  if (!newSocketFD->smallPacketOptimize(_smallPacketOptimize)) {
+  _addSocketToDatabase(sockNew);
+  if (!sockNew->smallPacketOptimize(_smallPacketOptimize)) {
     ar_log_warning() << "arDataServer failed to smallPacketOptimize.\n";
 LAbort:
     return NULL;
   }
 
   // Add the new socket to either the active or the passive list.
-  (addToActive ? _connectionSockets : _passiveSockets).push_back(newSocketFD);
+  (addToActive ? _connectionSockets : _passiveSockets).push_back(sockNew);
 
   if (!_theDictionary){
     // We expected to SEND the dictionary to the connected data point.
     ar_log_warning() << "arDataServer: no dictionary.\n";
-    _deleteSocketFromDatabase(newSocketFD);
+    _deleteSocketFromDatabase(sockNew);
     goto LAbort;
   }
 
   // Configuration handshake.
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE; // todo: do this line in arStreamConfig's constructor.
-  localConfig.ID = newSocketFD->getID();
-  arStreamConfig remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
+  localConfig.ID = sockNew->getID();
+  arStreamConfig remoteStreamConfig = handshakeConnectTo(sockNew, localConfig);
   if (!remoteStreamConfig.valid) {
     string sSymptom;
     const int ver = remoteStreamConfig.version;
@@ -271,26 +277,26 @@ LAbort:
     }
     ar_log_warning() << "arDataServer rejected connection from " <<
       addr.getRepresentation() << ": " << sSymptom << ".\n";
-    _deleteSocketFromDatabase(newSocketFD);
+    _deleteSocketFromDatabase(sockNew);
     goto LAbort;
   }
   // We need to know the remote stream config for this socket, since we
   // might send data (i.e. szgserver or arBarrierServer).
-  _setSocketRemoteConfig(newSocketFD,remoteStreamConfig);
+  _setSocketRemoteConfig(sockNew,remoteStreamConfig);
 
   // Send the dictionary.
   const int theSize = _theDictionary->size();
   if (theSize<=0){
     ar_log_warning() << "arDataServer failed to pack dictionary.\n";
-    _deleteSocketFromDatabase(newSocketFD);
+    _deleteSocketFromDatabase(sockNew);
     goto LAbort;
   }
 
   ARchar* buffer = new ARchar[theSize]; // Storage for the dictionary.
   _theDictionary->pack(buffer);
-  if (!newSocketFD->ar_safeWrite(buffer,theSize)){
+  if (!sockNew->ar_safeWrite(buffer,theSize)){
     ar_log_warning() << "arDataServer failed to send dictionary.\n";
-    _deleteSocketFromDatabase(newSocketFD);
+    _deleteSocketFromDatabase(sockNew);
     goto LAbort;
   }
   delete [] buffer;
@@ -301,7 +307,7 @@ LAbort:
 
   if (_consumerFunction){
     // A consumer is registered, so start a read thread for the new connection.
-    _nextConsumer = newSocketFD;
+    _nextConsumer = sockNew;
     arThread* dummy = new arThread; // memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
       ar_log_warning() << "arDataServer failed to start read thread.\n";
@@ -311,7 +317,7 @@ LAbort:
     _threadLaunchSignal.receiveSignal();
   }
  
-  return newSocketFD;
+  return sockNew;
 }
 
 void arDataServer::activatePassiveSockets(){

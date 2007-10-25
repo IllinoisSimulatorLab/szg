@@ -54,27 +54,27 @@ class SZG_CALL arDataServer : public arDataPoint {
    void activatePassiveSocket(int);
    // are there any passive sockets?
    bool checkPassiveSockets();
-   // get a list of active sockets
    list<arSocket*>* getActiveSockets();
            
-   // send data to all connected clients
+   // Send data to all connected clients.
    bool sendData(arStructuredData*);
    bool sendDataQueue(arQueuedData*);
   
-   // send data to someone in particular...
+   // Send data to someone in particular.
    bool sendData(arStructuredData*,arSocket*); 
    bool sendDataNoLock(arStructuredData*,arSocket*);
    bool sendDataQueue(arQueuedData*,arSocket*);
-   // ...or to a group of someone's in particular
+
+   // Send data to a group of someone's in particular.
    bool sendDataQueue(arQueuedData*,list<arSocket*>*);
 
    void setConsumerFunction
      (void (*consumerFunction)(arStructuredData*,void*,arSocket*));
    void setConsumerObject(void*);
 
-   int getNumberConnected() const       // count every connection, including passive
+   int getNumberConnected() const       // passive and active connections
      { return _numberConnected; }
-   int getNumberConnectedActive() const // don't count the passive ones
+   int getNumberConnectedActive() const // exclude passive connections
      { return _numberConnectedActive; }
 
    void setDisconnectFunction
@@ -89,13 +89,12 @@ class SZG_CALL arDataServer : public arDataPoint {
    string getSocketLabel(int theSocketID);
    int getFirstIDWithLabel(const string& theSocketLabel);
 
-   // we can choose to only accept connections from certain IPs...
-   // see arSocket and arSocketAddress for details
+   // Accept connections.
+   int dialUpFallThrough(const string& s, int port);
+
+   // Restrict connections to certain IPs (see arSocket and arSocketAddress).
    void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
 
-   // It is convenient to also let the arDataServer accept connections.
-   int dialUpFallThrough(const string& s, int port);
-   
  private:
    string _interfaceIP;
    int _portNumber;
@@ -103,7 +102,7 @@ class SZG_CALL arDataServer : public arDataPoint {
    // todo: _connectionSockets is redundant with _connectionIDs.  Use only _connectionIDs.
    list<arSocket*> _connectionSockets; // Active connections
 
-   // Manage the connected sockets database.
+   // Database of connected sockets.
    int _numberConnected;
    int _numberConnectedActive;
    int _nextID;  // The next socket will get this ID.
