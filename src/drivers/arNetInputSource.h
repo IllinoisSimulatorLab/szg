@@ -33,7 +33,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   ARchar*       _dataBuffer;
   int           _dataBufferSize;
   int    _slot;
-  string _interface;
+  string _IP;
   int    _port;
   bool   _connected;
   bool   _sigOK;

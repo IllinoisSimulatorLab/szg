@@ -79,6 +79,10 @@ void arNetInputSource::_connectionTask() {
       continue;
     }
 
+    if (_IP != "NULL" && IP != _IP)
+      ar_log_warning() << "different host providing service, was " << _IP << ", now " << svc;
+    _IP = IP;
+
     ar_log_remark() << "connected to " << svc;
     _connected = true;
     _dataTask();
@@ -94,7 +98,7 @@ arNetInputSource::arNetInputSource() :
   _dataBuffer(new ARchar[bufsizeStart]),
   _dataBufferSize(bufsizeStart),
   _slot(0),
-  _interface("NULL"),
+  _IP("NULL"),
   _port(0),
   _connected(false),
   _sigOK(false)
