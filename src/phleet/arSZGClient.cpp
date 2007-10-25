@@ -177,14 +177,14 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // These can override some _members above.
   if (!_parsePhleetArgs(argc, argv)) {
     _initResponseStream << _exeName << " error: invalid -szg args.\n";
-    // Force the component to quit (even if we ARE connected).
+    // Force the component to quit, even if connected.
     _connected = false;
   }
 
   // "Context" can override some _members above.
   if (!_parseContext()) {
     _initResponseStream << _exeName << " error: invalid Syzygy context.\n";
-    // Force the component to quit (even if we ARE connected).
+    // Force the component to quit, even if connected.
     _connected = false;
   }
 
@@ -337,7 +337,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
 // Typically main() calls this.  Every return from main should call this.
 bool arSZGClient::sendInitResponse(bool ok) {
   const bool f = _sendResponse(_initResponseStream, "init", _initialInitLength, ok, ok);
-  // Visual studio 7 compiler bug.  Do it the long way.
+  // ?: syntax fails in Visual Studio 7.  Do it the long way.
   if (f) {
     ar_log().setStream(_startResponseStream);
   }
@@ -488,9 +488,8 @@ inline bool arSZGClient::_parseBetweenTags(arFileTextStream& fs,
   return false;
 }
 
-// Sometimes we want to be able to read in parameters from a file, as in
-// dbatch or when starting a program in "standalone" mode (i.e. when it is
-// not connected to a cluster).
+// Read parameters from a file, as in
+// dbatch or when starting a program standalone.
 bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
   // There are two parameter file formats.
@@ -498,8 +497,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   //
   //   computer parameter_group parameter parameter_value
   //
-  // (2) The XML format handles "global" attributes,
-  // like an input node description:
+  // (2) The XML format supports "global" attributes,
+  // such as an input node description:
   //
   // <szg_config>
   //   ... one of more of the following ...
@@ -657,15 +656,13 @@ string arSZGClient::getAttribute(const string& userName,
                                  const string& groupName,
                                  const string& parameterName,
                                  const string& validValues) {
-  // If not connected, check the local database (for standalone mode).
-  // If connected, go to the szgserver. In either case, upon failure,
-  // check the environment variable groupName_parameterName.
   string result;
   string tmp;
   if (!_connected) {
     // Query the local parameter file.
     result = _getAttributeLocal(computerName, groupName, parameterName,
                                 validValues);
+    // bug? if failed, shouldn't we ar_getenv(groupName+"_"+parameterName) too?
   } else {
     // Query the szgserver.
     const string query(
@@ -2125,9 +2122,9 @@ void arSZGClient::_printServices(const string& type) {
   const int number = data->getDataDimension(_l.AR_SZG_GET_SERVICES_COMPONENTS);
   int where = 0;
   for (int i=0; i<number; i++) {
-    // Print to stdout, not ar_log_xxx().
+    // stdout, not ar_log_xxx().
     cout << computers[i] << ";"
-         << ar_pathToken(services,where) << ";"
+         << ar_pathToken(services, where) << ";"
          << IDs[i] << "\n";
   }
   _dataParser->recycle(data);
@@ -2167,7 +2164,7 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
   }
   // block until the response occurs
   arStructuredData* data;
-  int match = _getTaggedData(data, tags, _l.AR_SZG_SERVICE_RELEASE, timeout);
+  const int match = _getTaggedData(data, tags, _l.AR_SZG_SERVICE_RELEASE, timeout);
   if (match < 0) {
     ar_log_warning() << "got no service release notification.\n";
   }
@@ -2184,6 +2181,7 @@ string arSZGClient::getServiceInfo(const string& serviceName) {
   if (!_connected) {
     return string("");
   }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "get");
@@ -2194,13 +2192,15 @@ string arSZGClient::getServiceInfo(const string& serviceName) {
     ar_log_warning() << "failed to request service info.\n";
     return string("");
   }
+
   // Now, get the response.
   data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
   if (!data) {
     ar_log_warning() << "got no service info.\n";
     return string("");
   }
-  string result = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS);
+
+  const string result = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS);
   _dataParser->recycle(data);
   return result;
 }
@@ -2211,6 +2211,7 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
   if (!_connected) {
     return false;
   }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "set");
@@ -2260,6 +2261,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
   if (!_connected) {
     return -1;
   }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
   int match = _fillMatchField(data);
   // As usual, "NULL" is our reserved string. In this case, it tells the
@@ -2271,6 +2273,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
     _dataParser->recycle(data);
     return -1;
   }
+
   _dataParser->recycle(data);
 
   // get the response
@@ -2279,7 +2282,8 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
     ar_log_warning() << "got no service ID.\n";
     return -1;
   }
-  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, AR_INT);
+
+  const int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, AR_INT);
   const int result = IDs[0];
   _dataParser->recycle(data);
   return result;
@@ -2305,10 +2309,9 @@ arSlashString arSZGClient::getNetworks(const string& channel) {
   return _networks;
 }
 
-// Return the network addresses upon which this component will offer
-// services. Used when registering a service to determine the
-// addresses of the interfaces to which other components will try to
-// connect.
+// Return the addresses on which this component will offer services.
+// Used when registering a service, to determine the
+// addresses of the interfaces to which other components will try to connect.
 arSlashString arSZGClient::getAddresses(const string& channel) {
   if (channel == "default")
     return _addresses;
@@ -2322,16 +2325,15 @@ arSlashString arSZGClient::getAddresses(const string& channel) {
   return _addresses;
 }
 
-// If this component is operating as part of a virtual computer, return
-// its name. Otherwise, return "NULL". As with networks, the
-// virtual computer is set via a combination of the Syzygy command line
-// args, and the context.
+// If part of a virtual computer, return its name, otherwise "NULL".
+// As with networks, the v.c. comes from both the context and
+// from Syzygy command line args.
 const string& arSZGClient::getVirtualComputer() {
   return _virtualComputer;
 }
 
 // List virtual computers known by the szgserver, space-delimited.
-// If none are known, return the empty string.
+// If none, return "".
 string arSZGClient::getVirtualComputers() {
   string hint = getAllAttributes("SZG_CONF/virtual");
   // Skip over "(List):\n"
@@ -2528,7 +2530,7 @@ bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
 string arSZGClient::_getAttributeResponse(int match) {
   arStructuredData* ack = _getTaggedData(match, _l.AR_ATTR_GET_RES);
   if (!ack) {
-    ar_log_warning() << "expected ack from szgserver.\n";
+    ar_log_warning() << "no ack from szgserver.\n";
     return string("NULL");
   }
 
@@ -2540,7 +2542,7 @@ string arSZGClient::_getAttributeResponse(int match) {
 const string& arSZGClient::getServerName() {
   if (_serverName == "NULL") {
     // Force connection to szgserver, just to get its name.
-    _setLabel(_exeName);
+    (void)_setLabel(_exeName);
   }
   return _serverName;
 }
@@ -2560,14 +2562,13 @@ bool arSZGClient::_setLabel(const string& label) {
   arStructuredData* connectionAckData =
     _dataParser->getStorage(_l.AR_CONNECTION_ACK);
   const string fullLabel = _computerName + "/" + label;
-  bool state = false;
+  bool ok = false;
   int match = _fillMatchField(connectionAckData);
-  if (!connectionAckData->dataInString(_l.AR_CONNECTION_ACK_LABEL,
-                                       fullLabel) ||
+  if (!connectionAckData->dataInString(_l.AR_CONNECTION_ACK_LABEL, fullLabel) ||
       !_dataClient.sendData(connectionAckData)) {
     ar_log_warning() << "failed to set label.\n";
   }
-  else{
+  else {
     _exeName = label;
     _dataClient.setLabel(_exeName);
     arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
@@ -2577,12 +2578,11 @@ bool arSZGClient::_setLabel(const string& label) {
     else{
       _serverName = ack->getDataString(_l.AR_CONNECTION_ACK_LABEL);
       _dataParser->recycle(ack);
-      state = true;
+      ok = true;
     }
   }
-  // Must recycle storage.
   _dataParser->recycle(connectionAckData);
-  return state;
+  return ok;
 }
 
 // Parses the string in the environment variable SZGCONTEXT, to determine
@@ -2590,18 +2590,17 @@ bool arSZGClient::_setLabel(const string& label) {
 bool arSZGClient::_parseContext() {
   const string context(ar_getenv("SZGCONTEXT"));
   if (context == "NULL") {
-    // the environment variable has not been set. consequently, there's
-    // nothing to do. NOTE: this IS NOT an error.
+    // No environment variable, thus nothing to do.
     return true;
   }
-  // there are three components to the context
-  int position = 0;
-  while (position < int(context.length())-1) {
-    const string pair(ar_pathToken(context, position));
-    if (!_parseContextPair(pair)) {
+
+  // Context has 3 components.
+  for (int i = 0; i < int(context.length())-1; ) {
+    if (!_parseContextPair(ar_pathToken(context, i))) {
       return false;
     }
   }
+
   return true;
 }
 
@@ -2609,13 +2608,14 @@ bool arSZGClient::_parsePair(const string& thePair,
   arSlashString& pair1, string& pair2, string& pair1Type) {
   const unsigned i = thePair.find('=');
   if (i == string::npos) {
-    ar_log_warning() << ": no '=' in context pair '" << thePair << "'.\n";
+    ar_log_warning() << "no '=' in context pair '" << thePair << "'.\n";
     return false;
   }
 
   const unsigned length = thePair.length() - 1;
   if (i == length) {
-    ar_log_warning() << "nothing after '=' in context pair '" << thePair << "'.\n";
+    ar_log_warning() << "nothing after '=' in context pair '" <<
+      thePair << "'.\n";
     return false;
   }
 
@@ -2630,12 +2630,12 @@ bool arSZGClient::_parsePair(const string& thePair,
 // the args user and server (pertaining to login) are parsed and removed.
 // If args are removed, argc and argv change, to hide the removals from the caller.
 bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
-  for (int i=0; i<argc; i++) {
+  for (int i=0; i<argc; ++i) {
     if (strcmp(argv[i],"-szg"))
       continue;
 
     if (i+1 >= argc) {
-      ar_log_warning() << "expected something after -szg flag.\n";
+      ar_log_warning() << "nothing after -szg flag.\n";
       return false;
     }
 
@@ -2733,7 +2733,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
   if (pair1Type == "server") {
     arSlashString serverLocation(pair2);
     if (serverLocation.size() != 2) {
-      ar_log_warning() << "expected ipaddress/port after 'server'.\n";
+      ar_log_warning() << "no ipaddress/port after 'server'.\n";
       return false;
     }
     _IPaddress = serverLocation[0];
@@ -3074,7 +3074,7 @@ void arSZGClient::printSZGServers(const string& broadcast) {
     return;
   }
   _bufferResponse = true;
-  _justPrinting = true;
+  _justPrinting = true; // Hack. Copypaste of findSZGServers().
 
   _lock.lock();
     _foundServers.clear();

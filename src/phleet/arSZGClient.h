@@ -108,7 +108,7 @@ class SZG_CALL arSZGClient{
   const string getDataPathPython()
     { return getAttribute("SZG_PYTHON", "path"); }
 
-  // "Global" attributes.
+  // "Global" attributes (not for an individual host).
   bool setGlobalAttribute(const string& attributeName,
 			  const string& attributeValue);
   bool setGlobalAttribute(const string& userName,
@@ -126,7 +126,7 @@ class SZG_CALL arSZGClient{
   }
 
   bool parseAssignmentString(const string& text);
-  // A way to get parameters in from a file (as in dbatch, for instance)
+  // Read parameters from a file, for dbatch
   bool parseParameterFile(const string& fileName, bool warn = true);
 
   const string& getLabel() const
@@ -137,7 +137,7 @@ class SZG_CALL arSZGClient{
     { return _userName; }
   string launchinfo(const string&, const string&) const;
 
-  // general administration functions
+  // Cluster administration.
   string getProcessList();
   bool killProcessID(int id);
   bool killProcessID(const string& computer, const string& processLabel);
@@ -145,7 +145,7 @@ class SZG_CALL arSZGClient{
   int getProcessID(const string& computer, const string& processLabel);
   int getProcessID(void); // get my own process ID
 
-  // Functions dealing with messaging.
+  // Messaging.
   int sendMessage(const string& type, const string& body, int destination,
                    bool responseRequested = false);
   int sendMessage(const string& type, const string& body,
@@ -203,7 +203,7 @@ class SZG_CALL arSZGClient{
   void printPendingServiceRequests();
   int  getServiceComponentID(const string& serviceName);
 
-  // functions that aid operation on a virtual computer
+  // Virtual Computers.
   arSlashString getNetworks(const string& channel);
   arSlashString getAddresses(const string& channel);
   const string& getVirtualComputer();
@@ -218,7 +218,7 @@ class SZG_CALL arSZGClient{
 		       const string& networksChannel,
                        const arSlashString& networks);
 
-  // functions pertaining to connecting to an szgserver
+  // Connecting to an szgserver.
   bool discoverSZGServer(const string& name,
                          const string& broadcast);
   void printSZGServers(const string& broadcast);
