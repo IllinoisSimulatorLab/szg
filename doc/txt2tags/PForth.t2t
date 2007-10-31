@@ -130,7 +130,7 @@ dataspace). A couple of examples:
 + ``( x1 x2 -- x3 )``
 means that the word needs to pop two numbers
 off the stack and will push a single number onto the stack on
-completion.&nbsp; Note that x1 must have been placed on the stack
+completion. Note that x1 must have been placed on the stack
 before x2, i.e x2 is on top of the stack.
 
 + ``( addr n1 -- )`` means that the word will pop an address (a

@@ -243,15 +243,6 @@ bool arAppLauncher::launchApp(){
   // After the demo program and the graphics programs are
   // killed, no services are provided and no locks are held.
 
-  int i;
-  for (i=0; i<getNumberScreens(); i++){
-    if (_getPID(i, "szgd") == -1){
-      ar_log_warning() << "no szgd for rendering on host " << _pipes[i].hostname << ".\n";
-      _unlock();
-      return false;
-    }
-  }
-
   list<arLaunchInfo> appsToLaunch;
   list<int> serviceKillList;
 
@@ -262,6 +253,8 @@ bool arAppLauncher::launchApp(){
     _relaunchAllServices(appsToLaunch, serviceKillList);
   }
 
+  int i;
+  
   // Launch a "distributed app" on every host.
   for (i=0; i<getNumberScreens(); i++){
     if (_appType == "distapp" || _getPID(i, _firstToken(_renderer)) == -1){
@@ -556,7 +549,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   for (iLaunch iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter){
     const int szgdID = _szgClient->getProcessID(iter->computer, "szgd");
     if (szgdID == -1){
-      ar_log_warning() << "no szgd on host " << iter->computer << ".\n";
+      ar_log_error() << "no szgd on host " << iter->computer << ".\n";
       continue;
     }
     match = _szgClient->sendMessage("exec", iter->process, iter->context, szgdID, true);
