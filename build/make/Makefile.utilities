@@ -9,6 +9,7 @@ ALL = \
   DeskCalibrator$(EXE) \
   dmsg$(EXE) \
   dkillall$(EXE) \
+	dkillapp$(EXE) \
   PictureViewer$(EXE) \
   restarttracker$(EXE) \
   screensaver$(EXE) \
@@ -38,6 +39,10 @@ dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 
 dkillall$(EXE): dkillall$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) dkillall$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+dkillapp$(EXE): dkillapp$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) dkillapp$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
 
 PictureViewer$(EXE): PictureViewer$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
