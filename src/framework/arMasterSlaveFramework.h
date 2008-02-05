@@ -42,18 +42,7 @@ class arTransferFieldDescriptor {
 
 typedef map<string, arTransferFieldDescriptor > arTransferFieldData;
 
-//***********************************************************************
-// Framework callback exception class (mainly for exception-handling
-// in Python).
-//***********************************************************************
-class arMSCallbackException {
-  public:
-    string message;
-    arMSCallbackException( const string& msg ): message(msg) {}
-};
-
 // Framework for cluster applications using one master and several slaves.
-
 class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_masterSlaveFrameworkConnectionTask( void* );
@@ -113,7 +102,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onWindowEvent( arGUIWindowInfo* );
   virtual void onCleanup( void );
   virtual void onUserMessage( const int messageID, const string& messageBody );
-  virtual void onUserMessage( const string& messageBody );
   virtual void onOverlay( void );
   virtual void onKey( unsigned char key, int x, int y );
   virtual void onKey( arGUIKeyInfo* );
@@ -216,6 +204,12 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setRandomSeed( const long newSeed );
   bool randUniformFloat( float& value );
 
+  // Add entries to the data bundle path (used to locate texture maps by
+  // szgrender for scene-graph apps in cluster mode and by SoundRender to
+  // locate sounds for both types of apps in cluster mode).
+  virtual void addDataBundlePathMap(const string& bundlePathName, 
+                          const string& bundlePath);
+  
  protected:
   // Objects that provide services.
   // Must be pointers, so languages can initialize.  Really?
@@ -382,7 +376,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startrespond( const std::string& s );
 
   // stop() when a callback has an error.
-  void _stop(const char*, const arMSCallbackException&);
+  void _stop(const char*, const arCallbackException&);
 
   // Systems level functions.
   bool _loadParameters( void );

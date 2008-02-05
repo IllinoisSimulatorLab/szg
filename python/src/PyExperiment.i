@@ -69,6 +69,86 @@ bool arPythonTrialGenerator::newTrial( arExperimentDataRecord& factors ) {
   return res; 
 }
 
+/*
+class arPythonDataSaver : public arDataSaver {
+  public:
+    arPythonDataSaver( const std::string& fileSuffix="" );
+    virtual ~arPythonDataSaver();
+    virtual bool init( const std::string experimentName,
+                       std::string dataPath, std::string comment,
+                       const arHumanSubject& subjectData,
+                       arExperimentDataRecord& factors,
+                       arExperimentDataRecord& dataRecords,
+                       arSZGClient& SZGClient);
+    virtual bool saveData( arExperimentDataRecord& factors, 
+                           arExperimentDataRecord& dataRecords );
+    void setCallbacks( PyObject* writeHeaderCallback, PyObject* saveTrialCallback );
+  private:
+    PyObject* _writeHeaderCallback;
+    PyObject* _saveDataCallback;
+    bool _configured;
+    std::string _dataPath;
+    std::string _dataFilename;
+};
+
+arPythonDataSaver::arPythonDataSaver( const std::string& fileSuffix ) :
+  arDataSaver( fileSuffix ),
+  _writeHeaderCallback(NULL),
+  _saveDataCallback(NULL),
+  _configured( false ) {}
+}
+
+arPythonDataSaver::~arPythonDataSaver() {
+  Py_XDECREF(_writeHeaderCallback);
+  Py_XDECREF(_saveDataCallback);
+}
+
+void arPythonDataSaver::setCallbacks( PyObject* writeHeaderCallback, PyObject* saveTrialCallback ) {
+  if (!PyCallable_Check(writeHeaderCallback)) {
+    PyErr_SetString(PyExc_TypeError, "arPythonTrialGenerator error: writeHeaderCallback not callable");
+    return;
+  }
+  Py_XDECREF(_writeHeaderCallback);
+  Py_XINCREF(writeHeaderCallback);
+  _writeHeaderCallback = writeHeaderCallback;
+
+  if (!PyCallable_Check(saveTrialCallback)) {
+    PyErr_SetString(PyExc_TypeError, "arPythonTrialGenerator error: saveTrialCallback not callable");
+    return;
+  }
+  Py_XDECREF(_saveTrialCallback);
+  Py_XINCREF(saveTrialCallback);
+  _saveTrialCallback = saveTrialCallback;
+}
+
+
+bool arPythonDataSaver::init( const string experimentName,
+                           string dataPath, string comment,
+                           const arHumanSubject& subjectData,
+                           arExperimentDataRecord& factors,
+                           arExperimentDataRecord& dataRecords,
+                           arSZGClient& SZGClient) {
+  if (_writeHeaderCallback == NULL) {
+    cerr << "arPythonDataSaver error: no writeHeaderCallback.\n";
+    errmsg="A NULL-pointer exception occurred in the write-header callback.";
+    cerr << errmsg << "\n";
+    throw  errmsg; 
+    return false;
+  }
+  if (_saveTrialCallback == NULL) {
+    cerr << "arPythonDataSaver error: no saveTrialCallback.\n";
+    errmsg="A NULL-pointer exception occurred in the save-trial callback.";
+    cerr << errmsg << "\n";
+    throw  errmsg; 
+    return false;
+  }
+  stringstream& errStream = szgClient.startResponse();
+  if (!setFilePath( dataPath, SZGClient ) {
+    cerr << "arPythonDataSaver error: setFilePath() failed.\n";
+    errStream << "arPythonDataSaver error: setFilePath() failed.\n";
+    return false;
+  }
+} */
 
 class arPythonExperimentTrialPhase : public arExperimentTrialPhase {
   public:
@@ -980,6 +1060,7 @@ class arPyExperimentTrialPhase(arPythonExperimentTrialPhase):
 
 %{
 #include "arGluQuadric.h"
+#include "arGluSphere.h"
 #include "arGluCylinder.h"
 #include "arGluDisk.h"
 #include "arPatternedBox.h"
@@ -1005,8 +1086,67 @@ class arGluQuadric : public arInteractableThing {
     virtual void draw( arMasterSlaveFramework* fw=0 )  = 0;
 };
 
+class arGluSphere : public arGluQuadric {
+  public:
+    arGluSphere( double radius, int slices=30, int stacks=5 );
+    arGluSphere( const arGluSphere& x );
+    virtual ~arGluSphere() {}
+    virtual void draw( arMasterSlaveFramework* fw=0 );
+    void setRadius( double radius );
+    void setSlicesStacks( int slices, int stacks );
+
+  // inherited from arInteractable
+    /// Disallow user interaction
+    void disable();
+    /// Allow user interaction
+    void enable( bool flag=true );
+    bool enabled() const { return _enabled; }
+    void useDefaultDrags( bool flag );
+    void setDrag( const arGrabCondition& cond,
+                  const arDragBehavior& behave );
+    void deleteDrag( const arGrabCondition& cond );
+    void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
+    bool touched() const;
+    bool touched( arEffector& effector );
+    const arEffector* grabbed() const;
+    virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
+    arMatrix4 getMatrix() const { return _matrix; }
+    virtual void updateMatrix( const arMatrix4& deltaMatrix );
+
+  // inherited from arInteractableThing
+    virtual void setTexture( arTexture* tex ) {_texture = tex; }
+    virtual arTexture* getTexture() { return _texture; }
+    virtual void setHighlight( bool flag ) { _highlighted = flag; }
+    virtual bool getHighlight() const { return _highlighted; }
+    virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
+    virtual void setColor( const arVector4& col ) {_color = col;}
+    virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
+    virtual arVector4 getColor() const { return _color; }
+    virtual void setVisible( bool vis ) {_visible = vis; }
+    virtual bool getVisible() const { return _visible; }
+    virtual void activateColor() const { glColor4fv(_color.v); }
+    virtual bool activateTexture() { return _texture && _texture->activate(); }
+    virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+
+  // inherited from arGluQuadric
+    void setPointStyle() { _drawStyle = GLU_POINT; }
+    void setLineStyle() { _drawStyle = GLU_LINE; }
+    void setSilhouetteStyle() { _drawStyle = GLU_SILHOUETTE; }
+    void setFillStyle() { _drawStyle = GLU_FILL; }
+    void setNormalsOutside( bool trueFalse ) {
+      _normalDirection = (trueFalse)?(GLU_OUTSIDE):(GLU_INSIDE);
+    }
+    void setNoNormals() { _normalStyle = GLU_NONE; }
+    void setFlatNormals() { _normalStyle = GLU_FLAT; }
+    void setSmoothNormals() { _normalStyle = GLU_SMOOTH; }
+
+};
+
+
 class arGluCylinder : public arGluQuadric {
-	public:
+  public:
     arGluCylinder( double startRadius, double endRadius, double length, int slices=30, int stacks=5 );
     arGluCylinder( const arGluCylinder& x );
 /*    arGluCylinder& operator=( const arGluCylinder& x );*/
@@ -1067,7 +1207,7 @@ class arGluCylinder : public arGluQuadric {
 
 
 class arGluDisk : public arGluQuadric {
-	public:
+  public:
     arGluDisk( double innerRadius, double outerRadius, int slices=30, int rings=5 );
     arGluDisk( const arGluDisk& x );
 /*    arGluDisk& operator=( const arGluDisk& x );*/
@@ -1138,7 +1278,7 @@ class arPatternedBox : public arInteractableThing {
 
     void setSize( const float w, const float h, const float d, const float s=0 );
     virtual void draw( arMasterSlaveFramework* fw=0 );
-	
+  
     void setTextureScale( float sc ) { _texScale = sc; }
 
   // inherited from arInteractable

@@ -18,7 +18,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   friend void ar_netInputSourceConnectionTask(void*);
  public:
   arNetInputSource();
-  ~arNetInputSource() {}
+  virtual ~arNetInputSource() {}
 
   bool setSlot(int);
   bool connected() const

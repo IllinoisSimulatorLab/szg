@@ -138,6 +138,8 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsDatabase* getDatabase();
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
   void setAutoBufferSwap(bool);
   void swapBuffers();
   const string getNavNodeName() const;

@@ -11,17 +11,17 @@
 //***********************
 
 ostream& operator<<(ostream& os, const arVector2& x){
-  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" )";
+  os <<"( "<<x.v[0]<<", "<< x.v[1]<<" )";
   return os;
 }
 
 ostream& operator<<(ostream& os, const arVector3& x){
-  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" )";
+  os <<"( "<<x.v[0]<<", "<< x.v[1]<<", "<<x.v[2]<<" )";
   return os;
 }
 
 ostream& operator<<(ostream& os, const arVector4& x){
-  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" "<<x.v[3]<<" )";
+  os <<"( "<<x.v[0]<<", "<< x.v[1]<<", "<<x.v[2]<<", "<<x.v[3]<<" )";
   return os;
 }
 

@@ -521,7 +521,7 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
 
 // If a piece of data is in internal storage with one of the list of passed
 // tags and matches the requested dataID, fill-in the first parameter with 
-// it. If not, wait until the specified time-out period (the default is to
+// it. If not, wait until the specified time-out period (in msec; the default is to
 // have no time-out, as given by a default parameter for timeout of -1).
 // The function returns the tag of the message actually retrieved (or -1 on
 // timeout or other failure). The dataID is also an optional parameter,

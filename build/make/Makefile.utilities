@@ -9,7 +9,7 @@ ALL = \
   DeskCalibrator$(EXE) \
   dmsg$(EXE) \
   dkillall$(EXE) \
-	dkillapp$(EXE) \
+  dkillapp$(EXE) \
   PictureViewer$(EXE) \
   restarttracker$(EXE) \
   screensaver$(EXE) \

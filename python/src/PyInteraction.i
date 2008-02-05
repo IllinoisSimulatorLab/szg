@@ -584,6 +584,22 @@ class arPyWandTranslationDrag(arPyDragBehavior):
   def onUpdate( self, effector, object, grabCondition ):
     object.setMatrix( ar_extractTranslationMatrix( effector.getMatrix() ) * self.positionOffsetMatrix * self.objectOrientMatrix )
 
+# Opposite of above, object maintains a fixed position in space,
+# orientation tracks that of effector.
+class arPyWandRotationDrag(arPyDragBehavior):
+  def __init__(self):
+    arPyDragBehavior.__init__(self)
+    self.positionMatrix = arMatrix4()  
+    self.orientDiffMatrix = arMatrix4()  
+  def onInit( self, effector, object ):
+    effMatrix = effector.getMatrix().inverse()
+    objMatrix = object.getMatrix()
+    self.positionMatrix = ar_extractTranslationMatrix( objMatrix );
+    self.orientDiffMatrix = ar_extractRotationMatrix( effMatrix * objMatrix )
+  def onUpdate( self, effector, object, grabCondition ):
+    object.setMatrix( self.positionMatrix * 
+      ar_extractRotationMatrix( effector.getMatrix() ) * self.orientDiffMatrix )
+
 %}
 
 // **************** based on interaction/arInteractable.h *******************

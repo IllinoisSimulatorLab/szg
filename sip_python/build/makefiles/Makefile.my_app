@@ -1,0 +1,112 @@
+# Should define VPATH before Makefile.vars inclusion.
+INTERFACE_DIR=../../src
+VPATH=$(INTERFACE_DIR)
+
+# This project is different enough that we depart from the standard template.
+include $(SZGHOME)/build/make/Makefile.vars
+
+SIPFILES = $(INTERFACE_DIR)/math.sip \
+					 $(INTERFACE_DIR)/typemaps.sip \
+					 $(INTERFACE_DIR)/navigation.sip \
+					 $(INTERFACE_DIR)/database.sip \
+					 $(INTERFACE_DIR)/szgclient.sip \
+					 $(INTERFACE_DIR)/input.sip \
+					 $(INTERFACE_DIR)/graphics.sip \
+					 $(INTERFACE_DIR)/view.sip \
+					 $(INTERFACE_DIR)/gui.sip \
+					 $(INTERFACE_DIR)/obj.sip \
+					 $(INTERFACE_DIR)/sound.sip \
+					 $(INTERFACE_DIR)/interact.sip \
+					 $(INTERFACE_DIR)/frameworks.sip
+
+# ifeq ($(strip $(MACHINE)),WIN32)
+# LINK_FLAGS_SHARED += /stack:4000000
+# endif
+
+
+ifeq ($(strip $(MACHINE)), WIN32)
+	COMPILE_FLAGS_SHARED += -I$(SZGEXTERNAL)/win32/sip-4.7.3/include 
+  ifeq ($(strip $(SZG_COMPILER)), MINGW)
+		PRE_LIB_SEARCH_FLAGS += -L$(dir $(SZG_PYLIB))
+		SZG_OPT_LIBS_FULL += -lPython24
+	else
+		SZG_OPT_LIBS_FULL += $(SZG_PYLIB)
+	endif
+endif
+ifeq ($(strip $(MACHINE)), LINUX)
+	COMPILE_FLAGS_SHARED += -I$(SZGEXTERNAL)/linux/sip-4.7.3/include 
+	PRE_LIB_SEARCH_FLAGS += -L$(dir $(SZG_PYLIB))
+	SZG_OPT_LIBS_FULL += -lPython24
+endif
+
+SIP_ALL=_szg.pyd $(INTERFACE_DIR)/szg.py szgopengl.pyd
+
+ifeq ($(strip $(SWIG_SZGEXPT)),TRUE)
+	include $(SZGEXPT)/build/make/Makefile.szgexpt
+	SIP_ALL+= _szgexpt.pyd $(INTERFACE_DIR)/szgexpt.py
+endif
+
+sip_all: $(SIP_ALL)
+	$(CP) $(SIP_ALL) $(SZG_BINDIR)
+
+SZG_INCLUDE += -I$(SZG_PYINCLUDE)
+
+# OBJS = rencode2$(OBJ_SUFFIX)
+
+
+_szg.pyd: sip_szgpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
+        $(LINK_PREFIX)_szg.pyd \
+	sip_szgpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
+
+sip_szgpart0$(OBJ_SUFFIX): sip_szgpart0.cpp
+	$(COMPILER) $(COMPILE_FLAGS_SHARED) $< $(SZG_INCLUDE)
+
+sip_szgpart0.cpp: $(INTERFACE_DIR)/szg.sip $(SIPFILES)
+	sip -c . -j 1 $(INTERFACE_DIR)/szg.sip
+
+szgopengl.pyd: sipszgopenglpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
+        $(LINK_PREFIX)szgopengl.pyd \
+	sipszgopenglpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
+
+sipszgopenglpart0$(OBJ_SUFFIX): sipszgopenglpart0.cpp
+	$(COMPILER) $(COMPILE_FLAGS_SHARED) $< $(SZG_INCLUDE)
+
+sipszgopenglpart0.cpp: $(INTERFACE_DIR)/szgopengl.sip
+	sip -c . -j 1 $(INTERFACE_DIR)/szgopengl.sip
+
+_szgexpt.pyd: sip_szgexptpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
+        $(LINK_PREFIX)_szgexpt.pyd \
+	sip_szgexptpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
+
+sip_szgexptpart0$(OBJ_SUFFIX): sip_szgexptpart0.cpp
+	$(COMPILER) $(COMPILE_FLAGS_SHARED) $< $(SZG_INCLUDE)
+
+sip_szgexptpart0.cpp: $(INTERFACE_DIR)/szgexpt.sip
+	sip -c . -j 1 $(INTERFACE_DIR)/szgexpt.sip
+
+# standard one. Also note that we remove all PLUGIN_SUFFIX and
+# OBJ_SUFFIX files manually in "clean". This way, we never issue a dangerous
+# "rm -f *", even if the Makefiles have been messed up.
+
+create-sdk: sip_all
+	$(CP) $(SIP_ALL) $(INSTALLDIR)/bin
+
+bin-install: sip_all
+	$(CP) $(SIP_ALL) $(SZG_BINDIR)
+
+# This particular target doesn't make sense for py-szg, so just include
+# something random!
+install-shared: sip_all
+	$(CP) $(SIP_ALL) $(SZG_BINDIR)
+
+clean:
+	rm -f *.pyd
+	rm -f *.dll *.so
+	rm -f *.obj *.o
+	rm -f *.exp
+	rm -f *.lib
+	rm -f *.cpp *.h
+	rm -f $(patsubst %, $(SZG_BINDIR)/%, $(SIP_ALL))

@@ -43,6 +43,8 @@
 
 // derive new exception for PySZG
 %pythoncode %{
+print 'PySZG:',__file__
+
 import cPickle
 import pickle
 import os

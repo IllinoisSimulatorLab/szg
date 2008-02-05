@@ -969,7 +969,7 @@ PyObject* toList() {
 PyObject* toTuple() {
     PyObject *seq=PyTuple_New(4);
     if (!seq) {
-      cerr << "arMatrix4.toTuple() error: PyTuple_New() failed.\n";
+      cerr << "arQuaternion.toTuple() error: PyTuple_New() failed.\n";
       return NULL;
     }
     PyTuple_SetItem(seq,0,PyFloat_FromDouble(self->real));

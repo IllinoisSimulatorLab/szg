@@ -60,6 +60,12 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void setViewer();
   void setPlayer();
     
+  // Add entries to the data bundle path (used to locate texture maps by
+  // szgrender for scene-graph apps in cluster mode and by SoundRender to
+  // locate sounds for both types of apps in cluster mode).
+  virtual void addDataBundlePathMap(const string& bundlePathName, 
+                          const string& bundlePath);
+  
  private:
   // Used in both standalone mode and phleet mode.
   arGraphicsServer _graphicsServer;

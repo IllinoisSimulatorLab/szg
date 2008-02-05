@@ -783,7 +783,7 @@ bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   return true;
 }
 
-void arMasterSlaveFramework::_stop(const char* name, const arMSCallbackException& exc) {
+void arMasterSlaveFramework::_stop(const char* name, const arCallbackException& exc) {
   ar_log_error() << "arMasterSlaveFramework " << name << " callback:\n\t" <<
     exc.message << "\n";
   stop(false);
@@ -793,7 +793,7 @@ void arMasterSlaveFramework::onPreExchange( void ) {
   if ( _preExchange ) {
     try {
       _preExchange( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("preExchange", exc);
       stop(false);
     }
@@ -804,7 +804,7 @@ void arMasterSlaveFramework::onPostExchange( void ) {
   if( _postExchange ) {
     try {
       _postExchange( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("postExchange", exc);
     }
   }
@@ -814,7 +814,7 @@ void arMasterSlaveFramework::onWindowInit( void ) {
   if( _windowInitCallback ) {
     try {
       _windowInitCallback( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("windowInit", exc);
     }
   }
@@ -830,8 +830,8 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
     if (_windowEventCallback ) {
       try {
         _windowEventCallback( *this, wI );
-      } catch (arMSCallbackException exc) {
-	_stop("windowEvent", exc);
+      } catch (arCallbackException exc) {
+        _stop("windowEvent", exc);
       }
     } else if ( wI->getUserData() ) {
       // default window event handler, at least to handle a resizing event
@@ -866,7 +866,7 @@ void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowStartGLCallback ) {
     try {
       _windowStartGLCallback( *this, windowInfo );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("windowStartGL", exc);
     }
   }
@@ -884,7 +884,7 @@ void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   if (_drawCallback) {
     try {
       _drawCallback( *this, win, vp );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("draw", exc);
     }
     return;
@@ -892,7 +892,7 @@ void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
 
   try {
     _oldDrawCallback( *this );
-  } catch (arMSCallbackException exc) {
+  } catch (arCallbackException exc) {
     _stop("draw", exc);
   }
 }
@@ -901,11 +901,10 @@ void arMasterSlaveFramework::onDisconnectDraw( void ) {
   if( _disconnectDrawCallback ) {
     try {
       _disconnectDrawCallback( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("disconnectDraw", exc);
     }
-  }
-  else {
+  } else {
     // just draw a black background
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -930,7 +929,7 @@ void arMasterSlaveFramework::onPlay( void ) {
   if( _playCallback ) {
     try {
       _playCallback( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("play", exc);
     }
   }
@@ -940,7 +939,7 @@ void arMasterSlaveFramework::onCleanup( void ) {
   if( _cleanup ) {
     try {
       _cleanup( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("cleanup", exc);
     }
   }
@@ -950,23 +949,13 @@ void arMasterSlaveFramework::onUserMessage( const int messageID, const string& m
   if (_userMessageCallback) {
     try {
       _userMessageCallback( *this, messageID, messageBody );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("userMessage", exc);
     }
   } else if (_oldUserMessageCallback) {
     try {
       _oldUserMessageCallback( *this, messageBody );
-    } catch (arMSCallbackException exc) {
-      _stop("userMessage", exc);
-    }
-  }
-}
-
-void arMasterSlaveFramework::onUserMessage( const string& messageBody ) {
-  if( _oldUserMessageCallback ) {
-    try {
-      _oldUserMessageCallback( *this, messageBody );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("userMessage", exc);
     }
   }
@@ -976,7 +965,7 @@ void arMasterSlaveFramework::onOverlay( void ) {
   if( _overlay ) {
     try {
       _overlay( *this );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("overlay", exc);
     }
   }
@@ -991,7 +980,7 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
   if( _arGUIKeyboardCallback ) {
     try {
       _arGUIKeyboardCallback( *this, keyInfo );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("keyboard", exc);
     }
   } else if( keyInfo->getState() == AR_KEY_DOWN ) {
@@ -1004,7 +993,7 @@ void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
   if( _keyboardCallback ) {
     try {
       _keyboardCallback( *this, key, x, y );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("keyboard", exc);
     }
   }
@@ -1014,7 +1003,7 @@ void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
   if( mouseInfo && _mouseCallback ) {
     try {
       _mouseCallback( *this, mouseInfo );
-    } catch (arMSCallbackException exc) {
+    } catch (arCallbackException exc) {
       _stop("mouse", exc);
     }
   }
@@ -2190,16 +2179,23 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   
   // Ensure everybody gets the right bundle map, standalone or not.
   _dataPath = _SZGClient.getDataPath();
-  _soundServer.addDataBundlePathMap( "SZG_DATA", _dataPath );
-  if (_soundClient)
-    _soundClient->addDataBundlePathMap( "SZG_DATA", _dataPath );
+  addDataBundlePathMap( "SZG_DATA", _dataPath );
 
   const string pythonPath = _SZGClient.getDataPathPython();
-  _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-  if (_soundClient)
-    _soundClient->addDataBundlePathMap( "SZG_PYTHON", pythonPath );
+  addDataBundlePathMap( "SZG_PYTHON", pythonPath );
+
   return true;
 }
+
+
+void arMasterSlaveFramework::addDataBundlePathMap(
+    const string& bundlePathName, 
+    const string& bundlePath) {
+  _soundServer.addDataBundlePathMap( bundlePathName, bundlePath );
+  if (_soundClient)
+    _soundClient->addDataBundlePathMap( bundlePathName, bundlePath );
+}
+
 
 void arMasterSlaveFramework::_messageTask( void ) {
   // todo: cleanly shutdown both this and arSZGClient.
@@ -2243,6 +2239,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType== "performance" ) {
       _showPerformance = messageBody == "on";
+//      if (_showPerformance) {
+//        _SZGClient.messageResponse( messageID, getLabel()+" showing performance graph" );
+//      } else {
+//        _SZGClient.messageResponse( messageID, getLabel()+" hiding performance graph" );
+//      }
       _SZGClient.messageResponse( messageID,
         getLabel() + (_showPerformance ? " show" : " hid") + "ing performance graph" );
     }
@@ -2352,7 +2353,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       if( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
         // Something bad happened.  Don't retry infinitely.
         _exitProgram = true;
-	break;
+        break;
       }
 
       // getNumberConnected before ar_log, so ar_log's output doesn't fragment.
@@ -2367,7 +2368,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
     while( !stopping() ) {
       arSleepBackoff a(40, 100, 1.1);
       while( !_barrierClient->checkConnection() && !stopping() ) {
-	a.sleep();
+        a.sleep();
       }
       a.reset();
       // Barrier is connected.

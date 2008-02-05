@@ -26,7 +26,19 @@
 #include <set>
 #include <deque>
 
-class arUserMessageInfo {
+
+//***********************************************************************
+// Framework callback exception class (mainly for exception-handling
+// in Python).
+//***********************************************************************
+class SZG_CALL arCallbackException {
+  public:
+    string message;
+    arCallbackException( const string& msg ): message(msg) {}
+};
+
+
+class SZG_CALL arUserMessageInfo {
  public:
   arUserMessageInfo( int id, const string& body ):
     messageID( id ),
@@ -108,6 +120,11 @@ class SZG_CALL arSZGAppFramework {
     virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
     void processEventQueue();
     virtual void onProcessEventQueue( arInputEventQueue& theQueue );
+    virtual bool onInputEvent( arInputEvent& /*event*/, arFrameworkEventFilter& /*filter*/ ) {
+      return true;
+    }
+
+    virtual void onUserMessage( const int /*messageID*/, const string& /*messageBody*/ ) {}
 
     // Should this return a copy instead? In some cases it points
     // inside the arInputNode.
@@ -148,6 +165,12 @@ class SZG_CALL arSZGAppFramework {
     arGUIWindowManager* getWindowManager( void ) const { return _wm; }
     // Some applications want to be able to work with the arSZGClient directly.
     arSZGClient* getSZGClient() { return &_SZGClient; }
+
+    // Add entries to the data bundle path (used to locate texture maps by
+    // szgrender for scene-graph apps in cluster mode and by SoundRender to
+    // locate sounds for both types of apps in cluster mode).
+    virtual void addDataBundlePathMap(const string& /*bundlePathName*/, 
+                            const string& /*bundlePath*/) {}
       
   protected:
     arSZGClient _SZGClient;
@@ -226,10 +249,12 @@ class SZG_CALL arSZGAppFramework {
     
     void _handleStandaloneInput();
     bool _loadInputDrivers();
-    // Installs two filters: _defaultUserFilter (which does nothing, it's a placeholder)
+    // Installs two filters: _defaultUserFilter
     // and _callbackFilter (which initially does nothing, as it has no callback).
     // Any user-installed filter replaces _defaultUserFilter (installing a NULL
     // filter restores it), and user-installed event callback gets put in _callbackFilter.
+    // NOTE: as of 1.2, _defaultUserFilter now calls framework->onInputEvent by default
+    // (which does nothing, override in subclasses). No more steenkin' callbacks!
     void _installFilters();
     virtual bool _loadParameters() = 0;
     void _loadNavParameters();

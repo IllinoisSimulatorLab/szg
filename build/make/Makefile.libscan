@@ -182,19 +182,6 @@ ifeq ($(strip $(MACHINE)), WIN32)
   # q33 demo. Allow it to be added in SZGEXTERNAL
   GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
 
-	ifeq ($(strip $(SZG_COMPILER)), MINGW)
-		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-mingw
-		INC_5DT := $(wildcard $(5DT_DIR)/include)
-		LIB_5DT := $(wildcard $(5DT_DIR)/lib/lib5dt.a)
-		LINK_5DT := -l5dt
-		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
-	else
-		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-msvc
-		INC_5DT := $(wildcard $(5DT_DIR)/include)
-		LIB_5DT := $(wildcard $(5DT_DIR)/lib/fglove.lib)
-		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
-	endif
-
 	FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4
 	INC_FMOD := $(wildcard $(FMOD_DIR)/include)
 	ifeq ($(strip $(SZG_COMPILER)), MINGW)
@@ -244,10 +231,31 @@ ifeq ($(strip $(MACHINE)), WIN32)
   endif
 	INC_ZLIB := $(wildcard $(ZLIB_DIR)/include)
 
-  WIN_BIRD_DIR := $(SZGEXTERNAL)/win32/ascension
-  INC_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/include)
-  LIB_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.lib)
-  OBJ_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.dll)
+	ifeq ($(strip $(SZG_COMPILER)), MINGW)
+		WIN_BIRD_DIR := $(SZGEXTERNAL)/win32/ascension-mingw
+		INC_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/include)
+		LIB_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/libBird.a)
+		LINK_WIN_BIRD := -lBird
+		OBJ_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.dll)
+	else
+		WIN_BIRD_DIR := $(SZGEXTERNAL)/win32/ascension-msvc
+		INC_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/include)
+		LIB_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.lib)
+		OBJ_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.dll)
+	endif
+
+	ifeq ($(strip $(SZG_COMPILER)), MINGW)
+		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-mingw
+		INC_5DT := $(wildcard $(5DT_DIR)/include)
+		LIB_5DT := $(wildcard $(5DT_DIR)/lib/libfglove.a)
+		LINK_5DT := -lfglove
+		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
+	else
+		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-msvc
+		INC_5DT := $(wildcard $(5DT_DIR)/include)
+		LIB_5DT := $(wildcard $(5DT_DIR)/lib/fglove.lib)
+		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
+	endif
 
   EVART_DIR := $(SZGEXTERNAL)/win32/evart
   INC_EVART := $(wildcard $(EVART_DIR)/include)
@@ -439,13 +447,18 @@ ifeq ($(strip $(MACHINE)), WIN32)
     SZG_OPT_FLAGS += -D "EnableBirdWinDriver"
     SZG_SHARED_COPY += $(OBJ_WIN_BIRD)
     SZG_INCLUDE_WIN_BIRD = -I$(INC_WIN_BIRD)
+  ifneq ($(strip $(SZG_COMPILER)), MINGW)
     SZG_LINK_WIN_BIRD = $(LIB_WIN_BIRD)
+	else
+    SZG_PRE_LIB_SEARCH_FLAGS_WIN_BIRD = -L$(WIN_BIRD_DIR)/lib
+    SZG_LINK_WIN_BIRD = $(LINK_WIN_BIRD)
+	endif
   endif
   endif
 
   ifneq ($(strip $(INC_5DT)),)
   ifneq ($(strip $(LIB_5DT)),)
-    # lib5DT include file AND library exist.
+    # 5DT include file AND library exist.
     SZG_OPT_FLAGS += -D "Enable5DT"
     SZG_SHARED_COPY += $(OBJ_5DT)
     SZG_INCLUDE_5DT = -I$(INC_5DT)

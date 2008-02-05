@@ -34,7 +34,7 @@ class SZG_CALL arGrabCondition {
     float _currentValue;
 };
 
-class arDeltaGrabCondition : public arGrabCondition {
+class SZG_CALL arDeltaGrabCondition : public arGrabCondition {
   public:
     arDeltaGrabCondition();
     arDeltaGrabCondition( unsigned int eventIndex,
@@ -52,14 +52,14 @@ class arDeltaGrabCondition : public arGrabCondition {
   private:
 };
 
-class arAlwaysGrabCondition : public arGrabCondition {
+class SZG_CALL arAlwaysGrabCondition : public arGrabCondition {
   public:
     arAlwaysGrabCondition() {}
     float type() const { return AR_EVENT_GARBAGE; }
     float index() const { return 0; }
     float threshold() const { return 0.; }
     float value() const { return 0.; }
-    virtual bool check( arEffector* effector ) { return true; }
+    virtual bool check( arEffector* /*effector*/ ) { return true; }
   protected:
   private:
 };

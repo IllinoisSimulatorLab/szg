@@ -20,7 +20,7 @@ class SZG_CALL arInteractableThing : public arInteractable {
     arInteractableThing();
     arInteractableThing( const arInteractableThing& x );
     arInteractableThing& operator=( const arInteractableThing& x );
-    virtual ~arInteractableThing() {}
+    virtual ~arInteractableThing();
     virtual void setTexture( arTexture* tex ) {_texture = tex; }
     virtual arTexture* getTexture() { return _texture; }
     virtual void setHighlight( bool flag ) { _highlighted = flag; }

@@ -25,7 +25,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _inputFactory(),
 #endif
   _callbackFilter(this),
-  _defaultUserFilter(),
+  _defaultUserFilter(this),
   _userEventFilter(NULL),
   _unitSoundConversion(1.),
   _speechNodeID(-1),

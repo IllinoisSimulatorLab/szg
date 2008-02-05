@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arFrameworkEventFilter.h"
+#include "arSZGAppFramework.h"
 
 arFrameworkEventFilter::arFrameworkEventFilter( arSZGAppFramework* fw ) :
   _framework( fw ),
@@ -29,6 +30,11 @@ void arFrameworkEventFilter::flushEventQueue() {
 }
 
 bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {
+  if (_framework) {
+    if (!_framework->onInputEvent( inputEvent, *this )) {
+      return false;
+    }
+  }
   if (_saveEventQueue && (inputEvent.getType() != AR_EVENT_GARBAGE)) {
     queueEvent( inputEvent );
   }

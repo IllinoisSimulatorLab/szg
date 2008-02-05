@@ -28,6 +28,9 @@ arInteractableThing& arInteractableThing::operator=( const arInteractableThing& 
   return *this;
 }
 
+arInteractableThing::~arInteractableThing() {
+}
+
 bool arInteractableThing::_touch( arEffector& /*effector*/ ) {
   setHighlight(true);
   return true;

@@ -33,7 +33,6 @@ class PictureApp: public arMasterSlaveFramework {
 //    virtual void onPlay( void );
     virtual void onWindowEvent( arGUIWindowInfo* );
 //    virtual void onCleanup( void );
-//    virtual void onUserMessage( const string& messageBody );
 //    virtual void onOverlay( void );
 //    virtual void onKey( unsigned char key, int x, int y );
 //    virtual void onKey( arGUIKeyInfo* );

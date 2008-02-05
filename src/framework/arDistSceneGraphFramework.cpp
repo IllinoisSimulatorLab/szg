@@ -35,16 +35,6 @@ LDie:
       }
       goto LDie;
     }
-
-    if (messageType== "user"){
-      if (f->_userMessageCallback){
-        f->_userMessageCallback(*f, messageID, messageBody);
-      } else if (f->_oldUserMessageCallback) {
-        f->_oldUserMessageCallback(*f, messageBody);
-      }
-      continue;
-    }
-
     if (messageType=="log") {
       (void)ar_setLogLevel( messageBody );
     }
@@ -54,6 +44,18 @@ LDie:
     else if (messageType=="reload"){
       f->_loadParameters();
     }
+    else if (messageType== "user"){
+      if (f->_userMessageCallback){
+        f->_userMessageCallback(*f, messageID, messageBody);
+      } else if (f->_oldUserMessageCallback) {
+        f->_oldUserMessageCallback(*f, messageBody);
+      } else {
+        f->onUserMessage( messageID, messageBody );
+      }
+      // Don't return.
+      continue;
+    }
+
     else if (messageType=="print"){
       f->getDatabase()->printStructure();
     }
@@ -475,16 +477,10 @@ bool arDistSceneGraphFramework::_loadParameters(){
   // Configure data access.
 
   _dataPath = _SZGClient.getDataPath();
-  _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+  addDataBundlePathMap( "SZG_DATA", _dataPath );
 
   const string pythonPath = _SZGClient.getDataPathPython();
-  _graphicsServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  _graphicsClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  _soundServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  _soundClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+  addDataBundlePathMap( "SZG_PYTHON", pythonPath );
 
   _head.configure( _SZGClient );
   _loadNavParameters();
@@ -495,6 +491,16 @@ bool arDistSceneGraphFramework::_loadParameters(){
   _parametersLoaded = true;
   return true;
 }
+
+void arDistSceneGraphFramework::addDataBundlePathMap(
+    const string& bundlePathName, 
+    const string& bundlePath) {
+  _soundServer.addDataBundlePathMap( bundlePathName, bundlePath );
+  _soundClient.addDataBundlePathMap( bundlePathName, bundlePath );
+  _graphicsServer.addDataBundlePathMap( bundlePathName, bundlePath );
+  _graphicsClient.addDataBundlePathMap( bundlePathName, bundlePath );
+}
+
 
 void arDistSceneGraphFramework::_initDatabases(){
   if (_peerName != "NULL"){

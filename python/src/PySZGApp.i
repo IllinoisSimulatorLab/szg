@@ -319,6 +319,10 @@ class arSZGAppFramework {
     arInputNode* getInputDevice();
     arGUIWindowManager* getWindowManager( void );
     arSZGClient* getSZGClient();
+
+    void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
+
 };
 
 

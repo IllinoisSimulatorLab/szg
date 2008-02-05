@@ -184,6 +184,7 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
 #ifndef AR_USE_MINGW
 #include "arIntelGamepadDriver.h"
 #include "arSpacepadDriver.h"
+#include "ar5DTGloveDriver.h"
 #endif
 
 #include "arJoystickDriver.h"
@@ -206,7 +207,7 @@ struct DriverTableEntry {
   const char* printableName;
   const char* netName;
 };
-const int NUM_SERVICES = 21;
+const int NUM_SERVICES = 22;
 // NOTE: there is a really obnoxious kludge below... namely
 // arFileSource should be able to masquerade as any of the other
 // devices/ services, but it is stuck as SZG_INPUT!
@@ -232,6 +233,7 @@ const struct DriverTableEntry driverTable[NUM_SERVICES] = {
   { "arLogitechDriver",     "SZG_LOGITECH", "Logitech Tracker", NULL},
   { "arPPTDriver",          "SZG_PPT",      "WorldViz PPT Tracker", "USED"},
   { "arSerialSwitchDriver", "SZG_SERIALSWITCH", "Switch on serial port send/receive pins", NULL},
+  { "ar5DTGloveDriver", "SZG_5DT", "5DT DataGlove", NULL},
 };
 
 bool arInputFactory::configure( arSZGClient& szgClient ) {
@@ -307,6 +309,13 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
       case 19: theSource = new arPPTDriver;
         break;
       case 20: theSource = new arSerialSwitchDriver;
+        break;
+      case 21:
+#ifndef AR_USE_MINGW
+        theSource = new ar5DTGloveDriver;
+#else
+        ar_log_error() << "ar5DTGloveDriver not supported with g++ (MinGW compiler) on Windows.\n";
+#endif
         break;
       }
       break;

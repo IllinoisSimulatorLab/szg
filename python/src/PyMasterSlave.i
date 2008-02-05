@@ -50,7 +50,7 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
           PyErr_Print(); \
         } \
         string errmsg="arMasterSlaveFramework " #cbtype " callback failed to allocate framework object.";\
-        throw arMSCallbackException( errmsg ); \
+        throw arCallbackException( errmsg ); \
     }\
     PyObject *arglist=Py_BuildValue("(O)",fwobj);   \
     if (!arglist) { \
@@ -58,7 +58,7 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
           PyErr_Print(); \
         } \
         string errmsg="arMasterSlaveFramework " #cbtype " callback failed to allocate arglist object.";\
-        throw arMSCallbackException( errmsg ); \
+        throw arCallbackException( errmsg ); \
     }\
     PyObject *result=PyEval_CallObject(py##cbtype##Func, arglist);  \
     if (!result) { \
@@ -66,7 +66,7 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
           PyErr_Print(); \
         } \
         string errmsg="A Python exception occurred in the arMasterSlaveFramework " #cbtype " callback.";\
-        throw arMSCallbackException( errmsg ); \
+        throw arCallbackException( errmsg ); \
     }\
     Py_XDECREF(result); \
     Py_DECREF(arglist); \
@@ -151,7 +151,7 @@ static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo
           PyErr_Print();
         }
         string errmsg="A Python exception occurred in the arMasterSlaveFramework windowStartGL callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -173,7 +173,7 @@ static void pyWindowEventCallback( arMasterSlaveFramework& fw, arGUIWindowInfo* 
           PyErr_Print();
         }
         string errmsg="A Python exception occurred in the arMasterSlaveFramework windowEvent callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -202,7 +202,7 @@ static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCa
           PyErr_Print();
         }
         string errmsg="A Python exception occurred in the arMasterSlaveFramework Event callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
       res = false;
     } else {
       res=(bool) PyInt_AsLong(result);
@@ -233,7 +233,7 @@ static bool pyEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQ
           PyErr_Print();
         }
     string errmsg="A Python exception occurred in the arMasterSlaveFramework EventQueue callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
     res = false;
   } else {
     res=(bool) PyInt_AsLong(result);
@@ -260,7 +260,7 @@ static void pyNewDrawCallback( arMasterSlaveFramework& fw,
           PyErr_Print();
         }
         string errmsg="A Python exception occurred in the arMasterSlaveFramework Draw callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -285,7 +285,7 @@ static void pyUserMessageCallback(arMasterSlaveFramework& fw,
           PyErr_Print();
         }
         string errmsg="A Python exception occurred in the arMasterSlaveFramework UserMessage callback.";
-        throw arMSCallbackException( errmsg );
+        throw arCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -310,7 +310,7 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
        PyErr_Print();
      }
      string errmsg = "A Python exception occured in the arMasterSlaveFramework Keyboard callback.";
-     throw arMSCallbackException( errmsg );
+     throw arCallbackException( errmsg );
    }
 
    Py_XDECREF(result);
@@ -480,6 +480,8 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   
   void setDataBundlePath( const string& bundlePathName,
                           const string& bundleSubDirectory );
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
   void loadNavMatrix(void );
   void setPlayTransform( void );
   void drawGraphicsDatabase( void );
@@ -1289,9 +1291,9 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
   """
 
   keyTypes = [type(''),type(0),type(0.)]
-  def __init__( self, name, classData ):
+  def __init__( self, name, classData=[] ):
     """
-    d = arMasterSlaveDict( name, classData )
+    d = arMasterSlaveDict( name, classData=[] )
     'name' should be a string. This is used by the master/slave framework sequence data transfer
     methods, e.g. framework.initSequenceTransfer (called in the this class' start() method).
 
@@ -1578,6 +1580,78 @@ class arMasterSlaveListSync:
     if numItems > myNumItems:
       for i in range(myNumItems,numItems):
         self.objList.append( self.classFactory( stateList[i] ) )
+
+
+
+class arPySzgApp(arPyMasterSlaveFramework):
+  """ Weird new framework sub-class. Has the following properties:
+ 
+  1) Acts like a dictionary, i.e. you can do things like:
+
+       self['my_data'] = [1,2,'foobar',3.1416]
+
+     ...where self is the framework/application object. More specifically,
+     you can treat it like an arMasterSlaveDict,
+     with the same restrictions on data types for both dictionary
+     keys and content. You can register classes to be transferred
+     using self.addTransferTypes(), which calls arMasterSlaveDict.addTypes().
+
+  2) Data inserted into the framework in this way are automagically
+     transferred from master to slaves (provided you've called
+     arPySzgApp.__init__() in you subclass' __init__().
+ 
+  3) You can interact with the objects by calling self.processInteraction(),
+     and draw them using self.drawItems() """   
+
+  def __init__(self):
+    arPyMasterSlaveFramework.__init__(self)
+    self.__dict = arMasterSlaveDict( '__app_dict' )
+    self.__usePrompt = '--prompt' in sys.argv
+  def startCallback( self, framework, client ):
+    if self.__usePrompt:
+      if self.getMaster():
+        ar_initPythonPrompt( self )
+    # Register the dictionary of objects to be shared between master & slaves
+    self.__dict.start( self )
+    return self.onStart( client )
+  def onStart( self, client ):
+    return True
+  def preExchangeCallback( self, framework ):
+    if self.__usePrompt:
+      ar_doPythonPrompt()
+    self.onPreExchange()
+    self.__dict.packState( self )
+  def onPreExchange( self ):
+    pass
+  def postExchangeCallback( self, framework ):
+    if not self.getMaster():
+      # Unpack the message queue and use it to update the set
+      # of objects in the dictionary as well as the state of each (using
+      # its setState() method).
+      self.__dict.unpackState( self )
+    self.onPostExchange()
+  def onPostExchange( self ):
+    pass
+  def addTransferTypes( self, classData ):
+    self.__dict.addTypes( classData )
+  def __getitem__( self, key ):
+    return self.__dict[key]
+  def __setitem__( self, key, value ):
+    self.__dict[key] = value
+  def __delitem__( self, key, value ):
+    del self.__dict[key]
+  def delValue( self, value ):
+    self.__dict.delValue( value )
+  def push( self, object ):
+    self.__dict.push( object )
+  def clear(self):
+    self.__dict.clear()
+  def processInteraction( self, effector ):
+    self.__dict.processInteraction( effector )
+  def drawItems( self ):
+    self.__dict.draw()
+  
+
 
 class SzgRunner(object):
   app = None

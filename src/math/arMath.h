@@ -114,9 +114,9 @@ class SZG_CALL arVector4{
   arVector4(const float* p){ set(p[0], p[1], p[2], p[3]); }
   arVector4(float x, float y, float z, float w){ set(x,y,z,w); }
   arVector4(const arVector3& vec, float w) { set(vec.v[0],vec.v[1],vec.v[2],w); }
-  bool operator==(const arVector3& rhs) const
+  bool operator==(const arVector4& rhs) const
     { return memcmp(v, rhs.v, 4*sizeof(float)) == 0; }
-  bool operator!=(const arVector3& rhs) const
+  bool operator!=(const arVector4& rhs) const
     { return memcmp(v, rhs.v, 4*sizeof(float)) != 0; }
 
   // Do not define an operator cast to float*.
