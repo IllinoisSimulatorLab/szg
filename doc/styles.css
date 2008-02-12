@@ -13,10 +13,23 @@ position:absolute;
 width:90%;
 }
 
+@media print {
+  #container {
+  background-color:#ffffff;
+  margin: 0;
+  position:static;
+  width:100%;
+  }
+}
+
 #high {
 background-color:#202020;
 height:2.4em;
 max-height:2.4em;
+}
+
+@media print {
+  #high { display: none; }
 }
 
 #header {
@@ -28,6 +41,19 @@ padding-left:2em;
 padding-top:1em;
 padding-bottom:1em;
 padding-right:82px;
+}
+
+@media print {
+  #header {
+  background-color:#FFFFFF;
+  border:1px solid #000000;
+  color:#000000;
+  font-size:2em;
+  padding-left:2em;
+  padding-top:1em;
+  padding-bottom:1em;
+  padding-right:82px;
+  }
 }
 
 #footer {
@@ -92,6 +118,16 @@ font-family:Palatino, serif;
 font-size:1.0em;
 /*font-family:Verdana, Arial, Helvetica, sans-serif;*/
 /*font-size:0.75em;*/
+}
+
+@media print {
+  body {
+  background-color:#FFFFFF;
+  font-family:Palatino, serif;
+  font-size:1.0em;
+  /*font-family:Verdana, Arial, Helvetica, sans-serif;*/
+  /*font-size:0.75em;*/
+  }
 }
 
 #toc
