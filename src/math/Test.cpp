@@ -166,6 +166,12 @@ int main(){
   if (++(test1-arVector3(0,1,0)) > epsilon){
     cout << "FAILED: rotation matrix about z-axis (quaternion).\n";
   }
+  test1 = ar_rotationMatrix(arVector3(0.5,0.5,0), ar_convertToRad(90))
+    *arVector3(.707107,-.707107,0);
+  if (++(test1-arVector3(0,0,-1)) > epsilon){
+    cout << "FAILED: rotation matrix about axis (quaternion).\n";
+    cout << "    result = " << test1 << endl;
+  }
 
   // test translation matrix code
   cout << "Testing translation matrices.\n";

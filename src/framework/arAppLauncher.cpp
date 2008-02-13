@@ -24,19 +24,19 @@ arAppLauncher::arAppLauncher(const char* exeName) :
     _exeName.assign("arAppLauncher");
 }
 
-arAppLauncher::~arAppLauncher(){
+arAppLauncher::~arAppLauncher() {
   if (_ownedClient)
     delete _szgClient;
 }
 
-bool arAppLauncher::setRenderProgram(const string& name){
+bool arAppLauncher::setRenderProgram(const string& name) {
   ar_log_debug() << "renderer is '" << name << "'.\n";
   _renderer = name;
   return true;
 }
 
-bool arAppLauncher::setAppType(const string& theType){
-  if (theType != "distgraphics" && theType != "distapp"){
+bool arAppLauncher::setAppType(const string& theType) {
+  if (theType != "distgraphics" && theType != "distapp") {
     ar_log_warning() << "ignoring unexpected type '" << theType <<
       "', expected distapp or distgraphics.\n";
     return false;
@@ -54,7 +54,7 @@ bool arAppLauncher::_szgClientOK() const {
 }
 
 // Set the virtual computer and the location, from the arSZGClient's "context."
-bool arAppLauncher::setVircomp(){
+bool arAppLauncher::setVircomp() {
   if (!_szgClientOK())
     return false;
 
@@ -64,11 +64,11 @@ bool arAppLauncher::setVircomp(){
 }
 
 // Set the virtual computer (e.g. for dkillall), without starting a whole app.
-bool arAppLauncher::setVircomp(const string& vircomp){
+bool arAppLauncher::setVircomp(const string& vircomp) {
   if (!_szgClientOK())
     return false;
 
-  if (_szgClient->getAttribute(vircomp,"SZG_CONF","virtual","") != "true"){
+  if (_szgClient->getAttribute(vircomp,"SZG_CONF","virtual","") != "true") {
     ar_log_warning() << "no virtual computer '" << vircomp <<
       "', expected one of: " << _szgClient->getVirtualComputers() << ".\n";
     return false;
@@ -85,7 +85,7 @@ bool arAppLauncher::setVircomp(const string& vircomp){
 }
 
 // Encapsulate arSZGClient connection for tiny arAppLauncher-wrapper apps.
-bool arAppLauncher::connectSZG(int& argc, char** argv){
+bool arAppLauncher::connectSZG(int& argc, char** argv) {
   _szgClient = new arSZGClient;
   const bool fInit = _szgClient->init(argc, argv);
   if (!*_szgClient)
@@ -99,7 +99,7 @@ bool arAppLauncher::connectSZG(int& argc, char** argv){
 // its own arSZGClient. This provides access to that arSZGClient.
 // object as well, which access is provided by this method.
 // Must be called before any other method.
-bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
+bool arAppLauncher::setSZGClient(arSZGClient* SZGClient) {
   if (!SZGClient) {
     ar_log_warning() << "ignoring setSZGClient(NULL).\n";
     return false;
@@ -110,18 +110,18 @@ bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
 }
 
 // From szgserver, get and parse and error-check attributes of the virtual computer.
-bool arAppLauncher::setParameters(){
+bool arAppLauncher::setParameters() {
   if (!_szgClientOK())
     return false;
 
-  if (_vircompDefined){
+  if (_vircompDefined) {
     // todo: since many exes (e.g. dkillall) call this,
     // maybe handle when the v.c. was already set explicitly.
     return true;
   }
   
   // If the virtual computer was not explicitly set, set its name and "location."
-  if (_vircomp == "NULL" && !setVircomp()){
+  if (_vircomp == "NULL" && !setVircomp()) {
     ar_log_warning() << "no virtual computer '" << _vircomp << "'.\n"; //;;;; unify this emptytest with others
     const string s(_szgClient->getVirtualComputers());
     if (s.empty()) {
@@ -152,7 +152,7 @@ bool arAppLauncher::setParameters(){
   for (i=0; i<getNumberScreens(); ++i) {
     // A "pipe" is an ordered pair (hostname, screenname).
     const arSlashString pipe(_getAttribute(_screenName(i), "map", ""));
-    if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY"){
+    if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY") {
       ar_log_warning() << "screen " << i << " of " <<
 	_vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
       return false;
@@ -165,7 +165,7 @@ bool arAppLauncher::setParameters(){
   // Input.
   const arSlashString inputDevs(_getAttribute("SZG_INPUT0", "map", ""));
   const int numTokens = inputDevs.size();
-  if (numTokens%2){
+  if (numTokens%2) {
     ar_log_warning() << "invalid input devices format for virtual computer '" << _vircomp <<
       "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
@@ -188,7 +188,7 @@ bool arAppLauncher::setParameters(){
 
   _serviceList.clear();
   // Parse the list of "computer/device" pairs.
-  for (i=0; i<numTokens; i+=2){
+  for (i=0; i<numTokens; i+=2) {
     const string computer(inputDevs[i]);
     string device(inputDevs[i+1]);
     string info(device);
@@ -206,7 +206,7 @@ bool arAppLauncher::setParameters(){
 
   // Sound.
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
-  if (soundLocation != "NULL"){
+  if (soundLocation != "NULL") {
     _addService(soundLocation,"SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
   }
 
@@ -215,21 +215,21 @@ bool arAppLauncher::setParameters(){
 }  
 
 // Launch the other components of the app on the virtual computer.
-bool arAppLauncher::launchApp(){
+bool arAppLauncher::launchApp() {
   // _prepareCommand() includes the lock to match the _unlock()'s below.
-  if (!_prepareCommand()){
+  if (!_prepareCommand()) {
     ar_log_warning() << "failed to prepare launch.\n";
     return false;
   }
 
-  if (_appType == "NULL"){
+  if (_appType == "NULL") {
     ar_log_warning() << "undefined control host or application type.\n";
     _unlock();
     return false;
   }
 
   // Kill any running app.
-  if (!_demoKill()){
+  if (!_demoKill()) {
     ar_log_warning() << "failed to kill previous application.\n";
     _unlock();
     return false;
@@ -246,18 +246,18 @@ bool arAppLauncher::launchApp(){
   list<arLaunchInfo> appsToLaunch;
   list<int> serviceKillList;
 
-  if (_onlyIncompatibleServices){
+  if (_onlyIncompatibleServices) {
     _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
   }
-  else{
+  else {
     _relaunchAllServices(appsToLaunch, serviceKillList);
   }
 
   int i;
   
   // Launch a "distributed app" on every host.
-  for (i=0; i<getNumberScreens(); i++){
-    if (_appType == "distapp" || _getPID(i, _firstToken(_renderer)) == -1){
+  for (i=0; i<getNumberScreens(); i++) {
+    if (_appType == "distapp" || _getPID(i, _firstToken(_renderer)) == -1) {
       appsToLaunch.push_back(_pipes[i].renderer);
     }
   }
@@ -266,7 +266,7 @@ bool arAppLauncher::launchApp(){
   _blockingKillByID(&serviceKillList);
 
   const bool ok = _execList(&appsToLaunch);
-  if (!ok){
+  if (!ok) {
     ar_log_warning() << "some components failed to launch.\n";
   }
   _unlock(); 
@@ -274,23 +274,23 @@ bool arAppLauncher::launchApp(){
 }
 
 // Kill "transient" copies of a master/slave app.
-void arAppLauncher::killApp(){
+void arAppLauncher::killApp() {
   if (_szgClientOK() && _appType == "distapp")
     _graphicsKill("");
 }
 
-bool arAppLauncher::waitForKill(){ 
+bool arAppLauncher::waitForKill() { 
   if (!_szgClientOK())
     return false;
 
   while (true) {
     string messageType, messageBody;
-    if (!_szgClient->receiveMessage(&messageType,&messageBody)){
+    if (!_szgClient->receiveMessage(&messageType,&messageBody)) {
       ar_log_error() << "no szgserver.\n";
       // Don't call killApp(), since szgserver is gone.
       break;
     }
-    if (messageType == "quit"){
+    if (messageType == "quit") {
       killApp();
       break;
     }
@@ -307,7 +307,7 @@ bool arAppLauncher::waitForKill(){
   return true;
 }
 
-bool arAppLauncher::restartServices(){
+bool arAppLauncher::restartServices() {
   if (!_prepareCommand())
     return false;
 
@@ -315,9 +315,9 @@ bool arAppLauncher::restartServices(){
   iLaunch iter;
   list<int> killList;
   // NOTE: we kill the services by their TRADING KEY and NOT by name!
-  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
+  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
-    if (serviceID != -1){
+    if (serviceID != -1) {
       killList.push_front(serviceID);
     }
   }
@@ -325,9 +325,9 @@ bool arAppLauncher::restartServices(){
 
   // Restart the services.
   list<arLaunchInfo> launchList;
-  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
+  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     const int serviceSzgdID = _szgClient->getProcessID(iter->computer, "szgd");
-    if (serviceSzgdID != -1){
+    if (serviceSzgdID != -1) {
       launchList.push_back(*iter);
     }
   }
@@ -336,7 +336,7 @@ bool arAppLauncher::restartServices(){
   return ok;
 }
 
-bool arAppLauncher::killAll(){
+bool arAppLauncher::killAll() {
   if (!_prepareCommand())
     return false;
 
@@ -346,11 +346,11 @@ bool arAppLauncher::killAll(){
   // Kill the services.
   list<int> killList;
   string namesKill;
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
+  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     namesKill += " " + iter->tradingTag;
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
     ar_log_debug() << "killAll() " << iter->tradingTag << " id = " << serviceID << ar_endl;
-    if (serviceID != -1){
+    if (serviceID != -1) {
       killList.push_back(serviceID);
     }
   }
@@ -362,7 +362,7 @@ bool arAppLauncher::killAll(){
   return true;
 }
 
-bool arAppLauncher::screenSaver(){
+bool arAppLauncher::screenSaver() {
   if (!_prepareCommand())
     return false;
 
@@ -373,8 +373,8 @@ bool arAppLauncher::screenSaver(){
     
   // Start szgrenders.
   list<arLaunchInfo> launchList;
-  for (int i=0; i<getNumberScreens(); i++){
-    if (_getPID(i, "szgrender") == -1 && _getPID(i, "szgd") != -1){
+  for (int i=0; i<getNumberScreens(); i++) {
+    if (_getPID(i, "szgrender") == -1 && _getPID(i, "szgd") != -1) {
       launchList.push_back(
         arLaunchInfo(_pipes[i].hostname, "szgrender", _getRenderContext(i)));
     }
@@ -433,10 +433,10 @@ bool arAppLauncher::getRenderProgram(const int i, string& computer,
 
   computer = _pipes[i].hostname;
   int renderProgramID = -1;
-  if (!_szgClient->getLock(renderProgramLock, renderProgramID)){
+  if (!_szgClient->getLock(renderProgramLock, renderProgramID)) {
     // someone is holding the lock
     const arSlashString renderProgramLabel(_szgClient->getProcessLabel(renderProgramID));
-    if (renderProgramLabel != "NULL"){
+    if (renderProgramLabel != "NULL") {
       // something with this ID is still running
       renderName = renderProgramLabel[1];
       // we do not have the lock
@@ -456,7 +456,7 @@ bool arAppLauncher::getRenderProgram(const int i, string& computer,
 void arAppLauncher::updateRenderers(const string& attribute, 
                                     const string& value) {
   // set up the virtual computer info, if necessary
-  if (!setParameters()){
+  if (!setParameters()) {
     ar_log_warning() << "updateRenderers got invalid virtual computer definition.\n";
     return;
   }
@@ -471,10 +471,10 @@ void arAppLauncher::updateRenderers(const string& attribute,
 
     const string configName(_szgClient->getAttribute(_pipes[i].hostname, _pipes[i].screenname, "name", ""));
     // configName is the name of an <szg_display>.
-    if (configName == "NULL"){
+    if (configName == "NULL") {
       ar_log_warning() << "no config for screen " << getScreenName(i) << ".\n";
     }
-    else{
+    else {
       // Go into the first window defined in the XML global
       // parameter given by configName, and set the specified attribute.
       _szgClient->getSetGlobalXML(configName + "/szg_window/" + attribute + "/value", value);
@@ -497,7 +497,7 @@ string arAppLauncher::_firstToken(const string& s) const {
   return s.substr(first, second-first);
 }
 
-bool arAppLauncher::_prepareCommand(){
+bool arAppLauncher::_prepareCommand() {
   // Get the application lock.
   return setParameters() && _trylock();
 }
@@ -506,7 +506,7 @@ void arAppLauncher::_addService(const string& computerName,
                                 const string& serviceName,
                                 const string& context,
 				const string& tradingTag,
-				const string& info){
+				const string& info) {
   arLaunchInfo l(computerName, serviceName, context, _location + "/" + tradingTag, info);
 
   // Trade with _location, not _vircomp, so multiple virtual computers
@@ -515,12 +515,12 @@ void arAppLauncher::_addService(const string& computerName,
   // TODO: Dump arLaunchInfo entry here.
 }
 
-bool arAppLauncher::_trylock(){
+bool arAppLauncher::_trylock() {
   if (!_szgClientOK() || !_vircompDefined)
     return false;
 
   int ownerID;
-  if (!_szgClient->getLock(_location + "/SZG_DEMO/lock", ownerID)){
+  if (!_szgClient->getLock(_location + "/SZG_DEMO/lock", ownerID)) {
     const string label = _szgClient->getProcessLabel(ownerID);
     ar_log_critical() << "demo lock held for virtual computer " <<
       _vircomp << ".  Application " << label << " is reorganizing the cluster.\n";
@@ -530,15 +530,15 @@ bool arAppLauncher::_trylock(){
 }
 
 // todo: more cheating delays
-void arAppLauncher::_unlock(){
+void arAppLauncher::_unlock() {
   if (!_szgClientOK() || !_vircompDefined)
     return;
-  if (!_szgClient->releaseLock(_location + string("/SZG_DEMO/lock"))){
+  if (!_szgClient->releaseLock(_location + string("/SZG_DEMO/lock"))) {
     ar_log_warning() << "failed to release SZG_DEMO lock.\n";
   }
 }
 
-bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
+bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
   int match = -1;
   list<int> sentMessageMatches;
   list<int> initialMessageMatches;
@@ -546,14 +546,14 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   // When launching an app, add the ID of the launching message to 
   // the sentMessageIDs list. It remains there until the launched component
   // has fully responded to the message.
-  for (iLaunch iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter){
+  for (iLaunch iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter) {
     const int szgdID = _szgClient->getProcessID(iter->computer, "szgd");
-    if (szgdID == -1){
+    if (szgdID == -1) {
       ar_log_error() << "no szgd on host " << iter->computer << ".\n";
       continue;
     }
     match = _szgClient->sendMessage("exec", iter->process, iter->context, szgdID, true);
-    if (match < 0){
+    if (match < 0) {
       ar_log_warning() << "failed to send exec message.\n";
       continue;
     }
@@ -563,23 +563,23 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
 
   // Return responses to the "dex" command, or print them to the console.
   const ar_timeval startTime = ar_time();
-  while (!sentMessageMatches.empty()){
+  while (!sentMessageMatches.empty()) {
     const int elapsedMicroseconds = int(ar_difftime(ar_time(), startTime));
     // We assume that, in a well-behaved Syzygy app, the initial
     // start messages will be received within 20 seconds. After that,
     // let the running application be killed.
     // bug: SZG_DEX_TIMEOUT and SZG_DEX_LOCALTIMEOUT env vars should affect this hardcoded 20 seconds?
-    if (elapsedMicroseconds > 20 * 1000000){
-      if (!initialMessageMatches.empty()){
+    if (elapsedMicroseconds > 20 * 1000000) {
+      if (!initialMessageMatches.empty()) {
         ar_log_warning() << "timed out before getting component messages.  Aborting.\n";
         return false;
       }
-      if (_szgClient->getLaunchingMessageID()){
+      if (_szgClient->getLaunchingMessageID()) {
 	_szgClient->messageResponse(_szgClient->getLaunchingMessageID(),
 	  _exeName + string(" remark: ignored launch messages after 20-second timeout.\n",
 	  true));
       }
-      else{
+      else {
 	ar_log_remark() << "ignored launch messages after 20-second timeout.\n";
       }
       return true;
@@ -600,29 +600,29 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
     const int successCode = _szgClient->getMessageResponse(
       sentMessageMatches, responseBody, match, 10000);
     // successCode==0 exactly when there is a time-out.  
-    if (successCode != 0){
+    if (successCode != 0) {
       // got a response
-      if (_szgClient->getLaunchingMessageID()){
+      if (_szgClient->getLaunchingMessageID()) {
         // We've been launched by "dex", via the message ID outlined.
         // This is a partial response. AND this pile of code indicates
         // why partial responses are a good idea.
         _szgClient->messageResponse(_szgClient->getLaunchingMessageID(),
                                  responseBody, true);
       }
-      else{
+      else {
         // not launched by "dex"
         ar_log_remark() << responseBody << "\n";
       }
-      if (successCode > 0){
+      if (successCode > 0) {
         // Got the final response for this message.
         sentMessageMatches.remove(match);
         initialMessageMatches.remove(match);
       }
-      else if (successCode == -1){
+      else if (successCode == -1) {
         // Got a continuation of this message.
 	initialMessageMatches.remove(match);
       }
-      else{
+      else {
 	ar_log_warning() << "got an invalid success code.\n";
       }
     }
@@ -631,7 +631,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
 }
 
 // Since this kills via ID, it is better suited to killing the graphics programs.
-void arAppLauncher::_blockingKillByID(list<int>* IDList){
+void arAppLauncher::_blockingKillByID(list<int>* IDList) {
   if (!_szgClientOK() || !_vircompDefined)
     return;
 
@@ -641,7 +641,7 @@ void arAppLauncher::_blockingKillByID(list<int>* IDList){
   // Ugly. Maybe a data structure with the request*Notifications?
   list<int> tags;
   map<int, int, less<int> > tagToID;
-  for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter){
+  for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter) {
     const int tag = _szgClient->requestKillNotification(*iter);
     tags.push_back(tag);
     tagToID.insert(map<int,int,less<int> >::value_type(tag, *iter));
@@ -649,18 +649,18 @@ void arAppLauncher::_blockingKillByID(list<int>* IDList){
   }
 
   // Wait 8 seconds (per component?!) for everything to die.
-  while (!tags.empty()){
+  while (!tags.empty()) {
     const int killedID = _szgClient->getKillNotification(tags, 8000);
-    if (killedID < 0){
+    if (killedID < 0) {
       ar_log_remark() << "timed out while killing components with IDs:\n";
-      for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n){
+      for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n) {
 	// These components are at least unhealthy, if not already dead.
 	// So just remove them from szgserver's process table.
 	map<int,int,less<int> >::const_iterator iter = tagToID.find(*n);
-        if (iter == tagToID.end()){
+        if (iter == tagToID.end()) {
 	  ar_log_critical() << "internal error: missing kill ID.\n";
 	}
-	else{
+	else {
 	  ar_log_remark() << iter->second << " ";
           _szgClient->killProcessID(iter->second);
 	}
@@ -669,10 +669,10 @@ void arAppLauncher::_blockingKillByID(list<int>* IDList){
       return;
     }
     map<int,int,less<int> >::const_iterator iter = tagToID.find(killedID);
-    if (iter == tagToID.end()){
+    if (iter == tagToID.end()) {
       ar_log_critical() << "internal error: missing kill ID.\n";
     }
-    else{
+    else {
       ar_log_remark() << "killed component with ID " << iter->second << ".\n";
     }
     tags.remove(killedID);
@@ -680,21 +680,21 @@ void arAppLauncher::_blockingKillByID(list<int>* IDList){
 }
 
 // Kill every render program that does NOT match the specified name. Block.
-void arAppLauncher::_graphicsKill(const string& appKeep){
+void arAppLauncher::_graphicsKill(const string& appKeep) {
   // Determine what graphics program is running on each display.
   // If it isn't correct, deactivate it. 
   list<int> graphicsKillList;
-  for (int i=0; i<getNumberScreens(); i++){
+  for (int i=0; i<getNumberScreens(); i++) {
     const string screenLock(getScreenName(i));
     int pid = -1;
-    if (_szgClient->getLock(screenLock, pid)){
+    if (_szgClient->getLock(screenLock, pid)) {
       // Unlock, so the graphics program can start.
       _szgClient->releaseLock(screenLock); // Ugly. arSZGClient::checklock() better?
     }
-    else{
+    else {
       // someone has locked this screen already
       const arSlashString label(_szgClient->getProcessLabel(pid));
-      if (label != "NULL" && label[1] != appKeep){
+      if (label != "NULL" && label[1] != appKeep) {
 	graphicsKillList.push_front(pid);
       }
     }
@@ -703,7 +703,7 @@ void arAppLauncher::_graphicsKill(const string& appKeep){
 }
 
 // Kill the demo. Block. Return false on error.
-bool arAppLauncher::_demoKill(){
+bool arAppLauncher::_demoKill() {
   int demoID = -1;
   const string demoLockName(_location+string("/SZG_DEMO/app"));
   if (_szgClient->getLock(demoLockName, demoID))
@@ -717,7 +717,7 @@ bool arAppLauncher::_demoKill(){
 
   // Assume that apps yield gracefully from the system within 15 seconds.
   // Assume that kill works within 8 seconds.
-  if (_szgClient->getLockReleaseNotification(tags, 15000) < 0){
+  if (_szgClient->getLockReleaseNotification(tags, 15000) < 0) {
     // Timed out. Kill the demo by removing it from szgserver's component table.
     _szgClient->killProcessID(demoID);
     ar_log_warning() << "killing slowly exiting demo.\n";
@@ -725,7 +725,7 @@ bool arAppLauncher::_demoKill(){
     return false;
   }
 
-  if (!_szgClient->getLock(demoLockName, demoID)){
+  if (!_szgClient->getLock(demoLockName, demoID)) {
     ar_log_critical() << "failed twice to get demo lock. (Check for rogue processes.)\n";
     return false;
   }
@@ -734,10 +734,10 @@ bool arAppLauncher::_demoKill(){
 }
 
 void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
-                                         list<int>& serviceKillList){
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
+                                         list<int>& serviceKillList) {
+  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
-    if (serviceID >= 0){
+    if (serviceID >= 0) {
       serviceKillList.push_back(serviceID);
     }
     appsToLaunch.push_back(*iter);
@@ -745,11 +745,11 @@ void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
 }
 
 void arAppLauncher::_relaunchIncompatibleServices(
-  list<arLaunchInfo>& appsToLaunch, list<int>& serviceKillList){
+  list<arLaunchInfo>& appsToLaunch, list<int>& serviceKillList) {
 
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
+  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
-    if (serviceID == -1){
+    if (serviceID == -1) {
       // No component offers this service.
       ar_log_remark() << "host " << iter->computer << " starting service " <<
         iter->tradingTag << ".\n";
@@ -759,7 +759,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 
     // Found the service.  Is it running on the right computer, with the right info tag?
     const arSlashString processLocation(_szgClient->getProcessLabel(serviceID));
-    if (processLocation.size() != 2){
+    if (processLocation.size() != 2) {
       ar_log_remark() << "relaunching disappeared service " << iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
       continue;
@@ -767,23 +767,23 @@ void arAppLauncher::_relaunchIncompatibleServices(
 
     // The process location must be computer/name.
     // Check only the service's host, not its name.
-    if (processLocation[0] == iter->computer){
+    if (processLocation[0] == iter->computer) {
       // Service is running with the right process name and on the right host.
       const string info(_szgClient->getServiceInfo(iter->tradingTag));
-      if (info != iter->info){
-	// Perhaps a DeviceServer running the wrong driver.
-	ar_log_remark() << "host " << iter->computer << " restarting service " <<
-	  iter->tradingTag << ", because of mismatched info '" << iter->info << "'.\n";
-	serviceKillList.push_back(serviceID);
-	appsToLaunch.push_back(*iter);
+      if (info != iter->info) {
+      // Perhaps a DeviceServer running the wrong driver.
+      ar_log_remark() << "host " << iter->computer << " restarting service " <<
+        iter->tradingTag << ", because of mismatched info '" << iter->info << "'.\n";
+      serviceKillList.push_back(serviceID);
+      appsToLaunch.push_back(*iter);
       }
-      else{
-	// Service is already running.
-	ar_log_debug() << "host " << iter->computer << " keeping service " <<
-	  iter->tradingTag << ".\n";
+      else {
+        // Service is already running.
+        ar_log_debug() << "host " << iter->computer << " keeping service " <<
+          iter->tradingTag << ".\n";
       }
     }
-    else{
+    else {
       // Service is running, but on the wrong host.
       ar_log_remark() << "moving service " << iter->tradingTag << " from host " <<
         iter->computer << " to " << processLocation[0] << ".\n";

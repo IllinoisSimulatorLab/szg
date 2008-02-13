@@ -444,7 +444,11 @@ index.
 + Words matching the pattern **filter_<event_type>_<event_index>** will be called
 when an event of the appropriate type and index comes in. For example, to apply
 a filter only to the head matrix (matrix event #0), define the word
-**filter_matrix_0**.
+**filter_matrix_0**. //Gotcha//: The entire sequence of words to call for a given event
+is computed //before// any of them are called. This means that if you change the
+//index// of an event in one of the **filter_all_...** words, the word
+**filter_<event_type>_<new_event_index>** //won't// be called, instead
+**filter_<event_type>_<original_event_index>** will be called.
 
 If a given event matches the pattern for more than one word (e.g. a matrix event #0 comes in and
 you have defined the words **filter_all_matrices** and **filter_matrix_0**),
