@@ -26,6 +26,22 @@ using namespace std;
 #include <direct.h>
 #include <time.h>
 #include <iostream>
+#include <sstream>
+
+
+static string __version("");
+
+string ar_versionString() {
+  if (__version == "") {
+    ostringstream os;
+    os << SZG_MAJOR_VERSION << "."
+       << SZG_MINOR_VERSION << "."
+       << SZG_PATCH_VERSION;
+    __version = os.str();
+  }
+  return __version;
+}
+
 
 string ar_getLastWin32ErrorString() {
   const DWORD errCode = GetLastError();

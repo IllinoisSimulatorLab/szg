@@ -1,5 +1,6 @@
-print 'szg:',__file__
+print 'szg module:',__file__
 from _szg import *
+print 'Syzygy version:',ar_versionString()
 import sys
 
 # Simple embedded multiline python interpreter built around raw_input().

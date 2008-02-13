@@ -1,6 +1,12 @@
 // Defines mapping from python to C++ strings.
 %Include typemaps.sip
 
+enum{ 
+  AR_GENERIC_DATABASE = 0,
+  AR_GRAPHICS_DATABASE = 1,
+  AR_SOUND_DATABASE = 2
+};
+
 enum arNodeLevel {
   AR_IGNORE_NODE = -1,
   AR_STRUCTURE_NODE,
@@ -90,5 +96,73 @@ class arDatabaseNode {
 
  private:
   arDatabaseNode( const arDatabaseNode& );
+};
+
+
+/// Generic database distributed across a cluster.
+class arDatabase {
+ public:
+  arDatabase();
+  virtual ~arDatabase();
+
+  int getTypeCode();
+  string getTypeString();
+
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
+
+  int getNodeID(const string& name, bool fWarn=true);
+  arDatabaseNode* getNodeRef(int, bool fWarn=true);
+  arDatabaseNode* getNodeRef(const string&, bool fWarn=true);
+  arDatabaseNode* findNodeRef(const string& name);
+  arDatabaseNode* getRoot();
+  arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
+                             const string& name="");
+  arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
+			        arDatabaseNode* child,
+			        const string& type,
+			        const string& name = "");
+  bool cutNode(arDatabaseNode* node);
+  bool cutNode(int ID);
+  bool eraseNode(arDatabaseNode* node);
+  bool eraseNode(int ID);
+  void permuteChildren(arDatabaseNode* parent,
+                       int number, int* children);
+                       
+
+  virtual bool readDatabase(const string& fileName, 
+                            const string& path = "");
+  virtual bool readDatabaseXML(const string& fileName, 
+                               const string& path = "");
+  virtual bool attach(arDatabaseNode* parent,
+                      const string& fileName,
+                      const string& path = "");
+  virtual bool attachXML(arDatabaseNode* parent,
+                         const string& fileName,
+                         const string& path = "");
+  virtual bool merge(arDatabaseNode* parent,
+                     const string& fileName,
+                     const string& path = "");
+  virtual bool mergeXML(arDatabaseNode* parent,
+                        const string& fileName,
+                        const string& path = "");
+  virtual bool writeDatabase(const string& fileName, 
+                             const string& path = "");
+  virtual bool writeDatabaseXML(const string& fileName, 
+                                const string& path = "");
+  virtual bool writeRooted(arDatabaseNode* parent,
+                           const string& fileName,
+                           const string& path="");
+  virtual bool writeRootedXML(arDatabaseNode* parent,
+                              const string& fileName,
+                              const string& path="");
+  
+
+  bool empty();
+  virtual void reset();
+  void printStructure(int maxLevel);
+  void printStructure();
 };
 

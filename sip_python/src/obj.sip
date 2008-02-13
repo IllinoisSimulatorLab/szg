@@ -16,6 +16,7 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path);
 class arObject /Abstract/ {
 %TypeHeaderCode
 #include "arObject.h"
+string arObject::type() const { return "Invalid"; } // avoid warning
 %End
  public:
   arObject();

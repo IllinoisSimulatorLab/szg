@@ -98,3 +98,7 @@ def getSwigModuleDll():
 %include PyExperiment.i
 #endif
 
+%pythoncode %{
+print 'Syzygy version:',ar_versionString()
+%}
+

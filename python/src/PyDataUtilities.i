@@ -2,6 +2,13 @@
 // it under the terms of the GNU LGPL as published by
 // the Free Software Foundation (http://www.gnu.org/copyleft/lesser.html).
 
+
+%{
+#include "arDataUtilities.h"
+%}
+
+string ar_versionString();
+
 %{
 #include "arSocketAddress.h"
 %}

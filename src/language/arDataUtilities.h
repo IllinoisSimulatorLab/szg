@@ -29,6 +29,10 @@ bool SZG_CALL ar_winSockInit();
 string SZG_CALL ar_getLastWin32ErrorString();
 #endif
 
+// Version
+
+string SZG_CALL ar_versionString();
+
 // Small utility classes.
 
 // Wrapper for 3 ints.
