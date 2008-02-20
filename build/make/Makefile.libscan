@@ -243,6 +243,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
 		LIB_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.lib)
 		OBJ_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.dll)
 	endif
+	# possible confusion if win32/ascension exists instead of one of these two
 
 	ifeq ($(strip $(SZG_COMPILER)), MINGW)
 		5DT_DIR := $(SZGEXTERNAL)/win32/5DT-mingw
