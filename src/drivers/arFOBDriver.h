@@ -100,10 +100,6 @@ class arFOBDriver: public arInputSource {
   };
   float _floatData[16];
   int   _sensorMap[_FOB_MAX_DEVICES+1];
-  
-  // calibration parameters
-  arMatrix4 _transmitterOffset;
-  arMatrix4 _sensorRot[ _FOB_MAX_DEVICES ];
 };
 
 #endif

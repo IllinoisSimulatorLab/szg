@@ -62,32 +62,59 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   // cerr << ar_log().logLevel() << " propagation test.\n";
   ar_log().setLogLevel(AR_LOG_DEBUG);
 
-  const string transmitterOffset(
-    SZGClient.getAttribute("SZG_FOB", "transmitter_offset"));
-  if (transmitterOffset != "NULL"){
-    ar_parseFloatString(transmitterOffset, _transmitterOffset.v, 16);
-    ar_log_remark() << "arFOBDriver transmitter offset = " <<
-      _transmitterOffset << ".\n";
-  }
+#if 0
+  Filter that works in Beckman CAVE:
 
-  /*
-  If the sensor is rotated in its "neutral" position (e.g., taped sideways
-  to a wand), premultiply a matrix to transform this "neutral" frame (the
-  physical coordinate frame) into the Syzygy frame attached to the sensor.
-  This rotation is described by an axis followed by an angle in degrees.
-  */
+  <pforth>
+  matrix Xin
+  matrix Xout
+  matrix C1
+  matrix C2
+  matrix originOffset
+  matrix headRotMatrix
+  matrix wandRotMatrix
+  matrix Ry
+  matrix Rz
 
-  float temp[4]; 
-  for(int j = 0; j < _FOB_MAX_DEVICES; j++) {
-    const string sensorNum( "sensor" + ar_intToString(j) + "_rot" );
-    const string sensorRotValue(SZGClient.getAttribute("SZG_FOB",sensorNum));
-    if (sensorRotValue != "NULL") {
-      ar_parseFloatString(sensorRotValue, temp, 4);
-      _sensorRot[ j ] = ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
-      ar_log_remark() << "arFOBDriver rotated sensor " << j << ": " << _sensorRot[j] << ".\n";
-    }
-  }
-  
+  1  0  0  0
+  0  0 -1  0
+  0  1  0  0
+  0  0  0  1
+  C1 matrixStoreTranspose
+  1  0  0  0
+  0  0  1  0
+  0 -1  0  0
+  0  0  0  1
+  C2 matrixStoreTranspose
+
+  -90 zaxis Rz rotationMatrix
+  -90 yaxis Ry rotationMatrix
+  Ry Rz headRotMatrix matrixMultiply
+  -90 yaxis wandRotMatrix rotationMatrix
+
+  0.7 10.0 -4.0 originOffset translationMatrix
+
+  define filter_matrix_0
+  Xin getCurrentEventMatrix
+  originOffset C1 Xin C2 headRotMatrix 5 Xout concatMatrices
+  Xout setCurrentEventMatrix
+  enddef
+
+  define filter_matrix_1
+  Xin getCurrentEventMatrix
+  originOffset C1 Xin C2 wandRotMatrix 5 Xout concatMatrices
+  Xout setCurrentEventMatrix
+  enddef
+
+  define filter_matrix_2
+  Xin getCurrentEventMatrix
+  originOffset C1 Xin C2 wandRotMatrix 5 Xout concatMatrices
+  Xout setCurrentEventMatrix
+  enddef
+  </pforth>
+
+#endif
+
   int i = 0;
 
   // Determine the baud rate.
@@ -420,14 +447,6 @@ void arFOBDriver::_eventloop(){
 	stop();
 	return;
       }
-
-#define CGCGCG
-#ifdef CGCGCG
-  {
-    string foo;
-    (void)_getDataMode(foo, i);
-  }
-#endif
     }
     sendQueue();
   }
@@ -518,30 +537,7 @@ bool arFOBDriver::_getDataMode( std::string& modeString, unsigned char addr ) {
   // FoB manual p.112
   const unsigned dataMode = (buf[0] >> 1) & 0xf;
 
-  /* 070328 dump:
-     ;;;; why not point mode?
-     ;;;; why slaves !inited/autoconfd ?
-
-    FoB unit 0, fly, run, bird.
-    FoB unit 1, fly, run, extended range, transmitter #0.
-    FoB unit 2, fly, run, bird.
-    FoB unit 3, fly, bird.
-    addr=0, 2bytes = 2 d1
-    master. stream mode. 
-    addr=3, 2bytes = 2 11
-    slave. stream mode. !inited/autoconfd. 
-    addr=2, 2bytes = 2 11
-    slave. stream mode. !inited/autoconfd. 
-    addr=1, 2bytes = 2 d1
-    master. stream mode. 
-    addr=3, 2bytes = 2 11
-    slave. stream mode. !inited/autoconfd. 
-    addr=2, 2bytes = 2 11
-    slave. stream mode. !inited/autoconfd. 
-    ...
-   */
-
-#if 1
+#if 0
   printf("\taddr=%d, 2bytes = %x %x\n\t", int(addr), (unsigned)buf[0], (unsigned)buf[1]);
   const unsigned b0  = (buf[0]     ) & 1;
   const unsigned b5  = (buf[0] >> 5) & 1;
@@ -739,13 +735,12 @@ bool arFOBDriver::_sendBirdCommand( const unsigned char* cdata,
                                     const unsigned int numBytes ) {
   if (_stopped)
     return false;
-#undef CGCGCG
-#ifdef CGCGCG
-  printf("_sendBirdCommand (%c)   ", *cdata);
-  for (unsigned i=0; i<numBytes; ++i)
-    printf("%02x ", cdata[i]);
-  printf("\n");
-#endif
+
+  // printf("_sendBirdCommand (%c)   ", *cdata);
+  // for (unsigned i=0; i<numBytes; ++i)
+  //   printf("%02x ", cdata[i]);
+  // printf("\n");
+
   return _comPort.ar_write( (char*)cdata, numBytes ) ==
     static_cast<int>(numBytes);
 }
@@ -786,8 +781,6 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
   }
 
   unsigned j;
-#define CGCGCG
-#ifdef CGCGCG
 
   unsigned char* pb = (unsigned char*)_dataBuffer;
   if (*pb & 0x80 == 0)
@@ -824,17 +817,6 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
   //     where S is 36 72 or 144, output is in inches.
   // FoB manual p.93: scale quaternions +.99996 = 0x7fff, 0=0, -1.0=0x8000.
 
-#else
-
-  short* birdData = (short*)_dataBuffer;
-  for (j=0; j<_dataSize; j++) {
-    // from Ascension's CMDUTIL.C
-    *birdData = (short)((((short)(*(unsigned char *) birdData) & 0x7F) |
-		(short)(*((unsigned char *) birdData+1)) << 7)) << 2;
-    _floatData[j] = (float)*birdData++;
-  }
-#endif
-
   // The rotation matrix of the bird. SpacePad, and maybe other Ascension
   // products, returns the INVERSE (= transpose) of the bird's rotation matrix.
   //
@@ -843,30 +825,14 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
     _floatData[j] *= _orientScale;
 
   const arMatrix4 rotMatrix(arQuaternion( _floatData + 3));
-/*
-  //;; from vrjuggler FlockStandalone.cpp.  Inverted quaternion?
-  const float* q = _floatData+3;
-  const arMatrix4 rotMatrix(arQuaternion(-q[1], -q[2], -q[3], q[0]));
-*/
 
   // The bird's translation, scaled appropriately.
   const arMatrix4 translationMatrix = 
     ar_translationMatrix( _positionScale * arVector3(_floatData));
 
-#undef DEBUGGING
-#ifdef DEBUGGING
-  // const arVector3 xlat(ar_ET(translationMatrix).round());
-  // const arVector3 rot((180./M_PI * ar_extractEulerAngles(rotMatrix, AR_YXZ)).round());
-  // cout << "\tDRIVER xyz " << xlat << ",  roll ele azi " << rot << "\n" << "____\n\n";
-
-  // cout << "\tDRIVER xyz " << translationMatrix << ",\n  rot " << rotMatrix << "\n" << "____\n\n";
-
-  const float* z = _floatData;
-  cout << "\tDRIVER xyz " << arVector3(z).round() << ",\n\t\t\trot " << arVector4(z+3) << "\n" << "____\n\n";
-#endif
-
   /*
   How to compute the matrix reported to the input device.
+  Preferably in pforth, not C++.
 
   Call Syzygy's coordinate frame B1, the Flock's B2.
   In the context of VR, B1 is the frame of the graphics.
@@ -910,19 +876,11 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
   while Syzygy assumes flat surface down and tail back.
   */
 
-  // Map Syzygy coords to Flock coords.
-  static const arMatrix4 coordSystemTrans = 
-    ar_rotationMatrix( 'z', ar_convertToRad(90.)) *
-    ar_rotationMatrix( 'y', ar_convertToRad(-90.)); 
-
   queueMatrix(_sensorMap[addr],
-    _transmitterOffset *
-    coordSystemTrans *
     translationMatrix *
-    !rotMatrix *
-    !coordSystemTrans *
-    _sensorRot[_sensorMap[addr]] *
-    ar_rotationMatrix('y', M_PI));
+    !rotMatrix 
+//  ar_rotationMatrix('y', M_PI)
+    );
 
   return true;
 }
@@ -1002,14 +960,13 @@ bool arFOBDriver::_getSendNextFrame() {
     const arMatrix4 transMatrix = invSwitchMatrix * ar_translationMatrix(
       _positionScale * arVector3(_floatData[0], -_floatData[2], _floatData[1]));
     const arMatrix4 rotMatrix = arMatrix4( arQuaternion( _floatData + 3 ) );
-    const arMatrix4 finalMatrix = _transmitterOffset * 
+    const arMatrix4 finalMatrix =
       transMatrix * 
       invSwitchMatrix * 
       !rotMatrix * 
       switchMatrix * 
-      coordMatrix * 
-      _sensorRot[ birdAddress ];
-          
+      coordMatrix;
+
     // queue the calibrated translation/rotation matrix 
     queueMatrix( birdAddress, finalMatrix );
   }

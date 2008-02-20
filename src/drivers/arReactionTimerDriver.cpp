@@ -87,6 +87,15 @@ bool arReactionTimerDriver::stop() {
 bool arReactionTimerDriver::_processInput() {
   const unsigned int numToRead = 3; // Minimum message size ("!\r\n")
   const int numRead = _port.ar_read( _inbuf, numToRead, BUF_SIZE-1 );
+
+/*  {
+    for (int i=0; i<numRead; ++i) {
+      const char c = _inbuf[i];
+     printf("%2x ", c);
+    }
+    printf("\n");
+  }*/
+
   if (numRead == 0) {
     if (_statusTimer.done()) {
       ar_log_warning() << "arReactionTimerDriver warning: ReactionTimer disconnected.\n";
@@ -113,7 +122,7 @@ bool arReactionTimerDriver::_processInput() {
     if (messageString[0] == RT_AWAKE) {
 #ifdef RTDEBUG
       if (messageString.size() > 1) {
-        ar_log_remark() << "+++++++++++++++++\nDEBUG: " << messageString << "\n++++++++++++++++++\n";
+        ar_log_debug() << "messagestring: " << messageString << "\n\n";
       }
 #endif
     } else {
@@ -144,6 +153,7 @@ bool arReactionTimerDriver::_processInput() {
       b0Stream >> button0;
       istringstream b1Stream( inputString[2] );
       b1Stream >> button1;
+//    cout << "arReactionTimerDriver got string '" << inputString << "'\n";
 
 #ifdef RTDEBUG
       ar_log_remark() << "Input: " << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << ".\n";
