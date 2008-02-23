@@ -430,7 +430,7 @@ bool arInputFactory::loadInputSinks( arInputNode& inputNode ) {
       ar_log_error() << "arInputFactory failed to create input sink.\n";
       return false;
     }
-    ar_log_debug() << "arInputFactory created input sink '" << *iter << ".\n";
+    ar_log_debug() << "arInputFactory created input sink '" << *iter << "'.\n";
     inputNode.addInputSink( theSink, true );
   }
   return true;
