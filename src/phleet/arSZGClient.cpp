@@ -183,8 +183,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
   // "Context" can override some _members above.
   if (!_parseContext()) {
-    _initResponseStream << _exeName << " error: invalid Syzygy context.\n";
-    // Force the component to quit, even if connected.
+    _initResponseStream << _exeName << " warning: invalid Syzygy context.\n";
+    // _checkAndSetNetworks() may have failed for one network but not all networks.
+    // Force the component to quit, even if connected.  (Really?)
     _connected = false;
   }
 
@@ -2780,14 +2781,18 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   const int numberCurrentNetworks = _networks.size();
   int i=0, j=0;
   for (i=0; i<numberNewNetworks; i++) {
-    bool match = false;
-    for (j=0; j<numberCurrentNetworks && !match; j++) {
+    bool fFound = false;
+    for (j=0; j<numberCurrentNetworks && !fFound; ++j) {
       if (networks[i] == _networks[j])
-	match = true;
+	fFound = true;
     }
-    if (!match) {
-      ar_log_warning() << "virtual computer's network '"
-                     << networks[i] << "' is undefined in szg.conf.\n";
+    if (!fFound) {
+      ar_log_warning() << "szg.conf has no virtual computer's network '" <<
+        networks[i] << "'.\n";
+      ar_log_warning() << "\t(szg.conf defines these networks: ";
+      for (j=0; j<numberCurrentNetworks; ++j)
+	ar_log_warning() << _networks[j] << " ";
+      ar_log_warning() << ")\n";
       return false;
     }
   }
