@@ -192,16 +192,16 @@ class SZG_CALL arQuaternion{
   arQuaternion( const float* numAddress );
   ~arQuaternion() {}
 
-  inline float magsqr() const {
-    return real*real+pure.v[0]*pure.v[0]+
-	      pure.v[1]*pure.v[1]+pure.v[2]*pure.v[2];
+  float magnitude2() const {
+    return real*real + pure.magnitude2();
   }
-  inline float magnitude() const {
-    return sqrt(magsqr());
+  float magnitude() const {
+    return sqrt(magnitude2());
   }
-  inline arQuaternion conjugate() const {
-    return arQuaternion( real, -pure.v[0], -pure.v[1], -pure.v[2] );
+  float dot(const arQuaternion& rhs) const {
+    return real*rhs.real + pure.dot(rhs.pure);
   }
+  arQuaternion conjugate() const;
   arQuaternion inverse() const;
 
   operator arMatrix4() const;
@@ -221,7 +221,7 @@ SZG_CALL arVector3 operator*(float, const arVector3&);
 SZG_CALL arVector3 operator*(const arVector3&, float);
 SZG_CALL arVector3 operator/(const arVector3&, float); // scalar division, handles /0
 SZG_CALL arVector3 operator+(const arVector3&, const arVector3&);
-SZG_CALL arVector3 operator-(const arVector3&); // negate
+SZG_CALL arVector3 operator-(const arVector3&); // negation
 SZG_CALL arVector3 operator-(const arVector3&, const arVector3&);
 SZG_CALL float operator%(const arVector3&, const arVector3&); // dot product
 SZG_CALL float operator++(const arVector3&); // magnitude
@@ -431,7 +431,7 @@ inline arVector3 operator+(const arVector3& x, const arVector3& y){
   return arVector3(x.v[0]+y.v[0], x.v[1]+y.v[1], x.v[2]+y.v[2]);
 }
 
-// opposite
+// negation
 // Should also define operator-=
 inline arVector3 operator-(const arVector3& x){
   return arVector3(-x.v[0],-x.v[1],-x.v[2]);
