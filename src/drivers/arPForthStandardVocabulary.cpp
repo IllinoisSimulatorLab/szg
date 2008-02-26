@@ -703,36 +703,36 @@ bool ExtractRotationMatrix::run( arPForth* pf ) {
   return true;
 }
 
-class ExtractEulerAngles : public arPForthAction {
-  public:
-    virtual bool run( arPForth* pf );
-};
-bool ExtractEulerAngles::run( arPForth* pf ) {
-  if (!pf)
-    return false;
-  const long aOut = (long)pf->stackPop();
-  const long aIn = (long)pf->stackPop();
-  pf->putDataVector3( aOut,
-    ar_convertToDeg( ar_extractEulerAngles( pf->getDataMatrix( aIn ))));
-  return true;
-}
+//class ExtractEulerAngles : public arPForthAction {
+//  public:
+//    virtual bool run( arPForth* pf );
+//};
+//bool ExtractEulerAngles::run( arPForth* pf ) {
+//  if (!pf)
+//    return false;
+//  const long aOut = (long)pf->stackPop();
+//  const long aIn = (long)pf->stackPop();
+//  pf->putDataVector3( aOut,
+//    ar_convertToDeg( ar_extractEulerAngles( pf->getDataMatrix( aIn ))));
+//  return true;
+//}
   
-class RotationMatrixFromEulerAngles : public arPForthAction {
-  public:
-    virtual bool run( arPForth* pf );
-};
-bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
-  if (!pf)
-    return false;
-  const long aOut = (long)pf->stackPop();
-  const long aIn = (long)pf->stackPop();
-  const arVector3 V(ar_convertToRad(pf->getDataVector3( aIn )));
-  pf->putDataMatrix( aOut,
-    ar_rotationMatrix('y', V.v[0]) *
-    ar_rotationMatrix('x', V.v[1]) *
-    ar_rotationMatrix('z', V.v[2]));
-  return true;
-}
+//class RotationMatrixFromEulerAngles : public arPForthAction {
+//  public:
+//    virtual bool run( arPForth* pf );
+//};
+//bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
+//  if (!pf)
+//    return false;
+//  const long aOut = (long)pf->stackPop();
+//  const long aIn = (long)pf->stackPop();
+//  const arVector3 V(ar_convertToRad(pf->getDataVector3( aIn )));
+//  pf->putDataMatrix( aOut,
+//    ar_rotationMatrix('y', V.v[0]) *
+//    ar_rotationMatrix('x', V.v[1]) *
+//    ar_rotationMatrix('z', V.v[2]));
+//  return true;
+//}
 
 class InverseMatrix : public arPForthAction {
   public:
@@ -1093,10 +1093,10 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ) &&
     pf->addSimpleActionWord( "rotationMatrixV", new RotationMatrixV() ) &&
     pf->addSimpleActionWord( "rotationMatrixVectorToVector", new RotationMatrixVecToVec() ) &&
-    pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ) &&
+//    pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ) &&
     pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ) &&
     pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ) &&
-    pf->addSimpleActionWord( "extractEulerAngles", new ExtractEulerAngles() ) &&
+//    pf->addSimpleActionWord( "extractEulerAngles", new ExtractEulerAngles() ) &&
     pf->addSimpleActionWord( "inverseMatrix", new InverseMatrix() ) &&
     pf->addSimpleActionWord( "arrayAdd", new AddArrays() ) &&
     pf->addSimpleActionWord( "arraySubtract", new SubArrays() ) &&
