@@ -294,8 +294,8 @@ void arHTR::frameInterpolate(htrFrame* dst,
   lerpField(weight, dst, src1, src2, Tz);
   lerpField(weight, dst, src1, src2, scale);
 
-  const arQuaternion q = lerp(weight, q1, q2).normalize();
-  arVector3 euler(ar_convertToDeg(ar_extractEulerAngles(q, eulerRotationOrder)));
+  const arQuaternion q = lerp(weight, q1, q2);
+  arVector3 euler(ar_convertToDeg(ar_extractEulerAngles(q.normalize(), eulerRotationOrder)));
   switch(eulerRotationOrder) {
   case AR_XYZ:
     dst->Rx = euler[2];
