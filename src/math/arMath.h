@@ -201,6 +201,9 @@ class SZG_CALL arQuaternion{
   float dot(const arQuaternion& rhs) const {
     return real*rhs.real + pure.dot(rhs.pure);
   }
+
+  // Not inline, only because operators they use aren't yet declared.
+  arQuaternion normalize() const;
   arQuaternion conjugate() const;
   arQuaternion inverse() const;
 
@@ -554,11 +557,6 @@ inline arQuaternion operator-(const arQuaternion& x, const arQuaternion& y){
 // inverse of quaternion
 inline arQuaternion operator!(const arQuaternion& x){
   return x.inverse();
-}
-
-// magnitude
-inline float operator++(const arQuaternion& x){
-  return x.magnitude();
 }
 
 //******************************************

@@ -261,9 +261,12 @@ arQuaternion::arQuaternion( const float* numAddress ) :
 {
 }
 
-// Not inline because class arQuaternion's declared before arVector3's negation operator.
 arQuaternion arQuaternion::conjugate() const {
   return arQuaternion( real, -pure );
+}
+
+arQuaternion arQuaternion::normalize() const {
+  return *this / this->magnitude();
 }
 
 arQuaternion arQuaternion::inverse() const {
