@@ -169,7 +169,7 @@ class SZG_CALL arHTR : public arObject {
     void subNormalizeModelSize(arVector3 thePoint, arVector3 &minVec,
 		    	       arVector3 &maxVec, htrBasePosition *theBP);
     bool frameValid(htrFrame* f);
-    void frameInterpolate(htrFrame* f, htrFrame* inetrp1, htrFrame* interp2);
+    void frameInterpolate(htrFrame*, const htrFrame*, const htrFrame*);
     arMatrix4 HTRTransform(htrBasePosition* theBP, htrFrame* theFrame);
     arMatrix4 HTRRotation(double Rx, double Ry, double Rz);
     

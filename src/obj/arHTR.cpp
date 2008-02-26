@@ -262,87 +262,78 @@ arMatrix4 arHTR::segmentBaseTransformRelative(int segmentID){
   return HTRTransform(basePosition[segmentID], NULL);
 }
 
-// Here, we are relying on the fact that the MotionAnalysis data tells us
-// it is bogus by having absurdly large values (actually 9999999).
+// MotionAnalysis represent bogus values as 9999999 (infinity).
 bool arHTR::frameValid(htrFrame* f){
-  if (fabs(f->Tx) < 9000000 && fabs(f->Ty) < 9000000 && 
-      fabs(f->Tz) < 9000000 && fabs(f->Rx) < 9000000 && 
-      fabs(f->Ry) < 9000000 && fabs(f->Rz) < 9000000 &&
-      fabs(f->scale) < 9000000){
-    return true;
-  }
-  return false;
+  const float big = 9000000;
+  return
+    fabs(f->Tx) < big && fabs(f->Ty) < big && fabs(f->Tz) < big &&
+    fabs(f->Rx) < big && fabs(f->Ry) < big && fabs(f->Rz) < big &&
+    fabs(f->scale) < big;
 }
 
 #define lerp(w, a, b) ((w) * (a) + (1.0-(w)) * (b));
+#define lerpField(w, dst, src1, src2, field) dst->field = lerp(w, src1->field, src2->field)
 
-void arHTR::frameInterpolate(htrFrame* f,
-			     htrFrame* interp1,
-			     htrFrame* interp2){
-  if (!interp1 || !interp2)
+void arHTR::frameInterpolate(htrFrame* dst,
+			     const htrFrame* src1,
+			     const htrFrame* src2){
+  if (!src1 || !src2)
     return;
 
-  arQuaternion q1(HTRRotation(interp1->Rx, interp1->Ry, interp1->Rz));
-  arQuaternion q2(HTRRotation(interp2->Rx, interp2->Ry, interp2->Rz));
-  // Must determine *which* quaternion representation to use since the 
-  // negative of a quaternion is the SAME rotation! We must, for instance,
-  // NOT linearly interpolate between a quaternion and its negative.
-  float dot = q1.real*q2.real + q1.pure[0]*q2.pure[0]
-    + q1.pure[1]*q2.pure[1] + q1.pure[2]*q2.pure[2];
-  if (dot < 0){
+  const arQuaternion q1(HTRRotation(src1->Rx, src1->Ry, src1->Rz));
+  arQuaternion q2(HTRRotation(src2->Rx, src2->Ry, src2->Rz));
+  // Don't lerp between a quarternion and its negative (which is the same rotation).
+  if (q1.dot(q2) < 0){
     q2 = -q2;
   }
   const float weight = 1. -
-    float(f->frameNum - interp1->frameNum) / float(interp2->frameNum - interp1->frameNum); 
-  const arQuaternion newRot = lerp(weight, q1, q2);
-  const arMatrix4 m(newRot / ++newRot);
-  
-  // Handle different orders of euler angles.
-  arVector3 euler(ar_convertToDeg(ar_extractEulerAngles(m, eulerRotationOrder)));
-  switch(eulerRotationOrder){
+    float(dst->frameNum - src1->frameNum) / float(src2->frameNum - src1->frameNum); 
+
+  lerpField(weight, dst, src1, src2, Tx);
+  lerpField(weight, dst, src1, src2, Ty);
+  lerpField(weight, dst, src1, src2, Tz);
+  lerpField(weight, dst, src1, src2, scale);
+
+  const arQuaternion q = lerp(weight, q1, q2).normalize();
+  arVector3 euler(ar_convertToDeg(ar_extractEulerAngles(q, eulerRotationOrder)));
+  switch(eulerRotationOrder) {
   case AR_XYZ:
-    f->Rx = euler[2];
-    f->Ry = euler[1];
-    f->Rz = euler[0];
+    dst->Rx = euler[2];
+    dst->Ry = euler[1];
+    dst->Rz = euler[0];
     break;
   case AR_XZY:
-    f->Rx = euler[2];
-    f->Ry = euler[0];
-    f->Rz = euler[1];
+    dst->Rx = euler[2];
+    dst->Ry = euler[0];
+    dst->Rz = euler[1];
     break;
   case AR_YXZ:
-    f->Rx = euler[1];
-    f->Ry = euler[2];
-    f->Rz = euler[0];
+    dst->Rx = euler[1];
+    dst->Ry = euler[2];
+    dst->Rz = euler[0];
     break;
   case AR_YZX:
-    f->Rx = euler[0];
-    f->Ry = euler[2];
-    f->Rz = euler[1];
+    dst->Rx = euler[0];
+    dst->Ry = euler[2];
+    dst->Rz = euler[1];
     break;
   case AR_ZXY:
-    f->Rx = euler[1];
-    f->Ry = euler[0];
-    f->Rz = euler[2];
+    dst->Rx = euler[1];
+    dst->Ry = euler[0];
+    dst->Rz = euler[2];
     break;
   case AR_ZYX:
-    f->Rx = euler[0];
-    f->Ry = euler[1];
-    f->Rz = euler[2];
+    dst->Rx = euler[0];
+    dst->Ry = euler[1];
+    dst->Rz = euler[2];
     break;
   }
-
-  f->Tx = lerp(weight, interp1->Tx, interp2->Tx);
-  f->Ty = lerp(weight, interp1->Ty, interp2->Ty);
-  f->Tz = lerp(weight, interp1->Tz, interp2->Tz);
-  f->scale = lerp(weight, interp1->scale, interp2->scale);
 }
 
-// Find gaps in the HTR data, as indicated by the MotionAnalysis 9999999
-// representation of "infinity", and linearly interpolate them away.
+// Lerp between gaps in data found by frameValid().
 void arHTR::basicDataSmoothing(){
-  for (unsigned int i=0; i<segmentData.size(); i++){
-    for (unsigned int j=0; j<segmentData[i]->frame.size(); j++){
+  for (unsigned i=0; i<segmentData.size(); i++){
+    for (unsigned j=0; j<segmentData[i]->frame.size(); j++){
       htrFrame* f = segmentData[i]->frame[j];
       if (!frameValid(f)){
 	// Find the latest previous valid frame, if any.
