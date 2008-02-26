@@ -520,40 +520,35 @@ inline arQuaternion operator*(const arQuaternion& x, const arQuaternion& y){
 
 // scalar multiplication
 // Should also define operator*=
-inline arQuaternion operator*(float c, const arQuaternion& x){
-  return arQuaternion(c*x.real,c*x.pure.v[0],c*x.pure.v[1],c*x.pure.v[2]);
+inline arQuaternion operator*(const float c, const arQuaternion& x){
+  return arQuaternion(c*x.real, c*x.pure);
 }
-inline arQuaternion operator*(const arQuaternion& x, float c){
+inline arQuaternion operator*(const arQuaternion& x, const float c){
   return c * x;
 }
 
 // scalar division, return all zeros if scalar==0
 // Should also define operator/=
-inline arQuaternion operator/(const arQuaternion& x, float c){
-  if (c==0){
-    return arQuaternion(0,0,0,0);
-  }
-  return arQuaternion(x.real/c, x.pure.v[0]/c, x.pure.v[1]/c, x.pure.v[2]/c);
+inline arQuaternion operator/(const arQuaternion& x, const float c){
+  return c==0 ? arQuaternion(0,0,0,0) : x * (1./c);
 }
 
 // addition
 // Should also define operator+=
 inline arQuaternion operator+(const arQuaternion& x, const arQuaternion& y){
-  return arQuaternion(x.real+y.real, x.pure.v[0]+y.pure.v[0],
-	              x.pure.v[1]+y.pure.v[1], x.pure.v[2]+y.pure.v[2]);
+  return arQuaternion(x.real + y.real, x.pure + y.pure);
 }
 
 // negation
 // Should also define operator-=
 inline arQuaternion operator-(const arQuaternion& x){
-  return arQuaternion(-x.real,-x.pure.v[0],-x.pure.v[1],-x.pure.v[2]);
+  return arQuaternion(-x.real, -x.pure);
 }
 
 // subtraction
 // Should also define operator-=
 inline arQuaternion operator-(const arQuaternion& x, const arQuaternion& y){
-  return arQuaternion(x.real-y.real, x.pure.v[0]-y.pure.v[0],
-		      x.pure.v[1]-y.pure.v[1], x.pure.v[2]-y.pure.v[2]);
+  return arQuaternion(x.real - y.real, x.pure - y.pure);
 }
 
 // inverse of quaternion
@@ -563,8 +558,7 @@ inline arQuaternion operator!(const arQuaternion& x){
 
 // magnitude
 inline float operator++(const arQuaternion& x){
-  return sqrt(x.real*x.real+x.pure.v[0]*x.pure.v[0]+
-	      x.pure.v[1]*x.pure.v[1]+x.pure.v[2]*x.pure.v[2]);
+  return x.magnitude();
 }
 
 //******************************************
