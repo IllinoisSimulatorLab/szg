@@ -229,20 +229,21 @@ class SZG_CALL arQuaternion{
 // Adapted from
 // http://www.krugle.org/kse/files/svn/svn.sourceforge.net/neoengineng/neoengine/neoicexr/Imath/ImathEuler.h
 class SZG_CALL arEulerAngles {
-  arVector3 _angles;
-  arAxisName _initialAxis;
-  bool _parityEven;
- public:
-  // Implicit (default) angle orders are not $#(*&($#*&$ permitted!
-  arEulerAngles( const arAxisOrder& ord, const arVector3& angs=arVector3() );
-  ~arEulerAngles() {}
-  void setOrder( const arAxisOrder& ord );
-  void setAngles( const arVector3& ang ) { _angles = ang; }
-  void setAngles( const float x, const float y, const float z ) { _angles = arVector3(x,y,z); }
-  arAxisOrder getOrder() const;
-  void angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const;
-  arVector3 extract( const arMatrix4& mat );
-  arMatrix4 toMatrix() const;
+  public:
+    // Implicit (default) angle orders are not $#(*&($#*&$ permitted!
+    arEulerAngles( const arAxisOrder& ord, const arVector3& angs=arVector3() );
+    ~arEulerAngles() {}
+    void setOrder( const arAxisOrder& ord );
+    void setAngles( const arVector3& ang ) { _angles = ang; }
+    void setAngles( const float x, const float y, const float z ) { _angles = arVector3(x,y,z); }
+    arAxisOrder getOrder() const;
+    void angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const;
+    arVector3 extract( const arMatrix4& mat );
+    arMatrix4 toMatrix() const;
+  private:
+    arVector3 _angles;
+    arAxisName _initialAxis;
+    bool _parityEven;
 };
   
   

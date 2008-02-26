@@ -67,10 +67,10 @@ arMatrix4::arMatrix4(const float* const matrixRef){
   memcpy(v, matrixRef, 16 * sizeof(float));
 }
 
-arMatrix4::arMatrix4(float v0, float v4, float v8,  float v12,
-		     float v1, float v5, float v9,  float v13,
-		     float v2, float v6, float v10, float v14,
-		     float v3, float v7, float v11, float v15){
+arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
+		    float v1, float v5, float v9, float v13,
+		    float v2, float v6, float v10, float v14,
+		    float v3, float v7, float v11, float v15){
   v[0] = v0; v[1] = v1; v[2] = v2; v[3] = v3;
   v[4] = v4; v[5] = v5; v[6] = v6; v[7] = v7;
   v[8] = v8; v[9] = v9; v[10] = v10; v[11] = v11;
@@ -312,6 +312,8 @@ arAxisOrder arEulerAngles::getOrder() const {
     case AR_Z_AXIS:
       ord |= 0x20;
       break;
+    case AR_X_AXIS:
+      break;
   }
   return static_cast<arAxisOrder>(ord);
 }
@@ -330,8 +332,9 @@ void arEulerAngles::angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) co
 arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   arAxisName i, j, k;
   angleOrder( i, j, k );
-  arMatrix4 M(!mat);
 
+  arMatrix4 M = mat.inverse();
+  //
   // Extract the first angle, x.
   const float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
 
