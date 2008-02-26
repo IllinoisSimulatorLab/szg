@@ -60,20 +60,17 @@ arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
 arMatrix4::arMatrix4(){
   // default to the identity matrix
   memset(v, 0, sizeof(v));
-  v[0] = 1.;
-  v[5] = 1.;
-  v[10] = 1.;
-  v[15] = 1.;
+  v[0] = v[5] = v[10] = v[15] = 1.;
 }
 
 arMatrix4::arMatrix4(const float* const matrixRef){
   memcpy(v, matrixRef, 16 * sizeof(float));
 }
 
-arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
-		    float v1, float v5, float v9, float v13,
-		    float v2, float v6, float v10, float v14,
-		    float v3, float v7, float v11, float v15){
+arMatrix4::arMatrix4(float v0, float v4, float v8,  float v12,
+		     float v1, float v5, float v9,  float v13,
+		     float v2, float v6, float v10, float v14,
+		     float v3, float v7, float v11, float v15){
   v[0] = v0; v[1] = v1; v[2] = v2; v[3] = v3;
   v[4] = v4; v[5] = v5; v[6] = v6; v[7] = v7;
   v[8] = v8; v[9] = v9; v[10] = v10; v[11] = v11;
@@ -104,7 +101,7 @@ arMatrix4 arMatrix4::inverse() const {
 	++which;
       }
       if (which==4){
-        // not invertible
+        // singular
         return arMatrix4(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
       }
 
@@ -119,14 +116,11 @@ arMatrix4 arMatrix4::inverse() const {
     for (j=0; j<8; j++){
       buffer[i][j] /= temp;
     }
-    // zero other entries in column
+    // zero rest of column
     for (int k=0; k<4; k++){
       if (k!=i){
         const float scale = buffer[k][i];
         for (j=0; j<8; j++){
-          if (buffer[k][i]>0){
-            //cerr << "i=" << i << " k= "<< k << "\n";
-	  }
           buffer[k][j] -= scale*buffer[i][j];
 	}
       }
@@ -157,8 +151,6 @@ arMatrix4 operator*(const arMatrix4& A, const arMatrix4& B){
       }
   return C;
 }
-
-// matrix inverse again
 
 arMatrix4 operator!(const arMatrix4& in) {
   return in.inverse();
@@ -320,68 +312,52 @@ arAxisOrder arEulerAngles::getOrder() const {
     case AR_Z_AXIS:
       ord |= 0x20;
       break;
-    default:
-      break;
   }
   return static_cast<arAxisOrder>(ord);
 }
 
 void arEulerAngles::angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const {
-  int ii = _initialAxis;
-  int jj = _parityEven ? (_initialAxis+1)%3 : (_initialAxis > 0 ? _initialAxis-1 : 2);
-  int kk = _parityEven ? (_initialAxis > 0 ? _initialAxis-1 : 2) : (_initialAxis+1)%3;
+  const int ii = _initialAxis;
+  const int jj = _parityEven ? (_initialAxis+1)%3 : (_initialAxis > 0 ? _initialAxis-1 : 2);
+  const int kk = _parityEven ? (_initialAxis > 0 ? _initialAxis-1 : 2) : (_initialAxis+1)%3;
   i = static_cast<arAxisName>(ii);
   j = static_cast<arAxisName>(jj);
   k = static_cast<arAxisName>(kk);
 }
 
-#define AR_MATRIX4_INDEX(i,j) (4*i+j)
+#define AR_MATRIX4_INDEX(i,j) (4*(i) + (j))
 
 arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   arAxisName i, j, k;
   angleOrder( i, j, k );
+  arMatrix4 M(!mat);
 
-  arMatrix4 M = mat.inverse();
-  //
   // Extract the first angle, x.
-  // 
-  float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
-  //
-  // Remove the x rotation from M, so that the remaining
-  // rotation, N, is only around two axes, and gimbal lock
-  // cannot occur.
-  //
+  const float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
+
+  // Remove x from M, so the remaining rotation N is only around two axes,
+  // preventing gimbal lock.
   arVector3 r;
-  if (_parityEven) {
-    r[i] = -1.;
-  } else {
-    r[i] = 1.;
-  }
+  r[i] = _parityEven ? -1. : 1.;
+  arMatrix4 N(M * ar_rotationMatrix( r, x ));
 
-  arMatrix4 N = ar_rotationMatrix( r, x );
-  N = M * N;
+  // Extract from N the other two angles, y and z.
+  const float cy = sqrt(  N[AR_MATRIX4_INDEX(i,i)] * N[AR_MATRIX4_INDEX(i,i)] +
+                          N[AR_MATRIX4_INDEX(i,j)] * N[AR_MATRIX4_INDEX(i,j)] );
+  const float y = atan2( -N[AR_MATRIX4_INDEX(i,k)], cy );
+  const float z = atan2( -N[AR_MATRIX4_INDEX(j,i)],  N[AR_MATRIX4_INDEX(j,j)] );
 
-  //
-  // Extract the other two angles, y and z, from N.
-  //
-  float cy = sqrt( N[AR_MATRIX4_INDEX(i,i)]*N[AR_MATRIX4_INDEX(i,i)] +
-      N[AR_MATRIX4_INDEX(i,j)]*N[AR_MATRIX4_INDEX(i,j)] );
-  float y = atan2( -N[AR_MATRIX4_INDEX(i,k)], cy );
-  float z = atan2( -N[AR_MATRIX4_INDEX(j,i)], N[AR_MATRIX4_INDEX(j,j)] );
-
-  if (_parityEven) {
-    x *= -1;
-    y *= -1;
-    z *= -1;
-  }
   _angles = arVector3(x,y,z);
+  if (_parityEven)
+    _angles *= -1;
   return _angles;
 }
 
 arMatrix4 arEulerAngles::toMatrix() const {
   arAxisName i, j, k;
   angleOrder( i, j, k );
-  return ar_rotationMatrix( i, _angles.v[0] ) *
+  return
+    ar_rotationMatrix( i, _angles.v[0] ) *
     ar_rotationMatrix( j, _angles.v[1] ) *
     ar_rotationMatrix( k, _angles.v[2] );
 }
@@ -398,9 +374,8 @@ arLogStream& operator<<(arLogStream& os, const arQuaternion& x){
 }
 
 //*************************
-// general use
+// general
 //*************************
-
 
 bool ar_isPowerOfTwo( int i ) {
   return i > 0 && (i & (i - 1)) == 0;

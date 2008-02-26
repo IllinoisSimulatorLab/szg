@@ -230,7 +230,6 @@ int main(){
     cout << "FAILED: angle between vectors (5).\n";
   }
 
-  // test screen tiling
   cout << "Testing screen tiling.\n";
   if (fabs(++(ar_tileScreenOffset(arVector3(0,0,-1),
 				  arVector3(0,1,0),1,1,0,2,0,2) -
@@ -253,7 +252,6 @@ int main(){
     cout << "FAILED: screen tile test (4).\n";
   }
 
-  // ar_frustumMatrix tests
   cout << "Testing frustum calculations.\n";
   arVector3 resultVec;
   arMatrix4 frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
@@ -265,7 +263,7 @@ int main(){
          << resultVec << " <> " << arVector3( 1, 1, -1 ) << endl
          << "matrix:\n" << frustum << endl;
   }
-//  cerr << frustum << endl;
+
   frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
 			    arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
 			    0.5, 0.5, 1, 9, arVector3( 0, 0, 0 ) );
@@ -275,7 +273,7 @@ int main(){
          << resultVec << " <> " << arVector3( -1, -1, 1 ) << endl
          << "matrix:\n" << frustum << endl;
   }
-//  cerr << frustum << endl;
+
   frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
 			    arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
 			    0.5, 0.5, 1, 9, arVector3( 0.5, 0, 0 ) ); 
@@ -285,7 +283,7 @@ int main(){
          << resultVec << " <> " << arVector3( -1, 0, 1 ) << endl
          << "matrix:\n" << frustum << endl;
   }
-//  cerr << frustum << endl;
+
   //*******************************************************************
   // quaternion algebra tests
   //*******************************************************************
@@ -312,7 +310,7 @@ int main(){
                         *arVector3( 3, 0, 2 ) )) {
     cout << "FAILED: arQuaternion test (3).\n";
   }
-  // geometry utility function test cases
+
   cout << "Testing geometry utility functions.\n";
   arVector3 rayOrigin(1,1,1);
   arVector3 rayDirection(-1,-1,-1);
@@ -329,14 +327,11 @@ int main(){
     cout << "FAILED: point-to-line projection test.\n";
   }
 
-  // Check the euler angle extraction.
   cout << "Testing euler angle extraction.\n";
-  arMatrix4 eulerTestMatrix;
   arVector3 testAngles(.3,.5,.6);
   arEulerAngles eulerAngles( AR_XYZ, testAngles );
-  arVector3 eulerResult;
-  eulerTestMatrix = eulerAngles.toMatrix();
-  eulerResult = eulerAngles.extract( eulerTestMatrix );
+  arMatrix4 eulerTestMatrix = eulerAngles.toMatrix();
+  arVector3 eulerResult = eulerAngles.extract( eulerTestMatrix );
   float errMag = (eulerResult-testAngles).magnitude();
   if (errMag > 1.e-5) {
     cout << "FAILED: euler angle conversion #1 (error = " << errMag << ").\n";
@@ -362,8 +357,7 @@ int main(){
     cout << "FAILED: euler angle conversion #3 (error = " << errMag << ").\n";
   }
 
-  // Test quaternion/matrix conversions
-  cout << "Testing quaternion/matrix conversions\n";
+  cout << "Testing quaternion/matrix conversions.\n";
   arQuaternion testQ = eulerTestMatrix;
   arMatrix4 newTest = testQ;
   for (i=0; i<16; i++){
@@ -373,39 +367,42 @@ int main(){
     }
   }
 
-  // Let's do some speed tests now...
-  arMatrix4* mm = new arMatrix4[10000];
-  arMatrix4* am = new arMatrix4[10000];
-  arMatrix4* bm = new arMatrix4[10000];
+  // Speed tests
+  const int iMax = 10000;
+  const int i2 = iMax * 50;
+  arMatrix4 mm[iMax];
+  arMatrix4 am[iMax];
+  arMatrix4 bm[iMax];
   ar_timeval time1 = ar_time();
-  for (i=0; i<100000; i++){
-    j = i%10000;
+  for (i=0; i<i2; i++){
+    j = i%iMax;
     mm[j] = am[j]*bm[j];
   }
   ar_timeval time2 = ar_time();
   cout << "Matrix multiply time (microseconds) = " 
-       << ar_difftime(time2, time1)/100000 << "\n";
+       << ar_difftime(time2, time1)/i2 << "\n";
 
   arVector3 v;
   time1 = ar_time();
-  for (i=0; i<100000; i++){
-    j = i%10000;
+  for (i=0; i<i2; i++){
+    j = i%iMax;
     v = ar_extractEulerAngles(mm[j],AR_XYZ);
   }
   time2 = ar_time();
   cout << "Extract euler angles time (microseconds) = " 
-       << ar_difftime(time2, time1)/100000 << "\n";
+       << ar_difftime(time2, time1)/i2 << "\n";
 
-  for (i=0; i<100000; i++){
-    am[j] = ar_rotationMatrix('y',ar_convertToRad(180))
-      *ar_translationMatrix(1,1,1);
+  for (i=0; i<i2; i++){
+    j = i%iMax;
+    am[j] = ar_rotationMatrix('y',ar_convertToRad(10 + j%170)) *
+            ar_translationMatrix(1, 1, 1 + j%170);
   }
   time1 = ar_time();
-  for (i=0; i<100000; i++){
-    j = i%10000;
+  for (i=0; i<i2; i++){
+    j = i%iMax;
     mm[j] = !am[j];
   }
   time2 = ar_time();
   cout << "Matrix inverse time (microseconds) = " 
-       << ar_difftime(time2, time1)/100000 << "\n";
+       << ar_difftime(time2, time1)/i2 << "\n";
 }
