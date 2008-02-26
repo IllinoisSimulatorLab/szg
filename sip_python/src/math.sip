@@ -645,7 +645,15 @@ arQuaternion operator-(const arQuaternion&, const arQuaternion&) /TransferBack/;
 arVector3 operator*(const arQuaternion&, const arVector3&);
 
 // For Euler angles.
-enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
+enum arAxisOrder {
+	AR_XYZ	= 0x01,
+	AR_XZY	= 0x00,
+	AR_YZX	= 0x11,
+	AR_YXZ	= 0x10,
+	AR_ZXY	= 0x21,
+	AR_ZYX	= 0x20
+  };
+
 
 bool ar_isPowerOfTwo( int x );
 
@@ -685,7 +693,7 @@ arMatrix4 ar_ESM(const arMatrix4& m) /TransferBack/;
 
 // Utility functions.
 float     ar_angleBetween(const arVector3&, const arVector3&);
-arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o=AR_ZYX) /TransferBack/;
+arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o) /TransferBack/;
 //arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
 // returns the relected vector of direction across normal.
 arVector3 ar_reflect(const arVector3& direction, const arVector3& normal) /TransferBack/;

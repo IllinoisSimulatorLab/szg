@@ -248,7 +248,7 @@ void preExchange(arMasterSlaveFramework& fw){
   /// \todo: fix barrelRoll, as it does not work.
   barrelRoll = 0.; // nullify barrelRoll. :(
   const arMatrix4 rotationMatrix = ar_rotationMatrix(wandDirection, barrelRoll);
-  const arVector3 tempVec = ar_extractEulerAngles(rotationMatrix);
+  const arVector3 tempVec = ar_extractEulerAngles(rotationMatrix,AR_ZYX);
   selfRotationAngles[0] += tempVec.v[0];
   selfRotationAngles[1] += tempVec.v[1];
   selfRotationAngles[2] += tempVec.v[2];

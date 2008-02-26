@@ -7,6 +7,16 @@
 
 // ************************** based on arMath.h *********************
 
+enum arAxisOrder {
+	AR_XYZ	= 0x01,
+	AR_XZY	= 0x00,
+	AR_YZX	= 0x11,
+	AR_YXZ	= 0x10,
+	AR_ZXY	= 0x21,
+	AR_ZYX	= 0x20
+  };
+
+
 // The class arVector3 contains detailed comments that illustrate the ideas
 // and techniques that go into the generation of wrappers. The remaining
 // classes are very similar and only contain detailed comments when they
@@ -1061,7 +1071,7 @@ arVector3 ar_ET(const arMatrix4& matrix);
 arMatrix4 ar_ERM(const arMatrix4& matrix);
 arMatrix4 ar_ESM(const arMatrix4& matrix);
 float     ar_angleBetween(const arVector3&, const arVector3&);
-arVector3 ar_extractEulerAngles(const arMatrix4&);
+arVector3 ar_extractEulerAngles( const arMatrix4&, arAxisOrder ord );
 arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
 float ar_convertToRad(float);
 float ar_convertToDeg(float);

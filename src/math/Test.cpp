@@ -43,6 +43,8 @@ bool equalVectorTest(arVector3 v1, arVector3 v2) {
 }
 
 int main(){
+  int i, j;
+
   cout << "Math test: if no FAILED messages are printed, then the tests have "
        << "succeeded.\n";
 
@@ -329,27 +331,43 @@ int main(){
 
   // Check the euler angle extraction.
   cout << "Testing euler angle extraction.\n";
-  arMatrix4 eulerTestMatrix1 = ar_rotationMatrix('y',ar_convertToRad(45))
-    * ar_rotationMatrix('z', ar_convertToRad(45))
-    * ar_rotationMatrix('x', ar_convertToRad(45));
-  arVector3 eulerTestAngles = ar_extractEulerAngles(eulerTestMatrix1);
-  arMatrix4 eulerTestMatrix2 = ar_rotationMatrix('z', eulerTestAngles[2])
-    * ar_rotationMatrix('y', eulerTestAngles[1])
-    * ar_rotationMatrix('x', eulerTestAngles[0]);
-  int i=0,j=0;
-  for (i=0; i<16; i++){
-    if (fabs(eulerTestMatrix1[i]-eulerTestMatrix2[i]) > epsilon){
-      cout << "FAILED: euler angle extraction.\n";
-      break;
-    }
+  arMatrix4 eulerTestMatrix;
+  arVector3 testAngles(.3,.5,.6);
+  arEulerAngles eulerAngles( AR_XYZ, testAngles );
+  arVector3 eulerResult;
+  eulerTestMatrix = eulerAngles.toMatrix();
+  eulerResult = eulerAngles.extract( eulerTestMatrix );
+  float errMag = (eulerResult-testAngles).magnitude();
+  if (errMag > 1.e-5) {
+    cout << "FAILED: euler angle conversion #1 (error = " << errMag << ").\n";
+  }
+
+  testAngles = arVector3(1.3,-.7,-.05);
+  eulerAngles.setOrder( AR_ZYX );
+  eulerAngles.setAngles( testAngles );
+  eulerTestMatrix = eulerAngles.toMatrix();
+  eulerResult = eulerAngles.extract( eulerTestMatrix );
+  errMag = (eulerResult-testAngles).magnitude();
+  if (errMag > 1.e-5) {
+    cout << "FAILED: euler angle conversion #2 (error = " << errMag << ").\n";
+  }
+
+  testAngles = arVector3(-.3,1.5,.1);
+  eulerAngles.setOrder( AR_YZX );
+  eulerAngles.setAngles( testAngles );
+  eulerTestMatrix = eulerAngles.toMatrix();
+  eulerResult = eulerAngles.extract( eulerTestMatrix );
+  errMag = (eulerResult-testAngles).magnitude();
+  if (errMag > 1.e-5) {
+    cout << "FAILED: euler angle conversion #3 (error = " << errMag << ").\n";
   }
 
   // Test quaternion/matrix conversions
   cout << "Testing quaternion/matrix conversions\n";
-  arQuaternion testQ = eulerTestMatrix1;
+  arQuaternion testQ = eulerTestMatrix;
   arMatrix4 newTest = testQ;
   for (i=0; i<16; i++){
-    if (fabs(eulerTestMatrix1[i]-newTest[i]) > epsilon){
+    if (fabs(eulerTestMatrix[i]-newTest[i]) > epsilon){
       cout << "FAILED: quaternion/matrix conversion.\n";
       break;
     }
@@ -372,7 +390,7 @@ int main(){
   time1 = ar_time();
   for (i=0; i<100000; i++){
     j = i%10000;
-    v = ar_extractEulerAngles(mm[j]);
+    v = ar_extractEulerAngles(mm[j],AR_XYZ);
   }
   time2 = ar_time();
   cout << "Extract euler angles time (microseconds) = " 

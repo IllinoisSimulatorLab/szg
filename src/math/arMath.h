@@ -23,7 +23,20 @@ inline float roundf(const float x) { return floor(x + 0.5f); }
 #endif
 
 // For Euler angles.
-enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
+enum arAxisOrder {
+	AR_XYZ	= 0x01,
+	AR_XZY	= 0x00,
+	AR_YZX	= 0x11,
+	AR_YXZ	= 0x10,
+	AR_ZXY	= 0x21,
+	AR_ZYX	= 0x20
+  };
+
+enum arAxisName {
+  AR_X_AXIS = 0,
+  AR_Y_AXIS = 1,
+  AR_Z_AXIS = 2
+};
 
 class arQuaternion;
 
@@ -213,6 +226,27 @@ class SZG_CALL arQuaternion{
   arVector3 pure;
 };
 
+// Adapted from
+// http://www.krugle.org/kse/files/svn/svn.sourceforge.net/neoengineng/neoengine/neoicexr/Imath/ImathEuler.h
+class SZG_CALL arEulerAngles {
+  public:
+    // Implicit (default) angle orders are not $#(*&($#*&$ permitted!
+    arEulerAngles( const arAxisOrder& ord, const arVector3& angs=arVector3() );
+    ~arEulerAngles() {}
+    void setOrder( const arAxisOrder& ord );
+    void setAngles( const arVector3& ang ) { _angles = ang; }
+    void setAngles( const float x, const float y, const float z ) { _angles = arVector3(x,y,z); }
+    arAxisOrder getOrder() const;
+    void angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const;
+    arVector3 extract( const arMatrix4& mat );
+    arMatrix4 toMatrix() const;
+  private:
+    arVector3 _angles;
+    arAxisName _initialAxis;
+    bool _parityEven;
+};
+  
+  
 //***************************************************************
 // function prototypes... most are inlined below
 //***************************************************************
@@ -273,6 +307,7 @@ SZG_CALL arMatrix4 ar_identityMatrix();
 SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_translationMatrix(const arVector3&);
 SZG_CALL arMatrix4 ar_rotationMatrix(char,float);
+SZG_CALL arMatrix4 ar_rotationMatrix(arAxisName,float);
 SZG_CALL arMatrix4 ar_rotationMatrix(const arVector3&,float);
 SZG_CALL arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, 
                                             const arVector3& vec2 );
@@ -326,7 +361,7 @@ inline arMatrix4 ar_ESM(const arMatrix4& m){
 
 // Utility functions.
 SZG_CALL float     ar_angleBetween(const arVector3&, const arVector3&);
-SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o=AR_ZYX);
+SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o);
 SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
 // returns the relected vector of direction across normal.
 SZG_CALL arVector3 ar_reflect(const arVector3& direction, const arVector3& normal);

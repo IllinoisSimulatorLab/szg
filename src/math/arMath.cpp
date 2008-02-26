@@ -294,6 +294,99 @@ arQuaternion::operator arMatrix4() const {
     0, 0, 0, 1);
 }
 
+arEulerAngles::arEulerAngles( const arAxisOrder& ord, 
+    const arVector3& angs ) :
+    _angles(angs) {
+  setOrder( ord );
+}
+
+void arEulerAngles::setOrder( const arAxisOrder& ord ) {
+  if (ord & 0x20) {
+    _initialAxis = AR_Z_AXIS;
+  } else if (ord & 0x10) {
+    _initialAxis = AR_Y_AXIS;
+  } else {
+    _initialAxis = AR_X_AXIS;
+  }
+  _parityEven = !!(ord & 0x1);
+}
+
+arAxisOrder arEulerAngles::getOrder() const {
+  int ord = _parityEven;
+  switch(_initialAxis) {
+    case AR_Y_AXIS:
+      ord |= 0x10;
+      break;
+    case AR_Z_AXIS:
+      ord |= 0x20;
+      break;
+    default:
+      break;
+  }
+  return static_cast<arAxisOrder>(ord);
+}
+
+void arEulerAngles::angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const {
+  int ii = _initialAxis;
+  int jj = _parityEven ? (_initialAxis+1)%3 : (_initialAxis > 0 ? _initialAxis-1 : 2);
+  int kk = _parityEven ? (_initialAxis > 0 ? _initialAxis-1 : 2) : (_initialAxis+1)%3;
+  i = static_cast<arAxisName>(ii);
+  j = static_cast<arAxisName>(jj);
+  k = static_cast<arAxisName>(kk);
+}
+
+#define AR_MATRIX4_INDEX(i,j) (4*i+j)
+
+arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
+  arAxisName i, j, k;
+  angleOrder( i, j, k );
+
+  arMatrix4 M = mat.inverse();
+  //
+  // Extract the first angle, x.
+  // 
+  float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
+  //
+  // Remove the x rotation from M, so that the remaining
+  // rotation, N, is only around two axes, and gimbal lock
+  // cannot occur.
+  //
+  arVector3 r;
+  if (_parityEven) {
+    r[i] = -1.;
+  } else {
+    r[i] = 1.;
+  }
+
+  arMatrix4 N = ar_rotationMatrix( r, x );
+  N = M * N;
+
+  //
+  // Extract the other two angles, y and z, from N.
+  //
+  float cy = sqrt( N[AR_MATRIX4_INDEX(i,i)]*N[AR_MATRIX4_INDEX(i,i)] +
+      N[AR_MATRIX4_INDEX(i,j)]*N[AR_MATRIX4_INDEX(i,j)] );
+  float y = atan2( -N[AR_MATRIX4_INDEX(i,k)], cy );
+  float z = atan2( -N[AR_MATRIX4_INDEX(j,i)], N[AR_MATRIX4_INDEX(j,j)] );
+
+  if (_parityEven) {
+    x *= -1;
+    y *= -1;
+    z *= -1;
+  }
+  _angles = arVector3(x,y,z);
+  return _angles;
+}
+
+arMatrix4 arEulerAngles::toMatrix() const {
+  arAxisName i, j, k;
+  angleOrder( i, j, k );
+  return ar_rotationMatrix( i, _angles.v[0] ) *
+    ar_rotationMatrix( j, _angles.v[1] ) *
+    ar_rotationMatrix( k, _angles.v[2] );
+}
+
+
 ostream& operator<<(ostream& os, const arQuaternion& x){
   os<<"("<<x.real<<" "<<x.pure.v[0]<<" "<<x.pure.v[1]<<" "<<x.pure.v[2]<<" )";
   return os;
@@ -348,6 +441,33 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
       -sr, 0, cr, 0,
         0, 0,  0, 1);
   case 'z':
+    return arMatrix4(
+      cr, -sr, 0, 0,
+      sr,  cr, 0, 0,
+       0,   0, 1, 0,
+       0,   0, 0, 1);
+  }
+  cerr << "syzygy ar_rotationMatrix error: unknown axis '" << axis << "'.\n";
+  return ar_identityMatrix();
+}
+
+arMatrix4 ar_rotationMatrix( arAxisName axis, float r){
+  const float sr = sin(r);
+  const float cr = cos(r);
+  switch (axis){
+  case AR_X_AXIS:
+    return arMatrix4(
+      1,  0,   0, 0,
+      0, cr, -sr, 0,
+      0, sr,  cr, 0,
+      0,  0,   0, 1);
+  case AR_Y_AXIS:
+    return arMatrix4(
+       cr, 0, sr, 0,
+        0, 1,  0, 0,
+      -sr, 0, cr, 0,
+        0, 0,  0, 1);
+  case AR_Z_AXIS:
     return arMatrix4(
       cr, -sr, 0, 0,
       sr,  cr, 0, 0,
@@ -450,91 +570,9 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
   return (float)acos(dotProd);
 }
 
-// Returns euler angles, in radians, calculated from fixed rotation axes.
-// Default axis order is ZYX (AR_ZYX; others are AR_XYZ, AR_XZY, etc.)
-// which means axis1 = (0,0,1), axis2 = (0,1,0), and axis3 = (1,0,0).
-// If the original matrix was a pure rotation, it will equal:
-// ar_rotationMatrix(axis1, v[2])
-// * ar_rotationMatrix(axis2, v[1])
-// * ar_rotationMatrix(axis3, v[0])
+// Returns euler angles in radians
 arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
-  arVector3 axis1, axis2, axis3;
-  switch(o){
-  case AR_XYZ:
-    axis1 = arVector3(1,0,0);
-    axis2 = arVector3(0,1,0);
-    axis3 = arVector3(0,0,1);
-    break;
-  case AR_XZY:
-    axis1 = arVector3(1,0,0);
-    axis2 = arVector3(0,0,1);
-    axis3 = arVector3(0,1,0);
-    break;
-  case AR_YXZ:
-    axis1 = arVector3(0,1,0);
-    axis2 = arVector3(1,0,0);
-    axis3 = arVector3(0,0,1);
-    break;
-  case AR_YZX:
-    axis1 = arVector3(0,1,0);
-    axis2 = arVector3(0,0,1);
-    axis3 = arVector3(1,0,0);
-    break;
-  case AR_ZXY:
-    axis1 = arVector3(0,0,1);
-    axis2 = arVector3(1,0,0);
-    axis3 = arVector3(0,1,0);
-    break;
-  case AR_ZYX:
-    axis1 = arVector3(0,0,1);
-    axis2 = arVector3(0,1,0);
-    axis3 = arVector3(1,0,0);
-    break;
-  }
-  const arMatrix4 theMatrix(!ar_extractRotationMatrix(m));
-  // Calculate the axis3 euler angle.
-  arVector3 v(theMatrix * axis1);
-  float magnitude = v.magnitude();
-  if (magnitude <= 0.) {
-    cerr << "ar_extractEulerAngles warning: bogus matrix.\n";
-    return arVector3(0,0,0);
-  }
-  v /= magnitude;
-
-  // Project to the axis1-axis2 plane.
-  const arVector3 vyz = (v%axis1)*axis1 + (v%axis2)*axis2;
-  // Euler angle is determined by rotating vyz to the axis1.
-  float rot3 = ar_angleBetween(vyz,axis1);
-  if (axis3.dot(vyz*axis1) < 0)
-    rot3 = -rot3;
-
-  // Calculate the axis2 euler angle.
-  // Project the rotated vector to the axis1-axis3 plane, determine 
-  // the angle with axis1 and this gives the axis2 euler angle
-  v = ar_rotationMatrix(axis3,rot3)*v;
-  const arVector3 vxz = (v%axis1)*axis1 + (v%axis3)*axis3;
-  float rot2 = ar_angleBetween(vxz,axis1);
-  if (axis2.dot(vxz*axis1) < 0)
-    rot2 = -rot2;
-
-  // Calculcate the axis1 euler angle.
-  // Find the vector v2 mapped to axis3. The vector
-  // ar_rotationMatrix(axis2, rot2)*ar_rotationMatrix3,rot3)*v2 
-  // will be in the axis2-axis3 plane. The angle with
-  // axis3 determines the axis1 euler angle.
-  arVector3 v2(theMatrix * axis3);
-  magnitude = ++v2;
-  if (magnitude <= 0.) {
-    cerr << "ar_extractEulerAngles warning: bogus matrix.\n";
-    return arVector3(0,0,0);
-  }
-  v2 /= magnitude;
-  v2 = ar_rotationMatrix(axis2,rot2)*ar_rotationMatrix(axis3,rot3)*v2;
-  float rot1 = ar_angleBetween(v2,axis3);
-  if (axis1.dot(v2*axis3) < 0)
-    rot1 = -rot1;
- 
-  return arVector3(rot3,rot2,rot1);
+  return arEulerAngles(o).extract(m);
 }
 
 arQuaternion ar_angleVectorToQuaternion(const arVector3& a, float radians) {
