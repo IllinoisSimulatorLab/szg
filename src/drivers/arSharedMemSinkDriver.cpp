@@ -61,8 +61,11 @@ void setMatrix(const int ID, const void* mRaw, const arMatrix4& value){
   float* m = ((float*)mRaw) + 7 + ID*10;
   const arVector3 t(ar_extractTranslation(value));
   memcpy(m, t.v, 3 * sizeof(float));
-  const arVector3 a(180. / M_PI * ar_extractEulerAngles(value, AR_ZXY)); // ZXY ZYX YZX YXZ XYZ XZY fail.
+  const arVector3 a(180. / M_PI * ar_extractEulerAngles(value, AR_YXZ));
   memcpy(m+3, a.v, 3 * sizeof(float));
+  // YXZ order agrees with arSharedMemDriver.cpp generateMatrix().
+  // Cavelibs cavevars prints angles in the order pitch yaw roll, i.e. ele azi roll.
+  // Ascension provides: azi ele roll.
 }
 
 bool arSharedMemSinkDriver::init(arSZGClient& c) {
