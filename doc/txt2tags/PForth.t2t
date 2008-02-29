@@ -259,7 +259,7 @@ compile-time effects.
 //KnownBug//: Turns out that the version of TinyXML that we use to parse the parameter files
 does not allow you to embed e.g. '<' in an XML record and does not convert e.g. '&lt;' to
 '<'. The full-word equivalents of the arithmetic-comparison words were added to work
-around this problem. Thus, the following four words are currently unusable:
+around this problem. Thus, these four words are currently unusable:
 
 **>**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 > x2, 0 otherwise.
 
@@ -451,11 +451,11 @@ is computed //before// any of them are called. This means that if you change the
 **filter_<event_type>_<original_event_index>** will be called.
 
 If a given event matches the pattern for more than one word (e.g. a matrix event #0 comes in and
-you have defined the words **filter_all_matrices** and **filter_matrix_0**),
+you've defined the words **filter_all_matrices** and **filter_matrix_0**),
 then both will be called, with the more general one (**filter_all_matrices**) coming first.
 
-In all of these cases, the word has access to the current event and to the most recent state
-of all other events via the following words:
+In all these cases, the word can access the current event, and the most recent state
+of all other events, via these words:
 
 
 ===Current-Event Words===
@@ -522,29 +522,27 @@ it onto the stack. Returns 0.0 if it doesn't exist.
 pointed to by addr.&nbsp; Returns identity matrix if event doesn't
 exist.
 
-
 ===Event-Creation Words===
 
 **insertButtonEvent** ``( n1 n2 -- )``
 Creates a new button event with value n1 and index n2 and inserts it
-into the event stream. //Erratum//: The arguments for insertButtonEvent
-were previously listed in the wrong order. Fixed 3/3/06.
+into the event stream.
+//Erratum//: Arguments were listed in the wrong order. Fixed 3/3/06.
 
 **insertAxisEvent** ``( x1 n1 -- )``
 Creates a new axis event with value x1 and index n1 and inserts it into
-the event stream. //Erratum//: The arguments for insertAxisEvent
-were previously listed in the wrong order. Fixed 3/3/06.
+the event stream.
+//Erratum//: Arguments were listed in the wrong order. Fixed 3/3/06.
 
 **insertMatrixEvent** ``( addr n1 -- )``
 Creates a new matrix event with value taken from the
 dataspace at addr and index n1 and inserts it into the event stream.
-//Erratum//: The arguments for insertMatrixEvent
-were previously listed in the wrong order. Fixed 3/3/06.
+//Erratum//: Arguments were listed in the wrong order. Fixed 3/3/06.
 
 
 ==The Syzygy Database Vocabulary==
 
-The following words access the [Syzygy database SystemConfiguration.html] either explicitly or
+These words access the [Syzygy database SystemConfiguration.html] either explicitly or
 implicitly:
 
 **getStringParameter** ``( addr1 addr2 addr3 -- )``
@@ -575,7 +573,7 @@ tracker. It reads the same database parameters as the C++ version
 (see szg/src/drivers/arTrackCalFilter.cpp): It looks for a file
 with the name specified by SZG_MOTIONSTAR/calib_file (on the path
 specified by SZG_DATA/path). The file format is the same also. After
-reading in the lookup table, it adds the following word to the directionary:
+reading the lookup table, it adds this word to the dictionary:
 
 **doTrackerCalibration** ``( addr1 addr2 -- )``
 Reads an input matrix from addr1 and uses the lookup table to correct the
@@ -585,7 +583,7 @@ positional components, then stores the result at addr2.
 Initializes a positional IIR filter. It reads the same database parameters as the C++ version
 (see szg/src/drivers/arTrackCalFilter.cpp): It reads 3 floats
 specified by SZG_MOTIONSTAR/IIR_filter_weights (filter weights for x, y, and z),
-then adds the following word to the directionary:
+then adds this word to the dictionary:
 
 **doIIRFilter** ``( addr1 addr2 -- )``
 Reads an input matrix from addr1 and applies an IIR filter the
@@ -594,7 +592,7 @@ output[i] = (1-w)*input[i] + w*output[i-1], where
 output[i-1] denotes the output from the previous event.
 
 
-=arPForth Object Usage=
+=Using the arPForth Object=
 
 This section is about embedding a PForth filter in a C++ program. If you're
 just planning on using PForth in conjunction with an input device driver
