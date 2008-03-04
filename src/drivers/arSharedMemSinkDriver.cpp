@@ -47,14 +47,19 @@ inline void setButton(int ID, void* m, int value){
 }
 
 inline void setAxis(int ID, void* m, float value){
+  // Outer bounds.
   if (value > 1.)
     value = 1.;
   else if (value < -1.)
     value = -1.;
+  // Dead zone.
+  else if (value > -.03 && value < .03)
+    value = 0.;
 
+  *(((float*)m) + ID + 23) = value;
   *(((float*)m) + ID + 42) = value;
   // David Zielinski uses 23
-  // cassatt.beckman.uiuc.edu uses 42
+  // cassatt.beckman.uiuc.edu uses 42, but sometimes 23.  Not sure why.
 }
 
 void setMatrix(const int ID, const void* mRaw, const arMatrix4& value){
