@@ -48,10 +48,6 @@ int main(){
   cout << "Math test: if no FAILED messages are printed, then the tests have "
        << "succeeded.\n";
 
-  //***************************************************************************
-  // vector algebra tests
-  //***************************************************************************
-
   cout << "Testing vector algebra.\n";
   if (++( arVector3(1,0,0)*arVector3(0,1,0) - arVector3(0,0,1)) > epsilon){
     cout << "FAILED: vector cross product (1).\n";
@@ -83,11 +79,6 @@ int main(){
     cout << "FAILED: vector cross product.\n";
   }
 
-  //***************************************************************************
-  // matrix algebra tests
-  //***************************************************************************
-
-  // test the basic matrix algebra
   cout << "Testing matrix algebra.\n";
   arMatrix4 matrix1 = arMatrix4(5,5,5,5,
 				5,5,5,5,
@@ -284,10 +275,6 @@ int main(){
          << "matrix:\n" << frustum << endl;
   }
 
-  //*******************************************************************
-  // quaternion algebra tests
-  //*******************************************************************
-  
   cout << "Testing quaternions.\n";
   arVector3 rotAxis( .75, -.2, .17 );
   rotAxis/=++rotAxis;    // arbitrary unit vector
@@ -369,7 +356,7 @@ int main(){
 
   // Speed tests
   const int iMax = 10000;
-  const int i2 = iMax * 50;
+  const int i2 = iMax * 20;
   arMatrix4 mm[iMax];
   arMatrix4 am[iMax];
   arMatrix4 bm[iMax];
