@@ -6,6 +6,8 @@
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 
+// copypaste screensaver.cpp
+
 int main(int argc, char** argv){
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
@@ -13,13 +15,12 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc != 1 && argc != 2){
-    cerr << "usage: restarttracker [virtual_computer]\n";
+    ar_log_error() << "usage: restarttracker [virtual_computer]\n";
     return 1;
   }
 
-  arAppLauncher launcher("restarttracker");
-  launcher.setSZGClient(&szgClient);
-  if (argc == 2){
+  arAppLauncher launcher("restarttracker", &szgClient);
+  if (argc == 2) {
     launcher.setVircomp(argv[1]);
   }
 

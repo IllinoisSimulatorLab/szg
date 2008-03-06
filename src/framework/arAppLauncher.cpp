@@ -7,7 +7,7 @@
 #include "arAppLauncher.h"
 #include "arLogStream.h"
 
-arAppLauncher::arAppLauncher(const char* exeName) :
+arAppLauncher::arAppLauncher(const char* exeName, arSZGClient* cli) :
   _szgClient(NULL),
   _ownedClient(false),
   _vircompDefined(false),
@@ -22,6 +22,9 @@ arAppLauncher::arAppLauncher(const char* exeName) :
     _exeName.assign(exeName);
   else
     _exeName.assign("arAppLauncher");
+  if (cli)
+    (void)setSZGClient(cli);
+    // Won't return false, because cli != NULL.
 }
 
 arAppLauncher::~arAppLauncher() {

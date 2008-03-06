@@ -123,9 +123,10 @@ LPrintUsage:
       goto LPrintUsage;
     {
       // Virtual computer
-      arAppLauncher launcher("dmsg");
-      launcher.setSZGClient(&szgClient);
-      launcher.setVircomp(argv[1]);
+      arAppLauncher launcher("dmsg", &szgClient);
+      if (!launcher.setVircomp(argv[1])) {
+	return 1;
+      }
       if (!launcher.setParameters()){
         cout << "dmsg error: invalid virtual computer definition.\n";
         return 1;
@@ -150,9 +151,10 @@ LPrintUsage:
       goto LPrintUsage;
     {
       // Virtual computer
-      arAppLauncher launcher("dmsg");
-      launcher.setSZGClient(&szgClient);
-      launcher.setVircomp(argv[1]);
+      arAppLauncher launcher("dmsg", &szgClient);
+      if (!launcher.setVircomp(argv[1])) {
+	return 1;
+      }
       if (!launcher.setParameters()){
         cout << "dmsg error: invalid virtual computer definition.\n";
         return 1;

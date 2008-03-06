@@ -22,8 +22,7 @@ Usage:
     return 1;
   }
 
-  arAppLauncher launcher("setstereo");
-  launcher.setSZGClient(&szgClient);
+  arAppLauncher launcher("setstereo", &szgClient);
   if (argc == 3){
     if (!launcher.setVircomp(argv[1])) {
       return 1;

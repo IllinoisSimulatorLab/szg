@@ -44,7 +44,7 @@ class SZG_CALL arPipe {
 class SZG_CALL arAppLauncher {
   // Needs assignment operator and copy constructor, for pointer members.
  public:
-  arAppLauncher(const char* exeName = NULL);
+  arAppLauncher(const char* exeName = NULL, arSZGClient* cli = NULL);
   ~arAppLauncher();
 
   bool setRenderProgram(const string&);

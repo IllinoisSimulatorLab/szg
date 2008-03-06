@@ -20,8 +20,7 @@ int main(int argc, char** argv){
   }
   szgClient.sendInitResponse(true);
 
-  arAppLauncher launcher("calibrationdemo");
-  launcher.setSZGClient(&szgClient);
+  arAppLauncher launcher("calibrationdemo", &szgClient);
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }

@@ -24,8 +24,7 @@ Usage:
     return 1;
   }
 
-  arAppLauncher launcher("setdemomode");
-  launcher.setSZGClient(&szgClient);
+  arAppLauncher launcher("setdemomode", &szgClient);
   if (argc == 3){
     if (!launcher.setVircomp(argv[1])) {
       return 1;
