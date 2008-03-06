@@ -399,14 +399,13 @@ string arSZGClient::getAllAttributes(const string& substring) {
     return string("NULL");
   }
 
-  // Request ALL parameters (in dbatch-able form) or
-  // request only those parameters that match the given substring.
+  // Request ALL parameters (in dbatch-able form),
+  // or only those that match the given substring.
   const string type = substring=="ALL" ? "ALL" : "substring";
 
-  arStructuredData* getRequestData
-    = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
-  // Must use match for thread safety.
-  const int match = _fillMatchField(getRequestData);
+  arStructuredData* getRequestData =
+    _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+  const int match = _fillMatchField(getRequestData); // for thread safety
   string result;
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,substring) ||
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) ||
@@ -426,20 +425,19 @@ string arSZGClient::getAllAttributes(const string& substring) {
 bool arSZGClient::parseAssignmentString(const string& text) {
   stringstream parsingStream(text);
   string computer, group, name, value;
-  unsigned int count(0);
+  unsigned count = 0;
   while (true) {
     // Will skip whitespace(this is a default)
     parsingStream >> computer;
     if (parsingStream.fail()) {
-      if (parsingStream.eof()) {
-        // End of assignment block, so it's okay.
-        if (count > 0) {
-          ar_log_warning() << "Replaced " << count << " occurrences of 'USER_NAME' with '"
-                           << _userName << "' in assign block.\n";
-        }
-        return true;
+      if (!parsingStream.eof())
+	goto LFail;
+      // End of assignment block.
+      if (count > 0) {
+	ar_log_remark() << "in assign block, replaced " << count <<
+	  "x 'USER_NAME' with '" << _userName << "'.\n";
       }
-      goto LFail;
+      return true;
     }
     parsingStream >> group;
     if (parsingStream.fail())
