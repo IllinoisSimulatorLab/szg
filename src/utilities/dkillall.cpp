@@ -22,7 +22,6 @@ int main(int argc, char** argv){
   if (argc == 2) {
     launcher.setSZGClient(&szgClient);
     if (!launcher.setVircomp(argv[1])) {
-      // arAppLauncher already printed msg.
       return 1;
     }
   }
