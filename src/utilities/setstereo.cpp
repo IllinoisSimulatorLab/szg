@@ -7,11 +7,10 @@
 #include "arAppLauncher.h"
 #include "arSZGClient.h"
 
-#include <string>
-
 // Enable/disable stereo on, and send reload message to, all render clients.
 
 int main(int argc, char** argv) {
+  // copypaste setdemomode.cpp
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -19,22 +18,26 @@ int main(int argc, char** argv) {
 
   if (argc != 2 && argc != 3) {
 Usage:    
-    cerr << "usage: setstereo [virtual_computer] true|false\n";
+    ar_log_error() << "usage: setstereo [virtual_computer] true|false\n";
     return 1;
   }
 
   arAppLauncher launcher("setstereo");
   launcher.setSZGClient(&szgClient);
   if (argc == 3){
-    launcher.setVircomp(argv[1]);
-  }
-  else{
-    launcher.setVircomp();
+    if (!launcher.setVircomp(argv[1])) {
+      return 1;
+    }
+  } else {
+    if (!launcher.setVircomp()) {
+      return 1;
+    }
   }
 
-  const string paramVal(argc == 3 ? argv[2] : argv[1]);
+  const string paramVal(argv[argc-1]);
   if (paramVal != "true" && paramVal != "false")
     goto Usage; 
+  // end copypaste
 
   launcher.updateRenderers("stereo", paramVal);
   return 0; 
