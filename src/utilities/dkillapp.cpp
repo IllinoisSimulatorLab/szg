@@ -18,29 +18,22 @@ int main(int argc, char** argv){
 
   if (argc < 2) {
 LPrintUsage:
-  cerr << "Usage: dkillapp <location>\n";
+    cout << "Usage: dkillapp <location>\n";
     return 1;
   }
 
   string messageType("quit");
-  string messageBody("");
+  string messageBody;
   int componentID = -1;
-  
   const string lockName = string(argv[1])+"/SZG_DEMO/app";
   if (szgClient.getLock(lockName, componentID)){
     // nobody else was holding the lock
     szgClient.releaseLock(lockName);
-    cout << "dmsg error: no trigger component running in location '"
+    cout << "dmsg error: no trigger running in location '"
          << argv[1] << "'.\n";
     return 1;
   }
 
   // We know what to send, and to whom.
-  const int match = szgClient.sendMessage( "quit", "", componentID );
-  if ( match < 0 ){
-    // sendMessage() already complained.
-    return 1;
-  }
-
-  return 0;
+  return szgClient.sendMessage("quit", "", componentID) < 0 ? 1 : 0;
 }
