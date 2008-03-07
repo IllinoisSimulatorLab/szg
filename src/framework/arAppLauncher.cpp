@@ -357,10 +357,13 @@ bool arAppLauncher::killAll() {
       killList.push_back(serviceID);
     }
   }
-  if (!killList.empty()) {
-    ar_log_remark() << "killing service(s) " << namesKill << ".\n";
+
+  if (killList.empty()) {
+    ar_log_debug() << "no services to kill.\n";
+  } else {
+    ar_log_remark() << "killing services " << namesKill << ".\n";
+    _blockingKillByID(&killList);
   }
-  _blockingKillByID(&killList);
   _unlock();
   return true;
 }
@@ -634,52 +637,11 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
 }
 
 // Since this kills via ID, it is better suited to killing the graphics programs.
-void arAppLauncher::_blockingKillByID(list<int>* IDList) {
+void arAppLauncher::_blockingKillByID(list<int>* ids) {
   if (!_szgClientOK() || !_vircompDefined)
     return;
 
-  list<int> kill = *IDList; // local copy
-
-  // Since remote components need not respond to the kill message, ask szgserver.
-  // Ugly. Maybe a data structure with the request*Notifications?
-  list<int> tags;
-  map<int, int, less<int> > tagToID;
-  for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter) {
-    const int tag = _szgClient->requestKillNotification(*iter);
-    tags.push_back(tag);
-    tagToID.insert(map<int,int,less<int> >::value_type(tag, *iter));
-    _szgClient->sendMessage("quit", "", *iter);
-  }
-
-  // Wait 8 seconds (per component?!) for everything to die.
-  while (!tags.empty()) {
-    const int killedID = _szgClient->getKillNotification(tags, 8000);
-    if (killedID < 0) {
-      ar_log_remark() << "timed out while killing components with IDs:\n";
-      for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n) {
-	// These components are at least unhealthy, if not already dead.
-	// So just remove them from szgserver's process table.
-	map<int,int,less<int> >::const_iterator iter = tagToID.find(*n);
-        if (iter == tagToID.end()) {
-	  ar_log_critical() << "internal error: missing kill ID.\n";
-	}
-	else {
-	  ar_log_remark() << iter->second << " ";
-          _szgClient->killProcessID(iter->second);
-	}
-      }
-      ar_log_remark() << "\nThese components have been removed from the process table.\n";
-      return;
-    }
-    map<int,int,less<int> >::const_iterator iter = tagToID.find(killedID);
-    if (iter == tagToID.end()) {
-      ar_log_critical() << "internal error: missing kill ID.\n";
-    }
-    else {
-      ar_log_remark() << "killed component with ID " << iter->second << ".\n";
-    }
-    tags.remove(killedID);
-  }
+  _szgClient->killIDs(ids);
 }
 
 // Kill every render program that does NOT match the specified name. Block.
@@ -719,11 +681,11 @@ bool arAppLauncher::_demoKill() {
   const list<int> tags(1, _szgClient->requestLockReleaseNotification(demoLockName));
 
   // Assume that apps yield gracefully from the system within 15 seconds.
-  // Assume that kill works within 8 seconds.
+  // (Assume that kill works within 8 seconds.)
   if (_szgClient->getLockReleaseNotification(tags, 15000) < 0) {
     // Timed out. Kill the demo by removing it from szgserver's component table.
     _szgClient->killProcessID(demoID);
-    ar_log_warning() << "killing slowly exiting demo.\n";
+    ar_log_warning() << "killing slowly-exiting app.\n";
     // Fail. The next demo launch will succeed.
     return false;
   }
