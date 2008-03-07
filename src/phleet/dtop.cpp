@@ -201,6 +201,11 @@ LBreak:
 }
 
 int main(int argc, char** argv){
+  // ncurses incorrectly assumes a black background.
+  // These unfortunately doesn't correct for that:
+  //   setenv("NCURSES_ASSUMED_COLORS", "-1,-1", 0);
+  //   assume_default_colors(-1, -1);
+
   signal(SIGWINCH, &resizeHandler);
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
