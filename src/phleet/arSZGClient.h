@@ -141,6 +141,7 @@ class SZG_CALL arSZGClient{
   string getProcessList();
   bool killProcessID(int id);
   bool killProcessID(const string& computer, const string& processLabel);
+  void killIDs(list<int>*);
   string getProcessLabel(int processID);
   int getProcessID(const string& computer, const string& processLabel);
   int getProcessID(void); // get my own process ID

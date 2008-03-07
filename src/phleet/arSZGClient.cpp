@@ -3171,3 +3171,52 @@ void arSZGClient::messageTask() {
   ar_usleep(75000); // let other threads exit cleanly
   exit(0);
 }
+
+// Since this kills via ID, it is better suited to killing the graphics programs.
+void arSZGClient::killIDs(list<int>* IDList) {
+  if (IDList->empty())
+    return;
+
+  list<int> kill = *IDList; // local copy
+
+  // Since remote components need not respond to the kill message, ask szgserver.
+  // Ugly. Maybe a data structure with the request*Notifications?
+  list<int> tags;
+  map<int, int, less<int> > tagToID;
+  for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter) {
+    const int tag = requestKillNotification(*iter);
+    tags.push_back(tag);
+    tagToID.insert(map<int,int,less<int> >::value_type(tag, *iter));
+    sendMessage("quit", "", *iter);
+  }
+
+  while (!tags.empty()) {
+    // For each component, wait 8 seconds for it to die.
+    const int killedID = getKillNotification(tags, 8000);
+    if (killedID < 0) {
+      ar_log_remark() << "timed out while killing components with IDs:\n";
+      for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n) {
+	// These components are unhealthy, if not already dead.
+	// So just remove them from szgserver's process table.
+	map<int,int,less<int> >::const_iterator iter = tagToID.find(*n);
+        if (iter == tagToID.end()) {
+	  ar_log_critical() << "internal error: missing kill ID.\n";
+	}
+	else {
+	  ar_log_remark() << iter->second << " ";
+          killProcessID(iter->second);
+	}
+      }
+      ar_log_remark() << "\nThese components have been removed from szgserver's process table.\n";
+      return;
+    }
+    map<int,int,less<int> >::const_iterator iter = tagToID.find(killedID);
+    if (iter == tagToID.end()) {
+      ar_log_critical() << "internal error: missing kill ID.\n";
+    }
+    else {
+      ar_log_remark() << "killed component with ID " << iter->second << ".\n";
+    }
+    tags.remove(killedID);
+  }
+}
