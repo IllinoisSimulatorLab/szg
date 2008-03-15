@@ -695,7 +695,7 @@ int arGUIWindow::_windowCreation( void )
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
   if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
-    // Not fatal, so GUIs based on printed command output still work.
+    // Commonly happens on "caveinabox" multi-screen PCs.
     ar_log_remark() << "_windowCreation: SetForegroundWindow failed.\n";
   }
 
