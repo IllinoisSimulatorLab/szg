@@ -2470,7 +2470,7 @@ bool arSZGClient::_dialUpFallThrough() {
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)) {
     // Connect to the specified szgserver.
     ar_log_warning() << "dialUpFallThrough(): no szgserver at " <<
-      _IPaddress << ":" << _port << ".\n\t(First dlogin; dhunt finds szgservers.)\n";
+      _IPaddress << ":" << _port << ".\n  (First dlogin; dhunt finds szgservers;\n   Open firewall tcp port " << _port << ".)\n";
       // todo: don't advise dlogin or dhunt if this app IS one of those two!
     return false;
   }
