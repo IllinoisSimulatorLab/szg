@@ -476,7 +476,7 @@ bool arDatabase::handleDataQueue(ARchar* theData){
 // Reads in the database in binary format.
 bool arDatabase::readDatabase(const string& fileName, 
                               const string& path){
-  FILE* sourceFile = sourceFile = ar_fileOpen(fileName,path,"rb");
+  FILE* sourceFile = ar_fileOpen(fileName,path,"rb");
   if (!sourceFile){
     ar_log_warning() << "arDatabase failed to read file '" << fileName << "'.\n";
     return false;
