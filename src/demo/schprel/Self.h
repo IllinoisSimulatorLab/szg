@@ -12,6 +12,7 @@
 class Self : public SchprelScene {
   public:
 	Self();
+	virtual ~Self() {}
 	void drawAll();
 	void updateAll(s_updateValues &updateValues);
 

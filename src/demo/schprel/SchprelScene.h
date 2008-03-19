@@ -15,6 +15,8 @@
 class SchprelScene
 {
   public:
+    virtual ~SchprelScene() {}
+
     /// get ready for drawing
     virtual void initTheGL(void)
     {
