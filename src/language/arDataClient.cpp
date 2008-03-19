@@ -224,16 +224,17 @@ bool arDataClient::_dialUpConnect(const char* address, int port) {
 }
 
 bool arDataClient::dialUpFallThrough(const char* address, int port){
+  // bug? dlogin won't take "-szg log=DEBUG", so dlogin can't print these ar_log_debug()'s.
   if (!_dialUpInit(address, port)) {
-    ar_log_debug() << "arDataClient._dialUpInit() failed.\n";
+    ar_log_debug() << "arDataClient._dialUpInit(" << address << ":" << port << ") failed.\n";
     return false;
   }
   if (!_dialUpConnect(address, port)) {
-    ar_log_debug() << "arDataClient._dialUpConnect() failed.\n";
+    ar_log_debug() << "arDataClient._dialUpConnect(" << address << ":" << port << ") failed.\n";
     return false;
   }
   if (!_dialUpActivate()) {
-    ar_log_debug() << "arDataClient._dialUpActivate() failed.\n";
+    ar_log_debug() << "arDataClient._dialUpActivate(" << address << ":" << port << ") failed.\n";
     return false;
   }
   return true;
