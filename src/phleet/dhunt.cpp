@@ -47,4 +47,6 @@ LUsage:
     }
   }
   return 0;
+
+  // If no servers are found, open firewall udp port 4620.
 }
