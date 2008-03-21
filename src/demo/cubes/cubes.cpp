@@ -48,7 +48,7 @@ const float WAND_LENGTH = 2.;
 arMatrix4 cube0Matrix;
 long randomSeed = 0;
 
-arLock databaseLock;
+arLock databaseLock; // Guards all dgXXX() and dsXXX() alterations to the scene graph?
 
 inline float randDistance(){
   return (float(rand() % 1001) / 1000. - 0.5) * .03;
@@ -60,48 +60,34 @@ void drawWand( const arEffector* effector ) {
   dgTransform( wandID, effector->getBaseMatrix()*wandOffsetMat );
 }
 
-#ifdef UNUSED // inputEventQueueCallback instead
-bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& ) {
-  arGuard dummy(databaseLock);
-  dragWand.updateState( event );
-  headEffector.updateState( event );
-  if (event.getType() == AR_EVENT_AXIS) {
-    fw.navUpdate( event );
-  }
-  // Since the win32 joystick driver does not guarantee a stream
-  // of input events when the joystick is held steady but nonzero,
-  // update the navigation matrix every frame.
-  // This callback might be called many times per frame, though.
-  fw.loadNavMatrix();
-  dragWand.draw();
-  return true;
-}
-#endif
-
 bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
-  if (eventQueue.size() == 0) {
+  if (eventQueue.empty()) {
     return true;
   }
   arGuard dummy(databaseLock);
   while (!eventQueue.empty()) {
-    arInputEvent event = eventQueue.popNextEvent();
+    const arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
     headEffector.updateState( event );
-    // navUpdate with axis events for forward/backward/speed and with
-    // matrix events so we know which way the user is pointing.
-    if ((event.getType() == AR_EVENT_MATRIX)||(event.getType() == AR_EVENT_AXIS)) {
+    const arInputEventType t = event.getType();
+    // navUpdate with axis events for forward/backward/speed,
+    // and with matrix events to know which way the wand points.
+    switch (t) {
+    case AR_EVENT_MATRIX:
+    case AR_EVENT_AXIS:
       fw.navUpdate( event );
-    }
-    if ((event.getType() == AR_EVENT_BUTTON) && (event.getIndex() == 0)) {
-      if (fw.getOnButton(0)) {
-        lightingOnOff = (lightingOnOff == AR_G_TRUE)?(AR_G_FALSE):(AR_G_TRUE);
+      break;
+    case AR_EVENT_BUTTON:
+      if (event.getIndex() == 0 && fw.getOnButton(0)) {
+        lightingOnOff = lightingOnOff==AR_G_TRUE ? AR_G_FALSE : AR_G_TRUE;
         dgStateInt( lightsOnOffID, "lighting", lightingOnOff );
       }
+      break;
     }
   }
-  // Currently, the joystick driver on windows DOES NOT guarantee a stream
-  // of input events when the stick is held in a given position. Consequently,
-  // the navigation matrix should be updated every frame.
+  // The win32 joystick driver might not stream
+  // input events while the stick is held steady.
+  // So update the nav matrix each frame.
   fw.loadNavMatrix();
   dragWand.draw();
   return true;
@@ -205,21 +191,18 @@ void worldAlter(void* f) {
   framework->externalThreadStopped();
 }
 
-
 void worldInit(arDistSceneGraphFramework& framework) {
-  const string baseName("cube");
-
-  dgLight("light0","root",0,arVector4(0,0,1,0),arVector3(1,1,1));
-  dgLight("light1","root",1,arVector4(0,0,-1,0),arVector3(1,1,1));
-  dgLight("light2","root",2,arVector4(0,1,0,0),arVector3(1,1,1));
-  dgLight("light3","root",3,arVector4(0,-1,0,0),arVector3(1,1,1));
+  dgLight("light0", "root", 0, arVector4(0,0,1,0),  arVector3(1,1,1));
+  dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1));
+  dgLight("light2", "root", 2, arVector4(0,1,0,0),  arVector3(1,1,1));
+  dgLight("light3", "root", 3, arVector4(0,-1,0,0), arVector3(1,1,1));
   
-  arCubeMesh theCube;
   const string navNodeName = framework.getNavNodeName();
   lightsOnOffID = dgStateInt( "light_switch", navNodeName, "lighting", AR_G_TRUE );
   soundTransformID = dsTransform( "sound_transform", navNodeName, arMatrix4() );
   wandID = dgTransform( "wand_transform", "light_switch", arMatrix4() );
   dgTexture( "wand_texture", "wand_transform", "ambrosia.ppm" );
+  arCubeMesh theCube;
   theCube.setTransform(ar_scaleMatrix(.2,.2,WAND_LENGTH));
   theCube.attachMesh( "wand", "wand_texture" );
   
@@ -228,17 +211,13 @@ void worldInit(arDistSceneGraphFramework& framework) {
   arCylinderMesh theCylinder;
   theCylinder.setAttributes(20,1,1);
   theCylinder.toggleEnds(true);
-  char buffer[32];
+  const string baseName("cube");
   for (int i=0; i<NUMBER_OBJECTS; ++i) {
-    sprintf(buffer,"%i",i);
-    const string objectName(baseName + string(buffer));
+    const string objectName(baseName + ar_intToString(i));
     const string objectTexture(objectName + " texture");
     const string objectParent(objectName + " transform");
-    if (i==0)
-      strcpy(buffer, "YamahaStar.ppm");
-    else
-      sprintf(buffer, "WallTexture%i.ppm", rand()%4+1);
-    const string whichTexture(buffer);
+    const string whichTexture(i==0 ? "YamahaStar.ppm" :
+      "WallTexture" + ar_intToString(rand()%4+1) + ".ppm");
 recalcpos:
     const float randX = -5. + (10.*(rand()%200))/200.0;
     const float randY = (10.*(rand()%200))/200.0;
@@ -251,7 +230,7 @@ recalcpos:
     arCallbackInteractable cubeInteractor( 
         dgTransform( objectParent, "light_switch", arMatrix4() ) );
     if (i==0) {
-      cube0SoundTransformID = dsTransform( objectParent, framework.getNavNodeName(), arMatrix4() );
+      cube0SoundTransformID = dsTransform( objectParent, navNodeName, arMatrix4() );
       cubeInteractor.setSoundTransformID( cube0SoundTransformID );
     }
     cubeInteractor.setMatrixCallback( setMatrixCallback );
