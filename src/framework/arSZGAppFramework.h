@@ -110,7 +110,7 @@ class SZG_CALL arSZGAppFramework {
     void setNavEffector( const arEffector& effector );
     void ownNavParam( const std::string& paramName );
     void navUpdate();
-    void navUpdate( arInputEvent& event );
+    void navUpdate( const arInputEvent& event );
 
     // Methods for event filtering (and the callbacks that allow
     // event-based processing instead of polling-based processing).

@@ -167,28 +167,29 @@ void arEffector::setMatrix( const arMatrix4& matrix ) {
   _tipMatrix = _matrix * _offsetMatrix;
 }
 
-void arEffector::updateState( arInputEvent& event ) {
-  int index = -1;
+void arEffector::updateState( const arInputEvent& event ) {
   switch (event.getType()) {
     case AR_EVENT_MATRIX:
       if (event.getIndex() != _matrixIndex)
         return;
       setMatrix( event.getMatrix() );
       break;
-    case AR_EVENT_AXIS:
-      index = event.getIndex()-_loAxis;
+    case AR_EVENT_AXIS: {
+      const int index = event.getIndex()-_loAxis;
       if (index < 0 || index >= (int)_numAxes)
         return;
       _inputState.setAxis( index, event.getAxis() );
       break;
-    case AR_EVENT_BUTTON:
-      index = event.getIndex()-_loButton;
+    }
+    case AR_EVENT_BUTTON: {
+      const int index = event.getIndex()-_loButton;
       if (index < 0 || index >= (int)_numButtons)
         return;
       _inputState.setButton( index, event.getButton() );
       break;
+    }
     default:
-      cerr << "arEffector error: invalid event type.\n";
+      ar_log_warning() << "arEffector ignoring unrecognized event type.\n";
   }
 }
 

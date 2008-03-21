@@ -147,7 +147,7 @@ void arNavManager::update( arInputState* inputState ) {
   ar_pollingInteraction( _effector, (arInteractable*)&_navObject );
 }
 
-void arNavManager::update( arInputEvent& event ) {
+void arNavManager::update( const arInputEvent& event ) {
   _effector.updateState( event );
   _navObject._matrix = ar_getNavMatrix();
   ar_pollingInteraction( _effector, (arInteractable*)&_navObject );

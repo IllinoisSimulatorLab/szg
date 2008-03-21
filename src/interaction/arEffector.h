@@ -47,7 +47,7 @@ class SZG_CALL arEffector {
     float calcDistance( const arMatrix4& mat );
     void setUnitConversion( float conv ) { _unitConversion = conv; }
     void setTipOffset( const arVector3& offset );
-    void updateState( arInputEvent& event );
+    void updateState( const arInputEvent& event );
     void updateState( arInputState* state );
     virtual bool requestGrab( arInteractable* grabee );
     virtual void requestUngrab( arInteractable* grabee );

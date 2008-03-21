@@ -43,7 +43,7 @@ class SZG_CALL arNavManager {
     void setRotSpeed( float speed );
     void setEffector( const arEffector& effector );
     void update( arInputState* inputState );
-    void update( arInputEvent& event );
+    void update( const arInputEvent& event );
     
   private:
     void _clearCondition( const arGrabCondition& condition );

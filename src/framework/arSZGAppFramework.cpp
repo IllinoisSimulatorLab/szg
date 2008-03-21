@@ -279,7 +279,7 @@ void arSZGAppFramework::navUpdate() {
   _navManager.update( getInputState() );
 }
 
-void arSZGAppFramework::navUpdate( arInputEvent& event ) {
+void arSZGAppFramework::navUpdate( const arInputEvent& event ) {
   _navManager.update( event );
 }
 
