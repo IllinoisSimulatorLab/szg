@@ -90,6 +90,8 @@ void arInterfaceObject::setInputDevice(arInputNode* device){
 }
 
 bool arInterfaceObject::start(){
+  ar_log_warning() << "arInterfaceObject is deprecated.  Consider alternatives.\n";
+
   if (!_inputDevice){
     cerr << "arInterfaceObject error: input device undefined.\n";
     return false;
