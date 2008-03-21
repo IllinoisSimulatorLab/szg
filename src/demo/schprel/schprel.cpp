@@ -17,7 +17,6 @@
 
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
-#include "arInterfaceObject.h"
 #include "arDataUtilities.h"
 
 #include "arSZGClient.h"
