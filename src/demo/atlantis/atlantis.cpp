@@ -118,8 +118,6 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
   const arMatrix4 spearOffsetMat( ar_translationMatrix(
                                       arVector3( 0,0,-0.5*SPEAR_LENGTH ) ) );
   const arMatrix4 spearMatrix( spearBaseMatrix*spearOffsetMat );
-//  cerr << ar_getNavMatrix() << endl ;
-//  cerr << spearBaseMatrix << endl << "----------------------" << endl;
   glPushMatrix();
     glMultMatrixf(spearMatrix.v);
     glPushMatrix();
@@ -310,8 +308,7 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   //  setAnaglyphMode(fw, anaglyphMode);
   initFishs();
 
-  // This is cube-specific (the origin is on the floor, so the center
-  // of the screen is 5 feet high).
+  // Move from center of floor (traditional cave coord origin) to center of Cube.
   ar_navTranslate(arVector3(0., -5.*ATLANTISUNITS_PER_FOOT, 0.));
 
   if (fw.getMaster()) {
