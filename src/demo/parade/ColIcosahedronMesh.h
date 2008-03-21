@@ -11,26 +11,23 @@
 #include <string>
 using namespace std;
 
-class ColIcosahedronMesh{
+class ColIcosahedronMesh {
  public:
   ColIcosahedronMesh();
-  ColIcosahedronMesh(ARfloat color[3]);
+  ColIcosahedronMesh(const ARfloat* color);
   ~ColIcosahedronMesh();
-
   void attachMesh(const string&, const string&);
-
-  void changeColor(ARfloat color[3]);
+  void changeColor(const ARfloat* color);
   void update();
 
  private:
-
+  bool changedColor;
   int pointsID, trianglesID, normalsID, colorsID;
-
-  ARfloat colors[240];
   string name;
-  int changedColor;
   ARint triangleIDs[20];
+  ARfloat colors[240];
 
+  void _changeColor(const ARfloat* color);
   void makeNormals(ARfloat* points, int numPoints, ARint* triangleVertices,
                   int numTriangleVertices, ARfloat* returnedNormals);
 };

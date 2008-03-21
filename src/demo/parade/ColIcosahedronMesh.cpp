@@ -33,43 +33,63 @@
 #define lLENGTHi(u,i) (sqrt(lDOTi(u,i,u,i)))
 #endif
 
-ColIcosahedronMesh::ColIcosahedronMesh(){
-  pointsID=trianglesID=normalsID=colorsID=-1;
-  changedColor=0;
-  name = string("");
-
-  for (int i=0; i<60; i++){
-    colors[4*i] = 1;
-    colors[4*i+1] = 1;
-    colors[4*i+2] = 1;
-    colors[4*i+3] = 1;
-  }
-}
-
-ColIcosahedronMesh::ColIcosahedronMesh(ARfloat color[3])
+ColIcosahedronMesh::ColIcosahedronMesh() :
+  changedColor(false),
+  pointsID(-1),
+  trianglesID(-1),
+  normalsID(-1),
+  colorsID(-1)
 {
-  pointsID=trianglesID=normalsID=colorsID=-1;
-  changedColor=0;
-  name = string("");
-  for (int i=0;i<60;i++){
-    colors[4*i] = color[0];
-    colors[4*i+1] = color[1];
-    colors[4*i+2] = color[2];
-    colors[4*i+3] = 1;
+  for (int i=0; i<240; i++) {
+    colors[i] = 1;
   }
 }
 
-ColIcosahedronMesh::~ColIcosahedronMesh(){
+ColIcosahedronMesh::ColIcosahedronMesh(const ARfloat* color) :
+  changedColor(false),
+  pointsID(-1),
+  trianglesID(-1),
+  normalsID(-1),
+  colorsID(-1)
+{
+  _changeColor(color);
+}
+
+ColIcosahedronMesh::~ColIcosahedronMesh() {
   dgErase(name+" points");
 }
 
-void ColIcosahedronMesh::attachMesh(const string& icName,
-  const string& parentName)
+void ColIcosahedronMesh::_changeColor(const ARfloat* newColor)
+{
+  for (int i=0; i<60; i++){
+    colors[4*i  ] = newColor[0];
+    colors[4*i+1] = newColor[1];
+    colors[4*i+2] = newColor[2];
+    colors[4*i+3] = 1;
+  }
+}
+
+void ColIcosahedronMesh::changeColor(const ARfloat* c)
+{
+  changeColor(c);
+  changedColor = true;
+}
+
+//precondition - attachMesh already called
+void ColIcosahedronMesh::update()
+{
+  if (changedColor) {
+    changedColor = false;
+    dgColor4(colorsID, 60, colors);
+  }
+}
+
+void ColIcosahedronMesh::attachMesh(const string& icName, const string& parentName)
 {
   name = icName;
-  //numbers we calculated ahead of time
-  #define AA 0.5
-  #define BB 0.30901699
+  // precalculated numbers
+  #define AA (0.5)
+  #define BB (0.30901699)
   ARfloat pointPositions[36] = {  0, BB,-AA,
                                  BB, AA,  0,
                                 -BB, AA,  0,
@@ -112,70 +132,9 @@ void ColIcosahedronMesh::attachMesh(const string& icName,
   dgNormal3(icName+" normals", icName+" index", 60, triNormals);
   colorsID = dgColor4(icName+" colors", icName+" normals", 60, colors);
   dgDrawable(icName+" triangles", icName+" colors", DG_TRIANGLES, 20);
-
-  /*if(pointsID == -1)
-  {
-    pointsID = dgPoints(icName+" points", parentName,
-                        12, pointIDs, pointPositions);
-  }
-  else
-  {
-    (void)dgPoints(pointsID, 12, pointIDs, pointPositions);
-  }
-
-  if(trianglesID == -1)
-  {
-    trianglesID = dgTriangles(icName+ " triangles", icName+" points",
-                              20, triangleIDs, triangleVertices);
-  }
-  else
-  {
-    (void)dgTriangles(trianglesID, 20, triangleIDs, triangleVertices);
-  }
-
-  if(normalsID == -1)
-  {
-    normalsID=dgNormals(icName+" normals", icName+" triangles",
-                        20, triangleIDs, triNormals);
-  }
-  else
-  {
-    (void)dgNormals(normalsID, 20, triangleIDs, triNormals);
-  }
-
-  if(colorsID == -1)
-  {
-    colorsID=dgColTriangles(icName+" colors", icName+" normals",
-                      20, triangleIDs, colors);
-  }
-  else
-  {
-    (void)dgColTriangles(colorsID, 20, triangleIDs, colors);
-    }*/
 }
 
-void ColIcosahedronMesh::changeColor(ARfloat newColor[3])
-{
-  for (int i=0; i<60; i++){
-    colors[4*i] = newColor[0];
-    colors[4*i+1] = newColor[1];
-    colors[4*i+2] = newColor[2];
-    colors[4*i+3] = 1;
-  }
-  changedColor = 1;
-}
-
-//precondition - attachMesh already called
-void ColIcosahedronMesh::update()
-{
-  if (!changedColor){
-    return;
-  }
-  changedColor = 0;
-  dgColor4(colorsID, 60, colors);
-}
-
-//works for any origin-centered convex polyhedron
+// works for any origin-centered convex polyhedron
 void ColIcosahedronMesh::makeNormals(ARfloat* points, int /*numPoints*/,
                                        ARint* triangleVertices,
                                        int numTriangleVertices,
@@ -204,10 +163,12 @@ void ColIcosahedronMesh::makeNormals(ARfloat* points, int /*numPoints*/,
 
     if (lDOTi(norm, 0, midpoint, 0) < 0)
     {
-      // Wrong face out.  Switch vertices to make correct face out.
-      int tmp=triangleVertices[ii+1];
-      triangleVertices[ii+1]=triangleVertices[ii+2];
-      triangleVertices[ii+2]=tmp;
+      // Wrong face out.
+
+      // Switch vertices.
+      const int tmp = triangleVertices[ii+1];
+      triangleVertices[ii+1] = triangleVertices[ii+2];
+      triangleVertices[ii+2] = tmp;
 
       // Reverse normal.
       norm[0] = -norm[0];
