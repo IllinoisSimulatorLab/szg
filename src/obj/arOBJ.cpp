@@ -112,10 +112,8 @@ bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName) {
     return false;
   }
   for (unsigned i=0; i<_group.size(); ++i) {
-    if (_group[i].size() != 0) {
-      if (!attachGroup(pointsNode, i, baseName)) {
-        return false;
-      }
+    if (!_group[i].empty() && !attachGroup(pointsNode, i, baseName)) {
+      return false;
     }
   }
   return true;

@@ -197,7 +197,7 @@ bool arPForth::addSimpleActionWord(
 }
   
 float arPForth::stackPop() {
-  if (_theStack.size() == 0)
+  if (_theStack.empty())
     throw arPForthSpace::arPForthException("stack underflow.");
 
   float val = _theStack.back();

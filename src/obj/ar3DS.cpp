@@ -247,14 +247,13 @@ void ar3DS::attachChildNode(const string &baseName,
   // Put all triangles with same material into one group
   //   and attach to single material
   arVector3 diffuse, specular, ambient, emmissive(0,0,0);
-  int *drawIndices = NULL;
   for (i=0; i<materials.size(); i++) {
-    if (materialFaces[i].size() > 0) {
+    if (!materialFaces[i].empty()) {
       diffuse  = arVector3(materials[i]->diffuse);
       ambient  = arVector3(materials[i]->ambient);
       specular = arVector3(materials[i]->specular);
 
-      drawIndices = new int[materialFaces[i].size()*3];
+      int* drawIndices = new int[materialFaces[i].size()*3];
       for (j=0; j<materialFaces[i].size(); j++) {
         drawIndices[3*j+0] = materialFaces[i][j]*3+0;
         drawIndices[3*j+1] = materialFaces[i][j]*3+1;
