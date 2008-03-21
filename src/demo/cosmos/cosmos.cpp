@@ -10,10 +10,10 @@
 #include "arDistSceneGraphFramework.h"
 #include "arSoundAPI.h" 
 
-// stuff that's really specific to this app
-
-ARfloat  vertexPosition1[900];
-ARfloat  colors[1200];
+const int numLines = 150;
+const int numPoints = numLines * 2;
+ARfloat  vertexPosition1[numPoints * 3]; // each point has 3 coords, xyz
+ARfloat  colorRGBA[numPoints * 4]; // each point has 4 values, rgba
 arStructuredData* linesData = NULL;
 arStructuredData* linePointsData = NULL;
 int linePointsID = -1;
@@ -28,46 +28,64 @@ arMatrix4 billboardTransform;
 int lightTransformID[3];
 arMatrix4 lightTransform[3];
 
+bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& q ) {
+  bool fReload = false;
+  while (!q.empty()) {
+    const arInputEvent event = q.popNextEvent();
+    const arInputEventType t = event.getType();
+    // navUpdate with axis events for forward/backward/speed,
+    // and with matrix events to know which way the wand points.
+    if (t == AR_EVENT_MATRIX || t == AR_EVENT_AXIS) {
+      fw.navUpdate( event );
+      fReload = true;
+    }
+  }
+  if (fReload)
+    fw.loadNavMatrix();
+  return true;
+}
+
+
 void attachLineSet(){
-  // seed some random locations for the vertices
   int i;
-  for (i=0; i<150; i++){
-    arVector3 randPos = arVector3(-5 + 10*(1.0*(rand()%200))/200.0,
-				  -5 + 10*(1.0*(rand()%200))/200.0,
-				  -5 + 10*(1.0*(rand()%200))/200.0);
+  // random vertices
+  for (i=0; i<numLines; i++){
+    arVector3 randPos(-5 + 10*(1.0*(rand()%200))/200.0,
+		      -5 + 10*(1.0*(rand()%200))/200.0,
+		      -5 + 10*(1.0*(rand()%200))/200.0);
     if (++randPos == 0){
       randPos = arVector3(0,0,1);
     }
     randPos.normalize();
     randPos *= 5;
-    vertexPosition1[6*i] = randPos[0];
+    vertexPosition1[6*i  ] = randPos[0];
     vertexPosition1[6*i+1] = randPos[1];
     vertexPosition1[6*i+2] = randPos[2];
-    vertexPosition1[6*i+3] = 0;
-    vertexPosition1[6*i+4] = 0;
+    vertexPosition1[6*i+3] =
+    vertexPosition1[6*i+4] =
     vertexPosition1[6*i+5] = 0;
   }
-  // fill the other needed arrays
-  for (i=0; i<150; i++){
-    colors[8*i] = colors[8*i+4] = rand()%1000/1000.;
-    colors[8*i+1] = colors[8*i+5] = rand()%1000/1000.;
-    colors[8*i+2] = colors[8*i+6] = rand()%1000/1000.;
-    colors[8*i+3] = colors[8*i+7] = 1.;
+
+  // fill the other arrays
+  for (i=0; i<numLines; i++){
+    colorRGBA[8*i  ] = colorRGBA[8*i+4] = rand()%1000/1000.;
+    colorRGBA[8*i+1] = colorRGBA[8*i+5] = rand()%1000/1000.;
+    colorRGBA[8*i+2] = colorRGBA[8*i+6] = rand()%1000/1000.;
+    colorRGBA[8*i+3] = colorRGBA[8*i+7] = 1.;
   }
-  linePointsID = dgPoints("line points","world",300,vertexPosition1);
-  dgColor4("line colors","line points",300,colors);
-  dgDrawable("lines","line colors", DG_LINES, 150);
+  linePointsID = dgPoints("line points","world",2*numLines,vertexPosition1);
+  dgColor4("line colors","line points",numPoints,colorRGBA);
+  dgDrawable("lines","line colors", DG_LINES, numLines);
 }
 
-void worldInit(arDistSceneGraphFramework* framework){
+void worldInit(arDistSceneGraphFramework& fw){
   // global transform, as controlled by the input device
-  const string navNodeName = framework->getNavNodeName();
+  const string navNodeName = fw.getNavNodeName();
 
-  // The lights.
-  dgLight("light0","root",0,arVector4(0,0,1,0),arVector3(1,1,1));
-  dgLight("light1","root",1,arVector4(0,0,-1,0),arVector3(1,1,1));
-  dgLight("light2","root",2,arVector4(0,-1,0,0),arVector3(1,1,1));
-  dgLight("light3","root",3,arVector4(0,1,0,0),arVector3(1,1,1));
+  dgLight("light0", "root", 0, arVector4(0,0,1,0),  arVector3(1,1,1));
+  dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1));
+  dgLight("light2", "root", 2, arVector4(0,-1,0,0), arVector3(1,1,1));
+  dgLight("light3", "root", 3, arVector4(0,1,0,0),  arVector3(1,1,1));
 
   lightTransformID[0] = dgTransform("light trans 0",navNodeName,lightTransform[0]);
   lightTransformID[1] = dgTransform("light trans 1",navNodeName,lightTransform[1]);
@@ -103,7 +121,6 @@ void worldInit(arDistSceneGraphFramework* framework){
   theMesh.reset(40,30,3,0.5);
   theMesh.attachMesh("torus4","texture4");
 
-  // attach the line set
   attachLineSet();
 
   // attach the billboard
@@ -118,7 +135,7 @@ void worldInit(arDistSceneGraphFramework* framework){
 	      " syzygy scene graph ");
 }
 
-void worldAlter(){
+void worldAlter(arDistSceneGraphFramework& fw) {
   static bool init = false;
   static ar_timeval oldTime;
   float factor = 1.;
@@ -165,46 +182,43 @@ void worldAlter(){
   if (length >= 20.0){
     length = 1.0;
   }
-  for (int i=0; i<150; i++){
+  for (int i=0; i<numLines; i++){
     const arVector3 line = arVector3(&vertexPosition1[6*i]) * length * .05;
     vertexPosition1[6*i+3] = line.v[0];
     vertexPosition1[6*i+4] = line.v[1];
     vertexPosition1[6*i+5] = line.v[2];
   }
-  dgPoints(linePointsID,300,vertexPosition1);
+  dgPoints(linePointsID,numPoints,vertexPosition1);
+
+  fw.processEventQueue(); // for inputEventQueueCallback
 }
 
 int main(int argc, char** argv){
-  // We could dispense with the pointer, but it *might* cause that
-  // intermittent constructor-hang.  To be tested more.
-  arDistSceneGraphFramework* framework = new arDistSceneGraphFramework;
-
-  framework->setAutoBufferSwap(false); // Must be before init().
-  if (!framework->init(argc,argv)){
-    return 1;
-  }
-  
-  // Location of textures and sounds.
-  framework->setDataBundlePath("SZG_DATA", "cosmos");
-  arInterfaceObject interfaceObject;
-  interfaceObject.setInputDevice(framework->getInputNode());
-
-  // Slow down navigation.
-  interfaceObject.setSpeedMultiplier(0.15);
-  
-  worldInit(framework);
-
-  // Configure stereo view.
-  framework->setEyeSpacing( 6/(2.54*12) );
-  framework->setClipPlanes( .3, 1000. );
-  framework->setUnitConversion( 1. );
-
-  if (!framework->start() || !interfaceObject.start()){
+  arDistSceneGraphFramework fw;
+  fw.setAutoBufferSwap(false); // Before init().
+  if (!fw.init(argc,argv)){
     return 1;
   }
 
-  // Place scene in the center of the front wall.
-  interfaceObject.setNavMatrix(ar_translationMatrix(0,5,-5));
+  // Navigation.
+  fw.setNavTransSpeed(3.0); // After init().
+  fw.setEventQueueCallback( inputEventQueueCallback );
+
+  // Move from center of floor (traditional cave coords) to center of Cube.
+  ar_navTranslate(arVector3(0, -5, 0));
+  
+  // Files containing textures and sounds.
+  fw.setDataBundlePath("SZG_DATA", "cosmos");
+
+  worldInit(fw);
+
+  fw.setEyeSpacing( 6/(2.54*12) );
+  fw.setClipPlanes( .3, 1000. );
+  fw.setUnitConversion( 1. );
+
+  if (!fw.start()) {
+    return 1;
+  }
 
   const arVector3 xyz(0,0,0);
   const int idLoop = dsLoop("ambience", "world", "cosmos.mp3", 1, 1, xyz);
@@ -212,16 +226,12 @@ int main(int argc, char** argv){
 
   // Main loop.
   while (true) {
-    navTransform = interfaceObject.getNavMatrix().inverse();
-    worldTransform = interfaceObject.getObjectMatrix();
-    ar_setNavMatrix( navTransform );
-
     // No lock needed, since there's only one thread.
     dgTransform(worldTransformID[0], worldTransform);
     dsTransform(worldTransformID[1], worldTransform);
-    framework->loadNavMatrix();
+    fw.loadNavMatrix();
 
-    worldAlter();
+    worldAlter(fw);
 
     // Verify spatialized sound.  (Don't turn it on/off.)
     (void)dsLoop(idLoop, "cosmos.mp3", 1, 1, xyz);
@@ -233,11 +243,11 @@ int main(int argc, char** argv){
     }
 
     // Change viewpoint.
-    framework->setViewer();
-    framework->setPlayer();
+    fw.setViewer();
+    fw.setPlayer();
 
-    // Manually force a buffer swap.
-    framework->swapBuffers();
+    // Force a buffer swap.
+    fw.swapBuffers();
   }
   return 0;
 }
