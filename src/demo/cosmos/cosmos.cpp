@@ -45,7 +45,6 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& q ) {
   return true;
 }
 
-
 void attachLineSet(){
   int i;
   // random vertices
@@ -66,7 +65,7 @@ void attachLineSet(){
     vertexPosition1[6*i+5] = 0;
   }
 
-  // fill the other arrays
+  // random colors
   for (i=0; i<numLines; i++){
     colorRGBA[8*i  ] = colorRGBA[8*i+4] = rand()%1000/1000.;
     colorRGBA[8*i+1] = colorRGBA[8*i+5] = rand()%1000/1000.;
