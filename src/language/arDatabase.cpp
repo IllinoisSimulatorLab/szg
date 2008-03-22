@@ -135,11 +135,7 @@ arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn) {
 
 // Search depth-first for a node with the given name, from the arDatabase's root.
 arDatabaseNode* arDatabase::findNode(const string& name, bool refNode) {
-  arDatabaseNode* result = NULL;
-  bool success = false;
-  arGuard dummy(_l);
-  _rootNode._findNode(result, name, success, NULL, true);
-  return _ref(result, refNode);
+  return getNode(name, false, refNode);
 }
 
 arDatabaseNode* arDatabase::findNodeRef(const string& name) {
@@ -210,9 +206,8 @@ list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
   if (!_check(node))
     return l;
 
-  // NOTE: We CANNOT call arDatabaseNode::getChildrenRef here, since that
-  // will simply lead to another call to arDatabase::getChildrenRef (an
-  // infinite recursion).
+  // Don't call arDatabaseNode::getChildrenRef, since that causes
+  // another call to arDatabase::getChildrenRef (an infinite recursion).
   l = node->getChildren();
   ar_refNodeList(l);
   return l;
@@ -226,18 +221,17 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
     ar_log_warning() << "arDatabaseNode::newNode got non-owned parent.\n";
     return NULL;
   }
-  int parentID = parent->getID();
+  const int parentID = parent->getID();
   arStructuredData* data = _dataParser->getStorage(_lang->AR_MAKE_NODE);
   data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
   int temp = -1;
-  // We are requesting an ID be assigned.
+  // Request an ID.
   data->dataIn(_lang->AR_MAKE_NODE_ID, &temp, AR_INT, 1);
   const string nodeName = name!="" ? name : _getDefaultName();
   data->dataInString(_lang->AR_MAKE_NODE_NAME, nodeName);
   data->dataInString(_lang->AR_MAKE_NODE_TYPE, type);
-  // alter() returns the new node.
-  // In subclasses, alter() is atomic. If refNode is
-  // true, then the node pointer returned will have an extra reference added.
+  // alter() returns the new node.  In subclasses, alter() is atomic.
+  // If refNode is true, then "result" gets an extra reference.
   arDatabaseNode* result = alter(data, refNode);
   _dataParser->recycle(data);
   return result;
@@ -280,9 +274,9 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   data->dataIn(_lang->AR_INSERT_ID, &temp, AR_INT, 1);
   data->dataInString(_lang->AR_INSERT_NAME, nodeName);
   data->dataInString(_lang->AR_INSERT_TYPE, type);
-  // Subclasses may guarantee that alter(...) occurs atomically. Consequently,
-  // this call is thread-safe. If refNode is true, then the node pointer will
-  // be returned with an extra reference.
+  // Subclasses may guarantee that alter() occurs atomically. Consequently,
+  // this call is thread-safe.
+  // If refNode is true, then "result" gets an extra reference.
   arDatabaseNode* result = alter(data, refNode);
   _dataParser->recycle(data); // Avoid memory leak.
   return result;
@@ -304,8 +298,7 @@ bool arDatabase::cutNode(arDatabaseNode* node){
 }
 
 bool arDatabase::cutNode(int ID){
-  // There is no need to check (here) whether or not there is a node in the
-  // arDatabase with this ID. This will occur inside the alter(...).
+  // alter() checks if the arDatabase already has a node with this ID.
   arStructuredData* data = _dataParser->getStorage(_lang->AR_CUT);
   data->dataIn(_lang->AR_CUT_ID, &ID, AR_INT, 1);
   arDatabaseNode* result = alter(data);
@@ -497,8 +490,7 @@ bool arDatabase::readDatabase(const string& fileName,
     const int result = fread(buffer+AR_INT_SIZE,1,
                              recordSize-AR_INT_SIZE,sourceFile);
     if (result < recordSize - AR_INT_SIZE){
-      cerr << "arDatabase error: failed reading record: got only " 
-           << result+AR_INT_SIZE
+      cerr << "arDatabase error: record read only " << result+AR_INT_SIZE
 	   << " of " << recordSize << " expected bytes.\n";
       break;
     }
@@ -515,8 +507,7 @@ bool arDatabase::readDatabaseXML(const string& fileName,
 
   FILE* sourceFile = ar_fileOpen(fileName,path,"r");
   if (!sourceFile){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
+    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
 
@@ -545,8 +536,7 @@ bool arDatabase::attach(arDatabaseNode* parent,
 			const string& path){
   FILE* source = ar_fileOpen(fileName, path, "rb");
   if (!source){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
+    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
   arStructuredDataParser* parser 
@@ -556,7 +546,7 @@ bool arDatabase::attach(arDatabaseNode* parent,
     arStructuredData* record = parser->parseBinary(source);
     if (!record)
       break;
-    // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specified).
+    // Ignore AR_IGNORE_NODE (no outFilter specified).
     const int success = filterIncoming(parent, record, nodeMap, NULL, 
 				       NULL, AR_IGNORE_NODE, true);
     arDatabaseNode* altered = NULL;
@@ -570,13 +560,11 @@ bool arDatabase::attach(arDatabaseNode* parent,
     }
     parser->recycle(record);
     if (success && !altered){
-      // There was an unrecoverable error. filterIncoming already
-      // complained so do not do so here.
+      // Unrecoverable error. filterIncoming complained.
       break;
     }
   }
   delete parser;
-  // best to close this way...
   fclose(source);
   return true;
 }
@@ -591,8 +579,7 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
 			   const string& path){
   FILE* source = ar_fileOpen(fileName, path, "r");
   if (!source){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
+    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
   arStructuredDataParser* parser 
@@ -619,8 +606,7 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
       }
       parser->recycle(record);
       if (success && !altered){
-        // There was an unrecoverable error. filterIncoming already
-	// complained so do not do so here.
+	// Unrecoverable error.  filterIncoming complained.
         break;
       }
     }
@@ -629,7 +615,6 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
     }
   }
   delete parser;
-  // best to close this way...
   fileStream.ar_close();
   return true;
 }
@@ -670,8 +655,7 @@ bool arDatabase::merge(arDatabaseNode* parent,
       }
       parser->recycle(record);
       if (success && !altered){
-        // There was an unrecoverable error. filterIncoming already
-	// complained so do not do so here.
+	// Unrecoverable error.  filterIncoming complained.
         break;
       }
     }
@@ -680,7 +664,6 @@ bool arDatabase::merge(arDatabaseNode* parent,
     }
   }
   delete parser;
-  // best to close this way...
   fclose(source);
   return true;
 }
@@ -742,7 +725,7 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
   return true;
 }
 
-// Writes the database to a file using a binary format.
+// Writes the database to a binary-format file.
 bool arDatabase::writeDatabase(const string& fileName,
                                const string& path){
   FILE* destFile = ar_fileOpen(fileName, path, "wb");
@@ -813,8 +796,7 @@ bool arDatabase::writeRootedXML(arDatabaseNode* parent,
   return true;
 }
 
-// NOTE: Similar to the algorithm found in filterIncoming.
-// NOTE: NOT THREAD-SAFE.
+// Similar to the algorithm found in filterIncoming.  Not thread-safe.
 bool arDatabase::createNodeMap(int externalNodeID, 
                                arDatabase* externalDatabase,
                                map<int, int, less<int> >& nodeMap){
@@ -824,7 +806,7 @@ bool arDatabase::createNodeMap(int externalNodeID,
   return !failure;
 }
 
-// NOTE: this code is, essentially, also found in filterIncoming!
+// Same as filterIncoming.
 bool arDatabase::filterData(arStructuredData* record, 
 			    map<int, int, less<int> >& nodeMap){
   int nodeID = record->getDataInt(_routingField[record->getID()]);
@@ -838,7 +820,7 @@ bool arDatabase::filterData(arStructuredData* record,
   return true;
 }
 
-// Helper function for filtering incoming messages (needed for mapping
+// Helper to filter incoming messages (needed for mapping
 // one database to another as in attachXML and mapXML). The record is
 // changed in place, as is the nodeMap. allNew should be set to true
 // if every node should be a new one. And set to false if we will 
@@ -861,7 +843,7 @@ bool arDatabase::filterData(arStructuredData* record,
 //  * -1: the record was successfully mapped. If any augmentation to the
 //    node map occured, it was internally to this function. No new node
 //    needs to be created and the caller should use the record.
-//  * 0: the record failed to be successfully mapped. It should be discarded.
+//  * 0: the record failed to be mapped. Discard it.
 //  * > 0: the record is "half-mapped". The result of the external *alter*
 //         message to the database will finish the other "half" (it produces
 //         the ID of the new node).
@@ -891,65 +873,47 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
   if (_databaseReceive[record->getID()]){
     // This is a message to the database.
     if (record->getID() == _lang->AR_MAKE_NODE){
-      // Just pass down the chain. Without breaking filterIncoming up like 
-      // this, it becomes illegibly long.
       return _filterIncomingMakeNode(mappingRoot, record, nodeMap, mappedIDs,
 				     outFilter, outFilterLevel, allNew);
     }
-    else if (record->getID() == _lang->AR_INSERT){
+    if (record->getID() == _lang->AR_INSERT){
       return _filterIncomingInsert(mappingRoot, record, nodeMap, mappedIDs);
     }
-    else if (record->getID() == _lang->AR_ERASE){
+    if (record->getID() == _lang->AR_ERASE){
       return _filterIncomingErase(mappingRoot, record, nodeMap);
     }
-    else if (record->getID() == _lang->AR_CUT){
+    if (record->getID() == _lang->AR_CUT){
       return _filterIncomingCut(record, nodeMap);
     }
-    else if (record->getID() == _lang->AR_PERMUTE){
+    if (record->getID() == _lang->AR_PERMUTE){
       return _filterIncomingPermute(record, nodeMap);
     }
-    else{
-      // This is an error. We've received a funny message ID.
-      cout << "arDatabase error: illegal message ID in filterIncoming.\n";
-      // The message should be discarded.
-      return 0;
-    }
+    ar_log_warning() << "arDatabase filterIncoming ignoring illegal message ID.\n";
+    return 0;
   }
-  else{
-    // For all other messages, we simply re-map the ID.
-    int nodeID = record->getDataInt(_routingField[record->getID()]);
-    map<int, int, less<int> >::iterator i = nodeMap.find(nodeID);
-    if (i == nodeMap.end()){
-      // DO NOT PRINT ANYTHING HERE! THIS CAN RESULT IN HUGE AMOUNTS OF
-      // PRINTING UPON USER ERROR!
-      // Returning false means "discard".
-      return 0;
-    }
-    nodeID = i->second;
-    // NOTE: do not use dataIn here. That sets the field data dimension,
-    // which we should NOT do since a "history" can get stored in the
-    // messages routing field (i.e. which peers have been visited in the
-    // case of arGraphicsPeer).
-    int* IDptr = (int*)record->getDataPtr(_routingField[record->getID()],
-					  AR_INT);
-    // This field is guaranteed to have at least dimension 1.
-    IDptr[0] = nodeID;
-    // Returning true means "use". The -1 means that there is an
-    // incomplete mapping.
-    if (nodeID){
-      return -1;
-    }
-    else{
-      // If we've mapped to the root node, this is definitely a problem.
-      // Discard the message. (otherwise there will be a segfault)
-      return 0;
-    }
+
+  // For all other messages, just re-map the ID.
+  int nodeID = record->getDataInt(_routingField[record->getID()]);
+  map<int, int, less<int> >::iterator i = nodeMap.find(nodeID);
+  if (i == nodeMap.end()){
+    return 0;
   }
+
+  nodeID = i->second;
+  // Do not use dataIn. That sets the field data dimension,
+  // which we should NOT do since a "history" can get stored in the
+  // messages routing field (i.e. which arGraphicsPeer peers have been visited).
+  // This field is guaranteed to have at least dimension 1.
+  *(int*)record->getDataPtr(_routingField[record->getID()], AR_INT) = nodeID;
+  // Returning true means "use". The -1 means that there is an
+  // incomplete mapping.
+  return nodeID ? -1 : 0;
+  // 0: discard message when mapped to the root node, lest we segfault.
 }
 
 bool arDatabase::empty(){
   arGuard dummy(_l);
-  return _rootNode.hasChildren();
+  return _rootNode.empty();
 }
 
 void arDatabase::reset(){
@@ -995,8 +959,7 @@ bool arDatabase::_initDatabaseLanguage(){
   
   // Create the parsing helpers. NOTE: THIS WILL GO AWAY ONCE THE
   // arStructuredDataParser is integrated!
-  for (arTemplateType::const_iterator iter = d->begin();
-       iter != d->end(); ++iter){
+  for (arTemplateType::const_iterator iter = d->begin(); iter != d->end(); ++iter){
     const int ID = iter->second->getID();
     _parsingData[ID] = new arStructuredData(iter->second);
     _routingField[ID] = iter->second->getAttributeID("ID");
@@ -1108,7 +1071,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
 // Inserts a new node between existing nodes (parent and child).
 arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
 
-  // NOTE: data is guaranteed to be the right type because alter(...)
+  // data is guaranteed to be the right type because alter()
   // sends messages to handlers (like this one) based on type information.
   int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
   int childID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
@@ -1130,11 +1093,9 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
     return NULL;
   }
 
-  // If the child is specified, check that the child is, indeed, a child 
-  // of the parent.
+  // Check that a specified child is the parent's child.
   if (childNode && (childNode->getParent() != parentNode)){
-    cout << "arDatabase error: insert database node failed. Not child of "
-	 << "parent.\n";
+    cout << "arDatabase error: insert database node failed. Not parent's child.\n";
     return NULL;
   }
 
@@ -1155,20 +1116,19 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // We only need to change the tree structure if a child node was specified
   // and the node creation was a success.
   if (childNode && result){
-    // Take the child node, break it off from its parent, and add it is a child
+    // Break the child node off from its parent, and make it a child
     // of the new node. Each of these calls will definitely succeed by
     // our construction, so no point in checking return values.
     parentNode->_removeChild(childNode);
-    if (!result->_addChild(childNode)){
-      cout << "arDatabase error: could not switch child's parent in insert.\n"
-	   << "  This is a library error.\n";
+    if (!result->_addChild(childNode)) {
+      cout << "arDatabase internal error: insertion failed to switch child's parent.\n";
     }
   }
   // NOTE: We need to fill in the ID so that it can be passed to connected
   // databases (as in the operation of subclasses arGraphicsServer or 
   // arGraphicsPeer).
   if (result){
-    int theID = result->getID();
+    const int theID = result->getID();
     data->dataIn(_lang->AR_INSERT_ID, &theID, AR_INT, 1);
   }
   return result;
@@ -1250,15 +1210,13 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
 	 << typeString << ".\n";
     return NULL;
   }
-  // Use protected _setName() not public setName(), which sends a message.
+  // Don't use public setName(), which sends a message.
   node->_setName(nodeName);
 
-  // Add to children of parent.
+  // Give parent some children.
   if (moveChildren){
-    // Attach parent's previous children to the new node.
     node->_stealChildren(parentNode);
   }
-  // Either way, make the new node a child of the parent.
   parentNode->_addChild(node);
 
   if (nodeID == -1){
@@ -1275,7 +1233,6 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   // Enter the database's registry.
   _nodeIDContainer.insert(
       map<int,arDatabaseNode*,less<int> >::value_type(node->getID(), node));
-  // Do not forget to intialize.
   node->initialize(this);
   return node;
 }
@@ -1286,10 +1243,9 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   // but hides the guts of the arDatabaseNode.
 
   // Don't use getChildrenRef, since this function is called while
-  // already _lock()'d (when thread-safety is desired, as in
-  // arGraphicsPeer and arGraphicsServer).
-  list<arDatabaseNode*> childList = node->getChildren();
-  for (list<arDatabaseNode*>::iterator i = childList.begin();
+  // already _lock()'d (from arGraphicsPeer and arGraphicsServer).
+  const list<arDatabaseNode*> childList = node->getChildren();
+  for (list<arDatabaseNode*>::const_iterator i = childList.begin();
        i != childList.end(); i++){
     // Recurse.
     _eraseNode(*i);
@@ -1408,8 +1364,7 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 							 externalNodeID));
     match = externalDatabase->getNode(externalNodeID);
     if (!match){
-      cout << "arDatabase error: could not map top level node in the "
-	   << "creation of node map.\n";
+      cout << "arDatabase error: could not map top level node in the creation of node map.\n";
       failure = true;
       return;
     }
@@ -1417,8 +1372,7 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
   else{
     arDatabaseNode* node = externalDatabase->getNode(externalNodeID);
     if (!node){
-      cout << "arDatabase error: could not find specified node in the "
-	   << "creation of node map.\n";
+      cout << "arDatabase error: could not find specified node in the creation of node map.\n";
       failure = true;
       return;
     }
@@ -1430,21 +1384,18 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 							   match->getID()));
     }
     else{
-      cout << "arDatabase error: could not find suitable match in the "
-	   << "creation of node map.\n";
+      cout << "arDatabase error: could not find suitable match in the creation of node map.\n";
       failure = true;
       return;
     }
   }
-  // If we're here, we succeeded in adding a mapping. Now, recurse through the
-  // children
-  list<arDatabaseNode*> children = localNode->getChildren();
-  for (list<arDatabaseNode*>::iterator i = children.begin();
+
+  // Mapping has been added.  Recurse through the children.
+  const list<arDatabaseNode*> children = localNode->getChildren();
+  for (list<arDatabaseNode*>::const_iterator i = children.begin();
        i != children.end(); i++){
-    if (!failure){
-      _createNodeMap(*i, match->getID(), externalDatabase, nodeMap, failure);
-    }
-    else{
+    _createNodeMap(*i, match->getID(), externalDatabase, nodeMap, failure);
+    if (failure){
       return;
     }
   } 
@@ -1455,8 +1406,7 @@ void arDatabase::_insertOutFilter(map<int,int,less<int> >& outFilter,
 				  arNodeLevel outFilterLevel){
   map<int,int,less<int> >::iterator i = outFilter.find(nodeID);
   if (i == outFilter.end()){
-    outFilter.insert(map<int,int,less<int> >::value_type(nodeID,
-							 outFilterLevel));
+    outFilter.insert(map<int,int,less<int> >::value_type(nodeID, outFilterLevel));
   }
   else{
     i->second = outFilterLevel;
@@ -1482,12 +1432,7 @@ arDatabaseNode* arDatabase::_mapNodeBelow(arDatabaseNode* parent,
   else{
     parent->_findNode(target, nodeName, success, &nodeMap, false);
   }
-  if (success){
-    return target;
-  }
-  else{
-    return NULL;
-  }
+  return success ? target : NULL;
 }
 
 // Alter a "make node" message, according to our mapping algorithm.
@@ -1522,6 +1467,7 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   if (!currentParent){
     return 0;
   }
+
   // Alter the message in place.
   newParentID = currentParent->getID();
   // Do not use dataIn, which would resize the field and mangle the
@@ -1536,13 +1482,13 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     // Map to this node.
     nodeMap.insert(map<int, int, less<int> >::value_type
 	           (originalNodeID, target->getID()));
-    // Need to record any node mappings we made.
+    // Record any node mappings we made.
     if (mappedIDs){
       mappedIDs[0] = originalNodeID;
       mappedIDs[1] = target->getID();
     }
-    // If an "outFilter" has been supplied, update its mapping.
     if (outFilter){
+      // Update outFilter's mapping.
       _insertOutFilter(*outFilter, target->getID(), outFilterLevel);
     }     
 
@@ -1560,21 +1506,19 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     // augmented). The message should be discarded.
     return 0;
   }
-  else{
-    // We could not find a suitable node for mapping OR we all inserting all
-    // new nodes (if allNew is true).
-    newNodeID = -1;
-    // Setting the parameter like so (-1) indicates that we will be
-    // requesting a new node. Do not use dataIn here because it can wipe out
-    // routing information used by arGraphicsPeer.
-    IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
-    IDptr[0] = newNodeID;
-    if (mappedIDs){
-      mappedIDs[0] = originalNodeID;
-    }
-    // Returning true means "do not discard".
-    return originalNodeID;
+
+  // Found no suitable node for mapping, OR inserting all new nodes (if allNew is true).
+  newNodeID = -1;
+  // Setting the parameter like so (-1) indicates that we will be
+  // requesting a new node. Do not use dataIn here because it can wipe out
+  // routing information used by arGraphicsPeer.
+  IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
+  IDptr[0] = newNodeID;
+  if (mappedIDs){
+    mappedIDs[0] = originalNodeID;
   }
+  // Returning true means "do not discard".
+  return originalNodeID;
 }
 
 // The insert is mapped exactly when both the parent and the child are already
@@ -1588,13 +1532,15 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
                                       arStructuredData* data,
 				      map<int,int,less<int> >& nodeMap,
                                       int* mappedIDs){
-  // If we get here, filterIncoming called us (so we know we're of the proper
-  // type).
-  // NOTE: child ID can legitimately be -1. This occurs when we are inserting
+  // filterIncoming called us (so we know we're of the proper type).
+
+  const int childID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
+  // childID can be -1, e.g. if inserting
   // a new node between the specified parent and all of its current children.
-  int childID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
-  int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
+  //
+  const int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
   map<int,int,less<int> >::iterator i = nodeMap.find(parentID);
+
   // See _filterIncomingMakeNode to understand that the mapping root node is
   // not actually mapped (because it is allowed to be of a different type
   // than its counterpart on the other side). Consequently, we initially assume
@@ -1635,9 +1581,8 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   // The node ID will NOT be -1 on any code pathway that calls
   // filterIncoming; that's true only for locally produced messages.
   const int originalNodeID = data->getDataInt(_lang->AR_INSERT_ID);
-  int newNodeID = -1;
   // Do not use dataIn, because it resizes the field to 1.
-  *(int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT) = newNodeID;
+  *(int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT) = -1;
   if (mappedIDs)
     *mappedIDs = originalNodeID;
   return originalNodeID;
@@ -1667,11 +1612,9 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
     return 0;
   }
 
-  int newNodeID = node->getID();
-  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+  // Do not use dataIn. It would set the field dimension to 1 and
   // wipe out any routing info that an arGraphicsPeer might have stored.
-  int* IDptr = (int*)data->getDataPtr(_lang->AR_ERASE_ID, AR_INT);
-  IDptr[0] = newNodeID;
+  *(int*)data->getDataPtr(_lang->AR_ERASE_ID, AR_INT) = node->getID();
   // Use the message.
   return -1;
 }
@@ -1681,26 +1624,23 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
 // -1: Use (mapped) message.
 int arDatabase::_filterIncomingCut(arStructuredData* data,
 				   map<int,int,less<int> >& nodeMap){
-  // If we get here, filterIncoming called us (so we know we're of the proper
-  // type).
-  int nodeID = data->getDataInt(_lang->AR_CUT_ID);
-  map<int,int,less<int> >::iterator i = nodeMap.find(nodeID);
+  // filterIncoming called us (so we know we're of the proper type).
+  const int nodeID = data->getDataInt(_lang->AR_CUT_ID);
+  map<int,int,less<int> >::const_iterator i = nodeMap.find(nodeID);
   if (i == nodeMap.end()){
-    // The node is unmapped. Discard this message.
+    // Node is unmapped.
     return 0;
   }
-  // Check to see that the entry in the node map is not "stale".
+
   arDatabaseNode* node = _getNodeNoLock(i->second);
   if (!node){
-    // Node map entry is "stale". Discard this message.
+    // Entry in node map is stale.
     return 0;
   }
-  int newNodeID = node->getID();
-  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+
+  // Do not use dataIn. It would set the field dimension to 1 and
   // wipe out any routing info that an arGraphicsPeer might have stored.
-  int* IDptr = (int*)data->getDataPtr(_lang->AR_CUT_ID, AR_INT);
-  IDptr[0] = newNodeID;
-  // Use this message.
+  *(int*)data->getDataPtr(_lang->AR_CUT_ID, AR_INT) = node->getID();
   return -1;
 }
 
@@ -1709,32 +1649,33 @@ int arDatabase::_filterIncomingCut(arStructuredData* data,
 // -1: Use (mapped) message
 int arDatabase::_filterIncomingPermute(arStructuredData* data,
 				       map<int,int,less<int> >& nodeMap){
-  // If we get here, filterIncoming called us (so we know we're of the
-  // proper type).
+  // filterIncoming called us (so we know we're of the proper type).
   int parentID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
   map<int,int,less<int> >::iterator i = nodeMap.find(parentID);
   if ( i == nodeMap.end() ){
-    // The parent node of the permute is unmapped. Discard this message.
+    // Parent node of the permute is unmapped.
     return 0;
   }
+
   // Check to see that the entry in the node map is not "stale".
   arDatabaseNode* parentNode = _getNodeNoLock(i->second);
   if (!parentNode){
-    // Node map entry is "stale". Discard this message.
+    // Node map entry is stale.
     return 0;
   }
-  int newParentID = parentNode->getID();
-  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+
+  // Do not use dataIn. It would set the field dimension to 1 and
   // wipe out any routing info that an arGraphicsPeer might have stored.
-  int* IDptr = (int*)data->getDataPtr(_lang->AR_PERMUTE_PARENT_ID, AR_INT);
-  IDptr[0] = newParentID;
+  *(int*)data->getDataPtr(_lang->AR_PERMUTE_PARENT_ID, AR_INT) = parentNode->getID();
+
   // Check the child IDs for mapping. We drop any IDs that are unmapped
   // and permute the rest.
-  int numberToPermute = data->getDataDimension(_lang->AR_PERMUTE_CHILD_IDS);
+  const int numberToPermute = data->getDataDimension(_lang->AR_PERMUTE_CHILD_IDS);
   if (numberToPermute < 1){
-    // Nothing to do. Discard this message.
+    // Nothing to do.
     return 0;
   }
+
   int* mappedChildIDs = new int[numberToPermute];
   int* childIDs = (int*)data->getDataPtr(_lang->AR_PERMUTE_CHILD_IDS, AR_INT);
   int whichMappedID = 0;
@@ -1742,26 +1683,24 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     // Check the specific child ID.
     i = nodeMap.find(childIDs[j]);
     if (i != nodeMap.end()){
-      // Check to see that the entry in the node map is not stale.
+      // Check that the entry in the node map is not stale.
       arDatabaseNode* childNode = _getNodeNoLock(i->second);
       if (childNode){
-	// Yes, we can map now.
-	mappedChildIDs[whichMappedID] = childNode->getID();
-	whichMappedID++;
+	// We can map.
+	mappedChildIDs[whichMappedID++] = childNode->getID();
       }
     }
   }
-  // It is OK to use dataIn here since we will NOT route based on "extra"
+  // dataIn is OK here, since we will NOT route based on "extra"
   // information encoded in this field.
-  data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, mappedChildIDs, AR_INT, 
-               whichMappedID);
+  data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, mappedChildIDs, AR_INT, whichMappedID);
   delete [] mappedChildIDs;
   return -1;
 }
 
-// Construct the nodes that are unqiue to the arDatabase
+// Construct the nodes that are unique to the arDatabase
 // (as opposed to subclasses).
 arDatabaseNode* arDatabase::_makeNode(const string& type){
-  // Subclassed versions will print warnings, not this one.
+  // Only subclassed versions will print warnings.
   return (type == "name") ? new arNameNode() : NULL;
 }
