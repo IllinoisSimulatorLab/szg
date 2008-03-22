@@ -181,7 +181,7 @@ class SZG_CALL arTorusMesh : public arMesh {
   float* _surfaceNormals;
   float* _textureCoordinates; 
 
-  inline int _modAdd(int,int,int);
+  inline int _modAdd(const int, const int);
   void _reset(int,int,float,float);
   void _destroy();
 };

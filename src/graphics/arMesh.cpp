@@ -14,7 +14,7 @@ const int texcoordsPerTri = 3;
 
 ///// Helper functions used by each of the meshes ////////////////////
 
-void ar_adjustPoints(const arMatrix4& m, int number, float* data){
+void ar_adjustPoints(const arMatrix4& m, const int number, float* data){
   for (int i=0; i<number; i++){
     (m * arVector3(data+i*3)).get(data+i*3);
   }
@@ -28,11 +28,11 @@ void ar_adjustNormals(const arMatrix4& m, int number, float* data){
 }
 
 bool ar_attachMesh(arGraphicsNode* parent, const string& name,
-                   int numberPoints, float* pointPositions,
-                   int numberVertices, int* triangleVertices,
-		   int numberNormals, float* normals,
-		   int numberTexCoord, float* texCoords,
-		   arDrawableType drawableType, int numberPrimitives){
+                   const int numberPoints, float* pointPositions,
+                   const int numberVertices, int* triangleVertices,
+		   const int numberNormals, float* normals,
+		   const int numberTexCoord, float* texCoords,
+		   const arDrawableType drawableType, const int numberPrimitives){
   bool success = false;
   arPointsNode* points = NULL;
   arIndexNode* index = NULL;
@@ -82,11 +82,7 @@ LDone:
 bool arMesh::attachMesh(const string& name,
 			const string& parentName){
   arGraphicsNode* g = dgGetNode(parentName);
-  if (!g)
-    return false;
-
-  attachMesh(g, name);
-  return true;
+  return g && attachMesh(g, name);
 }
 
 /////////  CUBE  /////////////////////////////////////////////////////
@@ -200,25 +196,25 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   float* texCoords = new float[2*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
+  // Precompute table of sin and cos
+  float* cn = new float[2*_numberDivisions];
+  float* sn = new float[2*_numberDivisions];
   int i = 0;
-  // fill in the common triangles first
+  for (i=0; i<2*_numberDivisions; i++){
+    cn[i] = cos( (2*M_PI * i) / _numberDivisions);
+    sn[i] = sin( (2*M_PI * i) / _numberDivisions);
+  }
+
+  // fill in the common triangles
   // populate the points array
   arVector3 location;
   for (i=0; i<2*_numberDivisions; i++){
     pointIDs[i] = i;
     if (i<_numberDivisions){
-      // bottom
-      location.set
-        (_bottomRadius*cos( (6.283*i)/_numberDivisions ),
-         _bottomRadius*sin( (6.283*i)/_numberDivisions ),
-         -0.5);
+      location.set(_bottomRadius*cn[i], _bottomRadius*sn[i], -0.5);
     }
     else{
-      // top
-      location.set
-	(_topRadius*cos( (6.283*i)/_numberDivisions ),
-	 pointPositions[3*i+1] = _topRadius*sin( (6.283*i)/_numberDivisions),
-         0.5);
+      location.set(_topRadius*cn[i], pointPositions[3*i+1] = _topRadius*sn[i], 0.5);
     }
     //location = _matrix*location;
     location.get(pointPositions+3*i);
@@ -236,25 +232,13 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     triangleVertices[6*i+4] = j;
     triangleVertices[6*i+5] = j+_numberDivisions;
 
-    arVector3 n = arVector3(cos((6.283*i)/_numberDivisions),
-                            sin((6.283*i)/_numberDivisions), 0);
-    memcpy(normals+18*i, n.v, 3*sizeof(float));
-    n = arVector3(cos((6.283*i)/_numberDivisions),
-                  sin((6.283*i)/_numberDivisions), 0);
-    memcpy(normals+18*i+3, n.v, 3*sizeof(float));
-    n = arVector3(cos((6.283*j)/_numberDivisions),
-                  sin((6.283*j)/_numberDivisions), 0);
-    memcpy(normals+18*i+6, n.v, 3*sizeof(float));
-
-    n = arVector3(cos((6.283*i)/_numberDivisions),
-                  sin((6.283*i)/_numberDivisions), 0);
-    memcpy(normals+18*i+9, n.v, 3*sizeof(float));
-    n = arVector3(cos((6.283*j)/_numberDivisions),
-                  sin((6.283*j)/_numberDivisions), 0);
-    memcpy(normals+18*i+12, n.v, 3*sizeof(float));
-    n = arVector3(cos((6.283*j)/_numberDivisions),
-                  sin((6.283*j)/_numberDivisions), 0);
-    memcpy(normals+18*i+15, n.v, 3*sizeof(float));
+    // note i vs j!
+    arVector3(cn[i], sn[i], 0).get(normals+18*i);
+    arVector3(cn[i], sn[i], 0).get(normals+18*i+3);
+    arVector3(cn[j], sn[j], 0).get(normals+18*i+6);
+    arVector3(cn[i], sn[i], 0).get(normals+18*i+9);
+    arVector3(cn[j], sn[j], 0).get(normals+18*i+12);
+    arVector3(cn[j], sn[j], 0).get(normals+18*i+15);
 
     texCoords[12*i  ] = float(i)/_numberDivisions;
     texCoords[12*i+1] = 0.;
@@ -310,38 +294,42 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
       normals[9*bottomTriangle+7] = 0;
       normals[9*bottomTriangle+8] = -1;
 
-      texCoords[6*topTriangle  ] = 0.5+0.5*cos((6.283*i)/_numberDivisions);
-      texCoords[6*topTriangle+1] = 0.5+0.5*sin((6.283*i)/_numberDivisions);
-      texCoords[6*topTriangle+2] = 0.5+0.5*cos((6.283*(i+1))/_numberDivisions);
+      texCoords[6*topTriangle  ] = 0.5+0.5*cn[i];
+      texCoords[6*topTriangle+1] = 0.5+0.5*sn[i];
+      texCoords[6*topTriangle+2] = 0.5+0.5*cn[i+1];
       texCoords[6*topTriangle+3] = 0.5+0.5*sin((6.283*(i+1))/_numberDivisions);
       texCoords[6*topTriangle+4] = 0.5;
       texCoords[6*topTriangle+5] = 0.5;
 
-      texCoords[6*bottomTriangle  ] = 0.5+0.5*cos((6.283*i)/_numberDivisions);
-      texCoords[6*bottomTriangle+1] = 0.5+0.5*sin((6.283*i)/_numberDivisions);
+      texCoords[6*bottomTriangle  ] = 0.5+0.5*cn[i];
+      texCoords[6*bottomTriangle+1] = 0.5+0.5*sn[i];
       texCoords[6*bottomTriangle+2] = 0.5;
       texCoords[6*bottomTriangle+3] = 0.5;
-      texCoords[6*bottomTriangle+4] = 0.5+0.5*cos((6.283*(i+1))/_numberDivisions);
-      texCoords[6*bottomTriangle+5] = 0.5+0.5*sin((6.283*(i+1))/_numberDivisions);
+      texCoords[6*bottomTriangle+4] = 0.5+0.5*cn[i+1];
+      texCoords[6*bottomTriangle+5] = 0.5+0.5*sn[i+1];
       
     }
   }
+
+  delete [] cn;
+  delete [] sn;
 
   // Apply matrix to generated points and normals.
   ar_adjustPoints(_matrix, numberPoints, pointPositions);
   ar_adjustNormals(_matrix, numberTriangles*normalsPerTri, normals);
 
-  return ar_attachMesh(parent, name,
-                       numberPoints, pointPositions,
-                       numberTriangles*indicesPerTri, triangleVertices,
-		       numberTriangles*normalsPerTri, normals,
-		       numberTriangles*texcoordsPerTri, texCoords,
-		       DG_TRIANGLES, numberTriangles);
+  const bool ok = ar_attachMesh(parent, name,
+    numberPoints, pointPositions,
+    numberTriangles*indicesPerTri, triangleVertices,
+    numberTriangles*normalsPerTri, normals,
+    numberTriangles*texcoordsPerTri, texCoords,
+    DG_TRIANGLES, numberTriangles);
 
   delete [] pointPositions;
   delete [] triangleVertices;
   delete [] texCoords;
   delete [] normals;
+  return ok;
 }
 
 /////////  PYRAMID  /////////////////////////////////////////////////////
@@ -427,6 +415,8 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
   int* triangleVertices = new int[3*numberTriangles];
   float* texCoords = new float[3*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
+
+  // todo: use arCylinderMesh's cn[] and sn[] precomputed arrays, here and in many arXXXMeshes.
 
   // populate the points array
   int i=0, j=0;
@@ -575,19 +565,13 @@ void arTorusMesh::reset(int numberBigAroundQuads,
   _reset(numberBigAroundQuads,numberSmallAroundQuads,bigRadius,smallRadius);
 }
 
-inline int arTorusMesh::_modAdd(int base, int x, int y){
-  if (x+y<0)
-    return x+y+base;
-  if (x+y>=base)
-    return x+y-base;
-  return x+y;
+inline int arTorusMesh::_modAdd(const int base, const int x){
+  return (x < 0) ? x+base : (x >= base) ? x-base : x;
 }
 
 bool arTorusMesh::attachMesh(arGraphicsNode* parent, const string& name){
-
   ar_adjustPoints(_matrix, _numberPoints, _pointPositions);
   ar_adjustNormals(_matrix, _numberTriangles*normalsPerTri, _surfaceNormals);
-
   return ar_attachMesh(parent, name,
                        _numberPoints, _pointPositions,
                        _numberTriangles*indicesPerTri, _triangleVertices,
@@ -628,17 +612,17 @@ void arTorusMesh::_reset(int numberBigAroundQuads, int numberSmallAroundQuads,
       _pointPositions[3*whichPoint+2] = smallRadius*sin(phi);
 
       _triangleVertices[6*whichPoint  ] = i*numberSmallAroundQuads+j;
-      _triangleVertices[6*whichPoint+1] = _modAdd(numberBigAroundQuads,i,1)
+      _triangleVertices[6*whichPoint+1] = _modAdd(numberBigAroundQuads,i+1)
                                    *numberSmallAroundQuads+j;
       _triangleVertices[6*whichPoint+2] = i*numberSmallAroundQuads
-                                   +_modAdd(numberSmallAroundQuads,j,1);
-      _triangleVertices[6*whichPoint+3] = _modAdd(numberBigAroundQuads,i,1)
+                                   +_modAdd(numberSmallAroundQuads,j+1);
+      _triangleVertices[6*whichPoint+3] = _modAdd(numberBigAroundQuads,i+1)
                                    *numberSmallAroundQuads+j;
-      _triangleVertices[6*whichPoint+4] = _modAdd(numberBigAroundQuads,i,1)
+      _triangleVertices[6*whichPoint+4] = _modAdd(numberBigAroundQuads,i+1)
                                    *numberSmallAroundQuads
-                                   +_modAdd(numberSmallAroundQuads,j,1);
+                                   +_modAdd(numberSmallAroundQuads,j+1);
       _triangleVertices[6*whichPoint+5]=i*numberSmallAroundQuads
-                                        +_modAdd(numberSmallAroundQuads,j,1);
+                                        +_modAdd(numberSmallAroundQuads,j+1);
 
       // each triangle vertex has a defined normal
       _surfaceNormals[18*whichPoint]
@@ -650,54 +634,54 @@ void arTorusMesh::_reset(int numberBigAroundQuads, int numberSmallAroundQuads,
       _surfaceNormals[18*whichPoint+2]
 	= sin((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+3]
-	= cos((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
+	= cos((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
 	*cos((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+4]
-        = sin((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
+        = sin((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
 	*cos((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+5]
 	= sin((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+6]
 	= cos((6.283*i)/numberBigAroundQuads)
-        * cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+        * cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
               /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+7]
         = sin((6.283*i)/numberBigAroundQuads)
-	*cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	*cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
              /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+8]
-	= sin((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	= sin((6.283*_modAdd(numberSmallAroundQuads,j+1))
               /numberSmallAroundQuads);
 
       _surfaceNormals[18*whichPoint+9]
-        = cos((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
+        = cos((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
 	*cos((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+10]
-	= sin((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
+	= sin((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
 	*cos((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+11]
 	= sin((6.283*j)/numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+12]
-	= cos((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
-	*cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	= cos((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
+	*cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
              /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+13]
-        = sin((6.283*_modAdd(numberBigAroundQuads,i,1))/numberBigAroundQuads)
-	*cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+        = sin((6.283*_modAdd(numberBigAroundQuads,i+1))/numberBigAroundQuads)
+	*cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
              /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+14]
-	= sin((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	= sin((6.283*_modAdd(numberSmallAroundQuads,j+1))
               /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+15]
 	= cos((6.283*i)/numberBigAroundQuads)
-        * cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+        * cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
               /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+16]
         = sin((6.283*i)/numberBigAroundQuads)
-	*cos((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	*cos((6.283*_modAdd(numberSmallAroundQuads,j+1))
              /numberSmallAroundQuads);
       _surfaceNormals[18*whichPoint+17]
-	= sin((6.283*_modAdd(numberSmallAroundQuads,j,1))
+	= sin((6.283*_modAdd(numberSmallAroundQuads,j+1))
               /numberSmallAroundQuads);
 
       _textureCoordinates[12*whichPoint   ]=float(i)/numberBigAroundQuads;
