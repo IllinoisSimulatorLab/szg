@@ -62,7 +62,7 @@ arDatabaseNode* arDatabaseNode::newNode(const string& type,
   return active() ? getOwner()->newNode(this, type, name, refNode) : NULL;
 }
 
-// Wrapper for newNode.  Return a ref'ed node pointer always.
+// Wrapper for newNode.  Return a ref'ed node pointer.
 arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
 					   const string& name){
   return newNode(type, name, true);
