@@ -105,7 +105,7 @@ void arSoundServer::_recSerialize(arDatabaseNode* pNode, arStructuredData& nodeD
   // called from within a locked _queueLock in arSyncDataServer).
   // In arSyncDataServer::receiveMessage, _queueLock guards alterations to
   // the local database. Thus, we are OK!
-  list<arDatabaseNode*> children = pNode->getChildren();
+  const list<arDatabaseNode*> children = pNode->getChildren();
   for (list<arDatabaseNode*>::const_iterator i = children.begin(); 
        i != children.end(); ++i){
     _recSerialize(*i, nodeData);
