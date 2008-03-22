@@ -51,7 +51,7 @@ void arDatabaseNode::unref(){
     delete this;
 }
 
-int arDatabaseNode::getRef(){
+int arDatabaseNode::getRef() const {
   return _refs;
 }
 
@@ -91,20 +91,20 @@ string arDatabaseNode::getName() {
 }
 
 void arDatabaseNode::setName(const string& name){
-  if (active()){
-    arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
-    int ID = getID();
-    r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
-    r->dataInString(_dLang->AR_NAME_NAME, name);
-    _lockInfo.lock();
-      r->dataInString(_dLang->AR_NAME_INFO, _info);
-    _lockInfo.unlock();
-    getOwner()->alter(r);
-    recycle(r); // avoid memory leak
-  }
-  else{
+  if (!active()) {
     _setName(name);
+    return;
   }
+
+  arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
+  int ID = getID();
+  r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
+  r->dataInString(_dLang->AR_NAME_NAME, name);
+  _lockInfo.lock();
+    r->dataInString(_dLang->AR_NAME_INFO, _info);
+  _lockInfo.unlock();
+  getOwner()->alter(r);
+  recycle(r); // avoid memory leak
 }
 
 bool arDatabaseNode::hasInfo() {
@@ -158,13 +158,14 @@ arDatabaseNode* arDatabaseNode::findNode(const string& name, bool refNode){
     // Will return a ptr with an extra ref.
     return getOwner()->findNode(this, name, true); 
   }
-  arDatabaseNode* result = NULL;
+
+  arDatabaseNode* r = NULL;
   bool ok = false;
-  _findNode(result, name, ok, NULL, true);
-  if (result && refNode){
-    result->ref();
+  _findNode(r, name, ok, NULL, true);
+  if (r && refNode){
+    r->ref();
   }
-  return result;
+  return r;
 }
 
 arDatabaseNode* arDatabaseNode::findNodeRef(const string& name){
@@ -182,13 +183,14 @@ arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType,
     // Will return a ptr with an extra ref.
     return getOwner()->findNodeByType(this, nodeType, true);
   }
-  arDatabaseNode* result = NULL;
+
+  arDatabaseNode* r = NULL;
   bool success = false;
-  _findNodeByType(result, nodeType, success, NULL, true);
-  if (result && refNode){
-    result->ref();
+  _findNodeByType(r, nodeType, success, NULL, true);
+  if (r && refNode){
+    r->ref();
   }
-  return result;
+  return r;
 }
 
 arDatabaseNode* arDatabaseNode::findNodeByTypeRef(const string& nodeType){
@@ -255,12 +257,14 @@ arDatabaseNode* arDatabaseNode::getParentRef(){
   if (getOwner()){
     return getOwner()->getParentRef(this);
   }
+
   if (_parent){
     _parent->ref();
   }
   return _parent;
 }
-  
+ 
+// Warning: copies the whole list!
 list<arDatabaseNode*> arDatabaseNode::getChildren() const {
   return _children; 
 }
@@ -272,11 +276,12 @@ list<arDatabaseNode*> arDatabaseNode::getChildrenRef(){
   if (getOwner()){
     return getOwner()->getChildrenRef(this);
   }
+
   ar_refNodeList(_children);
   return _children;
 }
 
-bool arDatabaseNode::hasChildren() const {
+bool arDatabaseNode::empty() const {
   return _children.begin() == _children.end();
 }
 
@@ -443,63 +448,72 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField){
   (void)r->dataIn(IDField, &ID, AR_INT, 1);
 }
 
-// Not thread-safe (uses getChildren instead of getChildrenRef).
+// Not thread-safe (uses getChildren, actually just _children to avoid
+// copying a list, instead of getChildrenRef).
+// Since not thread-safe, use _name instead of getName().
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
-                               map<int,int,less<int> >* nodeMap,
-                               bool checkTop) {
+                               const map<int,int,less<int> >* nodeMap,
+                               const bool checkTop) {
   // Check self.
-  if (checkTop && getName() == name){
+  if (checkTop && _name == name){
     success = true;
     result = this;
     return;
   }
 
   // Breadth-first.  Search children.
-  list<arDatabaseNode*> children = getChildren();
+  const list<arDatabaseNode*>::const_iterator iFirst = _children.begin();
+  const list<arDatabaseNode*>::const_iterator iLast = _children.end();
   list<arDatabaseNode*>::const_iterator i;
-  // If a node map has been passed, do NOT find an already mapped node.
-  for (i = children.begin(); i != children.end(); i++){
-    if ( (*i)->getName() == name && 
-         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
+  for (i = iFirst; i != iLast; ++i) {
+    // If we have a node map, skip already mapped nodes.
+    if ( (*i)->_name == name && 
+         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())) {
       success = true;
       result = *i;
       return;
     }
   }
+
   // Recurse.
-  for (i = children.begin(); i != children.end() && !success; i++){
+  for (i = iFirst; !success && (i != iLast); ++i) {
     (*i)->_findNode(result, name, success, nodeMap, true);
   }
 }
 
-// Not thread-safe (uses getChildren instead of getChildrenRef).
+// Not thread-safe (uses getChildren, actually just _children to avoid
+// copying a list, instead of getChildrenRef).
+// Since not thread-safe, use _name instead of getName().
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
-                                     map<int,int,less<int> >* nodeMap,
-                                     bool checkTop){
-  // First, check self.
+                                     const map<int,int,less<int> >* nodeMap,
+                                     const bool checkTop){
+  // Check self.
   if (checkTop && getTypeString() == nodeType){
     success = true;
     result = this;
     return;
   }
-  list<arDatabaseNode*> children = getChildren();
+
   // Breadth-first.  Search children.
-  list<arDatabaseNode*>::iterator i;
-  // If a node map has been passed, do NOT find an already mapped node.
-  for (i = children.begin(); i != children.end(); i++){
+  const list<arDatabaseNode*>::const_iterator iFirst = _children.begin();
+  const list<arDatabaseNode*>::const_iterator iLast = _children.end();
+  list<arDatabaseNode*>::const_iterator i;
+  for (i = _children.begin(); i != _children.end(); ++i) {
+    // If we have a node map, skip already mapped nodes.
     if ( (*i)->getTypeString() == nodeType &&
-         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
+         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())) {
       success = true;
       result = *i;
       return;
     }
   }
+
   // Recurse.
-  for (i = children.begin(); i != children.end() && !success; i++){
+  for (i = iFirst; !success && (i != iLast); ++i) {
     (*i)->_findNodeByType(result, nodeType, success, nodeMap, true);
   }
 }
@@ -511,11 +525,9 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
 void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s) {
 
   for (int l=0; l<level; l++){
-    if (maxLevel > l){
-      s << " ";
-    }
-    else{
-      s << " *****\n";
+    s << " ";
+    if (l >= maxLevel){
+      s << "*****\n";
       return;
     }
   }
@@ -528,16 +540,16 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s)
     << "\"" << getName() << "\", " 
     << "\"" << getTypeString() << "\")\n";
   
-  for (list<arDatabaseNode*>::iterator i(childList.begin()); 
+  for (list<arDatabaseNode*>::const_iterator i(childList.begin()); 
        i != childList.end(); ++i){
     (*i)->_printStructureOneLine(level+1, maxLevel, s);
   }
-  // Since we ref'ed the list of nodes, must unref.
+  // Since we ref'ed the list of nodes, unref.
   ar_unrefNodeList(childList);
 }
 
 bool arDatabaseNode::isroot() const { 
-  // Equivalently, getName() == "root".  But this method is faster.
+  // Faster than, but otherwise the same as, getName() == "root".
   return _ID == 0;
 }
 
@@ -560,5 +572,3 @@ arStructuredDataParser* arDatabaseNode::getParser() const {
 arStructuredData* arDatabaseNode::getStorage(int id) const {
   return getParser()->getStorage(id);
 }
-
-

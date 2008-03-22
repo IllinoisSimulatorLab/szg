@@ -37,7 +37,7 @@ class SZG_CALL arDatabaseNode{
 
   void ref();
   void unref();
-  int getRef();
+  int getRef() const;
 
   string getName();
   void setName(const string& name);
@@ -101,7 +101,7 @@ class SZG_CALL arDatabaseNode{
   // manipulations. Each arDatabaseNode ptr returned has am extra reference
   // added.
   list<arDatabaseNode*> getChildrenRef();
-  bool hasChildren() const;
+  bool empty() const;
 
   arNodeLevel getNodeLevel() const;
   void setNodeLevel(arNodeLevel nodeLevel);
@@ -160,10 +160,10 @@ class SZG_CALL arDatabaseNode{
   void _dumpGenericNode(arStructuredData*, int);
   // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
-		 map<int,int,less<int> >* nodeMap, bool checkTop);
+		 const map<int,int,less<int> >* nodeMap, const bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
-                       bool& success, map<int,int,less<int> >* nodeMap,  
-                       bool checkTop);
+                       bool& success, const map<int,int,less<int> >* nodeMap,  
+                       const bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);
 };
 
