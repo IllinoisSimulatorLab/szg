@@ -136,15 +136,17 @@ void BlobbyNode::attachMesh(const string& name, const string& parentName)
   {
       (void)dgTransform(blobTranslateID, blobTranslation);
   }
+
   if(blobRotateID<0)
   {
-    blobRotateID = dgTransform
-      (name+" blob rotation", name+" blob translation", blobRotation);
+    blobRotateID =
+      dgTransform(name+" blob rotation", name+" blob translation", blobRotation);
   }
   else
   {
     (void)dgTransform(blobRotateID, blobRotation);
   }
+
   if(blobScaleID<0)
   {
     blobScaleID =
@@ -155,8 +157,9 @@ void BlobbyNode::attachMesh(const string& name, const string& parentName)
     (void)dgTransform(blobScaleID, blobScale);
   }
 
-  if (!blob)
+  if (!blob) {
     blob = new ColIcosahedronMesh(blobColor);
+  }
   blob->attachMesh(name+" blob", name+" blob scale");
 }
 
