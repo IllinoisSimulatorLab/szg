@@ -1652,10 +1652,10 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
   else{
     iter->second = value;
   }
-  // This is only called from _filterNodeBelow, which is _lock()'d.
+  // Only called from _filterNodeBelow, which is _lock()'d.
   // Use getChildren not getChildrenRef, to avoid double-_lock() deadlock.
-  list<arDatabaseNode*> children = pNode->getChildren();
-  for (list<arDatabaseNode*>::iterator i=children.begin(); 
+  const list<arDatabaseNode*> children = pNode->getChildren();
+  for (list<arDatabaseNode*>::const_iterator i=children.begin(); 
        i!=children.end(); i++) {
     _recDataOnOff(*i, value, filterMap);
   }

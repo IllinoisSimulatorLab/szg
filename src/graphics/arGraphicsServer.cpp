@@ -116,8 +116,8 @@ void arGraphicsServer::_recSerialize(arDatabaseNode* pNode,
   // called from within a locked _queueLock in arSyncDataServer). By examining
   // arSyncDataServer::receiveMessage one easily sees that any alteration to 
   // the local database occurs protected by _queueLock. Thus, we are OK!
-  list<arDatabaseNode*> children = pNode->getChildren();
-  for (list<arDatabaseNode*>::iterator i=children.begin(); 
+  const list<arDatabaseNode*> children = pNode->getChildren();
+  for (list<arDatabaseNode*>::const_iterator i=children.begin(); 
        i!=children.end(); i++){
     _recSerialize(*i, nodeData);
   }
@@ -129,4 +129,3 @@ arDatabaseNode* arGraphicsServer::_makeNode(const string& type) {
   }
   return arGraphicsDatabase::_makeNode(type);
 }
-
