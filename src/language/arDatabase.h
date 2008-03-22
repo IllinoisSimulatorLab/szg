@@ -137,10 +137,8 @@ class SZG_CALL arDatabase{
   void printStructure(int maxLevel, ostream& s);
   void printStructure() { printStructure(10000); }
 
-  // Sometimes a database only needs to store information, not manage it
-  // for some other activity (as in the case of the arGraphicsDatabase and
-  // loading textures). If isServer() returns true (in the arGraphicsDatabase
-  // case), it will not load textures.
+  // Databases like arGraphicsDatabase store info (texture maps) but don't manage it
+  // for some other activity. If _server, as with arGraphicsDatabase, it will not load textures.
   bool isServer() const
     { return _server; }
 
