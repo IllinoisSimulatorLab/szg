@@ -221,7 +221,8 @@ bool arSoundDatabase::_render(arSoundNode* node){
   // Don't render the root node.
   bool ok = node->isroot() || node->render();
 
-  list<arDatabaseNode*> children = node->getChildren();
+  // Use _children, not getChildren(), to avoid copying the whole list.
+  const list<arDatabaseNode*>& children = node->_children;
   for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i){
     ok &= _render((arSoundNode*)*i);
   }
