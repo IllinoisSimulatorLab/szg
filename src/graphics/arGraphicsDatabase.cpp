@@ -448,6 +448,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
     transformStack.push(tempMatrix);
   }
+
   // Draw the node and its children except:
   //   a. If this is the root node, do not draw (no draw method)
   //   b. If this is a visibility node in invisible state, do not
@@ -458,7 +459,8 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     // arGraphicsNodes.
     node->draw(context);
   }
-  // Deal with view frustum culling.
+
+  // View frustum culling.
   if (projectionCullMatrix && node->getTypeCode() 
       == AR_G_BOUNDING_SPHERE_NODE) {
     glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
@@ -472,13 +474,14 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
       return;
     }
   }
-  // Deal with visibility nodes.
+
+  // Visibility nodes.
   if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE 
          && !((arVisibilityNode*)node)->getVisibility() ) ) {
-    // We are not a visibility node in an invisible state. It is OK to draw
-    // the children.
-    list<arDatabaseNode*> children = node->getChildren();
-    for (list<arDatabaseNode*>::iterator i = children.begin(); i != children.end(); ++i) {
+    // Not an invisible visibility node.  Draw children.
+    // Use _children, not getChildren(), to avoid copying the whole list.
+    const list<arDatabaseNode*>& children = node->_children;
+    for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i) {
       _draw((arGraphicsNode*)(*i), transformStack, context, projectionCullMatrix);
     }
   }
@@ -487,10 +490,10 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     // Pop from stack.
     tempMatrix = transformStack.top();
     transformStack.pop();
-    // Return the matrix state to what it was when we were called.
+    // Restore the matrix state.
     glLoadMatrixf(tempMatrix.v);
   }
-  // Must remember to pop the node stack upon leaving this function.
+  // Pop the node stack.
   if (context) {
     context->popNode(node);
   }
