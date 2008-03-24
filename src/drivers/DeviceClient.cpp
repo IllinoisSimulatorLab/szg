@@ -41,7 +41,10 @@ void dump( arInputState& inp ) {
     for (i=0; i<cb; i++)
       cout << inp.getButton(i) << " ";
   }
-  cout << "\n____\n";
+  if (cm == 0) {
+    cout << "\n";
+  }
+  cout << "____\n";
 
 #if 0
   // another mode: dump prints headmatrix decomposed into xlat and euler angles
