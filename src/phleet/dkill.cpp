@@ -17,55 +17,43 @@ int main(int argc, char** argv){
 
   if (argc < 2 || argc > 4){
 LUsage:
-    cerr << "usage: " << argv[0] << " [-9] [hostname] executable_label\n";
+    ar_log_error() << "usage: " << argv[0] << " [-9] [hostname] executable_label\n";
     return 1;
   }
 
+  const string hostLocal(szgClient.getComputerName());
+  const string exeName(argv[argc-1]);
+  const bool fForce = !strcmp(argv[1], "-9");
   string hostName;
-  string exeName;
-  string messageContext("NULL");
-  bool fForce = false;
-
   switch (argc)
     {
   case 2:
+    if (fForce)
+      goto LUsage;
     // executable
-    hostName = szgClient.getComputerName();
-    exeName = argv[1];
+    hostName = hostLocal;
     break;
   case 3:
-    if (!strcmp(argv[1], "-9"))
-      {
-      // -9 executable
-      fForce = true;
-      hostName = szgClient.getComputerName();
-      exeName = argv[2];
-      }
-    else
-      {
-      // hostname executable
-      hostName = argv[1];
-      exeName = argv[2];
-      }
+    // -9 executable, or hostname executable
+    hostName = fForce ? hostLocal : argv[1];
+    if (fForce && exeName == hostName)
+      ar_log_warning() << "(Did you forget to name the exe to kill?)\n";
     break;
   case 4:
     // -9 hostname executable
-    if (strcmp(argv[1], "-9"))
+    if (!fForce)
       goto LUsage;
-    fForce = true;
     hostName = argv[2];
-    exeName = argv[3];
     break;
     }
 
-  if (hostName != szgClient.getComputerName() &&
+  if (hostName != hostLocal &&
       szgClient.getAttribute(hostName,"SZG_CONF","virtual", "") == "true"){
     // hostName is a virtual computer.
-    const string trigger(
-      szgClient.getAttribute(hostName,"SZG_TRIGGER","map", ""));
+    const string trigger(szgClient.getAttribute(hostName,"SZG_TRIGGER","map", ""));
     if (trigger == "NULL"){
-      cerr << "dkill error: undefined SZG_TRIGGER/map on virtual computer '"
-	   << hostName << "'.\n";
+      ar_log_error() << "no SZG_TRIGGER/map for virtual computer '" <<
+	hostName << "'.\n";
       return 1;
     }
     hostName = trigger;
@@ -73,13 +61,12 @@ LUsage:
 
   if (fForce)
     {
-    if (!szgClient.killProcessID(hostName, exeName)){
+    if (szgClient.killProcessID(hostName, exeName))
+      return 0;
+
 LNotFound:
-      cerr << "dkill error: no process '" << exeName
-	   << "' on host '" << hostName << "'.\n";
-      return 1;
-    }
-    return 0;
+    ar_log_error() << "no process '" << exeName << "' on host '" << hostName << "'.\n";
+    return 1;
     }
 
   const int progID = szgClient.getProcessID(hostName, exeName);
@@ -92,7 +79,7 @@ LNotFound:
   tags.push_back(szgClient.requestKillNotification(progID));
   const int msecTimeout = 5000;
   if (szgClient.getKillNotification(tags, msecTimeout) < 0){
-    cout << "dkill warning: timed out after " << msecTimeout << " msec.\n";
+    ar_log_warning() << "timed out after " << msecTimeout << " msec.\n";
   }
   return 0;
 }
