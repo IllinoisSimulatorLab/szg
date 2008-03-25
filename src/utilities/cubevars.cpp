@@ -149,7 +149,7 @@ void drawHead() {
   glPopMatrix();
 }
 
-const unsigned cmMax = 4;
+const unsigned cmMax = 8;	// IS-900 reports this many tracked sensors.
 const unsigned caMax = 20;
 const unsigned cbMax = 30;
 
