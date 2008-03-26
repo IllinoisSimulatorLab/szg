@@ -22,15 +22,16 @@
 
 arIntAtom tradingNum = -1;
 string originalWorkingDirectory;
-
 arSZGClient* SZGClient = NULL;
-
 std::vector< std::string > basePathsGlobal;
 
+int fConnect = 0;
+arLock lockfConnect;
+inline void setfConnect(const int f) {
+  arGuard dummy(lockfConnect);
+  fConnect = f;
+}
 
-
-int connectFlag(0);
-arLock lockConnectFlag;
 // Print warnings to console AND return them to dex.
 void warnTwice( ostream& errStream, const string& msg ) {
   // to console
@@ -494,13 +495,14 @@ void deleteUnixStyleArgList(char** argv) {
 string buildWindowsStyleArgList(const string& command, list<string>& args) {
   if (args.empty())
     return command;
+
   string s(command);
   for (list<string>::const_iterator i = args.begin(); i != args.end(); ++i)
     s += " " + *i;
   return s;
 }
 
-// To reduce load on samba win32 fileserver when many hosts launch an exe at once.
+// To reduce load on smb fileserver when many hosts launch an exe at once.
 void randomDelay() {
   const ar_timeval time1 = ar_time();
   ar_usleep(30000 * abs(time1.usec % 6));
@@ -963,22 +965,18 @@ LDone:
 
 void messageLoop( void* /*d*/ ) {
   string userName, messageType, messageBody, messageContext;
-  while (connectFlag==0) {
+  while (fConnect==0) {
     const int receivedMessageID = SZGClient->receiveMessage(
       &userName, &messageType, &messageBody, &messageContext);
 
     if (receivedMessageID == 0) {
       // szgserver disconnected
-      lockConnectFlag.lock();
-      connectFlag = 1;
-      lockConnectFlag.unlock();
+      setfConnect(1);
       return;
     }
 
     if (messageType=="quit") {
-      lockConnectFlag.lock();
-      connectFlag = 2;
-      lockConnectFlag.unlock();
+      setfConnect(2);
     }
 
     if (messageType=="exec") {
@@ -1062,9 +1060,7 @@ LGonnaRetry:
     return SZGClient->failStandalone(fInit);
   }
 
-  lockConnectFlag.lock();
-  connectFlag = 0;
-  lockConnectFlag.unlock();
+  setfConnect(0);
   ar_getWorkingDirectory( originalWorkingDirectory );
 
   // Only one instance per host.
@@ -1081,20 +1077,16 @@ LGonnaRetry:
 
   int pingCount(10);
   while (true) {
-    // NOTE szgd may take up to a second to quit now.
-    ar_usleep(1000000);
-    --pingCount;
-    if (pingCount <= 0) {
+    ar_usleep(1000000); // szgd may take up to one second to quit.
+    if (--pingCount <= 0) {
       if (!SZGClient->setAttribute( SZGClient->getComputerName(),
                       "SZG_SERVER", "szgserver_ping", "true" )) {
-        ar_log_warning() << "server ping failed.\n";
-        lockConnectFlag.lock();
-        connectFlag = 1;
-        lockConnectFlag.unlock();
+        ar_log_warning() << "szgserver ping failed.\n";
+	setfConnect(1);
       }
       pingCount = 10;
     }
-    if (connectFlag == 1) {
+    if (fConnect == 1) {
       // szgserver disconnected
       if (fRetry) {
         goto LGonnaRetry;
@@ -1102,7 +1094,7 @@ LGonnaRetry:
       exit(0);
     }
 
-    if (connectFlag == 2) {
+    if (fConnect == 2) {
       // In case exit() misses ~arSZGClient().
       SZGClient->closeConnection();
       // Will return(0) be gentler, yet kill the child processes too?
