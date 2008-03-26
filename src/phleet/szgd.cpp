@@ -25,12 +25,7 @@ string originalWorkingDirectory;
 arSZGClient* SZGClient = NULL;
 std::vector< std::string > basePathsGlobal;
 
-int fConnect = 0;
-arLock lockfConnect;
-inline void setfConnect(const int f) {
-  arGuard dummy(lockfConnect);
-  fConnect = f;
-}
+arIntAtom fConnect = 0;
 
 // Print warnings to console AND return them to dex.
 void warnTwice( ostream& errStream, const string& msg ) {
@@ -971,12 +966,12 @@ void messageLoop( void* /*d*/ ) {
 
     if (receivedMessageID == 0) {
       // szgserver disconnected
-      setfConnect(1);
+      fConnect = 1;
       return;
     }
 
     if (messageType=="quit") {
-      setfConnect(2);
+      fConnect = 2;
     }
 
     if (messageType=="exec") {
@@ -1060,7 +1055,7 @@ LGonnaRetry:
     return SZGClient->failStandalone(fInit);
   }
 
-  setfConnect(0);
+  fConnect = 0;
   ar_getWorkingDirectory( originalWorkingDirectory );
 
   // Only one instance per host.
@@ -1082,7 +1077,7 @@ LGonnaRetry:
       if (!SZGClient->setAttribute( SZGClient->getComputerName(),
                       "SZG_SERVER", "szgserver_ping", "true" )) {
         ar_log_warning() << "szgserver ping failed.\n";
-	setfConnect(1);
+	fConnect = 1;
       }
       pingCount = 10;
     }
