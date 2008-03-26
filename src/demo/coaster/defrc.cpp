@@ -3,19 +3,12 @@
 #include "matrix.h"
 
 #include "arDataUtilities.h"
+#include "arLogStream.h"
 #include "arGlut.h"
 
-#include <iostream>
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-extern string dataPath;
-
-/* Some <math.h> files do not define M_PI... */
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#define M_PI (3.14159265358979323846)
 #endif
 
 typedef struct parameter
@@ -30,8 +23,7 @@ Parameter roll, alignment, heading, pitch;
 double tot_al = 0.0;
 int tot = 0;
 
-#define MAXX 10000
-
+const int MAXX = 10000;
 GLfloat x[MAXX], y[MAXX], z[MAXX];
 GLfloat dx[MAXX], dy[MAXX], dz[MAXX];
 GLfloat al[MAXX], rl[MAXX], hd[MAXX], pt[MAXX];
@@ -39,14 +31,15 @@ GLfloat strips[27][MAXX][3], normal[27][MAXX][3], bnormal[2][MAXX][3];
 int opt[MAXX];
 GLfloat r1[MAXX], r2[MAXX], r3[MAXX];
 
-
 void update_parameters(void);
 void update_parameter(Parameter *p);
 void init_parameter(Parameter *p);
 
 rcVector strips_tmp[27], normal_tmp[27];
 
-void calculate_rc(void)
+extern string dataPath;
+
+bool calculate_rc(void)
 {
     FILE *in;
     int i, j;
@@ -58,22 +51,13 @@ void calculate_rc(void)
     GLfloat nx, ny, nz, ac;
 #endif
 
-/*
-    out = fopen("rc.in", "w");
-    if (!out)
-    {
-	fprintf(stderr, "failed to open file 'rc.in' for writing.\n");
-	exit(1);
-    }
-*/
-
     const string dataFile("coaster_rc.def");
     in = ar_fileOpen( dataFile, "coaster", dataPath, "rb" );
     if (!in)
     {
-	cerr << "coaster error: failed to open data file \""
-	     << dataFile << "\" in path \"" << dataPath << "\".\n";
-	exit(1);
+	ar_log_error() << "failed to open data file '" << dataFile <<
+	  "' on path '" << dataPath << "'.\n";
+	return false;
     }
 
     init_parameter(&roll);
@@ -282,6 +266,7 @@ void calculate_rc(void)
 	   cerr << "coaster warning: ignoring command \"" << cmd << "\".\n";
     }
     ar_fileClose(in);
+    return true;
 }
 
 void update_parameters(void)

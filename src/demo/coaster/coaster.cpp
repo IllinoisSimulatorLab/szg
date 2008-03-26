@@ -623,26 +623,28 @@ void parsekey(unsigned char key, int, int)
     }
 }
 
-bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
+bool start(arMasterSlaveFramework& fw, arSZGClient& cli){
   dataPath = cli.getAttribute("SZG_DATA","path");
   if (dataPath == "NULL"){
-    cerr << cli.getLabel() << " error: SZG_DATA/path undefined.\n";
+    ar_log_warning() << "SZG_DATA/path undefined.\n";
     return false;
   }
 
-  extern void calculate_rc(void); // defined in defrc.cpp
-  calculate_rc();
+  extern bool calculate_rc(void); // defined in defrc.cpp
+  if (!calculate_rc())
+    return false;
 
-  // Data to be shared over the network.
+  // Data to be shared between instances.
   fw.addTransferField("position", &plaatje, AR_FLOAT, 1);
   fw.addTransferField("frame", &frame, AR_INT, 1);
   fw.addTransferField("use_nav", &gUseNavigation, AR_INT, 1);
   fw.ownNavParam( "translation_speed" );
-  fw.setNavTransSpeed(10.);
+  fw.setNavTransSpeed(15.);
   ar_setNavMatrix( ar_translationMatrix( -40, 0, -95 ) * ar_rotationMatrix( 'y', ar_convertToRad(-153.) ) );
-  // if we want to start near the ground in the middle of the coaster down
-  // in the cube, this will do it
-//  ar_setNavMatrix( ar_translationMatrix( 0, 0, -33 ) );
+
+  // start near the ground in the middle of the coaster
+  //   ar_setNavMatrix( ar_translationMatrix( 0, 0, -33 ) );
+
   return true;
 }
 
@@ -697,14 +699,12 @@ void draw(arMasterSlaveFramework& fw){
 
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
-  framework.setStartCallback(init);
+  framework.setStartCallback(start);
   framework.setWindowStartGLCallback(initGL);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(draw);
   framework.setClipPlanes(nearClipDistance, farClipDistance);
   framework.setUnitConversion(FEET_TO_COASTER_UNITS);
-  if (!framework.init(argc, argv))
-    return 1;
-  return framework.start() ? 0 : 1;
+  return framework.init(argc, argv) && framework.start() ? 0 : 1;
 }
