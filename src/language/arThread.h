@@ -63,6 +63,7 @@ class SZG_CALL arGuard {
 
 //**************************************
 // thread-safe types
+// operators ++ and -- save these classes from being sheer paranoia
 //**************************************
 
 class SZG_CALL arBoolAtom {
@@ -70,6 +71,8 @@ class SZG_CALL arBoolAtom {
   arBoolAtom(bool x=false) : _x(x) {}
   operator bool() const
     { _l.lock(); const bool x = _x; _l.unlock(); return x; }
+  void operator=(const bool x)
+    { _l.lock(); _x = x; _l.unlock(); }
   bool set(bool x)
     { _l.lock(); _x = x; _l.unlock(); return x; }
  private:
@@ -82,6 +85,8 @@ class SZG_CALL arIntAtom {
   arIntAtom(int x=0) : _x(x) {}
   operator int() const
     { _l.lock(); const int x = _x; _l.unlock(); return x; }
+  void operator=(const int x)
+    { _l.lock(); _x = x; _l.unlock(); }
   int set(int x)
     { _l.lock(); _x = x; _l.unlock(); return x; }
   friend int operator++(arIntAtom& a) // prefix operator only
