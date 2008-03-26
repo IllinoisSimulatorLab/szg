@@ -27,8 +27,12 @@ arSZGClient* SZGClient = NULL;
 
 std::vector< std::string > basePathsGlobal;
 
+
+
+int connectFlag(0);
+arLock lockConnectFlag;
 // Print warnings to console AND return them to dex.
-void warnTwice( ostringstream& errStream, const string& msg ) {
+void warnTwice( ostream& errStream, const string& msg ) {
   // to console
   ar_log_warning() << msg << "\n";
   const bool fTerminated = msg[msg.size()-1] == '\n';
@@ -184,7 +188,7 @@ string getAppPath( const string& userName, const string& groupName, const string
     for (dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
       string itemPath = *dirIter;
       if (ar_isDirectory( itemPath.c_str() )) {
-	dirsToSearch.push_back( itemPath );
+        dirsToSearch.push_back( itemPath );
       }
     }
   }
@@ -907,6 +911,8 @@ LDone:
   }
 
   const string theArgs = buildWindowsStyleArgList(newCommand, argsMangled);
+  cout << "exec: " << newCommand << " " << argsAsList(argsMangled);
+
   const bool fArgs = theArgs != "";
 
   // Pack these buffers... can't just use my_string.c_str().
@@ -954,6 +960,58 @@ LDone:
   goto LDone;
 }
 
+
+void messageLoop( void* /*d*/ ) {
+  string userName, messageType, messageBody, messageContext;
+  while (connectFlag==0) {
+    const int receivedMessageID = SZGClient->receiveMessage(
+      &userName, &messageType, &messageBody, &messageContext);
+
+    if (receivedMessageID == 0) {
+      // szgserver disconnected
+      lockConnectFlag.lock();
+      connectFlag = 1;
+      lockConnectFlag.unlock();
+      return;
+    }
+
+    if (messageType=="quit") {
+      lockConnectFlag.lock();
+      connectFlag = 2;
+      lockConnectFlag.unlock();
+    }
+
+    if (messageType=="exec") {
+      // Hack - extract timeoutMsec from end of body, if it's there.
+      int timeoutMsec = -1;
+      string::size_type pos = messageBody.find( "||||" );
+      if (pos != string::npos) {
+        pos += 4;
+        string timeoutString = messageBody.substr( pos, messageBody.size()-pos );
+        int temp;
+        const bool ok = ar_stringToIntValid( timeoutString, temp );
+        messageBody.replace( pos-4, timeoutString.size()+4, "" );
+        if (ok) {
+          ar_log_remark() << "timeout is " << temp <<
+                    " msec, msg body is '" << messageBody << "'.\n";
+          timeoutMsec = temp;
+        } else {
+          ar_log_warning() << "ignoring invalid timeout string '" << timeoutString << "'.\n";
+        }
+      }
+
+      // Since the long-blocking exec call gets its own thread,
+      // various arSZGClient methods must be thread-safe.
+      arThread dummy(execProcess, new ExecInfo(
+        userName, messageBody, messageContext, receivedMessageID, timeoutMsec));
+      // new is matched by execProcess()'s delete.
+    }
+
+    else if (messageType=="log") {
+      (void)ar_setLogLevel( messageBody );
+    }
+  }
+}
 
 void printUsage() {
   ar_log_error() << "Usage: szgd <basePaths> [-r]\n"
@@ -1004,6 +1062,9 @@ LGonnaRetry:
     return SZGClient->failStandalone(fInit);
   }
 
+  lockConnectFlag.lock();
+  connectFlag = 0;
+  lockConnectFlag.unlock();
   ar_getWorkingDirectory( originalWorkingDirectory );
 
   // Only one instance per host.
@@ -1016,12 +1077,24 @@ LGonnaRetry:
     return 1;
   }
 
-  string userName, messageType, messageBody, messageContext;
-  while (true) {
-    const int receivedMessageID = SZGClient->receiveMessage(
-      &userName, &messageType, &messageBody, &messageContext);
+  arThread dummy(messageLoop, NULL);
 
-    if (receivedMessageID == 0) {
+  int pingCount(10);
+  while (true) {
+    // NOTE szgd may take up to a second to quit now.
+    ar_usleep(1000000);
+    --pingCount;
+    if (pingCount <= 0) {
+      if (!SZGClient->setAttribute( SZGClient->getComputerName(),
+                      "SZG_SERVER", "szgserver_ping", "true" )) {
+        ar_log_warning() << "server ping failed.\n";
+        lockConnectFlag.lock();
+        connectFlag = 1;
+        lockConnectFlag.unlock();
+      }
+      pingCount = 10;
+    }
+    if (connectFlag == 1) {
       // szgserver disconnected
       if (fRetry) {
         goto LGonnaRetry;
@@ -1029,41 +1102,11 @@ LGonnaRetry:
       exit(0);
     }
 
-    if (messageType=="quit") {
+    if (connectFlag == 2) {
       // In case exit() misses ~arSZGClient().
       SZGClient->closeConnection();
       // Will return(0) be gentler, yet kill the child processes too?
       exit(0);
-    }
-
-    if (messageType=="exec") {
-      // Hack - extract timeoutMsec from end of body, if it's there.
-      int timeoutMsec = -1;
-      string::size_type pos = messageBody.find( "||||" );
-      if (pos != string::npos) {
-        pos += 4;
-        string timeoutString = messageBody.substr( pos, messageBody.size()-pos );
-        int temp;
-        const bool ok = ar_stringToIntValid( timeoutString, temp );
-        messageBody.replace( pos-4, timeoutString.size()+4, "" );
-        if (ok) {
-	  ar_log_remark() << "timeout is " << temp <<
-	    " msec, msg body is '" << messageBody << "'.\n";
-          timeoutMsec = temp;
-        } else {
-          ar_log_warning() << "ignoring invalid timeout string '" << timeoutString << "'.\n";
-        }
-      }
-
-      // Since the long-blocking exec call gets its own thread,
-      // various arSZGClient methods must be thread-safe.
-      arThread dummy(execProcess, new ExecInfo(
-        userName, messageBody, messageContext, receivedMessageID, timeoutMsec));
-	// new is matched by execProcess()'s delete.
-    }
-
-    else if (messageType=="log") {
-      (void)ar_setLogLevel( messageBody );
     }
   }
   return 1;

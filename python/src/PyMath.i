@@ -949,12 +949,6 @@ arQuaternion(PyObject *seq) {
 //        return !(*self);
 //    }
 
-// float operator++(const arQuaternion&);   // magnitude
-    float __abs__(void) {
-        return ++(*self);
-    }
-
-
 // __repr__ roughly serves the same purpose as the overloaded << operator
 // ostream& operator<<(ostream&, const arQuaternion&);
     string __repr__(void) {
