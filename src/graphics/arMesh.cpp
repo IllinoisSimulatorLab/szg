@@ -200,7 +200,7 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   float* cn = new float[2*_numberDivisions];
   float* sn = new float[2*_numberDivisions];
   int i = 0;
-  for (i=0; i<2*_numberDivisions; i++){
+  for (i=0; i<2*_numberDivisions; ++i){
     cn[i] = cos( (2*M_PI * i) / _numberDivisions);
     sn[i] = sin( (2*M_PI * i) / _numberDivisions);
   }
@@ -399,15 +399,13 @@ void arSphereMesh::setAttributes(int numberDivisions){
   _numberDivisions = numberDivisions;
 }
 
-// Sometimes it is convenient to be able to only use some of the vertical
-// bands on the sphere (which allows for a way to peek inside)
+// Hide some vertical bands, as cheap transparency
 void arSphereMesh::setSectionSkip(int sectionSkip){
   _sectionSkip = sectionSkip;
 }
 
 bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
-  // we may change the number of triangles later in the function because
-  // of decimation
+  // Decimation may change the number of triangles, later in the function.
   int numberTriangles = 2*_numberDivisions*_numberDivisions;
   const int numberPoints = (_numberDivisions+1)*_numberDivisions;
 
@@ -416,20 +414,26 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
   float* texCoords = new float[3*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
-  // todo: use arCylinderMesh's cn[] and sn[] precomputed arrays, here and in many arXXXMeshes.
+  // todo: in other arXXXMeshes too
+  // Precompute trig tables
+  float* cn = new float[_numberDivisions+1];
+  float* sn = new float[_numberDivisions+1];
+  float* s2 = new float[_numberDivisions+1];
+  int i;
+  for (i=0; i<_numberDivisions+1; ++i){
+    cn[i] = cos( (2*M_PI * i) / _numberDivisions);
+    sn[i] = sin( (2*M_PI * i) / _numberDivisions);
+    s2[i] = sin(M_PI/2 - (M_PI*i)/_numberDivisions);
+  }
 
   // populate the points array
-  int i=0, j=0;
+  int j=0;
   int iPoint = 0;
-  for (j=0; j<_numberDivisions+1; j++){
-    for (i=0; i<_numberDivisions; i++){
-      const float z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+  for (j=0; j<_numberDivisions+1; ++j){
+    for (i=0; i<_numberDivisions; ++i, iPoint+=3){
+      const float z = s2[j];
       const float radius = (z*z>=1) ? 0. : sqrt(1-z*z);
-      arVector3(
-        radius*cos( (2*M_PI*i)/_numberDivisions),
-        radius*sin( (2*M_PI*i)/_numberDivisions),
-        z).get(pointPositions+iPoint);
-	iPoint += 3;
+      arVector3(radius*cn[i], radius*sn[i], z).get(pointPositions+iPoint);
     }
   }
 
@@ -445,35 +449,40 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
       triangleVertices[6*iTriangle+4] = (j+1)*_numberDivisions + k;
       triangleVertices[6*iTriangle+5] = j    *_numberDivisions + k;
 
-      float z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+      float z = s2[j];
       float radius = sqrt(1-z*z);
-      normals[18*iTriangle   ] = radius*cos((2*M_PI*i)/_numberDivisions);
-      normals[18*iTriangle+1 ] = radius*sin((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle   ] = radius*cn[i];
+      normals[18*iTriangle+1 ] = radius*sn[i];
       normals[18*iTriangle+2 ] = z;
-      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
+
+      z = s2[j+1];
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+3 ] = radius*cos((2*M_PI*i)/_numberDivisions);
-      normals[18*iTriangle+4 ] = radius*sin((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle+3 ] = radius*cn[i];
+      normals[18*iTriangle+4 ] = radius*sn[i];
       normals[18*iTriangle+5 ] = z;
-      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
+
+      z = s2[j+1];
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+6 ] = radius*cos((2*M_PI*k)/_numberDivisions);
-      normals[18*iTriangle+7 ] = radius*sin((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+6 ] = radius*cn[k];
+      normals[18*iTriangle+7 ] = radius*sn[k];
       normals[18*iTriangle+8 ] = z;
-      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+
+      z = s2[j];
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+9 ] = radius*cos((2*M_PI*i)/_numberDivisions);
-      normals[18*iTriangle+10] = radius*sin((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle+9 ] = radius*cn[i];
+      normals[18*iTriangle+10] = radius*sn[i];
       normals[18*iTriangle+11] = z;
-      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
+
+      z = s2[j+1];
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+12] = radius*cos((2*M_PI*k)/_numberDivisions);
-      normals[18*iTriangle+13] = radius*sin((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+12] = radius*cn[k];
+      normals[18*iTriangle+13] = radius*sn[k];
       normals[18*iTriangle+14] = z;
-      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
+
+      z = s2[j];
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+15] = radius*cos((2*M_PI*k)/_numberDivisions);
-      normals[18*iTriangle+16] = radius*sin((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+15] = radius*cn[k];
+      normals[18*iTriangle+16] = radius*sn[k];
       normals[18*iTriangle+17] = z;
 
       texCoords[12*iTriangle   ] = float(i)  /_numberDivisions;
@@ -490,6 +499,10 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
       texCoords[12*iTriangle+11] = float(j)  /_numberDivisions;
     }
   }
+
+  delete [] cn;
+  delete [] sn;
+  delete [] s2;
 
   // Decimate the sphere triangles, if requested.
   int nearVertex = 0;
@@ -517,7 +530,7 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
   ar_adjustPoints(_matrix, numberPoints, pointPositions);
   ar_adjustNormals(_matrix, numberTriangles*normalsPerTri, normals);
 
-  return ar_attachMesh(parent, name,
+  const bool ok = ar_attachMesh(parent, name,
                        numberPoints, pointPositions,
                        numberTriangles*indicesPerTri, triangleVertices,
 		       numberTriangles*normalsPerTri, normals,
@@ -528,6 +541,7 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
   delete [] triangleVertices;
   delete [] texCoords;
   delete [] normals;
+  return ok;
 }
 
 /////////  TORUS  /////////////////////////////////////////////////////
