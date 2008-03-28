@@ -326,7 +326,7 @@ bool arTexture::readPPM(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
     if (complain){
-      ar_log_error() << "arTexture readPPM failed to open '"
+      ar_log_warning() << "arTexture readPPM failed to open '"
         << fileName << "' in subdirectory '" << subdirectory
         << "' on search path '" << path << "'.\n";
     }
@@ -387,42 +387,28 @@ bool arTexture::readPPM(const string& fileName,
       return false;
     }
     fread(localBuffer, _width*_height*3, 1, fd);
-    int readCount = 0;
+    char* pSrc = localBuffer;
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
         pPixel = &_pixels[(i*_width+j)*getDepth()];
-        pPixel[0] = localBuffer[readCount++];
-        pPixel[1] = localBuffer[readCount++];
-        pPixel[2] = localBuffer[readCount++];
+        *pPixel++ = *pSrc++;
+        *pPixel++ = *pSrc++;
+        *pPixel++ = *pSrc++;
       }
     }
-    //    old, horizontally-reversing version.
-//    for (int i= _height*_width - 1; i>=0; --i) {
-//      char* pPixel = &_pixels[i*getDepth()];
-//      pPixel[0] = localBuffer[readCount++];
-//      pPixel[1] = localBuffer[readCount++];
-//      pPixel[2] = localBuffer[readCount++];
-//    } 
     delete [] localBuffer;
   } else {
     // ASCII PPM FILE
     int aPixel[3];
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
-        fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
+        fscanf(fd, "%d %d %d", aPixel, aPixel+1, aPixel+2);
         pPixel = &_pixels[(i*_width+j)*getDepth()];
-        pPixel[0] = (unsigned char)aPixel[0];
-        pPixel[1] = (unsigned char)aPixel[1];
-        pPixel[2] = (unsigned char)aPixel[2];
+        *pPixel++ = (unsigned char)aPixel[0];
+        *pPixel++ = (unsigned char)aPixel[1];
+        *pPixel++ = (unsigned char)aPixel[2];
       }
     }
-    //    old, horizontally-reversing version.
-//    for (int i = _height*_width -1; i >= 0; i--) {
-//      fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
-//      _pixels[( i*getDepth())] = (unsigned char)aPixel[0];
-//      _pixels[( i*getDepth()) + 1] = (unsigned char)aPixel[1];
-//      _pixels[( i*getDepth()) + 2] = (unsigned char)aPixel[2];
-//    }
   }
 
   _assignAlpha(alpha);
@@ -432,19 +418,17 @@ bool arTexture::readPPM(const string& fileName,
   return true;
 }
 
-// Write the texture as a jpeg with the given file name in
-// the current working directory.
+// Write texture to the given file name.
 bool arTexture::writePPM(const string& fileName) {
   return writePPM(fileName, "", "");
 }
 
-// Write texture as a jpeg with the given file name on the given path.
+// Write texture to the given file name on the given path.
 bool arTexture::writePPM(const string& fileName, const string& path) {
   return writePPM(fileName, "", path);
 }
 
-// Write texture as a jpeg with the given file name on
-// the given subdirectory of the given path
+// Write texture to the given file name on the given subdirectory of the given path.
 bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
                          const string& path) {
   
@@ -456,12 +440,8 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
       path << "'.\n";
     return false;
   }
-  fprintf(fp,"P6\n");
-  fprintf(fp,"%i %i\n", _width, _height);
-  fprintf(fp,"255\n");
-  // we might have everything stored internally as RGBA, this will return
-  // pixel data in RGB format
-  char* buffer = _packPixels();
+  fprintf(fp,"P6\n%i %i\n255\n", _width, _height);
+  char* buffer = _packPixels(); // Possibly convert RGBA array to RGB.
   if (!buffer) {
     ar_log_warning() << "arTexture writePPM _packPixels failed.\n";
     return false;
@@ -488,7 +468,7 @@ bool arTexture::readJPEG(const string& fileName,
                          int alpha, 
                          bool complain) {
 #ifndef EnableJPEG
-  ar_log_warning() << "compiled without jpeg support.  No textures.\n";
+  ar_log_warning() << "compiled without jpg support. No textures.\n";
   // Avoid compiler warnings.
   (void)fileName;
   (void)subdirectory;
@@ -500,8 +480,7 @@ bool arTexture::readJPEG(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd) {
     if (complain) {
-      ar_log_warning() << "arTexture failed to read jpg file '" <<
-  	fileName << "'.\n";
+      ar_log_warning() << "arTexture failed to read jpg '" << fileName << "'.\n";
     }
     return false;
   }
