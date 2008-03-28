@@ -13,8 +13,6 @@
 
 #include <string>
 
-// Common behavior for meshes in arMesh.cpp and arMesh.h.
-
 class SZG_CALL arMesh {
  public:
   arMesh(const arMatrix4& transform = ar_identityMatrix()) :
@@ -42,7 +40,7 @@ class SZG_CALL arMesh {
   arMatrix4 _matrix;
 };
 
-// Cube, made of 12 triangles.
+// Made of 12 triangles.
 
 class SZG_CALL arCubeMesh : public arMesh {
  public:
@@ -72,7 +70,7 @@ class SZG_CALL arRectangleMesh : public arMesh {
   }
 };
 
-// Cylinder (technically a prism).
+// Technically a prism.
 
 class SZG_CALL arCylinderMesh : public arMesh {
  public:
@@ -102,8 +100,6 @@ class SZG_CALL arCylinderMesh : public arMesh {
   bool _useEnds;
 };
 
-// Pyramid.
-
 class SZG_CALL arPyramidMesh : public arMesh {
  public:
   arPyramidMesh() {}
@@ -115,8 +111,6 @@ class SZG_CALL arPyramidMesh : public arMesh {
     return attachMesh(parent, "pyramid");
   }
 };
-
-// Sphere.
 
 class SZG_CALL arSphereMesh : public arMesh {
  public:
@@ -142,8 +136,6 @@ class SZG_CALL arSphereMesh : public arMesh {
   int _sectionSkip; 
 };
 
-// Torus (donut).
-
 class SZG_CALL arTorusMesh : public arMesh {
  public:
   arTorusMesh(int numberBigAroundQuads, 
@@ -156,10 +148,10 @@ class SZG_CALL arTorusMesh : public arMesh {
              int numberSmallAroundQuads,
              float bigRadius,
              float smallRadius);
-  int getNumberBigAroundQuads(){ return _numberBigAroundQuads; }
-  int getNumberSmallAroundQuads(){ return _numberSmallAroundQuads; }
-  float getBigRadius(){ return _bigRadius; }
-  float getSmallRadius(){ return _smallRadius; }
+  int getNumberBigAroundQuads() const { return _numberBigAroundQuads; }
+  int getNumberSmallAroundQuads() const { return _numberSmallAroundQuads; }
+  float getBigRadius() const { return _bigRadius; }
+  float getSmallRadius() const { return _smallRadius; }
   bool attachMesh(const string& name, const string& parentName){
     return arMesh::attachMesh(name, parentName);
   }
@@ -181,8 +173,7 @@ class SZG_CALL arTorusMesh : public arMesh {
   float* _surfaceNormals;
   float* _textureCoordinates; 
 
-  inline int _modAdd(const int, const int);
-  void _reset(int,int,float,float);
+  void _reset(const int,const int,const float,const float);
   void _destroy();
 };
 
