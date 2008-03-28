@@ -205,20 +205,18 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     sn[i] = sin( (2*M_PI * i) / _numberDivisions);
   }
 
-  // populate the points array
-  arVector3 location;
-  for (i=0; i<2*_numberDivisions; ++i){
+  // Populate the points array.
+  float* ppt = pointPositions-3;
+  for (i=0; i<_numberDivisions; ++i){
     pointIDs[i] = i;
-    if (i<_numberDivisions){
-      location.set(_bottomRadius*cn[i], _bottomRadius*sn[i], -0.5);
-    }
-    else{
-      location.set(_topRadius*cn[i], pointPositions[3*i+1] = _topRadius*sn[i], 0.5);
-    }
-    location.get(pointPositions+3*i);
+    arVector3(_bottomRadius*cn[i], _bottomRadius*sn[i], -0.5).get(ppt+=3);
+  }
+  for (; i<2*_numberDivisions; ++i){
+    pointIDs[i] = i;
+    arVector3(_topRadius*cn[i], _topRadius*sn[i], 0.5).get(ppt+=3);
   }
 
-  // populate the triangle arrays
+  // Populate the triangle arrays.
   for (i=0; i<2*_numberDivisions; ++i)
     triangleIDs[i] = i;
 
@@ -257,50 +255,51 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
 
   if (_useEnds) {
     // Construct polygons for the ends.
-    const int topPoint = 2*_numberDivisions;
-    const int bottomPoint = topPoint + 1;
-    pointIDs[topPoint] = topPoint;
-    pointIDs[bottomPoint] = bottomPoint;
-    arVector3(0, 0,  0.5).get(pointPositions + 3*topPoint);
-    arVector3(0, 0, -0.5).get(pointPositions + 3*bottomPoint);
+    const int iTopPt = 2*_numberDivisions;
+    const int iBotPt = iTopPt + 1;
+    pointIDs[iTopPt] = iTopPt;
+    pointIDs[iBotPt] = iBotPt;
+    arVector3(0, 0,  0.5).get(pointPositions + 3*iTopPt);
+    arVector3(0, 0, -0.5).get(pointPositions + 3*iBotPt);
+
     for (i=0; i<_numberDivisions; ++i){
       const int i1 = (i+1) % _numberDivisions;
-      const int iTop = 2*_numberDivisions+i;
-      const int iBot = 3*_numberDivisions+i;
-      triangleIDs[iTop] = iTop;
-      triangleIDs[iBot] = iBot;
-      triangleVertices[3*iTop  ] = i +_numberDivisions;
-      triangleVertices[3*iTop+1] = i1+_numberDivisions;
-      triangleVertices[3*iTop+2] = topPoint;
-      triangleVertices[3*iBot  ] = i;
-      triangleVertices[3*iBot+1] = bottomPoint;
-      triangleVertices[3*iBot+2] = i1;
+      const int iTopTri = 2*_numberDivisions+i;
+      const int iBotTri = 3*_numberDivisions+i;
+      triangleIDs[iTopTri] = iTopTri;
+      triangleIDs[iBotTri] = iBotTri;
+      triangleVertices[3*iTopTri  ] = i  + _numberDivisions;
+      triangleVertices[3*iTopTri+1] = i1 + _numberDivisions;
+      triangleVertices[3*iTopTri+2] = iTopPt;
+      triangleVertices[3*iBotTri  ] = i;
+      triangleVertices[3*iBotTri+1] = iBotPt;
+      triangleVertices[3*iBotTri+2] = i1;
 
-      float* pn = normals + 9*iTop;
+      float* pn = normals + 9*iTopTri;
       arVector3 v(0,0,1);
       v.get(pn);
       v.get(pn+=3);
       v.get(pn+=3);
-      pn = normals + 9*iBot;
+      pn = normals + 9*iBotTri;
       v *= -1;
       v.get(pn);
       v.get(pn+=3);
       v.get(pn+=3);
 
-      float* pt = texCoords + 6*iTop;
-      *pt++ = 0.5+0.5*cn[i];
-      *pt++ = 0.5+0.5*sn[i];
-      *pt++ = 0.5+0.5*cn[i+1];
-      *pt++ = 0.5+0.5*sn[i+1];
+      float* pt = texCoords + 6*iTopTri;
+      *pt++ = 0.5 + 0.5*cn[i];
+      *pt++ = 0.5 + 0.5*sn[i];
+      *pt++ = 0.5 + 0.5*cn[i+1];
+      *pt++ = 0.5 + 0.5*sn[i+1];
       *pt++ = 0.5;
       *pt++ = 0.5;
-      pt = texCoords + 6*iBot;
-      *pt++ = 0.5+0.5*cn[i];
-      *pt++ = 0.5+0.5*sn[i];
+      pt = texCoords + 6*iBotTri;
+      *pt++ = 0.5 + 0.5*cn[i];
+      *pt++ = 0.5 + 0.5*sn[i];
       *pt++ = 0.5;
       *pt++ = 0.5;
-      *pt++ = 0.5+0.5*cn[i+1];
-      *pt++ = 0.5+0.5*sn[i+1];
+      *pt++ = 0.5 + 0.5*cn[i+1];
+      *pt++ = 0.5 + 0.5*sn[i+1];
     }
   }
 
