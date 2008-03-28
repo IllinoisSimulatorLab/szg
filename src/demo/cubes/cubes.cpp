@@ -15,19 +15,20 @@
 
 #include "arInteractionUtilities.h"
 #include "arCallbackInteractable.h"
-#include <list>
 
-const int NUMBER_OBJECTS = 100;
+const int NUMBER_OBJECTS = 200;
 
-// dragWand uses matrix 1, has 6 buttons mapped from input button 2
-// to output button 2. This means that you can access input buttons
-// 2-7 via this arEffector using their input indices. dragWand has 0 axes.
-arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
-
-// headEffector urses matrix 0 (the head matrix), has no other input events.
+// Uses matrix 0 (the head matrix).
+// Has no other input events.
 arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
 
-bool fJiggle = true;
+// Uses matrix 1.
+// Has no axes.
+// Has 6 buttons mapped from input button 2 to output button 2, so you can
+// get buttons 2-7 via this arEffector using their input indices.
+arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
+
+bool fStatic = false;
 bool fTeapot = false;
 bool fPython = false;
 
@@ -61,9 +62,6 @@ void drawWand( const arEffector* effector ) {
 }
 
 bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
-  if (eventQueue.empty()) {
-    return true;
-  }
   arGuard dummy(databaseLock);
   while (!eventQueue.empty()) {
     const arInputEvent event = eventQueue.popNextEvent();
@@ -83,6 +81,8 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
         dgStateInt( lightsOnOffID, "lighting", lightingOnOff );
       }
       break;
+    default:
+      break;
     }
   }
   // The win32 joystick driver might not stream
@@ -95,7 +95,7 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
 
 void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
   arGuard dummy(databaseLock);
-  int gid = object->getGraphicsTransformID();
+  const int gid = object->getGraphicsTransformID();
   if (gid != -1) {
     dgTransform( gid, matrix );
   }
@@ -106,18 +106,15 @@ void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix 
 }
 
 bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
-  if (effector == &headEffector) {
-    if (object->grabbed()) {
-      int iObject = object - interactionArray;
-      if ((iObject >= 0)&&(iObject < NUMBER_OBJECTS)) {
-	arGuard dummy(databaseLock);
-        dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
-      }
+  if (effector && effector == &headEffector && object && object->grabbed()) {
+    const int iObject = object - interactionArray;
+    if (iObject >= 0 && iObject < NUMBER_OBJECTS) {
+      arGuard dummy(databaseLock);
+      dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
     }
   }
   return true;
 }
-
 
 float teapotColor[] = {.5,.5,.5,1.};
 
@@ -126,20 +123,22 @@ void worldAlter(void* f) {
   framework->externalThreadStarted();
   int count = 0;
   while (!framework->stopping()) {
-    count++;
+    if (++count%100 == 0)
+      ar_usleep(1000); // CPU throttle
+
     // Change zeroth cube.  (Lissajous motion.)
     cube0Matrix = ar_translationMatrix(6.*cos(count*.00001),
                                        3.*cos(count*.0000141)+5.,
                                        6.*cos(count*.0000177));
     interactionArray[0].setMatrix( cube0Matrix );
 
-    if (fJiggle) {
+    if (!fStatic) {
       // Jiggle any cube except the zeroth.
       const int iObject = 1 + rand() % (NUMBER_OBJECTS-1);
-      const arMatrix4 randMatrix( interactionArray[iObject].getMatrix() *
-                   ar_translationMatrix(randDistance(), randDistance(), randDistance())
-                   * ar_rotationMatrix("xyz"[rand()%3], 0.02) );
-      interactionArray[iObject].setMatrix( randMatrix );
+      interactionArray[iObject].setMatrix(
+        interactionArray[iObject].getMatrix() *
+        ar_translationMatrix(randDistance(), randDistance(), randDistance()) *
+	ar_rotationMatrix("xyz"[rand()%3], 0.02));
 
       if (count%20 == 0){
         char buffer[32];
@@ -180,18 +179,16 @@ void worldAlter(void* f) {
     // event as it comes in).
     framework->processEventQueue();
 
-    // Handle cube-dragging
+    // Cube-dragging.
     ar_pollingInteraction( dragWand, interactionList );
     ar_pollingInteraction( headEffector, interactionList );
-
-    if (count%100 == 0)
-      ar_usleep(1000); // CPU throttle
   }
-  ar_log_remark() << framework->getLabel() << ": alteration thread stopped.\n";
+
+  ar_log_remark() << ": alteration thread stopped.\n";
   framework->externalThreadStopped();
 }
 
-void worldInit(arDistSceneGraphFramework& framework) {
+bool worldInit(arDistSceneGraphFramework& framework) {
   dgLight("light0", "root", 0, arVector4(0,0,1,0),  arVector3(1,1,1));
   dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1));
   dgLight("light2", "root", 2, arVector4(0,1,0,0),  arVector3(1,1,1));
@@ -206,12 +203,12 @@ void worldInit(arDistSceneGraphFramework& framework) {
   theCube.setTransform(ar_scaleMatrix(.2,.2,WAND_LENGTH));
   theCube.attachMesh( "wand", "wand_texture" );
   
-  arSphereMesh theSphere(8);
+  arSphereMesh theSphere(12);
   arPyramidMesh thePyramid;
   arCylinderMesh theCylinder;
   theCylinder.setAttributes(20,1,1);
   theCylinder.toggleEnds(true);
-  const string baseName("cube");
+  const string baseName("foo");
   for (int i=0; i<NUMBER_OBJECTS; ++i) {
     const string objectName(baseName + ar_intToString(i));
     const string objectTexture(objectName + " texture");
@@ -228,85 +225,78 @@ recalcpos:
 
     const arMatrix4 cubeTransform(ar_translationMatrix(randX,randY,randZ));
     arCallbackInteractable cubeInteractor( 
-        dgTransform( objectParent, "light_switch", arMatrix4() ) );
-    if (i==0) {
-      cube0SoundTransformID = dsTransform( objectParent, navNodeName, arMatrix4() );
-      cubeInteractor.setSoundTransformID( cube0SoundTransformID );
-    }
+      dgTransform( objectParent, "light_switch", arMatrix4() ) );
     cubeInteractor.setMatrixCallback( setMatrixCallback );
     cubeInteractor.setMatrix( cubeTransform );
     cubeInteractor.setProcessCallback( processCallback );
     interactionArray[i] = cubeInteractor;
-    if (i!=0) {
+    if (i==0) {
+      cube0SoundTransformID = dsTransform( objectParent, navNodeName, arMatrix4() );
+      cubeInteractor.setSoundTransformID( cube0SoundTransformID );
+    } else {
       // Don't drag zeroth cube, which has its own motion.
       interactionList.push_back( (arInteractable*)(interactionArray+i) );
     }
 
     objectTextureID[i] = dgTexture(objectTexture,objectParent,whichTexture);
 
-    const float radius = (i==0) ? 2.0  :  .28 + .1*(rand()%200)/200.0;
-    const float whichShape = (rand()%200)/200.0;
-    if (whichShape < 0.1){
+    const float radius = i==0 ? 2.5 : .28 + .1*(rand()%200)/200.0;
+    const float whichShape = i==0 ? 1. : (rand()%200)/200.0;
+    if (whichShape < 0.2){
       theSphere.setTransform(ar_scaleMatrix(radius));
-      theSphere.attachMesh(objectName, objectTexture);
+      if (!theSphere.attachMesh(objectName, objectTexture))
+	return false;
     }
-    else if (whichShape < 0.2){
+    else if (whichShape < 0.4){
       theCylinder.setTransform(ar_scaleMatrix(radius));
-      theCylinder.attachMesh(objectName, objectTexture);
+      if (!theCylinder.attachMesh(objectName, objectTexture))
+	return false;
     }
-    else if (whichShape < 0.3){
+    else if (whichShape < 0.6){
       thePyramid.setTransform(ar_scaleMatrix(radius));
-      thePyramid.attachMesh(objectName, objectTexture);
+      if (!thePyramid.attachMesh(objectName, objectTexture))
+	return false;
     }
     else{
       theCube.setTransform(ar_scaleMatrix(radius));
-      theCube.attachMesh(objectName, objectTexture);
+      if (!theCube.attachMesh(objectName, objectTexture))
+	return false;
     }
   }
+
   if (fTeapot) {
     teapotTransformID = dgTransform( "teapot_transform", "light_switch", ar_translationMatrix(0,5.,-5.) );
     teapotID = dgPlugin( "teapot", "teapot_transform", "arTeapotGraphicsPlugin",
                           NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
     if (teapotID == -1) {
-      ar_log_error() << framework.getLabel() << " failed to create teapot plugin node.\n";
+      ar_log_error() << " failed to create teapot plugin node.\n";
       fTeapot = false;
-      return;
-    } else {
-      ar_log_remark() << framework.getLabel() << " created teapot plugin node with ID " << teapotID << ar_endl;
+      return false;
     }
+    ar_log_remark() << " created teapot plugin node with ID " << teapotID << ar_endl;
   }
+
   if (fPython) {
     pythonTransformID = dgTransform("python_transform", "light_switch", ar_translationMatrix(0,5.,-5.) );
     pythonID = dgPython( "python", "python_transform", "pyteapot", "teapot", false,
         NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
     if (pythonID == -1) {
-      ar_log_error() << framework.getLabel() << " failed to create python plugin node.\n";
+      ar_log_error() << " failed to create python plugin node.\n";
       fPython = false;
-      return;
-    } else {
-      ar_log_remark() << framework.getLabel() << " created python plugin node with ID " << pythonID << ar_endl;
+      return false;
     }
+    ar_log_remark() << " created python plugin node with ID " << pythonID << ar_endl;
   }
+  return true;
 }
 
 int main(int argc, char** argv) {
-  if (argc > 1) {
-    for (int i = 0; i < argc; ++i) {
-      if (!strcmp(argv[i], "-static")) {
-        // Don't change cubes' position.
-        fJiggle = false;
-      }
-      if (!strcmp(argv[i], "-teapot")) {
-        // Load and display the teapot plugin
-        fTeapot = true;
-      }
-      if (!strcmp(argv[i], "-pyteapot")) {
-        // Load and display a python module plugin.
-        fPython = true;
-      }
-    }
+  for (int i=1; i < argc; ++i) {
+    fStatic |= !strcmp(argv[i], "-static"  ); // Don't change cubes' position.
+    fTeapot |= !strcmp(argv[i], "-teapot"  ); // Load and display the teapot plugin
+    fPython |= !strcmp(argv[i], "-pyteapot"); // Load and display a python module plugin.
   }
-    
+  
   arDistSceneGraphFramework framework;
 
 //  framework.setUnitConversion(3.);
@@ -338,11 +328,9 @@ int main(int argc, char** argv) {
   dragWand.setDrawCallback( drawWand );
   
   headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
-  
-  randomSeed = -long(ar_time().usec);
-  worldInit(framework);
 
-  if (!framework.start())
+  randomSeed = -long(ar_time().usec);
+  if (!worldInit(framework) || !framework.start())
     return 1;
     
   // Not working yet.
@@ -353,11 +341,11 @@ int main(int argc, char** argv) {
   // Attach sound to big yellow box with star on it (cube0)
   (void)dsLoop("foo", "cube0 transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
 
-  // Main loop.
   while (true) {
     ar_usleep(1000000/200); // 200 fps cpu throttle
     arGuard dummy(databaseLock);
     framework.setViewer();
     framework.setPlayer();
   }
+  return 0;
 }  
