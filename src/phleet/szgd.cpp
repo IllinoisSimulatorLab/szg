@@ -908,7 +908,8 @@ LDone:
   }
 
   const string theArgs = buildWindowsStyleArgList(newCommand, argsMangled);
-  cout << "exec: " << newCommand << " " << argsAsList(argsMangled);
+  const string s = argsAsList(argsMangled);
+  cout << "szgd executing " << newCommand << ((s=="()\n") ? "\n" : " " + s);
 
   const bool fArgs = theArgs != "";
 
@@ -918,7 +919,7 @@ LDone:
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
   ar_log_remark() << "cmd = " << command << ", args = " << argsBuffer << "\n";
-  // The spawnee might fail after being created, e.g. if a DLL is missing.
+  // The child might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,
 		     NORMAL_PRIORITY_CLASS, NULL, NULL, 
@@ -933,13 +934,12 @@ LDone:
   if (!fCreated) {
     info << "szgd failed to exec '" << command << "' with args '" << argsBuffer
 	 << "';\n\tGetLastError() = " << GetLastError() << ".\n";
-    // szgd, not the spawnee, will respond.
+    // szgd, not the child, will respond.
     SZGClient->revokeMessageOwnershipTrade(tradingKey);
     SZGClient->messageResponse(receivedMessageID, info.str());
   } else {
-    // Wait for the spawnee to reach its main() and respond.
-    // It could take even 20 seconds (default, unless a dex command-line arg
-    // overrides it).
+    // Wait for the child to reach its main() and respond.
+    // Wait up to 20 seconds (default, unless a dex command-line arg overrides it).
     int timeoutMsec = execInfo->timeoutmsec;
     if (timeoutMsec == -1)
       timeoutMsec = 20000;
