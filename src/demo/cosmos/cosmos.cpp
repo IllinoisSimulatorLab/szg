@@ -6,14 +6,13 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arMesh.h"
-#include "arInterfaceObject.h"
 #include "arDistSceneGraphFramework.h"
 #include "arSoundAPI.h" 
 
 const int numLines = 150;
 const int numPoints = numLines * 2;
-ARfloat  vertexPosition1[numPoints * 3]; // each point has 3 coords, xyz
-ARfloat  colorRGBA[numPoints * 4]; // each point has 4 values, rgba
+ARfloat vertexPosition1[numPoints * 3]; // each point has 3 coords, xyz
+ARfloat colorRGBA[numPoints * 4]; // each point has 4 values, rgba
 arStructuredData* linesData = NULL;
 arStructuredData* linePointsData = NULL;
 int linePointsID = -1;
@@ -56,21 +55,15 @@ void attachLineSet(){
       randPos = arVector3(0,0,1);
     }
     randPos.normalize();
-    randPos *= 5;
-    vertexPosition1[6*i  ] = randPos[0];
-    vertexPosition1[6*i+1] = randPos[1];
-    vertexPosition1[6*i+2] = randPos[2];
-    vertexPosition1[6*i+3] =
-    vertexPosition1[6*i+4] =
-    vertexPosition1[6*i+5] = 0;
+    (randPos * 5).get(vertexPosition1 + 6*i);
+    arVector3(0,0,0).get(vertexPosition1 + 6*i + 3);
   }
 
   // random colors
   for (i=0; i<numLines; i++){
-    colorRGBA[8*i  ] = colorRGBA[8*i+4] = rand()%1000/1000.;
-    colorRGBA[8*i+1] = colorRGBA[8*i+5] = rand()%1000/1000.;
-    colorRGBA[8*i+2] = colorRGBA[8*i+6] = rand()%1000/1000.;
-    colorRGBA[8*i+3] = colorRGBA[8*i+7] = 1.;
+    arVector4(rand()%1000/1000., rand()%1000/1000., rand()%1000/1000., 1).get(
+      colorRGBA + 8*i);
+    memcpy(colorRGBA + 8*i+4, colorRGBA + 8*i, 4*sizeof(ARfloat));
   }
   linePointsID = dgPoints("line points","world",2*numLines,vertexPosition1);
   dgColor4("line colors","line points",numPoints,colorRGBA);
