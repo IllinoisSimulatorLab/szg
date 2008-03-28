@@ -196,7 +196,7 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   float* texCoords = new float[2*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
-  // Precompute trig tables
+  // Precompute trig tables.
   float* cn = new float[2*_numberDivisions];
   float* sn = new float[2*_numberDivisions];
   int i = 0;
@@ -205,7 +205,6 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     sn[i] = sin( (2*M_PI * i) / _numberDivisions);
   }
 
-  // fill in the common triangles
   // populate the points array
   arVector3 location;
   for (i=0; i<2*_numberDivisions; ++i){
@@ -218,30 +217,30 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     }
     location.get(pointPositions+3*i);
   }
-  // populate the triangles array
-  for (i=0; i<2*_numberDivisions; ++i){
+
+  // populate the triangle arrays
+  for (i=0; i<2*_numberDivisions; ++i)
     triangleIDs[i] = i;
-  }
+
+  int* pv = triangleVertices;
+  float* pn = normals -3; // -3 cleverly offsets +=3 *pre*increment.
+  float* pt = texCoords;
   for (i=0; i<_numberDivisions; ++i){
-    const int j = (i+1) % _numberDivisions;
-    int* pv = triangleVertices + 6*i;
+    const int i1 = (i+1) % _numberDivisions;
     *pv++ = i+_numberDivisions;
     *pv++ = i;
-    *pv++ = j;
+    *pv++ = i1;
     *pv++ = i+_numberDivisions;
-    *pv++ = j;
-    *pv++ = j+_numberDivisions;
+    *pv++ = i1;
+    *pv++ = i1+_numberDivisions;
 
-    // note i vs j!
-    float* pn = normals+18*i;
-    arVector3(cn[i], sn[i], 0).get(pn);
-    arVector3(cn[i], sn[i], 0).get(pn+=3);
-    arVector3(cn[j], sn[j], 0).get(pn+=3);
-    arVector3(cn[i], sn[i], 0).get(pn+=3);
-    arVector3(cn[j], sn[j], 0).get(pn+=3);
-    arVector3(cn[j], sn[j], 0).get(pn+=3);
+    arVector3(cn[i ], sn[i ], 0).get(pn+=3);
+    arVector3(cn[i ], sn[i ], 0).get(pn+=3);
+    arVector3(cn[i1], sn[i1], 0).get(pn+=3);
+    arVector3(cn[i ], sn[i ], 0).get(pn+=3);
+    arVector3(cn[i1], sn[i1], 0).get(pn+=3);
+    arVector3(cn[i1], sn[i1], 0).get(pn+=3);
 
-    float* pt = texCoords + 12*i;
     *pt++ = float(i) / _numberDivisions;
     *pt++ = 0.;
     *pt++ = float(i) / _numberDivisions;
@@ -256,8 +255,8 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     *pt++ = 0.;
   }
 
-  if (_useEnds){
-    // construct polygons for the ends
+  if (_useEnds) {
+    // Construct polygons for the ends.
     const int topPoint = 2*_numberDivisions;
     const int bottomPoint = topPoint + 1;
     pointIDs[topPoint] = topPoint;
@@ -265,37 +264,37 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
     arVector3(0, 0,  0.5).get(pointPositions + 3*topPoint);
     arVector3(0, 0, -0.5).get(pointPositions + 3*bottomPoint);
     for (i=0; i<_numberDivisions; ++i){
-      const int j = (i+1) % _numberDivisions;
-      const int topTriangle = 2*_numberDivisions+i;
-      const int bottomTriangle = 3*_numberDivisions+i;
-      triangleIDs[topTriangle] = topTriangle;
-      triangleIDs[bottomTriangle] = bottomTriangle;
-      triangleVertices[3*topTriangle] = i+_numberDivisions;
-      triangleVertices[3*topTriangle+1] = j+_numberDivisions;
-      triangleVertices[3*topTriangle+2] = topPoint;
-      triangleVertices[3*bottomTriangle] = i;
-      triangleVertices[3*bottomTriangle+1] = bottomPoint;
-      triangleVertices[3*bottomTriangle+2] = j;
+      const int i1 = (i+1) % _numberDivisions;
+      const int iTop = 2*_numberDivisions+i;
+      const int iBot = 3*_numberDivisions+i;
+      triangleIDs[iTop] = iTop;
+      triangleIDs[iBot] = iBot;
+      triangleVertices[3*iTop  ] = i +_numberDivisions;
+      triangleVertices[3*iTop+1] = i1+_numberDivisions;
+      triangleVertices[3*iTop+2] = topPoint;
+      triangleVertices[3*iBot  ] = i;
+      triangleVertices[3*iBot+1] = bottomPoint;
+      triangleVertices[3*iBot+2] = i1;
 
-      float* pn = normals + 9*topTriangle;
-      const arVector3 vTop(0,0,1);
-      vTop.get(pn);
-      vTop.get(pn+=3);
-      vTop.get(pn+=3);
-      pn = normals + 9*bottomTriangle;
-      const arVector3 vBottom(0,0,-1);
-      vBottom.get(pn);
-      vBottom.get(pn+=3);
-      vBottom.get(pn+=3);
+      float* pn = normals + 9*iTop;
+      arVector3 v(0,0,1);
+      v.get(pn);
+      v.get(pn+=3);
+      v.get(pn+=3);
+      pn = normals + 9*iBot;
+      v *= -1;
+      v.get(pn);
+      v.get(pn+=3);
+      v.get(pn+=3);
 
-      float* pt = texCoords + 6*topTriangle;
+      float* pt = texCoords + 6*iTop;
       *pt++ = 0.5+0.5*cn[i];
       *pt++ = 0.5+0.5*sn[i];
       *pt++ = 0.5+0.5*cn[i+1];
       *pt++ = 0.5+0.5*sn[i+1];
       *pt++ = 0.5;
       *pt++ = 0.5;
-      pt = texCoords + 6*bottomTriangle;
+      pt = texCoords + 6*iBot;
       *pt++ = 0.5+0.5*cn[i];
       *pt++ = 0.5+0.5*sn[i];
       *pt++ = 0.5;
@@ -381,120 +380,142 @@ bool arPyramidMesh::attachMesh(arGraphicsNode* parent,
 
 /////////  SPHERE  /////////////////////////////////////////////////////
 
-arSphereMesh::arSphereMesh(int numberDivisions) :
-  _numberDivisions(numberDivisions),
+arSphereMesh::arSphereMesh(int n) :
   _sectionSkip(1)
-{}
-
-arSphereMesh::arSphereMesh(const arMatrix4& transform, int numberDivisions) :
-  arMesh(transform),
-  _numberDivisions(numberDivisions),
-  _sectionSkip(1)
-{}
-
-void arSphereMesh::setAttributes(int numberDivisions){
-  _numberDivisions = numberDivisions;
+{
+  setAttributes(n);
 }
 
-// Hide some vertical bands, as cheap transparency
+arSphereMesh::arSphereMesh(const arMatrix4& transform, int n) :
+  arMesh(transform),
+  _sectionSkip(1)
+{
+  setAttributes(n);
+}
+
+void arSphereMesh::setAttributes(int n){
+  if (n < 3)
+    ar_log_warning() << "arSphereMesh needs at least 3 divisions, not " << n << ".\n";
+  else
+    _numberDivisions = n;
+}
+
+// Show only every sectionSkip'th vertical band, as cheap transparency
 void arSphereMesh::setSectionSkip(int sectionSkip){
   _sectionSkip = sectionSkip;
 }
 
 bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
-  // Decimation may change the number of triangles, later in the function.
+  const int numberPoints = (_numberDivisions+1) * _numberDivisions;
+
+  // _sectionSkip may change the number of triangles.
   int numberTriangles = 2*_numberDivisions*_numberDivisions;
-  const int numberPoints = (_numberDivisions+1)*_numberDivisions;
 
   float* pointPositions = new float[3*numberPoints];
   int* triangleVertices = new int[3*numberTriangles];
   float* texCoords = new float[3*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
-  // todo: in other arXXXMeshes too
-  // Precompute trig tables
-  float* cn = new float[_numberDivisions+1];
-  float* sn = new float[_numberDivisions+1];
-  float* s2 = new float[_numberDivisions+1];
+  // Precompute trig tables.
+  double* cn = new double[_numberDivisions+1];
+  double* sn = new double[_numberDivisions+1];
   int i;
-  for (i=0; i<_numberDivisions+1; ++i){
+  for (i=0; i<_numberDivisions+1; ++i) {
     cn[i] = cos((2*M_PI * i) / _numberDivisions);
     sn[i] = sin((2*M_PI * i) / _numberDivisions);
-    s2[i] = sin(M_PI * (.5 - i/_numberDivisions));
   }
 
-  // populate the points array
+  // Populate the points array:
+  // n points at north pole (0,0,1),
+  // n points along a circle of constant latitude (_,_,z),
+  // ...
+  // n points at south pole (0,0,-1).
   int j=0;
   int iPoint = 0;
   for (j=0; j<_numberDivisions+1; ++j){
+    const double z = sin(M_PI * (.5 - double(j)/_numberDivisions));
+    const double radius = sqrt(1. - z*z);
     for (i=0; i<_numberDivisions; ++i, iPoint+=3){
-      const float z = s2[j];
-      const float radius = (z*z>=1) ? 0. : sqrt(1-z*z);
       arVector3(radius*cn[i], radius*sn[i], z).get(pointPositions+iPoint);
     }
   }
 
-  // populate the triangles arrays
-  int iTriangle = 0;
+  // Todo: coalesce all j==0 points into one (they're all at the north pole),
+  // and also for j==_numberDivisions south pole.
+  //
+  // Todo: omit degenerate triangles, n at each pole,
+  // which have only 2 distinct vertices.
+
+  // Populate the triangle arrays.
+  int* pv = triangleVertices;
+  float* pt = texCoords;
+  float* pnDst = normals-3; // -3 cleverly counteracts +=3 being pre-increment unlike ++ postincrement
+  // j is latitude-circles.
+  // i is longitude-points along each circle.
   for (j=0; j<_numberDivisions; ++j){
-    for (i=0; i<_numberDivisions; ++i, iTriangle++){
-      const int k = (i+1) % _numberDivisions;
-      int* pv = triangleVertices + 6*iTriangle;
-      *pv++ = j    *_numberDivisions + i;
-      *pv++ = (j+1)*_numberDivisions + i;
-      *pv++ = (j+1)*_numberDivisions + k;
-      *pv++ = j    *_numberDivisions + i;
-      *pv++ = (j+1)*_numberDivisions + k;
-      *pv++ = j    *_numberDivisions + k;
+    for (i=0; i<_numberDivisions; ++i){
+      const int i1 = (i+1) % _numberDivisions;
 
-      float* pn = normals + 18*iTriangle;
-      float z = s2[j];
-      float radius = sqrt(1-z*z);
-      arVector3(radius*cn[i], radius*sn[i], z).get(pn);
-      arVector3(radius*cn[i], radius*sn[i], z).get(pn+9);
-      arVector3(radius*cn[k], radius*sn[k], z).get(pn+15);
+      // Two triangles fill a quad between j'th and j+1'th circles.
+      *pv++ = j     * _numberDivisions + i;
+      *pv++ = (j+1) * _numberDivisions + i;
+      *pv++ = (j+1) * _numberDivisions + i1;
 
-      z = s2[j+1];
-      radius = sqrt(1-z*z);
-      arVector3(radius*cn[i], radius*sn[i], z).get(pn+3);
-      arVector3(radius*cn[k], radius*sn[k], z).get(pn+6);
-      arVector3(radius*cn[k], radius*sn[k], z).get(pn+12);
+      *pv++ = j     * _numberDivisions + i;
+      *pv++ = (j+1) * _numberDivisions + i1;
+      *pv++ = j     * _numberDivisions + i1;
 
-      float* pt = texCoords + 12*iTriangle;
+      // 12 texture coords match 6 (i,j) vertex coords of those two triangles.
       *pt++ = float(i)   / _numberDivisions;
       *pt++ = float(j)   / _numberDivisions;
       *pt++ = float(i)   / _numberDivisions;
       *pt++ = float(j+1) / _numberDivisions;
       *pt++ = float(i+1) / _numberDivisions;
       *pt++ = float(j+1) / _numberDivisions;
+
       *pt++ = float(i)   / _numberDivisions;
       *pt++ = float(j)   / _numberDivisions;
       *pt++ = float(i+1) / _numberDivisions;
       *pt++ = float(j+1) / _numberDivisions;
       *pt++ = float(i+1) / _numberDivisions;
       *pt++ = float(j)   / _numberDivisions;
+
+      // Normals have same coords as points on this unit sphere.
+      // So just copy those coords, don't recompute them.
+      #define pnSrc(lat,lon) (pointPositions + 3*((lat)*_numberDivisions + (lon)))
+      memcpy(pnDst+=3, pnSrc(j  ,i  ), 3*sizeof(float));
+      memcpy(pnDst+=3, pnSrc(j+1,i  ), 3*sizeof(float));
+      memcpy(pnDst+=3, pnSrc(j+1,i+1), 3*sizeof(float));
+      memcpy(pnDst+=3, pnSrc(j  ,i  ), 3*sizeof(float));
+      memcpy(pnDst+=3, pnSrc(j+1,i+1), 3*sizeof(float));
+      memcpy(pnDst+=3, pnSrc(j  ,i+1), 3*sizeof(float));
     }
   }
 
-  delete [] s2;
   delete [] sn;
   delete [] cn;
 
-  // Decimate triangles, if _sectionSkip.
-  for (j=0; j<_numberDivisions; ++j){
-    for (i=0; i<_numberDivisions; i+=_sectionSkip){
-      const int whichTriangle = 2 * (j*_numberDivisions + i);
-      const int farVertex = whichTriangle * 3;
-      const int farNormal = whichTriangle * 6;
-      const int farCoord  = whichTriangle * 9;
-      memcpy(triangleVertices, triangleVertices + farVertex, 6 * sizeof(int));
-      memcpy(normals, normals + farNormal, 18 * sizeof(float));
-      memcpy(texCoords, texCoords + farCoord, 12 * sizeof(float));
+  if (_sectionSkip > 1) {
+    // Decimate triangles (omit panels of constant longitude).
+    // Shrink and coalesce arrays.
+    int* triDst = triangleVertices - 6;
+    float* ptDst = texCoords - 12;
+    pnDst = normals - 18;
+    for (j=0; j<_numberDivisions; ++j){
+      for (i=0; i<_numberDivisions; i+=_sectionSkip){
+	const int iTriangleSrc = 2 * (j*_numberDivisions + i);
+	const int iVertex = iTriangleSrc * 3;
+	const int iCoord  = iTriangleSrc * 6;
+	const int iNormal = iTriangleSrc * 9;
+	memcpy(triDst += 6, triangleVertices + iVertex, 6 * sizeof(int));
+	memcpy(ptDst += 12, texCoords + iCoord, 12 * sizeof(float));
+	memcpy(pnDst += 18, normals + iNormal, 18 * sizeof(float));
+      }
     }
+    numberTriangles /= _sectionSkip;
   }
-  numberTriangles = 2*_numberDivisions * _numberDivisions/_sectionSkip;
 
-  // Apply matrix to generated points and normals.
+  // Apply matrix to points and normals.
   ar_adjustPoints(_matrix, numberPoints, pointPositions);
   ar_adjustNormals(_matrix, numberTriangles*normalsPerTri, normals);
 
