@@ -6,19 +6,9 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDistSceneGraphFramework.h"
-#include "arInterfaceObject.h"
 #include "arMesh.h"
-// put this someplace better.  like arGraphicsAPI.h is included in arMesh.h.
-#include "arSoundAPI.h" 
+#include "arSoundAPI.h" // put this someplace better.  like arGraphicsAPI.h is included in arMesh.h.
 #include "Commando.h"
-
-const int numCommando = 8;
-Commando* commando[numCommando];
-const static arMatrix4 localMatrix[2] = {
-  ar_translationMatrix(4, 5, -4),
-  ar_translationMatrix(4, 5, -6) };
-
-int localTransformID[2];
 
 bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
   while (!eventQueue.empty()) {
@@ -41,6 +31,13 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
   fw.loadNavMatrix();
   return true;
 }
+
+const int numCommando = 8;
+Commando* commando[numCommando];
+const static arMatrix4 localMatrix[2] = {
+  ar_translationMatrix(4, 5, -4),
+  ar_translationMatrix(4, 5, -6) };
+int localTransformID[2];
 
 void worldInit(arDistSceneGraphFramework& framework){
   // Directional lights.
