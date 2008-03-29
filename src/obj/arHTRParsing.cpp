@@ -51,8 +51,8 @@ bool arHTR::readHTR(const string& fileName, const string& path){
 bool arHTR::readHTR(const string& fileName, const string& subdirectory, const string& path){
   FILE* htrFileHandle = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!htrFileHandle){
-    ar_log_error() << "arHTR error: failed to open file \""
-                   << fileName << "\".\n";
+    ar_log_warning() << "arHTR failed to open '" << fileName <<
+      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
     return setInvalid();
   }
   return readHTR(htrFileHandle);

@@ -141,8 +141,8 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
     }
     FILE* matFile = ar_fileOpen(matFileName,_subdirectory,_searchPath,"rb");
     if (!matFile) {
-      cerr << "arOBJParsing error: failed to open mtllib " << token[1] << endl
-           << "  in path " << _searchPath << endl;
+      ar_log_warning() << "arOBJ failed to open mtllib '" << matFileName <<
+	"' in subdirectory '" << _subdirectory << "' on search path '" << _searchPath << "'.\n";
     } else {
       ar_log_debug() << "Parsing mtl file '" << matFileName << "'.\n";
       while (_readMaterialsFromFile(matFile));
