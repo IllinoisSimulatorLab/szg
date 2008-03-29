@@ -14,11 +14,44 @@
 
 const int numCommando = 8;
 Commando* commando[numCommando];
-arMatrix4 localMatrix[2];
-int worldTransformID[2], navTransformID[2];
+const static arMatrix4 localMatrix[2] = {
+  ar_translationMatrix(4, 5, -4),
+  ar_translationMatrix(4, 5, -6) };
+
 int localTransformID[2];
 
+bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
+  while (!eventQueue.empty()) {
+    const arInputEvent event = eventQueue.popNextEvent();
+    const arInputEventType t = event.getType();
+    // navUpdate with axis events for forward/backward/speed,
+    // and with matrix events to know which way the wand points.
+    switch (t) {
+    case AR_EVENT_MATRIX:
+    case AR_EVENT_AXIS:
+      fw.navUpdate( event );
+      break;
+    default:
+      break;
+    }
+  }
+  // The win32 joystick driver might not stream
+  // input events while the joystick is held steady.
+  // So update the nav matrix each frame.
+  fw.loadNavMatrix();
+  return true;
+}
+
 void worldInit(arDistSceneGraphFramework& framework){
+  // Directional lights.
+  dgLight("light0", "root", 0, arVector4(0,0, 1,0), arVector3(1,1,1)); // point down, -z
+  dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1)); // point down, +z
+
+  // Only for graphics, not for sound.
+  const string navNodeName = framework.getNavNodeName();
+  localTransformID[0] = dgTransform("local0", navNodeName, localMatrix[0]);
+  localTransformID[1] = dgTransform("local1", navNodeName, localMatrix[1]);
+
   ARfloat color[numCommando][3]= {
     {0.5,  0.5,  0.9 },
     {0.5,  0.9,  0.5 },
@@ -30,33 +63,21 @@ void worldInit(arDistSceneGraphFramework& framework){
     {0.75, 1,    0.75}
   };
   const float paces[numCommando] = { .99, .04, .08, .12, .99, .04, .08, .12 };
-  const string navNodeName( framework.getNavNodeName() );
-  // two directional lights on pointing down negative z and the other
-  // pointed down positive z
-  dgLight("light0", "root", 0, arVector4(0,0,1,0), arVector3(1,1,1));
-  dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1));
-//  navTransformID[0] = dgTransform("nav","root",ar_identityMatrix());
-//  navTransformID[1] = dsTransform("nav","root",ar_identityMatrix());
-  worldTransformID[0] = dgTransform("world",navNodeName,ar_identityMatrix());
-  worldTransformID[1] = dsTransform("world",navNodeName,ar_identityMatrix());
-
-  // Only for graphics, not for sound.
-  localTransformID[0] = dgTransform("local0","world",localMatrix[0]);
-  localTransformID[1] = dgTransform("local1","world",localMatrix[1]);
 
   for (int i=0; i<numCommando; ++i) {
     commando[i] = new Commando('y', color[i]);
-    char buf[20];
-    sprintf(buf, "commando %d", i);
-    commando[i]->attachMesh(buf, i<4 ? "local0" : "local1");
+    commando[i]->attachMesh("commando " + ar_intToString(i),
+      i<4 ? "local0" : "local1");
     commando[i]->pace(paces[i], 80, 0.10);
   }
 }
 
-void worldAlter()
+void worldAlter(void* f)
 {
-  localMatrix[0]=ar_translationMatrix(4, 5, -4);
-  localMatrix[1]=ar_translationMatrix(4, 5, -6);
+  arDistSceneGraphFramework* framework = (arDistSceneGraphFramework*) f;
+  // Invoke inputEventQueueCallback.
+  framework->processEventQueue();
+
   for (int i=0; i<numCommando; ++i)
     commando[i]->execute();
   dgTransform(localTransformID[0], localMatrix[0]);
@@ -65,33 +86,26 @@ void worldAlter()
 
 int main(int argc, char** argv){
   arDistSceneGraphFramework framework;
-  arInterfaceObject interfaceObject;
   if (!framework.init(argc, argv))
     return 1;
 
-  interfaceObject.setInputDevice(framework.getInputNode());
+  framework.setNavTransSpeed(4.);
   worldInit(framework);
-  if (!framework.start() || !interfaceObject.start())
+  framework.setEventQueueCallback( inputEventQueueCallback );
+  framework.ownNavParam( "translation_speed" );
+  if (!framework.start())
     return 1;
 
   // Disembodied hum coming from the floor, as an approximation to everywhere.
   // Use .wav not .mp3, to avoid a click when the loop wraps around.
   const arVector3 xyz(0,-5,0);
-  (void)dsLoop("unchanging", "root", "parade.wav", 1, 0.6, xyz);
+  (void)dsLoop("unchanging", framework.getNavNodeName(), "parade.wav", 1, 0.6, xyz);
 
   while (true) {
-    const arMatrix4& navTransform = interfaceObject.getNavMatrix();
-    const arMatrix4& worldTransform = interfaceObject.getObjectMatrix();
-    ar_setNavMatrix( navTransform.inverse() );
-    dgTransform(worldTransformID[0], worldTransform);
-    dsTransform(worldTransformID[1], worldTransform);
-    framework.loadNavMatrix();
-//    dgTransform(navTransformID[0], navTransform);
-//    dsTransform(navTransformID[1], navTransform);
-    worldAlter();
+    ar_usleep(1000000/30); // 30 fps cpu throttle
+    worldAlter(&framework);
     framework.setViewer();
     framework.setPlayer();
-    ar_usleep(1000000/30); // 30 fps cpu throttle
   }
   return 0;
 }
