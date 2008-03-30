@@ -34,7 +34,7 @@ bool arOBJ::readOBJ(FILE* inputFile) {
   _groupName.push_back("default");
 
   if (!inputFile) {
-    ar_log_error() << "arOBJ error: NULL input file pointer.";
+    ar_log_warning() << "arOBJ error: NULL input file pointer.";
     _invalidFile = true;
     return false;
   }
@@ -66,7 +66,8 @@ bool arOBJ::readOBJ(const string& fileName,
   _subdirectory = subdirectory;
   FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!theFile) {
-    ar_log_error() << "arOBJ error: failed to open file \"" << fileName << "\".\n";
+    ar_log_warning() << "readOBJ failed to open '" << fileName <<
+      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
     _invalidFile = true;
     return false;
   }
@@ -93,10 +94,7 @@ void arOBJ::setTransform(const arMatrix4& transform) {
 
 bool arOBJ::attachMesh(const string& objectName, const string& parentName) {
   arGraphicsNode* g = dgGetNode(parentName);
-  if (g) {
-    return attachMesh(g, objectName);
-  }
-  return false;
+  return g && attachMesh(g, objectName);
 }
 
 // @param where the scenegraph node to which we attach the OBJ.
@@ -104,7 +102,7 @@ bool arOBJ::attachMesh(const string& objectName, const string& parentName) {
 // Puts the OBJ into scenegraph w/o hierarchy or transforms.
 bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName) {
   if (_invalidFile) {
-    ar_log_error() << "arOBJ cannot attach mesh: No valid file!\n";
+    // already complained
     return false;
   }
   arGraphicsNode* pointsNode = attachPoints(where, baseName+".points");
@@ -125,11 +123,11 @@ bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName) {
 arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where, 
                                     const string& nodeName) {
   if (_invalidFile) {
-    ar_log_error() << "arOBJ cannot attach points: No valid file!\n";
+    // already complained
     return NULL;
   }
   if (!where) {
-    ar_log_error() << "arOBJ cannot attach points: Base node is invalid.\n";
+    ar_log_warning() << "arOBJ cannot attach points: no base node.\n";
     return NULL;
   }
 
@@ -162,11 +160,11 @@ arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where,
 // This attaches geometry, colors, etc. but NOT POINTS to node.
 bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) {
   if (_invalidFile) {
-    ar_log_error() << "arOBJ cannot attach group: No valid file.\n";
+    // already complained
     return false;
   }
   if (!where) {
-    ar_log_error() << "arOBJ cannot attach group: Parent is invalid.\n";
+    ar_log_warning() << "arOBJ cannot attach group: no parent.\n";
     return false;
   }
   const string trianglesModifier(".triangles");
@@ -181,41 +179,33 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
   // Attach triangles (faces)
   const int numberTriangles = thisGroup.size();
 
-  // Attach colors and textures
-  // sort triangles by material
+  // Attach colors and textures.
+  // Sort triangles by material.
   vector<int>* triangleMaterialIDs = new vector<int>[_material.size()];
   for (unsigned tri=0; tri<unsigned(numberTriangles); ++tri) {
     triangleMaterialIDs[_triangle[thisGroup[tri]].material].push_back(tri);
   }
 
-  string matIDBuf;
-  bool useTexture;
-
   for (unsigned matID=0; matID<_material.size(); ++matID) {
-
     vector<int>& thisMatTriangleIDs = triangleMaterialIDs[matID];
-    unsigned numTriUsingMaterial = thisMatTriangleIDs.size();
-    arOBJMaterial& thisMaterial = _material[matID];
-
-    if (numTriUsingMaterial == 0) {
-      continue;    // If no triangles use this material, go on to next.
-    }
-    if (thisMaterial.map_Kd == "none") {
-      useTexture = false;	// there is no texture map
-    } else {
-      useTexture = true;
+    if (thisMatTriangleIDs.empty()) {
+      // No triangles use this material.
+      continue;
     }
     
+    unsigned numTriUsingMaterial = thisMatTriangleIDs.size();
     float* normals   = new float[9*numTriUsingMaterial];
     int*   indices   = new int[3*numTriUsingMaterial];
     float* texCoords = new float[6*numTriUsingMaterial];
+    arOBJMaterial& thisMaterial = _material[matID];
+    const bool useTexture = thisMaterial.map_Kd != "none";
 
     for (unsigned i=0; i<numTriUsingMaterial; ++i) {
       const arOBJTriangle currentTriangle = _triangle[thisGroup[thisMatTriangleIDs[i]]];
-      indices[3*i]   = currentTriangle.vertices[0];
+      indices[3*i  ] = currentTriangle.vertices[0];
       indices[3*i+1] = currentTriangle.vertices[1];
       indices[3*i+2] = currentTriangle.vertices[2];
-      normals[9*i]   = _normal[currentTriangle.normals[0]][0];
+      normals[9*i  ] = _normal[currentTriangle.normals[0]][0];
       normals[9*i+1] = _normal[currentTriangle.normals[0]][1];
       normals[9*i+2] = _normal[currentTriangle.normals[0]][2];
       normals[9*i+3] = _normal[currentTriangle.normals[1]][0];
@@ -225,14 +215,6 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
       normals[9*i+7] = _normal[currentTriangle.normals[2]][1];
       normals[9*i+8] = _normal[currentTriangle.normals[2]][2];
       if (useTexture) {
-        //  This was originally being flipped. I have _no_ idea why. Some
-        //  simple test cases were clearly wrong. -JAC 121506.
-//        texCoords[6*i  ] = 1.-_texCoord[currentTriangle.texCoords[0]][0];
-//        texCoords[6*i+1] =    _texCoord[currentTriangle.texCoords[0]][1];
-//        texCoords[6*i+2] = 1.-_texCoord[currentTriangle.texCoords[1]][0];
-//        texCoords[6*i+3] =    _texCoord[currentTriangle.texCoords[1]][1];
-//        texCoords[6*i+4] = 1.-_texCoord[currentTriangle.texCoords[2]][0];
-//        texCoords[6*i+5] =    _texCoord[currentTriangle.texCoords[2]][1];
         texCoords[6*i  ] = _texCoord[currentTriangle.texCoords[0]][0];
         texCoords[6*i+1] = _texCoord[currentTriangle.texCoords[0]][1];
         texCoords[6*i+2] = _texCoord[currentTriangle.texCoords[1]][0];
@@ -242,25 +224,21 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
       }
     }
 
-    matIDBuf = ar_intToString(matID);
+    const string matIDBuf(ar_intToString(matID));
     // Three colors per triangle.
     arIndexNode* indexNode = (arIndexNode*) where->newNode("index", baseName+".indices"+matIDBuf );
     indexNode->setIndices( 3*numTriUsingMaterial, indices );
     arNormal3Node* normalNode = (arNormal3Node*) indexNode->newNode("normal3", baseName+normalsModifier+matIDBuf );
     normalNode->setNormal3( 3*numTriUsingMaterial, normals );
 
-    // NOTE: some exporters will attach a "pure black" color to anything
-    // with a texture. Since by default we use GL_MODULATE with textures,
-    // this will be a problem. Instead, use (1,1,1).
-    arVector3 correctedDiffuse = thisMaterial.Kd;
-    if (correctedDiffuse[0] < 0.001 
-        && correctedDiffuse[1] < 0.001 
-        && correctedDiffuse[2] < 0.001) {
+    // Some exporters attach "pure black" color to anything textures.
+    // Replace that with (1,1,1), so GL_MODULATE works with textures.
+    arVector3 correctedDiffuse(thisMaterial.Kd);
+    if (correctedDiffuse.magnitude() < 0.003)
       correctedDiffuse = arVector3(1,1,1);
-    }
     
-    arMaterialNode* materialNode 
-      = (arMaterialNode*) normalNode->newNode("material", baseName+colorsModifier+matIDBuf );
+    arMaterialNode* materialNode = (arMaterialNode*)
+      normalNode->newNode("material", baseName+colorsModifier+matIDBuf );
     arMaterial tmp;
     tmp.diffuse = correctedDiffuse;
     tmp.ambient = thisMaterial.Ka;
@@ -270,21 +248,17 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
     materialNode->setMaterial(tmp);
 
     if (useTexture) {
-      arTex2Node* tex2Node 
-        = (arTex2Node*) materialNode->newNode("tex2", baseName+texCoordModifier+matIDBuf );
+      arTex2Node* tex2Node = (arTex2Node*)
+	materialNode->newNode("tex2", baseName+texCoordModifier+matIDBuf );
       tex2Node->setTex2( 3*numTriUsingMaterial, texCoords );
-
-      arTextureNode* textureNode 
-        = (arTextureNode*) tex2Node->newNode("texture", baseName+textureModifier+matIDBuf );
+      arTextureNode* textureNode = (arTextureNode*)
+	tex2Node->newNode("texture", baseName+textureModifier+matIDBuf );
       textureNode->setFileName( thisMaterial.map_Kd );
-
-      arDrawableNode* drawableNode 
-        = (arDrawableNode*)textureNode->newNode("drawable", baseName+".geometry"+matIDBuf );
+      arDrawableNode* drawableNode = (arDrawableNode*)
+	textureNode->newNode("drawable", baseName+".geometry"+matIDBuf );
       drawableNode->setDrawable( DG_TRIANGLES, numTriUsingMaterial );
-
     } else {
-      arDrawableNode* drawableNode 
-        = (arDrawableNode*) materialNode->newNode("drawable", baseName+".geometry"+matIDBuf );
+      arDrawableNode* drawableNode = (arDrawableNode*) materialNode->newNode("drawable", baseName+".geometry"+matIDBuf );
       drawableNode->setDrawable( DG_TRIANGLES, numTriUsingMaterial );
     }
 
@@ -302,32 +276,32 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
 // returns a sphere centered at the average of all the triangles in the group
 // with a radius that includes all the geometry
 arBoundingSphere arOBJ::getGroupBoundingSphere(int groupID) {
-  int i=0,j=0;
-  // first, walk through the triangle list and accumulate the average position
-  int numberTriangles = _group[groupID].size();
-  arVector3 center(0,0,0);
+  int i=0, j=0;
+  // Traverse the triangle list, accumulating points' average position
+  const int numberTriangles = _group[groupID].size();
+  arVector3 center;
   for (i=0; i<numberTriangles; i++) {
     for (j=0; j<3; j++) {
       const arVector3& vertexCoord =
         _vertex[_triangle[_group[groupID][i]].vertices[j]];
-      center += vertexCoord/(numberTriangles*3);
+      center += vertexCoord;
     }
   }
+  center /= numberTriangles*3;
 
-  // next, walk through the list a second time, figuring out the maximum
-  // distance of a point from the origin
-  float radius = 0;
+  // Retraverse the list: find the point farthest from the origin.
+  float radius2 = 0;
   for (i=0; i<numberTriangles; i++) {
     for (j=0; j<3; j++) {
       const arVector3& vertexCoord =
         _vertex[_triangle[_group[groupID][i]].vertices[j]];
-      const float& dist = ++(center-vertexCoord);
-      if (dist > radius) {
-        radius = dist;
+      const float dist2 = (center-vertexCoord).magnitude2();
+      if (dist2 > radius2) {
+        radius2 = dist2;
       }
     }
   }
-  return arBoundingSphere(center, radius);
+  return arBoundingSphere(center, sqrt(radius2));
 }
 
 arAxisAlignedBoundingBox arOBJ::getAxisAlignedBoundingBox(int groupID) {
@@ -552,8 +526,8 @@ void arOBJ::_generateNormals() {
  *  not just add a normalization matrix
  */
 void arOBJ::normalizeModelSize() {
-  arVector3 maxVec(-10000,-10000,-10000);
-  arVector3 minVec(10000,10000,10000);
+  arVector3 maxVec(-1000000,-1000000,-1000000);
+  arVector3 minVec(1000000,1000000,1000000);
   unsigned i = 0;
   for (i=0; i<_vertex.size(); i++) {
     for (unsigned j=0; j<3; j++) {
@@ -612,7 +586,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
 
   clear();
   if (!renderer) {
-    ar_log_error() << "arOBJGroupRenderer::build() called with NULL renderer pointer.\n";
+    ar_log_warning() << "arOBJGroupRenderer::build() called with NULL renderer pointer.\n";
     return false;
   }
   _renderer = renderer;
@@ -655,7 +629,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
         texCoordsThisMat = new float[ 6*numTriUsingMaterial ];
       }
       if (!normalsThisMat || !indicesThisMat || (matHasTexture && !texCoordsThisMat)) {
-        ar_log_error() << "arOBJGroupRenderer failed to allocate buffers.\n";
+        ar_log_warning() << "arOBJGroupRenderer failed to allocate buffers.\n";
         return false;
       }
       _normalsByMaterial[matID] = normalsThisMat;
@@ -695,7 +669,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
 
 void arOBJGroupRenderer::draw() {
   if (!_renderer) {
-    ar_log_error() << "arOBJGroupRenderer::draw() called with NULL renderer pointer.\n";
+    ar_log_warning() << "arOBJGroupRenderer::draw() called with NULL renderer pointer.\n";
     return;
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -739,7 +713,7 @@ void arOBJGroupRenderer::draw() {
 // with a radius that includes all the geometry
 arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
   if (!_renderer) {
-    ar_log_error() << "arOBJGroupRenderer::getBoundingSphere() called with NULL renderer pointer.\n";
+    ar_log_warning() << "arOBJGroupRenderer::getBoundingSphere() called with NULL renderer pointer.\n";
     return arBoundingSphere();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -764,7 +738,7 @@ arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
 
 arAxisAlignedBoundingBox arOBJGroupRenderer::getAxisAlignedBoundingBox() {
   if (!_renderer) {
-    ar_log_error() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() called with NULL renderer pointer.\n";
+    ar_log_warning() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() called with NULL renderer pointer.\n";
     return arAxisAlignedBoundingBox();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -807,7 +781,7 @@ arAxisAlignedBoundingBox arOBJGroupRenderer::getAxisAlignedBoundingBox() {
 
 float arOBJGroupRenderer::getIntersection( const arRay& theRay ) {
   if (!_renderer) {
-    ar_log_error() << "arOBJGroupRenderer::getIntersection() called with NULL renderer pointer.\n";
+    ar_log_warning() << "arOBJGroupRenderer::getIntersection() called with NULL renderer pointer.\n";
     return 0.;
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -852,21 +826,20 @@ bool arOBJRenderer::readOBJ(const string& fileName,
   _searchPath = path;
   FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!theFile) {
-    ar_log_error() << "arOBJRenderer::readOBJ() failed to open file \"" << fileName << "\".\n";
+    ar_log_warning() << "arOBJRenderer readOBJ failed to open '" << fileName <<
+      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
     return false;
   }
   ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') beginning.\n";
-  bool state = readOBJ(theFile);
+  bool ok = readOBJ(theFile);
   ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') finished.\n";
   ar_fileClose(theFile);
-  return state;
+  return ok;
 }
 
-// wrapper for the 3 parameter readOBJ(...)
 bool arOBJRenderer::readOBJ(const string& fileName, const string& path) {
   return readOBJ(fileName, "", path);
 }
-
 
 bool arOBJRenderer::readOBJ(FILE* inputFile) {
   arOBJ theFile;
@@ -874,7 +847,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   theFile._searchPath = _searchPath;
   ar_log_debug() << "arOBJRenderer::readOBJ() beginning to parse file.\n";
   if (!theFile.readOBJ( inputFile )) {
-    ar_log_error() << "arOBJRenderer::readOBJ() failed to parse file.\n";
+    ar_log_warning() << "arOBJRenderer::readOBJ() failed to parse file.\n";
     return false;
   }
   ar_log_debug() << "arOBJRenderer::readOBJ() done parsing file.\n";
@@ -888,12 +861,13 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   ar_log_debug() << "arOBJRenderer::readOBJ() done extracting vertices.\n";
 
   // Copy out the materials
-  unsigned numMaterials = theFile._material.size();
+  const unsigned numMaterials = theFile._material.size();
   _textures.insert( _textures.begin(), numMaterials, NULL );
   arTexture* tex;
   for (unsigned matID=0; matID<numMaterials; ++matID) {
     ar_log_debug() << "arOBJRenderer::readOBJ() preparing material #" << matID << ar_endl;
     arOBJMaterial& thisMaterial = theFile._material[matID];
+    // copypaste -- look for "exporters" elsewhere in this source file
     // NOTE: some exporters will attach a "pure black" color to anything
     // with a texture. Since by default we use GL_MODULATE with textures,
     // this will be a problem. Instead, use (1,1,1).
@@ -915,11 +889,11 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     if (thisMaterial.map_Kd != "none") {
       tex = new arTexture();
       if (!tex) {
-        ar_log_error() << "arOBJRenderer::readOBJ() failed to allocate arTexture object.\n";
+        ar_log_warning() << "arOBJRenderer::readOBJ() failed to allocate arTexture object.\n";
         return false;
       }
       if (!tex->readImage( thisMaterial.map_Kd, _subdirectory, _searchPath )) {
-        ar_log_error() << "arOBJRenderer::readOBJ() failed to read texture file.\n";
+        ar_log_warning() << "arOBJRenderer::readOBJ() failed to read texture file.\n";
         return false;
       }
       tex->setTextureFunc( GL_MODULATE );
@@ -935,12 +909,12 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     ar_log_debug() << "Preparing group " << i << ar_endl;
     group = new arOBJGroupRenderer();
     if (!group) {
-      ar_log_error() << "arOBJGroupRenderer::prepareToDraw() failed to allocate memory.\n";
+      ar_log_warning() << "arOBJGroupRenderer::prepareToDraw() failed to allocate memory.\n";
       return false;
     }
     if (!group->build( this, theFile._groupName[i], theFile._group[i],
          theFile._texCoord, theFile._normal, theFile._triangle )) {
-      ar_log_error() << "arOBJGroupRenderer::prepareToDraw() failed to build render group.\n";
+      ar_log_warning() << "arOBJGroupRenderer::prepareToDraw() failed to build render group.\n";
       delete group;
       return false;
     }
@@ -950,10 +924,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
 }
 
 arOBJGroupRenderer* arOBJRenderer::getGroup( unsigned i ) {
-  if (i >= _renderGroups.size()) {
-    return NULL;
-  }
-  return _renderGroups[i];
+  return i < _renderGroups.size() ? _renderGroups[i] : NULL;
 }
 
 arOBJGroupRenderer* arOBJRenderer::getGroup( const string& name ) {
@@ -973,7 +944,7 @@ void arOBJRenderer::draw() {
     if (ptr) {
       ptr->draw();
     } else {
-      ar_log_error() << "NULL pointer in arOBJ::draw().\n";
+      ar_log_warning() << "NULL pointer in arOBJ::draw().\n";
     }
   }
 }
@@ -997,10 +968,7 @@ void arOBJRenderer::clear() {
 }
 
 
-// Make the object fit in a sphere of radius 1
-/** This actually adjust the vertex positions,
- *  not just add a normalization matrix
- */
+// Move vertices to fit the object fit into a unit sphere.
 void arOBJRenderer::normalizeModelSize() {
   arVector3 maxVec(-1.e6,-1.e6,-1.e6);
   arVector3 minVec(1.e6,1.e6,1.e6);
@@ -1023,9 +991,10 @@ void arOBJRenderer::normalizeModelSize() {
   }
 }
 
-// returns a sphere centered at the average of all the triangles in the group
-// with a radius that includes all the geometry
+// Return a sphere centered at the average of all the triangles in the group,
+// with a radius that includes all the points.
 arBoundingSphere arOBJRenderer::getBoundingSphere() {
+  // copypaste -- look for radius2 in this source file
   // first, walk through the triangle list and accumulate the average position
   arVector3 center(0,0,0);
   vector<arVector3>::iterator iter;
