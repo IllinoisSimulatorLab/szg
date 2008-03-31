@@ -276,7 +276,8 @@ SZG_CALL bool ar_isDirectory(const char* name);
 SZG_CALL FILE* ar_fileOpen(const string& name, 
                            const string& subdirectory,
                            const string& path,
-                           const string& operation);
+                           const string& operation,
+			   const char* warner = NULL);
 SZG_CALL FILE* ar_fileOpen(const string& name, 
                            const string& path,
                            const string& operation);

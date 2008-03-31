@@ -323,13 +323,8 @@ bool arTexture::readPPM(const string& fileName,
                         int alpha, 
                         bool complain) {
   // todo: grayscale ppm
-  FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
+  FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb", complain ? "arTexture readPPM" : NULL);
   if (!fd){
-    if (complain){
-      ar_log_warning() << "arTexture readPPM failed to open '"
-        << fileName << "' in subdirectory '" << subdirectory
-        << "' on search path '" << path << "'.\n";
-    }
     return false;
   }
 
@@ -432,12 +427,8 @@ bool arTexture::writePPM(const string& fileName, const string& path) {
 bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
                          const string& path) {
   
-  FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb");
-
+  FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb", "arTexture write ppm");
   if (fp == NULL) {
-    ar_log_warning() << "arTexture failed to write ppm file '" <<
-      fileName << "' on subdirectory '" << subdirectory << "' of path '" <<
-      path << "'.\n";
     return false;
   }
   fprintf(fp,"P6\n%i %i\n255\n", _width, _height);
@@ -477,11 +468,8 @@ bool arTexture::readJPEG(const string& fileName,
   (void)complain;
   return false;
 #else
-  FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
+  FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb", complain ? "arTexture jpg" : NULL);
   if (!fd) {
-    if (complain) {
-      ar_log_warning() << "arTexture failed to read jpg '" << fileName << "'.\n";
-    }
     return false;
   }
   
@@ -568,11 +556,8 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   return false;
 #else
 
-  FILE* outFile = ar_fileOpen(fileName, subdirectory, path, "wb");
+  FILE* outFile = ar_fileOpen(fileName, subdirectory, path, "wb", "arTexture write jpg");
   if (outFile == NULL) {
-    ar_log_warning() << "arTexture failed to write jpeg file '" <<
-      fileName << "' on subdirectory '" << subdirectory << "' of path '" <<
-      path << "'.\n";
     return false;
   }
 

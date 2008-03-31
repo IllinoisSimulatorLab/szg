@@ -615,9 +615,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
 
   fileStream.ar_close();
   ar_log_warning() << "parsing pre-Syzygy-0.7 config file.\n";
-  FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
+  FILE* theFile = ar_fileOpen(fileName, dataPath, "r", "Syzygy config");
   if (!theFile) {
-    ar_log_warning() << "failed to open config file '" << fileName << "'\n";
     return false;
   }
 

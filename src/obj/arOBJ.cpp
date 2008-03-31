@@ -64,16 +64,14 @@ bool arOBJ::readOBJ(const string& fileName,
   _fileName = string(fileName);
   _searchPath = path;
   _subdirectory = subdirectory;
-  FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r");
+  FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r", "readOBJ");
   if (!theFile) {
-    ar_log_warning() << "readOBJ failed to open '" << fileName <<
-      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
     _invalidFile = true;
     return false;
   }
-  bool state = readOBJ(theFile);
+  bool ok = readOBJ(theFile);
   ar_fileClose(theFile);
-  return state;
+  return ok;
 }
 
 //@param name The name of the group of which you want the ID
@@ -824,10 +822,8 @@ bool arOBJRenderer::readOBJ(const string& fileName,
                     const string& path) {
   _subdirectory = subdirectory;
   _searchPath = path;
-  FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r");
+  FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r", "arOBJRenderer readOBJ");
   if (!theFile) {
-    ar_log_warning() << "arOBJRenderer readOBJ failed to open '" << fileName <<
-      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
     return false;
   }
   ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') beginning.\n";

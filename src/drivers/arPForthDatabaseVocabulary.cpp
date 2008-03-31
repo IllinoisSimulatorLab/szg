@@ -91,10 +91,8 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   // copypasted about 30 lines with drivers/arTrackCalFilter.cpp
   const string dataPath = szgClient->getDataPath();
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
-  FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
+  FILE *fp = ar_fileOpen( calFileName, dataPath, "r", "TrackCalAction (SZG_MOTIONSTAR/calib_file, SZG_CALIB/path)" );
   if (fp == NULL) {
-    ar_log_warning() << "TrackCalAction warning: failed to open file \""
-         << calFileName << "\" (SZG_MOTIONSTAR/calib_file) in \"" << dataPath << "\" (SZG_CALIB/path).\n";
     return false;
   }
 

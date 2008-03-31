@@ -1190,7 +1190,8 @@ string ar_directoryFind(const string& name,
 FILE* ar_fileOpen(const string& name,
                   const string& subdirectory, 
                   const string& path,
-                  const string& operation){
+                  const string& operation,
+		  const char* warner){
   // Search the path
   FILE* result = NULL;
   int location = 0;
@@ -1216,7 +1217,7 @@ FILE* ar_fileOpen(const string& name,
     ar_log_remark() << "ar_fileOpen opened '" << possiblePath << "' as '" << operation << "'.\n";
   
   // Find the file locally
-  if (!result){
+  if (!result) {
     possiblePath = name;
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
@@ -1226,6 +1227,12 @@ FILE* ar_fileOpen(const string& name,
     }
     if (result)
       ar_log_remark() << "ar_fileOpen opened '" << possiblePath << "' as '" << operation << "'.\n";
+  }
+
+  if (!result && warner) {
+    ar_log_warning() << warner << " failed to open '" << name << "' as '" << operation <<
+      "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
+
   }
 
   return result;

@@ -104,10 +104,8 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   }
   const string& dataPath = szgClient->getDataPath();
   const string& calFileName = szgClient->getAttribute("SZG_CALIB", "calib_file");
-  FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
+  FILE *fp = ar_fileOpen( calFileName, dataPath, "r", "arFaroCalFilter (SZG_CALIB/calib_file,path)" );
   if (fp == NULL) {
-    ar_log_warning() << "arFaroCalFilter warning: failed to open file \""
-         << calFileName << "\" (SZG_CALIB/calib_file) in \"" << dataPath << "\" (SZG_CALIB/path).\n";
     return false;
   }
 

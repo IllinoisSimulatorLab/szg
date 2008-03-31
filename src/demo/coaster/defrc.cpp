@@ -52,13 +52,9 @@ bool calculate_rc(void)
 #endif
 
     const string dataFile("coaster_rc.def");
-    in = ar_fileOpen( dataFile, "coaster", dataPath, "rb" );
+    in = ar_fileOpen( dataFile, "coaster", dataPath, "rb", "coaster" );
     if (!in)
-    {
-	ar_log_error() << "failed to open data file '" << dataFile <<
-	  "' on path '" << dataPath << "'.\n";
 	return false;
-    }
 
     init_parameter(&roll);
     init_parameter(&pitch);

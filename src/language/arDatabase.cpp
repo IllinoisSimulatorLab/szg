@@ -467,11 +467,9 @@ bool arDatabase::handleDataQueue(ARchar* theData){
 }
 
 // Reads in the database in binary format.
-bool arDatabase::readDatabase(const string& fileName, 
-                              const string& path){
-  FILE* sourceFile = ar_fileOpen(fileName,path,"rb");
+bool arDatabase::readDatabase(const string& fileName, const string& path){
+  FILE* sourceFile = ar_fileOpen(fileName, path, "rb", "arDatabase");
   if (!sourceFile){
-    ar_log_warning() << "arDatabase failed to read file '" << fileName << "'.\n";
     return false;
   }
 
@@ -487,8 +485,7 @@ bool arDatabase::readDatabase(const string& fileName,
       buffer = new ARchar[bufferSize];
       ar_packData(buffer,&recordSize,AR_INT,1);
     }
-    const int result = fread(buffer+AR_INT_SIZE,1,
-                             recordSize-AR_INT_SIZE,sourceFile);
+    const int result = fread(buffer+AR_INT_SIZE,1, recordSize-AR_INT_SIZE,sourceFile);
     if (result < recordSize - AR_INT_SIZE){
       cerr << "arDatabase error: record read only " << result+AR_INT_SIZE
 	   << " of " << recordSize << " expected bytes.\n";
@@ -502,17 +499,13 @@ bool arDatabase::readDatabase(const string& fileName,
   return true;
 }
 
-bool arDatabase::readDatabaseXML(const string& fileName, 
-                                 const string& path){
-
-  FILE* sourceFile = ar_fileOpen(fileName,path,"r");
+bool arDatabase::readDatabaseXML(const string& fileName, const string& path){
+  FILE* sourceFile = ar_fileOpen(fileName, path, "r", "arDatabase");
   if (!sourceFile){
-    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
 
-  arStructuredDataParser* parser =
-    new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
   arFileTextStream fileStream;
   fileStream.setSource(sourceFile);
   for (;;){
@@ -534,13 +527,11 @@ bool arDatabase::readDatabaseXML(const string& fileName,
 bool arDatabase::attach(arDatabaseNode* parent,
 			const string& fileName,
 			const string& path){
-  FILE* source = ar_fileOpen(fileName, path, "rb");
+  FILE* source = ar_fileOpen(fileName, path, "rb", "arDatabase");
   if (!source){
-    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
-  arStructuredDataParser* parser 
-    = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
   map<int, int, less<int> > nodeMap;
   for (;;){
     arStructuredData* record = parser->parseBinary(source);
@@ -577,13 +568,11 @@ bool arDatabase::attach(arDatabaseNode* parent,
 bool arDatabase::attachXML(arDatabaseNode* parent,
 			   const string& fileName,
 			   const string& path){
-  FILE* source = ar_fileOpen(fileName, path, "r");
+  FILE* source = ar_fileOpen(fileName, path, "r", "arDatabase");
   if (!source){
-    cerr << "arDatabase warning: failed to read file '" << fileName << "'.\n";
     return false;
   }
-  arStructuredDataParser* parser 
-    = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
   arStructuredData* record;
   arFileTextStream fileStream;
   fileStream.setSource(source);
@@ -627,14 +616,11 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
 bool arDatabase::merge(arDatabaseNode* parent,
 		       const string& fileName,
 		       const string& path){
-  FILE* source = ar_fileOpen(fileName, path, "rb");
+  FILE* source = ar_fileOpen(fileName, path, "rb", "arDatabase");
   if (!source){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
     return false;
   }
-  arStructuredDataParser* parser 
-    = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
   arStructuredData* record;
   bool done = false;
   map<int, int, less<int> > nodeMap;
@@ -680,14 +666,11 @@ bool arDatabase::merge(arDatabaseNode* parent,
 bool arDatabase::mergeXML(arDatabaseNode* parent,
                           const string& fileName,
                           const string& path){
-  FILE* source = ar_fileOpen(fileName, path, "r");
+  FILE* source = ar_fileOpen(fileName, path, "r", "arDatabase");
   if (!source){
-    cerr << "arDatabase warning: failed to read file \""
-         << fileName << "\".\n";
     return false;
   }
-  arStructuredDataParser* parser 
-    = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
   arStructuredData* record;
   arFileTextStream* fileStream = new arFileTextStream();
   fileStream->setSource(source);
@@ -728,10 +711,8 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
 // Writes the database to a binary-format file.
 bool arDatabase::writeDatabase(const string& fileName,
                                const string& path){
-  FILE* destFile = ar_fileOpen(fileName, path, "wb");
+  FILE* destFile = ar_fileOpen(fileName, path, "wb", "arDatabase");
   if (!destFile){
-    cerr << "arDatabase warning: failed to write file \""
-         << fileName << "\".\n";
     return false;
   }
   size_t bufferSize = 1000;
@@ -754,10 +735,8 @@ bool arDatabase::writeDatabaseXML(const string& fileName,
 bool arDatabase::writeRooted(arDatabaseNode* parent,
                              const string& fileName,
                              const string& path){
-  FILE* destFile = ar_fileOpen(fileName, path, "wb");
+  FILE* destFile = ar_fileOpen(fileName, path, "wb", "arDatabase");
   if (!destFile){
-    cerr << "arDatabase warning: failed to write file \""
-         << fileName << "\".\n";
     return false;
   }
   size_t bufferSize = 1000;
@@ -779,10 +758,8 @@ bool arDatabase::writeRooted(arDatabaseNode* parent,
 bool arDatabase::writeRootedXML(arDatabaseNode* parent,
                                 const string& fileName,
                                 const string& path){
-  FILE* destFile = ar_fileOpen(fileName, path, "w");
+  FILE* destFile = ar_fileOpen(fileName, path, "w", "arDatabase");
   if (!destFile){
-    cerr << "arDatabase warning: failed to write file \""
-         << fileName << "\".\n";
     return false;
   }
   arStructuredData nodeData(_lang->find("make node"));
@@ -801,8 +778,7 @@ bool arDatabase::createNodeMap(int externalNodeID,
                                arDatabase* externalDatabase,
                                map<int, int, less<int> >& nodeMap){
   bool failure = false;
-  _createNodeMap(&_rootNode, externalNodeID, externalDatabase, nodeMap,
-		 failure);
+  _createNodeMap(&_rootNode, externalNodeID, externalDatabase, nodeMap, failure);
   return !failure;
 }
 
