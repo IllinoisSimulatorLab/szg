@@ -20,12 +20,12 @@
   #include <signal.h>
 #endif
 
-arIntAtom tradingNum = -1;
+arIntAtom tradingNum(-1);
 string originalWorkingDirectory;
 arSZGClient* SZGClient = NULL;
 std::vector< std::string > basePathsGlobal;
 
-arIntAtom fConnect = 0;
+arIntAtom fConnect(0);
 
 // Print warnings to console AND return them to dex.
 void warnTwice( ostream& errStream, const string& msg ) {
@@ -966,12 +966,12 @@ void messageLoop( void* /*d*/ ) {
 
     if (receivedMessageID == 0) {
       // szgserver disconnected
-      fConnect = 1;
+      fConnect.set(1);
       return;
     }
 
     if (messageType=="quit") {
-      fConnect = 2;
+      fConnect.set(2);
     }
 
     if (messageType=="exec") {
@@ -1055,7 +1055,7 @@ LGonnaRetry:
     return SZGClient->failStandalone(fInit);
   }
 
-  fConnect = 0;
+  fConnect.set(0);
   ar_getWorkingDirectory( originalWorkingDirectory );
 
   // Only one instance per host.
@@ -1077,7 +1077,7 @@ LGonnaRetry:
       if (!SZGClient->setAttribute( SZGClient->getComputerName(),
                       "SZG_SERVER", "szgserver_ping", "true" )) {
         ar_log_warning() << "szgserver ping failed.\n";
-	fConnect = 1;
+        fConnect.set(1);
       }
       pingCount = 10;
     }
