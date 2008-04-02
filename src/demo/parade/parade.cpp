@@ -43,9 +43,8 @@ int main(int argc, char** argv){
   dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1)); // point down, +z
 
   // Only for graphics, not for sound.
-  const string navNodeName = fw.getNavNodeName();
-  (void)dgTransform("local0", navNodeName, ar_translationMatrix(4, 5, -4));
-  (void)dgTransform("local1", navNodeName, ar_translationMatrix(4, 5, -6));
+  (void)dgTransform("local0", fw.getNavNodeName(), ar_translationMatrix(4, 5, -4));
+  (void)dgTransform("local1", "local0", ar_translationMatrix(0, 0, -2));
 
   const int numCommando = 8;
   ARfloat color[numCommando][3]= {
@@ -77,8 +76,7 @@ int main(int argc, char** argv){
 
   // Disembodied hum coming from the floor, as an approximation to everywhere.
   // Use .wav not .mp3, to avoid a click when the loop wraps around.
-  const arVector3 xyz(0,-5,0);
-  (void)dsLoop("unchanging", fw.getNavNodeName(), "parade.wav", 1, 0.6, xyz);
+  (void)dsLoop("unchanging", fw.getNavNodeName(), "parade.wav", 1, 0.6, arVector3(0,-5,0));
 
   while (true) {
     ar_usleep(1000000/45);  // 45 fps cpu throttle
