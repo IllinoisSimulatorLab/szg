@@ -670,35 +670,50 @@ void arOBJGroupRenderer::draw() {
     ar_log_warning() << "arOBJGroupRenderer::draw() called with NULL renderer pointer.\n";
     return;
   }
-  vector<arVector3>& vertices = _renderer->_vertices;
-  vector<arMaterial>& materials = _renderer->_materials;
-  vector<arTexture*>& textures = _renderer->_textures;
-  unsigned maxIndex = vertices.size();
 
   glPushAttrib( GL_LIGHTING_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT );
-  for (unsigned matID = 0; matID < materials.size(); ++matID) {
-    unsigned numTriUsingMaterial = _numTriUsingMaterial[matID];
-    if (numTriUsingMaterial == 0) {
+  const vector<arVector3>& vertices = _renderer->_vertices;
+  const int iVertexMax = int(vertices.size());
+  vector<arMaterial>& materials = _renderer->_materials;
+  const unsigned iMatMax = materials.size();
+  vector<arTexture*>& textures = _renderer->_textures;
+
+  for (unsigned matID = 0; matID < iMatMax; ++matID) {
+    const unsigned numVertex = _numTriUsingMaterial[matID] * 3;
+    if (numVertex == 0) {
       continue;
     }
-    float* normalsThisMat = _normalsByMaterial[matID];
-    int* indicesThisMat = _vertexIndicesByMaterial[matID];
-    float* texCoordsThisMat = _texCoordsByMaterial[matID];
+
     materials[matID].activateMaterial();
     if (textures[matID]) {
-//      cerr << "enabling texture.\n";
       textures[matID]->activate();
     }
     glBegin(GL_TRIANGLES);
-    for (unsigned i=0; i<3*numTriUsingMaterial; ++i) {
-      glNormal3fv( normalsThisMat+3*i );
-      if (texCoordsThisMat) {
-        glTexCoord2fv( texCoordsThisMat+2*i );
-      }
-      if (indicesThisMat[i] < int(maxIndex)) {
-        glVertex3fv( vertices.begin()[indicesThisMat[i]].v );
+    const float* const normalsThisMat = _normalsByMaterial[matID];
+    const int* const iVertices = _vertexIndicesByMaterial[matID];
+    const float* const texCoordsThisMat = _texCoordsByMaterial[matID];
+
+    // Copypaste for performance - test texCoordsThisMat outside loop, not inside.
+    if (texCoordsThisMat) {
+      for (unsigned i=0; i<numVertex; ++i) {
+	glNormal3fv( normalsThisMat+3*i );
+	glTexCoord2fv( texCoordsThisMat+2*i );
+	const int iVertex = iVertices[i];
+	if (iVertex < iVertexMax) {
+	  glVertex3fv( vertices.begin()[iVertex].v );
+	}
       }
     }
+    else {
+      for (unsigned i=0; i<numVertex; ++i) {
+	glNormal3fv( normalsThisMat+3*i );
+	const int iVertex = iVertices[i];
+	if (iVertex < iVertexMax) {
+	  glVertex3fv( vertices.begin()[iVertex].v );
+	}
+      }
+    }
+
     glEnd();
     if (textures[matID]) {
       textures[matID]->deactivate();
