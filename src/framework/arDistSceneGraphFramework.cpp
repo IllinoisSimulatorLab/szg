@@ -474,20 +474,13 @@ void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
 }
 
 bool arDistSceneGraphFramework::_loadParameters(){
-  // Configure data access.
-
   _dataPath = _SZGClient.getDataPath();
   addDataBundlePathMap( "SZG_DATA", _dataPath );
-
-  const string pythonPath = _SZGClient.getDataPathPython();
-  addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-
+  addDataBundlePathMap( "SZG_PYTHON", _SZGClient.getDataPathPython() );
   _head.configure( _SZGClient );
   _loadNavParameters();
-
-  const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC","path"); // for dll's
-  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
-  
+  arGraphicsPluginNode::setSharedLibSearchPath(
+    _SZGClient.getAttribute("SZG_EXEC","path") );
   _parametersLoaded = true;
   return true;
 }
@@ -503,16 +496,10 @@ void arDistSceneGraphFramework::addDataBundlePathMap(
 
 
 void arDistSceneGraphFramework::_initDatabases(){
-  if (_peerName != "NULL"){
-    // We're a peer.  Use that.
-    dgSetGraphicsDatabase(&_graphicsPeer);
-    _usedGraphicsDatabase = &_graphicsPeer;
-  }
-  else{
-    // Use the graphics server.
-    dgSetGraphicsDatabase(&_graphicsServer);
-    _usedGraphicsDatabase = &_graphicsServer;
-  }
+  _usedGraphicsDatabase = (_peerName!="NULL") ?
+    (arGraphicsDatabase*)&_graphicsPeer :
+    (arGraphicsDatabase*)&_graphicsServer;
+  dgSetGraphicsDatabase(_usedGraphicsDatabase);
   dsSetSoundDatabase(&_soundServer);
 
   if (_standalone){
@@ -539,13 +526,12 @@ void arDistSceneGraphFramework::_initDatabases(){
   dsPlayer( _head.getMatrix(), _head.getMidEyeOffset(), _unitSoundConversion );
 
   if (_graphicsNavNode == NULL){
-    _graphicsNavNode 
-      = (arTransformNode*) _usedGraphicsDatabase->getRoot()->newNode("transform", getNavNodeName());
+    _graphicsNavNode = (arTransformNode*) _usedGraphicsDatabase->getRoot()->
+      newNode("transform", getNavNodeName());
     _graphicsNavNode->setTransform(ar_identityMatrix());
   }
   if (_soundNavMatrixID == -1){
-    _soundNavMatrixID 
-      = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", ar_identityMatrix());
   }
 }
 
