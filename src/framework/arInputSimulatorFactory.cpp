@@ -7,9 +7,14 @@
 #include "arInputSimulatorFactory.h"
 
 arInputSimulator* arInputSimulatorFactory::createSimulator( arSZGClient& szgClient ) {
-  string simType = szgClient.getAttribute( "SZG_INPUTSIM", "simtype" );
-  ar_log_debug() << "arInputSimulatorFactory: SZG_INPUTSIM/simtype = "
-                  << simType << ", but this is currently ignored.\n";
+  const string simType(szgClient.getAttribute( "SZG_INPUTSIM", "simtype" ));
+  if (simType == "NULL") {
+    ar_log_debug() << "arInputSimulatorFactory ignoring NULL SZG_INPUTSIM/simtype.\n";
+    return NULL;
+  }
+
+  ar_log_debug() << "arInputSimulatorFactory: SZG_INPUTSIM/simtype '"
+                  << simType << "' unimplemented.\n";
   // As new simulator types become available, test for them here.
   // (perhaps load from dlls?)
   // return NULL by default, telling caller to use its default simulator.
