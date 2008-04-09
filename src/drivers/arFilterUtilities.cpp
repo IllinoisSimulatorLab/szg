@@ -39,10 +39,7 @@ int ar_getEventType(int eventID, arStructuredData* d){
     return AR_EVENT_GARBAGE;
 
   int* eventTypePtr = (int*) d->getDataPtr("types",AR_INT);
-  if (!eventTypePtr){
-    return AR_EVENT_GARBAGE;
-  }
-  return eventTypePtr[eventID];
+  return eventTypePtr ? eventTypePtr[eventID] : AR_EVENT_GARBAGE;
 }
 
 int ar_getEventIndex(int eventID, arStructuredData* d){
@@ -63,10 +60,7 @@ int ar_getEventButtonValue(int eventID, arStructuredData* d){
       ++count;
     }
   }
-  if (count==0){
-    return 0;
-  }
-  return ((int*) d->getDataPtr("buttons",AR_INT))[count-1];
+  return count==0 ? 0 : ((int*) d->getDataPtr("buttons",AR_INT))[count-1];
 }
 
 float ar_getEventAxisValue(int eventID, arStructuredData* d){
@@ -80,10 +74,7 @@ float ar_getEventAxisValue(int eventID, arStructuredData* d){
       ++count;
     }
   }
-  if (count==0){
-    return 0.;
-  }
-  return ((float*) d->getDataPtr("axes",AR_FLOAT))[count-1];
+  return count==0 ? 0. : ((float*) d->getDataPtr("axes",AR_FLOAT))[count-1];
 }
 
 arMatrix4 ar_getEventMatrixValue(int eventID, arStructuredData* d){
@@ -96,9 +87,8 @@ arMatrix4 ar_getEventMatrixValue(int eventID, arStructuredData* d){
     if (eventTypePtr[i] == AR_EVENT_MATRIX)
       ++count;
   }
-  if (count==0)
-    return ar_identityMatrix();
-  return arMatrix4(((float*) d->getDataPtr("matrices",AR_FLOAT)) + (count-1)*16);
+  return count==0 ? ar_identityMatrix() :
+    arMatrix4(((float*) d->getDataPtr("matrices",AR_FLOAT)) + (count-1)*16);
 }
 
 
