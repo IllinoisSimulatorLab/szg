@@ -139,26 +139,6 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
   return inputEvent.setMatrix( newMatrix );
 }
 
-  
-//arStructuredData* arTrackCalFilter::filter(arStructuredData* d) {
-//  int count = ar_getNumberEvents(d);
-//#ifdef UNUSED
-//  int* indexPtr = (int*) d->getDataPtr("indices",AR_INT);
-//#endif
-//  for (int i=0; i<count; i++) {
-//    if (ar_getEventType(i,d) == AR_EVENT_MATRIX) {
-//      arMatrix4 newMatrix = ar_getEventMatrixValue(i,d);
-//      if (_useCalibration) {
-//        _interpolate( newMatrix );
-//      }
-//      if (ar_getEventIndex(i,d) == 0)
-//        _doIIRFilter( newMatrix );
-//      ar_replaceMatrixEvent(i,newMatrix,d);
-//    }
-//  }
-//  return d;
-//}
-
 void arTrackCalFilter::_doIIRFilter( arMatrix4& m ) {
   for (int i=0; i<3; i++) {
     float p = m[12+i];

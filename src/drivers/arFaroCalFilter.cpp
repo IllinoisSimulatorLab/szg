@@ -34,7 +34,7 @@ bool arFaroCalFilter::_processEvent( arInputEvent& inputEvent ) {
   if (inputEvent.getType() != AR_EVENT_MATRIX)
     return true;
 
-  arMatrix4 newMatrix = inputEvent.getMatrix();
+  arMatrix4 newMatrix(inputEvent.getMatrix());
   const unsigned eventIndex = inputEvent.getIndex();
   if (eventIndex == FARO_MATRIX_NUMBER) { // Apply faro coordinate transformation to faro tip.
     newMatrix = _faroCoordMatrix * newMatrix;
@@ -46,25 +46,6 @@ bool arFaroCalFilter::_processEvent( arInputEvent& inputEvent ) {
   }
   return inputEvent.setMatrix( newMatrix );
 }
-    
-//arStructuredData* arFaroCalFilter::filter(arStructuredData* d) {
-//  int count = ar_getNumberEvents(d);
-//  for (int i=0; i<count; i++) {
-//    if (ar_getEventType(i,d) == AR_EVENT_MATRIX) {
-//      arMatrix4 newMatrix = ar_getEventMatrixValue(i,d);
-//      if (ar_getEventIndex(i,d)==FARO_MATRIX_NUMBER) { // Apply faro coordinate transformation to faro tip.
-//        newMatrix = _faroCoordMatrix*newMatrix;
-//      } else {
-//        if (_useCalibration)
-//          _interpolate( newMatrix );
-//        if (ar_getEventIndex(i,d)==HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
-//          _doIIRFilter( newMatrix );
-//      }
-//      ar_replaceMatrixEvent(i,newMatrix,d);
-//    }
-//  }
-//  return d;
-//}
 
 bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   float floatBuf = 0.;
