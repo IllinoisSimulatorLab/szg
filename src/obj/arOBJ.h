@@ -29,7 +29,8 @@ class SZG_CALL arOBJMaterial {
     Ks(arVector3(0,0,0)),
     Ka(arVector3(.2,.2,.2)),
     map_Kd("none"),
-    map_Bump("none")
+    map_Bump("none"),
+    map_Opacity("none")
   { }
   float     illum;	// 0: no lighting || 1: ambient&diffuse || 2: all on
   float     Ns;		// specular power
@@ -39,6 +40,7 @@ class SZG_CALL arOBJMaterial {
   char	    name[65];	// name
   string    map_Kd;	// texture map for base color
   string    map_Bump;	// texture map for base color
+  string    map_Opacity;	// texture map for base color
 };
 
 // Wrapper for a single triangle.
@@ -178,6 +180,7 @@ class SZG_CALL arOBJRenderer {
     vector<arVector3> _vertices;
     vector<arMaterial> _materials; 
     vector<arTexture*> _textures;
+    vector<bool> _fOpacityMap;
     vector<arOBJGroupRenderer*> _renderGroups;
 };
 

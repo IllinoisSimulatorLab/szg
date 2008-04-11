@@ -245,9 +245,11 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     char mapName[256];
     fscanf(matFile,"%s %s",buffer,mapName);
     if (!strcmp(buffer,"ap_Kd")) {
-      ar_log_debug() << "OBJ texture image: " << (_material[_thisMaterial].map_Kd = string(mapName)) << ar_endl;
+      ar_log_debug() << "OBJ diffuse map: " << (_material[_thisMaterial].map_Kd = string(mapName)) << ar_endl;
     } else if (!strcmp(buffer,"ap_Bump")) {
-      ar_log_debug() << "OBJ texture image: " << (_material[_thisMaterial].map_Bump = string(mapName)) << ar_endl;
+      ar_log_debug() << "OBJ bump map: " << (_material[_thisMaterial].map_Bump = string(mapName)) << ar_endl;
+    } else if (!strcmp(buffer,"ap_opacity")) {
+      ar_log_debug() << "OBJ opacity map: " << (_material[_thisMaterial].map_Opacity = string(mapName)) << ar_endl;
     }
     break;
 

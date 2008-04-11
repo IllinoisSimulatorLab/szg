@@ -677,6 +677,7 @@ void arOBJGroupRenderer::draw() {
   vector<arMaterial>& materials = _renderer->_materials;
   const unsigned iMatMax = materials.size();
   vector<arTexture*>& textures = _renderer->_textures;
+  vector<bool>& fOpacityMap = _renderer->_fOpacityMap;
 
   for (unsigned matID = 0; matID < iMatMax; ++matID) {
     const unsigned numVertex = _numTriUsingMaterial[matID] * 3;
@@ -685,6 +686,10 @@ void arOBJGroupRenderer::draw() {
     }
 
     materials[matID].activateMaterial();
+    if (fOpacityMap[matID]) {
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    }
     if (textures[matID]) {
       textures[matID]->activate();
     }
@@ -696,21 +701,21 @@ void arOBJGroupRenderer::draw() {
     // Copypaste for performance - test texCoordsThisMat outside loop, not inside.
     if (texCoordsThisMat) {
       for (unsigned i=0; i<numVertex; ++i) {
-	glNormal3fv( normalsThisMat+3*i );
-	glTexCoord2fv( texCoordsThisMat+2*i );
-	const int iVertex = iVertices[i];
-	if (iVertex < iVertexMax) {
-	  glVertex3fv( vertices.begin()[iVertex].v );
-	}
+      glNormal3fv( normalsThisMat+3*i );
+      glTexCoord2fv( texCoordsThisMat+2*i );
+      const int iVertex = iVertices[i];
+      if (iVertex < iVertexMax) {
+        glVertex3fv( vertices.begin()[iVertex].v );
+        }
       }
     }
     else {
       for (unsigned i=0; i<numVertex; ++i) {
-	glNormal3fv( normalsThisMat+3*i );
-	const int iVertex = iVertices[i];
-	if (iVertex < iVertexMax) {
-	  glVertex3fv( vertices.begin()[iVertex].v );
-	}
+        glNormal3fv( normalsThisMat+3*i );
+        const int iVertex = iVertices[i];
+        if (iVertex < iVertexMax) {
+          glVertex3fv( vertices.begin()[iVertex].v );
+        }
       }
     }
 
@@ -874,10 +879,12 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   // Copy out the materials
   const unsigned numMaterials = theFile._material.size();
   _textures.insert( _textures.begin(), numMaterials, NULL );
+  _fOpacityMap.insert( _fOpacityMap.begin(), numMaterials, false );
   arTexture* tex;
   for (unsigned matID=0; matID<numMaterials; ++matID) {
-    ar_log_debug() << "arOBJRenderer::readOBJ() preparing material #" << matID << ar_endl;
     arOBJMaterial& thisMaterial = theFile._material[matID];
+    ar_log_debug() << "arOBJRenderer::readOBJ() preparing material #"
+                   << matID << " '" << thisMaterial.name << "'" << ar_endl;
     // copypaste -- look for "exporters" elsewhere in this source file
     // NOTE: some exporters will attach a "pure black" color to anything
     // with a texture. Since by default we use GL_MODULATE with textures,
@@ -897,19 +904,44 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     tmp.exponent = thisMaterial.Ns;
     _materials.push_back( tmp );
 
+    ar_log_debug() << "diffuse color map: " << thisMaterial.map_Kd << ar_endl;
     if (thisMaterial.map_Kd != "none") {
       tex = new arTexture();
       if (!tex) {
-        ar_log_warning() << "arOBJRenderer::readOBJ() failed to allocate arTexture object.\n";
+        ar_log_error() << "arOBJRenderer::readOBJ() failed to allocate arTexture object.\n";
         return false;
       }
-      if (!tex->readImage( thisMaterial.map_Kd, _subdirectory, _searchPath )) {
-        ar_log_warning() << "arOBJRenderer::readOBJ() failed to read texture file.\n";
+      bool alpha = thisMaterial.map_Opacity != "none";
+      if (!tex->readImage( thisMaterial.map_Kd, _subdirectory, _searchPath, alpha )) {
+        ar_log_error() << "arOBJRenderer::readOBJ() failed to read diffuse map "
+                       << thisMaterial.map_Kd << ar_endl;
         return false;
       }
       tex->setTextureFunc( GL_MODULATE );
       _textures[matID] = tex;
-      ar_log_remark() << "arOBJRenderer::readOBJ() read texture image " << thisMaterial.map_Kd << ar_endl;
+      ar_log_remark() << "arOBJRenderer::readOBJ() read diffuse map "
+                      << thisMaterial.map_Kd << ar_endl;
+    }
+    ar_log_debug() << "opacity map: " << thisMaterial.map_Opacity << ar_endl;
+    if (thisMaterial.map_Opacity != "none") {
+      arTexture* tex = _textures[matID];
+      if (!tex) {
+        tex = new arTexture();
+        if (!tex) {
+          ar_log_error() << "arOBJRenderer::readOBJ() failed to allocate arTexture object.\n";
+          return false;
+        }
+      }
+      if (!tex->readAlphaImage( thisMaterial.map_Opacity, _subdirectory, _searchPath )) {
+        ar_log_error() << "arOBJRenderer::readOBJ() failed to read opacity map "
+                       << thisMaterial.map_Opacity << ar_endl;
+        return false;
+      }
+      tex->setTextureFunc( GL_MODULATE );
+      _textures[matID] = tex;
+      _fOpacityMap[matID] = true;
+      ar_log_remark() << "arOBJRenderer::readOBJ() read opacity map " 
+                      << thisMaterial.map_Opacity << ar_endl;
     }
     ar_log_debug() << "arOBJRenderer::readOBJ() done preparing material #" << matID << ar_endl;
   }
@@ -976,6 +1008,7 @@ void arOBJRenderer::clear() {
   }
   _textures.clear();
   _materials.clear();
+  _fOpacityMap.clear();
 }
 
 
