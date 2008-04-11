@@ -18,6 +18,9 @@
 
 using namespace std;
 
+void SZG_CALL ar_setShareTexturesAmongContexts( bool onoff );
+bool SZG_CALL ar_getShareTexturesAmongContexts();
+
 // What should arTexture::_loadIntoOpenGL() do if texture
 // dimensions are not powers of 2? Default is to print
 // an error message and return. To get it to try anyway
@@ -92,7 +95,29 @@ class SZG_CALL arTexture {
   bool writeJPEG(const string& fileName, const string& subdirectory, 
                  const string& path);
   
+  bool readAlphaImage(const string& fileName, bool complain = true);
+  bool readAlphaImage(const string& fileName, const string& path, bool complain = true);
+  bool readAlphaImage(const string& fileName, 
+                 const string& subdirectory, 
+                 const string& path,
+                 bool complain = true);
+  bool readAlphaPPM(const string& fileName, bool complain = true);
+  bool readAlphaPPM(const string& fileName, const string& path,
+               bool complain = true);
+  bool readAlphaPPM(const string& fileName, 
+               const string& subdirectory, 
+               const string& path,
+               bool complain = true);
+  bool readAlphaJPEG(const string& fileName, bool complain = true);
+  bool readAlphaJPEG(const string& fileName, const string& path,
+                bool complain = true);
+  bool readAlphaJPEG(const string& fileName, 
+                const string& subdirectory, 
+                const string& path,
+                bool complain = true);
+  
   bool fill(int w, int h, bool alpha, const char* pixels);
+  bool fillColor(int w, int h, char r, char g, char b, int alpha=-1);
   bool flipHorizontal();
 
  protected:
@@ -111,6 +136,8 @@ class SZG_CALL arTexture {
   // The handles to the OpenGL textures are stored below (per calling graphics
   // context).
   map<ARint64, GLuint, less<ARint64> > _texNameMap;
+
+  GLuint _sharedTextureID;
 
   arIntAtom _refs;
 
