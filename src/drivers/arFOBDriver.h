@@ -83,7 +83,7 @@ class arFOBDriver: public arInputSource {
   arRS232Port    _comPort;
   unsigned       _comPortID;
   int            _numFlockUnits;
-  int            _transmitterID;
+  int            _addrTransmitter; // ;;;; rename to _addrTransmitter
   unsigned short _numBirds;
   const unsigned _dataSize;
   unsigned char* _dataBuffer;
@@ -100,6 +100,7 @@ class arFOBDriver: public arInputSource {
   };
   float _floatData[16];
   int   _sensorMap[_FOB_MAX_DEVICES+1];
+  int   _birdConfiguration[_FOB_MAX_DEVICES+1];
 };
 
 #endif
