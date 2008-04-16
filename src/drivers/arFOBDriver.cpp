@@ -226,14 +226,13 @@ LDefaultBaudRate:
       continue;
     }
 
-    // 0 bird		1 tx	2 birdtx	3 ert	4 ertbird
-    // t&3f==20		<=8	21..28		11..18	31..38
     const int u =
-      (t <= 0x08) ? 1 :
-      (t>=0x11 && t<=0x18) ? 3 :
-      (t==0x20) ? 0 :
-      (t>=0x21 && t<=0x28) ? 2 :
-      (t>=0x31 && t<=0x38) ? 4 : -1;
+      (t <= 0x08) ? 1 :			// tx
+      (t>=0x11 && t<=0x18) ? 3 :	// ert
+      (t==0x20) ? 0 :			// bird
+      (t>=0x21 && t<=0x28) ? 2 :	// tx and bird
+      (t>=0x31 && t<=0x38) ? 4 :	// ert and bird
+      -1;				// unexpected
     if (u >= 0) {
       _birdConfiguration[++_numFlockUnits] = u;
     }
