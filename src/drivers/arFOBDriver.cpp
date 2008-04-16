@@ -220,7 +220,8 @@ LDefaultBaudRate:
     const unsigned t = c[i] & 0x3f;
     if (t == 0) {
       if (c[i] != 0) {
-	ar_log_warning() << "arFOBDriver: flock unit reports fly or run, NOT bird or transmitter.  Fried unit?\n\n";
+	ar_log_warning() << "arFOBDriver: flock unit at address " << i+1 <<
+	  " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
       }
       continue;
     }
