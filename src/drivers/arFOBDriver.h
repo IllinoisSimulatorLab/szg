@@ -58,7 +58,9 @@ class arFOBDriver: public arInputSource {
   bool _setPositionScale( bool longRange, unsigned char addr = 0 );
   bool _getPositionScale( bool& longRange, unsigned char addr = 0 );
   bool _autoConfig();
-  bool _nextTransmitter(unsigned char addr);
+#ifdef UNUSED
+  bool _nextTransmitter(const unsigned char addr);
+#endif
   bool _sleep();
   bool _run();
   int _getFOBParam( const unsigned char paramNum,
@@ -69,7 +71,7 @@ class arFOBDriver: public arInputSource {
                      const unsigned char* buf,
                      const unsigned int numBytes,
                      unsigned char addr = 0 );
-  bool _sendBirdAddress( unsigned char birdAddess );
+  bool _sendBirdAddress( const unsigned char );
   bool _sendBirdCommand( const unsigned char* cdata, 
                          const unsigned int numBytes );
   bool _sendBirdByte(unsigned char c, bool fSleep = true);
@@ -77,13 +79,14 @@ class arFOBDriver: public arInputSource {
                     const unsigned int numBytes );
   bool _getSendNextFrame(const unsigned char addr);
   void _eventloop();
+  bool _isBird(const unsigned addr) const
+    { return _sensorMap[addr] >= 0; }
   
   arThread _eventThread;
   const unsigned _timeoutTenths;
   arRS232Port    _comPort;
   unsigned       _comPortID;
   int            _numFlockUnits;
-  int            _addrTransmitter; // ;;;; rename to _addrTransmitter
   unsigned short _numBirds;
   const unsigned _dataSize;
   unsigned char* _dataBuffer;
@@ -92,6 +95,7 @@ class arFOBDriver: public arInputSource {
   bool           _eventThreadRunning;
   bool           _stopped;
   bool           _extendedRange;
+  bool           _fStandalone; // exactly 1 unit, as opposed to "flock mode", more than 1 unit.
 
   enum {
     _FOB_MAX_DEVICES = 14,
@@ -100,7 +104,6 @@ class arFOBDriver: public arInputSource {
   };
   float _floatData[16];
   int   _sensorMap[_FOB_MAX_DEVICES+1];
-  int   _birdConfiguration[_FOB_MAX_DEVICES+1];
 };
 
 #endif

@@ -1,12 +1,3 @@
-/*
-todo: in here? or downstream?
-  TransmitterOffset 0.06 10.5 -4.8 feet
-# left side of crystaleyes glasses:
-  HeadSensorRotation 0 0 1 -90 
-  HeadSensorOffset 3.5 0 -2.5 inches
-  Wand... ditto.
-*/
-
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
@@ -156,12 +147,18 @@ LDefaultBaudRate:
     return false;
   }
 
-  // Configure the FoB.  (Does it need waking now?)
-
   {
     unsigned char b[2];
     if (_getFOBParam(1, b, 2, 0) != 2) {
       ar_log_warning() << "arFoBDriver: Flock unresponsive. Unplugged? Unpowered? Wrong SZG_FOB/baud_rate?\n";
+      return false;
+    }
+    if (b[0] > 20) {
+      // Don't laugh.  The version once was repeatedly "111.253" with the
+      // RS232 cable unplugged, picking up stray interference.
+      ar_log_warning() <<
+	"arFoBDriver: Preposterous FoB version " << int(b[0]) << "." << int(b[1]) <<
+	". RS232 unplugged? Wrong SZG_FOB/baud_rate?\n";
       return false;
     }
     ar_log_debug() << "FoB version " << int(b[0]) << "." << int(b[1]) << ".\n";
@@ -180,10 +177,12 @@ LDefaultBaudRate:
   // d1 = 80 | 40 | 10 | 01 = fly run extendedrange transmitter0
   // e0 = 80 | 40 | 20      = fly run bird
   // a0 = 80 | 20           = fly bird
+  _fStandalone = true;
   for (int i=0; i<14; ++i) {
     const unsigned t = c[i];
     if (t == 0)
       continue;
+    _fStandalone = false;
     // Need cerr, not ar_log_remark(), to see on szgd console screen (kam3).
     cerr << "  FoB addr " << i+1;
     if (t & 0x80)
@@ -204,37 +203,43 @@ LDefaultBaudRate:
       cerr << ", transmitter #0";
     cerr << ".\n";
   }
-
-  /*
-  Get the FoB's "description", a string of slash-delimited integers
-  of length equal to the number of FOB units.  Each unit is one of:
-    0: bird
-    1: transmitter
-    2: transmitter AND bird
-    3: extended range transmitter
-    4: extended range transmitter AND bird
-  */
-
   _numFlockUnits = 0;
-  for (int i=0; i<14; ++i) {
-    const unsigned t = c[i] & 0x3f;
-    if (t == 0) {
-      if (c[i] != 0) {
-	ar_log_warning() << "arFOBDriver: flock unit at address " << i+1 <<
-	  " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
+  int birdConfiguration[_FOB_MAX_DEVICES+1];
+  if (_fStandalone) {
+    // Found no units with nonzero addresses.
+    // The only sensible configuration is 1 bird and 1 non-ERT transmitter.
+    _numBirds = 0; // unused if _fStandalone
+    _extendedRange = false;
+  }
+  else {
+    for (int i=0; i<14; ++i) {
+      const unsigned t = c[i] & 0x3f;
+      if (t == 0) {
+	if (c[i] != 0) {
+	  ar_log_warning() << "arFOBDriver: flock unit at address " << i+1 <<
+	    " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
+	}
+	continue;
       }
-      continue;
-    }
 
-    const int u =
-      (t <= 0x08) ? 1 :			// tx
-      (t>=0x11 && t<=0x18) ? 3 :	// ert
-      (t==0x20) ? 0 :			// bird
-      (t>=0x21 && t<=0x28) ? 2 :	// tx and bird
-      (t>=0x31 && t<=0x38) ? 4 :	// ert and bird
-      -1;				// unexpected
-    if (u >= 0) {
-      _birdConfiguration[++_numFlockUnits] = u;
+      /*
+      Each FoB unit in birdConfiguration[] is one of:
+	0: bird
+	1: transmitter
+	2: transmitter AND bird
+	3: extended range transmitter
+	4: extended range transmitter AND bird
+      */
+      const int u =
+	(t <= 0x08) ? 1 :			// tx
+	(t>=0x11 && t<=0x18) ? 3 :	// ert
+	(t==0x20) ? 0 :			// bird
+	(t>=0x21 && t<=0x28) ? 2 :	// tx and bird
+	(t>=0x31 && t<=0x38) ? 4 :	// ert and bird
+	-1;				// nothing
+      if (u >= 0) {
+	birdConfiguration[++_numFlockUnits] = u;
+      }
     }
   }
   ar_log_debug() << "arFOBDriver examined flock status.\n";
@@ -243,78 +248,67 @@ LDefaultBaudRate:
   /*
   Configure.  _sensorMap, indexed by flock addr,
   indicates Syzygy ID, or -1 for no sensor.
-  Example: _birdConfiguration = {0,1,0,0} produces
-    _sensorMap[1] = 0;
-    _sensorMap[2] = -1;
-    _sensorMap[3] = 1;
-    _sensorMap[4] = 2;
+  Example: birdConfiguration = {0,1,0,0} produces
+    _sensorMap[1..4] = {0, -1, 1, 2}
   */
 
-  _numBirds = 0;
-  _addrTransmitter = 0;
-  _extendedRange = false;
-  // flock addresses start at 1
-  for (int addr=1; addr<=_numFlockUnits; ++addr){
-    switch (_birdConfiguration[addr]) {
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-      if (_addrTransmitter>0){
-        // The configuration already included a transmitter.
-	ar_log_warning() << "arFOBDriver: more than one transmitter.\n";
+  if (!_fStandalone) {
+    _numBirds = 0;
+    _extendedRange = false;
+    int addrTransmitter = 0;
+    // Flock addresses start at 1 (the unique standalone address is 0).
+    for (int addr=1; addr<=_numFlockUnits; ++addr){
+      const int config = birdConfiguration[addr];
+      switch (config) {
+      default:
+	ar_log_warning() << "arFOBDriver: internal error.\n";
 	return false;
+      case 0:
+	break;
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+	if (addrTransmitter > 0){
+	  ar_log_warning() << "arFOBDriver: flock has multiple transmitters.\n";
+	  return false;
+	}
+	addrTransmitter = addr;
+	_extendedRange = config >= 3;
+	break;
       }
+      _sensorMap[addr] = config%2==0 ? _numBirds++ : -1;
     }
-    switch (_birdConfiguration[addr]) {
-    default:
-      ar_log_warning() << "arFOBDriver: illegal configuration value.\n";
-      return false;
-    case 0: // Bird
-      _sensorMap[addr] = _numBirds++;
-      break;
-    case 1: // Transmitter
-      _sensorMap[addr] = -1;
-      _addrTransmitter = addr;
-      break;
-    case 2: // Transmitter and bird
-      _sensorMap[addr] = _numBirds++;
-      _addrTransmitter = addr;
-      break;
-    case 3: // Extended range transmitter
-      _sensorMap[addr] = -1;
-      _addrTransmitter = addr;
-      _extendedRange = true;
-      break;
-    case 4: // Extended range transmitter and bird
-      _sensorMap[addr] = _numBirds++;
-      _addrTransmitter = addr;
-      _extendedRange = true;
-      break;
-    }
-  }
-  if (_addrTransmitter == 0){
-    ar_log_warning() << "arFOBDriver: flock has no transmitter.\n";
-    return false;
-  }
 
-  ar_log_remark() << "arFOBDriver found " <<
-    (_extendedRange ? "ERT" : "transmitter") << " at addr " << _addrTransmitter <<
-    ", and " << _numBirds << " birds.\n";
-    
+    if (addrTransmitter == 0){
+      ar_log_warning() << "arFOBDriver: flock has no transmitter.\n";
+      return false;
+    }
+
+    if (addrTransmitter != 1) {
+      ar_log_warning() <<
+	"arFOBDriver's autoconfig requires transmitter to have address 1, not " <<
+	addrTransmitter << ".\n";
+      return false;
+    }
+
+    ar_log_remark() << "arFOBDriver found " <<
+      (_extendedRange ? "ERT" : "transmitter") << " at addr " << addrTransmitter <<
+      ", and " << _numBirds << " birds.\n";
+  } 
 
   // Report one matrix per bird.
-  _setDeviceElements( 0, 0, _numBirds );
+  _setDeviceElements( 0, 0, _fStandalone ? 1 : _numBirds );
 
-  if (_numBirds == 0) {
+  // Set each bird's data mode.
+  if (_fStandalone) {
     if (!_setDataMode(0)){
-      ar_log_warning() << "arFOBDriver failed to set data mode.\n";
+      ar_log_warning() << "arFOBDriver failed to set data mode, standalone.\n";
       return false;
     }
   } else {
-    // Set all birds' data mode.
     for (int addr=1; addr<=_numFlockUnits; ++addr){
-      if (_sensorMap[addr] >= 0 && !_setDataMode(addr)) {
+      if (_isBird(addr) && !_setDataMode(addr)) {
 	ar_log_warning() << "arFOBDriver failed to set data mode of bird at addr " << addr << ".\n";
 	return false;
       }
@@ -339,28 +333,23 @@ LDefaultBaudRate:
   // Set each bird's hemisphere.
   const string hemisphere(SZGClient.getAttribute("SZG_FOB","hemisphere"));
   if (hemisphere == "NULL") {
-    ar_log_warning() << "arFOBDriver: SZG_FOB/hemisphere undefined.\n";
+    ar_log_warning() << "arFOBDriver: no SZG_FOB/hemisphere.\n";
     return false;
   }
 
-  if (_numBirds == 0) {
+  if (_fStandalone) {
     if (!_setHemisphere(hemisphere, 0)) {
-      ar_log_warning() << "arFOBDriver failed to set hemisphere.\n";
+      ar_log_warning() << "arFOBDriver failed to set hemisphere, standalone.\n";
       return false;
     }
   } else {
     for (int addr=1; addr<=_numFlockUnits; ++addr) {
-      if (_sensorMap[addr] >= 0 && !_setHemisphere(hemisphere, addr)) {
-        if (!_setHemisphere(hemisphere, addr)) {
-	  ar_log_warning() << "arFOBDriver failed to set hemisphere.\n";
-	  return false;
-	}
+      if (_isBird(addr) && !_setHemisphere(hemisphere, addr)) {
+	ar_log_warning() << "arFOBDriver failed to set hemisphere of bird at addr " << addr << ".\n";
+	return false;
       }
     }
-  }
-
 #ifdef AR_USE_LINUX
-  {
     // Timing tweak.
     string foo;
     (void)_getDataMode(foo, 1);
@@ -369,24 +358,13 @@ LDefaultBaudRate:
     ar_usleep(200000);
     (void)_getDataMode(foo, 3);
     ar_usleep(200000);
-  }
 #endif
-
-  if (_addrTransmitter != 1) {
-    if (_numBirds > 1) {
-      ar_log_warning() <<
-	"arFOBDriver's autoconfig requires transmitter to have address 1, not " <<
-	_addrTransmitter << ".\n";
-      return false;
-    }
-    // Change transmitter from the default.
-    _nextTransmitter(_addrTransmitter);
   }
 
   // ERT _getPositionScale() may return 36 which is wrong.  Hardcode it instead.
   if (_extendedRange) {
-    _positionScale = 12/32768.0; // Convert to feet.
-    ar_log_debug() << "arFOBDriver: ERT rescaled FOB to 12 feet.\n";
+    _positionScale = 12./32768.; // Convert to feet.
+    ar_log_debug() << "arFOBDriver: ERT brute-force rescaled FOB.\n";
   }
   else {
     bool longRange = false;
@@ -396,32 +374,28 @@ LDefaultBaudRate:
       (longRange ? 72 : 36) << " inches.\n";
   }
 
-  // Create a buffer for reading in data.
-  // Two bytes per number.
-  // (NYI: plus a bird address if there's more than one bird and in group mode).
+  // Buffer for data from flock.
+  // Two bytes per number.  (NYI: plus a bird addr, if >1 bird and in group mode).
   const unsigned bytesPerBird = 2*_dataSize;
   _dataBuffer = new unsigned char[bytesPerBird /* if in group mode: *_numBirds */ ];
 
-  // Iff "in flock mode" (more than one unit),
-  // send an auto_config command to get the data moving.
-  if (_numBirds > 1){
-    if (!_autoConfig()) {
-      ar_log_warning() << "arFOBDriver failed to autoconfigure.\n";
+  if (_fStandalone) {
+    // Wake up the unit.
+    if (!_run()){
+      ar_log_warning() << "arFOBDriver standalone failed to run.\n";
       return false;
     }
-    ar_log_debug() << "arFOBDriver autoconfigured.\n";
+    ar_log_debug() << "arFOBDriver running standalone.\n";
   }
   else{
-    // The run command might do nothing to a flock,
-    // but it wakes up a standalone unit.
-    ar_log_debug() << "arFOBDriver run.\n";
-    if (!_run()){
-      ar_log_warning() << "arFOBDriver failed to run.\n";
+    // Get the data moving.
+    if (!_autoConfig()) {
+      ar_log_warning() << "arFOBDriver failed to autoconfigure flock.\n";
       return false;
     }
+    ar_log_debug() << "arFOBDriver flock autoconfigured.\n";
+    // Every FoB unit's light should be lit solid (unblinking).
   }
-
-  // Flock configured. All the FoB's lights should be on solid.
 
 #if 1
   {
@@ -453,8 +427,7 @@ void arFOBDriver::_eventloop(){
     // Reverse loop, so arInputEventQueue's signature
     // is updated all at once, not one matrix at a time.
     for (int addr=_numFlockUnits; addr>=1; --addr){
-      if (_sensorMap[addr] < 0) {
-	// This addr has no bird, merely a transmitter.
+      if (!_isBird(addr)) {
         continue;
       }
       // ar_log_debug() << "arFOBDriver polling bird at addr " << addr << " of " << _numFlockUnits << ".\n";
@@ -716,26 +689,28 @@ bool arFOBDriver::_autoConfig() {
   return ok;
 }
 
-bool arFOBDriver::_nextTransmitter(unsigned char addr){
+#ifdef UNUSED
+bool arFOBDriver::_nextTransmitter(const unsigned char addr){
   // The address of the transmitter unit goes in the most significant
-  // half of the byte. The transmitter number goes in the lower
-  // half. We are assuming that this is 0.
+  // half of the byte. The transmitter number goes in the lower half.
   const unsigned char cdata[] = {'0', (addr << 4) };
   const bool ok = _sendBirdCommand(cdata, 2);
   ar_usleep( 1000000 );  
   return ok;
 }
+#endif
 
-bool arFOBDriver::_sendBirdAddress( unsigned char addr ) {
-  if (addr <= 1) {
-    // 0 means no bird or the unique bird.
-    // 1 means the first (and only) bird, when sent to _getSendNextFrame().
+bool arFOBDriver::_sendBirdAddress( const unsigned char addr ) {
+  if (_stopped)
+    return false;
+  if (_fStandalone) {
+    if (addr != 0)
+      ar_log_warning() << "arFOBDriver standalone ignoring nonzero address " << int(addr) << ".\n";
     return true;
   }
-  if (_stopped)
-      return false;
-  if (_numBirds <= 1) {
-    ar_log_warning() << "arFOBDriver expected more than one bird.\n";
+  if (addr <= 1) {
+    // 0 means birdless flock (?!).
+    // 1 means the first (and only) bird, when sent to _getSendNextFrame().
     return true;
   }
   const unsigned char cdata = 0xF0 | addr;
@@ -882,29 +857,20 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
     T1 * R3 * (M * T * R2 * !M * !N)
   
   This does not account for sensor translation offset.
-
-  The 180 degree rotation about y accounts for the fact that
-  the bird's neutral position is flat surface down and tail forward,
-  while Syzygy assumes flat surface down and tail back.
   */
 
-  queueMatrix(_sensorMap[addr],
-    translationMatrix *
-    !rotMatrix 
-//  ar_rotationMatrix('y', M_PI)
-    );
-
+  queueMatrix(_sensorMap[addr], translationMatrix * !rotMatrix);
   return true;
 }
 
 #if 0
-// KEEP THIS EXAMPLE UNTIL WE FULLY HANDLE GROUP MODE.
+// KEEP THIS EXAMPLE UNTIL WE IMPLEMENT GROUP MODE.
 bool arFOBDriver::_getSendNextFrame() {
   if (!_configured) {
     ar_log_warning() << "arFOBDriver tried to get data before init.\n";
     return false;
   }
-  const unsigned bytesPerBird = 2*_dataSize + (_numBirds>1 ? 1 : 0);
+  const unsigned bytesPerBird = 2*_dataSize + (_fStandalone ? 0 : 1);
   int numBytes = bytesPerBird;
   int bytesRead = -1;
   int i = 0;
