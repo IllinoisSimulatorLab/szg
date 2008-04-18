@@ -45,6 +45,7 @@ OBJS_DRIVER := \
   arSharedMemSinkDriver$(OBJ_SUFFIX) \
   arUSBDriver$(OBJ_SUFFIX) \
   arVRPNDriver$(OBJ_SUFFIX) \
+  arWiimoteDriver$(OBJ_SUFFIX) \
   \
   arConstantHeadFilter$(OBJ_SUFFIX) \
   arFaroCalFilter$(OBJ_SUFFIX) \
@@ -261,6 +262,13 @@ arSpacepadDriver$(PLUGIN_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DL
 
 # Shared objects using things beyond Syzygy's core.
 # Darwin needs LINK_FLAGS_PLUGIN.
+
+arWiimoteDriver$(OBJ_SUFFIX): arWiimoteDriver.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIIUSE)
+
+arWiimoteDriver$(PLUGIN_SUFFIX): arWiimoteDriver$(OBJ_SUFFIX) $(OBJ_WIIUSE) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arWiimoteDriver$(OBJ_SUFFIX) $(OBJ_WIIUSE) $(POST_LINK_LINE_EXE)
+	$(COPY)
 
 ar5DTGloveDriver$(OBJ_SUFFIX): ar5DTGloveDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_5DT)
