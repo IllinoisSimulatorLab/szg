@@ -179,8 +179,7 @@ bool arSyncDataServer::setMode(int theMode){
   if (theMode != AR_SYNC_AUTO_SERVER &&
       theMode != AR_SYNC_MANUAL_SERVER &&
       theMode != AR_NOSYNC_MANUAL_SERVER){
-    ar_log_error() << "arDataSyncServer error: invalid operating mode "
-                   << theMode << ".\n";
+    ar_log_error() << "arDataSyncServer: invalid operating mode " << theMode << ".\n";
     return false;
   }
   _mode = theMode;
@@ -192,7 +191,7 @@ bool arSyncDataServer::setMode(int theMode){
 // respectively). 
 bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary){
   if (!dictionary) {
-    ar_log_error() << "arSyncDataServer error: NULL dictionary.\n";
+    ar_log_error() << "arSyncDataServer: NULL dictionary.\n";
     return false;
   }
   _dictionary = dictionary;

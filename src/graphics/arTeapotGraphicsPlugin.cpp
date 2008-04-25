@@ -15,7 +15,7 @@ class arTeapotGraphicsPlugin: public arGraphicsPlugin {
     arTeapotGraphicsPlugin() {}
     virtual ~arTeapotGraphicsPlugin() {}
 
-    // Draw the object.  Restore any OpenGL state that was messed with.
+    // Draw the object.  Restore any modified OpenGL state.
     virtual void draw( arGraphicsWindow& win, arViewport& view );
     
     // Update the object's state based on changes to the database made
@@ -46,7 +46,7 @@ extern "C" {
 
 void arTeapotGraphicsPlugin::draw( arGraphicsWindow&, arViewport& ) {
   glPushAttrib( GL_CURRENT_BIT | GL_ENABLE_BIT );
-    // Currently texturing is enabled when draw() is called. It shouldn't be.
+    // Texturing should be disabled during draw().
     glDisable( GL_TEXTURE_2D );
 
     glColor4fv( _color );
@@ -59,14 +59,15 @@ bool arTeapotGraphicsPlugin::setState( std::vector<int>& /*intData*/,
                                        std::vector<float>& floatData,
                                        std::vector<double>& /*doubleData*/,
                                        std::vector< std::string >& /*stringData*/ ) {
-  if ((floatData.size() < 3)&&(floatData.size() > 4)) {
-    ar_log_error() << "arTeapotGraphicsPlugin setState() expected 3 or 4 floats, but got "
+  const unsigned numFloats = floatData.size();
+  if (numFloats != 3 && numFloats != 4) {
+    ar_log_error() << "arTeapotGraphicsPlugin setState() expected 3 or 4 floats, not "
       << floatData.size() << ".\n";
     return false;
   }
 
   std::copy( floatData.begin(), floatData.end(), _color );
-  if (floatData.size() == 4) {
+  if (numFloats == 4) {
     _color[3] = 1.;
   }
   return true;

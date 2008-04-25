@@ -127,7 +127,7 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
   // A dynamically loaded library.
   arSharedLib* inputSourceSharedLib = new arSharedLib();
   if (!inputSourceSharedLib) {
-    ar_log_error() << "Failed to allocate inputSourceSharedLib memory.\n";
+    ar_log_error() << "arInputFactory::getInputSource out of memory.\n";
     return NULL;
   }
   string error;
@@ -385,7 +385,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
     // Add an implicit net input source.
     arNetInputSource* implicitNetInputSource = new arNetInputSource();
     if (!implicitNetInputSource) {
-      ar_log_error() << "Failed to allocate implicitNetInputSource memory.\n";
+      ar_log_error() << "arInputFactory::loadInputSources out of memory.\n";
       return false;
     }
     if (!implicitNetInputSource->setSlot( slotNumber )) {
@@ -427,7 +427,7 @@ bool arInputFactory::loadInputSinks( arInputNode& inputNode ) {
   for (iter = inputSinks.begin(); iter != inputSinks.end(); ++iter) {
     arInputSink* theSink = getInputSink( *iter );
     if (!theSink) {
-      ar_log_error() << "arInputFactory failed to create input sink.\n";
+      ar_log_error() << "arInputFactory::loadInputSinks out of memory.\n";
       return false;
     }
     ar_log_debug() << "arInputFactory created input sink '" << *iter << "'.\n";
@@ -442,7 +442,7 @@ bool arInputFactory::loadFilters( arInputNode& inputNode, const string& namedPFo
   // First add a filter from the config file.
   arPForthFilter* firstFilter = new arPForthFilter();
   if (!firstFilter) {
-    ar_log_error() << "Failed to allocate firstFilter memory.\n";
+    ar_log_error() << "arInputFactory::loadFilters out of memory.\n";
     return false;
   }
   ar_PForthSetSZGClient( _szgClientPtr );
@@ -454,8 +454,8 @@ bool arInputFactory::loadFilters( arInputNode& inputNode, const string& namedPFo
   // Use a filter from the command line, if such was specified.
     string PForthProgram = _szgClientPtr->getGlobalAttribute( namedPForthProgram );
     if (PForthProgram == "NULL") {
-      ar_log_error() << "arInputFactory: no global PForth program parameter named "
-                     << namedPForthProgram << ".\n";
+      ar_log_error() << "arInputFactory: no global PForth program parameter '"
+                     << namedPForthProgram << "'.\n";
       return false;
     }
     if (!firstFilter->loadProgram( PForthProgram )) {
@@ -464,7 +464,7 @@ bool arInputFactory::loadFilters( arInputNode& inputNode, const string& namedPFo
   }
   inputNode.addFilter( firstFilter, true );
 
-  // Add the various optional filters...
+  // Add the various optional filters.
   vector<string>::iterator iter;
   vector<string>& inputFilters = _inputConfig.inputFilters;
   for (iter = inputFilters.begin(); iter != inputFilters.end(); ++iter) {

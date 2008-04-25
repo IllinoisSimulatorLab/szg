@@ -18,18 +18,18 @@ int main( int argc, char** argv ) {
 
   arPForth pforth;
   if (!pforth) {
-    ar_log_error() << "pfconsole failed to initialize PForth.\n";
+    ar_log_critical() << "failed to init PForth.\n";
     return 1;
   }
 
   if (!ar_PForthAddDatabaseVocabulary( &pforth )) {
-    ar_log_error() << "pfconsole failed to add database vocabulary.\n";
+    ar_log_critical() << "failed to init database.\n";
     return 1;
   }
 
   ar_PForthSetSZGClient( &szgClient );
   string program;
-  for (;;) {
+  while (true) {
     cout << "OK ";
     getline( cin, program );
     if (program == "quit")

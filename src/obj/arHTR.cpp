@@ -97,9 +97,10 @@ bool arHTR::attachMesh(arGraphicsNode* parent,
                        const string& objectName,  
                        bool withLines){
   if (_invalidFile){
-    ar_log_error() << "arHTR cannot attach mesh: No valid file!\n";
+    ar_log_error() << "arHTR cannot attach mesh: No valid file.\n";
     return false;
   }
+
   const string transformModifier(".transform");
   unsigned int i = 0;
   htrBasePosition* rootBasePosition = NULL;

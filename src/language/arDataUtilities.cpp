@@ -66,7 +66,7 @@ bool ar_winSockInit(){
   case 0:
     return true;
   case WSASYSNOTREADY:
-    ar_log_error() << "initializing network: network not ready.\n";
+    ar_log_error() << "initializing network: not ready.\n";
     break;
   case WSAVERNOTSUPPORTED:
     ar_log_error() << "initializing network: wrong winsock version, expected 2.0.\n";
@@ -83,7 +83,6 @@ bool ar_winSockInit(){
     break;
     }
   return false;
-
 }
 
 #else
@@ -1413,15 +1412,16 @@ char* ar_packStringVector( std::vector< std::string >& stringVec, unsigned int& 
   }
   char* outbuf = new char[totalSize];
   if (!outbuf) {
-    ar_log_error() << "ar_packStringVector() failed to allocate char buffer.\n";
+    ar_log_error() << "ar_packStringVector() out of memory.\n";
     return NULL;
   }
+
   char* ptr = outbuf;
   for (iter=stringVec.begin(); iter != stringVec.end(); ++iter) {
-    unsigned int strSize = iter->size();
+    const unsigned strSize = iter->size();
     memcpy( ptr, iter->c_str(), strSize );
-    *(ptr+strSize) = '\0';
-    ptr += strSize+1;
+    ptr[strSize] = '\0';
+    ptr += strSize + 1;
   }
   return outbuf;
 }

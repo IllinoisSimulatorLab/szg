@@ -104,7 +104,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc > 3) {
-    ar_log_error() << "usage: inputsimulator [slot [-netinput]]\n";
+    ar_log_critical() << "usage: inputsimulator [slot [-netinput]]\n";
 LAbort:
     (void)szgClient.sendInitResponse(false);
     return 1;
@@ -112,14 +112,14 @@ LAbort:
 
   pszgClient = &szgClient;
   const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
-  ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
+  ar_log_remark() << "using slot " << slot << ".\n";
 
   // "netinput" doesn't mean input.  It means "output on the next slot."  I think.
   const bool fNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
 
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slot)) {
-    ar_log_error() << "inputsimulator failed to set slot " << slot << ".\n";
+    ar_log_critical() << "failed to set slot " << slot << ".\n";
     goto LAbort;
   }
 
@@ -128,20 +128,19 @@ LAbort:
 
   const string pforthProgramName = szgClient.getAttribute("SZG_PFORTH", "program_names");
   if (pforthProgramName == "NULL"){
-    ar_log_remark() << "inputsimulator: no pforth program for standalone joystick.\n";
+    ar_log_remark() << "no pforth program for standalone joystick.\n";
   }
   else{
     const string pforthProgram = szgClient.getGlobalAttribute(pforthProgramName);
     if (pforthProgram == "NULL"){
-      ar_log_remark() << "inputsimulator: no pforth program for '" <<
-	   pforthProgramName << "'\n";
+      ar_log_remark() << "no pforth program for '" << pforthProgramName << "'\n";
     }
     else{
       arPForthFilter* filter = new arPForthFilter();
       ar_PForthSetSZGClient( &szgClient );
       if (!filter->loadProgram( pforthProgram )){
-        ar_log_error() << "inputsimulator failed to configure pforth filter with program '"
-	     << pforthProgram << "'.\n";
+        ar_log_critical() << "failed to configure pforth filter with program '" <<
+	  pforthProgram << "'.\n";
 	goto LAbort;
       }
       // The input node is not responsible for clean-up
@@ -159,12 +158,12 @@ LAbort:
   if (fNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slot+1)) {
-      ar_log_error() << "inputsimulator failed to set slot " << slot+1 << " for netinput.\n";
+      ar_log_critical() << "failed to set slot " << slot+1 << " for netinput.\n";
       goto LAbort;
     }
 
     inputNode.addInputSource(netSource, true);
-    ar_log_remark() << "inputsimulator using net input, slot " << slot+1 << ".\n";
+    ar_log_remark() << "using net input, slot " << slot+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
   inputNode.addInputSink(&netInputSink,false);

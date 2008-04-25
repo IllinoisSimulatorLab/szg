@@ -1208,11 +1208,13 @@ bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
     ar_log_error() << "sendMasterMessage() got no master process ID.\n";
     return false;
   }
+
   const int iResponseMatch = _SZGClient.sendMessage( "user", messageBody, processID, false );
   if (iResponseMatch == -1) {
     ar_log_error() << "sendMasterMessage() failed to send message.\n";
     return false;
   }
+
   return true;
 }
 

@@ -41,7 +41,7 @@ bool arGraphicsServer::_connectionCallback(list<arSocket*>* socketList) {
        iSocket != socketList->end();
        ++iSocket){
     if (!dataServer->sendDataQueue(_connectionQueue,*iSocket)){
-      ar_log_error() << "arGraphicsServer warning: connection send failed.\n";
+      ar_log_error() << "arGraphicsServer failed to send connection.\n";
       ok = false;
     }
   }
@@ -59,7 +59,6 @@ arGraphicsServer::arGraphicsServer() :
   _connectionQueue(new arQueuedData())
 {
   _server = true; // arDatabase::_server
-
   (void)_syncServer.setDictionary(_gfx.getDictionary());
   _syncServer.setBondedObject(this);
   _syncServer.setMessageCallback(ar_graphicsServerMessageCallback);

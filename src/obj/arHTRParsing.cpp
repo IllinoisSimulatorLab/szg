@@ -57,7 +57,7 @@ bool arHTR::readHTR(const string& fileName, const string& subdirectory, const st
 // @param htrFileHandle HTR file to read in
 bool arHTR::readHTR(FILE* htrFileHandle){
   if (!htrFileHandle){
-    ar_log_error() << "arHTR error: received invalid file pointer.\n";
+    ar_log_error() << "arHTR: invalid file pointer.\n";
     return setInvalid();
   }
 
@@ -86,14 +86,14 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
 
   while (!found && value){
     value = fgets(buffer, MAXLINE, theFile);
-    // skip if comment or newline
     if (buffer[0] == '\n' || buffer[0] == '#')
+      // Skip comment or newline.
       found = false;
     else if (value)
       found = true;
   }
   if (!found){
-    ar_log_error() << "arHTR error: premature end of file.\n";
+    ar_log_error() << "arHTR: premature end of file.\n";
     return false;
   }
 
@@ -104,9 +104,8 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
     theResult[numTokens++] = strtok(NULL, " \t\n\r");
   }
   if (--numTokens < desiredTokens){
-    ar_log_error() << "arHTR error: invalid or missing \"" << errorString << "\" parameter.\n"
-                   << "       -Found \"" <<  string(theResult[0])
-	           << "\" in line: " << buffer << ar_endl;
+    ar_log_error() << "arHTR: invalid or missing parameter '" << errorString <<
+      "'.\n  Found '" <<  string(theResult[0]) << "' in line '" << buffer << "'.\n";
     return false;
   }
 
@@ -123,7 +122,7 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
       found = true;
   }
   if (!found){
-    ar_log_error() << "arHTR error: 'Header' not found.\n";
+    ar_log_error() << "arHTR: no [Header].\n";
     return false;
   }
 
@@ -170,7 +169,7 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
   else if (eRO=="ZYX")
     eulerRotationOrder = AR_ZYX;
   else
-    ar_log_error() << "Invalid rotation order: " << token[1] << "\n";
+    ar_log_error() << "arHTR: unexpected rotation order '" << token[1] << "'\n";
 
   if (!parseLine(htrFileHandle, token, textLine, 2, "calibrationUnits"))
     return false;
@@ -212,7 +211,7 @@ bool arHTR::parseHierarchy(FILE *htrFileHandle){
       found = true;
   }
   if (!found){
-    ar_log_error() << "arHTR error: 'SegmentNames&Hierarchy' not found.\n";
+    ar_log_error() << "arHTR: no [SegmentNames&Hierarchy].\n";
     return false;
   }
 
@@ -245,7 +244,7 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
       found = true;
   }
   if (!found){
-    ar_log_error() << "arHTR error: 'BasePosition' not found.\n";
+    ar_log_error() << "arHTR: no [BasePosition].\n";
     return false;
   }
 
@@ -275,21 +274,21 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   char *token[MAXTOKENS] = {0};
   htrSegmentData *newSegmentData = NULL;
   htrFrame *newFrame = NULL;
-  for (int i=0; i<numSegments; i++){
+  for (int i=0; i<numSegments; ++i){
     newSegmentData = new htrSegmentData;
+    // todo: test for out of memory
     bool found = false;
     value = (char *)1;
     while (!found && value){
       value = fgets(textLine, MAXLINE, htrFileHandle);
-      // skip if comment or newline
       if (textLine[0] == '\n' || textLine[0] == '#')
+	// Skip comment or newline.
         found = false;
-      else
-        if (value)
-          found = true;
+      else if (value)
+	found = true;
     }
     if (!found){
-      ar_log_error() << "arHTR error: premature end of file.\n";
+      ar_log_error() << "arHTR: premature end of file.\n";
       return false;
     }
 
@@ -440,13 +439,11 @@ bool arHTR::precomputeData(void){
 bool arHTR::writeToFile(const string& fileName){
   FILE *htrFile = fopen(fileName.c_str(), "w");
   if (!htrFile){
-    ar_log_error() << "arHTR error: failed to write to file \""
-                   << fileName << "\".\n";
+    ar_log_error() << "arHTR failed to write to file '" << fileName << "'.\n";
     return false;
   }
 
-  fprintf(htrFile, "#Created by syzygy HTR component\n#Written by mflider\n");
-  fprintf(htrFile, "[Header]\n");
+  fprintf(htrFile, "# Created by Syzygy HTR component.\n[Header]\n");
   fprintf(htrFile, "FileType %s\n", fileType);
   fprintf(htrFile, "DataType %s\n", dataType);
   fprintf(htrFile, "FileVersion %i\n", fileVersion);
@@ -462,15 +459,13 @@ bool arHTR::writeToFile(const string& fileName){
   fprintf(htrFile, "BoneLengthAxis %c\n", boneLengthAxis);
   fprintf(htrFile, "ScaleFactor %f\n", scaleFactor);
 
-  fprintf(htrFile, "\n[SegmentNames&Hierarchy]\n");
-  fprintf(htrFile, "#CHILD\tPARENT\n");
-  unsigned int i;
+  fprintf(htrFile, "\n[SegmentNames&Hierarchy]\n#CHILD\tPARENT\n");
+  unsigned i;
   for (i=0; i<childParent.size(); i++){
     fprintf(htrFile, "%s\t%s\n", childParent[i]->child, childParent[i]->parent);
   }
 
-  fprintf(htrFile, "\n[BasePosition]\n");
-  fprintf(htrFile, "#SegmentName\tTx\tTy\tTx\tRx\tRy\tRz\tBoneLength\n");
+  fprintf(htrFile, "\n[BasePosition]\n#SegmentName\tTx\tTy\tTx\tRx\tRy\tRz\tBoneLength\n");
   for (i=0; i<basePosition.size(); i++)
     fprintf(htrFile, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", basePosition[i]->name,
             basePosition[i]->Tx, basePosition[i]->Ty, basePosition[i]->Tz,
@@ -494,4 +489,3 @@ bool arHTR::writeToFile(const string& fileName){
   fclose(htrFile);
   return true;
 }
-

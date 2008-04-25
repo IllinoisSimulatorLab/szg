@@ -253,6 +253,7 @@ bool arGraphicsClient::updateHead() {
     ar_log_error() << "arGraphicsClient: no head to update.\n";
     return false;
   }
+
   _defaultHead = *head;
   return true;
 }

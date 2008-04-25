@@ -89,7 +89,7 @@ arTexture::arTexture( const arTexture& rhs ) :
 
   _pixels = new char[ numbytes() ];
   if (!_pixels) {
-    ar_log_error() << "arTexture out of memory in copy constructor.\n";
+    ar_log_error() << "arTexture copy constructor out of memory.\n";
     return;
   }
   memcpy(_pixels, rhs._pixels, numbytes());
@@ -133,11 +133,10 @@ arTexture::arTexture( const arTexture& rhs,
   _sharedTextureID(0),
   _refs(1)
 {
-  // Note how this texture has exactly one reference (this is what makes
+  // This texture has exactly one reference (this is what makes
   // sense for copy constructors). (see above)
 
-  // We must set the "dirty" flag so that this texture will be loaded into
-  // OpenGL on the next try.
+  // Load this texture into OpenGL on the next try.
   _fDirty = true;
 
   // Get a new chunk of memory.
@@ -229,8 +228,9 @@ bool arTexture::dummy() {
     ar_log_error() << "arTexture _reallocPixels() failed in dummy().\n";
     return false;
   }
+  const int depth = getDepth();
   for (int i = _height*_width - 1; i>=0; --i) {
-    char* pPixel = &_pixels[i * getDepth()];
+    char* pPixel = _pixels + i*depth;
     // Solid blue.
     pPixel[0] = 0;
     pPixel[1] = 0;
@@ -239,39 +239,38 @@ bool arTexture::dummy() {
   return true;
 }
 
-// Copies an externally given array of pixels into internal memory.
+// Copy an array of pixels into internal memory.
 // DO NOT change this so that only the pointer is copied in.
-// Please note: the fill() method actually deals with transparency.
-// This deals with RGB textures only.
+// Ignore transparency (to use that, see fill()).
 void arTexture::setPixels(char* pixels, int width, int height) {
-  // AARGH! This does not deal with different pixel formats!!!
+  // todo: handle different pixel formats
   if (_pixels) {
     delete [] _pixels;
   }
-  _pixels = new char[height*width*3];
-  memcpy(_pixels,pixels,height*width*3);
+  const unsigned cb = height*width*3;
+  _pixels = new char[cb];
+  memcpy(_pixels, pixels, cb);
   _width = width;
   _height = height;
-  // AARGH! not supporting transparency
   _alpha = false;
 }
 
 
-// Returns a pointer to a buffer containing a sub-image of the original.
-// Caller owns the new pointer.
-char* arTexture::getSubImage( unsigned int left, unsigned int bottom, 
-    unsigned int width, unsigned int height ) const {
-  int depth = getDepth();
+// Return a buffer containing a sub-image of the original.
+// Caller owns the new buffer.
+char* arTexture::getSubImage( unsigned left, unsigned bottom, 
+    unsigned width, unsigned height ) const {
+  const int depth = getDepth();
   char* newPixels = new char[width*height*depth];
   if (!newPixels) {
-    ar_log_error() << "arTexture out of memory in getSubImage().\n";
+    ar_log_error() << "arTexture getSubImage() out of memory.\n";
     return NULL;
   }
   char *newPtr = newPixels;
-  for (unsigned int i=bottom; i < bottom+height; ++i) {
-    for (unsigned int j=left; j < left+width; ++j) {
-      if ((i >= (unsigned int)_height)||(j >= (unsigned int)_width)) { // Not sure if necessary, but what the heck.
-        for (unsigned int k=0; k<(unsigned int)depth; ++k) {
+  for (unsigned i=bottom; i < bottom+height; ++i) {
+    for (unsigned j=left; j < left+width; ++j) {
+      if ((i >= (unsigned)_height)||(j >= (unsigned)_width)) { // perhaps unnecessary
+        for (unsigned k=0; k<(unsigned)depth; ++k) {
           *newPtr++ = (char)0;
         }
       } else {
@@ -466,7 +465,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
                         const string& path,
                         bool complain) {
   if (!_alpha && _pixels) {
-    ar_log_error() << "arTexture readAlphaPPM: pixels must have been generated with alpha==true.\n";
+    ar_log_error() << "arTexture readAlphaPPM: no alpha.\n";
     return false;
   }
   // todo: grayscale ppm
@@ -520,7 +519,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
       return false;
     }
   } else if ((width != _width)||(height != _height)) {
-    ar_log_error() << "arTexture readAlphaPPM: alpha dimensions must match those of texture.\n";
+    ar_log_error() << "arTexture readAlphaPPM: alpha dimensions mismatch texture's.\n";
     fclose(fd);
     return false;
   }
@@ -720,7 +719,7 @@ bool arTexture::readAlphaJPEG(const string& fileName,
   return false;
 #else
   if (!_alpha && _pixels) {
-    ar_log_error() << "arTexture readAlphaJPEG: pixels must have been generated with alph==true.\n";
+    ar_log_error() << "arTexture readAlphaJPEG: no alpha.\n";
     return false;
   }
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb", complain ? "arTexture jpg" : NULL);
@@ -759,7 +758,7 @@ bool arTexture::readAlphaJPEG(const string& fileName,
       return false;
     }
   } else if ((width != _width)||(height != _height)) {
-    ar_log_error() << "arTexture readAlphaJPEG: alpha dimensions must match those of texture.\n";
+    ar_log_error() << "arTexture readAlphaJPEG: alpha dimensions mismatch texture's.\n";
     fclose(fd);
     return false;
   }
@@ -864,7 +863,7 @@ bool arTexture::_reallocPixels() {
 
 bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
   if (w<=0 || h<=0 || !pixels) {
-    ar_log_error() << "arTexture::fill() invalid dimension or NULL pointer.\n";
+    ar_log_error() << "arTexture::fill(): nonpositive dimension or NULL pointer.\n";
     return false;
   }
 
@@ -886,7 +885,7 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
 
 bool arTexture::fillColor(int w, int h, char red, char green, char blue, int alpha) {
   if (w<=0 || h<=0) {
-    ar_log_error() << "arTexture::fillColor invalid dimension.\n";
+    ar_log_error() << "arTexture::fillColor nonpositive dimension.\n";
     return false;
   }
 
@@ -921,7 +920,7 @@ bool arTexture::fillColor(int w, int h, char red, char green, char blue, int alp
 
 bool arTexture::flipHorizontal() {
   if (!_pixels) {
-    ar_log_error() << "arTexture flipHorizontal had no pixels.\n";
+    ar_log_error() << "arTexture flipHorizontal: no pixels.\n";
     return false;
   }
   char *temp = _pixels;
@@ -953,9 +952,9 @@ void arTexture::_assignAlpha(int alpha) {
   // Parse the pixels and turn them into an alpha channel.
   for (int i = _height*_width -1; i >= 0; i--) {
     unsigned char* pPixel = (unsigned char*)&_pixels[i * getDepth()];
-    const int test = (int(pPixel[2])<<16) 
-		      | (int(pPixel[1])<<8) 
-		      | int(pPixel[0]);
+    const int test = (int(pPixel[2])<<16) |
+		     (int(pPixel[1])<<8) |
+		      int(pPixel[0]);
     pPixel[3] = (test == alpha) ? 0 : 255;
   }
   _textureFunc = GL_MODULATE; // for texture blending

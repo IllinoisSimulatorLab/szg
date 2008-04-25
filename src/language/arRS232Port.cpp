@@ -531,7 +531,7 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
 
   // Do one blocking read with a total timeout.
   if (!ReadFile(_portHandle, buf, numToRead, &bytesThisTime, NULL)) {
-    ar_log_error() << "ar_read() failed for the following reason:\n"
+    ar_log_error() << "ar_read() failed:\n  "
                    << ar_getLastWin32ErrorString() << ar_endl;
     return -1;
   }

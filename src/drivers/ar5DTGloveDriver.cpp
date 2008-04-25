@@ -18,7 +18,7 @@ static fdGlove *__pGlove    = NULL;
 
 string __getGloveType(void) {
   if (!__pGlove) {
-    ar_log_error() << "Called __getGloveType() with NULL glove pointer.\n";
+    ar_log_error() << "__getGloveType() ignoring NULL glove pointer.\n";
     return "NULL";
   }
 	int glovetype = FD_GLOVENONE;
@@ -53,7 +53,7 @@ string __getGloveType(void) {
 
 string __getGloveHandedNess(void) {
   if (!__pGlove) {
-    ar_log_error() << "Called __getGloveHandedNess() with NULL glove pointer.\n";
+    ar_log_error() << "__getGloveHandedNess() ignoring NULL glove pointer.\n";
     return "NULL";
   }
   return fdGetGloveHand( __pGlove )== (FD_HAND_RIGHT) ? ("right"):("left");
@@ -103,7 +103,6 @@ void ar_5dtGloveDriverEventTask(void* gloveDriver){
 #endif
 
 bool ar5DTGloveDriver::init(arSZGClient& szgClient){
-  int sig[3] = {0,0,0};
 #ifndef Enable5DT
   ar_log_error() << "5DT dataglove support not compiled.\n";
   return false;
@@ -117,26 +116,22 @@ bool ar5DTGloveDriver::init(arSZGClient& szgClient){
 #endif
   }
   __pGlove = fdOpen( const_cast<char *>(deviceName.c_str()) );
-	if (__pGlove == NULL) {
+  if (__pGlove == NULL) {
     ar_log_error() << "Failed to open 5DT dataglove.\n";
-		return false;
-	}
-  ar_log_remark() << "Opened 5DT dataglove.\n";
-  ar_log_remark() << "DataGlove type: " << __getGloveType() << ar_endl;
-  ar_log_remark() << "DataGlove hand: " << __getGloveHandedNess() << ar_endl;
+    return false;
+  }
+  ar_log_remark() << "5DT DataGlove, type '" << __getGloveType() <<
+    "', hand '" << __getGloveHandedNess() << "'.\n";
 
-	_numSensors = fdGetNumSensors( __pGlove );
-	_numGestures = fdGetNumGestures( __pGlove );
+  _numSensors = fdGetNumSensors( __pGlove );
+  _numGestures = fdGetNumGestures( __pGlove );
 
-  ar_log_remark() << "DataGlove has " << _numSensors << " sensors and "
-                  << _numGestures << " gestures.\n";
+  ar_log_remark() << "DataGlove has " << _numSensors << " sensors and " <<
+    _numGestures << " gestures.\n";
   
-  sig[0] = _numGestures;
-  sig[1] = _numSensors;
-
+  int sig[3] = { _numGestures, _numSensors, 0 };
   _setDeviceElements(sig);
   _lastGesture = -1;
-
   return true;
 #endif
 }
@@ -160,11 +155,8 @@ bool ar5DTGloveDriver::stop(){
     return true;
   }
 
-	fdClose( __pGlove );
-	printf( "DataGlove closed.\n" );
+  fdClose( __pGlove );
+  printf( "DataGlove closed.\n" );
   return true;
 #endif
 }
-
-
-

@@ -238,13 +238,12 @@ bool arAppLauncher::launchApp() {
     return false;
   }
      
-  // Kill every graphics program whose
-  // name differs from the new graphics program.  _demoKill above already
-  // killed all the render programs for a master/slave app.
+  // Kill every graphics program whose name differs from the new graphics program.
+  // _demoKill already killed renderers of any master/slave app.
   _graphicsKill(_firstToken(_renderer));
 
-  // After the demo program and the graphics programs are
-  // killed, no services are provided and no locks are held.
+  // No demo program and no graphics programs are running,
+  // so no services are provided and no locks are held.
 
   list<arLaunchInfo> appsToLaunch;
   list<int> serviceKillList;
@@ -256,10 +255,8 @@ bool arAppLauncher::launchApp() {
     _relaunchAllServices(appsToLaunch, serviceKillList);
   }
 
-  int i;
-  
   // Launch a "distributed app" on every host.
-  for (i=0; i<getNumberScreens(); i++) {
+  for (int i=0; i<getNumberScreens(); i++) {
     if (_appType == "distapp" || _getPID(i, _firstToken(_renderer)) == -1) {
       appsToLaunch.push_back(_pipes[i].renderer);
     }
@@ -270,7 +267,7 @@ bool arAppLauncher::launchApp() {
 
   const bool ok = _execList(&appsToLaunch);
   if (!ok) {
-    ar_log_warning() << "some components failed to launch.\n";
+    ar_log_error() << "some components failed to launch.\n";
   }
   _unlock(); 
   return ok;
@@ -289,7 +286,7 @@ bool arAppLauncher::waitForKill() {
   while (true) {
     string messageType, messageBody;
     if (!_szgClient->receiveMessage(&messageType,&messageBody)) {
-      ar_log_error() << "no szgserver.\n";
+      ar_log_critical() << "no szgserver.\n";
       // Don't call killApp(), since szgserver is gone.
       break;
     }
@@ -302,7 +299,7 @@ bool arAppLauncher::waitForKill() {
     if (_szgClient->getLock(lockName, componentID)) {
       // nobody was holding the lock
       _szgClient->releaseLock(lockName);
-      ar_log_warning() << "no component running on master screen.\n";
+      ar_log_warning() << "master screen running no component.\n";
     } else {
       _szgClient->sendMessage(messageType, messageBody, componentID);
     }

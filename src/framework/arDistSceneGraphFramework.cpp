@@ -635,7 +635,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 // string and returns false. Otherwise, it just returns true.
 bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
   if (!f){
-    ar_log_error() << " error: " << s << "\n";
+    ar_log_error() << " scene-graph framework: " << s << "\n";
   }
   if (!_SZGClient.sendStartResponse(f)){
     cerr << _label << " error: maybe szgserver died.\n";

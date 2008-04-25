@@ -16,7 +16,6 @@
 
 #endif
 
-
 DriverFactory(arJoystickDriver, "arInputSource")
 
 void ar_joystickDriverEventTask(void* joystickDriver){
@@ -388,28 +387,28 @@ bool arJoystickDriver::stop(){
 
 #ifdef AR_USE_MINGW
 void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
-	string error;
-	switch (errCode) {
-		case MMSYSERR_NODRIVER:
-			error = "Joystick driver not present";
-      break;
-		case MMSYSERR_INVALPARAM:
-		case JOYERR_PARMS:
-			error = "Invalid parameter(s)";
-      break;
-		case MMSYSERR_BADDEVICEID:
-			error = "Bad device ID";
-      break;
-		case JOYERR_UNPLUGGED:
-			error = "Joystick not attached";
-      break;
-		case JOYERR_NOCANDO:
-			error = "Can't capture joystick input";
-      break;
-		default:
-      ar_log_error() << funcName << ": Unknown Multimedia system error: 0x" << errCode << ar_endl;
-      return;
-	}
+  string error;
+  switch (errCode) {
+  case MMSYSERR_NODRIVER:
+    error = "No joystick driver";
+    break;
+  case MMSYSERR_INVALPARAM:
+  case JOYERR_PARMS:
+    error = "Invalid parameter(s)";
+    break;
+  case MMSYSERR_BADDEVICEID:
+    error = "Bad device ID";
+    break;
+  case JOYERR_UNPLUGGED:
+    error = "Joystick disconnected";
+    break;
+  case JOYERR_NOCANDO:
+    error = "Can't capture joystick input";
+    break;
+  default:
+    ar_log_error() << funcName << ": Unknown Multimedia system error 0x" << errCode << ar_endl;
+    return;
+  }
   ar_log_error() << funcName << ": " << error << ar_endl;
 }
 #endif

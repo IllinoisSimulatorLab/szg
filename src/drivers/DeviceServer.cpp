@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
   // automatically.  Ascension Spacepad needs Win98.
   const bool fInit = szgClient.init(argc, argv, "DeviceServer");
   if (!szgClient) {
-    ar_log_error() << "DeviceServer failed to init arSZGClient.\n";
+    ar_log_critical() << "DeviceServer failed to init arSZGClient.\n";
     return szgClient.failStandalone(fInit);
   }
   ar_log_debug() << "DeviceServer inited arSZGClient.\n";
@@ -47,8 +47,7 @@ int main(int argc, char** argv) {
   // At most one instance per host.
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {
-    ar_log_error() << "DeviceServer: already running (pid = " 
-         << ownerID << ").\n";
+    ar_log_critical() << "DeviceServer: already running (pid = " << ownerID << ").\n";
 LAbort:
     (void)respond(szgClient);
     return 1;
@@ -73,12 +72,12 @@ LAbort:
   } else {
     const string& config = szgClient.getGlobalAttribute(argv[1]);
     if (config == "NULL") {
-      ar_log_error() << "DeviceServer: undefined global parameter (<param> in dbatch file) '"
+      ar_log_critical() << "DeviceServer: no global parameter (<param> in dbatch file) '"
                      << argv[1] << "'.\n";
       goto LAbort;
     }
     if (!inputConfig.parseXMLRecord( config )) {
-      ar_log_error() << "DeviceServer: misconfigured global parameter (<param> in dbatch file) '"
+      ar_log_critical() << "DeviceServer: misconfigured global parameter (<param> in dbatch file) '"
 	                   << argv[1] << "'\n";
       goto LAbort;
     }
@@ -88,12 +87,12 @@ LAbort:
   arInputNode inputNode;
   arInputFactory driverFactory( inputConfig );
   if (!driverFactory.configure( szgClient )) {
-    ar_log_error() << "DeviceServer failed to configure arInputFactory.\n";
+    ar_log_critical() << "DeviceServer failed to configure arInputFactory.\n";
     goto LAbort;
   }
 
   if (!driverFactory.loadInputSources( inputNode, slotNumber, fNetInput )) {
-    ar_log_error() << "DeviceServer failed to load input drivers.\n";
+    ar_log_critical() << "DeviceServer failed to load input drivers.\n";
     goto LAbort;
   }
 
@@ -101,7 +100,7 @@ LAbort:
   // (for transmitting data) and a "file sink" (for logging).
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot( outputSlot )) {
-    ar_log_error() << "DeviceServer: invalid slot " << outputSlot << ".\n";
+    ar_log_critical() << "DeviceServer: invalid slot " << outputSlot << ".\n";
     goto LAbort;
   }
   // Tell netInputSink how we were launched.
@@ -112,7 +111,7 @@ LAbort:
   inputNode.addInputSink( &fileSink, false );
 
   if (!driverFactory.loadInputSinks( inputNode )) {
-    ar_log_error() << "DeviceServer failed to load input sinks.\n";
+    ar_log_critical() << "DeviceServer failed to load input sinks.\n";
     goto LAbort;
   }
 
@@ -122,17 +121,16 @@ LAbort:
     namedPForthProgram = string(argv[3]);
   }
   if (!driverFactory.loadFilters( inputNode, namedPForthProgram )) {
-    ar_log_error() << "DeviceServer failed to load filters.\n";
+    ar_log_critical() << "DeviceServer failed to load filters.\n";
     goto LAbort;
   }
 
   const bool ok = inputNode.init(szgClient);
   if (!ok) {
-    ar_log_error() << "DeviceServer has no input.\n";
+    ar_log_critical() << "DeviceServer has no input.\n";
   }
   if (!respond(szgClient, ok)) {
     ar_log_warning() << "DeviceServer ignoring failed init.\n";
-    // return 1;
   }
   if (!ok) {
     // Bug: in linux, this may hang.  Which other thread still runs?
@@ -192,6 +190,6 @@ LDie:
   }
 
   // unreachable
-  ar_log_error() << "DeviceServer fell out of message loop.\n";
-  return -1;
+  ar_log_critical() << "DeviceServer fell out of message loop.\n";
+  return 1;
 }

@@ -102,21 +102,18 @@ void arPythonGraphicsPlugin::draw( arGraphicsWindow& win, arViewport& view ) {
   PyObject* pDraw = PyObject_GetAttrString( _object, "draw" );
   if (!pDraw) {
     ar_log_error() << "arPythonGraphicsPlugin object from " << _moduleName << "." << _factoryName
-                   << "() does not have a draw attribute.\n";
-    goto failure;
+                   << "() has no draw attribute.\n";
+    goto LFail;
   }
   if (!PyCallable_Check( pDraw )) {
     ar_log_error() << "arPythonGraphicsPlugin object from " << _moduleName << "." << _factoryName
-                   << "() draw attribute is not callable.\n";
-    goto failure;
+                   << "() has uncallable draw attribute.\n";
+    goto LFail;
   }
   pArgs = PyTuple_New( 0 );
   if (!pArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate argument tuple.\n";
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    goto failure;
+    goto LFailPy;
   }  
 //  PyTuple_SET_ITEM( pArgs, 0, pIntArgs );
 //  PyTuple_SET_ITEM( pArgs, 1, pFloatArgs );
@@ -124,29 +121,27 @@ void arPythonGraphicsPlugin::draw( arGraphicsWindow& win, arViewport& view ) {
   if (!result) {
     ar_log_error() << "arGraphicsPlugin draw() failed for object of type "
                    << _moduleName << "." << _factoryName << ar_endl;
+LFailPy:
     if (PyErr_Occurred()) {
       PyErr_Print();
     }
-    goto failure;
+LFail:
+    Py_XDECREF( pArgs );
+    Py_XDECREF( pDraw );
+    _deleteObject();
+    ar_log_debug() << "draw() releasing GIL.\n";
+    PyEval_ReleaseThread( threadState );
+//    PyGILState_Release( pState );
+    ar_log_debug() << "draw() released GIL.\n";
+    return;
   }
+
   Py_DECREF( pArgs );
   Py_DECREF( pDraw );
   ar_log_debug() << "draw() releasing GIL.\n";
   PyEval_ReleaseThread( threadState );
 //  PyGILState_Release( pState );
   ar_log_debug() << "draw() released GIL.\n";
-  ar_log_debug() << "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.\n";
-  return;
-
-failure:
-  Py_XDECREF( pArgs );
-  Py_XDECREF( pDraw );
-  _deleteObject();
-  ar_log_debug() << "draw() releasing GIL.\n";
-  PyEval_ReleaseThread( threadState );
-//  PyGILState_Release( pState );
-  ar_log_debug() << "draw() released GIL.\n";
-  ar_log_debug() << "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.\n";
 }
 
 
@@ -156,7 +151,6 @@ bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
                                        std::vector<double>& doubleData,
                                        std::vector< std::string >& stringData ) {
   static PyThreadState* threadState = NULL;
-  ar_log_debug() << "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss.\n";
   ar_log_debug() << "setState().\n";
   if (!Py_IsInitialized()) {
     ar_log_debug() << "About to Py_Initialize()\n";
@@ -168,9 +162,10 @@ bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
     ar_log_debug() << "Py_Initialize() done\n";
   }
   if (!threadState) {
-    ar_log_error() << "NULL thread state after Python initialized!!!\n";
+    ar_log_error() << "NULL thread state after Python initialized.\n";
     return false;
   }
+
   PyEval_AcquireThread( threadState );
   ar_log_debug() << "setState has GIL.\n";
   ar_log_debug() << "Python state: Py_IsInitialized==" << Py_IsInitialized() << ", PyEval_ThreadsInitialized=="
@@ -180,7 +175,7 @@ bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
                    << "(module and object factory names).\n"
                    << "Got " << intData.size() << " ints and " << stringData.size()
                    << " strings.\n";
-    return true;
+    return true; // Really? Why not false?
   }
   bool reloadModule = intData.back();
   intData.pop_back();
@@ -241,40 +236,32 @@ bool arPythonGraphicsPlugin::_callPythonSetState( std::vector<int>& intData,
   PyObject* pIntArgs = NULL;
   PyObject* pFloatArgs = NULL;
   PyObject* pSetState = PyObject_GetAttrString( _object, "setState" );
+  // Loose copypaste from above (see LFail).
   if (!pSetState) {
     ar_log_error() << "arPythonGraphicsPlugin object from " << _moduleName << "." << _factoryName
                    << "() does not have a setState attribute.\n";
-    goto failure;
+    goto LFail;
   }
   if (!PyCallable_Check( pSetState )) {
     ar_log_error() << "arPythonGraphicsPlugin object from " << _moduleName << "." << _factoryName
                    << "() setState attribute is not callable.\n";
-    goto failure;
+    goto LFail;
   }
   pArgs = PyTuple_New( 2 );
   if (!pArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate argument tuple.\n";
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    goto failure;
+    goto LFailPy;
   }  
   pIntArgs = PyTuple_New( intData.size()+longData.size() );
   if (!pIntArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate int tuple.\n";
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    goto failure;
+    goto LFailPy;
   }  
   PyTuple_SET_ITEM( pArgs, 0, pIntArgs );
   pFloatArgs = PyTuple_New( floatData.size()+doubleData.size() );
   if (!pFloatArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate float tuple.\n";
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    goto failure;
+    goto LFailPy;
   } 
   PyTuple_SET_ITEM( pArgs, 1, pFloatArgs );
   count = 0;
@@ -299,20 +286,20 @@ bool arPythonGraphicsPlugin::_callPythonSetState( std::vector<int>& intData,
   if (!result) {
     ar_log_error() << "arGraphicsPlugin setState() failed for object of type "
                    << _moduleName << "." << _factoryName << ar_endl;
+LFailPy:
     if (PyErr_Occurred()) {
       PyErr_Print();
     }
-    goto failure;
+LFail:
+    Py_XDECREF( pArgs );
+    Py_XDECREF( pSetState );
+    _deleteObject();
+    return false;
   }
+
   Py_DECREF( pArgs );
   Py_DECREF( pSetState );
   return true;
-
-failure:
-  Py_XDECREF( pArgs );
-  Py_XDECREF( pSetState );
-  _deleteObject();
-  return false;
 }
 
 
@@ -420,4 +407,3 @@ PyObject* arPythonGraphicsPlugin::__getModule( const std::string& moduleName, bo
   }
   return pModule;
 }
-

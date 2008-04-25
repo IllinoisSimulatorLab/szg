@@ -15,9 +15,9 @@
 using namespace std;
 
 // SILENT:   Absolutely nothing.
-// CRITICAL: Essential state and unrecoverable errors (app terminates).
-// ERROR:    Errors that affect appearance.
-// WARNING:  Things that will likely surprise the user.
+// CRITICAL: Essential state;  unrecoverable errors (app or component terminates).
+// ERROR:    Something's wrong.
+// WARNING:  The user likely didn't intend this (use WARNING sparingly).
 // REMARK:   Everything else.
 // DEBUG:    For ISL developers.
 

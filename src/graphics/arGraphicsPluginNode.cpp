@@ -63,12 +63,13 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   arGuard dummy(_nodeLock);
   std::string newFileName = data->getDataString( _g->AR_GRAPHICS_PLUGIN_NAME );
   if (!_object && (newFileName == "")) {
-    ar_log_error() << "arGraphicsPluginNode got empty file name.\n";
+    ar_log_error() << "arGraphicsPluginNode ignoring empty file name.\n";
     return false;
   }
+
   if (_object && (newFileName != _fileName)) {
-    ar_log_remark() << "arGraphicsPluginNode about to convert " << _fileName
-                   << " to " << newFileName << ar_endl;
+    ar_log_remark() << "arGraphicsPluginNode converting " << _fileName << " to " <<
+      newFileName << "\n";
     delete[] _object;
     _object = NULL;
     _triedToLoad = false;
@@ -79,16 +80,13 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
       if (_triedToLoad) {
         return true;
       }
-      ar_log_debug() << "arGraphicsPluginNode attempting to create " << _fileName
-                     << " object." << ar_endl;
+      ar_log_debug() << "arGraphicsPluginNode creating " << _fileName << " object.\n";
       _object = _makeObject();
       if (!_object) {
-        ar_log_error() << "arGraphicsPluginNode failed to create " << _fileName
-                       << " object." << ar_endl;
-        return true;
+        ar_log_error() << "arGraphicsPluginNode failed to create " << _fileName << " object.\n";
+        return false;
       }
-      ar_log_debug() << "arGraphicsPluginNode successfully created "
-                     << _fileName << "object.\n";
+      ar_log_debug() << "arGraphicsPluginNode created " << _fileName << "object.\n";
     }
   }
 
@@ -216,7 +214,7 @@ void arGraphicsPluginNode::setSharedLibSearchPath( const std::string& searchPath
 }
 
 arSharedLib* arGraphicsPluginNode::getSharedLib( const std::string& fileName ) {
-  ar_log_debug() << "arGraphicsPluginNode attempting to load " << fileName << ar_endl;
+  ar_log_debug() << "arGraphicsPluginNode loading " << fileName << ar_endl;
   std::map< std::string, arSharedLib* >::iterator iter = arGraphicsPluginNode::__sharedLibMap.find( fileName );
   if (iter != arGraphicsPluginNode::__sharedLibMap.end()) {
     ar_log_debug() << "arGraphicsPluginNode found loaded plugin " << fileName << ar_endl;
@@ -227,8 +225,7 @@ arSharedLib* arGraphicsPluginNode::getSharedLib( const std::string& fileName ) {
   string error;
   if (!lib->createFactory( fileName, arGraphicsPluginNode::__sharedLibSearchPath,
         "arGraphicsPlugin", error )) {
-    ar_log_error() << "arGraphicsPlugin got the following error in createFactory:"
-                   << ar_endl << "     " << error << ar_endl;
+    ar_log_error() << "arGraphicsPlugin createFactory: " << error << ar_endl;
     return NULL;
   }
   return lib;

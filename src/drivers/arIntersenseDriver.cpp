@@ -35,30 +35,29 @@ IsenseTracker::~IsenseTracker() {
 
 /*!
     \param port The port can refer to an RS232 port or a USB port,
-        numbered according to some Intersense-internal scheme not
-        documented.
+        numbered according to an undocumented Intersense-internal scheme.
         Sending 0 indicates the first one found should be opened.
-    \return False indicates failure of the driver.  This method
-        will print problem to stderr.
+    \return False indicates failure of the driver.
+        Print problem to stderr.
     */
 bool IsenseTracker::ar_open( DWORD port = 0 ) {
   ar_close();
-  _port = port;
   _handle = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, USE_VERBOSE );
-  bool success = _isValidHandle( _handle );
-  if (success) {
-    vector< IsenseStation >::iterator statIter;
-    for (statIter = _stations.begin(); statIter != _stations.end(); ++statIter) {
-      statIter->setTrackerHandle( _handle );
-    }
-  } else {   
-    ar_log_error() << "IntersenseDriver::failed to open tracker on port "
-         << port << ".\n";
+  if (!_isValidHandle( _handle )) {
+    ar_log_error() << "IntersenseDriver failed to open tracker on port " <<
+      port << ".\n";
     if (!USE_VERBOSE) {
-      ar_log_error() << "Set verbosity to true to see reason for failure.\n";
+      ar_log_error() << "To see reason for failure, recompile with USE_VERBOSE=TRUE.\n";
     }
+    return false;
   }
-  return success;
+
+  _port = port;
+  vector< IsenseStation >::iterator statIter;
+  for (statIter = _stations.begin(); statIter != _stations.end(); ++statIter) {
+    statIter->setTrackerHandle( _handle );
+  }
+  return true;
 }
 
 /*! If one tracker stops working, it should be possible to open
@@ -118,21 +117,16 @@ bool IsenseTracker::configure( arSZGClient& client ) {
   return true;
 }
 
-/*! This method is fine to call on an already closed or
-    never opened tracker.
+/*! Silently ignore an already-closed or never-opened tracker.
 
     \return False on failure to close.  Nothing to be
         done if it fails unless you can unload the Dll.
     */
 bool IsenseTracker::ar_close() {
-  ar_log_warning() << "Closing tracker with id = " << _id << ar_endl;
-  Bool success = TRUE;
-  if ( _isValidHandle( _handle ) ) {
-    success = ISD_CloseTracker( _handle );
-  }
-  if ( FALSE == success ) {
+  ar_log_remark() << "Closing tracker with id " << _id << ar_endl;
+  const Bool ok = !_isValidHandle( _handle ) || ISD_CloseTracker( _handle );
+  if (!ok)
     return false;
-  }
   _handle = 0;
   return true;
 }

@@ -56,7 +56,7 @@ arGraphicsPeer* createNewPeer(const string& name){
   graphicsPeer->queueData(true);
   graphicsPeer->init(*szgClient);
   if (!graphicsPeer->start()){
-    ar_log_error() << "szg-rp error: init of peer failed.\n";
+    ar_log_error() << "szg-rp error: peer failed to init.\n";
     return NULL;
   }
   graphicsPeer->setTexturePath(peerTexturePath);
@@ -518,28 +518,28 @@ int main(int argc, char** argv){
       for (int j=i; j<argc-1; j++){
         argv[j] = argv[j+1];
       }
-      argc--;
-      i--;
+      --argc;
+      --i;
     }
   }
   if (argc < 2){
-    ar_log_error() << "usage: szg-rp <name>\n";
+    ar_log_critical() << "usage: szg-rp <name>\n";
     if (!szgClient->sendInitResponse(false)){
       cerr << "szg-rp error: maybe szgserver died.\n";
     }
     return 1;
   }
 
-  ar_log_remark() << "szg-rp trying to run as peer=" << argv[1] << "\n";
+  ar_log_remark() << "running as peer '" << argv[1] << "'.\n";
   if (!szgClient->sendInitResponse(true)){
     cerr << "szg-rp error: maybe szgserver died.\n";
   }
+
   // Lock to ensure a unique workspace name.
-  int componentID;
+  int componentID = -1;
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
-    ar_log_error() << "szg-rp: non-unique workspace name.\n"
-		   << "  component with ID " << componentID 
-                   << " holds this workspace.\n";
+    ar_log_critical() << "non-unique workspace name, already held by component with ID " <<
+      componentID << ".\n";
     if (!szgClient->sendStartResponse(false)){
       cerr << "szg-rp error: maybe szgserver died.\n";
     }
@@ -547,7 +547,7 @@ int main(int argc, char** argv){
   }
 
   if (!loadParameters(*szgClient)){
-    ar_log_error() << "szg-rp error: failed to load parameters.\n";
+    ar_log_error() << "failed to load parameters.\n";
     if (!szgClient->sendStartResponse(false)){
       cerr << "szg-rp error: maybe szgserver died.\n";
     }

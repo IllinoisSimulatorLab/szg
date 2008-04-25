@@ -176,7 +176,7 @@ int main(int argc, char** argv){
   const string screenLock = szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
   int graphicsID = -1;
   if (!szgClient.getLock(screenLock, graphicsID)){
-    ar_log_error() << "szgrender screen locked by component " << graphicsID << ".\n";
+    ar_log_critical() << "screen locked by component " << graphicsID << ".\n";
     if (!szgClient.sendInitResponse(false))
       cerr << "szgrender error: maybe szgserver died.\n";
     return 1;

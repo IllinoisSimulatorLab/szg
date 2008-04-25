@@ -58,7 +58,7 @@ void arSZGAppFramework::speak( const std::string& message ) {
 
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   if (_parametersLoaded) {
-    ar_log_error() << "can't change input simulator after init.\n";
+    ar_log_error() << "ignoring input-simulator change after init.\n";
     return false;
   }
 
@@ -85,7 +85,7 @@ void arSZGAppFramework::_handleStandaloneInput() {
   }
   if (_standaloneControlMode != "simulator") {
     if (!_loadInputDrivers()) {
-      ar_log_error() << "Failed to load input devices, defaulting to simulator mode.\n";
+      ar_log_warning() << "Failed to load input devices; reverting to simulator.\n";
       _standaloneControlMode = "simulator";
     }
   }
@@ -122,11 +122,11 @@ bool arSZGAppFramework::_loadInputDrivers() {
   if (config == "NULL") {
     ar_log_error() << "invalid value '" << _standaloneControlMode
                    << "' for SZG_STANDALONE/input_config;\n   must be either 'simulator'"
-                   << "or the name of a global input device parameter (<param> in dbatch file).\n";
+                   << "or a global input device parameter (<param> in dbatch file).\n";
     return false;
   }
   if (!inputConfig.parseXMLRecord( config )) {
-    ar_log_error() << "misconfigured global input device parameter (<param> in dbatch file) '"
+    ar_log_error() << "bad global input device parameter (<param> in dbatch file) '"
                    << _standaloneControlMode << "'\n";
     return false;
   }
@@ -288,16 +288,17 @@ bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
     ar_log_error() << "can't install event filter in NULL input device.\n";
     return false;
   }
+
   if (!filter) {
     filter = &_defaultUserFilter;
   }
-  const bool stat = _userEventFilter ?
+  const bool ok = _userEventFilter ?
     _inputDevice->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false ) :
     (_inputDevice->addFilter( (arIOFilter*)filter, false ) != -1);
-  if (stat) {
+  if (ok) {
     _userEventFilter = filter;
   }
-  return stat;
+  return ok;
 }
 
 void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
