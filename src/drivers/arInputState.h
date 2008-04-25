@@ -142,7 +142,7 @@ template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberDeviceEvents(
     const unsigned iDevice) const {
   if (iDevice >= _deviceEventOffsets.size()) {
-    ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
+    ar_log_error() << "arInputDeviceMap ignoring out-of-range device " <<
       iDevice << ".\n";
     return 0;
   }
@@ -153,7 +153,7 @@ template <class eventDataType>
 bool arInputDeviceMap<eventDataType>::getEventOffset(
     const unsigned iDevice, unsigned& offset ) const {
   if (iDevice >= _deviceEventOffsets.size()) {
-    ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
+    ar_log_error() << "arInputDeviceMap ignoring out-of-range device " <<
       iDevice << ".\n";
     return false;
   }
@@ -181,7 +181,7 @@ bool arInputDeviceMap<eventDataType>::remapInputEvents(
     const unsigned iDevice, const unsigned newNumEvents,
     vector<eventDataType>& dataSpace ) { // TD
   if (iDevice >= _deviceNumEvents.size()) {
-    ar_log_warning() << "arInputDeviceMap ignoring out-of-range device " <<
+    ar_log_error() << "arInputDeviceMap ignoring out-of-range device " <<
       iDevice << ".\n";
     return false;
   }
