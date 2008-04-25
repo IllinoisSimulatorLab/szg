@@ -377,7 +377,7 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID) {
   SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   // is there a message with this key?
   if (j == messageTradingDB.end()) {
-    ar_log_warning() << "can't revoke message trade on nonexistant key '" << key <<"'.\n";
+    ar_log_warning() << "failed to revoke message trade: no key '" << key <<"'.\n";
     return false;
   }
 
@@ -399,15 +399,14 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID) {
   return true;
 }
 
-// Get the message info, if such exists, from the trading database.
-// Return whether or not a trade exists on that key. If so, fill in the
-// passed message object with the data.
+// Get message info from the trading database.
 bool SZGgetMessageTradeInfo(const string& key, arPhleetMsg& message) {
   SZGmsgTradingDB::const_iterator j(messageTradingDB.find(key));
-  // is there a message with this key?
   if (j == messageTradingDB.end()) {
     return false;
   }
+
+  // Found a message with this key. Return that key's trading info.
   message = j->second;
   return true;
 }
@@ -423,12 +422,10 @@ bool SZGgetMessageTradeInfo(const string& key, arPhleetMsg& message) {
 // @param ownerID Set to -1 if the lock was not previously held,
 // otherwise set to the ID of the holding component.
 bool SZGgetLock(const string& lockName, int id, int& ownerID) {
-  SZGlockOwnershipDB::const_iterator
-    i(lockOwnershipDB.find(lockName));
+  SZGlockOwnershipDB::const_iterator i(lockOwnershipDB.find(lockName));
   if (i != lockOwnershipDB.end()) {
     ownerID = i->second;
-    // note: we do not want to print out a warning here... since this
-    // is actually a fairly common occurence
+    // Don't complain, because this is common.
     return false;
   }
 

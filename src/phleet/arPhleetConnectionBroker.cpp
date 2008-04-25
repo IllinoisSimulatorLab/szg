@@ -112,14 +112,13 @@ LAbort:
   return tempService;
 }
 
-// The szgserver has no way of knowing if the service will be able to
-// bind to allocated ports (since that depends on activity on a remote
-// computer, which activity might be unconnected to Syzygy). 
-// Consequently, the service may fail to bind to the ports given in
-// requestPorts(...). In that case, the service will try to bind to
-// different ports. The ports it was previously given are returned
-// to be released into the available pool (might just have been a temporary
-// binding problem). And new ports are returned, as above.
+// The szgserver cannot know if the service can
+// bind to allocated ports, because that depends on a remote
+// host's activity, which might be unconnected to Syzygy.
+// If binding to ports in requestPorts() fails,
+// different ports are tried. Release the failed ports
+// into the available pool (might just have been a temporary
+// binding problem). Return new ports, as above.
 // @param componentID the Syzygy ID of the component requesting the ports
 // @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
@@ -130,8 +129,7 @@ arPhleetService arPhleetConnectionBroker::retryPorts(
   // there ports confirmed) and must be owned by the requesting component.
   const SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i == _temporaryServices.end()){
-    cerr << "arPhleetConnectionBroker warning: component attempted to\n"
-	 << "retry ports on nonexistant service name.\n";
+    cerr << "arPhleetConnectionBroker error: port retry failed: no service name.\n";
 LAbort:
       // todo: constructor for next 2 lines
       arPhleetService result;
@@ -139,8 +137,7 @@ LAbort:
       return result;
   }
   if (i->second.componentID != componentID){
-    cerr << "arPhleetConnectionBroker warning: component attempted to\n"
-	 << "retry ports on service it does not own.\n";
+    cerr << "arPhleetConnectionBroker error: port retry failed: unowned service.\n";
     goto LAbort;
   }
   // find the computer record. if it hasn't already been created, there has
@@ -150,8 +147,7 @@ LAbort:
   // record) and are removed from the temporary list of the component record
   const SZGComputerData::iterator j = _computerData.find(i->second.computer);
   if (j == _computerData.end()){
-    cerr << "arPhleetConnectionBroker error: computer record not found\n"
-	 << "on retry ports request.\n";
+    cerr << "arPhleetConnectionBroker error: port retry failed: no computer record.\n";
     goto LAbort;
   }
   const SZGComponentData::iterator k = _componentData.find(componentID);
