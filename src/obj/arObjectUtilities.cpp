@@ -53,7 +53,7 @@ bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, con
 arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
   const unsigned pos = fileName.find('.');
   if (pos == string::npos) {
-    ar_log_error() << "arObjUtil invalid filename '" << fileName << "'.\n";
+    ar_log_error() << "arObjUtil: no extension (dot) in filename '" << fileName << "'.\n";
     return NULL;
   }
 
@@ -63,13 +63,14 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
   }
   string suffix(fileName.substr(pos, fileName.length()-pos));
 
-  // Wavefront OBJ
+  // Wavefront
   if (suffix == ".obj" || suffix == ".OBJ") {
     arOBJ *theOBJ = new arOBJ;
     theOBJ->readOBJ(fullName);
     return theOBJ;
   }
-  // Motion Analysis HTR
+
+  // Motion Analysis
   if (suffix == ".htr" || suffix == ".HTR" || suffix == ".htr2" || suffix == ".HTR2") {
     arHTR* theHTR = new arHTR;
     theHTR->readHTR(fullName);
@@ -83,8 +84,8 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
     return the3DS;
   }
 
-  ar_log_error() << "arObjUtil unrecognized filename extension '"
-                 << suffix << "' in filename '" << fileName << "'.\n";
+  ar_log_error() << "arObjUtil: unrecognized extension '" << suffix <<
+    "' in filename '" << fileName << "'.\n";
   return NULL;
 }
 

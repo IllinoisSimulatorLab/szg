@@ -14,11 +14,9 @@
 #include "arLargeImage.h"
 #include "arTexture.h"
 
-
 const float FLIP_SECONDS = 2;
 const float TEST_RED = .25;
 const float STRIP_HEIGHT = 10;
-
 
 class PictureApp: public arMasterSlaveFramework {
   public:
@@ -53,7 +51,6 @@ class PictureApp: public arMasterSlaveFramework {
     arTimer _timer;
 };
 
-
 PictureApp::PictureApp() :
   arMasterSlaveFramework(),
   doSyncTest(0),
@@ -63,14 +60,12 @@ PictureApp::PictureApp() :
   _flipped(0) {
 }
 
-
 // onStart callback method (called in arMasterSlaveFramework::start()
 //
 // Note: DO NOT do OpenGL initialization here; this is now called
 // __before__ window creation. Do it in the onWindowStartGL()
 //
 bool PictureApp::onStart( arSZGClient& szgClient ) {
-
   const string dataPath = szgClient.getDataPath();
   if (!_texture.readPPM( pictureFilename, dataPath )) {
     ar_log_error() << "PictureViewer failed to read picture file '"
@@ -84,14 +79,12 @@ bool PictureApp::onStart( arSZGClient& szgClient ) {
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
   addTransferField("doSyncTest", &doSyncTest, AR_INT, 1);
   addTransferField("_flipped", &_flipped, AR_INT, 1);
-
   return true;
 }
 
-
-// Method called before data is transferred from master to slaves. Only called
-// on the master. This is where anything having to do with
-// processing user input or random variables should happen.
+// Called before data is transferred from master to slaves.
+// Only called on the master.
+// Processes user input or random variables.
 void PictureApp::onPreExchange() {
   if (_timer.done()) {
     _flipped = !_flipped;
@@ -99,8 +92,8 @@ void PictureApp::onPreExchange() {
   }
 }
 
-// Method called after transfer of data from master to slaves. Mostly used to
-// synchronize slaves with master based on transferred data.
+// Called after transfer of data from master to slaves.
+// Synchronizes slaves with master based on transferred data.
 void PictureApp::onPostExchange() {
   // Do stuff after slaves got data and are again in sync with the master.
   if (!getMaster()) {
@@ -108,9 +101,9 @@ void PictureApp::onPostExchange() {
   }
 }
 
-// This is how we have to catch reshape events now, still
+// Catch reshape events,
 // dealing with the fallout from the GLUT->arGUI conversion.
-// Note that the behavior implemented below is the default.
+// Behavior implemented here is the default.
 void PictureApp::onWindowEvent( arGUIWindowInfo* winInfo ) {
   // The values are defined in src/graphics/arGUIDefines.h.
   // arGUIWindowInfo is in arGUIInfo.h
@@ -141,7 +134,6 @@ void PictureApp::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   showCenteredImage();
 }
 
-
 void PictureApp::showCenteredImage() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -151,7 +143,6 @@ void PictureApp::showCenteredImage() {
   gluLookAt(0,0,2, 0,0,0, 0,1,0);
   _largeImage.draw();
 }
-
 
 void PictureApp::drawSyncTest() {
   glColorMask( GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE );
@@ -172,22 +163,19 @@ void PictureApp::drawSyncTest() {
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );  
 }
 
-
 int main(int argc, char** argv) {
-
   PictureApp framework;
-
   if (!framework.init(argc, argv)) {
     return 1;
   }
 
-  if ((argc < 2)||(argc > 3)) {
-    ar_log_error() << "usage: PictureViewer filename [synctest]\n";
+  if (argc < 2 || argc > 3) {
+    ar_log_critical() << "usage: PictureViewer filename [synctest]\n";
     return 1;
   }
-  framework.doSyncTest = ( argc == 3 );
+
   framework.pictureFilename = string( argv[1] );
-  
+  framework.doSyncTest = argc==3;
   // Never returns unless something goes wrong
   return framework.start() ? 0 : 1;
 }

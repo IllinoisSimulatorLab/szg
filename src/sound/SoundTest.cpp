@@ -83,11 +83,11 @@ int main(int argc, char** argv){
   dsSetSoundDatabase(&soundServer);
 
   if (!soundServer.init(szgClient)){
-    ar_log_error() << "SoundTest server failed to init.\n";
+    ar_log_critical() << "SoundTest server failed to init.\n";
     return 1;
   }
   if (!soundServer.start()){
-    ar_log_error() << "SoundTest server failed to start.\n";
+    ar_log_critical() << "SoundTest server failed to start.\n";
     return 1;
   }
 

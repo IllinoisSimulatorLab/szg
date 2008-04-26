@@ -13,7 +13,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc > 2) {
-    ar_log_error() << "usage: dkillall [-a | virtual_computer]\n";
+    ar_log_critical() << "usage: dkillall [-a | virtual_computer]\n";
     (void)szgClient.sendInitResponse(false);
     return 1;
   }

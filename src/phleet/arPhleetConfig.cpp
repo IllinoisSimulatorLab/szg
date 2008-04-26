@@ -273,7 +273,7 @@ void arPhleetConfig::addInterface(const string& networkName,
     }
   }
   if (result){
-    // no match was found
+    // Found no match.
     arInterfaceDescription description;
     description.address = address;
     description.mask = netmask;
@@ -306,9 +306,12 @@ bool arPhleetConfig::deleteInterface(const string& networkName,
 // the port block description is nonsensical somehow (for instance
 // the block size is less than 1) and returns true otherwise.
 bool arPhleetConfig::setPortBlock(int firstPort, int blockSize){
-  // a little sanity check
-  if (firstPort < 1024 || blockSize < 1){
-    ar_log_error() << "arPhleetConfig block parameters are invalid.\n";
+  if (firstPort < 1024) {
+    ar_log_error() << "arPhleetConfig: port-block starts below 1024.\n";
+    return false;
+  }
+  if (blockSize < 1){
+    ar_log_error() << "arPhleetConfig: less than 1 port in block, " << blockSize << ".\n";
     return false;
   }
   _firstPort = firstPort;

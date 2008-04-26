@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
   if (argc != 2 && argc != 3) {
 Usage:    
-    ar_log_error() << "usage: setdemomode [virtual_computer] true|false\n";
+    ar_log_critical() << "usage: setdemomode [virtual_computer] true|false\n";
     return 1;
   }
 
@@ -51,7 +51,7 @@ Usage:
   if (szgClient.getLock(lockName, componentID)) {
     // Nobody held the lock.
     szgClient.releaseLock(lockName);
-    ar_log_error() << "setdemomode: no trigger component running.\n";
+    ar_log_critical() << "setdemomode: no trigger component running.\n";
     ar_log_debug() << lockName << " lock-holder component ID = " << componentID << ar_endl;
     return 1;
   }
@@ -66,25 +66,24 @@ Usage:
   // set SZG_HEAD/fixed_head_mode on trigger & master.
   string triggerName = launcher.getTriggerName();
   if (triggerName == "NULL") {
-    cerr << "setdemomode error: no trigger map.\n";
+    ar_log_critical() << "no trigger map.\n";
     return 1;
   }
   if (!szgClient.setAttribute( triggerName, "SZG_HEAD", "fixed_head_mode", paramVal )) {
-    cerr << "setdemomode error: setAttribute failed.\n";
+    ar_log_critical() << "setAttribute failed.\n";
     return 1;
   }
-  arSlashString masterMap = launcher.getMasterName();
+  arSlashString masterMap(launcher.getMasterName());
   if (masterMap == "NULL") {
-    cerr << "setdemomode error: no master map.\n";
+    ar_log_critical() << "no master map.\n";
     return 1;
   }
   if (masterMap.size() != 2) {
-    cerr << "setdemomode error: malformed master map '" << masterMap << "'.\n";
+    ar_log_critical() << "expected 2 elements in master map '" << masterMap << "'.\n";
     return 1;
   }
-  string masterName = masterMap[0];
-  if (!szgClient.setAttribute( masterName, "SZG_HEAD", "fixed_head_mode", paramVal )) {
-    cerr << "setdemomode error: setAttribute failed.\n";
+  if (!szgClient.setAttribute( masterMap[0], "SZG_HEAD", "fixed_head_mode", paramVal )) {
+    ar_log_critical() << "setAttribute failed.\n";
     return 1;
   }
   

@@ -203,7 +203,7 @@ int main(int argc, char** argv){
       }
     } else {
       const string s = szgClient.getVirtualComputers();
-      ar_log_error() << "no virtual computer '" << argv[1] <<
+      ar_log_critical() << "no virtual computer '" << argv[1] <<
         "', and no szgd on host '" << argv[1] << "'.\n" <<
         (s.empty() ?
 	  "  (No virtual computers defined.  Did you run dbatch?)\n" :
@@ -216,7 +216,7 @@ int main(int argc, char** argv){
   if (fVirtual) {
     const string trigger(szgClient.getTrigger(hostName));
     if (trigger == "NULL") {
-      ar_log_error() << "no trigger for virtual computer '" << hostName << "'.\n";
+      ar_log_critical() << "no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
     msgContext = szgClient.createContext(hostName, "default", "trigger", "default", "NULL");
@@ -227,9 +227,9 @@ int main(int argc, char** argv){
   // either from the command line OR the trigger of the virtual computer.
   const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
-    ar_log_error() << "no szgd on host " << hostName << ".\n";
+    ar_log_critical() << "no szgd on host " << hostName << ".\n";
     if (fVirtual) {
-      ar_log_error() << "  (That host is the trigger of virtual computer '" << argv[1] << "')\n";
+      ar_log_critical() << "  (That host is the trigger of virtual computer '" << argv[1] << "')\n";
     }
     // Don't reinterpret or retry.  Just fail.
     return 1;

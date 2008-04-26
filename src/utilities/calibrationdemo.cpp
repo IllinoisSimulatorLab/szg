@@ -14,7 +14,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc != 1 && argc != 2){
-    ar_log_error() << "calibrationdemo usage: calibrationdemo [virtual_computer]\n";
+    ar_log_critical() << "usage: calibrationdemo [virtual_computer]\n";
     szgClient.sendInitResponse(false);
     return 1;
   }

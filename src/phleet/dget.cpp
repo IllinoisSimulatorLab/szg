@@ -16,7 +16,7 @@ int main(int argc, char** argv){
 
   const bool fAll = argc >= 2 && !strcmp(argv[1],"-a");
   if ((fAll && argc > 3) || (!fAll && (argc==1 || argc==3 || argc>4))){
-    ar_log_error() << "usage:\n  " <<
+    ar_log_critical() << "usage:\n  " <<
       "dget computer parameter_group parameter_name\n  " <<
       "dget global_parameter_name\n  " <<
       "dget -a             (Produce a dbatch-file.)\n  " <<
@@ -37,7 +37,7 @@ int main(int argc, char** argv){
         cout << szgClient.getSetGlobalXML(pathList) << endl;
       }
       else{
-        cout <<  szgClient.getGlobalAttribute(argv[1]) << endl;
+        cout << szgClient.getGlobalAttribute(argv[1]) << endl;
       }
     }
     else{

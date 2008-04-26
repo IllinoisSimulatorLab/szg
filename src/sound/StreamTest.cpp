@@ -271,14 +271,14 @@ int main(int argc, char** argv) {
     // FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,
     &x,
     &samp1 ))) {
-    ar_log_error() << "FMOD failed to create record stream.\n";
+    ar_log_critical() << "FMOD failed to create record stream.\n";
 LAbort:
     (void)ar_fmodcheck( FMOD_System_Release( ar_fmod() ));
     return 1;
   }
 
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
-    ar_log_error() << "FMOD failed to record.\n";
+    ar_log_critical() << "FMOD failed to record.\n";
     goto LAbort;
   }
 

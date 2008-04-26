@@ -2995,13 +2995,13 @@ void arSZGClient::_dataThread() {
       // Don't complain if the destructor has already been invoked.
       // Disconnect?
       _keepRunning = false;
-      ar_log_error() << "no szgserver.\n";
+      ar_log_critical() << "no szgserver.\n";
       break;
     }
 
     // Data distribution must be multithreaded.
     // Only one thread (which should be in arSZGClient!) receives messages.
-    // Everything else is in response to something sent to the szgserver,
+    // Everything else responds to something sent to the szgserver,
     // and hence has a "match" for multithreading.
 
     int size = -1; // unused
@@ -3009,13 +3009,11 @@ void arSZGClient::_dataThread() {
       _dataParser->parseIntoInternal(_receiveBuffer, size);
     }
     else if (ar_rawDataGetID(_receiveBuffer) == _l.AR_KILL) {
-      ar_log_error() << "szgserver forcibly disconnected.\n";
+      ar_log_critical() << "szgserver forcibly disconnected.\n";
       break;
     }
-    else {
-      arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
-      _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
-    }
+    arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
+    _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
   }
 
   // Interrupt any waiting messages, and forbid any future ones.
@@ -3044,7 +3042,7 @@ void arSZGClient::_sendDiscoveryPacket(const string& name,
 bool arSZGClient::discoverSZGServer(const string& name,
                                     const string& broadcast) {
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()) {
-    ar_log_error() << "failed to launch discovery threads.\n";
+    ar_log_critical() << "failed to launch discovery threads.\n";
     return false;
   }
 

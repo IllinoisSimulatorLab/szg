@@ -25,7 +25,7 @@ int main(int argc, char** argv){
   }
 
   if (argc < 2){
-    cout << "usage: testservice serviceName\n";
+    ar_log_critical() << "usage: testservice serviceName\n";
     return 1;
   }
 
@@ -42,13 +42,13 @@ int main(int argc, char** argv){
     list<int> tags;
     tags.push_back(match);
     if (client.getServiceReleaseNotification(tags) < 0){
-      ar_log_error() << "testservice failed to get matching tag.\n";
+      ar_log_critical() << "testservice failed to get matching tag.\n";
       return 1;
     }
 
     ar_log_remark() << "testservice: Old service expired. Re-registering.\n";
     if (!client.registerService(argv[1],"default",1,ports)){
-      ar_log_error() << "testservice failed twice register service.\n";
+      ar_log_critical() << "testservice re-failed to register service.\n";
       return 1;
     }
   }
@@ -58,32 +58,29 @@ int main(int argc, char** argv){
   int tries = 0;
   while (!server.beginListening(&dictionary)){
     if (!client.requestNewPorts(argv[1],"default",1,ports)){
-      ar_log_error() << "testservice failed to request ports.\n";
+      ar_log_critical() << "testservice failed to request ports.\n";
       return 1;
     }
 
     server.setPort(ports[0]);
     if (++tries == 10){
-      ar_log_error() << "testservice requested ports too many times.\n";
+      ar_log_critical() << "testservice requested ports too many times.\n";
       return 1;
     }
   }
 
   if (!client.confirmPorts(argv[1],"default",1,ports)){
-    ar_log_error() << "testservice failed to confirm ports.\n";
+    ar_log_critical() << "testservice failed to confirm ports.\n";
     return 1;
   }
 
   ar_log_remark() << "testservice bound to brokered ports.\n";
   arThread dummy(connectionTask);
   arStructuredData data(&record);
-  int counter = 0;
-  while (true){
+  for (int counter = 0; ; ++counter %= 100) {
     data.dataInString(TAG, argv[1]);
     data.dataIn("data", &counter, AR_INT, 1);
     server.sendData(&data);
-    if (++counter > 100)
-      counter = 0;
     ar_usleep(100000);
   }
   return 0;

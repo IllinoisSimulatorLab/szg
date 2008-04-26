@@ -192,13 +192,19 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     fscanf(matFile,"%s %s",buffer,mtlNameBuf);
     string mtlName(mtlNameBuf);
     if (!strcmp(buffer, "newmtl")) {
+      const unsigned cchMax = 64;
       ar_log_debug() << "Found newmtl token '" << mtlName << "'.\n";      
-      if (mtlName.size() > 64) {
-        ar_log_error() << "Material name '" << mtlName << "' is too long.\n";
-        ar_log_error() << "arOBJ cannot handle material names longer than 64 characters.\n";
+      const unsigned cch = mtlName.size();
+      if (cch < 1) {
+        ar_log_error() << "arObj: empty material name.\n";
         return false;
       }
-      unsigned int i;
+      if (cch > cchMax) {
+        ar_log_error() << "arObj: material name '" << mtlName << "' exceeds " << cchMax << " characters.\n";
+        return false;
+      }
+
+      unsigned i;
       for (i=0; i<_material.size(); i++)
         if (strcmp(buffer, _material[i].name) == 0) {
           _thisMaterial = i;
@@ -210,9 +216,8 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
         _material.push_back(arOBJMaterial());
         _thisMaterial = _material.size()-1;
         memcpy( _material[_thisMaterial].name, mtlName.c_str(), mtlName.size()+1 );
-//        sprintf((_material[_thisMaterial]).name, "%s", mtlName);
       }
-      ar_log_debug() << "Done handling newmtl token '" << string(mtlName) << "'.\n";      
+      ar_log_debug() << "Handled newmtl token '" << string(mtlName) << "'.\n";      
     }
     break;
     }

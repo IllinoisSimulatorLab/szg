@@ -76,7 +76,7 @@ int main(int argc, char** argv){
   // copypasted (more or less) from szgd.cpp
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
-    ar_log_error() << "another copy is already running (pid = " << ownerID << ").\n";
+    ar_log_critical() << "another copy is already running (pid = " << ownerID << ").\n";
 LDie:
     if (!szgClient.sendInitResponse(false)){
       cerr << "SoundRender error: maybe szgserver died.\n";

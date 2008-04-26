@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
   if (argc != 2 && argc != 3) {
 Usage:    
-    ar_log_error() << "usage: setstereo [virtual_computer] true|false\n";
+    ar_log_critical() << "usage: setstereo [virtual_computer] true|false\n";
     return 1;
   }
 

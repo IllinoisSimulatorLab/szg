@@ -1007,7 +1007,7 @@ void messageLoop( void* /*d*/ ) {
 }
 
 void printUsage() {
-  ar_log_error() << "Usage: szgd <basePaths> [-r]\n"
+  ar_log_critical() << "Usage: szgd <basePaths> [-r]\n"
     << "  basePaths is a semicolon-delimited list of paths that prefix all\n"
     << "      SZG_EXEC and SZG_PYTHON path elements, SZG_PYTHON/lib_path, and\n"
     << "      SZG_PYTHON/executables.  They may be directories or executables\n"
@@ -1061,7 +1061,7 @@ LGonnaRetry:
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
-    ar_log_error() << "already running (pid = " << ownerID << ").\n";
+    ar_log_critical() << "already running (pid = " << ownerID << ").\n";
     // todo: if we can't communicate with that pid,
     // then assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.

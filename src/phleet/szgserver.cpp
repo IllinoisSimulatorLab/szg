@@ -1015,7 +1015,7 @@ void serverDiscoveryFunction(void* pv) {
   // Allows multiple szgservers to exist on a single box!
   _socket.reuseAddress(true);
   if (_socket.ar_bind(&incomingAddress) < 0) {
-    ar_log_error() << "failed to bind to " << "INADDR_ANY:" << port
+    ar_log_critical() << "failed to bind to " << "INADDR_ANY:" << port
 	 << ".\n\t(is another szgserver already running?)\n";
     *(bool *)pv = true; // abort
     return;
@@ -2003,7 +2003,7 @@ int main(int argc, char** argv) {
   ar_log().setHeader("szgserver");
 
   if (argc < 3) {
-    ar_log_error() <<
+    ar_log_critical() <<
       "usage: szgserver name port [mask.1 ...]\n\texample: szgserver yoyodyne 8888\n";
     return 1;
   }
@@ -2031,7 +2031,7 @@ int main(int argc, char** argv) {
   // Determine serverIP, to tell client where to connect while we bind to INADDR_ANY.
   arPhleetConfig config;
   if (!config.read()) {
-    ar_log_error() << "syntax error in config file. (Try dconfig.)\n";
+    ar_log_critical() << "syntax error in config file (try dconfig).\n";
     return 1;
   }
 
@@ -2040,11 +2040,11 @@ int main(int argc, char** argv) {
   computerAddresses = config.getAddresses();
   computerMasks = config.getMasks();
   if (computerAddresses.empty()) {
-    ar_log_error() << "config file defines no networks.\n";
+    ar_log_critical() << "config file defines no networks.\n";
     return 1;
   }
-  serverIP = computerAddresses[0];
 
+  serverIP = computerAddresses[0];
   bool fAbort = false;
   arThread dummy(serverDiscoveryFunction, &fAbort);
   // Give thread a chance to fail (it will set fAbort).
@@ -2064,8 +2064,8 @@ int main(int argc, char** argv) {
   dataParser = new arStructuredDataParser(lang.getDictionary());
   if (!dataServer->setInterface("INADDR_ANY") ||
       !dataServer->setPort(serverPort)) {
-    ar_log_error() << "data server has invalid IP:port "
-                   << serverIP  << ":" << serverPort << ".\n";
+    ar_log_critical() << "data server has invalid IP:port " <<
+      serverIP  << ":" << serverPort << ".\n";
     return 1;
   }
 

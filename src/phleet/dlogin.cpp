@@ -40,7 +40,7 @@ int main(int argc, char** argv){
     }
 
     if (!found){
-      ar_log_error() << "dlogin found no szgserver named '" << argv[1] << "'.\n";
+      ar_log_critical() << "dlogin found no szgserver named '" << argv[1] << "'.\n";
       return 1;
     }
   }
@@ -59,7 +59,7 @@ int main(int argc, char** argv){
   // Connect to the szgserver
   szgClient.init(argc, argv);
   if (!szgClient) {
-    ar_log_error() << "dlogin failed to connect to szgserver.\n";
+    ar_log_critical() << "dlogin failed to connect to szgserver.\n";
     szgClient.logout();
     return 1;
   }

@@ -17,7 +17,7 @@ int main(int argc, char** argv){
 
   if (argc < 2 || argc > 4){
 LUsage:
-    ar_log_error() << "usage: " << argv[0] << " [-9] [hostname] executable_label\n";
+    ar_log_critical() << "usage: " << argv[0] << " [-9] [hostname] executable_label\n";
     return 1;
   }
 
@@ -52,7 +52,7 @@ LUsage:
     // hostName is a virtual computer.
     const string trigger(szgClient.getAttribute(hostName,"SZG_TRIGGER","map", ""));
     if (trigger == "NULL"){
-      ar_log_error() << "no SZG_TRIGGER/map for virtual computer '" <<
+      ar_log_critical() << "no SZG_TRIGGER/map for virtual computer '" <<
 	hostName << "'.\n";
       return 1;
     }
@@ -65,7 +65,7 @@ LUsage:
       return 0;
 
 LNotFound:
-    ar_log_error() << "no process '" << exeName << "' on host '" << hostName << "'.\n";
+    ar_log_critical() << "no process '" << exeName << "' on host '" << hostName << "'.\n";
     return 1;
     }
 
