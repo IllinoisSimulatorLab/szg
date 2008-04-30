@@ -526,32 +526,35 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   //
   // Assume XML format, if <szg_config> is the first non-whitespace text.
 
+  string fileNameVerbose = "parameter file '" + fileName + "'";
+  if (dataPath != "NULL")
+    fileNameVerbose += " on SZG_SCRIPT/path '" + dataPath + "'";
+
   arFileTextStream fileStream;
   if (!fileStream.ar_open(fileName, dataPath)) {
     if (warn) {
-      ar_log_error() << " failed to open batch file '" << fileName <<
-        "' on SZG_SCRIPT/path '" << dataPath << "'\n";
+      ar_log_error() << " failed to open " << fileNameVerbose << ".\n";
     }
     return false;
   }
   ar_log_debug() << " parsing config file " << ar_fileFind(fileName, "", dataPath) << ".\n";
   arBuffer<char> buffer(128);
-  string tagText(ar_getTagText(&fileStream, &buffer));
+  string tagText = ar_getTagText(&fileStream, &buffer);
   if (tagText == "szg_config") {
     // Parse as XML.
     while (true) {
       tagText = ar_getTagText(&fileStream, &buffer);
 
       if (tagText == "comment") {
-        // Get and discard the comment text.
+        // Discard comment.
         if (!_parseBetweenTags(fileStream, &buffer, "comment"))
           return false;
         if (!_parseTag(fileStream, &buffer, "/comment"))
           return false;
+
       } else if (tagText == "include") {
-        // Get and discard the comment text.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-          ar_log_error() << "incomplete include in parameter file.\n";
+          ar_log_error() << "incomplete include in " << fileNameVerbose << ".\n";
           fileStream.ar_close();
           return false;
         }
@@ -561,8 +564,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
         if (!_parseTag(fileStream, &buffer, "/include"))
           return false;
         if (!parseParameterFile(include)) {
-          ar_log_error() << "parameter file's include directive '" <<
-	    include << "' failed.\n";
+          ar_log_error() << "include directive '" << include << "' failed in " <<
+	    fileNameVerbose << ".\n";
           return false;
         }
       }
@@ -576,22 +579,22 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
         string name;
         nameText >> name;
         if (name == "") {
-          ar_log_error() << "parameter file had empty name.\n";
+          ar_log_error() << fileNameVerbose << " had empty name.\n";
           fileStream.ar_close();
 	  return false;
         }
         if (!_parseTag(fileStream, &buffer, "/name"))
-                return false;
+	  return false;
         if (!_parseTag(fileStream, &buffer, "value"))
-                return false;
+	  return false;
         if (!ar_getTextUntilEndTag(&fileStream, "value", &buffer)) {
-          ar_log_error() << "parameter file had incomplete parameter value.\n";
+          ar_log_error() << fileNameVerbose << " had incomplete parameter value.\n";
           fileStream.ar_close();
           return false;
         }
         setGlobalAttribute(name, buffer.data);
         if (!_parseTag(fileStream, &buffer, "/param"))
-                return false;
+	  return false;
 
       } else if (tagText == "assign") {
         if (!_parseBetweenTags(fileStream, &buffer, "assignment"))
@@ -600,11 +603,18 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
         if (!_parseTag(fileStream, &buffer, "/assign"))
           return false;
 
+      } else if (tagText == "NULL") {
+	// ar_getTagText() reports syntax errors as "NULL".
+	// todo: report line numbers.
+        ar_log_error() << fileNameVerbose << ": skipping syntax error.\n";
+	// Maybe we'll recover.
+
       } else if (tagText == "/szg_config") {
         // Finished.
         break;
+
       } else {
-        ar_log_error() << "parameter file had illegal XML tag '" << tagText << "'.\n";
+        ar_log_error() << fileNameVerbose << " had illegal XML tag '" << tagText << "'.\n";
         fileStream.ar_close();
         return false;
       }

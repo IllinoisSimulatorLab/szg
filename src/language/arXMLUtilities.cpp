@@ -129,6 +129,8 @@ bool ar_getTextUntilEndTag(arTextStream* textStream,
 // Sometimes we want to be able to record the entire text stream in
 // our buffer. The default is NOT to do so, because the concatenate 
 // parameter is false unless explicitly set.
+//
+// Print no diagnostics - leave that up to the caller.
 string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
                      bool concatenate){
   if (concatenate){
@@ -143,47 +145,41 @@ string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
   }
   int ch = textStream->ar_getc();
   if (ch == EOF){
-    // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
     return string("NULL");
   }
   if (ch != '<'){
-    // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
     return string("NULL");
   }
-  // Only record the '<' character if we are concatenating!
   else if (concatenate){
+    // Record the '<'.
     buffer->push(char(ch));
   }
-  // Only begin packing at the beginning if we are NOT in concatenate mode.
   if (!concatenate){
+    // Begin packing at the beginning.
     buffer->pushPosition = 0;
   }
-  int tagStart = buffer->pushPosition;
+  const int tagStart = buffer->pushPosition;
   while (ch != '>'){
     ch = textStream->ar_getc();
     if (ch == EOF){
-      // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
       return string("NULL");
     }
     if (ch != '>'){
       buffer->push(char(ch));
     }
   }
-  int tagLength = buffer->pushPosition - tagStart;
-  // Record the final '>' if we are concatenating.
+  const int tagLength = buffer->pushPosition - tagStart;
   if (concatenate){
+    // Record the final '>'.
     buffer->push(char(ch));
   }
-  // NOTE: Code might try to treat the buffer array as a C-string.
-  // Null-terminate it.
+  // Caller might treat result as a C string, so null-terminate it.
   buffer->grow(buffer->pushPosition+1);
   buffer->data[buffer->pushPosition] = '\0';
-  string result(buffer->data + tagStart, tagLength);
-  return result;
+  return string(buffer->data + tagStart, tagLength);
 } 
 
-// A less efficient version designed for those who do not want the buffer
-// management features.
+// Inefficient version, without buffer management.
 string ar_getTagText(arTextStream* textStream){
   arBuffer<char> buffer(256);
   return ar_getTagText(textStream, &buffer);
