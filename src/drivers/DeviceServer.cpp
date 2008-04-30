@@ -115,8 +115,7 @@ LAbort:
     goto LAbort;
   }
 
-  // Load the filters.
-  string namedPForthProgram("");
+  string namedPForthProgram;
   if (argc >= 4) {
     namedPForthProgram = string(argv[3]);
   }
@@ -130,7 +129,7 @@ LAbort:
     ar_log_critical() << "DeviceServer has no input.\n";
   }
   if (!respond(szgClient, ok)) {
-    ar_log_warning() << "DeviceServer ignoring failed init.\n";
+    ar_log_error() << "DeviceServer ignoring failed init.\n";
   }
   if (!ok) {
     // Bug: in linux, this may hang.  Which other thread still runs?
@@ -183,13 +182,12 @@ LDie:
 	  messageType << "/" << messageBody << ".\n";
         driver->handleMessage( messageType, messageBody );
       } else {
-        ar_log_warning() << "ignoring unrecognized messageType '" <<
-	  messageType << "'.\n";
+        ar_log_error() << "ignoring unrecognized messageType '" << messageType << "'.\n";
       }
     }
   }
 
   // unreachable
-  ar_log_critical() << "DeviceServer fell out of message loop.\n";
+  ar_log_critical() << "fell out of message loop.\n";
   return 1;
 }

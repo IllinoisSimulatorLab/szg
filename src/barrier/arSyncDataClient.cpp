@@ -45,15 +45,15 @@ void arSyncDataClient::_connectionTask(){
     const string IPport =
       result.address + ":" + ar_intToString(result.portIDs[0]) + ".\n";
     if (!result.valid){
-      ar_log_warning() << "no valid address on server discovery.\n";
+      ar_log_error() << "no valid address on server discovery.\n";
       continue;
     }
     if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      ar_log_warning() << "failed to connect to brokered " << IPport;
+      ar_log_error() << "failed to connect to brokered " << IPport;
       continue;
     }
     if (!_connectionCallback){
-      ar_log_warning() << "no connection callback for " << IPport;
+      ar_log_error() << "no connection callback for " << IPport;
       _connectionThreadRunning = false;
       return;
     }
@@ -132,7 +132,7 @@ void arSyncDataClient::_readTask(){
     if (ok && _firstConsumption){
       // if in sync read mode, request another buffer right away for double-buffering
       if (syncClient() && !_barrierClient.sync()){
-	ar_log_warning() << "_readTask()'s barrier client failed to sync.\n";
+	ar_log_error() << "_readTask()'s barrier client failed to sync.\n";
       }
       _firstConsumption = false;
     }
@@ -253,7 +253,7 @@ void arSyncDataClient::setBondedObject(void* bondedObject){
 
 bool arSyncDataClient::setMode(int mode){
   if (mode != AR_SYNC_CLIENT && mode != AR_NOSYNC_CLIENT){
-    ar_log_warning() << "ignoring unrecognized mode " << mode << ".\n";
+    ar_log_error() << "ignoring unrecognized mode " << mode << ".\n";
     return false;
   } 
   _mode = mode;
@@ -300,7 +300,7 @@ void arSyncDataClient::setNetworks(string networks){
 
 bool arSyncDataClient::init(arSZGClient& client){
   if (_syncServer){
-    ar_log_warning() << "ignoring init() while locally connected.\n";
+    ar_log_error() << "ignoring init() while locally connected.\n";
     return false;
   }
 
@@ -313,12 +313,12 @@ bool arSyncDataClient::init(arSZGClient& client){
 
 bool arSyncDataClient::start(){
   if (_syncServer){
-    ar_log_warning() << "ignoring start() while locally connected.\n";
+    ar_log_error() << "ignoring start() while locally connected.\n";
     return false;
   }
 
   if (!_client){
-    ar_log_warning() << "ignoring start() before init().\n";
+    ar_log_error() << "ignoring start() before init().\n";
     return false;
   }
 
@@ -326,7 +326,7 @@ bool arSyncDataClient::start(){
   _barrierClient.setServiceName(_serviceNameBarrier);
   _barrierClient.setNetworks(_networks);
   if (!_barrierClient.init(*_client) || !_barrierClient.start()){
-    ar_log_warning() << "failed to start barrier client.\n";
+    ar_log_error() << "failed to start barrier client.\n";
     return false;
   }
   
@@ -334,12 +334,12 @@ bool arSyncDataClient::start(){
   _dataClient.smallPacketOptimize(true);
 
   if (!_connectionThread.beginThread(ar_syncDataClientConnectionTask, this)) {
-    ar_log_warning() << "failed to start connection thread.\n";
+    ar_log_error() << "failed to start connection thread.\n";
     return false;
   }
 
   if (!_readThread.beginThread(ar_syncDataClientReadTask, this)) {
-    ar_log_warning() << "failed to start read thread.\n";
+    ar_log_error() << "failed to start read thread.\n";
     return false;
   }
 
@@ -349,7 +349,7 @@ bool arSyncDataClient::start(){
 
 void arSyncDataClient::stop(){
   if (_syncServer){
-    ar_log_warning() << "ignoring stop() while locally connected.\n";
+    ar_log_error() << "ignoring stop() while locally connected.\n";
     return;
   }
 
@@ -434,7 +434,7 @@ void arSyncDataClient::consume(){
         _disconnectCallback(_bondedObject);
       }
       else {
-        ar_log_warning() << "no disconnection callback.\n";
+        ar_log_error() << "no disconnection callback.\n";
       }
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
@@ -516,7 +516,7 @@ void arSyncDataClient::consume(){
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
         if (!_barrierClient.sync()) {
-	  ar_log_warning() << "consume()'s barrier client failed to sync.\n";
+	  ar_log_error() << "consume()'s barrier client failed to sync.\n";
 	}
       }
       if (_exitProgram)

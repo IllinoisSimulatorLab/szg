@@ -419,14 +419,14 @@ bool arDistSceneGraphFramework::createWindows(bool){
   if (!_standalone)
     return false;
 
-  const bool ok = _graphicsClient.start(_SZGClient, false);
-  if (!ok){
-    ar_log_warning() << "failed to start windowing.\n"; 
+  if (!_graphicsClient.start(_SZGClient, false)){
+    ar_log_error() << "failed to start windowing.\n"; 
 #ifdef AR_USE_DARWIN
-    ar_log_warning() << "  (Ensure that X11 is running.)\n";
+    ar_log_error() << "  (Ensure that X11 is running.)\n";
 #endif	
+    return false;
   }
-  return ok;
+  return true;
 }
 
 // Standalone, display a window (as opposed to through szgrender).
@@ -512,7 +512,7 @@ void arDistSceneGraphFramework::_initDatabases(){
     _graphicsClient._cliSync.registerLocalConnection(&_graphicsServer._syncServer);
     _soundClient._cliSync.registerLocalConnection(&_soundServer._syncServer);
     if (!_soundClient.init())
-      ar_log_warning() << "silent.\n";
+      ar_log_error() << "silent.\n";
   }
   else if (_peerName == "NULL"){
     // In phleet mode (but not peer mode), the _syncServer *always* syncs with its client.
@@ -538,7 +538,7 @@ void arDistSceneGraphFramework::_initDatabases(){
 bool arDistSceneGraphFramework::_initInput(){
   _inputDevice = new arInputNode;
   if (!_inputDevice) {
-    ar_log_warning() << "failed to create input device.\n";
+    ar_log_error() << "failed to create input device.\n";
     return false;
   }
   _inputState = &(_inputDevice->_inputState);
@@ -546,7 +546,7 @@ bool arDistSceneGraphFramework::_initInput(){
   if (!_standalone){
     _inputDevice->addInputSource(&_netInputSource,false);
     if (!_netInputSource.setSlot(0)) {
-      ar_log_warning() << "failed to set slot 0.\n";
+      ar_log_error() << "failed to set slot 0.\n";
       return false;
     }
     _inputState = &(_inputDevice->_inputState);
@@ -558,7 +558,7 @@ bool arDistSceneGraphFramework::_initInput(){
   _installFilters();
 
   if (!_inputDevice->init(_SZGClient) && !_standalone){
-    ar_log_warning() << "failed to init input device.\n";
+    ar_log_error() << "failed to init input device.\n";
     if (!_SZGClient.sendInitResponse(false)){
       cerr << _label << " error: maybe szgserver died.\n";
     }
@@ -570,9 +570,9 @@ bool arDistSceneGraphFramework::_initInput(){
 bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-dsg")){
-      // we have found an arg that might need to be removed.
+      //this arg might need to be removed.
       if (i+1 >= argc){
-        ar_log_warning() << "-dsg flag is last in arg list.\n";
+        ar_log_error() << "-dsg flag is last in arg list.\n";
 	return false;
       }
 
@@ -582,12 +582,12 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       const string thePair(argv[i+1]);
       unsigned int location = thePair.find('=');
       if (location == string::npos){
-        ar_log_warning() << "context pair has no '='.\n";
+        ar_log_error() << "context pair has no '='.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1){
-        ar_log_warning() << "context pair ends with '='.\n";
+        ar_log_error() << "context pair ends with '='.\n";
         return false;
       }
       // So far, the only special key-value pair is:
@@ -602,7 +602,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       }
       else if (key == "mode"){
         if (value != "feedback"){
-          ar_log_warning() << "illegal mode value '" << value << "'.\n";
+          ar_log_error() << "illegal mode value '" << value << "'.\n";
 	  return false;
 	}
 	_peerMode = value;
@@ -614,7 +614,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 	_remoteRootID = atoi(value.c_str());
       }
       else{
-	ar_log_warning() << "arg pair has illegal key '" << key << "'.\n";
+	ar_log_error() << "arg pair has illegal key '" << key << "'.\n";
 	return false;
       }
       
@@ -623,7 +623,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
         argv[j] = argv[j+2];
       }
       // reset the arg count and i
-      argc = argc-2;
+      argc -= 2;
       i--;
     }
   }

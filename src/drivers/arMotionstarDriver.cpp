@@ -15,13 +15,13 @@ void ar_motionstarDriverEventTask(void* motionstarDriver){
   arMotionstarDriver* d = (arMotionstarDriver*) motionstarDriver;
   d->_sendCommand(MSG_RUN_CONTINUOUS,0);
   if (!d->_getResponse(RSP_RUN_CONTINUOUS)){
-    ar_log_warning() << "arMotionstarDriver error: no response from driver.\n";
-    return;
+    goto LDone;
   }
   ar_log_remark() << "arMotionstarDriver beginning event task.\n";
   while (d->_getResponse(DATA_PACKET))
     d->_parseData(&d->_response);
-  ar_log_warning() << "arMotionstarDriver: no response from driver.\n";
+LDone:
+  ar_log_error() << "arMotionstarDriver: no response from driver.\n";
 }
 
 arMotionstarDriver::arMotionstarDriver():
@@ -41,7 +41,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 
   // this test could be better
   if (_birdnetIP.length()<7){
-    ar_log_warning() << "arMotionstarDriver: SZG_MOTIONSTAR/IPhost undefined or invalid.\n";
+    ar_log_error() << "bad or no SZG_MOTIONSTAR/IPhost.\n";
     return false;
   }
 
@@ -50,12 +50,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //  _setVm = true;
 //  long filterBuf[7];
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMin", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMin.\n";
+//    ar_log_error() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMin.\n";
 //    _setAlphaMin = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver: alphaMin value " << filterBuf[i]
+//        ar_log_error() << "arMotionstarDriver: alphaMin value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMin = false;
 //      }
@@ -63,12 +63,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMax", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMax.\n";
+//    ar_log_error() << "arMotionstarDriver: no SZG_MOTIONSTAR/alphaMax.\n";
 //    _setAlphaMax = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver: alphaMax value " << filterBuf[i]
+//        ar_log_error() << "arMotionstarDriver: alphaMax value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMax = false;
 //      }
@@ -76,12 +76,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "Vm", filterBuf, 7 )) {
-//    ar_log_warning() << "arMotionstarDriver: no SZG_MOTIONSTAR/Vm.\n";
+//    ar_log_error() << "arMotionstarDriver: no SZG_MOTIONSTAR/Vm.\n";
 //    _setVm = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0.)||(filterBuf[i] > 32767)) {
-//        ar_log_warning() << "arMotionstarDriver: Vm value " << filterBuf[i]
+//        ar_log_error() << "arMotionstarDriver: Vm value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setVm = false;
 //      }
@@ -96,20 +96,20 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 
   _commandSocket.ar_create();
   if (_commandSocket.ar_connect(_birdnetIP.c_str(), _TCP_PORT)<0){
-    ar_log_warning() << "arMotionstarDriver failed to open command socket.\n";
+    ar_log_error() << "arMotionstarDriver failed to open command socket.\n";
     return false;
   }
 
   // start the system working
   if (!_sendWakeup()){
-    ar_log_warning() << "arMotionstarDriver failed to wake up.\n";
+    ar_log_error() << "arMotionstarDriver failed to wake up.\n";
     return false;
   }
 
   // get the system status
   BN_SYSTEM_STATUS* sys = NULL;
   if (!_getStatusAll(&sys)){
-    ar_log_warning() << "arMotionstarDriver failed to get status.\n";
+    ar_log_error() << "arMotionstarDriver failed to get status.\n";
     return false;
   }
    
@@ -132,14 +132,14 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
     // button overrides old wand's (shifts them up)!
     _setDeviceElements(_useButton ? 1 : 0, 0, nDevices-1); 
   } else {
-    ar_log_warning() << "arMotionstarDriver: SZG_MOTIONSTAR/signature overriding device signature with ("
+    ar_log_error() << "SZG_MOTIONSTAR/signature overriding device signature with ("
          << sig[0] << ", " << sig[1] << ", " << sig[2] << ").\n";
     _setDeviceElements(sig);
   }
 
   // send the system setup
   if (!_setStatusAll(sys)){
-    ar_log_warning() << "arMotionstarDriver failed to set system status.\n";
+    ar_log_error() << "arMotionstarDriver failed to set system status.\n";
     return(-1);
   }
 
@@ -148,7 +148,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   for (i=2; i<=nDevices; i++){
     // get the status of an individual bird
     if (!_getStatusBird(i,&bird)){
-      ar_log_warning() << "arMotionstarDriver: no status from bird " << i-1 << "\n";
+      ar_log_error() << "arMotionstarDriver: no status from bird " << i-1 << "\n";
       return false;
     }
 
@@ -181,7 +181,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
     
     if (!_setStatusBird(i,bird)){
-      ar_log_warning() << "arMotionstarDriver failed to set status of bird " << i-1 << "\n";
+      ar_log_error() << "arMotionstarDriver failed to set status of bird " << i-1 << "\n";
       return false;
     }
   }
@@ -241,13 +241,13 @@ bool arMotionstarDriver::_sendStatus(int xtype, char *data, int size){
   pkt.header.numBytes = htons((short)size);
   memcpy(pkt.data,data,size);
   if (!_commandSocket.ar_safeWrite((char*)&pkt,sizeof(BN_HEADER)+size)){
-    ar_log_warning() << "arMotionstarDriver error: Status send failed.\n";
+    ar_log_error() << "arMotionstarDriver: Status send failed.\n";
     return false;
   }
   return true;
 }
 
-bool arMotionstarDriver::_sendCommand(int cmd,int xtype){
+bool arMotionstarDriver::_sendCommand(int cmd, int xtype){
   BN_HEADER header;
   header.type = cmd;
   header.xtype = xtype;
@@ -257,7 +257,7 @@ bool arMotionstarDriver::_sendCommand(int cmd,int xtype){
   header.numBytes = 0;
 
   if (!_commandSocket.ar_safeWrite((char*)&header,sizeof(BN_HEADER))){
-    ar_log_warning() << "arMotionstarDriver error: Command send failed.\n";
+    ar_log_error() << "arMotionstarDriver: command send failed.\n";
     return false;
   }
   return true;
@@ -267,21 +267,19 @@ bool arMotionstarDriver::_getResponse(int rsp){
   const int headerSize = sizeof(BN_HEADER);  /* need at least the header */
   char* cptr = (char *)&_response.header;
   if (!_commandSocket.ar_safeRead(cptr, headerSize)){
-    ar_log_warning() << "arMotionstarDriver error: failed to read response header.\n";
+    ar_log_error() << "arMotionstarDriver failed to read response header.\n";
     return false;
   }
   const int bodySize = ntohs(_response.header.numBytes);
   if (bodySize){
     if (!_commandSocket.ar_safeRead(cptr+headerSize, bodySize)){
-      ar_log_warning() << "arMotionstarDriver error: failed to read response body.\n";
+      ar_log_error() << "arMotionstarDriver failed to read response body.\n";
       return false;
     }
   }	
   if (_response.header.type != rsp){
-    ar_log_warning() << "arMotionstarDriver error: Command response "
-         << _response.header.type << " not of "
-	 << "expected type "
-	 << rsp << ".\n";
+    ar_log_error() << "arMotionstarDriver Command response "
+         << _response.header.type << " not of " << "expected type " << rsp << ".\n";
     return false;
   }
   return true;
@@ -289,7 +287,7 @@ bool arMotionstarDriver::_getResponse(int rsp){
 
 void arMotionstarDriver::_parseData(BN_PACKET *packet){
 #ifdef UNUSED
-  // note how we can get timestamp data
+  // Get timestamp data.
   long seconds = ntohl(packet->header.seconds);
   int milliseconds = ntohs(packet->header.milliseconds);     
 #endif
@@ -328,7 +326,7 @@ void arMotionstarDriver::_parseData(BN_PACKET *packet){
       // if (button) printf(" Button %d\n",button);			
       tmp += 2;
     }
-    tmp += 2;   // add two for addr and format bytes
+    tmp += 2;   // include bytes for addr and format
     n -= tmp;
     pch += tmp;
   }
@@ -346,8 +344,7 @@ void arMotionstarDriver::_generateButtonEvent(int value){
 }
 
 void arMotionstarDriver::_generateEvent(int sensorID){
-
-  // convert from motionstar coords (units=inches, right-handed, xy horizontal, z down)
+  // Convert from motionstar coords (units=inches, right-handed, xy horizontal, z down)
   // to generic Syzygy coordinates (units=feet, right-handed, xz horizontal, y up).
   _receivedData[0] /= 12.;                      // x->x
   float z = _receivedData[1]/12.;               // y->z

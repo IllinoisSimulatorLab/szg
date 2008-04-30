@@ -35,7 +35,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
     for (i=0; i<3; i++) {
       if ((floatBuf[i] < 0)||(floatBuf[i] >= 1)) {
-        ar_log_warning() << "arTrackCalFilter warning: SZG_MOTIONSTAR/IIR_filter_weight value " << floatBuf[i]
+        ar_log_error() << "arTrackCalFilter SZG_MOTIONSTAR/IIR_filter_weight value " << floatBuf[i]
              << " out of range [0,1).\n";
         _filterWeights[i] = 0;
       } else {
@@ -52,7 +52,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
   FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
   if (fp == NULL) {
-    ar_log_warning() << "arTrackCalFilter warning: failed to open file '"
+    ar_log_error() << "arTrackCalFilter failed to open file '"
          << calFileName << "' (SZG_MOTIONSTAR/calib_file) in '" << dataPath << "' (SZG_CALIB/path).\n";
     return false;
   }
@@ -60,15 +60,14 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   ar_log_remark() << "arTrackCalFilter loading file " << calFileName << "\n";
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
-    ar_log_warning() << "arTrackCalFilter error: table dimension < 1.\n";
+    ar_log_error() << "arTrackCalFilter table has nonpositive dimension.\n";
     fclose(fp);
     return false;
   }
-  //  ar_log_warning() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
+  //  ar_log_error() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
  _n = _nx*_ny*_nz;
   if ( _n<1 ) {
-    ar_log_warning() << "arTrackCalFilter warning: lookup table size must be >= 1" << "\n"
-         << " (and should be a great deal bigger than that, you silly bugger).\n";
+    ar_log_error() << "arTrackCalFilter lookup table size must be much more than 1.\n";
     fclose(fp);
     return false;
   }
@@ -78,7 +77,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
-    ar_log_warning() << "arTrackCalFilter error: failed to allocate memory for lookup tables.\n";
+    ar_log_error() << "arTrackCalFilter failed to allocate memory for lookup tables.\n";
     fclose(fp);
     return false;
   }
@@ -86,18 +85,15 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _xLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arTrackCalFilter error: failed to read lookup table value #"
-           << i << "\n";
+      ar_log_error() << "arTrackCalFilter failed to read lookup table value #" << i << "\n";
       fclose(fp);
       return false;
     }
-    //    ar_log_warning() << _xLookupTable[i] << "\n";
   }
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _yLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arTrackCalFilter error: failed to read lookup table value #"
-           << i+_n << "\n";
+      ar_log_error() << "arTrackCalFilter failed to read lookup table value #" << i+_n << "\n";
       fclose(fp);
       return false;
     }
@@ -105,8 +101,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _zLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arTrackCalFilter error: failed to read lookup table value #"
-           << i+2*_n << "\n";
+      ar_log_error() << "arTrackCalFilter failed to read lookup table value #" << i+2*_n << "\n";
       fclose(fp);
       return false;
     }

@@ -54,17 +54,17 @@ arInputEvent& arInputEvent::operator=( const arInputEvent& e ) {
 
 int arInputEvent::getButton() const {
   if (_type != AR_EVENT_BUTTON)
-    ar_log_warning() << "arInputEvent getting button value from non-button event.\n";
+    ar_log_error() << "arInputEvent getting button value from non-button event.\n";
   return _button;
 }
 float arInputEvent::getAxis() const {
   if (_type != AR_EVENT_AXIS)
-    ar_log_warning() << "arInputEvent getting axis value from non-axis event.\n";
+    ar_log_error() << "arInputEvent getting axis value from non-axis event.\n";
   return _axis;
 }
 arMatrix4 arInputEvent::getMatrix() const {
   if (_type != AR_EVENT_MATRIX)
-    ar_log_warning() << "arInputEvent getting matrix value from non-matrix event.\n";
+    ar_log_error() << "arInputEvent getting matrix value from non-matrix event.\n";
   return *_matrix;
 }
 
@@ -122,7 +122,7 @@ void arInputEvent::zero() {
       setMatrix(ar_identityMatrix());
       break;
     default:
-      ar_log_warning() << "arInputEvent can't zero while trashed.\n";
+      ar_log_error() << "arInputEvent can't zero while trashed.\n";
       break;
   }
 }

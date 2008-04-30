@@ -21,7 +21,7 @@ void arNetInputSource::_dataTask(){
       _setDeviceElements(sig);
       _sigOK = _reconfig();
       if (!_sigOK)
-        ar_log_warning() << "netinput failed to configure source.\n";
+        ar_log_error() << "netinput failed to configure source.\n";
     }
 
     // Relay the data to the input sink
@@ -32,7 +32,7 @@ void arNetInputSource::_dataTask(){
   _setDeviceElements(0,0,0);
   _sigOK = _reconfig();
   if (!_sigOK)
-    ar_log_warning() << "failed to deconfigure source.\n";
+    ar_log_error() << "failed to deconfigure source.\n";
 }
 
 void ar_netInputSourceConnectionTask(void* p){
@@ -60,7 +60,7 @@ void arNetInputSource::_connectionTask() {
         _closeConnection();
         break;
       }
-      ar_log_warning() << "no " << svc;
+      ar_log_error() << "no " << svc;
       // Throttle, since service won't reappear that quickly,
       // and szgserver itself may be stopping.
       a.sleep();
@@ -108,10 +108,10 @@ arNetInputSource::arNetInputSource() :
 
 // Input devices offer services based on slots. 
 // Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
-// @param slot the slot in question
+
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
-    ar_log_warning() << "ignoring negative slot.\n";
+    ar_log_error() << "ignoring negative slot.\n";
     return false;
   }
   _slot = slot;
@@ -121,15 +121,14 @@ bool arNetInputSource::setSlot(int slot){
 
 bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
-
   _szgClient = &SZGClient;
-  ar_log_remark() << "netinput inited.\n";
+  ar_log_debug() << "netinput inited.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
   if (!_szgClient){
-    ar_log_warning() << "netinput ignoring start before init.\n";
+    ar_log_error() << "netinput ignoring start before init.\n";
     return false;
   }
 
@@ -139,7 +138,7 @@ bool arNetInputSource::start(){
 }
 
 void arNetInputSource::_closeConnection(){
-  // should probably kill some threads here, close sockets, etc.
+  // todo: kill threads, close sockets, etc.
   _connected = false;
   _sigOK = false;
 }

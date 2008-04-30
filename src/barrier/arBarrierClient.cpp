@@ -13,7 +13,7 @@ void ar_barrierClientConnection(void* barrierClient){
 void arBarrierClient::_connectionTask(){
   _connectionThreadRunning = true;
   if (!_client){
-    ar_log_warning() << getLabel() << ": barrier client uninitialized.\n";
+    ar_log_error() << getLabel() << ": barrier client uninitialized.\n";
     _keepRunningThread = false;
     return;
   }
@@ -34,14 +34,14 @@ void arBarrierClient::_connectionTask(){
     _connectionThreadRunning = true;
 
     if (!result.valid){
-      ar_log_warning() << getLabel() << ": no service '"
+      ar_log_error() << getLabel() << ": no service '"
            << _serviceName << "' on network '" << _networks << "'.\n";
       continue;
     } 
 
     _connected = _dataClient.dialUpFallThrough(result.address, result.portIDs[0]);
     if (!_connected){
-      ar_log_warning() << getLabel() << " failed to connect to brokered address '"
+      ar_log_error() << getLabel() << " failed to connect to brokered address '"
 	   << result.address << "' for service '"
 	   << _serviceName << "' on network '" << _networks << "'.\n";
     }
@@ -103,7 +103,7 @@ void arBarrierClient::_dataTask(){
       _releaseSignal.sendSignal();
     }
     else{
-      ar_log_warning() << getLabel() << " got unknown packet.\n";
+      ar_log_error() << getLabel() << " got unknown packet.\n";
     }
   }
   _dataThreadRunning = false;
@@ -167,7 +167,7 @@ bool arBarrierClient::requestActivation(){
     const bool ok = _dataClient.sendData(_handshakeData);
   _sendLock.unlock();
   if (!ok){
-    ar_log_warning() << getLabel() << ": requestActivation failed to send data.\n";
+    ar_log_error() << getLabel() << ": requestActivation failed to send data.\n";
     return false;
   }
 
@@ -276,7 +276,6 @@ void arBarrierClient::stop(){
   // this signal to be called anyway!)
   _releaseSignal.sendSignal();
 
-  // Wait for the threads to finish
   arSleepBackoff a(8, 20, 1.08);
   while (_dataThreadRunning || _connectionThreadRunning){
     a.sleep();
@@ -320,7 +319,7 @@ bool arBarrierClient::sync(){
   }
   _sendLock.unlock();
   if (!ok){
-    ar_log_warning() << getLabel() << " barrier client failed to sync.\n";
+    ar_log_error() << getLabel() << " barrier client failed to sync.\n";
     return false;
   }
   _releaseSignal.receiveSignal();

@@ -52,18 +52,16 @@ LDefaultBaudRate:
   // Multiple serial ports aren't implemented.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_SERIALSWITCH", "com_port"));
   if (_comPortID <= 0) {
-    ar_log_warning() << "arSerialSwitchDriver: SZG_SERIALSWITCH/com_port defaulting to 1.\n";
+    ar_log_error() << "arSerialSwitchDriver: SZG_SERIALSWITCH/com_port defaulting to 1.\n";
     _comPortID = 1;
   }
   if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
-    ar_log_warning() << "arSerialSwitchDriver failed to open serial port " <<
-      _comPortID << ".\n";
+    ar_log_error() << "arSerialSwitchDriver failed to open serial port " << _comPortID << ".\n";
     return false;
   }
 
   if (!_comPort.setReadTimeout(_timeoutTenths)){
-    ar_log_warning() << "arSerialSwitchDriver failed to set timeout for serial port " <<
-      _comPortID << ".\n";
+    ar_log_error() << "arSerialSwitchDriver failed to set timeout for serial port " << _comPortID << ".\n";
     return false;
   }
 
@@ -74,11 +72,11 @@ LDefaultBaudRate:
 
   int signalByte = SZGClient.getAttributeInt( "SZG_SERIALSWITCH", "signal_byte" );
   if (signalByte == 0) {
-    ar_log_warning() << "SZG_SERIALSWITCH/signal_byte missing or 0, defaulting to " <<
+    ar_log_error() << "SZG_SERIALSWITCH/signal_byte missing or 0, defaulting to " <<
       (int)DEFAULT_SIGNAL << ".\n";
     signalByte = DEFAULT_SIGNAL;
   } else if (signalByte > 255) {
-    ar_log_warning() << "SZG_SERIALSWITCH/signal_byte > 255, defaulting to " <<
+    ar_log_error() << "SZG_SERIALSWITCH/signal_byte > 255, defaulting to " <<
       (int)DEFAULT_SIGNAL << ".\n";
     signalByte = DEFAULT_SIGNAL;
   }
@@ -103,7 +101,7 @@ void arSerialSwitchDriver::_eventloop() {
   _eventThreadRunning = true;
   while (!_stopped) {
     if (!_poll()) {
-      ar_log_warning() << "arSerialSwitchDriver _poll() failed.\n";
+      ar_log_error() << "arSerialSwitchDriver _poll() failed.\n";
       _stopped = true;
     }
   }
@@ -126,17 +124,16 @@ bool arSerialSwitchDriver::_poll( void ) {
     return false;
 
   if (_comPort.ar_write( &_outChar, 1 ) != 1) {
-    ar_log_warning() << "arSerialSwitchDriver ar_write failed.\n";
+    ar_log_error() << "arSerialSwitchDriver ar_write failed.\n";
     return false;
   }
-  int bytesRead = _comPort.ar_read( &_inChar, 1);
+  const int bytesRead = _comPort.ar_read( &_inChar, 1);
   if (bytesRead != 1) {
-    ar_log_warning() << "arSerialSwitchDriver ar_read failed ("
-                     << bytesRead << " bytes).\n";
+    ar_log_warning() << "arSerialSwitchDriver read only " << bytesRead << " of 1 bytes.\n";
     return false;
   }
 
-  arSerialSwitchEventType switchState = (arSerialSwitchEventType)((_inChar == _outChar)+1);
+  arSerialSwitchEventType switchState = arSerialSwitchEventType((_inChar == _outChar)+1);
   if (switchState != _lastState) {
     if (switchState & _eventType) {
       if (_lastEventTime.zero()) {
@@ -157,4 +154,3 @@ bool arSerialSwitchDriver::_poll( void ) {
   }
   return true;
 }
-

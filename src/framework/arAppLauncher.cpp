@@ -38,13 +38,12 @@ bool arAppLauncher::setRenderProgram(const string& name) {
   return true;
 }
 
-bool arAppLauncher::setAppType(const string& theType) {
-  if (theType != "distgraphics" && theType != "distapp") {
-    ar_log_warning() << "ignoring unexpected type '" << theType <<
-      "', expected distapp or distgraphics.\n";
+bool arAppLauncher::setAppType(const string& t) {
+  if (t != "distgraphics" && t != "distapp") {
+    ar_log_error() << "ignoring app type '" << t << "', expected distapp or distgraphics.\n";
     return false;
   }
-  _appType = theType;
+  _appType = t;
   return true;
 }
 
@@ -52,7 +51,7 @@ bool arAppLauncher::_szgClientOK() const {
   if (_szgClient)
     return true;
 
-  ar_log_warning() << "no arSZGClient.\n";
+  ar_log_error() << "no arSZGClient.\n";
   return false;
 }
 
@@ -72,7 +71,7 @@ bool arAppLauncher::setVircomp(const string& vircomp) {
     return false;
 
   if (_szgClient->getAttribute(vircomp,"SZG_CONF","virtual","") != "true") {
-    ar_log_warning() << "no virtual computer '" << vircomp <<
+    ar_log_error() << "no virtual computer '" << vircomp <<
       "', expected one of: " << _szgClient->getVirtualComputers() << ".\n";
     return false;
   }
@@ -104,7 +103,7 @@ bool arAppLauncher::connectSZG(int& argc, char** argv) {
 // Must be called before any other method.
 bool arAppLauncher::setSZGClient(arSZGClient* SZGClient) {
   if (!SZGClient) {
-    ar_log_warning() << "ignoring setSZGClient(NULL).\n";
+    ar_log_error() << "ignoring setSZGClient(NULL).\n";
     return false;
   }
   _szgClient = SZGClient;
@@ -125,12 +124,12 @@ bool arAppLauncher::setParameters() {
   
   // If the virtual computer was not explicitly set, set its name and "location."
   if (_vircomp == "NULL" && !setVircomp()) {
-    ar_log_warning() << "no virtual computer '" << _vircomp << "'.\n"; //;;;; unify this emptytest with others
+    ar_log_error() << "no virtual computer '" << _vircomp << "'.\n"; //;;;; unify this emptytest with others
     const string s(_szgClient->getVirtualComputers());
     if (s.empty()) {
-      ar_log_warning() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+      ar_log_error() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
     } else {
-      ar_log_warning() << "  (Known virtual computers are: " << s << ").\n";
+      ar_log_error() << "  (Known virtual computers are: " << s << ").\n";
     }
     return false;
   }
@@ -140,7 +139,7 @@ bool arAppLauncher::setParameters() {
   {
     const int num = _getAttributeInt("SZG_DISPLAY", "number_screens", "");
     if (num <= 0) {
-      ar_log_warning() << "no screens for virtual computer '" << _vircomp << "'.\n";
+      ar_log_error() << "no screens for virtual computer '" << _vircomp << "'.\n";
       return false;
     }
     if (num > 100) {
@@ -156,7 +155,7 @@ bool arAppLauncher::setParameters() {
     // A "pipe" is an ordered pair (hostname, screenname).
     const arSlashString pipe(_getAttribute(_screenName(i), "map", ""));
     if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY") {
-      ar_log_warning() << "screen " << i << " of " <<
+      ar_log_error() << "screen " << i << " of " <<
 	_vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
       return false;
     }
@@ -169,7 +168,7 @@ bool arAppLauncher::setParameters() {
   const arSlashString inputDevs(_getAttribute("SZG_INPUT0", "map", ""));
   const int numTokens = inputDevs.size();
   if (numTokens%2) {
-    ar_log_warning() << "invalid input devices format for virtual computer '" << _vircomp <<
+    ar_log_error() << "input devices misformatted for virtual computer '" << _vircomp <<
       "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
@@ -179,10 +178,9 @@ bool arAppLauncher::setParameters() {
     const string& computer_i = inputDevs[i];
     for (int j=0; j<i; j+=2) {
       if (computer_i == inputDevs[j]) {
-        ar_log_warning() << "input device for virtual computer '"
+        ar_log_error() << "input device for virtual computer '"
           << _vircomp << "' has duplicate computer '" << computer_i
-          << "', in definition \n  '"
-          << inputDevs
+          << "', in definition \n  '" << inputDevs
           << "'.\n  (Instead, put a compound device in your dbatch file.)\n";
         return false;
       }
@@ -221,19 +219,19 @@ bool arAppLauncher::setParameters() {
 bool arAppLauncher::launchApp() {
   // _prepareCommand() includes the lock to match the _unlock()'s below.
   if (!_prepareCommand()) {
-    ar_log_warning() << "failed to prepare launch.\n";
+    ar_log_error() << "failed to prepare launch.\n";
     return false;
   }
 
   if (_appType == "NULL") {
-    ar_log_warning() << "undefined control host or application type.\n";
+    ar_log_error() << "undefined control host or application type.\n";
     _unlock();
     return false;
   }
 
   // Kill any running app.
   if (!_demoKill()) {
-    ar_log_warning() << "failed to kill previous application.\n";
+    ar_log_error() << "failed to kill previous application.\n";
     _unlock();
     return false;
   }
@@ -299,7 +297,7 @@ bool arAppLauncher::waitForKill() {
     if (_szgClient->getLock(lockName, componentID)) {
       // nobody was holding the lock
       _szgClient->releaseLock(lockName);
-      ar_log_warning() << "master screen running no component.\n";
+      ar_log_error() << "master screen running no component.\n";
     } else {
       _szgClient->sendMessage(messageType, messageBody, componentID);
     }
@@ -420,8 +418,8 @@ string arAppLauncher::getTriggerName() const {
 // Return the name of a screen in the v.c., e.g. "theora/SZG_DISPLAY3".
 string arAppLauncher::getScreenName(const int i) const {
   if (!_iValid(i)) {
-    ar_log_warning() << "screen " << i << " out of bounds [0,"
-                     << getNumberScreens()-1 << "] for " << _vircomp << ".\n";
+    ar_log_error() << "screen " << i << " out of bounds [0," << getNumberScreens()-1 <<
+      "] for " << _vircomp << ".\n";
     return string("NULL");
   }
 
@@ -460,7 +458,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
                                     const string& value) {
   // set up the virtual computer info, if necessary
   if (!setParameters()) {
-    ar_log_warning() << "updateRenderers got invalid virtual computer definition.\n";
+    ar_log_error() << "updateRenderers got invalid virtual computer definition.\n";
     return;
   }
   string host, program;
@@ -475,7 +473,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
     const string configName(_szgClient->getAttribute(_pipes[i].hostname, _pipes[i].screenname, "name", ""));
     // configName is the name of an <szg_display>.
     if (configName == "NULL") {
-      ar_log_warning() << "no config for screen " << getScreenName(i) << ".\n";
+      ar_log_error() << "no config for screen " << getScreenName(i) << ".\n";
     }
     else {
       // Go into the first window defined in the XML global
@@ -537,7 +535,7 @@ void arAppLauncher::_unlock() {
   if (!_szgClientOK() || !_vircompDefined)
     return;
   if (!_szgClient->releaseLock(_location + string("/SZG_DEMO/lock"))) {
-    ar_log_warning() << "failed to release SZG_DEMO lock.\n";
+    ar_log_error() << "failed to release SZG_DEMO lock.\n";
   }
 }
 
@@ -557,7 +555,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
     }
     match = _szgClient->sendMessage("exec", iter->process, iter->context, szgdID, true);
     if (match < 0) {
-      ar_log_warning() << "failed to send exec message.\n";
+      ar_log_error() << "failed to send exec message.\n";
       continue;
     }
     sentMessageMatches.push_back(match);
@@ -574,7 +572,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
     // bug: SZG_DEX_TIMEOUT and SZG_DEX_LOCALTIMEOUT env vars should affect this hardcoded 20 seconds?
     if (elapsedMicroseconds > 20 * 1000000) {
       if (!initialMessageMatches.empty()) {
-        ar_log_warning() << "timed out before getting component messages.  Aborting.\n";
+        ar_log_error() << "timed out before getting component messages.  Aborting.\n";
         return false;
       }
       if (_szgClient->getLaunchingMessageID()) {
@@ -626,7 +624,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
 	initialMessageMatches.remove(match);
       }
       else {
-	ar_log_warning() << "got an invalid success code.\n";
+	ar_log_error() << "got an invalid success code.\n";
       }
     }
   }
@@ -682,7 +680,7 @@ bool arAppLauncher::_demoKill() {
   if (_szgClient->getLockReleaseNotification(tags, 15000) < 0) {
     // Timed out. Kill the demo by removing it from szgserver's component table.
     _szgClient->killProcessID(demoID);
-    ar_log_warning() << "killing slowly-exiting app.\n";
+    ar_log_error() << "killing slowly-exiting app.\n";
     // Fail. The next demo launch will succeed.
     return false;
   }

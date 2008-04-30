@@ -125,7 +125,7 @@ void arFramerateGraph::addElement(const string& name,
                                   const arVector3& color){
   arPerfElts::const_iterator i(_valueContainer.find(name));
   if (i != _valueContainer.end()){
-    ar_log_warning() << "arFramerateGraph ignoring duplicate type '" << name << "'.\n";
+    ar_log_error() << "arFramerateGraph ignoring duplicate type '" << name << "'.\n";
     return;
   }
 

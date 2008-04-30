@@ -60,10 +60,10 @@ bool arMasterSlaveDataRouter::start(){
 bool arMasterSlaveDataRouter::registerFrameworkObject
                                 (arFrameworkObject* object){
   if (_started){
-    ar_log_warning() << "arMasterSlaveDataRouter cannot register object after start.\n";
+    ar_log_error() << "arMasterSlaveDataRouter cannot register object after start.\n";
   }
   if (!object){
-    ar_log_warning() << "arMasterSlaveDataRouter: registerFrameworkObject(NULL).\n";
+    ar_log_error() << "arMasterSlaveDataRouter: registerFrameworkObject(NULL).\n";
     return false;
   }
 
@@ -74,7 +74,7 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
   for (i = templateDictionary->begin(); 
        i != templateDictionary->end(); i++){
     if (i->second->getAttributeID("szg_router_id") == -1){
-      ar_log_warning() << "arMasterSlaveDataRouter: template lacks ID field.\n";
+      ar_log_error() << "arMasterSlaveDataRouter: template lacks ID field.\n";
       return false;
     }
   }
@@ -140,7 +140,7 @@ bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
                                                delta,
                                                _remoteStreamConfig);
     if (!message){
-      ar_log_warning() << "arMasterSlaveDataRouter failed to parse data.\n";
+      ar_log_error() << "arMasterSlaveDataRouter failed to parse data.\n";
       return false;
     }
 
@@ -152,11 +152,11 @@ bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
     map<int, arFrameworkObject*, less<int> >::iterator i = _objectTable.find(objectID);
     if (i != _objectTable.end()){
       if (!i->second->receiveData(message)){
-        ar_log_warning() << "arMasterSlaveDataRouter: receiveData failed.\n";
+        ar_log_error() << "arMasterSlaveDataRouter: receiveData failed.\n";
       }
     }
     else{
-      ar_log_warning() << "arMasterSlaveDataRouter: no such object in table.\n";
+      ar_log_error() << "arMasterSlaveDataRouter: no such object in table.\n";
     }
     _parser->recycle(message);
   }

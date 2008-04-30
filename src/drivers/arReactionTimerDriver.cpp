@@ -45,7 +45,7 @@ arReactionTimerDriver::~arReactionTimerDriver() {
 bool arReactionTimerDriver::init(arSZGClient& SZGClient) {
   _inbuf = new char[BUF_SIZE];
   if (!_inbuf) {
-    ar_log_warning() << "arReactionTimerDriver error: failed to allocate input buffer.\n";
+    ar_log_error() << "arReactionTimerDriver failed to allocate input buffer.\n";
     return false;
   }
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_RT", "com_port"));
@@ -58,15 +58,15 @@ bool arReactionTimerDriver::init(arSZGClient& SZGClient) {
 
 bool arReactionTimerDriver::start() {
   if (!_inited) {
-    ar_log_warning() << "arReactionTimerDriver::start() error: Not inited yet.\n";
+    ar_log_error() << "arReactionTimerDriver can't start before init.\n";
     return false;
   }
   if (!_port.ar_open( _portNum, 9600, 8, 1, "none" )) {
-    ar_log_warning() << "arReactionTimerDriver error: failed to open serial port #" << _portNum << ".\n";
+    ar_log_error() << "arReactionTimerDriver failed to open serial port " << _portNum << ".\n";
     return false;
   }
   if (!_port.setReadTimeout( 2 )) {  // 200 msec
-    ar_log_warning() << "arReactionTimerDriver error: failed to set timeout COM port.\n";
+    ar_log_error() << "arReactionTimerDriver failed to set timeout on COM port " << _portNum << ".\n";
     return false;
   }
   _resetStatusTimer();
@@ -98,7 +98,7 @@ bool arReactionTimerDriver::_processInput() {
 
   if (numRead == 0) {
     if (_statusTimer.done()) {
-      ar_log_warning() << "arReactionTimerDriver warning: ReactionTimer disconnected.\n";
+      ar_log_warning() << "ReactionTimer disconnected.\n";
       _imAlive = false;
     }
     return true; 
@@ -128,8 +128,7 @@ bool arReactionTimerDriver::_processInput() {
     } else {
       arDelimitedString inputString( messageString, '|' );
       if (inputString.size() != 3) {
-        ar_log_warning() << "arReactionTimerDriver warning: ill-formed input string:\n"
-             << "     " << inputString << ".\n";
+        ar_log_error() << "arReactionTimerDriver: ill-formed input string '" << inputString << "'.\n";
         continue;
       }
 #ifdef RTDEBUG
@@ -157,9 +156,9 @@ bool arReactionTimerDriver::_processInput() {
 
 #ifdef RTDEBUG
       ar_log_remark() << "Input: " << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << ".\n";
-//      ar_log_warning() << "RT: '" << inputString[0] << "', " << rtDuration << ".\n";
-//      ar_log_warning() << "Button 0: '" << inputString[1] << "', " << button0 << ".\n";
-//      ar_log_warning() << "Button 1: '" << inputString[2] << "', " << button1 << ".\n";
+//      ar_log_debug() << "RT:       '" << inputString[0] << "', " << rtDuration << ".\n";
+//      ar_log_debug() << "Button 0: '" << inputString[1] << "', " << button0    << ".\n";
+//      ar_log_debug() << "Button 1: '" << inputString[2] << "', " << button1    << ".\n";
 #endif
       
       if ((rtDuration > 0.)&&(lastrt < 0.)) {
@@ -167,7 +166,7 @@ bool arReactionTimerDriver::_processInput() {
         _rtTimer.start();
         _rtTimer.setRuntime( rtDuration*1.e3 );
 #ifdef RTDEBUG
-        ar_log_remark() << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
+        ar_log_remark() << "Setting runtime to " << rtDuration*1.e3 << " usec.\n";
 #endif
       }
       if (button0 != lastb0) {

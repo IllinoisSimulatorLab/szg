@@ -45,7 +45,7 @@ bool arNetInputSink::init(arSZGClient& SZGClient){
 bool arNetInputSink::start(){
   if (!_szgClient){
     // todo: unify "start before init" checks in many classes.
-    ar_log_warning() << "arNetInputSink can't start before init.\n";
+    ar_log_error() << "arNetInputSink can't start before init.\n";
     return false;
   }
 
@@ -63,7 +63,7 @@ bool arNetInputSink::start(){
     _szgClient->createComplexServiceName("SZG_INPUT" + ar_intToString(_slot)));
   int port = -1;
   if (!_szgClient->registerService(serviceName,"input",1,&port)){
-    ar_log_warning() << "arNetInputSink failed to register service '" <<
+    ar_log_error() << "arNetInputSink failed to register service '" <<
       serviceName << "'.\n  (Does dservices already list that service?)\n";
     return false;
   }
@@ -74,7 +74,7 @@ bool arNetInputSink::start(){
   // todo: this may be better than that other code/
   for (int trials=0;
        !_dataServer.beginListening(_inp.getDictionary()); ){
-    ar_log_warning() << "arNetInputSink failed to listen on port " << port << ".\n";
+    ar_log_error() << "arNetInputSink failed to listen on port " << port << ".\n";
     _szgClient->requestNewPorts(serviceName,"input",1,&port);
     if (++trials >= 10)
       return false;
@@ -96,7 +96,7 @@ void arNetInputSink::receiveData(int,arStructuredData* data){
   if (!_fValid)
     return;
   if (!data) {
-    ar_log_warning() << "arNetInputSink ignoring NULL data.\n";
+    ar_log_error() << "arNetInputSink ignoring NULL data.\n";
     return;
   }
   _dataServer.sendData(data);

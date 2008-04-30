@@ -151,7 +151,7 @@ void Tick() {
   if (!fInited) {
     LARGE_INTEGER Hz; // uninitializable
     if (!QueryPerformanceFrequency(&Hz)) {
-      ar_log_warning() << "arUSBdriver error: QueryPerformanceFrequency() failed.\n";
+      ar_log_error() << "arUSBdriver: QueryPerformanceFrequency() failed.\n";
       enableTick = false;
       return;
     }
@@ -161,7 +161,7 @@ void Tick() {
   }
   if (fInited) {
     if (!QueryPerformanceCounter(&value)) {
-      ar_log_warning() << "arUSBdriver error: QueryPerformanceCounter() failed.\n";
+      ar_log_error() << "arUSBdriver: QueryPerformanceCounter() failed.\n";
       enableTick = false;
       return;
     }
@@ -198,13 +198,13 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
 
 #define LOCK \
   if (WaitForSingleObject(SerializationEvent, SerializationEventTimeout)==WAIT_TIMEOUT) { \
-    ar_log_warning() << "arUSBDriver error: failed to lock mutex.\n"; \
+    ar_log_error() << "arUSBDriver failed to lock mutex.\n"; \
     return DEVICE_NOT_PRESENT; \
   }
 
 #define LOCKBLAH(statement) \
   if (WaitForSingleObject(SerializationEvent, SerializationEventTimeout)==WAIT_TIMEOUT) { \
-    ar_log_warning() << "arUSBDriver error: failed to lock mutex.\n"; \
+    ar_log_error() << "arUSBDriver failed to lock mutex.\n"; \
     statement; \
     return DEVICE_NOT_PRESENT; \
   }
@@ -384,7 +384,7 @@ int DoGetRS232Baud(int* BaudRate) {
   if (!UARTx2Mode)
     OutputData[1] = 0; // ATmega returns 2 byte answer, others 1 byte
   else
-    ar_log_warning() << "warning: expected AT90S2313 not ATmega chip.\n";
+    ar_log_error() << "arUSBDriver expected AT90S2313 not ATmega microcontroller.\n";
   *BaudRate = int(12e6/(16*(255.0*OutputData[1]+OutputData[0]+1.0)));
   if (UARTx2Mode)
     *BaudRate *= 2; // ATmega has x2 mode on UART
@@ -493,7 +493,7 @@ DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
         int BufferLength = cbCG - RS232BufferWrite;
 
 	if (DoGetRS232BufferLocal(bufCG + RS232BufferWrite, BufferLength) != USB_NO_ERROR) {
-          ar_log_warning() << "arUSBDriver warning: rs232 problem\n";
+          ar_log_error() << "arUSBDriver: rs232 problem\n";
 	  // wait 2 seconds if no answer, to save bandwidth for non-rs232 devices
 	  if (WaitForSingleObject(RS232BufferEndEvent,2000) != WAIT_TIMEOUT)
 	    goto LDone;
@@ -591,7 +591,7 @@ arUSBDriver::~arUSBDriver() {
 
 bool arUSBDriver::init(arSZGClient&) {
 #ifndef AR_USE_WIN_32
-  ar_log_warning() << "arUSBDriver error: Windows-only.\n";
+  ar_log_error() << "arUSBDriver requres Windows, sorry.\n";
   return false;
 #else
   if (!InitLowLevel()) {
@@ -600,12 +600,11 @@ bool arUSBDriver::init(arSZGClient&) {
   const int baudSet = 57692; // close enough to 57600
   int baud = -1;
   if (DoSetRS232Baud(baudSet) != USB_NO_ERROR || DoGetRS232Baud(&baud) != USB_NO_ERROR){
-    ar_log_warning() << "arUSBDriver error: failed to set+get baud rate.\n";
+    ar_log_error() << "arUSBDriver failed to set+get baud rate.\n";
     return false;
   }
   if (baud != baudSet) {
-    ar_log_warning() << "arUSBDriver error: expected " << baudSet << " baud, not "
-         << baud << ".\n";
+    ar_log_error() << "arUSBDriver expected " << baudSet << " baud, not " << baud << ".\n";
     return false;
   }
   _inited = true;
@@ -616,11 +615,11 @@ bool arUSBDriver::init(arSZGClient&) {
 
 bool arUSBDriver::start() {
 #ifndef AR_USE_WIN_32
-  ar_log_warning() << "arUSBDriver error: Windows-only.\n";
+  ar_log_error() << "arUSBDriver requres Windows, sorry.\n";
   return false;
 #else
   if (!_inited) {
-    ar_log_warning() << "arUSBDriver::start() error: Not inited yet.\n";
+    ar_log_error() << "arUSBDriver can't start before init.\n";
     return false;
   }
   return _eventThread.beginThread(ar_USBDriverDataTask,this);
@@ -664,26 +663,26 @@ void arUSBDriver::_dataThread() {
   BlinkLED(); // enable all input pull-ups.
   while (!_stopped && _eventThreadRunning) {
     // Throttle.
-    ar_log_warning() << "arUSBDriver: ar_usleeping " << int(usecPoll)/1000 << " msec.\n";
+    ar_log_remark() << "arUSBDriver: ar_usleeping " << int(usecPoll)/1000 << " msec.\n";
     ar_usleep(int(usecPoll));
 
     int cb = 2;
     if (0 != DoRS232BufferSend("aa", cb)) {
-      ar_log_warning() << "arUSBDriver warning: failed to poll joystick.\n";
+      ar_log_error() << "arUSBDriver failed to poll joystick.\n";
       continue;
     }
     if (cb != 2) {
-      ar_log_warning() << "arUSBDriver warning: polled joystick with not 2 but " << cb << " bytes.\n";
+      ar_log_error() << "arUSBDriver polled joystick with not 2 but " << cb << " bytes.\n";
       continue;
     }
     char buf[4];
     cb = 2;
     if (0 != DoGetRS232Buffer(buf, cb)) {
-      ar_log_warning() << "arUSBDriver warning: no response from joystick.\n";
+      ar_log_error() << "arUSBDriver: no response from joystick.\n";
       continue;
     }
     if (cb != 2) {
-      ar_log_warning() << "arUSBDriver warning: joystick responded with not 2 but " << cb << " bytes.\n";
+      ar_log_error() << "arUSBDriver: joystick responded with not 2 but " << cb << " bytes.\n";
       continue;
     }
 
@@ -695,13 +694,13 @@ void arUSBDriver::_dataThread() {
     const int y_ =  int(buf[1]);
 
     if (x == 0 && y == 0 && x_ == 0 && y_ == 0) {
-      ar_log_warning() << "arUSBDriver warning: joystick responded with zeros.\n";
+      ar_log_error() << "arUSBDriver: joystick responded with zeros.\n";
       continue;
     }
 
     // At least one byte should have the high bit set.
     if (x == 0 && y == 0 && x_ == 0 && y_ == 0) {
-      ar_log_warning() << "arUSBDriver warning: joystick responded with no high bit set.\n";
+      ar_log_error() << "arUSBDriver: joystick responded with no high bit set.\n";
 ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << "\n";;;;
       continue;
     }
@@ -722,7 +721,7 @@ ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << 
     }
     else {
       // At least one byte should have the high bit set.
-      ar_log_warning() << "arUSBDriver: bogus data from USB chip: " << ar_hex << buf[0] << buf[1] << "\n";
+      ar_log_error() << "arUSBDriver: bogus data from MCU: " << ar_hex << buf[0] << buf[1] << "\n";
       break;
     }
 
@@ -733,12 +732,12 @@ ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << 
     static float xMin = 0., xMax = 0., yMin = 0., yMax = 0.;
     if (iInit > 0) {
       if (iInit == cInit)
-	ar_log_warning() << "arUSBDriver calibrating.  Don't wiggle joystick yet.\n";
+	ar_log_critical() << "arUSBDriver calibrating.  Don't wiggle joystick yet.\n";
       xAvg += xUse;
       yAvg += yUse;
       if (--iInit > 0)
 	continue;
-      ar_log_warning() << "arUSBDriver calibrated.  OK to wiggle joystick now.\n";
+      ar_log_critical() << "arUSBDriver calibrated.  OK to wiggle joystick now.\n";
       xAvg /= cInit;
       yAvg /= cInit;
 ar_log_debug() << "\txy average = " << xAvg << ", " << yAvg << "\n";;;;
@@ -822,7 +821,7 @@ ar_log_remark() << "Nrm xy: " << xx << ", " << yy << "\n";
     static bool fButtonDown[3] = {0};
     char cButtons = 0;
     if (DoGetInDataPort(cButtons) != USB_NO_ERROR) {
-      ar_log_warning() << "arUSBDriver warning: failed to read USB chip's input pins.\n";
+      ar_log_error() << "arUSBDriver failed to read MCU's input pins.\n";
     }
     else {
       for (int i=0; i<3; ++i) {

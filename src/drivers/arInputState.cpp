@@ -188,7 +188,7 @@ void arInputState::_setSignature( const unsigned numButtons,
   bool changed = false;
   if (numButtons < _buttons.size()) {
     if (printWarnings){
-      ar_log_warning() << "arInputState buttons reduced to " << numButtons << ".\n";
+      ar_log_error() << "arInputState buttons reduced to " << numButtons << ".\n";
     }
     _buttons.erase( _buttons.begin()+numButtons, _buttons.end() );
     _lastButtons.erase( _lastButtons.begin()+numButtons, _lastButtons.end() );
@@ -201,7 +201,7 @@ void arInputState::_setSignature( const unsigned numButtons,
 
   if (numAxes < _axes.size()) {
     if (printWarnings){
-      ar_log_warning() << "arInputState axes reduced to " << numAxes << ".\n";
+      ar_log_error() << "arInputState axes reduced to " << numAxes << ".\n";
     }
     _axes.erase( _axes.begin()+numAxes, _axes.end() );
     changed = true;
@@ -212,7 +212,7 @@ void arInputState::_setSignature( const unsigned numButtons,
 
   if (numMatrices < _matrices.size()) {
     if (printWarnings){
-      ar_log_warning() << "arInputState matrices reduced to " << numMatrices << ".\n";
+      ar_log_error() << "arInputState matrices reduced to " << numMatrices << ".\n";
     }
     _matrices.erase( _matrices.begin()+numMatrices, _matrices.end() );
     changed = true;
@@ -238,7 +238,7 @@ bool arInputState::update( const arInputEvent& event ) {
     case AR_EVENT_MATRIX:
       return setMatrix( event.getIndex(), event.getMatrix() );
   }
-  ar_log_warning() << "arInputState ignoring invalid event type " << eventType << ".\n";
+  ar_log_error() << "arInputState ignoring invalid event type " << eventType << ".\n";
   return false;
 }
 
@@ -318,7 +318,7 @@ bool arInputState::setFromBuffers( const int* const buttonData,
                                    const float* const matrixData,
                                    const unsigned numMatrices ) {
   if (!buttonData || !axisData || !matrixData) {
-    ar_log_warning() << "arInputState: null buffer.\n";
+    ar_log_error() << "arInputState: null buffer.\n";
     return false;
   }
 
@@ -337,7 +337,7 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
                                   float* const axisBuf,
                                   float* const matrixBuf ) const {
   if (!buttonBuf || !axisBuf || !matrixBuf) {
-    ar_log_warning() << "arInputState: null buffer.\n";
+    ar_log_error() << "arInputState: null buffer.\n";
     return false;
   }
 
@@ -365,7 +365,7 @@ void arInputState::updateLastButtons() {
 void arInputState::updateLastButton( const unsigned i ) {
   arGuard dummy(_l);
   if (i >= _buttons.size()) {
-    ar_log_warning() << "arInputState updateLastButton's index out of range (" << i << ").\n";
+    ar_log_error() << "arInputState updateLastButton's index out of range (" << i << ").\n";
     return;
   }
   _lastButtons[i] = _buttons[i];

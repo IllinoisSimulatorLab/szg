@@ -89,7 +89,7 @@ const int __buttonCodes[] = {
 
 static void __pointerHandleEvent( struct wiimote_t* wm ) {
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Event callback called with NULL wiimote driver pointer.\n";
+    ar_log_error() << "Event callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
 
@@ -154,7 +154,7 @@ static void __pointerHandleCtrlStatus(
   int* /*led*/,
   float battery_level ) {
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Status callback called with NULL wiimote driver pointer.\n";
+    ar_log_error() << "Status callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
 
@@ -176,7 +176,7 @@ static void __pointerHandleCtrlStatus(
 
 static void __pointerHandleDisconnect( struct wiimote_t* /*wm*/ ) {
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Disconnect callback ignoring NULL wiimote driver pointer.\n";
+    ar_log_error() << "Disconnect callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
   ar_log_remark() << "Disconnected wiimote.\n";
@@ -210,11 +210,11 @@ static void __fingersHandleEvent( struct wiimote_t* wm ) {
   static float distanceStart = -1.;
   static float angleStart = -1.;
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Event callback called with NULL wiimote driver pointer.\n";
+    ar_log_error() << "Event callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
   if (!WIIUSE_USING_IR(wm)) {
-    ar_log_warning() << "arWiimoteDriver in 'fingers' mode with IR disabled.\n";
+    ar_log_error() << "arWiimoteDriver in 'fingers' mode with IR disabled.\n";
     return;
   }
   const ir_dot_t* led1 = &(wm->ir.dot[0]);
@@ -264,7 +264,7 @@ static void __fingersHandleCtrlStatus(
   int* /*led*/,
   float battery_level ) {
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Status callback called with NULL wiimote driver pointer.\n";
+    ar_log_error() << "Status callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
 
@@ -273,7 +273,7 @@ static void __fingersHandleCtrlStatus(
 }
 static void __fingersHandleDisconnect( struct wiimote_t* /*wm*/ ) {
   if (!__wiimoteDriver) {
-    ar_log_warning() << "Disconnect callback called with NULL wiimote driver pointer.\n";
+    ar_log_error() << "Disconnect callback ignoring NULL wiimote driver pointer.\n";
     return;
   }
   ar_log_remark() << "Wiimote disconnected.\n";
@@ -299,7 +299,7 @@ arWiimoteDriver::arWiimoteDriver() :
 
 bool arWiimoteDriver::init( arSZGClient& szgClient ) {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
   return false;
 #else
   __wiimoteDriver = this;
@@ -327,7 +327,7 @@ LPointer:
     updateSignature( 1, 4, 0 );
   } else {
     // shouldn't ever happen.
-    ar_log_warning() << "Invalid SZG_WIIMOTE/mode '" << mode << ";. Defaulting to 'pointer'.\n";
+    ar_log_error() << "Invalid SZG_WIIMOTE/mode '" << mode << ", defaulting to 'pointer'.\n";
     goto LPointer;
   }
 
@@ -338,7 +338,7 @@ LPointer:
 
 bool arWiimoteDriver::start() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
   return false;
 #else
   return _eventThread.beginThread( ar_wiimoteDriverEventTask, this );
@@ -347,7 +347,7 @@ bool arWiimoteDriver::start() {
 
 bool arWiimoteDriver::stop() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
   return false;
 #else
   if (_connected) {
@@ -360,7 +360,7 @@ bool arWiimoteDriver::stop() {
 
 void arWiimoteDriver::update() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
 #else
   if (!_connected && !_connect()) {
     return;
@@ -377,13 +377,13 @@ void arWiimoteDriver::update() {
 
 bool arWiimoteDriver::_connect() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
   return false;
 #else
   //  Load the wiiuse library
   _version = wiiuse_startup( WIIUSE_PATH );
   if (!_version) {
-    ar_log_warning() << "Failed to load wiiuse library " << WIIUSE_PATH << ".\n";
+    ar_log_error() << "Failed to load wiiuse library " << WIIUSE_PATH << ".\n";
     return false;
   }
   ar_log_remark() << "Wiiuse library version " << _version << ar_endl;
@@ -399,7 +399,7 @@ bool arWiimoteDriver::_connect() {
   // Find wiimotes (only one?).
   const int found = wiiuse_find( __wiimotes, 1, _findTimeoutSecs );
   if (found == 0) {
-    ar_log_warning() << "Found no wiimote; timed out after " << _findTimeoutSecs << " seconds.\n";
+    ar_log_error() << "Found no wiimote; timed out after " << _findTimeoutSecs << " seconds.\n";
     goto LAbort;
   }
   ar_log_remark() << "Found " << found << " wiimote(s).\n"; // that were in discovery mode
@@ -409,18 +409,23 @@ bool arWiimoteDriver::_connect() {
   // Return how many established connections to the found wiimotes.
   _connected = wiiuse_connect( __wiimotes, 1 );
   if (!_connected) {
-    ar_log_warning() << "Connected to no wiimote.\n";
+    ar_log_error() << "Connected to no wiimote.\n";
     goto LAbort;
   }
   if (_connected < found) {
-    ar_log_warning() << "Connected to only " << _connected << " of " << found << " wiimotes.\n";
+    ar_log_error() << "Connected to only " << _connected << " of " << found << " wiimotes.\n";
     goto LAbort;
   }
   if (_connected > found) {
-    ar_log_warning() << "Internal error: connected to " << _connected << " of (only!) " <<
+    ar_log_error() << "Internal error: connected to " << _connected << " of (only!) " <<
       found << " wiimotes.\n";
-    goto LAbort;
+LAbort:
+  wiiuse_shutdown();
+  freeWiimotes();
+  _connected = 0;
+  return false;
   }
+
   ar_log_remark() << "Connected to " << _connected << " wiimotes.\n";
 
   // Blink and rumble to show which wiimotes connected, just like the wii.
@@ -435,18 +440,12 @@ bool arWiimoteDriver::_connect() {
   updateStatus();
   resetIdleTimer();
   return true;
-
-LAbort:
-  wiiuse_shutdown();
-  freeWiimotes();
-  _connected = 0;
-  return false;
 #endif
 }
 
 void arWiimoteDriver::updateStatus() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
 #else
   // Invoke the __handleCtrlStatus() callback.
   wiiuse_status( __wiimotes[0] );
@@ -456,7 +455,7 @@ void arWiimoteDriver::updateStatus() {
 
 void arWiimoteDriver::updateSignature( const int numButtons, const int numAxes, const int numMatrices ) {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
 #else
   _setDeviceElements( numButtons, numAxes, numMatrices );
 #endif
@@ -464,7 +463,7 @@ void arWiimoteDriver::updateSignature( const int numButtons, const int numAxes, 
 
 void arWiimoteDriver::_disconnect() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
 #else
   wiiuse_rumble( __wiimotes[0], 1 );
   ar_usleep( 100000 );
@@ -481,7 +480,7 @@ void arWiimoteDriver::_disconnect() {
 
 void arWiimoteDriver::resetIdleTimer() {
 #ifndef EnableWiimote
-  ar_log_warning() << "Wiimote support not compiled.\n";
+  ar_log_error() << "Wiimote support not compiled.\n";
 #else
   //_idleTimer.start( 6.e7 );
 #endif

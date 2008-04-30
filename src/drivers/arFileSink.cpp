@@ -31,13 +31,13 @@ bool arFileSink::start(){
 
   if (_dataFilePath == "NULL") {
     // Complain only when it's about to get used.
-    ar_log_warning() << "arFileSink has no SZG_DATA/path.\n";
+    ar_log_error() << "arFileSink has no SZG_DATA/path.\n";
     return false;
   }
 
   _dataFile = ar_fileOpen(_dataFileName,_dataFilePath,"w");
   if (!_dataFile){
-    ar_log_warning() << "arFileSink failed to log to '" << _dataFilePath <<
+    ar_log_error() << "arFileSink failed to log to '" << _dataFilePath <<
       "/" << _dataFileName << "'.\n";
     return false;
   }

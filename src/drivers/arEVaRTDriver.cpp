@@ -19,12 +19,12 @@ arEVaRTDriver::arEVaRTDriver() :
 #ifndef EnableEVaRT
 
 bool arEVaRTDriver::init(arSZGClient&) {
-  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
+  ar_log_error() << "arEVaRTDriver unsupported on this platform.\n";
   return false;
 }
 
 bool arEVaRTDriver::start() {
-  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
+  ar_log_error() << "arEVaRTDriver unsupported on this platform.\n";
   return false;
 }
 
@@ -163,7 +163,7 @@ bool arEVaRTDriver::init(arSZGClient& SZGClient){
   
   _deviceIP = SZGClient.getAttribute("SZG_EVART", "IPhost");
   if (_deviceIP == "NULL"){
-    ar_log_warning() << "arEVaRTDriver: no SZG_EVART/IPhost IP address for EVaRT.\n";
+    ar_log_error() << "no SZG_EVART/IPhost IP address for EVaRT.\n";
     return false;
   }
   return true;
@@ -175,10 +175,10 @@ bool arEVaRTDriver::start(){
   char buffer[256];
   ar_stringToBuffer(_deviceIP,buffer,256);
   if (EVaRT_Connect(buffer)){
-    ar_log_debug() << "arEVaRTDriver Connected to EVaRT.\n";
+    ar_log_debug() << "connected to EVaRT.\n";
   }
   else{
-    ar_log_warning() << "arEVaRTDriver failed to connect to EVaRT.\n";
+    ar_log_error() << "failed to connect to EVaRT.\n";
     return false;
   }
 

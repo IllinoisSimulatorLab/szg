@@ -50,7 +50,7 @@ void arFileSource::_eventThread() {
 	// Loop by default.
         ar_usleep(500000);
 	if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)){
-	  ar_log_warning() << "arFileSource failed to reopen '" << _dataFilePath <<
+	  ar_log_error() << "arFileSource failed to reopen '" << _dataFilePath <<
 	    "/" << _dataFileName << "'.\n";
 	  return;
 	}
@@ -80,12 +80,12 @@ bool arFileSource::init(arSZGClient& SZGClient){
 bool arFileSource::start(){
   if (_dataFilePath == "NULL") {
     // Only complain when it's about to get used.
-    ar_log_warning() << "arFileSource: no SZG_DATA/path.\n";
+    ar_log_error() << "arFileSource: no SZG_DATA/path.\n";
     return false;
   }
 
   if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)){
-    ar_log_warning() << "arFileSource failed to open '" << _dataFilePath <<
+    ar_log_error() << "arFileSource failed to open '" << _dataFilePath <<
       "/" << _dataFileName << "'.\n";
     return false;
   }

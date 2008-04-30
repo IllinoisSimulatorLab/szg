@@ -72,7 +72,7 @@ bool FilterOnButton::_processEvent( arInputEvent& event ) {
       fDump |= event.getButton() && !_lastInput.getButton( event.getIndex() );
       break;
     case AR_EVENT_GARBAGE:
-      ar_log_warning() << "FilterOnButton ignoring garbage.\n";
+      ar_log_error() << "FilterOnButton ignoring garbage event.\n";
       break;
     default: // avoid compiler warning
       break;

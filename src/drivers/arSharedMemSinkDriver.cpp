@@ -87,11 +87,11 @@ void ar_ShmSinkDriverDataTask(void* pv) {
 
 bool arSharedMemSinkDriver::start() {
 #ifdef AR_USE_WIN_32
-  ar_log_warning() << "arSharedMemSinkDriver unsupported in Windows.\n";
+  ar_log_error() << "arSharedMemSinkDriver unsupported in Windows.\n";
   return false;
 #else
   if (!_inited) {
-    ar_log_warning() << "arSharedMemSinkDriver can't start before init.\n";
+    ar_log_error() << "arSharedMemSinkDriver can't start before init.\n";
     return false;
   }
 
@@ -133,12 +133,12 @@ void arSharedMemSinkDriver::_detachMemory() {
   arGuard dummy(_l);
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
-      ar_log_warning() << "arSharedMemSinkDriver ignoring bogus shm pointer.\n";
+      ar_log_error() << "arSharedMemSinkDriver ignoring bogus shm pointer.\n";
     _shmFoB = NULL;
   }
   if (_shmWand) {
     if (shmdt(_shmWand) < 0)
-      ar_log_warning() << "arSharedMemSinkDriver ignoring bogus shm pointer.\n";
+      ar_log_error() << "arSharedMemSinkDriver ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
 #endif
@@ -182,7 +182,7 @@ void arSharedMemSinkDriver::_dataThread() {
       setAxis(i, _shmWand, aIS.getAxis(i));
 
     if (cb > 255)
-      ar_log_warning() << "arSharedMemSinkDriver: more than 255 buttons.\n";
+      ar_log_error() << "arSharedMemSinkDriver: more than 255 buttons.\n";
     int rgbutton[256] = {0};
 
     // Send data to shm

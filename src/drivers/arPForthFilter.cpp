@@ -87,7 +87,7 @@ bool ar_parsePForthFilterWord( const string& theWord,
 
 bool arPForthFilter::loadProgram(const string& progText) {
   if (!_pforth) {
-    ar_log_warning() << "arPForthFilter failed to initialize.\n";
+    ar_log_error() << "arPForthFilter failed to initialize.\n";
     return false;
   }
 
@@ -101,12 +101,11 @@ bool arPForthFilter::loadProgram(const string& progText) {
 
   ar_log_remark() << "arPForthFilter program text = \n" << progText << "\n";
   if (!_pforth.compileProgram( progText )) {
-    ar_log_warning() << "arPForthFilter failed to compile program:\n"
-         << progText << "\n\n";
+    ar_log_error() << "arPForthFilter failed to compile program:\n" << progText << "\n\n";
     return false;
   }
   if (!_pforth.runProgram()) {
-    ar_log_warning() << "arPForthFilter failed to run program.\n";
+    ar_log_error() << "arPForthFilter failed to run program.\n";
     return false;
   }
   
@@ -119,12 +118,12 @@ bool arPForthFilter::loadProgram(const string& progText) {
     std::string word( *iter );
     if (word.substr(0,7) == "filter_") {
       if (!_pforth.compileProgram( word )) {
-        ar_log_warning() << "arPForthFilter failed to compile word " << word << "\n";
+        ar_log_error() << "arPForthFilter failed to compile word " << word << "\n";
         continue;
       }
       arPForthProgram* prog = _pforth.getProgram();
       if (!prog) {
-        ar_log_warning() << "arPForthFilter failed to export program.\n";
+        ar_log_error() << "arPForthFilter failed to export program.\n";
         continue;
       }
       if (word == "filter_all_events") {
@@ -160,7 +159,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
             _matrixFilterPrograms[eventIndex] = prog;
             break;
           default:
-            ar_log_warning() << "arPForthFilter ignoring invalid event type " <<
+            ar_log_error() << "arPForthFilter ignoring invalid event type " <<
 	      eventType << ".\n";
         }
       }
@@ -213,18 +212,18 @@ bool arPForthFilter::_processEvent( arInputEvent& inputEvent ) {
           programs.push_back( _matrixFilterPrograms[i] );
       break;
     default:
-      ar_log_warning() << "PForth program " << _progName <<
+      ar_log_error() << "PForth program " << _progName <<
 	" ignoring event with unexpected type " << eventType << "\n";
       return true;
   }
   std::vector< arPForthProgram* >::iterator iter;
   for (iter = programs.begin(); iter != programs.end(); ++iter) {
     if (!*iter) {
-      ar_log_warning() << "arPForthFilter: NULL program pointer.\n";
+      ar_log_error() << "arPForthFilter: NULL program pointer.\n";
       return false;
     }
     if (!_pforth.runProgram( *iter )) {
-      ar_log_warning() << "arPForthFilter failed to run program.\n";
+      ar_log_error() << "arPForthFilter failed to run program.\n";
       return false;
     }
   }

@@ -62,8 +62,8 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
       }
       break;
     default:
-      ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
-                       << eventType << ".\n";
+      ar_log_error() << "arInputEventQueue ignoring unexpected event type " <<
+	eventType << ".\n";
       return;
   }
   _queue.push_back( inputEvent );
@@ -103,7 +103,7 @@ LAgain:
       _numMatrices--;
       break;
     default:
-      ar_log_warning() << "ignoring queued input event with unexpected type.\n";
+      ar_log_error() << "ignoring queued input event with unexpected type.\n";
       goto LAgain;
   }
   return temp;
@@ -122,7 +122,7 @@ void arInputEventQueue::setSignature( unsigned numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numButtons) {
-      ar_log_warning() << "arInputEventQueue failed to shrink button signature to "
+      ar_log_error() << "arInputEventQueue failed to shrink button signature to "
            << numButtons << ": has a button event with index " << maxIndex << ".\n";
       numButtons = maxIndex+1;
     }
@@ -140,7 +140,7 @@ void arInputEventQueue::setSignature( unsigned numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numAxes) {
-      ar_log_warning() << "arInputEventQueue failed to shrink axis signature to "
+      ar_log_error() << "arInputEventQueue failed to shrink axis signature to "
            << numAxes << ": has an axis event with index " << maxIndex << ".\n";
       numAxes = maxIndex+1;
     }
@@ -158,7 +158,7 @@ void arInputEventQueue::setSignature( unsigned numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numMatrices) {
-      ar_log_warning() << "arInputEventQueue failed to shrink matrix signature to "
+      ar_log_error() << "arInputEventQueue failed to shrink matrix signature to "
            << numMatrices << ": has a matrix event with index " << maxIndex << ".\n";
       numMatrices = maxIndex+1;
     }
@@ -187,7 +187,7 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
                          const float* const matrixData,
                          const unsigned int numMatrices ) {
   if ((!typeData)||(!indexData)||(!buttonData)||(!axisData)||(!matrixData)) {
-    ar_log_warning() << "arInputEventQueue: invalid buffer.\n";
+    ar_log_error() << "arInputEventQueue: invalid buffer.\n";
     return false;
   }
   bool ok = true;
@@ -198,18 +198,18 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
   for (unsigned i=0; i<numItems; i++) {
     const int eventIndex = indexData[i];
     if (eventIndex < 0) {
-      ar_log_warning() << "arInputEventQueue ignoring negative event index.\n";
+      ar_log_error() << "arInputEventQueue ignoring negative event index.\n";
       ok = false;
       continue;
     }
     const int eventType = typeData[i];
-//ar_log_warning() << i << " " << eventType << " " << eventType << "  "
+//ar_log_error() << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
 //     << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= numButtons) {
-          ar_log_warning() << "arInputEventQueue: number of buttons in index field\n"
+          ar_log_error() << "arInputEventQueue: number of buttons in index field\n"
                << " exceeds specified input buffer size. Ignoring extras.\n";
           ok = false;
         } else
@@ -217,7 +217,7 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= numAxes) {
-          ar_log_warning() << "arInputEventQueue: number of axes in index field\n"
+          ar_log_error() << "arInputEventQueue: number of axes in index field\n"
                << " exceeds specified input buffer size. Ignoring extras.\n";
           ok = false;
         } else
@@ -225,7 +225,7 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= numMatrices) {
-          ar_log_warning() << "arInputEventQueue: number of matrices in index field\n"
+          ar_log_error() << "arInputEventQueue: number of matrices in index field\n"
                << " exceeds specified input buffer size. Ignoring extras.\n";
           ok = false;
         } else
@@ -233,7 +233,7 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
                        matrixData + 16*iMatrix++ ) );
         break;
       default:
-        ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
+        ar_log_error() << "arInputEventQueue ignoring unexpected event type "
              << eventType << ".\n";
         ok = false;
     }
@@ -247,14 +247,14 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
                                        float* const axisBuf,
                                        float* const matrixBuf ) const {
   if (!typeBuf || !indexBuf || !buttonBuf || !axisBuf || !matrixBuf) {
-    ar_log_warning() << "arInputEventQueue: null buffer.\n";
+    ar_log_error() << "arInputEventQueue: null buffer.\n";
     return false;
   }  
 
   bool ok = true;
   const unsigned numItems = _numButtons + _numAxes + _numMatrices;
   if (numItems != size())
-    ar_log_warning() << "arInputEventQueue internal miscount," <<
+    ar_log_error() << "arInputEventQueue internal miscount," <<
       _numButtons << "+" << _numAxes << "+" << _numMatrices << " != " << size() << ".\n";
 
   unsigned iButton = 0;
@@ -265,13 +265,13 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
     const arInputEventType eventType = ev.getType();
     typeBuf[i] = (int)eventType;
     indexBuf[i] = (int)ev.getIndex();
-//ar_log_warning() << i << " " << eventType << " " << eventType << "  "
+//ar_log_error() << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
 //     << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= _numButtons) {
-          ar_log_warning() << "arInputEventQueue: _numButtons != number of buttons.\n"
+          ar_log_error() << "arInputEventQueue: _numButtons != number of buttons.\n"
                << "   Skipping extra.\n";
           ok = false;
         } else {
@@ -280,7 +280,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= _numAxes) {
-          ar_log_warning() << "arInputEventQueue: _numAxes != number of axes.\n"
+          ar_log_error() << "arInputEventQueue: _numAxes != number of axes.\n"
                << "   Skipping extra.\n";
           ok = false;
         } else {
@@ -289,7 +289,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= _numMatrices) {
-          ar_log_warning() << "arInputEventQueue: _numMatrices != number of matrices.\n"
+          ar_log_error() << "arInputEventQueue: _numMatrices != number of matrices.\n"
                << "   Skipping extra.\n";
           ok = false;
         } else {
@@ -297,7 +297,7 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
         }
         break;
       default:
-  ar_log_warning() << "arInputEventQueue ignoring unexpected event type "
+  ar_log_error() << "arInputEventQueue ignoring unexpected event type "
     << eventType << ".\n";
   break;
     }

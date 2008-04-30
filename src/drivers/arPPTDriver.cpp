@@ -40,7 +40,7 @@ arPPTDriver::~arPPTDriver() {
 bool arPPTDriver::init(arSZGClient& SZGClient) {
   _inbuf = new char[BUF_SIZE];
   if (!_inbuf) {
-    ar_log_warning() << "arPPTDriver error: failed to allocate input buffer.\n";
+    ar_log_error() << "arPPTDriver failed to allocate input buffer.\n";
     return false;
   }
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PPT", "com_port"));
@@ -52,15 +52,15 @@ bool arPPTDriver::init(arSZGClient& SZGClient) {
 
 bool arPPTDriver::start() {
   if (!_inited) {
-    ar_log_warning() << "arPPTDriver::start() error: Not inited yet.\n";
+    ar_log_error() << "arPPTDriver can't start before init.\n";
     return false;
   }
   if (!_port.ar_open( _portNum, 115200, 8, 1, "none" )) {
-    ar_log_warning() << "arPPTDriver error: failed to open serial port #" << _portNum << ".\n";
+    ar_log_error() << "arPPTDriver failed to open serial port #" << _portNum << ".\n";
     return false;
   }
   if (!_port.setReadTimeout( 2 )) {  // 200 msec
-    ar_log_warning() << "arPPTDriver error: failed to set timeout on COM port.\n";
+    ar_log_error() << "arPPTDriver failed to set timeout on COM port.\n";
     return false;
   }
   _resetStatusTimer();
@@ -68,7 +68,7 @@ bool arPPTDriver::start() {
 }
 
 bool arPPTDriver::stop() {
-  ar_log_warning() << "arPPTDriver stopping.\n";
+  ar_log_debug() << "arPPTDriver stopping.\n";
   _stopped = true;
   arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
@@ -88,13 +88,13 @@ bool arPPTDriver::_processInput() {
   unsigned numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
   if (numRead == 0) {
     if (_statusTimer.done() && _imAlive) {
-      ar_log_warning() << "arPPTDriver lost communication with PPT.\n";
+      ar_log_error() << "arPPTDriver lost PPT.\n";
       _imAlive = false;
     }
     return true; 
   }
   if (!_imAlive) {
-    ar_log_warning() << "arPPTDriver established communication with PPT.\n";
+    ar_log_remark() << "arPPTDriver found PPT.\n";
     _imAlive = true;
   }
   _resetStatusTimer();
@@ -103,7 +103,6 @@ bool arPPTDriver::_processInput() {
   unsigned char packet[BUF_SIZE];
   memcpy( packet, _inbuf, numRead );
   int lastGoodIndex = -1;
-
   for(int i = 0; i < (int)numRead; ++i) {
     //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet
     if(packet[i] == 'o' && i+PPT_PACKET_SIZE <= numRead && packet[i+PPT_PACKET_SIZE-1] == _checksum(&(packet[i]),PPT_PACKET_SIZE-1)
@@ -121,7 +120,6 @@ bool arPPTDriver::_processInput() {
       const float x = _unstuffBytes(10.0, &(packet[(i*6+2)+lastGoodIndex]) );
       const float y = _unstuffBytes(10.0, &(packet[(i*6+4)+lastGoodIndex]) );
       const float z = _unstuffBytes(10.0, &(packet[(i*6+6)+lastGoodIndex]) );
-
       // End lifted code
 
       // change coordinate systems from PPT's left-handed to OpenGL's
@@ -148,8 +146,7 @@ unsigned char arPPTDriver::_checksum(const unsigned char* buffer, int length) co
 }
 // End lifted code
 
-const double PPT_TIMEOUT(5);
-
 void arPPTDriver::_resetStatusTimer() {
+  const double PPT_TIMEOUT = 5.;
   _statusTimer.start( PPT_TIMEOUT*1.e6 );
 }

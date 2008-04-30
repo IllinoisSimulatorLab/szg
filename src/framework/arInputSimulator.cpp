@@ -24,7 +24,7 @@ arInputSimulator::arInputSimulator() :
   buttons.push_back(0);
   buttons.push_back(2);
   if (!setMouseButtons( buttons ))
-    ar_log_warning() << "arInputSimulator setMouseButtons() failed in constructor.\n";
+    ar_log_error() << "arInputSimulator setMouseButtons() failed in constructor.\n";
   setNumberButtonEvents( 8 );
   _rotWand[0] = 0.;
   _rotWand[1] = 0.;
@@ -42,7 +42,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     const int numItems = mouseButtonString.size();
     int* mouseButtons = new int[numItems];
     if (!mouseButtons) {
-      ar_log_warning() << "arInputSimulator out of memory.\n";
+      ar_log_error() << "arInputSimulator out of memory.\n";
       return false;
     }
     const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
@@ -56,7 +56,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
       }
       delete[] mouseButtons;
       if (!setMouseButtons( mouseButtonsVector )) {
-        ar_log_warning() << "arInputSimulator setMouseButtons() failed in configure().\n";
+        ar_log_error() << "arInputSimulator setMouseButtons() failed in configure().\n";
       }
     }
   } else {
@@ -82,7 +82,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
   vector<unsigned>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
     if (_mouseButtons.find( *buttonIter ) != _mouseButtons.end()) {
-      ar_log_warning() << "duplicate mouse button indices in setMouseButtons().\n";
+      ar_log_error() << "duplicate mouse button indices in setMouseButtons().\n";
       _mouseButtons = buttonsPrev;
       return false;
     }
@@ -90,7 +90,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
     _mouseButtons[*buttonIter] = (i == buttonsPrev.end()) ? 0 : i->second;
   }
   if ((_mouseButtons.find(0) == _mouseButtons.end())||(_mouseButtons.find(2) == _mouseButtons.end())) {
-    ar_log_warning() << "mouse buttons must include 0 (left) and 2 (right).\n";
+    ar_log_error() << "mouse buttons must include 0 (left) and 2 (right).\n";
     _mouseButtons = buttonsPrev;
     return false;
   }
@@ -180,7 +180,7 @@ void arInputSimulator::advance(){
   _driver.queueAxis(1,_axis[1]);
 
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
-    ar_log_warning() << "numbers of new & last button values out of sync.\n";
+    ar_log_error() << "numbers of new & last button values out of sync.\n";
     return;
   }
 
@@ -215,7 +215,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
   case ' ':
     {
     if (rowLength == 0 || numRows == 0) {
-      ar_log_warning() << "no buttons in keyboard().\n";
+      ar_log_error() << "no buttons in keyboard().\n";
       break;
     }
     // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
@@ -276,7 +276,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   _mouseXY[1] = y;
 
   if (button < 0) {
-    ar_log_warning() << "arInputSimulator ignoring negative button index.\n";
+    ar_log_error() << "arInputSimulator ignoring negative button index.\n";
     return;
   }
   unsigned buttonIndex = (unsigned)button;
@@ -288,11 +288,9 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     vector<unsigned> buttons = getMouseButtons();
     buttons.push_back( buttonIndex );
     if (!setMouseButtons( buttons )) {
-      ar_log_warning() << "arInputSimulator failed to add button index " << buttonIndex
-                       << ".\n";
+      ar_log_error() << "arInputSimulator failed to add button index " << buttonIndex << ".\n";
     } else {
-      ar_log_remark() << "arInputSimulator added button index " << buttonIndex
-                      << " to index list.\n";
+      ar_log_remark() << "arInputSimulator added button index " << buttonIndex << " to list.\n";
       return;
     }
   }
@@ -308,7 +306,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
       }
       const unsigned eventIndex = _mouseButtons.size() * _buttonSelector + buttonOffset;
       if (eventIndex >= _newButtonEvents.size()) {
-        ar_log_warning() << "arInputSimulator ignoring out-of-range button event index " <<
+        ar_log_error() << "arInputSimulator ignoring out-of-range button event index " <<
 	  eventIndex << ".\n";
         return;
       }
@@ -466,7 +464,7 @@ void arInputSimulator::_drawGamepad() const {
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
-    ar_log_warning() << "no buttons in _drawGamepad().\n";
+    ar_log_error() << "no buttons in _drawGamepad().\n";
     return;
   }
 
@@ -525,7 +523,7 @@ void arInputSimulator::_drawGamepad() const {
           glColor3f(0,0.6,0);
         glutSolidSphere(.4*BUTTON_SPACING,8,8);
         if (i >= _buttonLabels.size()) {
-          ar_log_warning() << "_buttonLabels too short in _drawGamepad().\n";
+          ar_log_error() << "_buttonLabels too short in _drawGamepad().\n";
         } else {
           glDisable(GL_DEPTH_TEST);
           glColor3f( 1, 1, 1 );

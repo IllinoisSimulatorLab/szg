@@ -33,7 +33,7 @@ void arInputSource::sendButton(int i, int value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberButtons) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "sendButton(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range " << "sendButton(" << i << ").\n";
     return;
   }
 
@@ -45,7 +45,7 @@ void arInputSource::sendButton(int i, int value) {
       !_data->dataIn("buttons", &value, AR_INT, 1) || // one button
       !_data->dataIn("axes", 0) || // no axes
       !_data->dataIn("matrices", 0)) { // no matrices
-    ar_log_warning() << "arInputSource: problem in sendButton.\n";
+    ar_log_error() << "arInputSource: problem in sendButton.\n";
   }
   _sendData();
 }
@@ -54,7 +54,7 @@ void arInputSource::sendAxis(int i, float value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberAxes) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index to sendAxis(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range sendAxis(" << i << ").\n";
     return;
   }
 
@@ -67,7 +67,7 @@ void arInputSource::sendAxis(int i, float value) {
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", &theValue, AR_FLOAT, 1) ||
       !_data->dataIn("matrices", 0)) {
-    ar_log_warning() << "arInputSource: problem in sendAxis.\n";
+    ar_log_error() << "arInputSource: problem in sendAxis.\n";
   }
   _sendData();
 }
@@ -76,7 +76,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberMatrices) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index " << "to sendMatrix(" << i << ").\n";
+    ar_log_debug() << "arInputSource ignoring out-of-range sendMatrix(" << i << ").\n";
     return;
   }
 
@@ -88,7 +88,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", 0) ||
       !_data->dataIn("matrices", value.v, AR_FLOAT,16)) {
-    ar_log_warning() << "arInputSource: problem in sendMatrix.\n";
+    ar_log_error() << "arInputSource: problem in sendMatrix.\n";
   }
   _sendData();
 }
@@ -130,7 +130,7 @@ void arInputSource::sendButtonsAxesMatrices(
     }
 
   if (iAll != numThings)
-    ar_log_warning() << "arInputSource: numThings miscounted.\n";
+    ar_log_error() << "arInputSource: numThings miscounted.\n";
 
   if (!_fillCommonData(_data) ||
       !_data->dataIn("types", _theTypes, AR_INT, numThings) ||
@@ -138,7 +138,7 @@ void arInputSource::sendButtonsAxesMatrices(
       !_data->dataIn("buttons", rgvalueButtons, AR_INT, numButtons) ||
       !_data->dataIn("axes", rgvalueAxes, AR_FLOAT, numAxes) ||
       !_data->dataIn("matrices", rgvalueMatrices, AR_FLOAT, 16*numMatrices)) {
-    ar_log_warning() << "arInputSource: dataIn failed in sendButtonsAxesMatrices.\n";
+    ar_log_error() << "arInputSource: dataIn failed in sendButtonsAxesMatrices.\n";
   }
   _sendData();
 }
@@ -177,9 +177,7 @@ void arInputSource::queueMatrix(int i, const arMatrix4& value) {
 }
 
 void arInputSource::sendQueue() {
-  if (!_data)
-    return;
-  if (_iAll <= 0)
+  if (!_data || _iAll <= 0)
     return;
 
   if (!_fillCommonData(_data) ||
@@ -188,7 +186,7 @@ void arInputSource::sendQueue() {
       !_data->dataIn("buttons", _buttons, AR_INT, _iButton) ||
       !_data->dataIn("axes", _axes, AR_FLOAT, _iAxis) ||
       !_data->dataIn("matrices", _matrices, AR_FLOAT, 16*_iMatrix)) {
-    ar_log_warning() << "arInputSource: problem in sendQueue.\n";
+    ar_log_error() << "arInputSource: problem in sendQueue.\n";
   }
   _sendData();
   _iAll = _iButton = _iAxis = _iMatrix = 0;
@@ -196,28 +194,31 @@ void arInputSource::sendQueue() {
 
 void arInputSource::_setDeviceElements(int buttons, int axes, int matrices) {
   if (buttons<0) {
-    ar_log_warning() << "arInputSource ignoring negative number of buttons.\n";
+    ar_log_error() << "arInputSource zeroing negative number of buttons.\n";
     buttons = 0;
   }
   if (axes<0) {
-    ar_log_warning() << "arInputSource ignoring negative number of axes.\n";
+    ar_log_error() << "arInputSource zeroing negative number of axes.\n";
     axes = 0;
   }
   if (matrices<0) {
-    ar_log_warning() << "arInputSource ignoring negative number of matrices.\n";
+    ar_log_error() << "arInputSource zeroing negative number of matrices.\n";
     matrices = 0;
   }
 
   if (buttons>_maxSize-2) {
-    ar_log_warning() << "arInputSource truncating excessive number of buttons.\n";
+    ar_log_error() << "arInputSource truncating excessive number of buttons to " <<
+      _maxSize-2 << ".\n";
     buttons = _maxSize-2;
   }
   if (axes>_maxSize-2) {
-    ar_log_warning() << "arInputSource truncating excessive number of axes.\n";
+    ar_log_error() << "arInputSource truncating excessive number of axes to " <<
+      _maxSize-2 << ".\n";
     axes = _maxSize-2;
   }
   if (matrices>_maxSize-2) {
-    ar_log_warning() << "arInputSource truncating excessive number of matrices.\n";
+    ar_log_error() << "arInputSource truncating excessive number of matrices to " <<
+      _maxSize-2 << ".\n";
     matrices = _maxSize-2;
   }
 
@@ -236,29 +237,35 @@ bool arInputSource::_fillCommonData(arStructuredData* d) {
 
 void arInputSource::_sendData(arStructuredData* theData) {
   if (!_inputSink) {
-    ar_log_warning() << "arInputSource: undefined input sink.\n";
+    ar_log_error() << "arInputSource: undefined input sink.\n";
     return;
   }
+
   if (theData) {
     // send the data we've been given instead of the internal data
     _inputSink->receiveData(_inputChannelID, theData);
   }
-  else{
-    if (!_data)
-      return;
+  else if (_data) {
     _inputSink->receiveData(_inputChannelID, _data);
   }
 }
 
 bool arInputSource::_reconfig() {
   if (!_inputSink) {
-    ar_log_warning() << "arInputSource: undefined input sink.\n";
+    ar_log_error() << "arInputSource: undefined input sink.\n";
     return false;
   }
   return _inputSink->sourceReconfig(_inputChannelID);
 }
 
-void arInputSource::_setInputSink(int inputChannelID, arInputSink* sink) {
-  _inputChannelID = inputChannelID;
-  _inputSink = sink;
+void arInputSource::_setInputSink(int id, arInputSink* sink) {
+  if (sink)
+    _inputSink = sink;
+  else
+    ar_log_error() << "arInputSource ignoring NULL input sink.\n";
+
+  if (id >= 0)
+    _inputChannelID = id;
+  else
+    ar_log_error() << "arInputSource ignoring negative input channel id.\n";
 }

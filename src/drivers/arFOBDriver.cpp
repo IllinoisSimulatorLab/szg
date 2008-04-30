@@ -105,8 +105,6 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
 #endif
 
   int i = 0;
-
-  // Determine the baud rate.
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
   bool baudRateFound = false;
   int baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
@@ -119,44 +117,42 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
   if (!baudRateFound) {
-    ar_log_warning() << "arFOBDriver got unexpected SZG_FOB/baud_rate "
-	 << baudRate << ".\n  Expected one of:";
+    ar_log_error() << "arFOBDriver: unexpected SZG_FOB/baud_rate "
+	 << baudRate << ".\n  Try one of:";
     for (i=0; i<_nBaudRates; i++)
-      ar_log_warning() << " " << baudRates[i];
-    ar_log_warning() << "\n";
+      ar_log_error() << " " << baudRates[i];
+    ar_log_error() << "\n";
 LDefaultBaudRate:
     baudRate = 115200;
-    ar_log_warning() << "arFOBDriver SZG_FOB/baud_rate defaulting to " << baudRate << ".\n";
+    ar_log_error() << "arFOBDriver: SZG_FOB/baud_rate defaulting to " << baudRate << ".\n";
   }
 
   // Multiple serial ports aren't implemented.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_FOB", "com_port"));
   if (_comPortID <= 0) {
-    ar_log_warning() << "arFOBDriver: SZG_FOB/com_port defaulting to 1.\n";
+    ar_log_error() << "arFOBDriver: SZG_FOB/com_port defaulting to 1.\n";
     _comPortID = 1;
   }
   if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
-    ar_log_warning() << "arFOBDriver failed to open serial port " <<
-      _comPortID << ".\n";
+    ar_log_error() << "arFOBDriver failed to open serial port " << _comPortID << ".\n";
     return false;
   }
 
   if (!_comPort.setReadTimeout(_timeoutTenths)){
-    ar_log_warning() << "arFOBDriver failed to set timeout for serial port " <<
-      _comPortID << ".\n";
+    ar_log_error() << "arFOBDriver failed to set timeout for serial port " << _comPortID << ".\n";
     return false;
   }
 
   {
     unsigned char b[2];
     if (_getFOBParam(1, b, 2, 0) != 2) {
-      ar_log_warning() << "arFoBDriver: Flock unresponsive. Unplugged? Unpowered? Wrong SZG_FOB/baud_rate?\n";
+      ar_log_error() << "arFoBDriver: Flock unresponsive. Unplugged? Unpowered? Wrong SZG_FOB/baud_rate?\n";
       return false;
     }
     if (b[0] > 20) {
       // Don't laugh.  The version once was repeatedly "111.253" with the
       // RS232 cable unplugged, picking up stray interference.
-      ar_log_warning() <<
+      ar_log_error() <<
 	"arFoBDriver: Preposterous FoB version " << int(b[0]) << "." << int(b[1]) <<
 	". RS232 unplugged? Wrong SZG_FOB/baud_rate?\n";
       return false;
@@ -169,7 +165,7 @@ LDefaultBaudRate:
   // 4f 24, FoB manual p.130.
   unsigned char c[14];
   if (_getFOBParam(0x24, c, 14, 0) != 14) {
-    ar_log_warning() << "arFOBDriver failed to examine flock status (try powercycling the flock).\n";
+    ar_log_error() << "arFOBDriver failed to examine flock status.  Try powercycling the flock.\n";
     return false;
   }
 
@@ -216,7 +212,7 @@ LDefaultBaudRate:
       const unsigned t = c[i] & 0x3f;
       if (t == 0) {
 	if (c[i] != 0) {
-	  ar_log_warning() << "arFOBDriver: flock unit at address " << i+1 <<
+	  ar_log_error() << "arFOBDriver: flock unit at address " << i+1 <<
 	    " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
 	}
 	continue;
@@ -261,7 +257,7 @@ LDefaultBaudRate:
       const int config = birdConfiguration[addr];
       switch (config) {
       default:
-	ar_log_warning() << "arFOBDriver: internal error.\n";
+	ar_log_error() << "arFOBDriver: internal error.\n";
 	return false;
       case 0:
 	break;
@@ -270,7 +266,7 @@ LDefaultBaudRate:
       case 3:
       case 4:
 	if (addrTransmitter > 0){
-	  ar_log_warning() << "arFOBDriver: flock has multiple transmitters.\n";
+	  ar_log_error() << "arFOBDriver: flock has multiple transmitters.\n";
 	  return false;
 	}
 	addrTransmitter = addr;
@@ -281,12 +277,12 @@ LDefaultBaudRate:
     }
 
     if (addrTransmitter == 0){
-      ar_log_warning() << "arFOBDriver: flock has no transmitter.\n";
+      ar_log_error() << "arFOBDriver: flock has no transmitter.\n";
       return false;
     }
 
     if (addrTransmitter != 1) {
-      ar_log_warning() <<
+      ar_log_error() <<
 	"arFOBDriver's autoconfig requires transmitter to have address 1, not " <<
 	addrTransmitter << ".\n";
       return false;
@@ -303,13 +299,13 @@ LDefaultBaudRate:
   // Set each bird's data mode.
   if (_fStandalone) {
     if (!_setDataMode(0)){
-      ar_log_warning() << "arFOBDriver failed to set data mode, standalone.\n";
+      ar_log_error() << "arFOBDriver failed to set data mode, standalone.\n";
       return false;
     }
   } else {
     for (int addr=1; addr<=_numFlockUnits; ++addr){
       if (_isBird(addr) && !_setDataMode(addr)) {
-	ar_log_warning() << "arFOBDriver failed to set data mode of bird at addr " << addr << ".\n";
+	ar_log_error() << "arFOBDriver failed to set data mode of bird at addr " << addr << ".\n";
 	return false;
       }
     }
@@ -323,7 +319,7 @@ LDefaultBaudRate:
   {
     unsigned char b[2];
     if (_getFOBParam(10, b, 1, 0) != 1)
-      ar_log_warning() << "arFOBDriver failed to get error code.\n";
+      ar_log_error() << "arFOBDriver failed to get error code.\n";
     else
       ar_log_debug() << "arFOBDriver error code is " << int(b[0]) << ".\n";
     ar_usleep(100000);
@@ -333,19 +329,19 @@ LDefaultBaudRate:
   // Set each bird's hemisphere.
   const string hemisphere(SZGClient.getAttribute("SZG_FOB","hemisphere"));
   if (hemisphere == "NULL") {
-    ar_log_warning() << "arFOBDriver: no SZG_FOB/hemisphere.\n";
+    ar_log_error() << "arFOBDriver: no SZG_FOB/hemisphere.\n";
     return false;
   }
 
   if (_fStandalone) {
     if (!_setHemisphere(hemisphere, 0)) {
-      ar_log_warning() << "arFOBDriver failed to set hemisphere, standalone.\n";
+      ar_log_error() << "arFOBDriver failed to set hemisphere, standalone.\n";
       return false;
     }
   } else {
     for (int addr=1; addr<=_numFlockUnits; ++addr) {
       if (_isBird(addr) && !_setHemisphere(hemisphere, addr)) {
-	ar_log_warning() << "arFOBDriver failed to set hemisphere of bird at addr " << addr << ".\n";
+	ar_log_error() << "arFOBDriver failed to set hemisphere of bird at addr " << addr << ".\n";
 	return false;
       }
     }
@@ -382,7 +378,7 @@ LDefaultBaudRate:
   if (_fStandalone) {
     // Wake up the unit.
     if (!_run()){
-      ar_log_warning() << "arFOBDriver standalone failed to run.\n";
+      ar_log_error() << "arFOBDriver standalone failed to run.\n";
       return false;
     }
     ar_log_debug() << "arFOBDriver running standalone.\n";
@@ -390,7 +386,7 @@ LDefaultBaudRate:
   else{
     // Get the data moving.
     if (!_autoConfig()) {
-      ar_log_warning() << "arFOBDriver failed to autoconfigure flock.\n";
+      ar_log_error() << "arFOBDriver failed to autoconfigure flock.\n";
       return false;
     }
     ar_log_debug() << "arFOBDriver flock autoconfigured.\n";
@@ -432,7 +428,7 @@ void arFOBDriver::_eventloop(){
       }
       // ar_log_debug() << "arFOBDriver polling bird at addr " << addr << " of " << _numFlockUnits << ".\n";
       if (!_getSendNextFrame(addr)){
-	ar_log_warning() << "arFOBDriver got no data from Flock.\n";
+	ar_log_error() << "arFOBDriver got no data from Flock.\n";
 	_stopped = true;
       }
       if (_stopped) {
@@ -478,7 +474,7 @@ bool arFOBDriver::_setHemisphere( const std::string& hemisphere, unsigned char a
     cdata[1] = 6;
     cdata[2] = 0;
   } else {  
-    ar_log_warning() << "arFOBDriver: invalid hemisphere '" << hemisphere << "'.\n";
+    ar_log_error() << "arFOBDriver: invalid hemisphere '" << hemisphere << "'.\n";
     return false;
   }
   const bool ok = _sendBirdAddress(addr) && _sendBirdCommand( cdata, 3 );
@@ -490,7 +486,7 @@ bool arFOBDriver::_setHemisphere( const std::string& hemisphere, unsigned char a
 bool arFOBDriver::_getHemisphere( std::string& hemisphere, unsigned char addr ) {
   unsigned char rgb[2];
   if (_getFOBParam( 22, rgb, 2, addr ) != 2) {
-    ar_log_warning() << "arFOBDriver failed to _getFOBParam(hemisphere).\n";
+    ar_log_error() << "arFOBDriver failed to _getFOBParam(hemisphere).\n";
     return false;
   }
   if (rgb[0] == 0 && rgb[1] == 0) {
@@ -520,7 +516,7 @@ bool arFOBDriver::_setDataMode(unsigned char addr) {
 bool arFOBDriver::_getDataMode( std::string& modeString, unsigned char addr ) {
   unsigned char buf[2];
   if (_getFOBParam( 0, buf, 2, addr ) != 2) {
-    ar_log_warning() << "arFOBDriver failed to _getFOBParam(datamode).\n";
+    ar_log_error() << "arFOBDriver failed to _getFOBParam(datamode).\n";
     return false;
   }
 
@@ -588,14 +584,14 @@ bool arFOBDriver::_getDataMode( std::string& modeString, unsigned char addr ) {
       break;
   }
   if (!ok)
-    ar_log_warning() << "arFOBDriver mode is " << dataMode << " aka '" << modeString << "'.\n";
+    ar_log_error() << "arFOBDriver mode is " << dataMode << " aka '" << modeString << "'.\n";
   return ok;
 }
 
 bool arFOBDriver::_setPositionScale( bool longRange, unsigned char addr ) {
   const unsigned short scale = longRange ? 1 : 0;
   if (!_setFOBParam( 3, (unsigned char *)&scale, 2, addr )) {
-    ar_log_warning() << "arFOBDriver failed to _setFOBParam.\n";
+    ar_log_error() << "arFOBDriver failed to _setFOBParam.\n";
     return false;
   }
   _positionScale = longRange ? 6./32768. : 3./32768.;
@@ -605,7 +601,7 @@ bool arFOBDriver::_setPositionScale( bool longRange, unsigned char addr ) {
 bool arFOBDriver::_getPositionScale( bool& longRange, unsigned char addr ) {
   unsigned char outdata[2];
   if (_getFOBParam( 3, outdata, 2, addr ) != 2) {
-    ar_log_warning() << "arFOBDriver failed to _getFOBParam(position scale).\n";
+    ar_log_error() << "arFOBDriver failed to _getFOBParam(position scale).\n";
     return false;
   }
   const unsigned short bigScale = *((unsigned short*)outdata);
@@ -621,7 +617,7 @@ bool arFOBDriver::_getPositionScale( bool& longRange, unsigned char addr ) {
     default:
       _positionScale = 3./32768.0; // convert to feet.
       longRange = false;
-      ar_log_warning() << "arFOBDriver: positionScale data = " << bigScale << ".\n";
+      ar_log_error() << "arFOBDriver: positionScale data = " << bigScale << ".\n";
       return false;
   }
   return true;
@@ -636,7 +632,7 @@ int arFOBDriver::_getFOBParam( const unsigned char paramNum,
     return 0;
   const unsigned char cdata[2] = {'O', paramNum};
   if (!_sendBirdCommand( cdata, 2 )) {
-    ar_log_warning() << "arFOBDriver failed to send 'get param'.\n";
+    ar_log_error() << "arFOBDriver failed to send 'get param'.\n";
     return 0;
   }
   ar_usleep( 10000 );
@@ -651,7 +647,7 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
     return false;
   unsigned char* cdata = new unsigned char[2+numBytes];
   if (!cdata) {
-    ar_log_warning() << "arFOBDriver out of memory.\n";
+    ar_log_error() << "arFOBDriver out of memory.\n";
     return false;
   }
   cdata[0] = 'P'; // FoB manual pp.73, 110
@@ -659,7 +655,7 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
   memcpy( cdata+2, buf, numBytes );
   bool ok = _sendBirdCommand(cdata, 2+numBytes);
   if (!ok)
-    ar_log_warning() << "arFOBDriver failed to send 'set param'.\n";
+    ar_log_error() << "arFOBDriver failed to send 'set param'.\n";
   delete [] cdata;
   return ok;
 }
@@ -705,19 +701,20 @@ bool arFOBDriver::_sendBirdAddress( const unsigned char addr ) {
     return false;
   if (_fStandalone) {
     if (addr != 0)
-      ar_log_warning() << "arFOBDriver standalone ignoring nonzero address " << int(addr) << ".\n";
+      ar_log_error() << "arFOBDriver standalone ignoring nonzero address " << int(addr) << ".\n";
     return true;
   }
   if (addr <= 1) {
-    // 0 means birdless flock (?!).
+    // 0 means birdless flock (?! standalone?).
     // 1 means the first (and only) bird, when sent to _getSendNextFrame().
     return true;
   }
   const unsigned char cdata = 0xF0 | addr;
-  const bool ok = _comPort.ar_write((char*)&cdata, 1) == 1;
-  if (!ok)
-    ar_log_warning() << "arFOBDriver failed to _sendBirdAddress.\n";
-  return ok;
+  if (_comPort.ar_write((char*)&cdata, 1) != 1) {
+    ar_log_error() << "arFOBDriver failed to _sendBirdAddress.\n";
+    return false;
+  }
+  return true;
 }
 
 bool arFOBDriver::_sendBirdCommand( const unsigned char* cdata, 
@@ -746,7 +743,7 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
     return false;
 
   if (!_sendBirdByte('B', false)) {
-    ar_log_warning() << "arFOBDriver failed to send 'point' command.\n";
+    ar_log_error() << "arFOBDriver failed to send 'point' command.\n";
     return false;
   }
   // ar_log_debug() << "arFOBDriver sent 'point' to bird at addr " << int(addr) << ".\n";
@@ -755,7 +752,7 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
     return false;
   const unsigned bytesRead = _comPort.ar_read((char*)_dataBuffer, bytesPerBird);
   if (bytesRead != bytesPerBird) {
-    ar_log_warning() << "arFOBDriver read only " << bytesRead <<
+    ar_log_error() << "arFOBDriver read only " << bytesRead <<
       " of " << bytesPerBird << " bytes from bird " << int(addr) << ".\n";
     return false;
   }
@@ -765,14 +762,14 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
 
   static const unsigned char zeros[80] = {0};
   if (!memcmp(_dataBuffer, zeros, _dataSize*2)) {
-    ar_log_warning() << "arFOBDriver ignoring zeros from bird at addr " <<
+    ar_log_error() << "arFOBDriver ignoring zeros from bird at addr " <<
       int(addr) << " (not running?).\n";
     return true;
   }
 
   unsigned char* pb = (unsigned char*)_dataBuffer;
   if (*pb & 0x80 == 0)
-    ar_log_warning() << "FoB phasing error at start of frame.\n";
+    ar_log_error() << "FoB phasing error at start of frame.\n";
   *pb &= 0x7f; // clear phasing bit
 
 #if 0
@@ -867,7 +864,7 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
 // KEEP THIS EXAMPLE UNTIL WE IMPLEMENT GROUP MODE.
 bool arFOBDriver::_getSendNextFrame() {
   if (!_configured) {
-    ar_log_warning() << "arFOBDriver tried to get data before init.\n";
+    ar_log_error() << "arFOBDriver tried to get data before init.\n";
     return false;
   }
   const unsigned bytesPerBird = 2*_dataSize + (_fStandalone ? 0 : 1);
@@ -881,7 +878,7 @@ bool arFOBDriver::_getSendNextFrame() {
     numBytes *= _numBirds;
     bytesRead = _comPorts[0].ar_read( (char*)_dataBuffer, numBytes );
     if (bytesRead != numBytes) {
-      ar_log_warning() << "arFOBDriver read " << bytesRead <<
+      ar_log_error() << "arFOBDriver read " << bytesRead <<
         " of " << numBytes << " bytes.\n";
       stop();
       return false;
@@ -890,7 +887,7 @@ bool arFOBDriver::_getSendNextFrame() {
     for (i=0; i<_numComports; i++) {
       bytesRead = _comPorts[i].ar_read( (char*)_dataBuffer+i*numBytes, numBytes );
       if (bytesRead != numBytes) {
-	ar_log_warning() << "arFOBDriver read " << bytesRead <<
+	ar_log_error() << "arFOBDriver read " << bytesRead <<
 	  " of " << numBytes << " bytes from bird # " << i << ".\n";
         stop();
         return false;
@@ -914,7 +911,7 @@ bool arFOBDriver::_getSendNextFrame() {
     const int birdAddress = (_numBirds == 1) ? 0 :
       *(_dataBuffer + (i+1)*bytesPerBird - 1) - 1;
     if ((birdAddress < 0)||(birdAddress >= _numBirds)) {
-      ar_log_warning() << "arFOBDriver: out-of-range bird address " <<
+      ar_log_error() << "arFOBDriver: out-of-range bird address " <<
         birdAddress << ".\n";
       stop();
       return false;

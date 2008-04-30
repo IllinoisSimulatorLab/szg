@@ -99,14 +99,14 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   ar_log_remark() << "TrackCalAction loading file " << calFileName << "\n";
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
-    ar_log_warning() << "TrackCalAction error: table dimension < 1.\n";
+    ar_log_error() << "TrackCalAction table has nonpositive dimension.\n";
     fclose(fp);
     return false;
   }
-  //  ar_log_warning() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
+  //  ar_log_debug() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
  _n = _nx*_ny*_nz;
   if ( _n<1 ) {
-    ar_log_warning() << "TrackCalAction warning: lookup table size must be >= 1" << "\n"
+    ar_log_error() << "TrackCalAction lookup table size must be >= 1" << "\n"
          << " (and should be a great deal bigger than that, you silly bugger).\n";
     fclose(fp);
     return false;
@@ -117,7 +117,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
-    ar_log_warning() << "TrackCalAction error: failed to allocate memory for lookup tables.\n";
+    ar_log_error() << "TrackCalAction failed to allocate memory for lookup tables.\n";
     fclose(fp);
     return false;
   }
@@ -126,18 +126,15 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _xLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "TrackCalAction error: failed to read lookup table value #"
-           << i << "\n";
+      ar_log_error() << "TrackCalAction failed to read lookup table value #" << i << "\n";
       fclose(fp);
       return false;
     }
-    //    ar_log_warning() << _xLookupTable[i] << "\n";
   }
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _yLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "TrackCalAction error: failed to read lookup table value #"
-           << i+_n << "\n";
+      ar_log_error() << "TrackCalAction failed to read lookup table value #" << i+_n << "\n";
       fclose(fp);
       return false;
     }
@@ -145,8 +142,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _zLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "TrackCalAction error: failed to read lookup table value #"
-           << i+2*_n << "\n";
+      ar_log_error() << "TrackCalAction failed to read lookup table value #" << i+2*_n << "\n";
       fclose(fp);
       return false;
     }
@@ -163,6 +159,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   ar_log_remark() << "TrackCalAction using calibration.\n";
   return true;
 }
+
 bool TrackCalAction::_interpolate( arMatrix4& theMatrix ) {
   const float x = theMatrix[12];
   const float y = theMatrix[13];
@@ -192,17 +189,17 @@ bool TrackCalAction::_interpolate( arMatrix4& theMatrix ) {
   float xCal = 0.;
   float yCal = 0.;
   float zCal = 0.;
-  //ar_log_warning() << x << ", " << y << ", " << z << "\n";
+  //ar_log_debug() << x << ", " << y << ", " << z << "\n";
   for (int i=0; i<8; i++) {
     const float w = weights[i];
     const int j = lookupIndex + _indexOffsets[i];
     xCal += w*_xLookupTable[j];
     yCal += w*_yLookupTable[j];
     zCal += w*_zLookupTable[j];
-    //ar_log_warning() << w << ", " << j << "\n";
-    //ar_log_warning() << _xLookupTable[j] << ", " << _yLookupTable[j] << ", " << _zLookupTable[j] << "\n" << "\n";
+    //ar_log_debug() << w << ", " << j << "\n";
+    //ar_log_debug() << _xLookupTable[j] << ", " << _yLookupTable[j] << ", " << _zLookupTable[j] << "\n" << "\n";
   }
-  //  ar_log_warning() << xCal << ", " << yCal << ", " << zCal << "\n" << "-------------------------------------------------" << "\n" << "\n";
+  //  ar_log_debug() << xCal << ", " << yCal << ", " << zCal << "\n" << "-------------------------------------------------" << "\n" << "\n";
   theMatrix[12] = xCal;
   theMatrix[13] = yCal;
   theMatrix[14] = zCal;
@@ -272,9 +269,9 @@ bool IIRFilterAction::configure(arSZGClient* szgClient) {
   // applied to the head vertical position to remove jitter.
   if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
     for (unsigned int i=0; i<3; i++) {
-      if ((floatBuf[i] < 0)||(floatBuf[i] >= 1)) {
-        ar_log_warning() << "IIRFilterAction warning: SZG_MOTIONSTAR/IIR_filter_weight value " << floatBuf[i]
-             << " out of range [0,1).\n";
+      if (floatBuf[i] < 0. || floatBuf[i] >= 1.) {
+        ar_log_error() << "SZG_MOTIONSTAR/IIR_filter_weight " << floatBuf[i] <<
+          " out of range [0,1).\n";
         _filterWeights[i] = 0;
       } else {
         _filterWeights[i] = floatBuf[i];

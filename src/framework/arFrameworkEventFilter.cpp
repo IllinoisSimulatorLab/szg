@@ -50,7 +50,7 @@ bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {
   bool ok = true;
   if (_callback) {
     if (!_framework) {
-      ar_log_warning() << "arCallbackEventFilter: no framework.\n";
+      ar_log_error() << "arCallbackEventFilter: no framework.\n";
       return false;
     }
     ok = _callback( *_framework, inputEvent, *this );

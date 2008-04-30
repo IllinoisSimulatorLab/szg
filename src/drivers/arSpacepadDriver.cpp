@@ -105,7 +105,7 @@ arSpacepadDriver::~arSpacepadDriver(){
 
 bool arSpacepadDriver::init(arSZGClient& c){
 #ifndef AR_USE_WIN_32
-  ar_log_warning() << "arSpacepadDriver implemented only in Windows.\n";
+  ar_log_error() << "arSpacepadDriver implemented only in Windows.\n";
   return false;
 #endif
   _setDeviceElements(0,0,2);
@@ -137,7 +137,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
 
 bool arSpacepadDriver::start(){
 #ifndef AR_USE_WIN_32
-  ar_log_warning() << "arSpacepadDriver implemented only in Windows.\n";
+  ar_log_error() << "arSpacepadDriver implemented only in Windows.\n";
   return false;
 #endif
   _eventThread.beginThread(ar_spacepadDriverEventTask,this);
@@ -150,7 +150,7 @@ bool arSpacepadDriver::stop(){
 
 arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
   if (sensorID > 2 || sensorID < 1){
-    ar_log_warning() << "arSpacepadDriver: only sensors 1 and 2 are supported.\n";
+    ar_log_error() << "arSpacepadDriver: only sensors 1 and 2 are supported.\n";
     return ar_identityMatrix();
   }
   // Confusingly use the global recaddr.
@@ -162,24 +162,24 @@ arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
   // make sure the hemisphere of the spacepad is set correctly.
   if (initted<4){
     if (!_hemisphere_cmd(0)){
-      ar_log_warning() << "arSpacepadDriver failed to set hemisphere.\n";
+      ar_log_error() << "arSpacepadDriver failed to set hemisphere.\n";
     }
     // restore recaddr
     initted++;
   }
   if (_position_matrix_cmd() != TRUE){
-    ar_log_warning() << "arSpacepadDriver failed to request data\n";
+    ar_log_error() << "arSpacepadDriver failed to request data\n";
     goto LAbort;
   }
   if (_point_cmd() != TRUE){
-    ar_log_warning() << "arSpacepadDriver failed to issue the point command request.\n";
+    ar_log_error() << "arSpacepadDriver failed to issue the point command request.\n";
     goto LAbort;
   }
   // The 2nd parameter below is twice the number of shorts
   // returned.  2*6=12 for position/angles and 2*12=24 for position/matrix
   // (i.e. it is the number of bytes requested from the card)
   if (_get_isa_record(dataStorage, 24, ASC_POINT) < 0){
-    ar_log_warning() << "Failed to read data\n";
+    ar_log_error() << "arSpacepadDriver failed to read data\n";
 LAbort:
     _reset_through_isa();
     return ar_identityMatrix();

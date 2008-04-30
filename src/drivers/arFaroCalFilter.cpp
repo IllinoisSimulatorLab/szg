@@ -51,20 +51,17 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   float floatBuf = 0.;
   string received(szgClient->getAttribute("SZG_FAROCAL", "coord_transform"));
   if (received == "NULL") {
-    ar_log_warning() << "arFaroCalFilter warning: SZG_FAROCAL/coord_transform undefined.\n";
-    ar_log_warning() << "     Defaulting to identity matrix.\n";
+    ar_log_error() << "no SZG_FAROCAL/coord_transform, defaulting to identity matrix.\n";
   } else {
     float transformData[16];
     char receivedBuffer[256];
     ar_stringToBuffer( received, receivedBuffer, sizeof(receivedBuffer) );
     int numElements = ar_parseFloatString( receivedBuffer, transformData, 16 );
     if (numElements != 16) {
-      ar_log_warning() << "arFaroCalFilter warning: SZG_FAROCAL/coord_transform does not contain 16 elements.\n";
-      ar_log_warning() << "     Defaulting to identity matrix.\n";
+      ar_log_error() << "SZG_FAROCAL/coord_transform needs 16 elements, defaulting to identity matrix.\n";
     } else {
       _faroCoordMatrix = arMatrix4( transformData );
-      ar_log_warning() << "FaroArm Coordinate Transformation:\n"
-           << _faroCoordMatrix << "\n";
+      ar_log_error() << "FaroArm Coordinate Transformation:\n" << _faroCoordMatrix << "\n";
     }
   }
 
@@ -77,7 +74,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     _yRotAngle = ar_convertToRad( floatBuf );
   if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","y_filter_weight",&floatBuf,1)) {
     if (floatBuf < 0 || floatBuf >= 1) {
-      ar_log_warning() << "arFaroCalFilter warning: SZG_MOTIONSTAR/y_filter_weight value " << floatBuf
+      ar_log_error() << "SZG_MOTIONSTAR/y_filter_weight value " << floatBuf
            << " out of range [0,1).\n";
     } else {
       _yFilterWeight = floatBuf;
@@ -93,14 +90,14 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   ar_log_remark() << "arFaroCalFilter loading file " << calFileName << "\n";
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
-    ar_log_warning() << "arFaroCalFilter error: not all table dimensions are positive.\n";
+    ar_log_error() << "arFaroCalFilter: not all table dimensions are positive.\n";
     fclose(fp);
     return false;
   }
-  //  ar_log_warning() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
+  //  ar_log_error() << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << "\n";
  _n = _nx*_ny*_nz;
   if ( _n<1 ) {
-    ar_log_warning() << "arFaroCalFilter warning: lookup table needs FAR more than one element.\n";
+    ar_log_error() << "arFaroCalFilter: lookup table needs FAR more than one element.\n";
     fclose(fp);
     return false;
   }
@@ -111,7 +108,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   _zLookupTable = new float[_n];
   
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
-    ar_log_warning() << "arFaroCalFilter warning: out of memory for lookup tables.\n";
+    ar_log_error() << "arFaroCalFilter out of memory for lookup tables.\n";
     fclose(fp);
     return false;
   }
@@ -120,7 +117,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _xLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arFaroCalFilter error: failed to read lookup table value #"
+      ar_log_error() << "arFaroCalFilter failed to read lookup table value #"
            << i << "\n";
       fclose(fp);
       return false;
@@ -129,7 +126,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _yLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arFaroCalFilter error: failed to read lookup table value #"
+      ar_log_error() << "arFaroCalFilter failed to read lookup table value #"
            << i+_n << "\n";
       fclose(fp);
       return false;
@@ -138,7 +135,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _zLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
-      ar_log_warning() << "arFaroCalFilter error: failed to read lookup table value #"
+      ar_log_error() << "arFaroCalFilter failed to read lookup table value #"
            << i+2*_n << "\n";
       fclose(fp);
       return false;

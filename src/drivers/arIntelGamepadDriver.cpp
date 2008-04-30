@@ -91,7 +91,7 @@ bool arIntelGamepadDriver::init(arSZGClient& szgClient){
     sig[0] = 8;
     sig[1] = 2;
     sig[2] = 0;
-    ar_log_warning() << "arIntelGamepadDriver: "
+    ar_log_error() << "arIntelGamepadDriver: "
       << szgClient.getComputerName() << "/SZG_JOYSTICK/signature defaulting to ("
       << sig[0] << ", " << sig[1] << ", " << sig[2] << " ).\n";
   } else {
@@ -109,22 +109,21 @@ bool arIntelGamepadDriver::init(arSZGClient& szgClient){
 
   if (FAILED(pDI->CreateDevice(GUID_SysKeyboard, 
              (IDirectInputDevice**)&_pKeyboard, NULL))){ 
-    cerr << "DirectInput failure number 2.\n"; 
+    ar_log_error() << "DirectInput failure number 2.\n"; 
     return false; 
   }
   if (!_pKeyboard){
+    ar_log_error() << "DirectInput failure number 3.\n"; 
     return false;
   }
   if (FAILED(_pKeyboard->SetDataFormat(&c_dfDIKeyboard))){ 
-    cerr << "DirectInput failure number 3.\n"; 
+    ar_log_error() << "DirectInput failure number 4.\n"; 
     return false; 
   }
-  // Does the NULL in SetCooperativeLevel() work?  I thought it would have
-  // needed to be an hwnd.
-  _pKeyboard->SetCooperativeLevel(NULL/*m_hWnd*/, 
-                                  DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+  // Does NULL not hwnd in SetCooperativeLevel() work?
+  _pKeyboard->SetCooperativeLevel(NULL/*m_hWnd*/, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
   if (FAILED(_pKeyboard->Acquire())){
-    cerr << "DirectInput failure number 7.\n";
+    ar_log_error() << "DirectInput failure number 5.\n";
     return false;
   }
 #endif
@@ -136,7 +135,7 @@ bool arIntelGamepadDriver::start(){
 #ifdef AR_USE_WIN_32
   return _eventThread.beginThread(ar_intelGamepadDriverEventTask,this);
 #else
-  ar_log_warning() << "arIntelGamepadDriver requires windows, sorry.\n";
-  return true;
+  ar_log_error() << "arIntelGamepadDriver requires windows, sorry.\n";
+  return false;
 #endif
 }

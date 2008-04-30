@@ -337,7 +337,7 @@ void arSZGAppFramework::_loadNavParameters() {
     temp = _SZGClient.getAttribute("SZG_NAV", "effector");
     if (temp != "NULL") {
       if (ar_parseIntString( temp, params, 5 ) != 5) {
-        ar_log_warning() << "failed to load SZG_NAV/effector.\n";
+        ar_log_error() << "failed to load SZG_NAV/effector.\n";
       }
     }
     temp = "effector is ";
@@ -353,7 +353,7 @@ void arSZGAppFramework::_loadNavParameters() {
     temp = _SZGClient.getAttribute("SZG_NAV", "translation_speed");
     if (temp != "NULL") {
       if (!ar_stringToFloatValid( temp, speed )) {
-        ar_log_warning() << "failed to convert SZG_NAV/translation_speed.\n";
+        ar_log_error() << "failed to convert SZG_NAV/translation_speed.\n";
       }
     }
     ar_log_remark() << "translation speed is " << speed << ".\n";
@@ -364,7 +364,7 @@ void arSZGAppFramework::_loadNavParameters() {
     temp = _SZGClient.getAttribute("SZG_NAV", "rotation_speed");
     if (temp != "NULL") {
       if (!ar_stringToFloatValid( temp, speed )) {
-        ar_log_warning() << "failed to convert SZG_NAV/rotation_speed.\n";
+        ar_log_error() << "failed to convert SZG_NAV/rotation_speed.\n";
       }
     }
     ar_log_remark() << "rotation speed is " << speed << ".\n";
@@ -382,7 +382,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_remark() << "x_translation condition is " << temp << ".\n";
       } else {
         setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
-	ar_log_warning() << "failed to load SZG_NAV/x_translation, defaulting to axis/0/0.2.\n";
+	ar_log_error() << "failed to load SZG_NAV/x_translation, defaulting to axis/0/0.2.\n";
       }
     } else {
       setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
@@ -398,7 +398,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_remark() << "z_translation condition is " << temp << ".\n";
       } else {
         setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );
-	ar_log_warning() << "failed to load SZG_NAV/z_translation, defaulting to axis/1/0.2.\n";
+	ar_log_error() << "failed to load SZG_NAV/z_translation, defaulting to axis/1/0.2.\n";
       }
     } else {
       setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );  
@@ -413,7 +413,7 @@ void arSZGAppFramework::_loadNavParameters() {
         setNavTransCondition( 'y', theType, index, threshold );
 	ar_log_remark() << "y_translation condition is " << temp << ".\n";
       } else {
-	ar_log_warning() << "failed to read SZG_NAV/y_translation.\n";
+	ar_log_error() << "failed to read SZG_NAV/y_translation.\n";
       }
     }
   }
@@ -425,7 +425,7 @@ void arSZGAppFramework::_loadNavParameters() {
         setNavRotCondition( 'y', theType, index, threshold );
 	ar_log_remark() << "y_rotation condition is " << temp << ".\n";
       } else {
-	ar_log_warning() << "failed to read SZG_NAV/y_rotation.\n";
+	ar_log_error() << "failed to read SZG_NAV/y_rotation.\n";
       }
     }
   }
@@ -438,12 +438,12 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
                                               float& threshold ) {
   std::vector<std::string> params;
   if (!ar_getTokenList( theString, params, '/' )) {
-    ar_log_warning() << "failed to parse SZG_NAV string '" << theString << "'.\n";
+    ar_log_error() << "failed to parse SZG_NAV string '" << theString << "'.\n";
     return false;
   }
 
   if (params.size() != 3) {
-    ar_log_warning() << "SZG_NAV string without 3 items,\n"
+    ar_log_error() << "SZG_NAV string without 3 items,\n"
 	             << "event_type(string)/index(unsigned int)/threshold(float).\n";
     return false;
   }
@@ -451,7 +451,7 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
   int ind = -1;
   if (!ar_stringToIntValid( params[1], ind ) ||
       !ar_stringToFloatValid( params[2], threshold )) {
-    ar_log_warning() << "failed to convert SZG_NAV string '" << theString << "'.\n";
+    ar_log_error() << "failed to convert SZG_NAV string '" << theString << "'.\n";
     return false;
   }
 
@@ -460,12 +460,12 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
   else if (params[0] == "button")
     theType = AR_EVENT_BUTTON;
   else {
-    ar_log_warning() << "SZG_NAV string has invalid event type " << params[0] << ".\n";
+    ar_log_error() << "SZG_NAV string has invalid event type " << params[0] << ".\n";
     return false;
   }
 
   if (ind < 0) {
-    ar_log_warning() << "negative SZG_NAV index field " << ind << ".\n";
+    ar_log_error() << "negative SZG_NAV index field " << ind << ".\n";
     return false;
   }
 

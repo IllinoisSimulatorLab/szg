@@ -225,7 +225,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   if (_fd < 0){
     _fd = open("/dev/input/js0", O_RDONLY);
     if (_fd < 0){
-      ar_log_warning() << "arJoystickDriver failed to open /dev/js0 or /dev/input/js0\n";
+      ar_log_error() << "arJoystickDriver failed to open /dev/js0 or /dev/input/js0\n";
       // bug: should keep retrying js1... like kam3:wandcassatt/cavewand.c does.
       return false;
     }
@@ -311,7 +311,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   DIDEVICEINSTANCE dev;
   if (FAILED(pDI->EnumDevices(DIDEVTYPE_JOYSTICK, DIDevCallback, &dev,  
       DIEDFL_ATTACHEDONLY))) {
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 1.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 1.\n";
     return false;
   }
 
@@ -321,13 +321,13 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
 
   if (FAILED(pDI->CreateDevice(dev.guidInstance, 
                                (IDirectInputDevice**)&_pStick, NULL))){ 
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 2.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 2.\n";
     return false; 
   }
   if (!_pStick)
     return false;
   if (FAILED(_pStick->SetDataFormat(&c_dfDIJoystick2))){ 
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 3.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 3.\n";
     return false; 
   }
   _pStick->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
@@ -341,12 +341,12 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   range.lMax = 32767;
   range.lMin = -32768;
   if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))){
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 4.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 4.\n";
     return false;
   }
   range.diph.dwObj = DIJOFS_Y;
   if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))){
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 5.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 5.\n";
     return false;
   }
   DIPROPDWORD	dw;
@@ -356,11 +356,11 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   dw.diph.dwHow = DIPH_DEVICE;
   dw.diph.dwObj = 0;
   if (FAILED(_pStick->SetProperty(DIPROP_AXISMODE, &dw.diph))){
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 6.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 6.\n";
     return false;
   }
   if (FAILED(_pStick->Acquire())){
-    ar_log_warning() << "arJoystickDriver DirectInput failure number 7.\n";
+    ar_log_error() << "arJoystickDriver DirectInput failure number 7.\n";
     return false;
   }
 #endif
