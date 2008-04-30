@@ -165,8 +165,7 @@ void IsenseTracker::setStationIndices( unsigned int& matrixIndex,
     */
 bool IsenseTracker::getData( arInputSource* inputSource ) {
   if ( FALSE == ISD_GetData( _handle, &_data ) ) {
-    ar_log_warning() << "IsenseTracker error: Failed to get data from tracker "
-         << _handle << "\n";
+    ar_log_error() << "IsenseTracker failed to get data from tracker " << _handle << "\n";
     _imOK = false;
     return false;
   }
@@ -175,8 +174,7 @@ bool IsenseTracker::getData( arInputSource* inputSource ) {
   // do with "ApertureEncoder, FocusEncoder, and ZoomEncoder."
 //  if ( _bSupportsCameraData ) {
 //    if (FALSE == ISD_GetCameraData( _handle, &_cameraData ) ) {
-//      ar_log_warning() << "IntersenseDriver::got no camera data from tracker "
-//        << _handle << "\n";
+//      ar_log_error() << "IntersenseDriver: no camera data from tracker " << _handle << "\n";
 //      _imOK = false;
 //      return false;
 //    }
@@ -201,8 +199,7 @@ bool IsenseTracker::getData( arInputSource* inputSource ) {
 bool IsenseTracker::_getTrackerConfig() {
   Bool success = ISD_GetTrackerConfig( _handle, &_trackerInfo, USE_VERBOSE );
   if ( FALSE == success ) {
-    ar_log_warning() << "Intersense::got no tracker information on " <<
-      "device port " << _port << "\n";
+    ar_log_error() << "Intersense: no tracker information on device port " << _port << "\n";
     return false;
   }
 
@@ -216,7 +213,7 @@ bool IsenseTracker::_getTrackerConfig() {
   }
 
   // Tell the world our configuration
-  ar_log_warning() << "IntersenseDriver::Started tracker on port " << _port << "." << "\n";
+  ar_log_remark() << "IntersenseDriver started tracker on port " << _port << "." << "\n";
   return true;
 }
 
@@ -359,7 +356,7 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
   int useCompass;
   if (client.getAttributeInts( "SZG_INTERSENSE", chStation, &useCompass, 1 ) ) {
     if (!_setUseCompass( (Bool)useCompass )) {
-      ar_log_warning() << "IsenseStation error: Failed to set compass usage for station " 
+      ar_log_error() << "IsenseStation failed to set compass usage for station " 
            << getID() << " to " << (Bool)useCompass << "\n";
       return false;
     }
@@ -408,16 +405,14 @@ bool IsenseStation::enableCameraTracking() {
   if (_stationConfig.GetCameraData == TRUE) {
     return true;
   }
+
   _stationConfig.GetCameraData = TRUE;
-  bool stat = ISD_SetStationConfig( _trackerHandle,
-                                    &_stationConfig,
-                                    static_cast<WORD>(getID()),
-                                    USE_VERBOSE ) != FALSE;
-  if (!stat) {
-    ar_log_warning() << "IntersenseDriver::failed to set configuration "
-         << "for station " << getID() << "\n";
+  if (ISD_SetStationConfig( _trackerHandle, &_stationConfig,
+      static_cast<WORD>(getID()), USE_VERBOSE ) == FALSE) {
+    ar_log_error() << "IntersenseDriver failed to configure station " << getID() << ".\n";
+    return false;
   }
-  return stat;
+  return true;
 }
 
 /*! \param buttonCnt Number of buttons the station should have.
@@ -435,18 +430,14 @@ void IsenseStation::_setInputCounts( unsigned int buttonCnt,
 
 bool IsenseStation::_setUseCompass( unsigned int compassVal ) {
   _stationConfig.Compass = (Bool)compassVal;
-  bool stat = (ISD_SetStationConfig( _trackerHandle,
-                                     &_stationConfig,
-                                     static_cast<WORD>(getID()),
-                                     USE_VERBOSE )!= FALSE);
-  if (stat) {
-    ar_log_remark() << "IsenseStation set useCompass "
-         << "for station " << getID() << "\n";
-  } else {
-    ar_log_warning() << "IsenseStation error: Failed to set useCompass "
-         << "for station " << getID() << "\n";
+  if (ISD_SetStationConfig( _trackerHandle, &_stationConfig,
+      static_cast<WORD>(getID()), USE_VERBOSE ) == FALSE) {
+    ar_log_error() << "IsenseStation failed to set useCompass for station " << getID() << "\n";
+    return false;
   }
-  return stat;
+
+  ar_log_remark() << "IsenseStation set useCompass for station " << getID() << ".\n";
+  return true;
 }
 
 /*! This object uses both configuration information and
@@ -676,12 +667,12 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   DWORD comPortID = static_cast<DWORD>(client.getAttributeInt( "SZG_INTERSENSE", "com_port"));
   // Start the device.
   if ( !_open( comPortID ) ) {
-    ar_log_warning() << "arIntersenseDriver error: _open(" << comPortID << ") failed.\n";
+    ar_log_error() << "arIntersenseDriver failed to _open(" << comPortID << ").\n";
     return false;
   }
 
   if ( !getStationSettings( client ) ) {
-    ar_log_warning() << "arIntersenseDriver error: getStationSettings() failed.\n";
+    ar_log_error() << "arIntersenseDriver failed to getStationSettings().\n";
     return false;
   }
 
@@ -716,8 +707,7 @@ bool arIntersenseDriver::_open( DWORD port ) {
     Bool isOpened = ISD_OpenAllTrackers(
       (Hwnd) NULL, trackerHandle, FALSE, _isVerbose );
     if ( FALSE == isOpened ) {
-      ar_log_warning() << "IntersenseDriver::failed to open any trackers."
-        << "\n";
+      ar_log_error() << "IntersenseDriver opened no trackers.\n";
       return false;
     }
 
@@ -732,14 +722,14 @@ bool arIntersenseDriver::_open( DWORD port ) {
     Bool isVerbose = TRUE;
     trackerHandle[0] = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
     if ( trackerHandle[0] <= 0 ) {
-      ar_log_warning() << "arIntersenseDriver error: failed to open tracker on port "
-      << port << " (first stop ISDemo if that's running).\n";
+      ar_log_error() << "arIntersenseDriver failed to open tracker on port " << port <<
+	".\n  (If ISDemo is running, try stopping it).\n";
       return false;
     }
     numTrackers = 1;
   }
   if ( numTrackers == 0 ) {
-    ar_log_warning() << "IntersenseDriver::found no trackers." << "\n";
+    ar_log_error() << "IntersenseDriver found no trackers.\n";
     return false;
   }
   _trackers.insert( _trackers.begin(), (unsigned int)numTrackers, IsenseTracker() );
@@ -787,81 +777,75 @@ bool arIntersenseDriver::_getData() {
     \return False if not all failed trackers could be opened.
     */
 bool arIntersenseDriver::_reacquire() {
-  bool bAllRunning = true;
-
+  bool ok = true;
   vector< IsenseTracker >::iterator iter;
   for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
     if (!iter->getStatus()) {
-      bool reopened = iter->ar_reopen();
-      if ( !reopened ) {
-        bAllRunning = false;
-      }
+      ok &= iter->ar_reopen();
     }
   }
-  return bAllRunning;
+  return ok;
 }
 
 /*! Start a thread for ar_intersenseDriverEventTask to poll the
     driver and send events.
     */
 bool arIntersenseDriver::start(){
-  return _eventThread.beginThread(ar_intersenseDriverEventTask,this);
+  return _eventThread.beginThread(ar_intersenseDriverEventTask, this);
 }
 
 void arIntersenseDriver::handleMessage( const string& messageType, const string& messageBody ) {
   if (messageType != "arIntersenseDriver") {
-    ar_log_warning() << "arIntersenseDriver warning: ignoring message of type "
-         << messageType << "\n";
+    ar_log_error() << "arIntersenseDriver ignoring message of type " << messageType << "\n";
     return;
   }
   arDelimitedString tokens( messageBody, ' ' );
   if (tokens.size() < 1) {
-    ar_log_warning() << "arIntersenseDriver warning: ignoring message with 0 tokens.\n";
+    ar_log_error() << "arIntersenseDriver ignoring tokenless message.\n";
     return;
   }
   string command( tokens[0] );
   if (command == "reset") { // reset heading
     if (tokens.size() != 2) {
-      ar_log_warning() << "arIntersenseDriver warning: reset usage: reset <tracker #>/<station #>.\n";
+      ar_log_error() << "arIntersenseDriver reset usage: reset <tracker #>/<station #>.\n";
       return;
     }
     int items[2];
     int numItems = ar_parseIntString( tokens[1], items, 2 );
     if (numItems != 2) {
-      ar_log_warning() << "arIntersenseDriver warning: reset usage: reset <tracker #>/<station #>.\n";
+      ar_log_error() << "arIntersenseDriver reset usage: reset <tracker #>/<station #>.\n";
       return;
     }
     if (_resetHeading((unsigned int)items[0],(unsigned int)items[1])) {
       ar_log_remark() << "arIntersenseDriver reset heading for tracker #" << items[0]
            << ", station #" << items[1] << "\n";
     } else {
-      ar_log_warning() << "arIntersenseDriver warning: failed to reset heading for tracker #" << items[0]
+      ar_log_error() << "arIntersenseDriver failed to reset heading for tracker #" << items[0]
            << ", station #" << items[1] << "\n";
     }
   } else {
-    ar_log_warning() << "arIntersenseDriver: unknown comand " << command << "\n";
+    ar_log_error() << "arIntersenseDriver ignoring unknown comand " << command << "\n";
   }
 }
 
 bool arIntersenseDriver::_resetHeading( unsigned int trackerID, unsigned int stationID ) {
   if (trackerID >= _trackers.size()) {
-    ar_log_warning() << "arIntersenseDriver error: attempt to reset heading for tracker "
-         << trackerID << ",\n    max = " << _trackers.size() << "\n";
+    ar_log_error() << "arIntersenseDriver ignoring reset-heading for tracker "
+         << trackerID << " beyond max " << _trackers.size() << ".\n";
     return false;
   }
   if (stationID >= ISD_MAX_STATIONS) {
-    ar_log_warning() << "arIntersenseDriver failed to reset heading for station "
-         << stationID << ",\n    max = " << ISD_MAX_STATIONS << "\n";
+    ar_log_error() << "arIntersenseDriver ignoring reset-heading for station "
+         << stationID << " beyond max " << ISD_MAX_STATIONS << ".\n";
     return false;
   }
   return ISD_ResetHeading( _trackers[trackerID].getHandle(), stationID );
 }
 
 void arIntersenseDriver::_closeAll() {
-  vector< IsenseTracker >::iterator iter;
-  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
-    iter->ar_close();
+  for (vector< IsenseTracker >::iterator i = _trackers.begin(); i!=_trackers.end(); ++i) {
+    i->ar_close();
   }
-  ar_log_warning() << "All Intersense trackers closed.\n";
+  ar_log_remark() << "Intersense trackers closed.\n";
 }
 
