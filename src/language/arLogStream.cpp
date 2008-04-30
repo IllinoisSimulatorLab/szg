@@ -345,6 +345,8 @@ LDone:
       s += "\n";
     }
     *_output << s;
+    if (*_output != cout)
+      cout << s;
   }
 
   static const string empty;
@@ -389,6 +391,8 @@ arLogStream& ar_endl(arLogStream& s){
   s._flush(false);
   if (s._level <= s._threshold){
     *s._output << endl;
+    if (*s._output != cout)
+      cout << endl;
   }
   s._unlock();
   return s;
