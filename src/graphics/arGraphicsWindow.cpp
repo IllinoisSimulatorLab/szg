@@ -260,7 +260,7 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
       );
   }
   else {
-    ar_log_warning() << "arGraphicsWindow: invalid view mode '" << viewModeString << "'.\n";
+    ar_log_error() << "arGraphicsWindow: invalid view mode '" << viewModeString << "'.\n";
     return false;
   }
 
@@ -309,7 +309,7 @@ arCamera* arGraphicsWindow::setStereoViewportsCamera( unsigned int startVPIndex,
   arCamera* cam1 = _viewportVector[startVPIndex].setCamera( cam );
   const arCamera* cam2 = _viewportVector[startVPIndex+1].setCamera( cam );
   if (!cam1 || !cam2) {
-    ar_log_warning() << "arGraphicsWindow: setStereoViewportsCamera() failed.\n";
+    ar_log_error() << "arGraphicsWindow: setStereoViewportsCamera() failed.\n";
     return NULL;
   }
   return cam1;
@@ -436,7 +436,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   if (masterViewport) {
     screen = _defaultScreen;
   } else if (!screen.configure( screenName, client )) {
-    ar_log_warning() << "arGraphicsWindow failed to configure screen " << screenName << ".\n";
+    ar_log_error() << "arGraphicsWindow failed to configure screen " << screenName << ".\n";
     return false;
   }
 
@@ -444,11 +444,11 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   float dim[4];
   if (!client.getAttributeFloats(  screenName, "viewport_dim", dim, 4 )) {
     if (!masterViewport) {
-      ar_log_warning() << "arGraphicsWindow: no " << screenName << "/viewport_dim for custom view_mode.\n";
+      ar_log_error() << "arGraphicsWindow: no " << screenName << "/viewport_dim for custom view_mode.\n";
       return false;
     }
 
-    ar_log_warning() << "arGraphicsWindow: " << screenName
+    ar_log_error() << "arGraphicsWindow: " << screenName
          << "/viewport_dim (master viewport) defaulting to (0,0,1,1) aka full window.\n";
     dim[0] = dim[1] = 0;
     dim[2] = dim[3] = 1;
@@ -457,7 +457,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   // get viewport eye sign
   float eyeSign = 0.;
   if (!client.getAttributeFloats(screenName, "eye_sign", &eyeSign, 1)) {
-    ar_log_warning() << "arGraphicsWindow: " << screenName
+    ar_log_error() << "arGraphicsWindow: " << screenName
          << "/eye_sign defaulting to 0.\n";
     eyeSign = 0.;
   }
@@ -467,7 +467,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   GLboolean mask[4];
   unsigned int i = 0;
   if (colorMask == "NULL") {
-    ar_log_warning() << "arGraphicsWindow: viewport color mask for "
+    ar_log_error() << "arGraphicsWindow: viewport color mask for "
 	 << screenName << " defaulting to (true/true/true/true).\n";
     for (i=0; i<4; ++i)
       mask[i] = GL_TRUE;
@@ -477,7 +477,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
       colorMask /= "true";
     }
     if (colorMask.size() != 4) {
-      ar_log_warning() << "arGraphicsWindow: " << screenName
+      ar_log_error() << "arGraphicsWindow: " << screenName
            << "/color_mask must contain 0, 3, or 4 elements.\n";
       return false;
   }
@@ -489,7 +489,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
         mask[i] = GL_FALSE;
       }
       else {
-        ar_log_warning() << "arGraphicsWindow: " << screenName << "/color_mask contains illegal value '"
+        ar_log_error() << "arGraphicsWindow: " << screenName << "/color_mask contains illegal value '"
              << colorMask[i] << "'\n";
         return false;
       }
@@ -504,7 +504,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
     client.getAttribute( screenName, "draw_buffer_mode", "|left|right|normal|mono|");
 
   if (bufName == "normal") {
-    ar_log_warning() << "arGraphicsWindow ignoring eye_sign because " <<
+    ar_log_error() << "arGraphicsWindow ignoring eye_sign because " <<
       screenName << "/draw_buffer_mode == normal.\n";
     if (_useOGLStereo) {
       // Already locked.

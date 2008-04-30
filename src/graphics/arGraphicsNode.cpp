@@ -52,7 +52,7 @@ void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m){
 arStructuredData* arGraphicsNode::_getRecord(const bool owned, const int id) {
   arStructuredData* r = owned ? getStorage(id) : _g->makeDataRecord(id);
   if (!r) {
-    ar_log_warning() << "arGraphicsNode got no record of type " <<
+    ar_log_error() << "arGraphicsNode got no record of type " <<
       _g->numstringFromID(id) << ".\n";
   }
   return r;

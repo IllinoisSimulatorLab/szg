@@ -30,10 +30,10 @@ arIntAtom fConnect(0);
 // Print warnings to console AND return them to dex.
 void warnTwice( ostream& errStream, const string& msg ) {
   // to console
-  ar_log_warning() << msg << "\n";
+  ar_log_error() << msg << "\n";
   const bool fTerminated = msg[msg.size()-1] == '\n';
   if (!fTerminated)
-    ar_log_warning() << '\n';
+    ar_log_error() << '\n';
 
   if (errStream != cerr && errStream != cout) {
     // to dex
@@ -105,7 +105,7 @@ bool getBasePaths( const char* const arg ) {
     bool dirExists = false;
     bool isDir = false;
     if (!ar_directoryExists( pathTmp, dirExists, isDir )) {
-      ar_log_warning() << "ar_directoryExists() failed.\n";
+      ar_log_error() << "ar_directoryExists() failed.\n";
       return false;
     }
     if (!dirExists) {
@@ -113,16 +113,16 @@ bool getBasePaths( const char* const arg ) {
       bool isFile = false;
       if (!ar_fileExists( pathTmp+".exe", dirExists, isFile )) {
         if (!dirExists) {
-          ar_log_warning() << "no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
+          ar_log_error() << "no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
         if (!isFile) {
-          ar_log_warning() << "executable '" << pathTmp << ".exe' is not a file.\n";
+          ar_log_error() << "executable '" << pathTmp << ".exe' is not a file.\n";
           return false;
         }
       }
 #else
-      ar_log_warning() << "no directory '" << pathTmp << "'.\n";
+      ar_log_error() << "no directory '" << pathTmp << "'.\n";
       return false;
 #endif
     }
@@ -370,7 +370,7 @@ LAbort:
         errStream << "Don't append .exe;  Windows does that for you.\n";
 #endif
 LNolaunch:
-      ar_log_warning() << errStream.str();
+      ar_log_error() << errStream.str();
       return errStream.str();
     }
   }
@@ -542,7 +542,7 @@ LDone:
 //      ar_log_remark() << "post-launch dir is '"
 //           << originalWorkingDirectory << "'.\n";
 //    } else {
-//      ar_log_warning() << "post-launch failed to cd to '"
+//      ar_log_error() << "post-launch failed to cd to '"
 //           << originalWorkingDirectory << "'.\n";
 //    }
     return;
@@ -677,7 +677,7 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    ar_log_warning() << "pre-launch failed to cd to '" <<
+    ar_log_error() << "pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
     ar_log_remark() << "pre-launch dir for " << execInfo->messageBody
@@ -686,7 +686,7 @@ LDone:
 
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
-    ar_log_warning() << "failed to create pipe.\n";
+    ar_log_error() << "failed to create pipe.\n";
     goto LDone;
   }
 
@@ -697,7 +697,7 @@ LDone:
   char numberBuffer[8] = {0};
   const int PID = fork();
   if (PID < 0) {
-    ar_log_warning() << "failed to fork.\n";
+    ar_log_error() << "failed to fork.\n";
     goto LDone;
   }
 
@@ -732,7 +732,7 @@ LDone:
       }
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
-        ar_log_warning() << "internal error: ignoring bogus numberBuffer value "
+        ar_log_error() << "internal error: ignoring bogus numberBuffer value "
 	           << *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
@@ -868,7 +868,7 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    ar_log_warning() << "pre-launch failed to cd to '" <<
+    ar_log_error() << "pre-launch failed to cd to '" <<
          execInfo->appDirPath << "'.\n";
   } else {
     ar_log_remark() << "pre-launch dir for " << execInfo->messageBody
@@ -981,15 +981,15 @@ void messageLoop( void* /*d*/ ) {
       if (pos != string::npos) {
         pos += 4;
         string timeoutString = messageBody.substr( pos, messageBody.size()-pos );
-        int temp;
+        int temp = -1;
         const bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
         if (ok) {
           ar_log_remark() << "timeout is " << temp <<
-                    " msec, msg body is '" << messageBody << "'.\n";
+            " msec, msg body is '" << messageBody << "'.\n";
           timeoutMsec = temp;
         } else {
-          ar_log_warning() << "ignoring invalid timeout string '" << timeoutString << "'.\n";
+          ar_log_error() << "ignoring invalid timeout string '" << timeoutString << "'.\n";
         }
       }
 
@@ -1076,7 +1076,7 @@ LGonnaRetry:
     if (--pingCount <= 0) {
       if (!SZGClient->setAttribute( SZGClient->getComputerName(),
                       "SZG_SERVER", "szgserver_ping", "true" )) {
-        ar_log_warning() << "szgserver ping failed.\n";
+        ar_log_error() << "szgserver ping failed.\n";
         fConnect.set(1);
       }
       pingCount = 10;

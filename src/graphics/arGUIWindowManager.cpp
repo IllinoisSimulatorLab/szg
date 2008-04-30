@@ -61,7 +61,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   // seems to be necessary on OS X, not necessarily under linux, but probably
   // doesn't hurt to just always enable it though
   if( XInitThreads() == 0 ) {
-    ar_log_warning() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
+    ar_log_error() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
   }
 #endif
 }
@@ -204,7 +204,7 @@ int arGUIWindowManager::processWindowEvents( void )
   // to push any pending gui events onto their stack since they are not doing
   // this in their own thread
   if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
-    ar_log_warning() << "arGUIWindowManager processWindowEvents consumeAllWindowEvents problem.\n";
+    ar_log_error() << "arGUIWindowManager processWindowEvents consumeAllWindowEvents problem.\n";
   }
 
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
@@ -249,7 +249,7 @@ int arGUIWindowManager::processWindowEvents( void )
         break;
 
         default:
-          ar_log_warning() << "arGUIWindowManager warning: processWindowEvents: Unknown Event Type" << ar_endl;
+          ar_log_error() << "arGUIWindowManager processWindowEvents: Unknown Event Type" << ar_endl;
         break;
       }
 
@@ -713,7 +713,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // Delete any windows beyond what was parsed.
   for( ; wItr != IDs.end(); wItr++ ) {
     if( deleteWindow( *wItr ) < 0 ) {
-      ar_log_warning() << "arGUIWindowManager warning: failed to delete window: " << *wItr << ar_endl;
+      ar_log_error() << "arGUIWindowManager failed to delete window: " << *wItr << ar_endl;
     }
   }
 
@@ -759,11 +759,11 @@ void arGUIWindowManager::activateFramelock( void )
   _fActivatedFramelock = true;
 
   if( _threaded ) {
-    ar_log_warning() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
+    ar_log_error() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
     return;
   }
   if( _windows.size() > 1 ) {
-    ar_log_warning() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
+    ar_log_error() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
     return;
   }
 
@@ -778,11 +778,11 @@ void arGUIWindowManager::deactivateFramelock( void )
   _fActivatedFramelock = false;
 
   if( _threaded ) {
-    ar_log_warning() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
+    ar_log_error() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
     return;
   }
   if( _windows.size() > 1 ) {
-    ar_log_warning() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
+    ar_log_error() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
     return;
   }
 

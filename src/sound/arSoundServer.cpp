@@ -37,7 +37,7 @@ bool arSoundServer::_connectionCallback(list<arSocket*>* socketList) {
        iSocket != socketList->end();
        ++iSocket){
     if (!dataServer->sendDataQueue(_connectionQueue,*iSocket)){
-      ar_log_warning() << "arSoundServer warning: connection send failed.\n";
+      ar_log_error() << "arSoundServer: connection send failed.\n";
       ok = false;
     }
   }

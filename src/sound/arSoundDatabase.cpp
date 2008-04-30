@@ -39,7 +39,7 @@ arSoundDatabase::arSoundDatabase() :
       !playerData    || !*playerData    ||
       !speechData    || !*speechData    ||
       !streamData    || !*streamData){
-    ar_log_warning() << "arSoundDatabase: incorrect dictionary.\n";
+    ar_log_error() << "arSoundDatabase: incorrect dictionary.\n";
   }
 }
 
@@ -108,7 +108,7 @@ void arSoundDatabase::setPath(const string& thePath){
     _path->push_back(ar_pathAddSlash(dir));
   }
   if (cdir <= 0)
-    ar_log_warning() << "empty SZG_SOUND/path.\n";
+    ar_log_error() << "empty SZG_SOUND/path.\n";
 }
 
 // Only clients, not the server, load soundfiles or even check that they exist.
@@ -163,12 +163,12 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     }
     if (!fComplained){
       fComplained = true;
-      ar_log_warning() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
+      ar_log_error() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
       std::vector<std::string>::iterator iter;
       for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
-        ar_log_warning() << *iter << " ";
+        ar_log_error() << *iter << " ";
       }
-      ar_log_warning() << ".\n";
+      ar_log_error() << ".\n";
     }
   }
   triedPaths.clear();
@@ -188,8 +188,8 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
       pdata->dataOut(_langSound.AR_PLAYER_MATRIX,mHead.v,AR_FLOAT,16) &&
       pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion,AR_FLOAT,1);
     if (!ok)
-      ar_log_warning() << "arSoundDatabase: bogus head or unitConversion.\n";
-    delete pdata; // Because dumpData() allocated it.
+      ar_log_error() << "arSoundDatabase: bogus head or unitConversion.\n";
+    delete pdata; // dumpData() allocated it.
     if (!ok)
       return;
   }
@@ -228,7 +228,6 @@ bool arSoundDatabase::_render(arSoundNode* node){
   }
   if (fTransform)
     ar_transformStack.pop();
-
   return ok;
 }
 
@@ -243,7 +242,7 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
     return (arDatabaseNode*) new arSpeechNode();
   if (type=="stream")
     return (arDatabaseNode*) new arStreamNode();
-  ar_log_warning() << "arSoundDatabase: makeNode got unknown type '" << type << "'.\n";
+  ar_log_error() << "arSoundDatabase: makeNode got unknown type '" << type << "'.\n";
   return NULL;
 }
 
@@ -254,7 +253,7 @@ arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
     setDataBundlePath(bundleInfo[0], bundleInfo[1]);
     ar_log_remark() << "arSoundDatabase using sound bundle '" << name << "'\n";
   } else {
-    ar_log_warning() << "arSoundDatabase ignoring garbled sound bundle id for '" << name << "'.\n";
+    ar_log_error() << "arSoundDatabase ignoring garbled sound bundle id for '" << name << "'.\n";
   }
   return &_rootNode;
 }

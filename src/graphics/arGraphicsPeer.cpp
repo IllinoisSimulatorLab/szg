@@ -921,13 +921,13 @@ int arGraphicsPeer::connectToPeer(const string& name) {
   const arPhleetAddress result =
     _client->discoverService("szg-rp-"+name, _client->getNetworks("default"), false);
   if (!result.valid) {
-    ar_log_warning() << "arGraphicsPeer failed to connect to named peer.\n";
+    ar_log_error() << "arGraphicsPeer failed to connect to named peer.\n";
     return -1;
   }
 
   const int socketID = _dataServer->dialUpFallThrough(result.address, result.portIDs[0]);
   if (socketID < 0) {
-    ar_log_warning() << "arGraphicsPeer failed to connect to brokered ports.\n";
+    ar_log_error() << "arGraphicsPeer failed to connect to brokered ports.\n";
     return -1;
   }
   // WE WANT THIS LABEL SET!
@@ -1455,7 +1455,7 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
     // Already _lock()'ed.
     arDatabaseNode* newRootNode = _getNodeNoLock /* _getNode;;;;*/ (nodeID);
     if (!newRootNode) {
-      ar_log_warning() << "arGraphicsPeer: rootless connection map defaulting to ID = " <<
+      ar_log_error() << "arGraphicsPeer: rootless connection map defaulting to ID = " <<
         nodeID << ".\n";
       i->second->rootMapNode = &_rootNode;
     } 

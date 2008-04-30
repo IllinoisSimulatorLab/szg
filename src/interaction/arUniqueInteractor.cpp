@@ -141,8 +141,7 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     if (lockedIter == _listUs.end())
       _lockedPtr = NULL;
     else {
-      const bool ok =
-        (*lockedIter)->processTouch( inputState, wandTipMatrix, events );
+      const bool ok = (*lockedIter)->processTouch( inputState, wandTipMatrix, events );
       events.clear();
       return ok;
     }

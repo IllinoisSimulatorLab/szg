@@ -26,7 +26,7 @@ class arWinSockHelper{
     if (!_fInit){
       ok = ar_winSockInit();
       if (!ok){
-        ar_log_warning() << "WinSock failed to initialize.\n";
+        ar_log_error() << "WinSock failed to initialize.\n";
       }
       _fInit = true;
     }
@@ -60,7 +60,7 @@ arSocket::arSocket(int type) : _type(type), _ID(-1) {
   _socketFD = -1;
 #endif
   if (_type != AR_LISTENING_SOCKET && _type != AR_STANDARD_SOCKET){
-    ar_log_warning() << "arSocket ignoring unexpected type " << _type << ".\n";
+    ar_log_error() << "arSocket ignoring unexpected type " << _type << ".\n";
     _type = AR_STANDARD_SOCKET;
   }
 }
@@ -89,7 +89,7 @@ int arSocket::ar_create(){
   if (_socketFD < 0)
 #endif
   {
-    ar_log_warning() << "arSocket: socket() failed: ";
+    ar_log_error() << "arSocket: socket() failed: ";
     perror("");
     return -1;
   }
@@ -228,7 +228,7 @@ LError:
 
 int arSocket::ar_bind(const char* IPaddress, int port){
   if (_type != AR_LISTENING_SOCKET){
-    ar_log_warning() << "arSocket: ar_bind() needs an AR_LISTENING_SOCKET.\n";
+    ar_log_error() << "arSocket: ar_bind() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
 
@@ -248,7 +248,7 @@ int arSocket::ar_bind(const char* IPaddress, int port){
   const int err = bind(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
   if (err < 0)
     {
-    ar_log_warning() << "arSocket bind failed to " <<
+    ar_log_error() << "arSocket bind failed to " <<
       (IPaddress == NULL ? "(localhost)" : IPaddress) << ":" << port << ": ";
     perror("");
     }
@@ -257,7 +257,7 @@ int arSocket::ar_bind(const char* IPaddress, int port){
 
 int arSocket::ar_listen(int queueSize){
   if (_type != AR_LISTENING_SOCKET){
-    ar_log_warning() << "arSocket: ar_listen() needs an AR_LISTENING_SOCKET.\n";
+    ar_log_error() << "arSocket: ar_listen() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
   return listen(_socketFD, queueSize);
@@ -266,7 +266,7 @@ int arSocket::ar_listen(int queueSize){
 // If addr != NULL, stuff it with who we accepted a connection from.
 int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   if (!communicationSocket) {
-    ar_log_warning() << "arSocket can't accept on null socket.\n";
+    ar_log_error() << "arSocket can't accept on null socket.\n";
     return -1;
   }
   communicationSocket->_socketFD = -1;
@@ -274,12 +274,12 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   // must be called by a listening socket and operate on a standard socket
   if (_type != AR_LISTENING_SOCKET ||
       communicationSocket->_type != AR_STANDARD_SOCKET){
-    ar_log_warning() << "arSocket: ar_accept() needs an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
+    ar_log_error() << "arSocket: ar_accept() needs an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
     return -1;
   }
 
   if (_socketFD < 0){
-    ar_log_warning() << "arSocket: ar_accept() got a bad _socketFD.\n" <<
+    ar_log_error() << "arSocket: ar_accept() got a bad _socketFD.\n" <<
       "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
     return -1;
   }
@@ -293,7 +293,7 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
 #endif
             socketAddress.getAddressLengthPtr());
     if (communicationSocket->_socketFD < 0){
-      ar_log_warning() << "arSocket: accept() failed: ";
+      ar_log_error() << "arSocket: accept() failed: ";
       perror("");
       return -1;
     }

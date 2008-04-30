@@ -145,7 +145,7 @@ arDatabaseNode* arDatabase::findNodeRef(const string& name) {
 arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
 			             bool refNode) {
   if (!_check(node)) {
-    ar_log_warning() << "arDatabaseNode::findNode from non-owned node.\n";
+    ar_log_error() << "arDatabaseNode::findNode from non-owned node.\n";
     return NULL;
   }
 
@@ -164,7 +164,7 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
                                            const string& nodeType,
 			                   bool refNode){
   if (!_check(node)) {
-    ar_log_warning() << "arDatabase can't find from null, inactive, or unowned node.\n";
+    ar_log_error() << "arDatabase can't find from null, inactive, or unowned node.\n";
     return NULL;
   }
 
@@ -218,7 +218,7 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& name,
                                     bool refNode){
   if (!_check(parent)) {
-    ar_log_warning() << "arDatabaseNode::newNode got non-owned parent.\n";
+    ar_log_error() << "arDatabaseNode::newNode got non-owned parent.\n";
     return NULL;
   }
   const int parentID = parent->getID();
@@ -260,7 +260,7 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   // If the child node is not NULL, it must be owned by this database as well.
   if (!_check(parent) ||
       (child && (!child->active() || child->getOwner() != this))){
-    ar_log_warning() << "arDatabaseNode: can't insert with non-owned nodes.\n";
+    ar_log_error() << "arDatabaseNode: can't insert with non-owned nodes.\n";
     return NULL;
   }
 
@@ -291,7 +291,7 @@ arDatabaseNode* arDatabase::insertNodeRef(arDatabaseNode* parent,
 
 bool arDatabase::cutNode(arDatabaseNode* node){
   if (!_check(node)) {
-    ar_log_warning() << "arDatabaseNode: can't cut non-owned node.\n";
+    ar_log_error() << "arDatabaseNode: can't cut non-owned node.\n";
     return false;
   }
   return cutNode(node->getID());
@@ -308,7 +308,7 @@ bool arDatabase::cutNode(int ID){
 
 bool arDatabase::eraseNode(arDatabaseNode* node){
   if (!_check(node)) {
-    ar_log_warning() << "arDatabaseNode: can't erase non-owned node.\n";
+    ar_log_error() << "arDatabaseNode: can't erase non-owned node.\n";
     return false;
   }
   return eraseNode(node->getID());
@@ -417,7 +417,7 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
   const int id = inData->getDataInt(_routingField[dataID]);
   pNode = _getNodeNoLock(id);
   if (!pNode) {
-    ar_log_warning() << "arDatabaseNode::alter() _getNodeNoLock() failed:\n";
+    ar_log_error() << "arDatabaseNode::alter() _getNodeNoLock() failed:\n";
     // Re-fail, but with an error message this time.
     (void)_getNodeNoLock(id, true);
     return NULL;
@@ -453,13 +453,13 @@ bool arDatabase::handleDataQueue(ARchar* theData){
   for (int i=0; i<numberRecords; i++){
     const int theSize = ar_rawDataGetSize(theData+position);
     if (!alterRaw(theData+position)) {
-      ar_log_warning() << "arDatabase::handleDataQueue failure in record "
+      ar_log_error() << "arDatabase::handleDataQueue failure in record "
            << i+1 << " of " << numberRecords << ".\n";
       // Keep processing the remaining records.
     }
     position += theSize;
     if (position > bufferSize){
-      ar_log_warning() << "arDatabase::handleDataQueue buffer overflow.\n";
+      ar_log_error() << "arDatabase::handleDataQueue buffer overflow.\n";
       return false;
     }
   }
@@ -864,7 +864,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
     if (record->getID() == _lang->AR_PERMUTE){
       return _filterIncomingPermute(record, nodeMap);
     }
-    ar_log_warning() << "arDatabase filterIncoming ignoring illegal message ID.\n";
+    ar_log_error() << "arDatabase filterIncoming ignoring illegal message ID.\n";
     return 0;
   }
 
@@ -965,7 +965,7 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
     return i->second;
 
   if (fWarn) {
-    ar_log_warning() << "arDatabase: no node with ID " << ID <<
+    ar_log_error() << "arDatabase: no node with ID " << ID <<
 	 (empty() ? " in empty database.\n" : ".\n");
     ar_log_debug() << "arDatabase: nodes are (ID, name, info):\n";
     for (arNodeIDIterator j(_nodeIDContainer.begin());
@@ -1119,7 +1119,7 @@ arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
   int ID = data->getDataInt(_lang->AR_CUT_ID);
   arDatabaseNode* node = _getNodeNoLock(ID);
   if (!node){
-    ar_log_warning() << "arDatabaseNode: no such node to cut.\n";
+    ar_log_error() << "arDatabaseNode: no such node to cut.\n";
     return NULL;
   }
   _cutNode(node);
@@ -1134,7 +1134,7 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   int ID = inData->getDataInt(_lang->AR_ERASE_ID);
   arDatabaseNode* startNode = _getNodeNoLock(ID);
   if (!startNode){
-    ar_log_warning() << "arDatabaseNode: no such node to erase.\n";
+    ar_log_error() << "arDatabaseNode: no such node to erase.\n";
     return NULL;
   }
   // Delete the startNode from the child list of its parent
@@ -1153,7 +1153,7 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   const int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
   arDatabaseNode* parent = _getNodeNoLock(ID);
   if (!parent){
-    ar_log_warning() << "arDatabaseNode: _permuteDatabaseNodes failed: no such parent.\n";
+    ar_log_error() << "arDatabaseNode: _permuteDatabaseNodes failed: no such parent.\n";
     return NULL;
   }
   int* IDs = (int*) data->getDataPtr(_lang->AR_PERMUTE_CHILD_IDS, AR_INT);

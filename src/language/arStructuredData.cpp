@@ -48,7 +48,7 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
   _name = theTemplate->getName();
   _numberDataItems = theTemplate->getNumberAttributes();
   if (_numberDataItems < 0 || _numberDataItems > 100000){
-    ar_log_warning() << "arStructuredData template " << _name << " has "
+    ar_log_error() << "arStructuredData template " << _name << " has "
       << _numberDataItems << " data items;  overriding to 1.\n";
     _numberDataItems = 1;
   }
@@ -72,7 +72,7 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
     _dataType[i] = iAttr->second.first;
     _dataNameMap.insert(arNameMap::value_type(iAttr->first, i));
     if (_dataType[i] == AR_GARBAGE){
-      ar_log_warning() << "arStructuredData template " << _name <<
+      ar_log_error() << "arStructuredData template " << _name <<
         " has not-yet-typed attribute (# " << i << ", name " << _dataName[i] << ").\n";
     }
   }
@@ -82,7 +82,7 @@ arStructuredData::arStructuredData(arTemplateDictionary* d, const char* name) :
   _fValid(false) {
   arDataTemplate* t = d->find(name);
   if (!t) {
-    ar_log_warning() << "arStructuredData: dictionary has no '" << name << "'.\n";
+    ar_log_error() << "arStructuredData: dictionary has no '" << name << "'.\n";
     return;
   }
   _construct(t);
@@ -922,7 +922,7 @@ void arStructuredData::print(ostream& s) const {
 
 void arStructuredData::print(FILE* theFile) const {
   if (!theFile){
-    ar_log_warning() << "arStructuredData: no file to print to.\n";
+    ar_log_error() << "arStructuredData: no file to print to.\n";
     return;
   }
   _dumpLock.lock();

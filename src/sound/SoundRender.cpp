@@ -23,8 +23,7 @@ arSpeakerObject speakerObject;
 bool loadParameters(arSZGClient& cli){
   soundClient->configure(&cli);
   if (soundClient->getPath() == "NULL"){
-    ar_log_warning() << "undefined or invalid SZG_SOUND/path '"
-                     << soundClient->getPath() << "'.\n";
+    ar_log_warning() << "bad or no SZG_SOUND/path.\n";
   }
 
   soundClient->addDataBundlePathMap("SZG_DATA", cli.getDataPath());
@@ -96,7 +95,7 @@ LDie:
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
   if (!soundClient->init()) {
-    ar_log_warning() << "silent.\n";
+    ar_log_error() << "silent.\n";
     return 1;
   }
 

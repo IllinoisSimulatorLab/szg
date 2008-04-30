@@ -276,7 +276,7 @@ int SZGgetMessageOriginatorID(int messageID) {
 bool SZGremoveMessageFromDB(const int messageID) {
   SZGmsgOwnershipDB::iterator i(messageOwnershipDB.find(messageID));
   if (i == messageOwnershipDB.end()) {
-    ar_log_warning() << "ignoring request to remove missing message.\n";
+    ar_log_error() << "ignoring request to remove missing message.\n";
     return false;
   }
 
@@ -302,18 +302,18 @@ bool SZGaddMessageTradeToDB(const string& key,
   SZGmsgOwnershipDB::iterator
     i(messageOwnershipDB.find(messageID));
   if (i == messageOwnershipDB.end()) {
-    ar_log_warning() << "ignoring trade on messageless ID.\n";
+    ar_log_error() << "ignoring trade on messageless ID.\n";
     return false;
   }
   const int responseOwner = i->second.idOwner;
   if (responseOwner != requestingComponentID) {
-    ar_log_warning() << "ignoring trade asked by non-owning component.\n";
+    ar_log_error() << "ignoring trade asked by non-owning component.\n";
     return false;
   }
   SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   if (j != messageTradingDB.end()) {
     // a trade has already been posted with this key... failure
-    ar_log_warning() << "ignoring duplicate trade on key " << key << ".\n";
+    ar_log_error() << "ignoring duplicate trade on key " << key << ".\n";
     return false;
   }
 
@@ -343,7 +343,7 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
   SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   if (j == messageTradingDB.end()) {
     // no trade has been posted on this key... failure
-    ar_log_warning() << "ignoring trade on missing key " << key << ".\n";
+    ar_log_error() << "ignoring trade on missing key " << key << ".\n";
     return false;
   }
 
@@ -377,13 +377,13 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID) {
   SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   // is there a message with this key?
   if (j == messageTradingDB.end()) {
-    ar_log_warning() << "failed to revoke message trade: no key '" << key <<"'.\n";
+    ar_log_error() << "failed to revoke message trade: no key '" << key <<"'.\n";
     return false;
   }
 
   arPhleetMsg message = j->second;
   if (message.idOwner != revokerID) {
-    ar_log_warning() << "component unauthorized to revoke message trade.\n";
+    ar_log_error() << "component unauthorized to revoke message trade.\n";
     return false;
   }
 
@@ -516,19 +516,19 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
         theSocket = dataServer->getConnectedSocket(j->componentID);
       }
       if (!theSocket) {
-	ar_log_warning() << "can't send lock notification for missing component.\n";
+	ar_log_error() << "can't send lock notification for missing component.\n";
       }
       else {
 	// we use too different calls, sendData and sendDataNoLock,
 	// depending upon the context in which we were called.
 	if (serverLock) {
           if (!dataServer->sendDataNoLock(data, theSocket)) {
-	    ar_log_warning() << "failed to send no-lock notification.\n";
+	    ar_log_error() << "failed to send no-lock notification.\n";
 	  }
 	}
 	else {
           if (!dataServer->sendData(data, theSocket)) {
-	    ar_log_warning() << "failed to send lock notification.\n";
+	    ar_log_error() << "failed to send lock notification.\n";
 	  }
 	}
       }
@@ -544,7 +544,7 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
 	}
       }
       else {
-	ar_log_warning() << "found no expected lock notification owner.\n";
+	ar_log_error() << "found no expected lock notification owner.\n";
       }
     }
     // Must remember to recycle the storage!
@@ -584,7 +584,7 @@ void SZGremoveComponentLockNotifications(int componentID) {
 	}
       }
       else {
-	ar_log_warning() << "found no lock notification, needed by component list.\n";
+	ar_log_error() << "found no lock notification, needed by component list.\n";
       }
     }
     // finally, the component has gone away... so remove its info
@@ -605,7 +605,7 @@ bool SZGreleaseLock(const string& lockName, int id) {
     i(lockOwnershipDB.find(lockName));
   if (i == lockOwnershipDB.end()) {
     // Lock is not held.
-    ar_log_warning() << "already released lock "
+    ar_log_error() << "already released lock "
 	 << lockName << " as requested by component" << id
 	 << " (" << dataServer->getSocketLabel(id) << ").\n";
     return false;
@@ -614,7 +614,7 @@ bool SZGreleaseLock(const string& lockName, int id) {
   if (i->second != id) {
     // Lock is held by another component
     // component requesting the release doesn't own the lock
-    ar_log_warning() << "failed to release lock "
+    ar_log_error() << "failed to release lock "
 	 << lockName << ": not held by component" << id
 	 << " (" << dataServer->getSocketLabel(id) << ").\n";
     return false;
@@ -748,19 +748,19 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock) {
         theSocket = dataServer->getConnectedSocket(j->componentID);
       }
       if (!theSocket) {
-	ar_log_warning() << "can't send kill notification to missing component.\n";
+	ar_log_error() << "can't send kill notification to missing component.\n";
       }
       else {
 	// we use too different calls, sendData and sendDataNoLock,
 	// depending upon the context in which we were called.
 	if (serverLock) {
           if (!dataServer->sendDataNoLock(data, theSocket)) {
-	    ar_log_warning() << "failed to send no-lock kill notification.\n";
+	    ar_log_error() << "failed to send no-lock kill notification.\n";
 	  }
 	}
 	else {
           if (!dataServer->sendData(data, theSocket)) {
-	    ar_log_warning() << "failed to send kill notification.\n";
+	    ar_log_error() << "failed to send kill notification.\n";
 	  }
 	}
       }
@@ -782,7 +782,7 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock) {
 	}
       }
       else {
-	ar_log_warning() << "no expected kill notification owner.\n";
+	ar_log_error() << "no expected kill notification owner.\n";
       }
     }
     dataParser->recycle(data);
@@ -825,7 +825,7 @@ void SZGremoveComponentKillNotifications(int requestingComponentID) {
 	}
       }
       else {
-	ar_log_warning() << "no kill notification, needed by component list.\n";
+	ar_log_error() << "no kill notification, needed by component list.\n";
       }
     }
     // finally, the component has gone away... so remove its info
@@ -858,7 +858,7 @@ void SZGreleaseNotificationCallback(int componentID,
     data->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
     data->dataInString(lang.AR_SZG_SERVICE_RELEASE_NAME, serviceName);
     if (!dataServer->sendDataNoLock(data, destinationSocket)) {
-      ar_log_warning() << "failed to send to specified socket in release notifcation.\n";
+      ar_log_error() << "failed to send to specified socket in release notifcation.\n";
     }
   }
 }
@@ -894,7 +894,7 @@ void SZGremoveComponentFromDB(const int componentID) {
       const SZGmsgOwnershipDB::iterator j =
         messageOwnershipDB.find(messageID);
       if (j == messageOwnershipDB.end()) {
-        ar_log_warning() << "found no message ID info in socket clean-up.\n";
+        ar_log_error() << "found no message ID info in socket clean-up.\n";
       }
       else {
         messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID, 
@@ -910,7 +910,7 @@ void SZGremoveComponentFromDB(const int componentID) {
         arSocket* destinationSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
         if (!destinationSocket) {
-	  ar_log_warning() << "destination vanished for message ID "
+	  ar_log_error() << "destination vanished for message ID "
 	       << messageID << ".\n";
 	}
 	else {
@@ -933,7 +933,7 @@ void SZGremoveComponentFromDB(const int componentID) {
       const SZGmsgTradingDB::iterator m =
         messageTradingDB.find(messageKey);
       if (m == messageTradingDB.end()) {
-        ar_log_warning() << "no key info in socket cleanup.\n";
+        ar_log_error() << "no key info in socket cleanup.\n";
       }
       else {
         messageID = m->second.id;
@@ -948,7 +948,7 @@ void SZGremoveComponentFromDB(const int componentID) {
         arSocket* originatingSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
         if (!originatingSocket) {
-	  ar_log_warning() << "on socket cleanup, destination vanished for message ID "
+	  ar_log_error() << "on socket cleanup, destination vanished for message ID "
 	    << messageID << ".\n";
 	}
 	else {
@@ -1031,20 +1031,20 @@ void serverDiscoveryFunction(void* pv) {
 
     // It's not a response packet.  It might be a discovery packet.
     if (!fromAddress.checkMask(serverAcceptMask)){
-      ar_log_warning() << "rejected packet from non-whitelisted "
+      ar_log_error() << "rejected packet from non-whitelisted "
                        << fromAddress.getRepresentation() << ".\n";
       continue;
     }
 
     if (buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0) {
-      ar_log_warning() << "ignored misformatted packet (pre-2003 Syzygy?) from "
+      ar_log_error() << "ignored misformatted packet (pre-2003 Syzygy?) from "
                        << fromAddress.getRepresentation() << ".\n";
       continue;
     }
 
     // It's a discovery packet.
     if (buffer[3] != SZG_VERSION_NUMBER) {
-      ar_log_warning() << "ignored discovery packet with SZG_VERSION_NUMBER = " <<
+      ar_log_error() << "ignored discovery packet with SZG_VERSION_NUMBER = " <<
         int(buffer[3]) << " , from " << fromAddress.getRepresentation() << ".\n";
       continue;
     }
@@ -1089,7 +1089,7 @@ void serverDiscoveryFunction(void* pv) {
       }
     }
     if (!ok) {
-      ar_log_warning() << "szg.conf has no broadcast address for response.\n";
+      ar_log_error() << "szg.conf has no broadcast address for response.\n";
     }
   }
 }
@@ -1202,7 +1202,7 @@ void attributeSetCallback(arStructuredData* pd, arSocket* dataSocket) {
     arStructuredData* connectionAckData = dataParser->getStorage(lang.AR_CONNECTION_ACK);
     _transferMatchFromTo(pd, connectionAckData);
     if (!dataServer->sendData(connectionAckData,dataSocket)) {
-      ar_log_warning() << "AR_ATTR_SET send failed.\n";
+      ar_log_error() << "AR_ATTR_SET send failed.\n";
     }
     dataParser->recycle(connectionAckData);
     return;
@@ -1234,7 +1234,7 @@ void attributeSetCallback(arStructuredData* pd, arSocket* dataSocket) {
   if (!attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute) ||
       !attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, returnString) ||
       !dataServer->sendData(attrGetResponseData, dataSocket)) {
-    ar_log_warning() << "AR_ATTR_GET_RES send failed.\n";
+    ar_log_error() << "AR_ATTR_GET_RES send failed.\n";
   }
   dataParser->recycle(attrGetResponseData);
 }
@@ -1269,12 +1269,12 @@ void processInfoCallback(arStructuredData* pd, arSocket* dataSocket) {
     theLabel = dataServer->getSocketLabel(theID);
   }
   else {
-    ar_log_warning() << "got unknown type on process info request.\n";
+    ar_log_error() << "got unknown type on process info request.\n";
   }
   pd->dataInString(lang.AR_PROCESS_INFO_LABEL, theLabel);
   pd->dataIn(lang.AR_PROCESS_INFO_ID, &theID, AR_INT, 1);
   if (!dataServer->sendData(pd, dataSocket)) {
-    ar_log_warning() << "process info send failed.\n";
+    ar_log_error() << "process info send failed.\n";
   }
 }
 
@@ -1299,7 +1299,7 @@ void messageProcessingCallback(arStructuredData* pd,
   // Find the destination component's ID.
   int* dataPtr = (int*) pd->getDataPtr(lang.AR_SZG_MESSAGE_DEST,AR_INT);
   if (!dataPtr) {
-    ar_log_warning() << "ignoring message with NULL data pointer."
+    ar_log_error() << "ignoring message with NULL data pointer."
          << "\n\t(Does a client have an incompatible protocol?)\n";
   }
   else {
@@ -1325,7 +1325,7 @@ void messageProcessingCallback(arStructuredData* pd,
 	  dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
       }
       if (!dataServer->sendData(pd,destSocket)) {
-        ar_log_warning() << "message send failed.\n";
+        ar_log_error() << "message send failed.\n";
       }
       else {
 	// Message probably forwarded ok.
@@ -1337,7 +1337,7 @@ void messageProcessingCallback(arStructuredData* pd,
      (forward &&
       !messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &theMessageID, AR_INT, 1)) ||
       !dataServer->sendData(messageAckData,dataSocket)) {
-    ar_log_warning() << "message ack send failed.\n";
+    ar_log_error() << "message ack send failed.\n";
   }
   dataParser->recycle(messageAckData);
 }
@@ -1372,7 +1372,7 @@ void messageAdminCallback(arStructuredData* pd,
       // A message with this ID expects a response.
       responseDestination = SZGgetMessageOriginatorID(messageID);
       if (responseOwner != dataSocket->getID()) {
-        ar_log_warning() << "illegal response attempt from component "
+        ar_log_error() << "illegal response attempt from component "
 	     << dataSocket->getID()
 	     << " (" << dataServer->getSocketLabel(dataSocket->getID())
 	     << "), owner is " << responseOwner << ".\n";
@@ -1380,14 +1380,14 @@ void messageAdminCallback(arStructuredData* pd,
       else {
         responseSocket = dataServer->getConnectedSocket(responseDestination);
         if (!responseSocket) {
-	  ar_log_warning() << "no destination to respond to.\n";
+	  ar_log_error() << "no destination to respond to.\n";
 	}
 	else {
 	  // Fill in the match.
           const int match = SZGgetMessageMatch(messageID);
           pd->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
           if (!dataServer->sendData(pd, responseSocket)) {
-	    ar_log_warning() << "response failed.\n";
+	    ar_log_error() << "response failed.\n";
 	  }
 	  else {
 	    status = true;
@@ -1398,7 +1398,7 @@ void messageAdminCallback(arStructuredData* pd,
 	  // The message won't be continued.
           SZGremoveMessageFromDB(messageID);
 	  if (s != "SZG_SUCCESS") {
-	    ar_log_warning() << "message response had unexpected status field '"
+	    ar_log_error() << "message response had unexpected status field '"
 		 << s << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
 	  }
 	}
@@ -1432,10 +1432,10 @@ void messageAdminCallback(arStructuredData* pd,
       // Send back to the originator of the message trade, not the new owner.
       responseSocket = dataServer->getConnectedSocket(oldInfo.idOwner);
       if (!responseSocket) {
-	ar_log_warning() << "missing originator of message trade.\n";
+	ar_log_error() << "missing originator of message trade.\n";
       }
       else if (!dataServer->sendData(messageAckData,responseSocket)) {
-	ar_log_warning() << "failed to notify originator about message trade.  Originator may have failed.\n";
+	ar_log_error() << "failed to notify originator about message trade.  Originator may have failed.\n";
       }
       // Fill in the ID field of the record to be sent back to the component
       // requesting the trade with the message's ID.
@@ -1456,7 +1456,7 @@ void messageAdminCallback(arStructuredData* pd,
   // ACK, with ID field possibly not filled in.
   if (!SZGack(messageAckData, status) ||
       !dataServer->sendData(messageAckData, dataSocket)) {
-    ar_log_warning() << "failed to ack.\n";
+    ar_log_error() << "failed to ack.\n";
   }
   dataParser->recycle(messageAckData);
 }
@@ -1468,7 +1468,7 @@ void killNotificationCallback(arStructuredData* data,
   if (!dataServer->getConnectedSocket(componentID)) {
     // NO SUCH COMPONENT EXISTS. report back immediately
     if (!dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to send kill notification.\n";
+      ar_log_error() << "failed to send kill notification.\n";
       return;
     }
     // AND DO NOT INSERT NOTIFICATION REQUEST INTO DATABASE
@@ -1499,7 +1499,7 @@ void lockRequestFinish(arStructuredData* lockResponseData,
       !lockResponseData->dataInString(lang.AR_SZG_LOCK_RESPONSE_STATUS,
                                       szgSuccess(ok)) ||
       !dataServer->sendData(lockResponseData,dataSocket)) {
-    ar_log_warning() << "failed to send lock response.\n";
+    ar_log_error() << "failed to send lock response.\n";
   }
 }
 
@@ -1555,7 +1555,7 @@ void lockListingCallback(arStructuredData* pd,
   pd->dataInString(lang.AR_SZG_LOCK_LISTING_LOCKS, locks);
   pd->dataIn(lang.AR_SZG_LOCK_LISTING_COMPONENTS, IDs, AR_INT, listSize);
   if (!dataServer->sendData(pd, dataSocket))
-    ar_log_warning() << "failed to send lock listing response.\n";
+    ar_log_error() << "failed to send lock listing response.\n";
   delete [] IDs;
 }
 
@@ -1568,7 +1568,7 @@ void lockNotificationCallback(arStructuredData* data,
   if (!SZGcheckLock(lockName)) {
     // the lock is NOT currently held, report back immediately
     if (!dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to send lock release notification.\n";
+      ar_log_error() << "failed to send lock release notification.\n";
       return;
     }
     // AND DO NOT INSERT NOTIFICATION REQUEST INTO DATABASE
@@ -1623,7 +1623,7 @@ LAgain:
                    AR_INT, result.numberPorts);
     }
     if (!dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to respond to service registration request.\n";
+      ar_log_error() << "failed to respond to service registration request.\n";
     }
   }
 
@@ -1641,7 +1641,7 @@ LAgain:
     data->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
     data->dataInString(lang.AR_SZG_BROKER_RESULT_STATUS, szgSuccess(status));
     if (!dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to respond to service confirmation.\n";
+      ar_log_error() << "failed to respond to service confirmation.\n";
     }
   
     // The service is truly registered.
@@ -1665,14 +1665,14 @@ LAgain:
       }
       arSocket* dest = dataServer->getConnectedSocket(i->componentID);
       if (!dataServer->sendData(data, dest)) {
-        ar_log_warning() << "failed to send async broker result to component "
+        ar_log_error() << "failed to send async broker result to component "
 	     << i->componentID << ".\n";
       }
     }
   }
 
   else {
-    ar_log_warning() << "ignoring service registration with unexpected status field '"
+    ar_log_error() << "ignoring service registration with unexpected status field '"
       << status << "'.\n";
     return;
   }
@@ -1712,7 +1712,7 @@ void requestServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
     data->dataIn(lang.AR_SZG_BROKER_RESULT_PORT, result.portIDs, AR_INT,
                  result.numberPorts);
     if (!dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to send broker result in response to service request.\n";
+      ar_log_error() << "failed to send broker result in response to service request.\n";
     }
   }
   else {
@@ -1721,7 +1721,7 @@ void requestServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
     // Respond if we are in synchronous mode. (otherwise the response will
     // occur in registerServiceCallback(...).
     if (!asyncFlag && !dataServer->sendData(data, dataSocket)) {
-      ar_log_warning() << "failed to send broker result in response to service request.\n";
+      ar_log_error() << "failed to send broker result in response to service request.\n";
     }
   }
   
@@ -1790,12 +1790,12 @@ void getServicesCallback(arStructuredData* pd,
   }
 
   else {
-    ar_log_warning() << "service listing had invalid request type '"
+    ar_log_error() << "service listing had invalid request type '"
          << type << "'.\n";
   }
 
   if (!dataServer->sendData(data, dataSocket))
-    ar_log_warning() << "failed to send service list.\n";
+    ar_log_error() << "failed to send service list.\n";
   dataParser->recycle(data);
 }
 
@@ -1815,7 +1815,7 @@ void serviceReleaseCallback(arStructuredData* pd,
   if (!connectionBroker.checkService(serviceName)) {
     // immediately respond
     if (!dataServer->sendData(pd, dataSocket)) {
-      ar_log_warning() << "failed to respond to service release.\n";
+      ar_log_error() << "failed to respond to service release.\n";
       return;
     }
   }
@@ -1839,7 +1839,7 @@ void serviceInfoCallback(arStructuredData* pd,
     pd->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS,
                           connectionBroker.getServiceInfo(name));
     if (!dataServer->sendData(pd, dataSocket)) {
-      ar_log_warning() << "failed to send service info.\n";
+      ar_log_error() << "failed to send service info.\n";
     }
   }
   else if (op == "set") {
@@ -1849,11 +1849,11 @@ void serviceInfoCallback(arStructuredData* pd,
     const string statusString = szgSuccess(status);
     pd->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS, statusString);
     if (!dataServer->sendData(pd, dataSocket)) {
-      ar_log_warning() << "failed to get service info.\n";
+      ar_log_error() << "failed to get service info.\n";
     }
   }
   else {
-    ar_log_warning() << "got wrong service info operation '" << op << "'.\n";
+    ar_log_error() << "got wrong service info operation '" << op << "'.\n";
   }
 }
 
@@ -1881,7 +1881,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
   }
   else if (theID == lang.AR_ATTR_GET_RES) {
     // only client not server should get this
-    ar_log_warning() << "ignoring AR_ATTR_GET_RES message.\n";
+    ar_log_error() << "ignoring AR_ATTR_GET_RES message.\n";
   }
   else if (theID == lang.AR_ATTR_SET) {
     // Propagate the match.
@@ -1898,7 +1898,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
     // Match isn't propagated because we're just
     // sending back the received data (which already has the match value).
     if (!dataServer->sendData(pd, dataSocket)) {
-      ar_log_warning() << "failed to send connection ack reply.\n";
+      ar_log_error() << "failed to send connection ack reply.\n";
     }
   }
   else if (theID == lang.AR_KILL) {
@@ -1924,7 +1924,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
     // side may prevent the socket on the other
     // side from receiving the kill message we sent! Why?
     if (!dataServer->removeConnection(id)) {
-      ar_log_warning() << "failed to 'kill -9' pid " << id << ".\n";
+      ar_log_error() << "failed to 'kill -9' pid " << id << ".\n";
     }
   }
   else if (theID == lang.AR_PROCESS_INFO) {
@@ -1985,7 +1985,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
     serviceInfoCallback(pd, dataSocket);
   }
   else {
-    ar_log_warning() << "ignoring record with unknown ID " << theID
+    ar_log_error() << "ignoring record with unknown ID " << theID
 	 << ".\n  (Version mismatch between szgserver and client?)\n";
   }
   fInside = false;

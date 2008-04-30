@@ -221,15 +221,15 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   if (!fComplained) {
     fComplained = true;
     if (cb > cbMax) {
-      ar_log_warning() << cb << " is too many buttons. Truncating to " << cbMax << ".\n";
+      ar_log_error() << cb << " is too many buttons. Truncating to " << cbMax << ".\n";
       cb = cbMax;
     }
     if (ca > caMax) {
-      ar_log_warning() << ca << " is too many axes. Truncating to " << caMax << ".\n";
+      ar_log_error() << ca << " is too many axes. Truncating to " << caMax << ".\n";
       ca = caMax;
     }
     if (cm > cmMax) {
-      ar_log_warning() << cm << " is too many matrices. Truncating to " << cmMax << ".\n";
+      ar_log_error() << cm << " is too many matrices. Truncating to " << cmMax << ".\n";
       cm = cmMax;
     }
   }

@@ -43,7 +43,7 @@ bool arSharedLib::open(const string& sharedLibName, const string& path) {
     // OS's unpredictable internal shared library searching.
     libName = ar_fileFind(fileName, "", path);
     if (libName == "NULL") {
-      ar_log_warning() << "arSharedLib: no shared lib '" << fileName << "' on path '"
+      ar_log_error() << "arSharedLib: no shared lib '" << fileName << "' on path '"
 	   << path << "'.\n";
       return false;
     }
@@ -77,7 +77,7 @@ bool arSharedLib::close() {
 // (Mac OS X prepends a "_".)
 void* arSharedLib::sym(const string& functionName) {
   if (!_fLoaded) {
-    ar_log_warning() << "arSharedLib: no library loaded.\n";
+    ar_log_error() << "arSharedLib: no library loaded.\n";
     return NULL;
   }
 #ifdef AR_USE_WIN_32
@@ -164,7 +164,7 @@ LAbort:
 void* arSharedLib::createObject() {
   if (!_factory) {
     // createFactory() had failed.
-    ar_log_warning() << "arSharedLib: unmapped factory.\n";
+    ar_log_error() << "arSharedLib: unmapped factory.\n";
     return NULL;
   }
 

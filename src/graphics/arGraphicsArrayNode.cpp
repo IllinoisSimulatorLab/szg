@@ -17,7 +17,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   const ARint numberIDs = inData->getDataDimension(_indexField);
   
   if (numberIDs <= 0){
-    ar_log_warning() << "arGraphicsArrayNode " << _typeString << ": no IDs.\n";
+    ar_log_error() << "arGraphicsArrayNode " << _typeString << ": no IDs.\n";
     // Nothing to do.
     return true;
   }

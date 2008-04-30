@@ -93,12 +93,12 @@ bool arInterfaceObject::start(){
   ar_log_warning() << "arInterfaceObject is deprecated.  Consider alternatives.\n";
 
   if (!_inputDevice){
-    cerr << "arInterfaceObject error: input device undefined.\n";
+    ar_log_error() << "arInterfaceObject: no input device.\n";
     return false;
   }
 
   if (!_IOPollThread.beginThread(ar_interfaceObjectIOPollTask, this)) {
-    cerr << "arInterfaceObject error: failed to start IOPoll thread.\n";
+    ar_log_error() << "arInterfaceObject failed to start IOPoll thread.\n";
     return false;
   }
 

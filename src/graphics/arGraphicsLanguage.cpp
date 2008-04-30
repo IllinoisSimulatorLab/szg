@@ -237,7 +237,7 @@ bool arGraphicsLanguage::checkNodeID(const int idExpected,
   if (id == idExpected)
     return true;
 
-  ar_log_warning() << name << " expected " <<
+  ar_log_error() << name << " expected " <<
     numstringFromID(idExpected) << ", not " << numstringFromID(id) << ".\n";
 
   // Caller could pass in its getName() for an even more specific warning.

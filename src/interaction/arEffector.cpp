@@ -189,7 +189,7 @@ void arEffector::updateState( const arInputEvent& event ) {
       break;
     }
     default:
-      ar_log_warning() << "arEffector ignoring unrecognized event type.\n";
+      ar_log_error() << "arEffector ignoring unrecognized event type.\n";
   }
 }
 

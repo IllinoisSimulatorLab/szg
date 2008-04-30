@@ -89,17 +89,17 @@ arDataTemplate* arTemplateDictionary::find(const string& name){
   arTemplateType::iterator iTemplate = _templateContainer.find(name);
   if (iTemplate == _templateContainer.end()){
     if (_templateContainer.empty()){
-      ar_log_warning() << "arTemplateDictionary empty, so find(" << name << ") failed.\n";
+      ar_log_error() << "failed to find in empty arTemplateDictionary.\n";
     }
     else {
-      cerr << "arTemplateDictionary error: no entry \"" << name << "\".\n"
-           << "  (dictionary has these: ";
+      ar_log_error() << "arTemplateDictionary: no entry \"" << name << "\".\n"
+           << "  (dictionary contains: ";
       for (iTemplate = _templateContainer.begin();
 	   iTemplate != _templateContainer.end();
 	   ++iTemplate) {
-	cerr << iTemplate->first << "; ";
+	ar_log_error() << iTemplate->first << "; ";
       }
-      cerr << ")\n";
+      ar_log_error() << ")\n";
     }
     return NULL;
   }

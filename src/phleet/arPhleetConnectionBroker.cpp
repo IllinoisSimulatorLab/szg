@@ -618,9 +618,8 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
       }
     }
   }
-  // all temporary ports should be returned to the appropriate computer's pool
-  // as should all used ports
-  const string computer = i->second.computer;
+  // return temporary and used ports to the appropriate computer's pool
+  const string computer(i->second.computer);
   const SZGComputerData::iterator k = _computerData.find(computer);
   if (k != _computerData.end()){
     list<int>::iterator l;
@@ -644,7 +643,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
     }
   }
   else{
-    ar_log_warning() << "arPhleetConnectionBroker: on removal of component, found no expected computer record '"
+    ar_log_error() << "arPhleetConnectionBroker: on removal of component, found no computer record '"
 	 << computer << "'.\n";
   }
 

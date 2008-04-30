@@ -62,7 +62,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win, arViewpo
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf){
   if (!((arGraphicsClient*)client)->_graphicsDatabase.handleDataQueue(buf)) {
-    ar_log_warning() << "arGraphicsClient failed to consume buffer.\n";
+    ar_log_error() << "arGraphicsClient failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -222,7 +222,7 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   const string displayName = szgClient->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "no display " << whichDisplay << "/name, using default.\n";
+    ar_log_error() << "no display " << whichDisplay << "/name, using default.\n";
   } else {
     ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }

@@ -36,19 +36,19 @@ void ar_findWildcatFramelock() {
   arWildcatNamespace::__wglEnableFrameLockI3D = (arWildcatNamespace::pfn) 
     wglGetProcAddress("wglEnableFrameLockI3D");
   if (!arWildcatNamespace::__wglEnableFrameLockI3D) {
-    ar_log_warning() << "No wglEnableFrameLockI3D.\n";
+    ar_log_error() << "No wglEnableFrameLockI3D.\n";
   }
   arWildcatNamespace::__wglDisableFrameLockI3D = (arWildcatNamespace::pfn)
     wglGetProcAddress("wglDisableFrameLockI3D");
   if (!arWildcatNamespace::__wglDisableFrameLockI3D) {
-    ar_log_warning() << "No wglDisableFrameLockI3D.\n";
+    ar_log_error() << "No wglDisableFrameLockI3D.\n";
   }
 }
 
 void ar_activateWildcatFramelock() {
   arGuard dummy(arWildcatNamespace::lock);
   if (arWildcatNamespace::fActive) {
-    ar_log_warning() << "Ignoring duplicate ar_activateWildcatFramelock.\n";
+    ar_log_error() << "Ignoring duplicate ar_activateWildcatFramelock.\n";
     return;
   }
 
@@ -57,7 +57,7 @@ void ar_activateWildcatFramelock() {
     return;
   
   if (arWildcatNamespace::__wglEnableFrameLockI3D() == FALSE) {
-    ar_log_warning() << "wglEnableFrameLockI3D failed.\n";
+    ar_log_error() << "wglEnableFrameLockI3D failed.\n";
   }
   else{
     ar_log_debug() << "wglEnableFrameLockI3D ok.\n";
@@ -67,7 +67,7 @@ void ar_activateWildcatFramelock() {
 void ar_deactivateWildcatFramelock() {
   arGuard dummy(arWildcatNamespace::lock);
   if (!arWildcatNamespace::fActive){
-    ar_log_warning() << "Ignoring duplicate ar_deactivateWildcatFramelock.\n";
+    ar_log_error() << "Ignoring duplicate ar_deactivateWildcatFramelock.\n";
     return;
   }
 
@@ -76,7 +76,7 @@ void ar_deactivateWildcatFramelock() {
     return;
 
   if (arWildcatNamespace::__wglDisableFrameLockI3D() == FALSE) {
-    ar_log_warning() << "wglDisableFrameLockI3D failed.\n";
+    ar_log_error() << "wglDisableFrameLockI3D failed.\n";
   }
   else{
     ar_log_debug() << "wglDisableFrameLockI3D ok.\n";

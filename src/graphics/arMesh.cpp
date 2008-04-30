@@ -394,7 +394,7 @@ arSphereMesh::arSphereMesh(const arMatrix4& transform, int n) :
 
 void arSphereMesh::setAttributes(int n){
   if (n < 3)
-    ar_log_warning() << "arSphereMesh needs at least 3 divisions, not " << n << ".\n";
+    ar_log_error() << "arSphereMesh needs at least 3 divisions, not " << n << ".\n";
   else
     _numberDivisions = n;
 }

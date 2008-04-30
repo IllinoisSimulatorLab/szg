@@ -53,7 +53,7 @@ bool arLargeImage::setTileSize( unsigned int tileWidth, unsigned int tileHeight 
 // if tileHeight==0, it defaults to tileWidth (a square image).
 bool arLargeImage::_setSizeNoRebuild( unsigned int tileWidth, unsigned int tileHeight ) {
   if (tileWidth == 0) {
-    ar_log_warning() << "arLargeImage ignoring setTileSize(0).\n";
+    ar_log_error() << "arLargeImage ignoring setTileSize(0).\n";
     return false;
   }
 

@@ -72,7 +72,7 @@ void messageTask(void* pClient){
     else if (messageType=="screenshot"){
       // copypaste with framework/arMasterSlaveFramework.cpp
       if (dataPath == "NULL"){
-	ar_log_warning() << "szgrender screenshot failed: no SZG_DATA/path.\n";
+	ar_log_error() << "szgrender screenshot failed: no SZG_DATA/path.\n";
       }
       else{
         if (messageBody != "NULL"){
@@ -100,7 +100,7 @@ void messageTask(void* pClient){
         pauseLock.unlock();
       }
       else
-        ar_log_warning() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
+        ar_log_error() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
     }
 
     else if (messageType=="color"){

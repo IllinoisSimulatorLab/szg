@@ -37,7 +37,7 @@ LUsage:
     // -9 executable, or hostname executable
     hostName = fForce ? hostLocal : argv[1];
     if (fForce && exeName == hostName)
-      ar_log_warning() << "(Did you forget to name the exe to kill?)\n";
+      ar_log_error() << "(Did you forget to name the exe to kill?)\n";
     break;
   case 4:
     // -9 hostname executable
@@ -79,7 +79,7 @@ LNotFound:
   tags.push_back(szgClient.requestKillNotification(progID));
   const int msecTimeout = 5000;
   if (szgClient.getKillNotification(tags, msecTimeout) < 0){
-    ar_log_warning() << "timed out after " << msecTimeout << " msec.\n";
+    ar_log_error() << "timed out after " << msecTimeout << " msec.\n";
   }
   return 0;
 }

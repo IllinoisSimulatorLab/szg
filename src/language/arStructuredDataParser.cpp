@@ -137,7 +137,7 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
   end = ar_rawDataGetSize(buffer);
   arStructuredData* result = getStorage(ar_rawDataGetID(buffer));
   if (!result){
-    ar_log_warning() << "arStructuredDataParser failed to parse binary data.\n";
+    ar_log_error() << "arStructuredDataParser failed to parse binary data.\n";
     return NULL;
   }
   result->unpack(buffer);
@@ -476,7 +476,7 @@ bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
 arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   iQueue i(_messageQueue.find(ID));
   if (i == _messageQueue.end()){
-    ar_log_warning() << "arStructuredDataParser: getNextInternal got invalid ID.\n";
+    ar_log_error() << "arStructuredDataParser: getNextInternal got invalid ID.\n";
     return NULL;
   }
 
@@ -556,7 +556,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
       _globalLock.unlock();
       return *j;
     }
-    ar_log_warning() << "arStructuredDataParser got wrong type.\n";
+    ar_log_error() << "arStructuredDataParser got wrong type.\n";
     _globalLock.unlock();
     return -1;
   }

@@ -37,7 +37,7 @@ arTemplateDictionary* arDataClient::getDictionary(){
 
 bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
   if (!_theDictionary) {
-    ar_log_warning() << _exeName << ": no dictionary.\n";
+    ar_log_error() << _exeName << ": no dictionary.\n";
     return false;
   }
 
@@ -46,7 +46,7 @@ bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
   arDataTemplate* theTemplate = _theDictionary->find(recordID);
   if (!theTemplate ||
       (size = theTemplate->translate(dest, buf, _remoteStreamConfig)) < 0) {
-    ar_log_warning() << _exeName << " failed to translate data record.\n";
+    ar_log_error() << _exeName << " failed to translate data record.\n";
     return false;
   }
 
@@ -128,7 +128,7 @@ bool arDataClient::_dialUpActivate(){
       return false;
     }
 
-    ar_log_warning() << _exeName << ": remote data point has wrong szg protocol version, "
+    ar_log_error() << _exeName << ": remote data point has wrong szg protocol version, "
       << _remoteStreamConfig.version << ".\n";
     return false;
 
@@ -139,13 +139,13 @@ bool arDataClient::_dialUpActivate(){
   ARchar sizeBuffer[AR_INT_SIZE];
   // Read in the dictionary from the server.
   if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    ar_log_warning() << _exeName << ": dialUp failed to read dictionary size.\n";
+    ar_log_error() << _exeName << ": dialUp failed to read dictionary size.\n";
     return false;
   }
 
   const ARint totalSize = ar_translateInt(sizeBuffer,_remoteStreamConfig);
   if (totalSize<AR_INT_SIZE){
-    ar_log_warning() << _exeName << ": dialUp failed to translate dictionary "
+    ar_log_error() << _exeName << ": dialUp failed to translate dictionary "
 	 << "size.\n";
     return false;
   }
@@ -153,7 +153,7 @@ bool arDataClient::_dialUpActivate(){
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
-    ar_log_warning() << _exeName << ": dialUp failed to get dictionary.\n";
+    ar_log_error() << _exeName << ": dialUp failed to get dictionary.\n";
     delete [] dataBuffer;
     return false;
   }
@@ -161,7 +161,7 @@ bool arDataClient::_dialUpActivate(){
   // Initialize the dictionary.
   _theDictionary = new arTemplateDictionary;
   if (!_theDictionary->unpack(dataBuffer,_remoteStreamConfig)){
-    ar_log_warning() << _exeName << ": dialUp failed to unpack dictionary.\n";
+    ar_log_error() << _exeName << ": dialUp failed to unpack dictionary.\n";
     delete [] dataBuffer;
     return false;
   }
@@ -174,20 +174,20 @@ bool arDataClient::_dialUpActivate(){
 bool arDataClient::_dialUpInit(const char* address, int port){
   if (!strcmp(address, "NULL")){
     if (port == 0)
-      ar_log_warning() << _exeName << ": dialUp: no IP address or port.\n";
+      ar_log_error() << _exeName << ": dialUp: no IP address or port.\n";
     else
-      ar_log_warning() << _exeName << ": dialUp: NULL IP address for port " << port << ".\n";
+      ar_log_error() << _exeName << ": dialUp: NULL IP address for port " << port << ".\n";
     return false;
   }
 
   if (strlen(address) < 7){
-    ar_log_warning() << _exeName << ": invalid IP address in dialUp("
+    ar_log_error() << _exeName << ": invalid IP address in dialUp("
       << address << ":" << port << ").\n";
     return false;
   }
 
   if (port < 1000 || port > 65535){
-    ar_log_warning() << _exeName << ": out-of-range port in dialUp(" <<
+    ar_log_error() << _exeName << ": out-of-range port in dialUp(" <<
       address << ":" << port << ").  Try 1000 to 65535.\n";
     return false;
   }
@@ -196,7 +196,7 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     _socket = new arSocket(AR_STANDARD_SOCKET);
   }
   if (_socket->ar_create() < 0) {
-    ar_log_warning() << _exeName << ": no socket created for dialUp(" <<
+    ar_log_error() << _exeName << ": no socket created for dialUp(" <<
       address << ":" << port << ").\n";
     return false;
   }
@@ -205,7 +205,7 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     return false;
 
   if (!_socket->smallPacketOptimize(_smallPacketOptimize)){
-    ar_log_warning() << _exeName << ": no smallPacketOptimize for dialUp(" <<
+    ar_log_error() << _exeName << ": no smallPacketOptimize for dialUp(" <<
       address << ":" << port << ").\n";
     return false;
   }
@@ -261,7 +261,7 @@ void arDataClient::closeConnection(){
 // Send data to the data server.
 bool arDataClient::sendData(arStructuredData* theData){
   if (!theData) {
-    ar_log_warning() << _exeName << " ignoring sendData(NULL)\n";
+    ar_log_error() << _exeName << " ignoring sendData(NULL)\n";
     return false;
   }
 

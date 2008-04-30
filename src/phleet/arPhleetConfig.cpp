@@ -58,7 +58,7 @@ bool arPhleetConfig::read(){
     else if (ID == _l.AR_PORTS)
       _processPortsRecord(data);
     else
-      ar_log_warning() << "arPhleetConfig ignoring unexpected ID " << ID <<
+      ar_log_error() << "arPhleetConfig ignoring unexpected ID " << ID <<
         " in config file '" << _configFileLocation << "'.\n";
   }
   configStream.ar_close();
@@ -70,14 +70,13 @@ bool arPhleetConfig::read(){
 // file location (depending on the alternative config vs. actual config)
 bool arPhleetConfig::write(){
   if (!_determineFileLocations()) {
-    ar_log_warning() << "failed to write config file.\n";
+    ar_log_error() << "failed to write config file.\n";
     return false;
   }
 
   FILE* config = fopen(_configFileLocation.c_str(), "w");
   if (!config){
-    ar_log_warning() << "failed to write config file '"
-	 << _configFileLocation << "'.\n";
+    ar_log_error() << "failed to write config file '" << _configFileLocation << "'.\n";
     return false;
   }
   
@@ -148,7 +147,7 @@ bool arPhleetConfig::writeLogin(){
   const string fileName = _loginPreamble + ar_getUser() + string(".conf");
   FILE* login = fopen(fileName.c_str(),"w");
   if (!login){
-    ar_log_warning() << "failed to write login file '" << fileName << "'.\n";
+    ar_log_error() << "failed to write login file '" << fileName << "'.\n";
     return false;
   }
 
@@ -224,12 +223,12 @@ arSlashString arPhleetConfig::getMasks() const {
 string arPhleetConfig::getBroadcast(const string& mask, const string& address) const {
   arSocketAddress tmp;
   if (!tmp.setAddress(address.c_str(), 0)) {
-    ar_log_warning() << "config file has illegal address '" << address << "'.\n";
+    ar_log_error() << "config file has illegal address '" << address << "'.\n";
     return "NULL";
   }
   const string broadcast(tmp.broadcastAddress(mask.c_str()));
   if (broadcast == "NULL") {
-    ar_log_warning() << "config file has illegal mask '" <<
+    ar_log_error() << "config file has illegal mask '" <<
       mask << "' for address '" << address << "'.\n";
   }
   return broadcast;
@@ -238,7 +237,7 @@ string arPhleetConfig::getBroadcast(const string& mask, const string& address) c
 string arPhleetConfig::getBroadcast(const int index) const {
   
   if (index >= _numNetworks) {
-    ar_log_warning() << "config file specifies only " << _numNetworks <<
+    ar_log_error() << "config file specifies only " << _numNetworks <<
       " networks, not " << index << ".\n";
     return "NULL";
   }
@@ -390,8 +389,7 @@ bool arPhleetConfig::_findDir(const char* envvar, const char* fallback, const ch
     sz = fallback;
   }
   if (!_createIfDoesNotExist(sz)){
-    ar_log_warning() << "failed to create " << name << " directory '" <<
-      sz << "'.\n";
+    ar_log_error() << "failed to create " << name << " directory '" << sz << "'.\n";
     return false;
   }
 

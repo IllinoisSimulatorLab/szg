@@ -48,9 +48,9 @@ bool arSoundFile::read(const char* filename, bool fLoop, const int renderMode) {
   if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), filename,
     FMOD_3D | (fLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF), 0, &_psamp)) || !_psamp) {
 LFailFmod:
-    ar_log_warning() << "arSoundFile failed to load file '" << filename << "'.\n";
+    ar_log_error() << "arSoundFile failed to load file '" << filename << "'.\n";
 #ifdef AR_USE_WIN_32
-    ar_log_warning() << "  (Check Windows' sound control panel's Preferred Device settings.)\n";
+    ar_log_error() << "  (Check Windows' sound control panel's Preferred Device settings.)\n";
 #endif
     return dummy();
   }

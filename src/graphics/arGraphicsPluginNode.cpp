@@ -35,17 +35,17 @@ arGraphicsPluginNode::~arGraphicsPluginNode() {
 void arGraphicsPluginNode::draw(arGraphicsContext* context) {
   arGuard dummy(_nodeLock);
   if (!_object) {
-    ar_log_debug() << "arGraphicsPluginNode draw() without valid plugin object." << ar_endl;
+    ar_log_debug() << "arGraphicsPluginNode draw(): invalid plugin object.\n";
     return;
   }
   arGraphicsWindow* win = context->getWindow();
   if (!win) {
-    ar_log_warning() << "arGraphicsPluginNode draw() not passed a valid arGraphicsWindow." << ar_endl;
+    ar_log_error() << "arGraphicsPluginNode draw(): invalid arGraphicsWindow.\n";
     return;
   }
   arViewport* vp = context->getViewport();
   if (!vp) {
-    ar_log_warning() << "arGraphicsPluginNode draw() not passed a valid arViewport." << ar_endl;
+    ar_log_error() << "arGraphicsPluginNode draw(): invalid arViewport.\n";
     return;
   }
   _object->draw( *win, *vp );

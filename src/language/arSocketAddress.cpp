@@ -175,7 +175,7 @@ bool arSocketAddress::checkMask(list<string>& criteria){
 
     if (position == i->length() - 1){
       // IP/ without a following mask.  Weird.
-      ar_log_warning() << "checkMask() skipping weird address/netmask string '" << *i << ";.\n";
+      ar_log_error() << "checkMask() skipping weird address/netmask string '" << *i << ";.\n";
       continue;
     }
 
@@ -184,13 +184,13 @@ bool arSocketAddress::checkMask(list<string>& criteria){
     const string maskAddr(i->substr(position, i->length() - position));
     arSocketAddress tmp;
     if (!tmp.setAddress(IPaddr.c_str(), 0)){
-      ar_log_warning() << "arSocketAddress: invalid address '" << IPaddr << "'.\n";
+      ar_log_error() << "arSocketAddress: invalid address '" << IPaddr << "'.\n";
       continue;
     }
 
     const string maskedValue(tmp.mask(maskAddr.c_str()));
     if (maskedValue == "NULL"){
-      ar_log_warning() << "arSocketAddress: invalid mask '" << maskAddr << "'.\n";
+      ar_log_error() << "arSocketAddress: invalid mask '" << maskAddr << "'.\n";
       continue;
     }
 

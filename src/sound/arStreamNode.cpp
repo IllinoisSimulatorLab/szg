@@ -98,8 +98,7 @@ bool arStreamNode::render(){
   }
   else{
     if (!_complained){
-      ar_log_warning() << "arStreamNode failed to create stream '"
-	   << "  " << _fileName << "'\n";
+      ar_log_error() << "arStreamNode failed to create stream '" << _fileName << "'\n";
       _complained = true;
     }
   }

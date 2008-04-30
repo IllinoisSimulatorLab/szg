@@ -207,7 +207,7 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     return false;
   } 
   if (isroot()) {
-    ar_log_warning() << "arDatabaseNode::receiveData cannot rename root node.\n";
+    ar_log_error() << "arDatabaseNode::receiveData cannot rename root node.\n";
   }
   else{
     arGuard dummy(_lockName);

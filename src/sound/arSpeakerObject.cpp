@@ -84,15 +84,15 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
   }
 
   case mode_vss:
-    ar_log_warning() << "mode SZG_SOUND/render vss NYI.\n";
+    ar_log_error() << "mode SZG_SOUND/render vss NYI.\n";
     return false;
 
   case mode_mmio:
-    ar_log_warning() << "mode SZG_SOUND/render mmio NYI.\n";
+    ar_log_error() << "mode SZG_SOUND/render mmio NYI.\n";
     return false;
 
   default:
-    ar_log_warning() << "internal error with SZG_SOUND/render.\n";
+    ar_log_error() << "internal error with SZG_SOUND/render.\n";
     return false;
   }
 }

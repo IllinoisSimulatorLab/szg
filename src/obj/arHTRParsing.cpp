@@ -350,13 +350,13 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
 	found = true;
     }
     if (!found){
-      ar_log_warning() << "arHTR: premature end of file.\n";
+      ar_log_error() << "arHTR: premature end of file.\n";
       return false;
     }
 
     const string check("Frame " + ar_intToString(i) + ":");
     if (false && textLine != check) {
-      ar_log_warning() << "arHTR: no marker for frame " << i << " (" << textLine << ").\n";
+      ar_log_error() << "arHTR: no marker for frame " << i << " (" << textLine << ").\n";
       return false;
     }
     // Found marker "Frame n:" for start of frame data.
@@ -390,7 +390,7 @@ bool arHTR::parseSegmentData(FILE* htrFileHandle){
   if (fileVersion == 2){
     return parseSegmentData2(htrFileHandle);
   }
-  ar_log_warning() << "arHTR: unhandled HTR file version " << fileVersion << ".\n";
+  ar_log_error() << "arHTR: unhandled HTR file version " << fileVersion << ".\n";
   return false;
 }
 

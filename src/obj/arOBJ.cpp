@@ -34,7 +34,7 @@ bool arOBJ::readOBJ(FILE* inputFile) {
   _groupName.push_back("default");
 
   if (!inputFile) {
-    ar_log_warning() << "arOBJ error: NULL input file pointer.";
+    ar_log_error() << "arOBJ: NULL input file.";
     _invalidFile = true;
     return false;
   }
@@ -125,7 +125,7 @@ arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where,
     return NULL;
   }
   if (!where) {
-    ar_log_warning() << "arOBJ cannot attach points: no base node.\n";
+    ar_log_error() << "arOBJ cannot attach points: no base node.\n";
     return NULL;
   }
 
@@ -162,7 +162,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
     return false;
   }
   if (!where) {
-    ar_log_warning() << "arOBJ cannot attach group: no parent.\n";
+    ar_log_error() << "arOBJ cannot attach group: no parent.\n";
     return false;
   }
   const string trianglesModifier(".triangles");
@@ -584,7 +584,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
 
   clear();
   if (!renderer) {
-    ar_log_warning() << "arOBJGroupRenderer::build() called with NULL renderer pointer.\n";
+    ar_log_error() << "arOBJGroupRenderer::build() ignoring NULL renderer.\n";
     return false;
   }
   _renderer = renderer;
@@ -627,7 +627,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
         texCoordsThisMat = new float[ 6*numTriUsingMaterial ];
       }
       if (!normalsThisMat || !indicesThisMat || (matHasTexture && !texCoordsThisMat)) {
-        ar_log_warning() << "arOBJGroupRenderer failed to allocate buffers.\n";
+        ar_log_error() << "arOBJGroupRenderer failed to allocate buffers.\n";
         return false;
       }
       _normalsByMaterial[matID] = normalsThisMat;
@@ -667,7 +667,7 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
 
 void arOBJGroupRenderer::draw() {
   if (!_renderer) {
-    ar_log_warning() << "arOBJGroupRenderer::draw() called with NULL renderer pointer.\n";
+    ar_log_error() << "arOBJGroupRenderer::draw() ignoring NULL renderer.\n";
     return;
   }
 
@@ -731,7 +731,7 @@ void arOBJGroupRenderer::draw() {
 // with a radius that includes all the geometry
 arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
   if (!_renderer) {
-    ar_log_warning() << "arOBJGroupRenderer::getBoundingSphere() called with NULL renderer pointer.\n";
+    ar_log_error() << "arOBJGroupRenderer::getBoundingSphere() ignoring NULL renderer.\n";
     return arBoundingSphere();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -756,7 +756,7 @@ arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
 
 arAxisAlignedBoundingBox arOBJGroupRenderer::getAxisAlignedBoundingBox() {
   if (!_renderer) {
-    ar_log_warning() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() called with NULL renderer pointer.\n";
+    ar_log_error() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() ignoring NULL renderer.\n";
     return arAxisAlignedBoundingBox();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -799,7 +799,7 @@ arAxisAlignedBoundingBox arOBJGroupRenderer::getAxisAlignedBoundingBox() {
 
 float arOBJGroupRenderer::getIntersection( const arRay& theRay ) {
   if (!_renderer) {
-    ar_log_warning() << "arOBJGroupRenderer::getIntersection() called with NULL renderer pointer.\n";
+    ar_log_error() << "arOBJGroupRenderer::getIntersection() ignoring NULL renderer.\n";
     return 0.;
   }
   vector<arVector3>& vertices = _renderer->_vertices;
@@ -863,7 +863,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   theFile._searchPath = _searchPath;
   ar_log_debug() << "arOBJRenderer::readOBJ() beginning to parse file.\n";
   if (!theFile.readOBJ( inputFile )) {
-    ar_log_warning() << "arOBJRenderer::readOBJ() failed to parse file.\n";
+    ar_log_error() << "arOBJRenderer::readOBJ() failed to parse file.\n";
     return false;
   }
   ar_log_debug() << "arOBJRenderer::readOBJ() done parsing file.\n";
@@ -952,12 +952,12 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     ar_log_debug() << "Preparing group " << i << ar_endl;
     group = new arOBJGroupRenderer();
     if (!group) {
-      ar_log_warning() << "arOBJGroupRenderer::prepareToDraw() failed to allocate memory.\n";
+      ar_log_error() << "arOBJGroupRenderer::prepareToDraw() failed to allocate memory.\n";
       return false;
     }
     if (!group->build( this, theFile._groupName[i], theFile._group[i],
          theFile._texCoord, theFile._normal, theFile._triangle )) {
-      ar_log_warning() << "arOBJGroupRenderer::prepareToDraw() failed to build render group.\n";
+      ar_log_error() << "arOBJGroupRenderer::prepareToDraw() failed to build render group.\n";
       delete group;
       return false;
     }
@@ -987,7 +987,7 @@ void arOBJRenderer::draw() {
     if (ptr) {
       ptr->draw();
     } else {
-      ar_log_warning() << "NULL pointer in arOBJ::draw().\n";
+      ar_log_error() << "arOBJ::draw() ignoring NULL renderer.\n";
     }
   }
 }

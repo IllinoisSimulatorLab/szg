@@ -204,7 +204,7 @@ double arTimer::totalTime() const {
 }
 
 double arTimer::elapsed() {
-  ar_log_warning() << "arTimer::elapsed() deprecated. Use arTimer::totalTime().\n";
+  ar_log_error() << "arTimer::elapsed() deprecated. Use arTimer::totalTime().\n";
   return totalTime();
 }
 
@@ -494,16 +494,16 @@ arSleepBackoff::arSleepBackoff(const float msecMin, const float msecMax, const f
   _ratio(ratio) {
   const float uMinMin = 1000.;
   if (_uMin < uMinMin) {
-    ar_log_warning() << "arSleepBackoff minimum " << _uMin << " rounded up to " << uMinMin/1000. << " msec.\n";
+    ar_log_error() << "arSleepBackoff minimum " << _uMin << " rounded up to " << uMinMin/1000. << " msec.\n";
     _uMin = uMinMin;
   }
   if (_uMax < _uMin) {
-    ar_log_warning() << "arSleepBackoff maximum " << _uMax << " rounded up to minimum " << _uMin << ".\n";
+    ar_log_error() << "arSleepBackoff maximum " << _uMax << " rounded up to minimum " << _uMin << ".\n";
     _uMax = _uMin;
   }
   const float ratioMin = 1.001;
   if (_ratio < ratioMin) {
-    ar_log_warning() << "arSleepBackoff ratio " << _ratio << " rounded up to " << ratioMin << ".\n";
+    ar_log_error() << "arSleepBackoff ratio " << _ratio << " rounded up to " << ratioMin << ".\n";
     _ratio = ratioMin;
   }
   reset();
@@ -535,12 +535,12 @@ bool ar_stringToLongValid( const string& theString, long& theLong ) {
   char *endPtr = NULL;
   theLong = strtol( theString.c_str(), &endPtr, 10 );
   if ((theString.c_str()+theString.size())!=endPtr) {
-    ar_log_warning() << "arStringToLong failed to convert '" << theString << "'." << ar_endl;
+    ar_log_error() << "arStringToLong failed to convert '" << theString << "'." << ar_endl;
     return false;
   }
 
   if ((theLong==LONG_MAX || theLong==LONG_MIN) && errno==ERANGE) {
-    ar_log_warning() << "arStringToLong clipped out-of-range '" << theString << "' to " << theLong << ar_endl;
+    ar_log_error() << "arStringToLong clipped out-of-range '" << theString << "' to " << theLong << ar_endl;
     return false;
   }
   return true;
@@ -549,7 +549,7 @@ bool ar_stringToLongValid( const string& theString, long& theLong ) {
 bool ar_longToIntValid( const long theLong, int& theInt ) {
   theInt = (int)theLong;
   if ((theLong > INT_MAX)||(theLong < INT_MIN)) {
-    ar_log_warning() << "arLongToIntValid: out-of-range " << theLong << ".\n";
+    ar_log_error() << "arLongToIntValid: out-of-range " << theLong << ".\n";
     return false;
   }
   return true;
@@ -561,7 +561,7 @@ int ar_stringToInt(const string& s)
   const unsigned int maxlen = 30;
   char buf[maxlen+2]; // Fixed size buffer is okay here, for a single int.
   if (s.length() > maxlen) {
-    ar_log_warning() << "arStringToInt: '" << s << "' too long, returning 0.\n";
+    ar_log_error() << "arStringToInt: '" << s << "' too long, returning 0.\n";
     return 0;
   }
 
@@ -585,19 +585,19 @@ bool ar_stringToIntValid( const string& theString, int& theInt ) {
 
 bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
   if (theString == "NULL") {
-    ar_log_warning() << "arStringToDouble got 'NULL'.\n";
+    ar_log_error() << "arStringToDouble ignoring 'NULL'.\n";
     return false;
   }
 
   char *endPtr = NULL;
   theDouble = strtod( theString.c_str(), &endPtr );
   if ((theString.c_str()+theString.size()) != endPtr) {
-    ar_log_warning() << "arStringToDouble failed to convert '" << theString << "'.\n";
+    ar_log_error() << "arStringToDouble failed to convert '" << theString << "'.\n";
     return false;
   }
 
   if ((theDouble==HUGE_VAL || theDouble==-HUGE_VAL || theDouble==0.) && errno==ERANGE) {
-    ar_log_warning() << "arStringToDouble clipped out-of-range '" << theString << "' to " << theDouble << ar_endl;
+    ar_log_error() << "arStringToDouble clipped out-of-range '" << theString << "' to " << theDouble << ar_endl;
     return false;
   }
   return true;
@@ -605,7 +605,7 @@ bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
 
 void ar_stringToBuffer(const string& s, char* buf, int len){
   if (len <= 0) {
-    ar_log_warning() << "ar_stringToBuffer: nonpositive length.\n";
+    ar_log_error() << "ar_stringToBuffer: nonpositive length.\n";
     *buf = '\0';
     return;
   }
@@ -614,7 +614,7 @@ void ar_stringToBuffer(const string& s, char* buf, int len){
     strcpy(buf, s.c_str());
   }
   else {
-    ar_log_warning() << "ar_stringToBuffer truncating '" << s << "' after " <<
+    ar_log_error() << "ar_stringToBuffer truncating '" << s << "' after " <<
       len << " characters.\n";
     strncpy(buf, s.c_str(), len);
     buf[len-1] = '\0';
@@ -625,7 +625,7 @@ bool ar_doubleToFloatValid( const double theDouble, float& theFloat ) {
   theFloat = (float)theDouble;
   // Ignore loss of precision.
   if ((theDouble > FLT_MAX)||(theDouble < -FLT_MAX)) {
-    ar_log_warning() << "arDoubleToFloatValid: out-of-range " << theDouble << ".\n";
+    ar_log_error() << "arDoubleToFloatValid: out-of-range " << theDouble << ".\n";
     return false;
   }
   return true;
@@ -647,7 +647,7 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   // input example = "0.998/-0.876/99.87/3.4/5/17"
 
   if (len <= 0) {
-    ar_log_warning() << "arParseFloatString: nonpositive length.\n";
+    ar_log_error() << "arParseFloatString: nonpositive length.\n";
     return -1;
   }
 
@@ -662,7 +662,7 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   bool flag = false;
   while (!flag){
     if (dimension >= len){
-      ar_log_warning() << "arParseFloatString truncating '" <<
+      ar_log_error() << "arParseFloatString truncating '" <<
         theString << "' after " << len << " floats.\n";
       return dimension;
     }
@@ -684,11 +684,11 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
   // Returns how many ints were found, possibly fewer than len (which is ok).
 
   if (len <= 0) {
-    ar_log_warning() << "ar_parseIntString: nonpositive length.\n";
+    ar_log_error() << "ar_parseIntString: nonpositive length.\n";
     return -1;
   }
   if (!outArray) {
-    ar_log_warning() << "ar_parseIntString: NULL target.\n";
+    ar_log_error() << "ar_parseIntString: NULL target.\n";
     return -1;
   }
 
@@ -722,7 +722,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
     }
     int theInt = -1;
     if (!ar_stringToIntValid( wordString, theInt )) {
-      ar_log_warning() << "ar_parseIntString: invalid field '" << wordString << "'.\n";
+      ar_log_error() << "ar_parseIntString: invalid field '" << wordString << "'.\n";
       break;
     }
     outArray[numValues++] = theInt;
@@ -736,11 +736,11 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
   // Returns how many longs were found.
 
   if (len <= 0) {
-    ar_log_warning() << "ar_parseLongString: nonpositive length.\n";
+    ar_log_error() << "ar_parseLongString: nonpositive length.\n";
     return -1;
   }
   if (!outArray) {
-    ar_log_warning() << "ar_parseLongString: NULL target.\n";
+    ar_log_error() << "ar_parseLongString: NULL target.\n";
     return -1;
   }
 
@@ -757,7 +757,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
   while (numValues < len) {
     getline( inStream, wordString, '/' );
     if (wordString == "") {
-      ar_log_warning() << "ar_parseLongString: empty field in '" << theString << "'.\n";
+      ar_log_error() << "ar_parseLongString: empty field in '" << theString << "'.\n";
       break;
     }
     if (inStream.fail())
@@ -765,7 +765,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
       break;
     long l = -1;
     if (!ar_stringToLongValid( wordString, l )) {
-      ar_log_warning() << "ar_parseLongString: invalid field '" << wordString << "'.\n";
+      ar_log_error() << "ar_parseLongString: invalid field '" << wordString << "'.\n";
       break;
     }
     outArray[numValues++] = l;
@@ -1068,7 +1068,7 @@ bool ar_fileItemExists( const string name, bool& exists ) {
     exists = false;
     return true;
   }
-  ar_log_warning() << "ar_fileItemExists: stat() failed.\n";
+  ar_log_error() << "ar_fileItemExists: stat() failed.\n";
   return false;
 }
 
@@ -1229,7 +1229,7 @@ FILE* ar_fileOpen(const string& name,
   }
 
   if (!result && warner) {
-    ar_log_warning() << warner << " failed to open '" << name << "' as '" << operation <<
+    ar_log_error() << warner << " failed to open '" << name << "' as '" << operation <<
       "' in subdirectory '" << subdirectory << "' on search path '" << path << "'.\n";
 
   }
@@ -1370,7 +1370,7 @@ bool ar_growBuffer(ARchar*& buf, int& size, int newSize) {
   delete [] buf;
   buf = new ARchar[size];
   if (!buf) {
-    ar_log_warning() << "ar_growBuffer out of memory.\n";
+    ar_log_error() << "ar_growBuffer out of memory.\n";
     return false;
   }
   return true;

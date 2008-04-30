@@ -8,8 +8,8 @@
 #include "arSoundDatabase.h"
 
 arSpeechNode::arSpeechNode() : arSoundNode() {
-  // RedHat 8.0 will not compile this if these statements are outside of
-  // the body of the constructor.
+  // RedHat 8.0 will not compile these two statements as initializers.
+  // Leave them in the constructor's body.
   _typeCode = AR_S_SPEECH_NODE;
   _typeString = "speech";
 }
@@ -28,13 +28,14 @@ void arSpeechNode::_initVoice() {
   _voice = NULL;
   if (!_owningDatabase->isServer()) {
     if (FAILED(::CoInitialize(NULL))) {
-      ar_log_error() << "arSpeechNode error: CoInitialize() failed.\n";
+      ar_log_error() << "arSpeechNode failed to CoInitialize().\n";
       return;
     }
-    HRESULT hr = CoCreateInstance( CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&_voice );
+    const HRESULT hr =
+      CoCreateInstance( CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&_voice );
     if( !SUCCEEDED( hr ) ) {
-      ar_log_error() << "arSpeechNode error: CoCreateInstance() failed. This probably means "
-           << "that the Microsoft Speech SDK is not installed.\n";
+      ar_log_error() <<
+	"arSpeechNode failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
       _voice = NULL;
       ::CoUninitialize();
       return;
@@ -113,7 +114,7 @@ void arSpeechNode::_speak( const std::string& speechText ) {
   if (numChars > 0) {
     WCHAR* text = new WCHAR[numChars+1];
     if (!text) {
-      ar_log_error() << "arSpeechNode error: memory panic.\n";
+      ar_log_error() << "arSpeechNode out of memory.\n";
       return;
     }
     ar_log_remark() << "arSpeechNode saying '" << speechText << "'.\n";

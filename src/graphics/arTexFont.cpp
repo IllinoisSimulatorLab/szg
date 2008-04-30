@@ -63,10 +63,8 @@ float arTexFont::characterHeight(){
 
 bool arTexFont::load( const string& fontFilePath, int transparentColor ) {
   const bool ok =_fontTexture.readImage( fontFilePath, transparentColor );
-  // ppm images are flipped as read in by the current buggy software.
   if (ok) {
     _fontTexture.setTextureFunc(GL_MODULATE);
-//    _fontTexture.flipHorizontal();
     _fontTexture.mipmap(true);
   }
   return ok;
@@ -77,7 +75,6 @@ void arTexFont::setFontTexture( const arTexture& newFont ) {
 }
 
 void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format){
-  // Line feed.
   glTranslatef( -currentColumn*characterWidth(), -lineHeight(format), 0);
   currentColumn = 0;
   currentRow++;
