@@ -60,7 +60,6 @@ arGUIEventManager::arGUIEventManager( void* userData ) :
 arGUIEventManager::~arGUIEventManager( void )
 {
   delete _GUIInfoDictionary;
-
   delete _GUIInfoTemplate;
   delete _keyInfoTemplate;
   delete _mouseInfoTemplate;
@@ -69,41 +68,36 @@ arGUIEventManager::~arGUIEventManager( void )
 
 bool arGUIEventManager::eventsPending( void )
 {
-  _eventsMutex.lock();
-    const bool ok = !_events.empty();
-  _eventsMutex.unlock();
-  return ok;
+  arGuard dummy(_eventsMutex);
+  return !_events.empty();
 }
 
 arGUIInfo* arGUIEventManager::getNextEvent( void )
 {
   _eventsMutex.lock();
-
   if( _events.empty() ) {
     _eventsMutex.unlock();
     return NULL;
   }
-
   arStructuredData event = _events.front();
   _events.pop();
-
   _eventsMutex.unlock();
 
+  // Convert int to enum.
   const arGUIEventType eventType = arGUIEventType( event.getDataInt( "eventType" ) );
 
-  // NOTE: caller (normally arGUIWindowManager::_processEvents) is responsible for
-  // deleting these
+  // Caller (normally arGUIWindowManager::_processEvents) deletes these.
   if( eventType == AR_KEY_EVENT )
-    return( new arGUIKeyInfo( event ) );
+    return new arGUIKeyInfo( event );
 
   if( eventType == AR_MOUSE_EVENT )
-    return( new arGUIMouseInfo( event ) );
+    return new arGUIMouseInfo( event );
 
   if( eventType == AR_WINDOW_EVENT )
-    return( new arGUIWindowInfo( event ) );
+    return new arGUIWindowInfo( event );
 
-  // print a warning? (does user ever actually expect this?)
-  return( new arGUIInfo( event ) );
+  // Warn? does user ever actually expect this?
+  return new arGUIInfo( event );
 }
 
 int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
@@ -115,38 +109,28 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   // update the user data
   setUserData( window->getUserData() );
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
-  MSG msg;
-
-  if( blocking ) {
-    if( !WaitMessage() ) {
-      std::cerr << "consumeEvents: WaitMessage error" << std::endl;
-    }
+  if( blocking && !WaitMessage() ) {
+    ar_log_error() << "consumeEvents WaitMessage failed.\n";
   }
-
+  MSG msg;
   while( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )  {
-    int getResult = GetMessage( &msg, NULL, 0, 0 );
-
-    if( getResult == -1 ) {
-      std::cerr << "consumeEvents: GetMessage error" << std::endl;
+    if( GetMessage( &msg, NULL, 0, 0 ) == -1 ) {
+      ar_log_error() << "consumeEvents GetMessage failed.\n";
       return -1;
     }
-    else {
-      // TranslateMessage( &msg );
-      DispatchMessage( &msg );
-    }
+    // TranslateMessage( &msg );
+    DispatchMessage( &msg );
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
-  XEvent event;
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   // OS X seems to have an issue with X11 "unexpected async reply" errors
   // because of some multithreading issues, so we lock/unlock the display
   // to mitigate the problem
   XLockDisplay( window->getWindowHandle()._dpy );
-
+  XEvent event;
   if( blocking ) {
     XPeekEvent( window->getWindowHandle()._dpy, &event );
   }
