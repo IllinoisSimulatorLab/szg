@@ -16,7 +16,7 @@
 class SZG_CALL arIOFilter {
   public:
     arIOFilter();
-    virtual ~arIOFilter();
+    virtual ~arIOFilter() {}
   
     virtual bool configure(arSZGClient*);
     bool filter( arInputEventQueue* qin, arInputState* s );
@@ -38,6 +38,7 @@ class SZG_CALL arIOFilter {
     arInputEventQueue _outputQueue;
     arInputEventQueue _tempQueue;
     arInputState* _inputState;
+    bool _valid() const;
 };
 
 #endif
