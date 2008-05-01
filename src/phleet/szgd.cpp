@@ -559,12 +559,10 @@ LDone:
   ar_log_debug() << "trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
 
-  // Two dynamic search paths (as embodied in environment variables) need
-  // to be altered before launching the new executable (and in the case of
-  // Win32 altered back after launch). The info to do the alterations comes
-  // from szg database variables. Get this info here since
-  // the arSZGClient cannot be used after the Unix fork.
-  // Also, a description of the dynamic search paths follows:
+  // Before launching, alter dynamic search paths (stored in env vars).
+  // In win32, restore them after launch.
+  // Get info for the alterations (from database variables) now,
+  // because arSZGClient can't be used after the fork.
 
   // The library search path is modified for each user, so
   // multiple users (with different ways of arranging and
@@ -732,8 +730,8 @@ LDone:
       }
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
-        ar_log_error() << "internal error: ignoring bogus numberBuffer value "
-	           << *(int*)numberBuffer << ".\n";
+        ar_log_error() << "internal error: ignoring bogus numberBuffer value " <<
+	  *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
       // The timeout can be small.
@@ -762,7 +760,7 @@ LDone:
     if (timeout == -1) {
       timeout = 30000;
     }
-    if (!SZGClient->finishMessageOwnershipTrade(match,timeout)) {
+    if (!SZGClient->finishMessageOwnershipTrade(match, timeout)) {
       info << "szgd message ownership trade timed out.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
