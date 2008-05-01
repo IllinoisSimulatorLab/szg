@@ -174,7 +174,7 @@ LDefaultBaudRate:
   // e0 = 80 | 40 | 20      = fly run bird
   // a0 = 80 | 20           = fly bird
   _fStandalone = true;
-  for (int i=0; i<14; ++i) {
+  for (i=0; i<14; ++i) {
     const unsigned t = c[i];
     if (t == 0)
       continue;
@@ -208,7 +208,7 @@ LDefaultBaudRate:
     _extendedRange = false;
   }
   else {
-    for (int i=0; i<14; ++i) {
+    for (i=0; i<14; ++i) {
       const unsigned t = c[i] & 0x3f;
       if (t == 0) {
 	if (c[i] != 0) {
