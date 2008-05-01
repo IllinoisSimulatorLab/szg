@@ -539,16 +539,15 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 
   list<int>::const_iterator j;
   SZGtaggedMessageQueue::iterator i; // not const
-  arStructuredData* potentialData = NULL;
   for (j = tags.begin(); j != tags.end(); ++j) {
     i = _taggedMessages.find(*j);
     if (i == _taggedMessages.end())
       continue; 
     SZGdatalist& l = i->second;
-    potentialData = l.front();
+    arStructuredData* potentialData = l.front();
     if (dataID >= 0 && potentialData->getID() != dataID){
       ar_log_error() << "arStructuredDataParser expected id " << dataID <<
-	" but got " << potentialData->getID() <<".\n";
+	", not " << potentialData->getID() <<".\n";
       _globalLock.unlock();
       return -1;
     }
@@ -628,9 +627,9 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     ar_log_error() << "getNextTaggedMessage got no message.\n";
   } else {
     SZGdatalist& l = i->second;
-    potentialData = l.front();
+    arStructuredData* potentialData = l.front();
     if ( dataID >= 0 && potentialData->getID() != dataID ){
-      ar_log_error() << "getTaggedMessage expected id " << dataID << " but got " <<
+      ar_log_error() << "getTaggedMessage expected id " << dataID << ", not " <<
 	potentialData->getID() <<".\n";
       return -1;
     }
