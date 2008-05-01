@@ -102,9 +102,7 @@ LPrintUsage:
     if (argc != 3 && argc != 4)
       goto LPrintUsage;
     componentID = atoi(argv[1]);
-    messageType = string(argv[2]);
-    messageBody = argc == 4 ? string(argv[3]) : string("NULL");
-    break;
+    goto LLocked;
 
   case modeProcess:
     if (argc != 4 && argc != 5)
@@ -114,8 +112,9 @@ LPrintUsage:
       cout << "dmsg error: no process for that computer/name pair.\n";
       return 1;
     }
+LProcess:
     messageType = string(argv[3]);
-    messageBody = argc == 5 ? string(argv[4]) : string("NULL");
+    messageBody = string(argc == 5 ? argv[4]: "NULL");
     break;
 
   case modeMaster:
@@ -132,19 +131,15 @@ LPrintUsage:
         return 1;
       }
       const string lockName = launcher.getMasterName();
-      if (!szgClient.getLock(lockName, componentID)){
-        // something is indeed running on the master screen
-        messageType = string(argv[2]);
-        messageBody = argc == 4 ? string(argv[3]) : string("NULL");
-      }
-      else{
+      if (szgClient.getLock(lockName, componentID)){
         // nobody was holding the lock
         szgClient.releaseLock(lockName);
         cout << "dmsg error: no component running on master screen.\n";
         return 1;
       }
+      // Master screen is running something.
+      goto LLocked;
     }
-    break;
 
   case modeScreen:
     if (argc != 4 && argc != 5)
@@ -160,19 +155,15 @@ LPrintUsage:
         return 1;
       }
       const string lockName = launcher.getScreenName(atoi(argv[2]));
-      if (!szgClient.getLock(lockName, componentID)){
-        // something is indeed running on the screen in question
-        messageType = string(argv[3]);
-        messageBody = argc == 5 ? string(argv[4]) : string("NULL");
-      }
-      else{
+      if (szgClient.getLock(lockName, componentID)){
         // nobody else was holding the lock
         szgClient.releaseLock(lockName);
         cout << "dmsg error: no component running on specified screen.\n";
         return 1;
       }
+      // That screen is running something.
+      goto LProcess;
     }
-    break;
 
   case modeControl:
     if (argc != 3 && argc != 4)
@@ -182,18 +173,14 @@ LPrintUsage:
     // Multiple virtual computers can share a location.
     {
       const string lockName = string(argv[1])+"/SZG_DEMO/app";
-      if (!szgClient.getLock(lockName, componentID)){
-        // something is indeed running on that screen
-        messageType = string(argv[2]);
-        messageBody = argc == 4 ? string(argv[3]): string("NULL");
-      } else {
-        // nobody else was holding the lock
+      if (szgClient.getLock(lockName, componentID)){
+        // nobody was holding the lock
         szgClient.releaseLock(lockName);
         cout << "dmsg error: no trigger component running.\n";
         return 1;
       }
+      goto LLocked;
     }
-    break;
 
   case modeService:
     if (argc != 3 && argc != 4)
@@ -203,25 +190,23 @@ LPrintUsage:
     // This *seems* to do the same, less awkwardly.
     componentID = szgClient.getServiceComponentID(argv[1]);
     if (componentID < 0){
-      cout << "dmsg error: no such service (" << argv[1] << ").\n";
+      cout << "dmsg error: no service '" << argv[1] << "'.\n";
       return 1;
     }
-    messageType = string(argv[2]);
-    messageBody = argc == 4 ? string(argv[3]): string("NULL");
-    break;
+    goto LLocked;
 
   case modeLock:
     if (argc != 3 && argc != 4)
       goto LPrintUsage;
     if (szgClient.getLock(argv[1], componentID)){
-      // Nobody held the lock because we got it.
-      cout << "dmsg error: no such lock is currently held (" 
-	   << argv[1] << ").\n";
+      // Nobody held the lock, because we got it.
+      cout << "dmsg error: no held lock '" << argv[1] << "'.\n";
       // The lock will be released when we exit.
       return 1;
     }
+LLocked:
     messageType = string(argv[2]);
-    messageBody = argc == 4 ? string(argv[3]) : string("NULL");
+    messageBody = string(argc == 4 ? argv[3]: "NULL");
     break;
   } 
 
@@ -237,24 +222,22 @@ LPrintUsage:
     // we will eventually be able to have a timeout here
     string responseBody;
     for (;;){
-      list<int> tags;
-      tags.push_back(match);
-      // will be filled-in with the original match, unless there is an error.
-      int remoteMatch;
-      const int status = szgClient.getMessageResponse(tags, responseBody, remoteMatch);
+      int originalMatch = -1; // getMessageResponse sets this.
+      const int status =
+	szgClient.getMessageResponse(list<int>(1,match), responseBody, originalMatch);
       if (status == 0){
         // failure
         cout << "dmsg error: no message response.\n";
         break;
       }
-      else if (status == -1){
-        // continuation
-        cout << responseBody << "\n";
-      }
-      else if (status == 1){
+      if (status == 1){
         // final response
         cout << responseBody << "\n";
         break;
+      }
+      if (status == -1){
+        // continuation
+        cout << responseBody << "\n";
       }
       else
         cout << "dmsg error: unexpected message response status " << status << ".\n";
