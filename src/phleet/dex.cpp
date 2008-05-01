@@ -249,13 +249,9 @@ int main(int argc, char** argv){
   // Default body, e.g. for timeouts.
   string body("dex error: no response.");
 
-  // We only get a message response with "match" from the one-element list "tags".
-  list<int> tags;
-  tags.push_back(match);
-  int r = -1;
+  // We only get a message response with "match" from the one-element list.
   for (;;) {
-    r = szgClient.getMessageResponse(tags, body, match, msecTimeoutLocal);
-
+    const int r = szgClient.getMessageResponse(list<int>(1, match), body, match, msecTimeoutLocal);
     switch (iVerbose) {
     default:
       break;

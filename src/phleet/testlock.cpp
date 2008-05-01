@@ -24,9 +24,7 @@ int main(int argc, char** argv){
     if (!szgClient.getLock(argv[1], ownerID)){
       cout << argv[0] << " warning: failed to get lock.  Will retry.\n";
       const int match = szgClient.requestLockReleaseNotification(argv[1]);
-      list<int> tags;
-      tags.push_back(match);
-      if (szgClient.getLockReleaseNotification(tags) < 0){
+      if (szgClient.getLockReleaseNotification(list<int>(1,match)) < 0){
         cout << argv[0] << " error: mismatched lock release notification.\n";
         return 1;
       }

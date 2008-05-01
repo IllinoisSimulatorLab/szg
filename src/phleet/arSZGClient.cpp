@@ -2477,7 +2477,6 @@ bool arSZGClient::_dialUpFallThrough() {
   }
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)) {
-    // Connect to the specified szgserver.
     ar_log_error() << "dialUpFallThrough(): no szgserver at " <<
       _IPaddress << ":" << _port << ".\n  (First dlogin; dhunt finds szgservers;\n   Open firewall tcp port " << _port << ".)\n";
       // todo: don't advise dlogin or dhunt if this app IS one of those two!
@@ -2498,37 +2497,31 @@ arStructuredData* arSZGClient::_getDataByID(int recordID) {
   return _dataParser->getNextInternal(recordID);
 }
 
-// timeout in msec.
-arStructuredData* arSZGClient::_getTaggedData(int tag, int recordID, int timeout) {
-  list<int> tags;
-  tags.push_back(tag);
+arStructuredData* arSZGClient::_getTaggedData(int tag, int recordID, int msecTimeout) {
+  
   arStructuredData* message = NULL;
-  if (_dataParser->getNextTaggedMessage(message, tags, recordID, timeout) < 0) {
-    // timeout or other error
-    return NULL;
-  }
-  return message;
+  return (_dataParser->getNextTaggedMessage(
+	message, list<int>(1,tag), recordID, msecTimeout) < 0) ? NULL : message;
 }
 
 int arSZGClient::_getTaggedData(arStructuredData*& message,
                                 list<int> tags,
 				int recordID,
-				int timeout) {
-  return _dataParser->getNextTaggedMessage(message, tags, recordID, timeout);
+				int msecTimeout) {
+  return _dataParser->getNextTaggedMessage(message, tags, recordID, msecTimeout);
 }
 
 bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
-                                 int timeout) {
-  arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_MESSAGE_ACK, timeout);
+                                 int msecTimeout) {
+  arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_MESSAGE_ACK, msecTimeout);
   if (!ack) {
     ar_log_error() << "no ack of " << transaction << ".\n";
     return false;
   }
 
   const bool ok = ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS) == "SZG_SUCCESS";
-  // If SZG_FAILURE, we have no relevant ID data
   if (ok && id) {
-    // Return ID.
+    // ack has something to stuff id with.
     *id = ack->getDataInt(_l.AR_SZG_MESSAGE_ACK_ID);
   }
   _dataParser->recycle(ack);

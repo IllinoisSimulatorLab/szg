@@ -39,9 +39,7 @@ int main(int argc, char** argv){
   if (!client.registerService(argv[1],"default",1,ports)){
     ar_log_remark() << "testservice failed to register service.  Will retry when current service expires.\n";
     const int match = client.requestServiceReleaseNotification(argv[1]);
-    list<int> tags;
-    tags.push_back(match);
-    if (client.getServiceReleaseNotification(tags) < 0){
+    if (client.getServiceReleaseNotification(list<int>(1, match)) < 0){
       ar_log_critical() << "testservice failed to get matching tag.\n";
       return 1;
     }

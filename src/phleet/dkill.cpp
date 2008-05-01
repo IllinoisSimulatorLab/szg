@@ -75,10 +75,9 @@ LNotFound:
   }
 
   szgClient.sendMessage("quit", "0", progID);
-  list<int> tags;
-  tags.push_back(szgClient.requestKillNotification(progID));
+  const int tag = szgClient.requestKillNotification(progID);
   const int msecTimeout = 5000;
-  if (szgClient.getKillNotification(tags, msecTimeout) < 0){
+  if (szgClient.getKillNotification(list<int>(1,tag), msecTimeout) < 0){
     ar_log_error() << "timed out after " << msecTimeout << " msec.\n";
   }
   return 0;
