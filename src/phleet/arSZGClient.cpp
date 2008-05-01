@@ -817,8 +817,8 @@ bool arSZGClient::setAttribute(const string& userName,
       !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
       !_dataClient.sendData(setRequestData)) {
     ar_log_error() << "send failed while setting "
-                     << groupName << "/" << parameterName << " on host '"
-	             << computerName << "' to '" << parameterValue << "'.\n";
+      << groupName << "/" << parameterName << " on host '"
+      << computerName << "' to '" << parameterValue << "'.\n";
     ok = false;
   }
   _dataParser->recycle(setRequestData);
@@ -828,26 +828,24 @@ bool arSZGClient::setAttribute(const string& userName,
   arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
   if (!ack) {
     ar_log_error() << "ack failed while setting "
-                     << groupName << "/" << parameterName << " on host '"
-	             << computerName << "' to '" << parameterValue << "'.\n";
+      << groupName << "/" << parameterName << " on host "
+      << computerName << " to '" << parameterValue << "'.\n";
     return false;
   }
   _dataParser->recycle(ack);
   return true;
 }
 
-// Attributes in the database, from the arSZGClient perspective, are
-// organized (under a given user name) hierarchically by
-// host/attribute_group/attribute. Internally to the szgserver, this
-// hierarchy has limited meaning since the parameter database is *really*
-// key/value pairs. Sometimes we want
-// to dispense with the hierarchy. For instance, the
-// configuration of an input node (the filters to use, whether it should
-// get input from the network, whether there are any special input sinks,
-// etc.) isn't tied to a particular host.
-// NOTE: We use a different function name since there is already a
-// getAttribute with 2 const string& parameters.
-// "Global" attributes differ from "local" attributes for a particular host.
+// In arSZGClient, attributes in the database are organized
+// hierarchically by username/host/attribute_group/attribute.
+// But in szgserver they're really just key/value pairs.
+// Dispense with the hierarchy for attributes not tied to one host
+// ("global" not "local"),
+// e.g. an input node's configuration (filters to use, network input,
+// input sinks, etc).
+//
+// Different function name, because there is already a
+// getAttribute with 2 const string& args.
 string arSZGClient::getGlobalAttribute(const string& userName,
                                        const string& attributeName) {
   if (!_connected) {
@@ -873,9 +871,8 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   return result;
 }
 
-// The userName is implicit in this one (i.e. it is the name of the
-// Syzygy user executing the program)
 string arSZGClient::getGlobalAttribute(const string& attributeName) {
+  // Username is the Syzygy user executing the program.
   return getGlobalAttribute(_userName, attributeName);
 }
 
