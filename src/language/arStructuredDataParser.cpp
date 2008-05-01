@@ -515,20 +515,19 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
 }
 
 // If a piece of data is in internal storage with one of the list of passed
-// tags and matches the requested dataID, fill-in the first parameter with 
-// it. If not, wait until the specified time-out period (in msec; the default is to
-// have no time-out, as given by a default parameter for timeout of -1).
-// The function returns the tag of the message actually retrieved (or -1 on
-// timeout or other failure). The dataID is also an optional parameter,
-// given a value of -1 by default. If it is positive, we check that the
-// retrieved message has the proper ID also.
+// tags and matches the requested dataID, stuff it into the first parameter.
+// Else, time out (in msec; the default is no timeout, given by the value -1).
+// Return the tag of the message actually retrieved (or -1 on
+// timeout or other failure). If dataID (optional, default -1) is nonnegative,
+// also check that the retrieved message has the proper ID.
 int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
                                                  list<int> tags,
                                                  int dataID,
                                                  int timeout){
   _globalLock.lock();
-  // As in getNextInternal(), we want to be able to fall through this
-  // call. This allows arSZGClient to be effectively STOPPED and RESTARTED
+
+  // As in getNextInternal(), allow falling through this call,
+  // to let arSZGClient be effectively STOPPED and RESTARTED
   // arbitrarily from that object's data thread!
   _activationLock.lock();
   if (!_activated){
@@ -537,6 +536,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     return -1;
   }
   _activationLock.unlock();
+
   list<int>::const_iterator j;
   SZGtaggedMessageQueue::iterator i; // not const
   arStructuredData* potentialData = NULL;
@@ -546,24 +546,25 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
       continue; 
     SZGdatalist& l = i->second;
     potentialData = l.front();
-    if (dataID < 0 || potentialData->getID() == dataID){
-      message = potentialData;
-      l.pop_front();
-      if (l.empty()){
-	// No more data, so ok to erase this entry.
-	_taggedMessages.erase(i);
-      }
+    if (dataID >= 0 && potentialData->getID() != dataID){
+      ar_log_error() << "arStructuredDataParser expected id " << dataID <<
+	" but got " << potentialData->getID() <<".\n";
       _globalLock.unlock();
-      return *j;
+      return -1;
     }
-    ar_log_error() << "arStructuredDataParser got wrong type.\n";
+    message = potentialData;
+    l.pop_front();
+    if (l.empty()){
+      // No more data, so ok to erase this entry.
+      _taggedMessages.erase(i);
+    }
     _globalLock.unlock();
-    return -1;
+    return *j;
   }
 
-  // No data yet.  Get a synchronizer and associate
-  // it with the list of tags. It must be the same
-  // synchronizer for all these tags!
+  // tags was empty: no data yet.
+  // Associate a synchronizer with the list of tags,
+  // the same synchronizer for all these tags.
   arStructuredDataSynchronizer* syn = NULL;
   if (_recycledSync.empty()){
     syn = new arStructuredDataSynchronizer();
@@ -587,7 +588,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   }
   _globalLock.unlock();
 
-  // phase 2: wait.
+  // Phase 2: wait.
   // NOTE: there was originally a subtle bug here. Specifically, the 
   // tag on the synchronizer may ALREADY be set. Consequently, a normal
   // exit might never get into the body of the loop. Thus the default for
@@ -597,56 +598,49 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   bool normalExit = true;
   syn->lock();
 
-    // if the exitFlag has been set,
-    // the tag will be -1, so exit normally from the wait.
+    // If syn->exitFlag, the tag will be -1, so exit normally from the wait.
     while (syn->tag < 0 && !syn->exitFlag && normalExit){
-      // wait returns false on timeout, i.e. no data.
+      // Wait returns false on timeout, i.e. no data.
       normalExit = syn->wait(timeout);
     }
-    // Get the tag associated with the signal. This is the tag of the
-    // message we've been awaiting.
-    int tag = syn->tag;
+    // Get the tag associated with the signal,
+    // i.e. the tag of the awaited message.
+    const int tag = syn->tag;
 
   syn->unlock();
 
-  // We don't need the synchronizers anymore. Put them on the
+  // Synchronizers are no longer needed. Put them on the
   // recycling list. Use the ERROR-CHECKED list of tags,
-  // which prevents us from putting tags on the list twice.
+  // which prevents putting tags on the list twice.
   _cleanupSynchronizers(actualUsedTags);
 
-  // Suppose we have either (a) timed-out (normalExit is false) or
-  // clearQueues() has been issued (which can release the wait() above
-  // with a value of -1). In this case, there is no data to get and we
-  // should fail. This is normal (really), so don't print a diagnostic.
   if (!normalExit || tag == -1){
+    // Either timed-out (!normalExit), or
+    // clearQueues() released the wait() above with -1.
+    // No data to get, so fail.  Normal, so don't warn.
     return -1;
   }
 
-  // phase 3: got the message.
+  // Phase 3: got the message.
   arGuard dummy(_globalLock);
   i = _taggedMessages.find(tag);
   if ( i == _taggedMessages.end() ){
-    cout << "arStructuredDataParser error: "
-	 << "getNextTaggedMessage found no message.\n";
-  }
-  else{
+    ar_log_error() << "getNextTaggedMessage got no message.\n";
+  } else {
     SZGdatalist& l = i->second;
     potentialData = l.front();
-    if ( dataID < 0 || potentialData->getID() == dataID ){
-      // Either we don't care about the data type, or we've got the proper
-      // data type. Return success.
-      message = potentialData;
-      l.pop_front();
-      // only erase the entry if the list is empty
-      if (l.empty()){
-        _taggedMessages.erase(i);
-      }
+    if ( dataID >= 0 && potentialData->getID() != dataID ){
+      ar_log_error() << "getTaggedMessage expected id " << dataID << " but got " <<
+	potentialData->getID() <<".\n";
+      return -1;
     }
-    else{
-      cout << "arStructuredDataParser error: "
-	   << "getTaggedMessage found a message with wrong type.\n";
-      // tag is the return value. Must alter it to indicate failure.
-      tag = -1;
+    // Either we don't care about the data type, or we've got the proper
+    // data type. Return success.
+    message = potentialData;
+    l.pop_front();
+    // only erase the entry if the list is empty
+    if (l.empty()){
+      _taggedMessages.erase(i);
     }
   }
   return tag;
