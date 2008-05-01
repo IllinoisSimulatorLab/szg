@@ -1514,8 +1514,8 @@ int arSZGClient::getMessageResponse(list<int> tags,
   return 0;
 }
 
-// Respond to a message. Return
-// true iff the response was successfully dispatched.
+// Respond to a message.
+// Return true iff the response was successfully dispatched.
 // @param messageID ID of the message to which we are trying to respond
 // @param body Body we wish to send
 // @param partialResponse False iff we won't send further responses
@@ -1535,14 +1535,10 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   bool state = false;
   // fill in the appropriate data
   int match = _fillMatchField(messageAdminData);
-  if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
-                                AR_INT, 1) ||
-      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_STATUS,
-				      statusField) ||
-      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE,
-				      "SZG Response") ||
-      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY,
-                                      body) ||
+  if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID, AR_INT, 1) ||
+      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_STATUS, statusField) ||
+      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE, "SZG Response") ||
+      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, body) ||
       !_dataClient.sendData(messageAdminData)) {
     ar_log_error() << "failed to send message response.\n";
   }
@@ -1553,26 +1549,21 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   return state;
 }
 
-// Start a "message ownership trade".
-// Useful when the executable launched by szgd wants to respond to "dex".
-// Returns -1 on failure and otherwise the "match" associated with this
-// request.
-// @param messageID ID of the message we want to trade.  We need to
-// own the right to respond to this message for the call to succeed.
-// @param key Value of which a future ownership trade can occur
-int arSZGClient::startMessageOwnershipTrade(int messageID,
-                                            const string& key) {
+// Start a "message ownership trade" for when szgd's launchee
+// wants to respond to "dex".
+// Return this request's "match", or -1 on failure.
+// @param messageID ID of the message we want to trade.
+// We must own the right to respond to this message.
+// @param key Value on which a future ownership trade can occur
+int arSZGClient::startMessageOwnershipTrade(int messageID, const string& key) {
   if (!_connected) {
     return -1;
   }
-  // Must get storage for the message.
-  arStructuredData* messageAdminData
-    = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
+  // Get storage for the message.
+  arStructuredData* messageAdminData = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
   int match = _fillMatchField(messageAdminData);
-  if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
-				AR_INT, 1) ||
-      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE,
-				      "SZG Trade Message") ||
+  if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID, AR_INT, 1) ||
+      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE, "SZG Trade Message") ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, key) ||
       !_dataClient.sendData(messageAdminData)) {
     ar_log_error() << "failed to send message ownership trade.\n";
@@ -1585,14 +1576,11 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
   return match;
 }
 
-// Wait until the message ownership trade completes (or until the optional
-// timeout argument has elapsed). Returns false on timeout or other error
-// and true otherwise.
+// Wait until the message ownership trade completes or times out.
+// Return false iff timeout or other error.
 bool arSZGClient::finishMessageOwnershipTrade(int match, int timeout) {
-  if (!_connected) {
-    return false;
-  }
-  return _getMessageAck(match, "message ownership trade", NULL, timeout);
+  return _connected &&
+    _getMessageAck(match, "message ownership trade", NULL, timeout);
 }
 
 // Revoke the possibility of a previously-made message ownership
@@ -1820,15 +1808,14 @@ void arSZGClient::printLocks() {
     ar_log_error() << "got no list of locks.\n";
     return;
   }
+
   const string locks(data->getDataString(_l.AR_SZG_LOCK_LISTING_LOCKS));
   int* IDs = (int*)data->getDataPtr(_l.AR_SZG_LOCK_LISTING_COMPONENTS, AR_INT);
   int number = data->getDataDimension(_l.AR_SZG_LOCK_LISTING_COMPONENTS);
-  // print out the stuff
   int where = 0;
   for (int i=0; i<number; i++) {
-    // SHOULD NOT be ar_log_*. This is a rare case where we actually want to print to the terminal.
-    cout << ar_pathToken(locks, where) << ";"
-         << IDs[i] << "\n";
+    // cout, not ar_log_xxx.
+    cout << ar_pathToken(locks, where) << ";" << IDs[i] << "\n";
   }
   _dataParser->recycle(data);
 }
@@ -2179,9 +2166,9 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
   return match;
 }
 
-// Tries to get the "info" associated with the given (full) service name.
-// Confusingly, at present, this returns the empty string both if the service
-// fails to exist AND if the service has the empty string as its info!
+// Get the "info" associated with the given (full) service name.
+// Confusingly, return the empty string if the service
+// fails to exist OR if the service has the empty string as its info.
 string arSZGClient::getServiceInfo(const string& serviceName) {
   if (!_connected) {
     return string("");
@@ -2198,7 +2185,7 @@ string arSZGClient::getServiceInfo(const string& serviceName) {
     return string("");
   }
 
-  // Now, get the response.
+  // Get the response.
   data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
   if (!data) {
     ar_log_error() << "got no service info.\n";
@@ -2255,8 +2242,8 @@ void arSZGClient::printPendingServiceRequests() {
   _printServices("pending");
 }
 
-// Directly get the Syzygy ID
-// of the component running a service. For instance, upon launching an
+// Directly get the ID of the component running a service.
+// For instance, upon launching an
 // app on a virtual computer, we may wish to kill a previously running
 // app that supplied a service that the
 // new application wishes to supply. Return the component's ID
@@ -2281,7 +2268,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName) {
 
   _dataParser->recycle(data);
 
-  // get the response
+  // Get the response.
   data = _getTaggedData(match, _l.AR_SZG_GET_SERVICES);
   if (!data) {
     ar_log_error() << "got no service ID.\n";
@@ -2495,16 +2482,16 @@ arStructuredData* arSZGClient::_getDataByID(int recordID) {
 }
 
 arStructuredData* arSZGClient::_getTaggedData(int tag, int recordID, int msecTimeout) {
-  
   arStructuredData* message = NULL;
   return (_dataParser->getNextTaggedMessage(
-	message, list<int>(1,tag), recordID, msecTimeout) < 0) ? NULL : message;
+    message, list<int>(1,tag), recordID, msecTimeout) < 0) ? NULL : message;
 }
 
 int arSZGClient::_getTaggedData(arStructuredData*& message,
                                 list<int> tags,
 				int recordID,
 				int msecTimeout) {
+  // Almost always one tag.  Optimize for this common case?
   return _dataParser->getNextTaggedMessage(message, tags, recordID, msecTimeout);
 }
 

@@ -25,7 +25,7 @@ arPhleetConnectionBroker connectionBroker;
 // TCP-wrappers style filtering on the incoming IPs.
 list<string> serverAcceptMask;
 
-// Addresses of this host's NICs, for the "discovery" process.
+// Addresses of this host's NICs, for "discovery" (dhunt).
 arSlashString computerAddresses;
 arSlashString computerMasks;
 
@@ -34,7 +34,7 @@ string serverIP;
 int    serverPort = -1;
 
 //*******************************************
-// global data storage used by the szgserver.  "DB" means "Database".
+// Global data storage.  "DB" means "Database".
 //*******************************************
 
 typedef map<string,string,less<string> > SZGparamDB;
@@ -154,7 +154,7 @@ void SZGactivateUser(const string& userName) {
 }
 
 //********************************************************************
-// functions dealing with manipulating the message databases
+// functions manipulating the message databases
 //********************************************************************
 
 // A helper function for the larger message database manipulators.
@@ -244,9 +244,8 @@ void SZGaddMessageToDB(const int messageID,
 }
 
 // Return the ID of the component that owns this message
-int SZGgetMessageOwnerID(int messageID) {
-  SZGmsgOwnershipDB::const_iterator
-    i(messageOwnershipDB.find(messageID));
+int SZGgetMessageOwnerID(const int messageID) {
+  SZGmsgOwnershipDB::const_iterator i(messageOwnershipDB.find(messageID));
   return (i == messageOwnershipDB.end()) ? -1 : i->second.idOwner;
 }
 
@@ -254,17 +253,15 @@ int SZGgetMessageOwnerID(int messageID) {
 // we are going to send a response back to the originator. It that case,
 // we need to fill in the original match so that the async stuff on the
 // arSZGClient side can route the messages correctly.
-int SZGgetMessageMatch(int messageID) {
-  SZGmsgOwnershipDB::const_iterator
-    i(messageOwnershipDB.find(messageID));
+int SZGgetMessageMatch(const int messageID) {
+  SZGmsgOwnershipDB::const_iterator i(messageOwnershipDB.find(messageID));
   return (i == messageOwnershipDB.end()) ? -1 : i->second.idMatch;
 } 
 
 // Return the ID of the component that originated this message
 // (and to which the response needs to be sent).
-int SZGgetMessageOriginatorID(int messageID) {
-  SZGmsgOwnershipDB::const_iterator
-    i(messageOwnershipDB.find(messageID));
+int SZGgetMessageOriginatorID(const int messageID) {
+  SZGmsgOwnershipDB::const_iterator i(messageOwnershipDB.find(messageID));
   return (i == messageOwnershipDB.end()) ? -1 : i->second.idDestination;
 }
 
@@ -299,8 +296,7 @@ bool SZGaddMessageTradeToDB(const string& key,
                             const int messageID,
                             const int requestingComponentID,
 			    const int tradingMatch) {
-  SZGmsgOwnershipDB::iterator
-    i(messageOwnershipDB.find(messageID));
+  SZGmsgOwnershipDB::iterator i(messageOwnershipDB.find(messageID));
   if (i == messageOwnershipDB.end()) {
     ar_log_error() << "ignoring trade on messageless ID.\n";
     return false;
@@ -342,14 +338,14 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
                        arPhleetMsg& message) {
   SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   if (j == messageTradingDB.end()) {
-    // no trade has been posted on this key... failure
+    // No trade has been posted on this key.
     ar_log_error() << "ignoring trade on missing key " << key << ".\n";
     return false;
   }
 
-  // fill-in messageData with the relevant values
+  // stuff messageData
   message = j->second;
-  // must get the old owner before overwriting
+  // get the old owner before overwriting
   int oldOwner = message.idOwner;
   // the change is that someone else owns the message now.
   message.idOwner = newOwnerID;
