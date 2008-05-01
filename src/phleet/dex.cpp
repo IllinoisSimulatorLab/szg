@@ -239,7 +239,7 @@ int main(int argc, char** argv){
   if (msecTimeoutRemote > -1) {
     // Hack, unpacked by szgd.
     msgBody += "||||" + ar_intToString(msecTimeoutRemote);
-  } 
+  }
   int match = szgClient.sendMessage("exec", msgBody, msgContext, szgdID, true);
   if (match < 0) {
     cerr << "dex error: failed to send message.\n";
@@ -264,8 +264,7 @@ int main(int argc, char** argv){
 	body = "";
 	while (getline( ist, line, '\n' ))
 	  lines.push_back( line );
-	vector< string >::const_iterator i;
-	for (i = lines.begin(); i != lines.end(); ++i)
+	for (vector< string >::const_iterator i=lines.begin(); i!=lines.end(); ++i)
 	  if (i->find( "  |", 0 ) != 0)
 	    body += *i + "\n";
 	// fallthrough
