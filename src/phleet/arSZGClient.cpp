@@ -2945,12 +2945,12 @@ void arSZGClient::_serverResponseThread() {
         if (_bufferResponse) {
           // Print this packet's contents.
           const string serverInfo(
-	    string(_responseBuffer+5)  + "/" +
-	    string(_responseBuffer+132) + ":" +
-	    string(_responseBuffer+164));
+          string(_responseBuffer+5)  + "/" +
+          string(_responseBuffer+132) + ":" +
+          string(_responseBuffer+164));
           bool found = false;
           for (vector<string>::const_iterator i = _foundServers.begin();
-	    i != _foundServers.end(); ++i) {
+          i != _foundServers.end(); ++i) {
             if (*i == serverInfo) {
               // Found it already (someone else broadcast a response packet?).
               found = true;
@@ -2958,14 +2958,14 @@ void arSZGClient::_serverResponseThread() {
             }
           }
           // Not found.  Explicitly cout, not ar_log_xxx().
-	  if (_justPrinting) {
-	    cout << serverInfo << "\n";
-	  }
-	  _foundServers.push_back(serverInfo);
-        } else if (_requestedName == string(_responseBuffer+5)) {
-	  // Stop, discarding subsequent packets.
-	  _dataRequested = false;
-	  _dataCondVar.signal();
+          if (_justPrinting) {
+            cout << serverInfo << "\n";
+          }
+          _foundServers.push_back(serverInfo);
+              } else if (_requestedName == string(_responseBuffer+5)) {
+          // Stop, discarding subsequent packets.
+          _dataRequested = false;
+          _dataCondVar.signal();
         }
       }
     }
@@ -2975,10 +2975,10 @@ void arSZGClient::_serverResponseThread() {
 void arSZGClient::_timerThread() {
   while (_keepRunning) {
     _lock.lock();
-      while (!_beginTimer) {
-	_timerCondVar.wait(_lock);
-      }
-      _beginTimer = false;
+    while (!_beginTimer) {
+      _timerCondVar.wait(_lock);
+    }
+    _beginTimer = false;
     _lock.unlock();
 
     ar_usleep(1500000); // Long, for slow or flaky networks.
@@ -3012,8 +3012,10 @@ void arSZGClient::_dataThread() {
       ar_log_critical() << "szgserver forcibly disconnected.\n";
       break;
     }
-    arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
-    _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
+    else {
+      arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
+      _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
+    }
   }
 
   // Interrupt any waiting messages, and forbid any future ones.
