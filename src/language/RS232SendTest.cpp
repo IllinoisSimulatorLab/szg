@@ -22,10 +22,11 @@ int main( int /*argc*/, char** /*argv*/ ) {
     cout << "failed to open port.\n";
     return -1;
   }
+
   int k = 0;
   for (int i=0; i<100; i++) {
     bigThing[i] = 'A' + static_cast<char>(k);
-    k = ++k % 26;
+    ++k %= 26;
   }
   while (1) {
     const int numWrit = myPort.ar_write( bigThing, 100 );
@@ -33,6 +34,6 @@ int main( int /*argc*/, char** /*argv*/ ) {
       cout << "error: ";
     cout << "Wrote " << numWrit << " bytes." << endl;
   } 
-  cout << myPort.ar_close() ? "Port closed.\n" : "failed to close port.\n";
+  cout << (myPort.ar_close() ? "Port closed.\n" : "failed to close port.\n");
   return 0;
 }
