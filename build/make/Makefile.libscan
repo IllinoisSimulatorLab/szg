@@ -29,6 +29,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
 	INC_FMOD := $(wildcard $(FMOD_DIR)/include)
 	LIB_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
 	LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+	OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
   
   JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
