@@ -327,14 +327,13 @@ void arEulerAngles::angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) co
   k = static_cast<arAxisName>(kk);
 }
 
-#define AR_MATRIX4_INDEX(i,j) (4*(i) + (j))
-
 arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   arAxisName i, j, k;
   angleOrder( i, j, k );
 
-  arMatrix4 M = mat.inverse();
-  //
+  arMatrix4 M(mat.inverse());
+#define AR_MATRIX4_INDEX(i,j) (4*(i) + (j))
+
   // Extract the first angle, x.
   const float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
 
@@ -350,6 +349,7 @@ arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   const float y = atan2( -N[AR_MATRIX4_INDEX(i,k)], cy );
   const float z = atan2( -N[AR_MATRIX4_INDEX(j,i)],  N[AR_MATRIX4_INDEX(j,j)] );
 
+#undef AR_MATRIX4_INDEX
   _angles = arVector3(x,y,z);
   if (_parityEven)
     _angles *= -1;
