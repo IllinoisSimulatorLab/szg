@@ -259,7 +259,7 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   for (i=0; i<ca; ++i) {
     if (rgfjoy32k[i] |= fabs(rgAxis[i] = fw.getAxis(i)) > 16400.)
       rgAxis[i] /= 32768.;
-    clamp(rgAxis[i], -1.5, 1.5);
+    clamp(rgAxis[i], -M_PI, M_PI);
   }
   rgm[0] = fw.getMidEyeMatrix();
   for (i=1; i<cm; ++i)
