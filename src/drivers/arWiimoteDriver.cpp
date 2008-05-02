@@ -107,7 +107,14 @@ static void __pointerHandleEvent( struct wiimote_t* wm ) {
     __wiimoteDriver->queueMatrix( 0, wiiAnglesToRotMatrix( yaw, pitch, roll ));
   }
 
-  if (wm->exp.type == expansion_t::EXP_NUNCHUK) {
+#if 0
+  // Ubuntu gutsy gibbon (isl92) needs this.
+  #define expNunchuk EXP_NUNCHUK
+#else
+  // Slackware 10 needs this.
+  #define expNunchuk expansion_t::EXP_NUNCHUK
+#endif
+  if (wm->exp.type == expNunchuk) {
     struct nunchuk_t* nc = (nunchuk_t*)&wm->exp.nunchuk;
     doButton(nc, NUNCHUK_BUTTON_C, BUTTONS_WIIMOTE);
     doButton(nc, NUNCHUK_BUTTON_Z, BUTTONS_WIIMOTE+1);
@@ -163,12 +170,13 @@ static void __pointerHandleCtrlStatus(
     "\nIR:      " << ir <<
     "\nBattery: " << battery_level << "\n";
 
+  const int axes_eulerangles = 3;
   int numButtons  = BUTTONS_WIIMOTE;
-  int numAxes     = AXES_WIIMOTE;
+  int numAxes     = AXES_WIIMOTE + axes_eulerangles;
   int numMatrices = MATRIX_WIIMOTE;
   if (attachment) {
     numButtons  += BUTTONS_NUNCHUK;
-    numAxes     += AXES_NUNCHUK;
+    numAxes     += AXES_NUNCHUK + axes_eulerangles;
     numMatrices += MATRIX_NUNCHUK;
   }
   __wiimoteDriver->updateSignature( numButtons, numAxes, numMatrices );
