@@ -71,7 +71,7 @@ arLogStream::arLogStream():
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
   _fTimestamp(false),
-  _l("Global\\szgLog"),
+  _l("LogStream","Global\\szgLog"),
   _fLocked(false) {
   if (!_l.valid())
     cerr << "arLogStream warning: no locks. Expect interleaving.\n";
@@ -344,9 +344,10 @@ LDone:
     if (addNewline) {
       s += "\n";
     }
-    *_output << s;
-    if (*_output != cout)
-      cout << s;
+    cout << s;
+    if (_output && (*_output != cout)) {
+      *_output << s;
+    }
   }
 
   static const string empty;
@@ -390,9 +391,10 @@ arLogStream& ar_endl(arLogStream& s){
   s._lock();
   s._flush(false);
   if (s._level <= s._threshold){
-    *s._output << endl;
-    if (*s._output != cout)
-      cout << endl;
+    cout << endl;
+    if (s._output && (*s._output != cout)) {
+      *s._output << endl;
+    }
   }
   s._unlock();
   return s;

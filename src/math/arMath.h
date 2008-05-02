@@ -42,7 +42,7 @@ class arQuaternion;
 
 // Vector of 2 points, e.g. a 2D texture coordinate.
 
-class SZG_CALL arVector2{
+class SZG_CALL arVector2 {
  public:
   float v[2];
   arVector2(){ v[0] = v[1] = v[2] = 0.; }
@@ -51,8 +51,38 @@ class SZG_CALL arVector2{
   float& operator[] (int i){ return v[i]; }
   void set(const float* p)
     { memcpy(v, p, sizeof(v)); }
+  void set(float x, float y)
+    { v[0]=x; v[1]=y; }
   void get(float* p) const
     { memcpy(p, v, sizeof(v)); }
+
+  const arVector2& operator+=(const arVector2& rhs)
+    { v[0]+=rhs.v[0]; v[1]+=rhs.v[1]; return *this; }
+  const arVector2& operator-=(const arVector2& rhs)
+    { v[0]-=rhs.v[0]; v[1]-=rhs.v[1]; return *this; }
+  const arVector2& operator*=(float scalar)
+    { v[0]*=scalar; v[1]*=scalar; return *this; }
+  const arVector2& operator/=(float scalar)
+    { v[0]/=scalar; v[1]/=scalar; return *this; }
+    // No protection from division by zero, for speed.
+  bool operator==(const arVector2& rhs) const
+    { return memcmp(v, rhs.v, 2*sizeof(float)) == 0; }
+  bool operator!=(const arVector2& rhs) const
+    { return memcmp(v, rhs.v, 2*sizeof(float)) != 0; }
+
+  float magnitude2() const { return v[0]*v[0]+v[1]*v[1]; }
+  float magnitude() const { return sqrt(magnitude2()); }
+  arVector2 normalize() const {
+    const float mag = magnitude();
+    if (mag <= 0.) {
+      cerr << "arVector2 error: cannot normalize zero vector.\n";
+      return arVector2(0,0);
+    }
+    return arVector2(v[0]/mag, v[1]/mag);
+  }
+  float dot( const arVector2& rhs ) const {
+    return v[0]*rhs.v[0]+v[1]*rhs.v[1];
+  }
 };
 
 // Vector of 3 points, e.g. position or direction in 3-space.
@@ -252,6 +282,12 @@ class SZG_CALL arEulerAngles {
 //***************************************************************
 
 // *********** vector ******************
+SZG_CALL arVector2 operator*(float, const arVector2&);
+SZG_CALL arVector2 operator*(const arVector2&, float);
+SZG_CALL arVector2 operator/(const arVector2&, float); // scalar division, handles /0
+SZG_CALL arVector2 operator+(const arVector2&, const arVector2&);
+SZG_CALL arVector2 operator-(const arVector2&); // negation
+SZG_CALL arVector2 operator-(const arVector2&, const arVector2&);
 // cross product
 SZG_CALL arVector3 operator*(const arVector3&, const arVector3&); 
 SZG_CALL arVector3 operator*(float, const arVector3&);
@@ -436,6 +472,42 @@ SZG_CALL arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
 //*************************************
 // vector inline
 //*************************************
+
+// scalar multiply
+// Should also define operator*=
+inline arVector2 operator*(float c, const arVector2& x){
+  return arVector2(c*x.v[0], c*x.v[1]);
+}
+// Should also define operator*=
+inline arVector2 operator*(const arVector2& x, float c){
+  return c * x;
+}
+
+// scalar division, returns all zeros if scalar zero
+// Should also define operator/=
+inline arVector2 operator/(const arVector2& x, float c){
+  return (c==0) ?
+    arVector2(0,0) :
+    arVector2(x.v[0]/c, x.v[1]/c);
+}
+
+// addition
+// Should also define operator+=
+inline arVector2 operator+(const arVector2& x, const arVector2& y){
+  return arVector2(x.v[0]+y.v[0], x.v[1]+y.v[1]);
+}
+
+// negation
+// Should also define operator-=
+inline arVector2 operator-(const arVector2& x){
+  return arVector2(-x.v[0],-x.v[1]);
+}
+
+// subtraction
+// Should also define operator-=
+inline arVector2 operator-(const arVector2& x, const arVector2& y){
+  return arVector2(x.v[0]-y.v[0],x.v[1]-y.v[1]);
+}
 
 // cross product
 // Should also define operator*=

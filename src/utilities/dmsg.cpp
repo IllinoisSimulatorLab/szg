@@ -55,12 +55,12 @@ LPrintUsage:
   // default: send a message to the component with that ID.
   // -p: send to the component matching the computer/component_name Pair.
   // -m: send to the component operating on the Master screen.
-  // -s: send to the component operating on a Screen.
+  // -g: send to the component operating on a Display.
   // -c: send to the Control component (holding the "demo" lock).
   // If multiple flags are given, only the last one takes effect.
 
   // Parse the args.
-  enum { modeDefault, modeProcess, modeMaster, modeScreen, modeControl, modeService, modeLock };
+  enum { modeDefault, modeProcess, modeMaster, modeDisplay, modeControl, modeService, modeLock };
   int mode = modeDefault;
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-p")){
@@ -73,7 +73,7 @@ LPrintUsage:
       striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-g")){
-      mode = modeScreen;
+      mode = modeDisplay;
       striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-c")){
@@ -141,7 +141,7 @@ LProcess:
       goto LLocked;
     }
 
-  case modeScreen:
+  case modeDisplay:
     if (argc != 4 && argc != 5)
       goto LPrintUsage;
     {
@@ -154,7 +154,7 @@ LProcess:
         cout << "dmsg error: invalid virtual computer definition.\n";
         return 1;
       }
-      const string lockName = launcher.getScreenName(atoi(argv[2]));
+      const string lockName = launcher.getDisplayName(atoi(argv[2]));
       if (szgClient.getLock(lockName, componentID)){
         // nobody else was holding the lock
         szgClient.releaseLock(lockName);

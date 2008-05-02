@@ -30,16 +30,23 @@ class SZG_CALL arLaunchInfo {
   string info;
 };
 
+SZG_CALL ostream& operator<<(ostream&, const arLaunchInfo&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arLaunchInfo&);
+
+
 typedef list<arLaunchInfo>::const_iterator iLaunch;
 
 class SZG_CALL arPipe {
  public:
   string hostname;
-  string screenname; // e.g. "SZG_DISPLAY3"
+  string displayname; // e.g. "SZG_DISPLAY3"
   arLaunchInfo renderer;
   arPipe() {}
-  arPipe(const string& a, const string& b) : hostname(a), screenname(b) {}
+  arPipe(const string& a, const string& b) : hostname(a), displayname(b) {}
 };
+
+SZG_CALL ostream& operator<<(ostream&, const arPipe&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arPipe&);
 
 class SZG_CALL arAppLauncher {
   // Needs assignment operator and copy constructor, for pointer members.
@@ -65,14 +72,11 @@ class SZG_CALL arAppLauncher {
   bool setParameters();
   bool waitForKill();
 
-  // A "screen" of the v.c. is a window that is rendered into.
-  // See doc/GraphicsConfiguration.html.
-
   bool isMaster() const;
-  int getNumberScreens() const { return _pipes.size(); }
+  int getNumberDisplays() const { return _pipes.size(); }
   string getMasterName() const;
   string getTriggerName() const;
-  string getScreenName(const int) const;
+  string getDisplayName(const int) const;
   bool getRenderProgram(const int num, string& computer, string& renderName);
   void updateRenderers(const string& attribute, const string& value);
 
@@ -98,8 +102,8 @@ class SZG_CALL arAppLauncher {
 
   string _firstToken(const string&) const;
   bool _prepareCommand();
-  bool _setScreenName(int);
-  string _screenName(int i) const;
+  bool _setDisplayName(int);
+  string _displayName(int i) const;
   void _addService(const string& computer, const string& process,
                    const string& context, const string& tradingTag,
                    const string& info);
@@ -118,7 +122,7 @@ class SZG_CALL arAppLauncher {
   int _getPID(const int i, const string& name)
     { return _szgClient->getProcessID(_pipes[i].hostname, name); }
   bool _szgClientOK() const;
-  bool _iValid(const int i) const { return i>=0 && i<getNumberScreens(); }
+  bool _iValid(const int i) const { return i>=0 && i<getNumberDisplays(); }
 };
 
 #endif

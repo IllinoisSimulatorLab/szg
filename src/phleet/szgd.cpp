@@ -1032,6 +1032,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  bool fRetry(false);
+  if (argc > 2) {
+    for (int i=2; i<argc; ++i) {
+      if (!strcmp(argv[i], "-r")) {
+        fRetry = true;
+      }
+    }
+  }
   ar_log().setTimestamp(true);
   ar_log().setHeader("szgd"); // No need to append getProcessID: only 1 szgd per host.
   const int argcOriginal = argc;
@@ -1042,7 +1050,6 @@ LRetry:
   SZGClient = new arSZGClient;
   // Force the component's name, because win98 can't provide it.
   const bool fInit = SZGClient->init(argc, argv, "szgd");
-  bool fRetry = argc > 2 && !strcmp(argv[2], "-r");
   if (!*SZGClient) {
     if (fRetry) {
 LGonnaRetry:
@@ -1054,6 +1061,7 @@ LGonnaRetry:
   }
 
   fConnect.set(0);
+
   ar_getWorkingDirectory( originalWorkingDirectory );
 
   // Only one instance per host.
@@ -1084,6 +1092,7 @@ LGonnaRetry:
       if (fRetry) {
         goto LGonnaRetry;
       }
+      cout << "exiting...\n";
       exit(0);
     }
 

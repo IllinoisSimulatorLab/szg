@@ -940,7 +940,7 @@ void arMasterSlaveFramework::onCleanup( void ) {
     try {
       _cleanup( *this );
     } catch (arCallbackException exc) {
-      _stop("cleanup", exc);
+//      _stop("cleanup", exc);
     }
   }
 }
@@ -1180,7 +1180,7 @@ int arMasterSlaveFramework::getNumberSlavesExpected() {
 
   static int totalSlaves = -1; // todo: member not static
   if (totalSlaves == -1) {
-    totalSlaves = getAppLauncher()->getNumberScreens() - 1;
+    totalSlaves = getAppLauncher()->getNumberDisplays() - 1;
     ar_log_remark() << "expects " << totalSlaves << " slaves.\n";
   }
   return totalSlaves;

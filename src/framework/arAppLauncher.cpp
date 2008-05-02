@@ -7,6 +7,31 @@
 #include "arAppLauncher.h"
 #include "arLogStream.h"
 
+ostream& operator<<(ostream& os, const arLaunchInfo& x){
+  os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
+     << x.context<<", "<< x.tradingTag<<", "<< x.info<<" )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const arLaunchInfo& x){
+  os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
+     << x.context<<", "<< x.tradingTag<<", "<< x.info<<" )";
+  return os;
+}
+
+ostream& operator<<(ostream& os, const arPipe& x){
+  os <<"arPipe( "<<x.hostname<<", "<< x.displayname<<", "
+     << x.renderer<<" )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const arPipe& x){
+  os <<"arPipe( "<<x.hostname<<", "<< x.displayname<<", "
+     << x.renderer<<" )";
+  return os;
+}
+
+
 arAppLauncher::arAppLauncher(const char* exeName, arSZGClient* cli) :
   _szgClient(NULL),
   _ownedClient(false),
@@ -151,9 +176,9 @@ bool arAppLauncher::setParameters() {
   } 
  
   int i;
-  for (i=0; i<getNumberScreens(); ++i) {
-    // A "pipe" is an ordered pair (hostname, screenname).
-    const arSlashString pipe(_getAttribute(_screenName(i), "map", ""));
+  for (i=0; i<getNumberDisplays(); ++i) {
+    // A "pipe" is an ordered pair (hostname, displayname).
+    const arSlashString pipe(_getAttribute(_displayName(i), "map", ""));
     if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY") {
       ar_log_error() << "screen " << i << " of " <<
 	_vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
@@ -162,6 +187,7 @@ bool arAppLauncher::setParameters() {
     // Two-stage assignment, because _getRenderContext(i) uses _pipes[i]
     _pipes[i] = arPipe(pipe[0], pipe[1]);
     _pipes[i].renderer = arLaunchInfo(pipe[0], _renderer, _getRenderContext(i));
+    ar_log_debug() << _pipes[i] << ar_endl;
   }
 
   // Input.
@@ -254,7 +280,7 @@ bool arAppLauncher::launchApp() {
   }
 
   // Launch a "distributed app" on every host.
-  for (int i=0; i<getNumberScreens(); i++) {
+  for (int i=0; i<getNumberDisplays(); ++i) {
     if (_appType == "distapp" || _getPID(i, _firstToken(_renderer)) == -1) {
       appsToLaunch.push_back(_pipes[i].renderer);
     }
@@ -374,7 +400,7 @@ bool arAppLauncher::screenSaver() {
     
   // Start szgrenders.
   list<arLaunchInfo> launchList;
-  for (int i=0; i<getNumberScreens(); i++) {
+  for (int i=0; i<getNumberDisplays(); i++) {
     if (_getPID(i, "szgrender") == -1 && _getPID(i, "szgd") != -1) {
       launchList.push_back(
         arLaunchInfo(_pipes[i].hostname, "szgrender", _getRenderContext(i)));
@@ -391,13 +417,13 @@ bool arAppLauncher::isMaster() const {
     _szgClient->getComputerName() + "/" + _szgClient->getMode("graphics");
 }
 
-// Return the pipe (i.e., computer+screen) running the app's master instance.
+// Return the pipe (i.e., computer+display) running the app's master instance.
 string arAppLauncher::getMasterName() const {
   if (!_szgClientOK() || !_vircompDefined)
     return "NULL";
 
-  const string screenName(_getAttribute("SZG_MASTER", "map", ""));
-  return screenName=="NULL" ? screenName : _getAttribute(screenName, "map", "");
+  const string displayName(_getAttribute("SZG_MASTER", "map", ""));
+  return displayName=="NULL" ? displayName : _getAttribute(displayName, "map", "");
 }
 
 // Return the name of host running the app's trigger instance.
@@ -415,20 +441,20 @@ string arAppLauncher::getTriggerName() const {
   return _getAttribute("SZG_TRIGGER", "map", "");
 }
 
-// Return the name of a screen in the v.c., e.g. "theora/SZG_DISPLAY3".
-string arAppLauncher::getScreenName(const int i) const {
+// Return the name of a display in the v.c., e.g. "theora/SZG_DISPLAY3".
+string arAppLauncher::getDisplayName(const int i) const {
   if (!_iValid(i)) {
-    ar_log_error() << "screen " << i << " out of bounds [0," << getNumberScreens()-1 <<
+    ar_log_error() << "screen " << i << " out of bounds [0," << getNumberDisplays()-1 <<
       "] for " << _vircomp << ".\n";
     return string("NULL");
   }
 
-  return _pipes[i].hostname + "/" + _pipes[i].screenname;
+  return _pipes[i].hostname + "/" + _pipes[i].displayname;
 }
 
 bool arAppLauncher::getRenderProgram(const int i, string& computer,
                                      string& renderName) {
-  const string renderProgramLock(getScreenName(i));
+  const string renderProgramLock(getDisplayName(i));
   if (renderProgramLock == "NULL")
     return false;
 
@@ -462,7 +488,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
     return;
   }
   string host, program;
-  for (int i=0; i<getNumberScreens(); i++) {
+  for (int i=0; i<getNumberDisplays(); i++) {
     // Even if no render program is running, update the database.
     
     // Find the XML.
@@ -470,10 +496,10 @@ void arAppLauncher::updateRenderers(const string& attribute,
     // disambiguate the case where "computer" (1st param) is not specified
     // but "valid values" are.
 
-    const string configName(_szgClient->getAttribute(_pipes[i].hostname, _pipes[i].screenname, "name", ""));
+    const string configName(_szgClient->getAttribute(_pipes[i].hostname, _pipes[i].displayname, "name", ""));
     // configName is the name of an <szg_display>.
     if (configName == "NULL") {
-      ar_log_error() << "no config for screen " << getScreenName(i) << ".\n";
+      ar_log_error() << "no config for screen " << getDisplayName(i) << ".\n";
     }
     else {
       // Go into the first window defined in the XML global
@@ -644,18 +670,18 @@ void arAppLauncher::_graphicsKill(const string& appKeep) {
   // Determine what graphics program is running on each display.
   // If it isn't correct, deactivate it. 
   list<int> graphicsKillList;
-  for (int i=0; i<getNumberScreens(); i++) {
-    const string screenLock(getScreenName(i));
+  for (int i=0; i<getNumberDisplays(); i++) {
+    const string displayLock(getDisplayName(i));
     int pid = -1;
-    if (_szgClient->getLock(screenLock, pid)) {
+    if (_szgClient->getLock(displayLock, pid)) {
       // Unlock, so the graphics program can start.
-      _szgClient->releaseLock(screenLock); // Ugly. arSZGClient::checklock() better?
+      _szgClient->releaseLock(displayLock); // Ugly. arSZGClient::checklock() better?
     }
     else {
-      // someone has locked this screen already
+      // someone has locked this display already
       const arSlashString label(_szgClient->getProcessLabel(pid));
       if (label != "NULL" && label[1] != appKeep) {
-	graphicsKillList.push_front(pid);
+        graphicsKillList.push_front(pid);
       }
     }
   }
@@ -753,14 +779,14 @@ void arAppLauncher::_relaunchIncompatibleServices(
   }
 }
 
-string arAppLauncher::_screenName(int i) const {
+string arAppLauncher::_displayName(int i) const {
   return "SZG_DISPLAY" + ar_intToString(i);
 }
 
 string arAppLauncher::_getRenderContext(const int i) const {
   return !_iValid(i) ? "NULL" :
-    _szgClient->createContext(_vircomp, "graphics", _pipes[i].screenname, "graphics",
-      _getAttribute(_screenName(i), "networks", ""));
+    _szgClient->createContext(_vircomp, "graphics", _pipes[i].displayname, "graphics",
+      _getAttribute(_displayName(i), "networks", ""));
 }
 
 string arAppLauncher::_getInputContext() const {
