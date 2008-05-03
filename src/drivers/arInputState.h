@@ -164,14 +164,13 @@ bool arInputDeviceMap<eventDataType>::getEventOffset(
 template <class eventDataType>
 void arInputDeviceMap<eventDataType>::addInputDevice(
     const unsigned numEvents, vector<eventDataType>& dataSpace ) {
-  if (_deviceNumEvents.empty())
-    _deviceEventOffsets.push_back(0);
-  else
-    _deviceEventOffsets.push_back(_deviceEventOffsets.back() + _deviceNumEvents.back() );
+  _deviceEventOffsets.push_back( _deviceNumEvents.empty() ?
+    0 : _deviceEventOffsets.back() + _deviceNumEvents.back() );
   _deviceNumEvents.push_back( numEvents );
   if (numEvents > 0) {
-    if (dataSpace.size()+numEvents > dataSpace.capacity())
+    if (dataSpace.size()+numEvents > dataSpace.capacity()) {
       dataSpace.reserve( dataSpace.capacity()+256 );
+    }
     dataSpace.insert( dataSpace.begin()+_deviceEventOffsets.back(), numEvents, eventDataType() );
   }
 }
