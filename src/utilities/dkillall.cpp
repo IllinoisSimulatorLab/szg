@@ -20,10 +20,10 @@ int main(int argc, char** argv){
 
   if (argc == 2 && !strcmp(argv[1], "-a")) {
     // Kill all non-szgd apps in process table.
-    const string r = szgClient.getProcessList();
+    const string r(szgClient.getProcessList());
     list<int> ids;
 
-    // Strip out szgds (and us ourselves?).  Rough copypaste of dps.cpp
+    // Strip out szgds (and us ourselves?).  Rough copypaste of dps.cpp.
 
     for (unsigned i=0; i < r.length(); ++i) {
       // Parse one process-line.
