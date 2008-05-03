@@ -149,18 +149,15 @@ void ar3DS::attachChildNode(const string &baseName,
   const string geometryModifier (".geometry.");
 
   unsigned int j=0, i=0;
-  // faces with indexed material
-  // once again, the default material causes us to want to have plus one here
+  // Faces with indexed material.  +1 is for the default material.
   vector<int>*	materialFaces = new vector<int>[_numMaterials+1]; 	
   // names of the materials
-  // don't forget that we have the default material, hence the plus one
-  Lib3dsMatrix	invMeshMatrix;		// matrix for the mesh from Lib3DS
+  Lib3dsMatrix invMeshMatrix;		// matrix for the mesh from Lib3DS
   lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
   lib3ds_matrix_inv(invMeshMatrix);
 
   // Put a default material on the front of the material stack
-  vector<Lib3dsMaterial*> materials; 	// pointers to actual materials
-  materials.push_back(new Lib3dsMaterial);
+  vector<Lib3dsMaterial*> materials(1, new Lib3dsMaterial); 	// pointers to actual materials
   materials.back()->ambient[0] = 0.2; materials.back()->ambient[1] = 0.2;
   materials.back()->ambient[2] = 0.2; materials.back()->ambient[3] = 1.0;
   materials.back()->diffuse[0] = 0.8; materials.back()->diffuse[1] = 0.8;
@@ -185,7 +182,7 @@ void ar3DS::attachChildNode(const string &baseName,
     // Handle material
     if (f.material[0]) {
       // see if the material exists already
-      for (i=1; i<materials.size(); i++) {
+      for (i=1; i<materials.size(); ++i) {
       	if (materialNames[i] == string(f.material)) {
 	  materialFaces[i].push_back(j);
           break;
@@ -203,14 +200,10 @@ void ar3DS::attachChildNode(const string &baseName,
      
     // Add the point and normals to respective temp. storage 
     for (i=0; i<3; ++i) {
-      lib3ds_vector_transform(vPoint, invMeshMatrix, 
-                              mesh->pointL[f.points[i]].pos);
-      points[9*j+3*i+0] = vPoint[0];
-      points[9*j+3*i+1] = vPoint[1];
-      points[9*j+3*i+2] = vPoint[2];
-      norms[9*j+3*i+0] = normalL[3*j+i][0];
-      norms[9*j+3*i+1] = normalL[3*j+i][1];
-      norms[9*j+3*i+2] = normalL[3*j+i][2];
+      lib3ds_vector_transform(
+	vPoint, invMeshMatrix, mesh->pointL[f.points[i]].pos);
+      memcpy(points + 9*j+3*i, &vPoint[0], 3*sizeof(float));
+      memcpy(norms  + 9*j+3*i, &normalL[3*j+i][0], 3*sizeof(float));
     }
   }
   delete [] normalL;
@@ -220,9 +213,8 @@ void ar3DS::attachChildNode(const string &baseName,
   // dgPoints(newName + pointsModifier,
   //         newName,
   //	   mesh->faces*3, points);
-  arPointsNode* pointsNode 
-    = (arPointsNode*)database->newNode(newParent, "points", 
-                                       newName + pointsModifier);
+  arPointsNode* pointsNode = (arPointsNode*)
+    database->newNode(newParent, "points", newName + pointsModifier);
   pointsNode->setPoints(mesh->faces*3, points);
   // pass the node ID to superclass
   _vertexNodeID = pointsNode->getID();
@@ -232,9 +224,8 @@ void ar3DS::attachChildNode(const string &baseName,
   //dgNormal3(newName + normalsModifier,
   //          newName + pointsModifier,
   //          mesh->faces*3, norms);
-  arNormal3Node* normalNode 
-    = (arNormal3Node*) database->newNode(pointsNode, "normal3",
-					 newName + normalsModifier);
+  arNormal3Node* normalNode = (arNormal3Node*)
+    database->newNode(pointsNode, "normal3", newName + normalsModifier);
   normalNode->setNormal3(mesh->faces*3, norms);
   delete [] norms;
 
@@ -246,65 +237,64 @@ void ar3DS::attachChildNode(const string &baseName,
 #if 1
   // Put all triangles with same material into one group
   //   and attach to single material
-  arVector3 diffuse, specular, ambient, emmissive(0,0,0);
+  const arVector3 emmissive(0,0,0);
   for (i=0; i<materials.size(); i++) {
-    if (!materialFaces[i].empty()) {
-      diffuse  = arVector3(materials[i]->diffuse);
-      ambient  = arVector3(materials[i]->ambient);
-      specular = arVector3(materials[i]->specular);
+    if (materialFaces[i].empty())
+      continue;
 
-      int* drawIndices = new int[materialFaces[i].size()*3];
-      for (j=0; j<materialFaces[i].size(); j++) {
-        drawIndices[3*j+0] = materialFaces[i][j]*3+0;
-        drawIndices[3*j+1] = materialFaces[i][j]*3+1;
-        drawIndices[3*j+2] = materialFaces[i][j]*3+2;
-      }
-
-      //dgIndex(newName + indexModifier + materialNames[i],
-      //	      newName + normalsModifier,
-      //	      materialFaces[i].size()*3, drawIndices);
-      arIndexNode* indexNode 
-        = (arIndexNode*) database->newNode(normalNode, "index",
-			   newName+indexModifier+materialNames[i]);
-      indexNode->setIndices(materialFaces[i].size()*3, drawIndices);
-      //dgMaterial(newName + materialsModifier + materialNames[i],
-      //           newName + indexModifier     + materialNames[i],
-      //           diffuse, ambient, specular, emmissive,
-      //	         11.-0.1*materials[i]->shininess);
-      // todo: constructor for next 5 lines
-      arMaterial material;
-      material.diffuse = diffuse;
-      material.ambient = ambient;
-      material.specular = specular;
-      material.emissive = emmissive;
-      material.exponent = 11.-0.1*materials[i]->shininess;
-      arMaterialNode* materialNode
-	= (arMaterialNode*) database->newNode(indexNode, "material", 
-			      newName + materialsModifier + materialNames[i]);
-      materialNode->setMaterial(material);
-      //dgDrawable(newName + geometryModifier  + materialNames[i],
-      //           newName + materialsModifier + materialNames[i],
-      //           DG_TRIANGLES, materialFaces[i].size());
-      arDrawableNode* drawableNode 
-	= (arDrawableNode*) database->newNode(materialNode, "drawable",
-			      newName + geometryModifier + materialNames[i]);
-      drawableNode->setDrawable(DG_TRIANGLES, materialFaces[i].size());
-      delete [] drawIndices;
+    const arVector3 diffuse (materials[i]->diffuse);
+    const arVector3 ambient (materials[i]->ambient);
+    const arVector3 specular(materials[i]->specular);
+    int* drawIndices = new int[materialFaces[i].size()*3];
+    for (j=0; j<materialFaces[i].size(); j++) {
+      drawIndices[3*j+0] = materialFaces[i][j]*3+0;
+      drawIndices[3*j+1] = materialFaces[i][j]*3+1;
+      drawIndices[3*j+2] = materialFaces[i][j]*3+2;
     }
+
+    //dgIndex(newName + indexModifier + materialNames[i],
+    //	      newName + normalsModifier,
+    //	      materialFaces[i].size()*3, drawIndices);
+    arIndexNode* indexNode 
+      = (arIndexNode*) database->newNode(normalNode, "index",
+			 newName+indexModifier+materialNames[i]);
+    indexNode->setIndices(materialFaces[i].size()*3, drawIndices);
+    //dgMaterial(newName + materialsModifier + materialNames[i],
+    //           newName + indexModifier     + materialNames[i],
+    //           diffuse, ambient, specular, emmissive,
+    //	         11.-0.1*materials[i]->shininess);
+    // todo: constructor for next 5 lines
+    arMaterial material;
+    material.diffuse = diffuse;
+    material.ambient = ambient;
+    material.specular = specular;
+    material.emissive = emmissive;
+    material.exponent = 11.-0.1*materials[i]->shininess;
+    arMaterialNode* materialNode
+      = (arMaterialNode*) database->newNode(indexNode, "material", 
+			    newName + materialsModifier + materialNames[i]);
+    materialNode->setMaterial(material);
+    //dgDrawable(newName + geometryModifier  + materialNames[i],
+    //           newName + materialsModifier + materialNames[i],
+    //           DG_TRIANGLES, materialFaces[i].size());
+    arDrawableNode* drawableNode 
+      = (arDrawableNode*) database->newNode(materialNode, "drawable",
+			    newName + geometryModifier + materialNames[i]);
+    drawableNode->setDrawable(DG_TRIANGLES, materialFaces[i].size());
+    delete [] drawIndices;
   }
 #endif
-  // delete some of the remaining dynamic storage
   delete [] materialFaces;
   delete [] materialNames;
 }
 #endif
 
-// Is used to put a 3DS object inside a sphere of radius 1
+// Put a 3DS object inside a unit sphere.
 // @param theMatrix the matrix to be returned (by reference)
-bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
+bool ar3DS::normalizationMatrix(arMatrix4 &m) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
-  (void)theMatrix; // avoid compiler warning
+  (void)m; // avoid compiler warning
 #else
   if (_invalidFile) {
     cerr << "Cannot normalize model size: invalid file!\n";
@@ -314,20 +304,13 @@ bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
   _minVec = arVector3( 10000, 10000, 10000);
   _maxVec = arVector3(-10000,-10000,-10000);
 
-  // collect data (min/max)
+  // collect min/max data
   for (Lib3dsNode* p=_file->nodes; p!=NULL; p=p->next)
     subNormalizationMatrix(p, _minVec, _maxVec);
 
-//cout<<_minVec<<", "<<_maxVec<<endl;
-
-  arVector3 _center = (_maxVec+_minVec)/2.;
-  float maxDist = 2./sqrt((_maxVec-_minVec)%(_maxVec-_minVec));
-
-//cout<<_center<<endl;
-
-  theMatrix = //ar_translationMatrix(-_center)*
-              ar_scaleMatrix(maxDist) * ar_translationMatrix(-_center);
-
+  const arVector3 _center = (_maxVec+_minVec)/2.;
+  const float maxDist = 2./sqrt((_maxVec-_minVec)%(_maxVec-_minVec));
+  m = ar_scaleMatrix(maxDist) * ar_translationMatrix(-_center);
 #endif
   return true;
 }
@@ -342,51 +325,43 @@ void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
   // recurse through children
   for (Lib3dsNode* p=node->childs; p!=NULL; p=p->next)
     subNormalizationMatrix(p, _minVec, _maxVec);
+  if (node->type != LIB3DS_OBJECT_NODE || !strcmp(node->name,"$$$DUMMY"))
+    return;
 
-  if (node->type==LIB3DS_OBJECT_NODE) {
-    if (!strcmp(node->name,"$$$DUMMY"))
-      return;
+  Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
+  ASSERT(mesh);
+  if (!mesh)
+    return;
 
-    Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
-    ASSERT(mesh);
-    if (!mesh)
-      return;
-
-    Lib3dsMatrix invMeshMatrix;
-    lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
-    lib3ds_matrix_inv(invMeshMatrix);
-    Lib3dsVector v;
-    for (unsigned int j=0; j<mesh->faces; ++j) {
-      Lib3dsFace &f=mesh->faceL[j];
-      for (unsigned int i=0; i<3; ++i) {
-        lib3ds_vector_transform(v, invMeshMatrix, mesh->pointL[f.points[i]].pos);
-
-        for (unsigned int k=0; k<3; k++) {
-          if (v[k] > _maxVec[k])
-            _maxVec[k] = v[k];
-          if (v[k] < _minVec[k])
-            _minVec[k] = v[k];
-        }
+  Lib3dsMatrix invMeshMatrix;
+  lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
+  lib3ds_matrix_inv(invMeshMatrix);
+  Lib3dsVector v;
+  for (unsigned int j=0; j<mesh->faces; ++j) {
+    Lib3dsFace& f = mesh->faceL[j];
+    for (unsigned i=0; i<3; ++i) {
+      lib3ds_vector_transform(v, invMeshMatrix, mesh->pointL[f.points[i]].pos);
+      for (unsigned k=0; k<3; k++) {
+	if (v[k] > _maxVec[k])
+	  _maxVec[k] = v[k];
+	if (v[k] < _minVec[k])
+	  _minVec[k] = v[k];
       }
-    } // end face loop
+    }
   }
-
 }
 #endif
 
-// Puts object inside a sphere of radius 1
-/** Sets a flag for attachMesh() to use a normalized matrix as the root
- *  node in the scenegraph representation of the mesh
- */
+// Put object inside unit sphere.
+// Flag attachMesh() to use a normalized matrix as the root
+// node in the scenegraph representation of the mesh
 void ar3DS::normalizeModelSize() {
   _normalize = true;
 }
 
-
-
 ///// Animation functions /////
 
-// Sets the current frame of animation
+// Set the current frame of animation
 // @param newFrame The frame to jump to in the animation
 // todo: check bounds on newFrame
 bool ar3DS::setFrame(int newFrame){
