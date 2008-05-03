@@ -117,15 +117,14 @@ void arUniqueInteractor::activateInteractionGroup( const unsigned int group ) {
 bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
                                              const arMatrix4& wandTipMatrix,
                                              const float minPriorityScore ) {
-  int i;
-  if (_lastButtons.size() != (unsigned int)inputState->getNumberButtons()) {
-    _lastButtons.clear();
-    for (i=0; i<(int)inputState->getNumberButtons(); i++)
-      _lastButtons.push_back(0);
+  const unsigned numButtons = inputState->getNumberButtons();
+  if (_lastButtons.size() != numButtons) {
+    _lastButtons.assign(numButtons, 0);
   }
+  int i;
   std::vector<arButtonClickEvent> events;
-  for (i=0; i<(int)inputState->getNumberButtons(); i++) {
-    int button = inputState->getButton(i);
+  for (i=0; i<(int)numButtons; i++) {
+    const int button = inputState->getButton(i);
     if (button && !_lastButtons[i]) {
       events.push_back( arButtonClickEvent( i, ON_EVENT ) );
     } else if (!button && _lastButtons[i]) {
@@ -138,17 +137,15 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     // See if locked guy still exists
     list<arUniqueInteractor*>::iterator lockedIter =
       std::find( _listUs.begin(), _listUs.end(), _lockedPtr );
-    if (lockedIter == _listUs.end())
-      _lockedPtr = NULL;
-    else {
+    if (lockedIter != _listUs.end()) {
       const bool ok = (*lockedIter)->processTouch( inputState, wandTipMatrix, events );
       events.clear();
       return ok;
     }
+    _lockedPtr = NULL;
   }
-  
-  
-  unsigned int numTouched = 0;
+
+  unsigned numTouched = 0;
   list<arUniqueInteractor*>::iterator touchedIter = _listUs.end();
   list<arUniqueInteractor*>::iterator iter;
   for (iter = _listUs.begin(); iter != _listUs.end(); iter++) {
@@ -158,23 +155,20 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     }
   }
   if (numTouched > 1) {
-    cerr << "arUniqueInteractor error: number items touched > 1.\n";
+    cerr << "arUniqueInteractor error: touched more than 1 item.\n";
     events.clear();
     return false;
   }
+
   float highScore = -1.e-100;
   list<arUniqueInteractor*>::iterator highPriorityIter = _listUs.end();
   for (iter = _listUs.begin(); iter != _listUs.end(); ++iter) {
     if (((*iter)->active()) && ((*iter)->enabled())) {
       const float score = (*iter)->priorityScore( wandTipMatrix );
-      if (score >= minPriorityScore) {
-        if (highPriorityIter == _listUs.end()) {
-          highScore = score;
-          highPriorityIter = iter;
-        } else if (score > highScore) {
-          highScore = score;
-          highPriorityIter = iter;
-        }
+      if (score >= minPriorityScore &&
+         ((highPriorityIter == _listUs.end() || score > highScore))) {
+	highScore = score;
+	highPriorityIter = iter;
       }
     }
   }
