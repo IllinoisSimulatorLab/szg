@@ -17,6 +17,7 @@ arInputSource::arInputSource() :
   _iAxis(0),
   _iMatrix(0)
 {
+  memset(_fComplained, 0, sizeof(_fComplained));
   _data = new arStructuredData(_inp.find("input"));
 }
 
@@ -33,7 +34,10 @@ void arInputSource::sendButton(int i, int value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberButtons) {
-    ar_log_debug() << "arInputSource ignoring out-of-range " << "sendButton(" << i << ").\n";
+    if (!_fComplained[0][i]) {
+      _fComplained[0][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range sendButton(" << i << ").\n";
+    }
     return;
   }
 
@@ -54,7 +58,10 @@ void arInputSource::sendAxis(int i, float value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberAxes) {
-    ar_log_debug() << "arInputSource ignoring out-of-range sendAxis(" << i << ").\n";
+    if (!_fComplained[1][i]) {
+      _fComplained[1][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range sendAxis(" << i << ").\n";
+    }
     return;
   }
 
@@ -76,7 +83,10 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
   if (!_data)
     return;
   if (i<0 || i>=_numberMatrices) {
-    ar_log_debug() << "arInputSource ignoring out-of-range sendMatrix(" << i << ").\n";
+    if (!_fComplained[2][i]) {
+      _fComplained[2][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range sendMatrix(" << i << ").\n";
+    }
     return;
   }
 
@@ -145,7 +155,10 @@ void arInputSource::sendButtonsAxesMatrices(
 
 void arInputSource::queueButton(int i, int value) {
   if (i<0 || i>=_numberButtons) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index " << "to queueButton(" << i << ").\n";
+    if (!_fComplained[0][i]) {
+      _fComplained[0][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range queueButton(" << i << ").\n";
+    }
     return;
   }
 
@@ -156,7 +169,10 @@ void arInputSource::queueButton(int i, int value) {
 
 void arInputSource::queueAxis(int i, float value) {
   if (i<0 || i>=_numberAxes) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "queueAxis(" << i << ").\n";
+    if (!_fComplained[1][i]) {
+      _fComplained[1][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range queueAxis(" << i << ").\n";
+    }
     return;
   }
 
@@ -167,7 +183,10 @@ void arInputSource::queueAxis(int i, float value) {
 
 void arInputSource::queueMatrix(int i, const arMatrix4& value) {
   if (i<0 || i>=_numberMatrices) {
-    ar_log_debug() << "arInputSource ignoring out-of-range index to " << "queueMatrix(" << i << ").\n";
+    if (!_fComplained[2][i]) {
+      _fComplained[2][i] = true;
+      ar_log_error() << "arInputSource ignoring out-of-range queueMatrix(" << i << ").\n";
+    }
     return;
   }
 

@@ -40,23 +40,24 @@ class SZG_CALL arInputSource{
   int getNumberMatrices() const
     { return _numberMatrices; }
 
-  // Send a single item.
+  // Send one item.
   void sendButton(int index, int value);
   void sendAxis(int index, float value);
   void sendMatrix(int index, const arMatrix4& value);
   void sendMatrix(const arMatrix4& value) { sendMatrix(0, value); }
 
-  // Send several items as a single packet.
+  // Send several items in one packet.
   void sendButtonsAxesMatrices(
     int numButtons, const int* rgiButtons, const int* rgvalueButtons,
     int numAxes, const int* rgiAxes, const float* rgvalueAxes,
     int numMatrices, const int* rgiMatrices, const arMatrix4* rgvalueMatrices);
 
-  // Accumulate several values and then send them as a single packet.
+  // Accumulate items.
   void queueButton(int index, int value);
   void queueAxis(int index, float value);
   void queueMatrix(int index, const arMatrix4& value);
   void queueMatrix(const arMatrix4& value) { queueMatrix(0, value); }
+  // Send accumulated items in one packet.
   void sendQueue();
 
   virtual void handleMessage( const string& /*messageType*/, const string& /*messageBody*/ ) {}
@@ -100,6 +101,9 @@ class SZG_CALL arInputSource{
   // To register input sinks, and send them on a particular channel
   // (to aggregate multiple input devices).
   void _setInputSink(int, arInputSink*);
+
+ private:
+  bool _fComplained[3][_maxSize];
 };
 
 #endif
