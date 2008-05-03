@@ -396,7 +396,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]) {
       normalID[i] = _normal.size()+normalID[i]-1;
   }
 
-  // now, handle the geometry....
+  // handle the geometry
   if (howManyVertices < 5) {
     for (i=0; i<howManyVertices-2; i++) {
       arOBJTriangle tempTriangle;
@@ -451,54 +451,55 @@ void arOBJ::_generateNormals() {
   unsigned i=0, j=0, k=0;
   _normal.erase(_normal.begin(),_normal.begin()+1);
   _texCoord.erase(_texCoord.begin(), _texCoord.begin()+1);
-  for (i=0; i<_triangle.size(); i++)
-  { // no normals
-    if (_triangle[i].normals[0] == -1 || _triangle[i].normals[1] == -1 ||
+  for (i=0; i<_triangle.size(); i++) {
+    // no normals
+    if (_triangle[i].normals[0] == -1 ||
+	_triangle[i].normals[1] == -1 ||
         _triangle[i].normals[2] == -1) {
       _normal.push_back(
-      (_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
-      (_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]) );
+	(_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
+	(_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]) );
       _normal.back() /= ++_normal.back();
-      _triangle[i].normals[0] = _normal.size()-1;
-      _triangle[i].normals[1] = _normal.size()-1;
+      _triangle[i].normals[0] =
+      _triangle[i].normals[1] =
       _triangle[i].normals[2] = _normal.size()-1;
     }
   }
-  // could be that normals are in the opposite direction they should be
-  // i.e. relative to vertex orientation of the triangle
-  for (i=0; i<_triangle.size(); i++) {
+
+  for (i=0; i<_triangle.size(); ++i) {
     arVector3 naturalDirection = 
-      (_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]])
-      *(_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]);
+      (_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
+      (_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]);
     if (_normal[_triangle[i].normals[0]]%naturalDirection < 0) {
-      // reversed
+      // reversed normal
       _normal[_triangle[i].normals[0]] = -_normal[_triangle[i].normals[0]];
     }
     if (_normal[_triangle[i].normals[1]]%naturalDirection < 0) {
-      // reversed
+      // reversed normal
       _normal[_triangle[i].normals[1]] = -_normal[_triangle[i].normals[1]];
     }
     if (_normal[_triangle[i].normals[2]]%naturalDirection < 0) {
-      // reversed
+      // reversed normal
       _normal[_triangle[i].normals[2]] = -_normal[_triangle[i].normals[2]];
     }
   }
-  // First, a list of vertex-indexed smoothing group triangles
+
+  // List of vertex-indexed smoothing group triangles.
   vector<int>* sgVertex = new vector<int>[_vertex.size()];
   vector<int>* sgVertexNum = new vector<int>[_vertex.size()];
   for (i=0; i<_triangle.size(); i++) {
     for (j=0; j<3; j++) {
-      sgVertex[_triangle[i].vertices[j]].push_back(i);
-      sgVertexNum[_triangle[i].vertices[j]].push_back(j);
+      const unsigned k = _triangle[i].vertices[j];
+      sgVertex   [k].push_back(i);
+      sgVertexNum[k].push_back(j);
     }
   }
-  // Now go through vertices and add normals in same SG
-  arVector3 tempNorm;
+  // Traverse vertices and add normals in same SG.
   for (i=0; i<_vertex.size(); i++) {
     if (sgVertex[i].size() != 0)
     for (j=0; j<sgVertex[i].size()-1; j++) {
       if (sgVertex[i][j] != -1 && _triangle[sgVertex[i][j]].smoothingGroup) {
-        tempNorm = _normal[_triangle[sgVertex[i][j]].normals[sgVertexNum[i][j]]];
+        arVector3 tempNorm = _normal[_triangle[sgVertex[i][j]].normals[sgVertexNum[i][j]]];
 	for (k=j+1; k<sgVertex[i].size(); k++) {
  	  if (sgVertex[i][k] != -1 && _triangle[sgVertex[i][j]].smoothingGroup ==
               _triangle[sgVertex[i][k]].smoothingGroup) {
@@ -519,15 +520,14 @@ void arOBJ::_generateNormals() {
   }
 }
 
-// Make the object fit in a sphere of radius 1
-/** This actually adjust the vertex positions,
- *  not just add a normalization matrix
- */
+// Make the object fit in a unit sphere.
+// Move its vertices, don't just add a transformation matrix.
 void arOBJ::normalizeModelSize() {
   arVector3 maxVec(-1000000,-1000000,-1000000);
   arVector3 minVec(1000000,1000000,1000000);
   unsigned i = 0;
-  for (i=0; i<_vertex.size(); i++) {
+  const unsigned iMax = _vertex.size();
+  for (i=0; i<iMax; i++) {
     for (unsigned j=0; j<3; j++) {
       if (_vertex[i].v[j] > maxVec.v[j])
         maxVec.v[j] = _vertex[i].v[j];
@@ -537,10 +537,9 @@ void arOBJ::normalizeModelSize() {
   }
   const arVector3 center = (maxVec+minVec)/2.;
   const float maxDist = sqrt((maxVec-minVec)%(maxVec-minVec))/2.;
-  for (i=0; i<_vertex.size(); i++)
+  for (i=0; i<iMax; ++i)
     _vertex[i] = (_vertex[i] - center) / maxDist;
 }
-
 
 arOBJGroupRenderer::arOBJGroupRenderer() : _name("NULL") {}
 
