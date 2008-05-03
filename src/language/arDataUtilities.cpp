@@ -893,7 +893,7 @@ bool ar_getTokenList( const string& inString,
   do {
     string s;
     getline( inputStream, s, delim );
-    if (s!="")
+    if (s != "")
       outList.push_back(s);
   } while (!inputStream.fail());
   return true;
@@ -1264,10 +1264,12 @@ list<string> ar_listDirectory(const string& name){
   }
 
 #ifndef AR_USE_WIN_32
+
   DIR* directory = opendir(name.c_str());
   if (!directory){
     return result;
   }
+
   dirent* directoryEntry = NULL;
   while ((directoryEntry = readdir(directory)) != NULL){
     // There is another entry. Push the name.
@@ -1277,35 +1279,36 @@ list<string> ar_listDirectory(const string& name){
     }
   }
   closedir(directory);
+
 #else
-  // Browse through a list of files that match a name
-  // (including wildcards). 
-  string fileSpecification = name;
-  // Make sure the path is "scrubbed" and that it has a trailing slash of the
-  // right type.
+
+  // Browse a list of files that match a name (including wildcards). 
+  string fileSpecification(name);
   ar_scrubPath(fileSpecification);
   ar_pathAddSlash(fileSpecification);
-  // Finally, make sure that we add a "wildcard" character, since we want
-  // everything in the directory.
+  // Add a wildcard character, for everything in the directory.
   fileSpecification += "*";
+  // Visual Studio .NET uses intptr_t below instead of int, but
+  // Visual Studio 6 does not define intptr_t.
+  // int may be safe, though 6's docs say long.
   _finddata_t fileinfo;
-  // NOTE: Visual Studio .NET uses intptr_t below instead of int, but
-  // Visual Studio 6 does not define intptr_t. I'm guessing that int is
-  // safe (the docs for VS 6 say long).
-  int fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
+  const int fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
   if (fileHandle == -1){
-    // No file matching the "specification".
+    // No file matches the specification.
     return result;
   }
-  result.push_back(directoryPrefix+string(fileinfo.name));
+
+  result.push_back(directoryPrefix + string(fileinfo.name));
   while (_findnext(fileHandle, &fileinfo) != -1) {
     fileNameString = string( fileinfo.name );
     if (fileNameString != "..") {
-      result.push_back(directoryPrefix+fileNameString);
+      result.push_back(directoryPrefix + fileNameString);
     }
   }
   _findclose(fileHandle);
+
 #endif
+
   return result;
 }
 
@@ -1385,7 +1388,7 @@ void ar_deallocateBuffer( void* ptr ) {
 }
 
 void ar_copyBuffer( void* const outBuf, const void* const inBuf,
-    arDataType theType, unsigned int size ) {
+    arDataType theType, unsigned size ) {
   memcpy( outBuf, inBuf, size * arDataTypeSize(theType) );
 }
 
@@ -1404,7 +1407,7 @@ void ar_unrefNodeList(list<arDatabaseNode*>& nodeList){
 }
 
 // convert between vector<> of strings and '\0'-delimited char buffer.
-char* ar_packStringVector( std::vector< std::string >& stringVec, unsigned int& totalSize ) {
+char* ar_packStringVector( std::vector< std::string >& stringVec, unsigned& totalSize ) {
   totalSize = 0;
   std::vector< std::string >::iterator iter;
   for (iter=stringVec.begin(); iter != stringVec.end(); ++iter) {
@@ -1427,11 +1430,11 @@ char* ar_packStringVector( std::vector< std::string >& stringVec, unsigned int& 
 }
 
 
-void ar_unpackStringVector( char* inbuf, unsigned int numStrings, std::vector< std::string >& stringVec ) {
+void ar_unpackStringVector( char* inbuf, unsigned numStrings, std::vector< std::string >& stringVec ) {
   stringVec.clear();
   char* ptr = inbuf;
-  for (unsigned int i=0; i<numStrings; ++i) {
+  for (unsigned i=0; i<numStrings; ++i) {
     stringVec.push_back( std::string(ptr) );
-    ptr += strlen(ptr)+1;
+    ptr += strlen(ptr) + 1;
   }
 }

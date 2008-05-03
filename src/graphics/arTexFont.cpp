@@ -17,7 +17,7 @@
 list<string> ar_parseLineBreaks(const string& text){
   list<string> result;
   string currentLine("");
-  char lastChar('\0');
+  char lastChar = '\0';
   int stringHead = 0;
   for (unsigned i=0; i<text.length(); i++){
     if (text[i] == '\n'){

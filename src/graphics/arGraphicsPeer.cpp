@@ -1480,20 +1480,19 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket) {
   map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = _connectionContainer.find(socket->getID());
   if (j == _connectionContainer.end()) {
-    cout << "arGraphicsPeer internal error: could not find requested "
-	 << "object.\n";
+    cout << "arGraphicsPeer internal error: failed to find requested object.\n";
   }
   else{
     bool found = false;
     for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
-	 k != j->second->nodesLockedLocal.end(); k++) {
+	 k != j->second->nodesLockedLocal.end(); ++k) {
       if (*k == nodeID) {
         found = true;
         break;
       }
     }
     if (!found) {
-      // Add it.  This deals with the potentially weird case
+      // Add it.  Handle the weird case
       // of locking the same node multiple times.
       j->second->nodesLockedLocal.push_back(nodeID);
     }
@@ -1528,8 +1527,7 @@ void arGraphicsPeer::_unlockNode(int nodeID) {
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socketID);
   if (i == _connectionContainer.end()) {
-    cout << "arGraphicsPeer internal error: could not find requested "
-	 << "object.\n";
+    cout << "arGraphicsPeer internal error: failed to find requested object.\n";
   }
   else{
     i->second->nodesLockedLocal.remove(nodeID);

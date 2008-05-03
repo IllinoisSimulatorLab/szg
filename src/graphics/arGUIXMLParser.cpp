@@ -36,15 +36,13 @@ class arGUIXMLValidator {
 };
 
 void arGUIXMLValidator::addAttributes( const arSlashString& attribsStr ) {
-  int i;
-  for (i=0; i<attribsStr.size(); ++i) {
+  for (int i=0; i<attribsStr.size(); ++i) {
     _attribsVec.push_back( attribsStr[i] );
   }
 }
 
 void arGUIXMLValidator::addChildren( const arSlashString& childrenStr ) {
-  int i;
-  for (i=0; i<childrenStr.size(); ++i) {
+  for (int i=0; i<childrenStr.size(); ++i) {
     _childrenVec.push_back( childrenStr[i] );
   }
 }

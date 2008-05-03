@@ -139,8 +139,8 @@ bool arMSVectorSynchronizer<ObjectClass>::addFloatField(
     cerr << "arMSVectorSynchronizer error: addInternalTransferField() failed.\n";
     return false;
   }
-  _floatFields.push_back( arMSVecTransferField<ObjectClass,float>( msFieldName,
-                             setterFunc, getterFunc, numElements) );
+  _floatFields.push_back( arMSVecTransferField<ObjectClass,float>
+    ( msFieldName, setterFunc, getterFunc, numElements) );
   return true;
 }
 
@@ -157,8 +157,8 @@ bool arMSVectorSynchronizer<ObjectClass>::addIntField( const std::string& msFiel
     cerr << "arMSVectorSynchronizer error: addInternalTransferField() failed.\n";
     return false;
   }
-  _intFields.push_back( arMSVecTransferField<ObjectClass,int>( msFieldName,
-                             setterFunc, getterFunc, numElements) );
+  _intFields.push_back( arMSVecTransferField<ObjectClass,int>
+    ( msFieldName, setterFunc, getterFunc, numElements) );
   return true;
 }
 

@@ -339,8 +339,7 @@ list<arSocket*>* arDataServer::getActiveSockets(){
   list<arSocket*>* result = new list<arSocket*>;
   arGuard dummy(_lockTransfer);
   for (list<arSocket*>::const_iterator i=_connectionSockets.begin();
-       i != _connectionSockets.end();
-       ++i){
+       i != _connectionSockets.end(); ++i){
     result->push_back(*i);
   }
   return result;
@@ -353,7 +352,7 @@ void arDataServer::activatePassiveSocket(int socketID){
     if ((*i)->getID() == socketID){
       _connectionSockets.push_back(*i);
       _passiveSockets.erase(i);
-      _numberConnectedActive++;
+      ++_numberConnectedActive;
       break;
     }
   }
