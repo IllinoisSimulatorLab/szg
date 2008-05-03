@@ -826,15 +826,19 @@ bool IfCompiler::compile( arPForth* pf,
     pf->addTransientAction( action );
   else
     pf->addAction( action );
+
   string theWord;
   while (((theWord = pf->nextWord()) != "else") &&
-          (theWord != "endif"))
+          (theWord != "endif")) {
     if (!pf->compileWord( theWord, action->_trueProg ))
       return false;
-  if (theWord == "else")
-    while ((theWord = pf->nextWord()) != "endif")
+  }
+  if (theWord == "else") {
+    while ((theWord = pf->nextWord()) != "endif") {
       if (!pf->compileWord( theWord, action->_falseProg ))
         return false;
+    }
+  }
   actionList.push_back( action );
   return true;
 }
