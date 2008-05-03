@@ -15,17 +15,14 @@ arDatabase::arDatabase() :
   _server(false),
   _bundlePathName("NULL"),
   _bundleName("NULL"),
-  // We start at ID 1 for subsequent nodes since the root node has ID = 0
-  // (the default)
+  // Start at ID 1 for subsequent nodes, since the root node has ID 0 (default).
   _nextAssignedID(1),
   _dataParser(NULL){
 
-  // The root node is already initialized properly by the default 
-  // arDatabaseNode constructor.
+  // Default arDatabaseNode constructor inits root node.
   _nodeIDContainer.insert(map<int,arDatabaseNode*,less<int> >::
 			  value_type (0,&_rootNode));
-  // Root node must know its owner. Some node
-  // insertion commands use the parent's internally stored database owner.
+  // Root node must know its owner, for some node insertion commands.
   _rootNode._setOwner(this);
 
   // Clear the function pointers.
@@ -35,7 +32,7 @@ arDatabase::arDatabase() :
 }
 
 arDatabase::~arDatabase(){
-  // Unreference our nodes in the database;
+  // Unref our nodes in the database;
   // the nodes self-delete when their ref count falls to 0.
   // Don't use an arDatabase method here that passes a message to alter().
   _eraseNode(&_rootNode);
@@ -99,9 +96,9 @@ arDatabaseNode* arDatabase::_ref(arDatabaseNode* node, const bool fRef) {
   return node;
 }
 
-// Note how this call is thread-safe using the global arDatabase lock.
-// Consequently, it cannot be called internally in any of the arDatabase
-// (or subclass) code for message processing in order to avoid deadlocks.
+// Because this is thread-safe using the global arDatabase lock _l,
+// don't call it from arDatabase (or subclass) code for message processing,
+// to avoid deadlocks.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
   arGuard dummy(_l);
   return _ref(_getNodeNoLock(ID, fWarn), refNode);
@@ -111,11 +108,9 @@ arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn) {
   return getNode(ID, fWarn, true);
 }
 
-
-// Node names are not assumed to be unique within the arDatabase.
-// Consequently, this function is really just a restatement of findNode().
-// We do a breadth-first search for the first node with the given name and
-// return that.
+// Because node names might not be unique within the arDatabase,
+// this really just restates findNode().
+// Search breadth-first for, and return, the first node with the given name.
 arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn, 
                                     bool refNode){
   // Search breadth-first for the node with the given name.
@@ -150,9 +145,9 @@ arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
   }
 
   arGuard dummy(_l);
-  // Whether or not the caller has requested the ptr be
-  // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
-  // result in a call to arDatabase::findNode again and an infinite recursion.
+  // Even if the caller has requested the ptr be ref'd,
+  // don't request this of the arDatabaseNode, since that again
+  // calls arDatabase::findNode, infinitely.
   return _ref(node->findNode(name, false), refNode);
 }
 
@@ -169,9 +164,9 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
   }
 
   arGuard dummy(_l);
-  // Whether or not the caller has requested the ptr be
-  // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
-  // result in a call to arDatabase::findNodeByType again and an infinite recursion.
+  // Even if the caller has requested the ptr be ref'd,
+  // don't request this of the arDatabaseNode, since that again
+  // calls arDatabase::findNodeByType, infinitely.
   return _ref(node->findNodeByType(nodeType, false), refNode);
 }
 
@@ -180,20 +175,18 @@ arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node,
   return findNodeByType(node, nodeType, true);
 }
 
-// Just a way to make getting a node's parent thread-safe with respect to
-// the other database operations. The idea is that the alter method
+// Get a parent thread-safely, because alter()
 // (within which all database operations occur) will be locked.
-// This is called when an owned node's getParentRef() method is invoked.
+// Called when an owned node's getParentRef() is invoked.
 arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
   arGuard dummy(_l);
 
-  // Make sure this is a *active* node owned by this database.
-  // Here, active means that the node is owned AND has a parent (or is the
-  // root node).
+  // Ensure this node is active, owned by this database,
+  // and has a parent (or is the root node).
   if (!_check(node))
     return NULL;
 
-  // Don't call arDatabaseNode::getParentRef, lest that call
+  // Not arDatabaseNode::getParentRef, lest that also call
   // arDatabase::getParentRef and recurse infinitely.
   return _ref(node->getParent(), true);
 }
@@ -206,8 +199,8 @@ list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
   if (!_check(node))
     return l;
 
-  // Don't call arDatabaseNode::getChildrenRef, since that causes
-  // another call to arDatabase::getChildrenRef (an infinite recursion).
+  // Not arDatabaseNode::getChildrenRef, lest that also call
+  // arDatabase::getChildrenRef and recurse infinitely.
   l = node->getChildren();
   ar_refNodeList(l);
   return l;
@@ -243,21 +236,19 @@ arDatabaseNode* arDatabase::newNodeRef(arDatabaseNode* parent,
   return newNode(parent, type, name);
 }
 
-// If no child node is given (i.e. the 
-// parameter is NULL) then the new node goes between the parent and
-// its current children. If a child node is given, put the new node
-// between the two specified nodes (assuming they are truly parent and 
+// If child=="NULL", insert the new node between the parent and
+// its current children. Otherwise, insert the new node between
+// the two specified nodes (assuming they are truly parent and 
 // child). Return a pointer to the new node (or NULL on error).
-// Fail if either node is not owned by this database.
-
+// Fail if this database doesn't own both nodes.
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
 			               const string& type,
 			               const string& name,
                                        bool refNode){
 
-  // The parent node can't be NULL and must be owned by this database.
-  // If the child node is not NULL, it must be owned by this database as well.
+  // Parent can't be NULL and must be owned by this database.
+  // If child is not NULL, it must be owned by this database as well.
   if (!_check(parent) ||
       (child && (!child->active() || child->getOwner() != this))){
     ar_log_error() << "arDatabaseNode: can't insert with non-owned nodes.\n";
@@ -274,8 +265,8 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   data->dataIn(_lang->AR_INSERT_ID, &temp, AR_INT, 1);
   data->dataInString(_lang->AR_INSERT_NAME, nodeName);
   data->dataInString(_lang->AR_INSERT_TYPE, type);
-  // Subclasses may guarantee that alter() occurs atomically. Consequently,
-  // this call is thread-safe.
+  // Subclasses may guarantee that alter() occurs atomically,
+  // thus this call is thread-safe.
   // If refNode is true, then "result" gets an extra reference.
   arDatabaseNode* result = alter(data, refNode);
   _dataParser->recycle(data); // Avoid memory leak.
@@ -302,7 +293,7 @@ bool arDatabase::cutNode(int ID){
   arStructuredData* data = _dataParser->getStorage(_lang->AR_CUT);
   data->dataIn(_lang->AR_CUT_ID, &ID, AR_INT, 1);
   arDatabaseNode* result = alter(data);
-  _dataParser->recycle(data); // Avoid memory leak.
+  _dataParser->recycle(data);
   return result ? true : false;
 }
 
@@ -315,22 +306,23 @@ bool arDatabase::eraseNode(arDatabaseNode* node){
 }
 
 bool arDatabase::eraseNode(int ID){
-  // There is no need to check (here) whether or not there is a node in the
-  // arDatabase with this ID. This will occur inside the alter(...).
+  // Don't check if the arDatabase has a node with this ID.
+  // That happens in alter().
   arStructuredData* data = _dataParser->getStorage(_lang->AR_ERASE);
   data->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
   alter(data);
-  _dataParser->recycle(data); // Avoid memory leak.
+  _dataParser->recycle(data);
   return true;
 }
 
 void arDatabase::permuteChildren(arDatabaseNode* parent,
 		                 list<arDatabaseNode*>& children){
   const int size = children.size();
-  if (size == 0){
+  if (size == 0) {
     // Nothing to do.
     return;
   }
+
   arStructuredData* data = _dataParser->getStorage(_lang->AR_PERMUTE);
   int parentID = parent->getID();
   data->dataIn(_lang->AR_PERMUTE_PARENT_ID, &parentID, AR_INT, 1);
@@ -345,30 +337,30 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
   data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, IDs, AR_INT, count);
   delete [] IDs;
   if (count > 0){
-    // Only do this if, in fact, some of the pointers make sense to use.
+    // Only if some of the pointers are usable.
     alter(data);
   }
-  _dataParser->recycle(data); // Avoid memory leak.
+  _dataParser->recycle(data);
 }
 
-// An adapter for the Python wrapping. 
+// Adapter for Python wrapping. 
 void arDatabase::permuteChildren(arDatabaseNode* parent,
 				 int number,
 				 int* children){
   list<arDatabaseNode*> l;
   for (int i=0; i<number; i++){
-    // For thread-safety, must own a reference to the node.
+    // For thread-safety, own a ref to the node.
     arDatabaseNode* n = getNodeRef(children[i]);
     if (n){
       l.push_back(n);
     }
   }
   permuteChildren(parent, l);
-  ar_unrefNodeList(l); // Avoid memory leak.
+  ar_unrefNodeList(l);
 }
 
 // When transfering the database state, we often want to dump the structure
-// before dumping the data of the individual nodes.
+// before dumping the nodes' data.
 // Thread-safe, assuming that the node is
 // ref'ed outside the arDatabase (or is the root). This means the parent
 // is also ref'ed since the node refs its parent.
@@ -377,11 +369,11 @@ bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
     return false;
   }
   if (node->getID() <= 0){
-    // This is the root node.  It does not get mirrored.
+    // Root node.  It does not get mirrored.
     return false;
   }
   const int nodeID = node->getID();
-  // Guaranteed to have a parent since not the root node.
+  // Has a parent, since not the root node.
   const int parentID = node->getParent()->getID();
   return
     data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID,&parentID,AR_INT,1) &&
@@ -441,9 +433,8 @@ arDatabaseNode* arDatabase::alterRaw(ARchar* theData){
   return alter(_parsingData[dataID]);
 }
 
-// Sure, we are losing info by returning bool. But sending
-// in a buffer packed with various calls, pretty much guarantees that
-// we can't care about specific outcomes.
+// Returning bool loses info, but sending in a buffer packed with
+// various calls means that individual outcomes hardly matter.
 bool arDatabase::handleDataQueue(ARchar* theData){
   ARint bufferSize = -1;
   ARint numberRecords = -1;
@@ -479,7 +470,7 @@ bool arDatabase::readDatabase(const string& fileName, const string& path){
     ARint recordSize = -1;
     ar_unpackData(buffer,&recordSize,AR_INT,1);
     if (recordSize>bufferSize){
-      // resize buffer
+      // Resize buffer.
       delete [] buffer;
       bufferSize = 2 * recordSize;
       buffer = new ARchar[bufferSize];
@@ -505,17 +496,16 @@ bool arDatabase::readDatabaseXML(const string& fileName, const string& path){
     return false;
   }
 
-  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser parser(_lang->getDictionary());
   arFileTextStream fileStream;
   fileStream.setSource(sourceFile);
   for (;;){
-    arStructuredData* record = parser->parse(&fileStream);
+    arStructuredData* record = parser.parse(&fileStream);
     if (!record)
       break;
     alter(record);
-    parser->recycle(record);
+    parser.recycle(record);
   }
-  delete parser;
   fclose(sourceFile);
   return true;
 }
@@ -531,31 +521,30 @@ bool arDatabase::attach(arDatabaseNode* parent,
   if (!source){
     return false;
   }
-  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser parser(_lang->getDictionary());
   map<int, int, less<int> > nodeMap;
   for (;;){
-    arStructuredData* record = parser->parseBinary(source);
+    arStructuredData* record = parser.parseBinary(source);
     if (!record)
       break;
+
     // Ignore AR_IGNORE_NODE (no outFilter specified).
-    const int success = filterIncoming(parent, record, nodeMap, NULL, 
-				       NULL, AR_IGNORE_NODE, true);
     arDatabaseNode* altered = NULL;
-    if (success){
+    const int success =
+      filterIncoming(parent, record, nodeMap, NULL, NULL, AR_IGNORE_NODE, true);
+    if (success) {
       altered = alter(record);
       if (success > 0 && altered){
 	// A node was created.
-	nodeMap.insert(map<int, int, less<int> >::value_type
-			(success, altered->getID()));
+	nodeMap.insert(map<int,int,less<int> >::value_type(success, altered->getID()));
       }
     }
-    parser->recycle(record);
+    parser.recycle(record);
     if (success && !altered){
-      // Unrecoverable error. filterIncoming complained.
+      // Unrecoverable error. filterIncoming() complained.
       break;
     }
   }
-  delete parser;
   fclose(source);
   return true;
 }
@@ -572,14 +561,14 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   if (!source){
     return false;
   }
-  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser parser(_lang->getDictionary());
   arStructuredData* record;
   arFileTextStream fileStream;
   fileStream.setSource(source);
   bool done = false;
   map<int, int, less<int> > nodeMap;
   while (!done){
-    record = parser->parse(&fileStream);
+    record = parser.parse(&fileStream);
     if (record){
       // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specified)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
@@ -593,7 +582,7 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
       	                  (success, altered->getID()));
         }
       }
-      parser->recycle(record);
+      parser.recycle(record);
       if (success && !altered){
 	// Unrecoverable error.  filterIncoming complained.
         break;
@@ -603,7 +592,6 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
       done = true;
     }
   }
-  delete parser;
   fileStream.ar_close();
   return true;
 }
@@ -620,12 +608,12 @@ bool arDatabase::merge(arDatabaseNode* parent,
   if (!source){
     return false;
   }
-  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser parser(_lang->getDictionary());
   arStructuredData* record;
   bool done = false;
   map<int, int, less<int> > nodeMap;
   while (!done){
-    record = parser->parseBinary(source);
+    record = parser.parseBinary(source);
     if (record){
       // NOTE: The AR_IGNORE_NODE parameter is ignored (no outFilter specified)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
@@ -639,7 +627,7 @@ bool arDatabase::merge(arDatabaseNode* parent,
       	                  (success, altered->getID()));
         }
       }
-      parser->recycle(record);
+      parser.recycle(record);
       if (success && !altered){
 	// Unrecoverable error.  filterIncoming complained.
         break;
@@ -649,13 +637,12 @@ bool arDatabase::merge(arDatabaseNode* parent,
       done = true;
     }
   }
-  delete parser;
   fclose(source);
   return true;
 }
 
-// Mapping means attempting to merge the file into the existing database
-// in a reasonable way, starting with the root node of the file being
+// Mapping means merging the file into the existing database,
+// starting with the root node of the file being
 // mapped to parent. When a new node is defined in the file, the
 // function looks at the database node to which its file-parent maps.
 // It then searches below this database node to find a node with the
@@ -670,14 +657,14 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
   if (!source){
     return false;
   }
-  arStructuredDataParser* parser = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredDataParser parser(_lang->getDictionary());
   arStructuredData* record;
   arFileTextStream* fileStream = new arFileTextStream();
   fileStream->setSource(source);
   bool done = false;
   map<int, int, less<int> > nodeMap;
   while (!done){
-    record = parser->parse(fileStream);
+    record = parser.parse(fileStream);
     if (record){
       // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specifed)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
@@ -691,7 +678,7 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
       	                  (success, altered->getID()));
         }
       }
-      parser->recycle(record);
+      parser.recycle(record);
       if (success && !altered){
         // There was an unrecoverable error. filterIncoming already
 	// complained so do not do so here.
@@ -702,7 +689,6 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
       done = true;
     }
   }
-  delete parser;
   // best to close this way...
   fileStream->ar_close();
   return true;
