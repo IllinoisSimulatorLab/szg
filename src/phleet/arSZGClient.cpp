@@ -2932,9 +2932,9 @@ void arSZGClient::_serverResponseThread() {
         if (_bufferResponse) {
           // Print this packet's contents.
           const string serverInfo(
-          string(_responseBuffer+5)  + "/" +
-          string(_responseBuffer+132) + ":" +
-          string(_responseBuffer+164));
+	    string(_responseBuffer+5)  + "/" +
+	    string(_responseBuffer+132) + ":" +
+	    string(_responseBuffer+164));
           bool found = false;
           for (vector<string>::const_iterator i = _foundServers.begin();
           i != _foundServers.end(); ++i) {
@@ -2949,7 +2949,7 @@ void arSZGClient::_serverResponseThread() {
             cout << serverInfo << "\n";
           }
           _foundServers.push_back(serverInfo);
-              } else if (_requestedName == string(_responseBuffer+5)) {
+	} else if (_requestedName == string(_responseBuffer+5)) {
           // Stop, discarding subsequent packets.
           _dataRequested = false;
           _dataCondVar.signal();
@@ -3154,7 +3154,8 @@ void arSZGClient::messageTask() {
 
   closeConnection();
   _keepRunning = false;
-  ar_usleep(75000); // let other threads exit cleanly
+  // Wait for other threads to exit cleanly.
+  ar_usleep(75000);
   exit(0);
 }
 
