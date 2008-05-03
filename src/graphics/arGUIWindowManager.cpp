@@ -357,8 +357,7 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ){
   }
 
   // Wait for the events to complete.
-  EventIterator eitr;
-  for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ )
+  for( EventIterator eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ )
     (*eitr)->wait( blocking );
   return 0;
 }
@@ -659,7 +658,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     IDs.push_back( WItr->first );
 
   std::vector< arGUIXMLWindowConstruct* >::const_iterator cItr;
-  std::vector< int >::iterator wItr;
+  std::vector< int >::iterator wItr; // don't confuse wItr with WItr
 
   for( cItr = windowConstructs->begin(), wItr = IDs.begin();
        (cItr != windowConstructs->end()) && (wItr != IDs.end());
