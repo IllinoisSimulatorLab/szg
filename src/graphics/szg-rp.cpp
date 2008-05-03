@@ -349,20 +349,22 @@ void renderLabel(const string& name){
   }
 }
 
-list<int> lastFrameTimes;
-
+// Low-pass filter: average previous values.
 int averageFrameTime(int thisTime){
-  // Low-pass filter: average last 20 frame times.
+  static list<int> lastFrameTimes;
+
   if (lastFrameTimes.size() >= 20){
     lastFrameTimes.pop_front();
   }
   lastFrameTimes.push_back(thisTime);
   int total = 0;
+  int numFrames = 0;
   for (list<int>::iterator i = lastFrameTimes.begin();
-       i != lastFrameTimes.end(); i++){
+       i != lastFrameTimes.end(); ++i, ++numFrames){
     total += *i;
   }
-  return int(total/20.0);
+  // numFrames >= 1, so division by zero can't happen.
+  return int(total / float(numFrames));
 }
 
 void display(){
