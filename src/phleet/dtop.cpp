@@ -29,23 +29,18 @@ extern "C"{
 WINDOW* ww = NULL;
 int fColor = 0;
 
-int fDone = 0;
+bool fDone = false;
 void messageTask(void* pClient)
 {
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (cli->running()) {
-    if (cli->receiveMessage(&messageType, &messageBody)){
-      if (messageType=="quit"){
-        fDone = 1;
-	return;
-        }
-    }
-    else {
-      // szgserver probably died
-      fDone = 2;
+    // if receiveMessage fails, szgserver may have died, but it probably doesn't matter.
+    if (!cli->receiveMessage(&messageType, &messageBody) ||
+        messageType=="quit") {
+      fDone = true;
       return;
-      }
+    }
   }
 }
 
@@ -277,8 +272,6 @@ LUsage:
 
   endwin();
   szgClient.messageTaskStop();
-  if (fDone == 2)
-    cerr << argv[0] << " error: szgserver not responding.\n";
   return 0;
 }
 
