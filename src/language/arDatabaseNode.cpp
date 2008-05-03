@@ -332,7 +332,6 @@ bool arDatabaseNode::_setParentNotAddingToParentsChildren
   (arDatabaseNode* parent){
   if (_parent)
     return false; // Node already had a parent.
-
   if (!parent)
     return false; // No new parent to add.
 
@@ -360,9 +359,8 @@ bool arDatabaseNode::_addChild(arDatabaseNode* node){
     return false; // Node already had a parent.
 
   node->_setParentNotAddingToParentsChildren(this);
-  // Add the child.
+  // Add and ref the child.
   _children.push_back(node);
-  // Add a reference to the child, too.
   node->ref();
   return true;
 }
@@ -397,18 +395,16 @@ void arDatabaseNode::_removeAllChildren(){
 // Steal all the children from a node.
 void arDatabaseNode::_stealChildren(arDatabaseNode* node){
   for (list<arDatabaseNode*>::iterator i = node->_children.begin();
-       i != node->_children.end(); i++){
+       i != node->_children.end(); ++i){
     _children.push_back(*i);
-    // Remove the child node's reference to its old
-    // parent. Since the node's child list still contains *i, remove
-    // that last.
+    // Remove the child node's reference to its old parent.
+    // Since the node's child list still contains *i, remove that last.
     (*i)->_removeParentLeavingInParentsChildren();
     // Set the node's parent to the current node.
     (*i)->_parent = this;
-    // Add a reference to the new parent.
+    // Ref the new parent.
     ref();
-    // Don't add a reference to the node, since
-    // the old parent had already incremented the ref count.
+    // Don't ref the node, because the old parent already incremented the ref count.
   }
   // The old node has no children left.
   node->_children.clear();
