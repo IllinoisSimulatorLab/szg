@@ -8,7 +8,7 @@
 #include "arLogStream.h"
 
 arGraphicsDatabase::arGraphicsDatabase() :
-  _texturePath(new list<string>),
+  _texturePath(new list<string>(1,"") /* local dir */),
   _viewerNodeID(-1)
 {
   _typeCode = AR_GRAPHICS_DATABASE;
@@ -27,9 +27,6 @@ arGraphicsDatabase::arGraphicsDatabase() :
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
   
-  // Initialize the texture path list.
-  _texturePath->push_back(string("") /* local directory */ );
-
   // make the external parsing storage
   arTemplateDictionary* d = _gfx.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -204,27 +201,21 @@ arTexFont* arGraphicsDatabase::getTexFont() {
 }
 
 void arGraphicsDatabase::setTexturePath(const string& thePath) {
-  // this is probably called in a different thread from the data handling
-  _texturePathLock.lock();
+  // might be in a different thread from the data handling
+  arGuard dummy(_texturePathLock);
 
-  // Delete the _texturePath object and create a new one.
   delete _texturePath;
-  _texturePath = new list<string>;
+  _texturePath = new list<string>(1,""); // local directory
 
   // Parse the path.
   int nextChar = 0;
   int length = thePath.length();
-
-  string result(""); // always search local directory
-  _texturePath->push_back(result);
-
+  string dir;
   while (nextChar < length) {
-    result = ar_pathToken(thePath, nextChar); // updates nextChar
-    if (result == "NULL")
-      continue;
-    _texturePath->push_back(ar_pathAddSlash(result));
+    dir = ar_pathToken(thePath, nextChar); // updates nextChar
+    if (dir != "NULL")
+      _texturePath->push_back(ar_pathAddSlash(dir));
   }
-  _texturePathLock.unlock();
 }
 
 // Creates a new texture and then refs it before returning. Consequently,
@@ -248,39 +239,39 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   }
   else if (!isServer()) {
     // Client. Get the actual bitmap.
-    // Try everything in the path.
     bool fDone = false;
-    string potentialFileName;
-    // Look at the bundle path, if it's defined.
-    map<string, string, less<string> >::iterator iter =
+    string s; // potential filename
+
+    // Try the bundle path, if defined.
+    map<string, string, less<string> >::const_iterator iter =
         _bundlePathMap.find(_bundlePathName);
     if (_bundlePathName != "NULL" && _bundleName != "NULL"
 	&& iter != _bundlePathMap.end()) {
       arSemicolonString bundlePath(iter->second);
       for (int n=0; n<bundlePath.size() && !fDone; n++) {
-        potentialFileName = bundlePath[n];
-        ar_pathAddSlash(potentialFileName);
-        potentialFileName += _bundleName;
-        ar_pathAddSlash(potentialFileName);
-        potentialFileName += name;
-        ar_scrubPath(potentialFileName);
-        triedPaths.push_back( potentialFileName );
-        fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, false);
+        s = bundlePath[n];
+        ar_pathAddSlash(s);
+        s += _bundleName;
+        ar_pathAddSlash(s);
+        s += name;
+        ar_scrubPath(s);
+        triedPaths.push_back( s );
+        fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
 	theTexture->mipmap(true);
       }
     }
 
     _texturePathLock.lock();
-    // If nothing was found, look at the texture path.
+    // Try the texture path.
     for (list<string>::iterator i = _texturePath->begin();
 	 !fDone && i != _texturePath->end(); ++i) {
-      potentialFileName = *i + name;
-      ar_scrubPath(potentialFileName);
-      triedPaths.push_back( potentialFileName );
-      fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, false);
+      s = *i + name;
+      ar_scrubPath(s);
+      triedPaths.push_back( s );
+      fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
       theTexture->mipmap(true);
     }
-    static bool fComplained = false;
+    static bool fComplained = false; // todo: member variable
     if (!fDone) {
       theTexture->dummy();
       if (!fComplained) {
@@ -592,8 +583,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
   }
   // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
-    arBoundingSphere sphere =
-      ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arBoundingSphere sphere(((arBoundingSphereNode*)node)->getBoundingSphere());
     arMatrix4 m(matrixStack.top());
     arBoundingSphere tmp(b);
     tmp.transform(!m);
@@ -602,25 +592,25 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
       // intersection or containment
       if (bestDistance < 0 || distance < bestDistance) {
         bestDistance = distance;
-		// The best node is kept seperately from the list of intersecting nodes.
-		if (bestNode) {
-		  // If there was already a best node, save it.
-		  nodes.push_back(bestNode);
-		}
-		bestNode = node;
+	// Keep the best node separate from the list of intersecting nodes.
+	if (bestNode) {
+	  // If there was already a best node, save it.
+	  nodes.push_back(bestNode);
+	}
+	bestNode = node;
       }
       else {
-	    // The best node is kept seperately from the list of intersecting nodes.
-	    nodes.push_back(node);
-	  }
-	  if (useRef) {
-	    // In either case, add an extra ref to our node.
-	    node->ref();
-	  }
+	// Keep the best node separate from the list of intersecting nodes.
+	nodes.push_back(node);
+      }
+      if (useRef) {
+	// In either case, add an extra ref to our node.
+	node->ref();
+      }
     }
   }
-  // Deal with intersections with children. NOTE: we must use getChildrenRef
-  // instead of getChildren for thread-safety.
+  // Deal with intersections with children.
+  // Use getChildrenRef instead of getChildren for thread-safety.
   list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); ++i) {
@@ -634,8 +624,8 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
   }
 }
 
-// Returns the IDs of all bounding sphere nodes that intersect the given
-// ray. Caller is responsible for deleting the list. Thread-safe.
+// Return IDs of all bounding sphere nodes that intersect the given ray.
+// Caller deletes the list. Thread-safe.
 list<int>* arGraphicsDatabase::intersectList(const arRay& theRay) {
   list<int>* result = new list<int>;
   stack<arRay> rayStack;
@@ -650,8 +640,8 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
   // Copypaste "transform the ray" with 2 previous instances in this file.
   // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
-    arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
-    arRay currentRay = rayStack.top();
+    arMatrix4 theMatrix(((arTransformNode*)node)->getTransform());
+    arRay currentRay(rayStack.top());
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
 			(!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
@@ -659,18 +649,16 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
   // Copypaste "intersect" with 2 previous instances in this file.
   // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
-    arBoundingSphere sphere 
-      = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arBoundingSphere sphere(((arBoundingSphereNode*)node)->getBoundingSphere());
     arRay intRay(rayStack.top());
-    float distance = intRay.intersect(sphere.radius, 
-				      sphere.position);
+    const float distance = intRay.intersect(sphere.radius, sphere.position);
     if (distance>0) {
       // intersection
       result->push_back(node->getID());
     }
   }
-  // Deal with intersections with children. NOTE: we must use
-  // getChildrenRef instead of getChildren for thread-safety.
+  // Deal with intersections with children.
+  // Use getChildrenRef instead of getChildren for thread-safety.
   list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); ++i) {
