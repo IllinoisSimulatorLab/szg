@@ -273,11 +273,8 @@ void arPhleetConfig::addInterface(const string& networkName,
   }
   if (result){
     // Found no match.
-    arInterfaceDescription description;
-    description.address = address;
-    description.mask = netmask;
-    _networkList.push_back(pair<string,arInterfaceDescription>(networkName,
-                                                               description));
+    _networkList.push_back( pair<string,arInterfaceDescription>(networkName,
+      arInterfaceDescription(address, netmask)));
     // This is the only place _networkList grows.
     ++_numNetworks;
   }

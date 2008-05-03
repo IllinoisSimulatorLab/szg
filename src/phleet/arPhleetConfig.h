@@ -18,6 +18,8 @@ using namespace std;
 class arInterfaceDescription {
  public:
   arInterfaceDescription(){}
+  arInterfaceDescription(const string& a, const string& m) :
+    address(a), mask(m) {}
   ~arInterfaceDescription(){}
 
   string address;
