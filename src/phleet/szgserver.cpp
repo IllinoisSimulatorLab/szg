@@ -166,13 +166,10 @@ void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID) {
     i(componentMessageOwnershipDB.find(componentID));
   if (i == componentMessageOwnershipDB.end()) {
     // the component owns no messages currently
-    list<int> messageList;
-    messageList.push_back(messageID);
     componentMessageOwnershipDB.insert
       (SZGcomponentMessageOwnershipDB::value_type(componentID,
-							messageList));
-  }
-  else {
+						  list<int>(1, messageID)));
+  } else {
     i->second.push_back(messageID);
   }
 }
@@ -187,8 +184,7 @@ void SZGremoveMessageIDFromComponentsList(int componentID, int messageID) {
   if (i == componentMessageOwnershipDB.end()) {
     ar_log_error() << "internal error: no message list for component "
          << componentID << ".\n";
-  }
-  else {
+  } else {
     i->second.remove(messageID);
   }
 }
@@ -201,13 +197,10 @@ void SZGinsertKeyIntoComponentsList(int componentID, const string& key) {
     i(componentTradingOwnershipDB.find(componentID));
   if (i == componentTradingOwnershipDB.end()) {
     // the component has posted no trades as of yet
-    list<string> tradeList;
-    tradeList.push_back(key);
     componentTradingOwnershipDB.insert
       (SZGcomponentTradingOwnershipDB::value_type(componentID,
-							tradeList));
-  }
-  else {
+						  list<string>(1, key)));
+  } else {
     i->second.push_back(key);
   }
 }
@@ -220,8 +213,7 @@ void SZGremoveKeyFromComponentsList(int componentID, const string& key) {
     i(componentTradingOwnershipDB.find(componentID));
   if (i == componentTradingOwnershipDB.end()) {
     ar_log_error() << "internal error: no trading key in component's list.\n";
-  }
-  else {
+  } else {
     i->second.remove(key);
   }
 }
@@ -431,10 +423,8 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID) {
   SZGcomponentLockOwnershipDB::iterator j(componentLockOwnershipDB.find(id));
   if (j == componentLockOwnershipDB.end()) {
     // The component has never owned a lock.
-    list<string> lockList;
-    lockList.push_back(lockName);
-    componentLockOwnershipDB.insert
-      (SZGcomponentLockOwnershipDB::value_type(id, lockList));
+    componentLockOwnershipDB.insert(SZGcomponentLockOwnershipDB::value_type
+      (id, list<string>(1,lockName)));
   }
   else {
     // The component either owns, or has owned, a lock.
@@ -460,10 +450,8 @@ void SZGrequestLockNotification(int id, const string& lockName, int match) {
   SZGlockNotificationDB::iterator i(lockNotificationDB.find(lockName));
   if (i == lockNotificationDB.end()) {
     // no notifications, yet, for this lock's release
-    list<arPhleetNotification> temp;
-    temp.push_back(notification);
     lockNotificationDB.insert(SZGlockNotificationDB::value_type
-				    (lockName, temp));
+      (lockName, list<arPhleetNotification>(1,notification)));
   }
   else {
     // there are already notifications requested for this lock
@@ -474,10 +462,8 @@ void SZGrequestLockNotification(int id, const string& lockName, int match) {
     = lockNotificationOwnershipDB.find(id);
   if (j == lockNotificationOwnershipDB.end()) {
     // no notifications directed at this component
-    list<string> tempS;
-    tempS.push_back(lockName);
-    lockNotificationOwnershipDB.insert
-      (SZGlockNotificationOwnershipDB::value_type(id, tempS));
+    lockNotificationOwnershipDB.insert(SZGlockNotificationOwnershipDB::value_type
+      (id, list<string>(1,lockName)));
   }
   else {
     // there are already notifications directed towards this component
@@ -491,28 +477,23 @@ void SZGrequestLockNotification(int id, const string& lockName, int match) {
 // (in the case of serverLock = false) or data server's "no lock" methods
 // (in the case of serverLock = true).
 void SZGsendLockNotification(string lockName, bool serverLock) {
-  SZGlockNotificationDB::iterator i
-    = lockNotificationDB.find(lockName);
+  SZGlockNotificationDB::iterator i = lockNotificationDB.find(lockName);
   if (i != lockNotificationDB.end()) {
     // there are actually some notifications
-    arStructuredData* data 
-      = dataParser->getStorage(lang.AR_SZG_LOCK_NOTIFICATION);
+    arStructuredData* data = dataParser->getStorage(lang.AR_SZG_LOCK_NOTIFICATION);
     data->dataInString(lang.AR_SZG_LOCK_NOTIFICATION_NAME, lockName);
     for (list<arPhleetNotification>::iterator j = i->second.begin();
 	 j != i->second.end(); j++) {
-      // Must set the match.
+      // Set the match.
       data->dataIn(lang.AR_PHLEET_MATCH, &j->match, AR_INT, 1);
       arSocket* theSocket = NULL;
-      // we use too different calls, sendData and sendDataNoLock,
+      // Use sendData or sendDataNoLock,
       // depending upon the context in which we were called.
-      if (serverLock) {
-        theSocket = dataServer->getConnectedSocketNoLock(j->componentID);
-      }
-      else {
-        theSocket = dataServer->getConnectedSocket(j->componentID);
-      }
+      theSocket = serverLock ?
+        dataServer->getConnectedSocketNoLock(j->componentID) :
+        dataServer->getConnectedSocket(j->componentID);
       if (!theSocket) {
-	ar_log_error() << "can't send lock notification for missing component.\n";
+	ar_log_error() << "failed to send lock notification for missing component.\n";
       }
       else {
 	// we use too different calls, sendData and sendDataNoLock,
@@ -528,14 +509,14 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
 	  }
 	}
       }
-      // now, we need to do a little clean-up...
+      // Clean up.
       // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
       SZGlockNotificationOwnershipDB::iterator k
 	= lockNotificationOwnershipDB.find(j->componentID);
       if (k != lockNotificationOwnershipDB.end()) {
         k->second.remove(lockName);
-	// if the list is empty, better remove it.
         if (k->second.empty()) {
+	  // Remove empty list.
           lockNotificationOwnershipDB.erase(k);
 	}
       }
@@ -543,9 +524,8 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
 	ar_log_error() << "found no expected lock notification owner.\n";
       }
     }
-    // Must remember to recycle the storage!
     dataParser->recycle(data);
-    // finally, the lock has gone away, so remove its entry
+    // The lock has gone away, so remove its entry.
     lockNotificationDB.erase(i);
   }
 }
@@ -679,29 +659,23 @@ void SZGrequestKillNotification(int requestingComponentID,
     killNotificationDB.find(observedComponentID));
   if (i == killNotificationDB.end()) {
     // no notifications, yet, for this component's demise
-    list<arPhleetNotification> temp;
-    temp.push_back(notification);
     killNotificationDB.insert(SZGkillNotificationDB::value_type
-				    (observedComponentID, temp));
+      (observedComponentID, list<arPhleetNotification>(1,notification)));
   }
   else {
-    // there are already notifications requested for this component's demise
+    // Notifications were requested for this component's demise.
     i->second.push_back(notification);
   }
-  // we must also enter it into the list organized by the REQUESTING
-  // component's ID.
+  // Enter it into the list organized by the REQUESTING component's ID.
   SZGkillNotificationOwnershipDB::iterator j
     = killNotificationOwnershipDB.find(requestingComponentID);
   if (j == killNotificationOwnershipDB.end()) {
     // no kill notifications directed at this component yet
-    list<int> tempI;
     // We need to know how to remove the notification request from the
     // OBSERVED component's database if the REQUESTING component goes away
     // before the observed component does.
-    tempI.push_back(observedComponentID);
-    killNotificationOwnershipDB.insert
-      (SZGkillNotificationOwnershipDB::value_type
-        (requestingComponentID, tempI));
+    killNotificationOwnershipDB.insert(SZGkillNotificationOwnershipDB::value_type
+        (requestingComponentID, list<int>(1,observedComponentID)));
   }
   else {
     // there are already notifications directed towards this REQUESTING 
