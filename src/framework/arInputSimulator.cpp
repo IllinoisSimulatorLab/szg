@@ -48,17 +48,13 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
     if (numValues != numItems) {
       ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
-      delete[] mouseButtons;
     } else {
-      vector<unsigned> mouseButtonsVector;
-      for (int i=0; i<numValues; ++i) {
-        mouseButtonsVector.push_back( mouseButtons[i] );
-      }
-      delete[] mouseButtons;
-      if (!setMouseButtons( mouseButtonsVector )) {
+      vector<unsigned> v(mouseButtons, mouseButtons+numValues);
+      if (!setMouseButtons( v )) {
         ar_log_error() << "arInputSimulator setMouseButtons() failed in configure().\n";
       }
     }
+    delete[] mouseButtons;
   } else {
     ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
   }
@@ -285,14 +281,13 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   if (haveIndex)
     _mouseButtons[buttonIndex] = state;
   else {
-    vector<unsigned> buttons = getMouseButtons();
+    vector<unsigned> buttons(getMouseButtons());
     buttons.push_back( buttonIndex );
-    if (!setMouseButtons( buttons )) {
-      ar_log_error() << "arInputSimulator failed to add button index " << buttonIndex << ".\n";
-    } else {
+    if (setMouseButtons( buttons )) {
       ar_log_remark() << "arInputSimulator added button index " << buttonIndex << " to list.\n";
       return;
     }
+    ar_log_error() << "arInputSimulator failed to add button index " << buttonIndex << ".\n";
   }
 
   switch (_interfaceState) {
@@ -316,8 +311,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     }
     break;
   case AR_SIM_USE_JOYSTICK:
-    _axis[0] = 0.;
-    _axis[1] = 0.;
+    _axis[0] = _axis[1] = 0.;
     break;
   case AR_SIM_HEAD_TRANSLATE:
   case AR_SIM_HEAD_ROTATE:
