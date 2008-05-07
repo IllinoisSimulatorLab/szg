@@ -80,11 +80,11 @@ const int __buttonCodes[] = {
 
 // Yuk, #define not function.  Because IS_PRESSED itself is a #define.
 #define doButton(theStruct, code, i) \
-  if (IS_JUST_PRESSED( wm, code )) \
+  if (IS_JUST_PRESSED( theStruct, code )) \
     __wiimoteDriver->queueButton( i, 1 ); \
-  else if (IS_RELEASED( wm, code )) \
+  else if (IS_RELEASED( theStruct, code )) \
     __wiimoteDriver->queueButton( i, 0 ); \
-  if (IS_PRESSED( wm, code )) \
+  if (IS_PRESSED( theStruct, code )) \
     __wiimoteDriver->resetIdleTimer();
 
 static void __pointerHandleEvent( struct wiimote_t* wm ) {
