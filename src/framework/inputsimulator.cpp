@@ -188,7 +188,7 @@ LAbort:
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
   glutInitWindowSize(250,250);
   glutInitWindowPosition(xPos, yPos);
-  glutCreateWindow("inputsimulator");
+  glutCreateWindow(szgClient.getUserName() == "gfrancis" ? "wandsimpercolator" : "inputsimulator");
   glutDisplayFunc(display);
   glutIdleFunc(idle);
   glutKeyboardFunc(keyboard);
