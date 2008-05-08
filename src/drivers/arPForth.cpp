@@ -139,7 +139,7 @@ arPForthProgram::~arPForthProgram() {
   
 arPForth::arPForth():
   anonymousActionsAreTransient(true),
-  _program(0) {
+  _program(NULL) {
   _valid = arPForthSpace::ar_PForthAddStandardVocabulary(this);
 }
 
@@ -147,7 +147,7 @@ arPForth::~arPForth() {
   _inputWords.clear();
   _theStack.clear();
   _dataSpace.clear();
-  if (_program != 0)
+  if (_program)
     delete _program;
   _dictionary.clear();
   unsigned i = 0;
@@ -177,8 +177,8 @@ void arPForth::addAction( arPForthSpace::arPForthAction* action ) {
 }
 
 void arPForth::addTransientAction( arPForthSpace::arPForthAction* action ) {
-  if (_program == 0) {
-    cerr << "arPForth error: no program to add triansient action to.\n";
+  if (!_program) {
+    cerr << "arPForth error: no program to add transient action to.\n";
     return;
   }
   _program->_transientActions.push_back( action );
@@ -331,9 +331,10 @@ void arPForth::printStringspace() const {
 }
 
 void arPForth::printStack() const {
-    cerr << "Stack:\n";
-    for (unsigned i=0; i<_theStack.size(); i++)
-      cerr << "  [ " << _theStack[i] << " ]\n";
+  cerr << "Stack:\n";
+  for (unsigned i=0; i<_theStack.size(); i++)
+    cerr << "  [ " << _theStack[i] << " ]\n";
+  cerr << "\n";
 }
 
 void arPForth::printDictionary() const {
@@ -420,7 +421,7 @@ bool arPForth::runSubprogram( vector<arPForthSpace::arPForthAction*>& actionList
 bool arPForth::runProgram() {
   try {
     if (!_program) {
-      cerr << "arPForth error: internal program == Nil.\n";
+      cerr << "arPForth error: no internal program.\n";
       return false;
     }
     return runSubprogram( _program->_actionList );
@@ -437,7 +438,7 @@ bool arPForth::runProgram(  arPForthProgram* program ) {
   try {
     if (program)
       return runSubprogram( program->_actionList );
-    cerr << "arPForth error: passed program == Nil.\n";
+    cerr << "arPForth error: no passed program.\n";
     return false;
   }
   catch (arPForthSpace::arPForthException ce) {
