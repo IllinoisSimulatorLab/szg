@@ -14,7 +14,7 @@
 class SZG_CALL arFileSink : public arInputSink{
  public:
   arFileSink();
-  ~arFileSink() {}
+  virtual ~arFileSink() {}
  
   bool init(arSZGClient&);
   bool start();

@@ -71,7 +71,7 @@ arLogStream::arLogStream():
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
   _fTimestamp(false),
-  _l("LogStream","Global\\szgLog"),
+  _l("Global\\szgLog"),
   _fLocked(false) {
   if (!_l.valid())
     cerr << "arLogStream warning: no locks. Expect interleaving.\n";

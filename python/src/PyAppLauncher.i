@@ -26,10 +26,10 @@ class arAppLauncher {
 
     bool setParameters();
 
-    int getNumberScreens();
+    int getNumberDisplays();
     string getMasterName();
     string getTriggerName();
-    string getScreenName(int num);
+    string getDisplayName(int num);
 %extend{
     string getRenderProgram( int num ) {
       string computerName;

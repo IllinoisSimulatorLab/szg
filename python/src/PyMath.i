@@ -22,9 +22,14 @@ enum arAxisOrder {
 // classes are very similar and only contain detailed comments when they
 // introduce new concepts.
 
+// Note that there are several ways of wrapping overloaded operators.
+// If the operator in question is a method of a class, then simply
+// renaming it may be enough, as in the case of the two operators below.
+%rename(__eq__) arVector2::operator==;
+%rename(__ne__) arVector2::operator!=;
 %rename(__getitem__) arVector2::operator[];
 
-class arVector2{
+class arVector2 {
  public:
   float v[2];
 
@@ -33,6 +38,15 @@ class arVector2{
   ~arVector2();
 
   float operator[] (int i);
+
+  bool operator==(const arVector2& rhs) const;
+  bool operator!=(const arVector2& rhs) const;
+
+  void set(float x, float y);
+  float magnitude() const;
+  float magnitude2() const;
+  float dot( const arVector2& y ) const;
+
 
 %extend{
   string __repr__(void) {
@@ -125,7 +139,113 @@ class arVector2{
     Py_INCREF(Py_None); resultobj = Py_None;
     return resultobj;
   }
+
+// _Extremely_ annoying. The exceptions dont seem to get caught immediately.
+// Instead, the NULLs just get converted to Python Nones. Ill have to write
+// a python wrapper function to check for this. Same problem plagues all
+// functions in extend blocks...
+%new arVector2* donormalization() const {
+  const float mag = self->magnitude();
+  if (mag <= 0.) {
+    cerr << "arVector2 error: can't normalize zero-length vector.\n";
+    PyErr_SetString( PyExc_ValueError, "arVector2 error: can't normalize zero-length vector." );
+    return NULL;
+  }
+  arVector2* ret = (arVector2*)malloc(sizeof(arVector2));
+  if (!ret) {
+    cerr << "arVector2 error: memory allocation failed in normalize().\n";
+    PyErr_SetString( PyExc_RuntimeError, "arVector2 error: memory allocation failed in normalize()." );
+    return NULL;
+  }
+  for (unsigned int i=0; i<2; ++i) {
+    ret->v[i] = self->v[i]/mag;
+  }
+  return ret;
 }
+
+
+//  const arVector2& operator+=(const arVector2&);
+    arVector2 __iadd__(const arVector2& rhs) {
+        *self+=rhs;
+        return *self;
+    }
+
+//    const arVector2& operator-=(const arVector2&);
+    arVector2 __isub__(const arVector2& rhs) {
+        *self-=rhs;
+        return *self;
+    }
+
+//    const arVector2& operator*=(float);
+    arVector2 __imul__(float rhs) {
+        *self*=rhs;
+        return *self;
+    }
+
+//    const arVector2& operator/=(float);
+    arVector2 __idiv__(float rhs) {
+        *self/=rhs;
+        return *self;
+    }
+
+// arVector2 operator*(const arVector2&, float); // scalar multiply
+    arVector2 __mul__(float rhs) {
+        return *self*rhs;
+    }
+
+//  arVector2 operator*(float ,const arVector2&); // scalar multiply
+    arVector2 __rmul__(float lhs) {
+        return lhs*(*self);
+    }
+
+// arVector2 operator/(const arVector2&, float); // scalar division, handles x/0
+    arVector2 __div__(float rhs) {
+        return *self/rhs;
+    }
+
+// arVector2 operator+(const arVector2&, const arVector2&); // add
+    arVector2 __add__(const arVector2& rhs) {
+        return *self+rhs;
+    }
+
+// arVector2 operator-(const arVector2&); // negate
+    arVector2 __neg__(void) {
+        return -(*self);
+    }
+
+// arVector2 operator-(const arVector2&, const arVector2&); // subtract
+    arVector2 __sub__(const arVector2& rhs) {
+        return *self-rhs;
+    }
+
+
+}
+
+%pythoncode {
+    def normalize(self):
+        ret = self.donormalization()
+        try:
+            if ret is None:
+                print self
+                raise ValueError, "arVector2 failed to normalize (probably zero-length: 1)."
+        except TypeError, msg:
+            print self
+            print msg
+            raise ValueError, "arVector2 failed to normalize (probably zero-length: 2)."
+        return ret
+
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return self.toTuple()
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,v):
+        _swig_setattr(self, arVector2, 'this',
+            getSwigModuleDll().new_arVector2(v[0],v[1]))
+        _swig_setattr(self, arVector2, 'thisown', 1)
+}
+
 };
 
 
@@ -137,7 +257,7 @@ class arVector2{
 %rename(__ne__) arVector3::operator!=;
 %rename(__getitem__) arVector3::operator[];
 
-class arVector3{
+class arVector3 {
  public:
   float v[3];
 

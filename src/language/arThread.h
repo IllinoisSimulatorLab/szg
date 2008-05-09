@@ -27,14 +27,12 @@
 
 #endif
 
-#include <string>
-
 // Recursive mutex: called twice by the same thread, doesn't deadlock.
 // Loosely from Walmsley, "Multi-threaded Programming in C++," class MUTEX.
 class SZG_CALL arLock {
   friend class arConditionVar;
  public:
-  arLock(const std::string& name="noname", const char* winName = NULL);
+  arLock(const char* name = NULL);
   ~arLock();
   void lock();
 #ifdef UNUSED
@@ -43,8 +41,6 @@ class SZG_CALL arLock {
   void unlock();
   bool valid() const;
 
-  std::string name;
-  
  protected:
 #ifdef AR_USE_WIN_32
   HANDLE _mutex;
@@ -72,7 +68,7 @@ class SZG_CALL arGuard {
 
 class SZG_CALL arBoolAtom {
  public:
-  arBoolAtom(bool x=false) : _x(x), _l("BoolAtom") {}
+  arBoolAtom(bool x=false) : _x(x) {}
   operator bool() const
     { _l.lock(); const bool x = _x; _l.unlock(); return x; }
   void operator=(const bool x)
@@ -86,7 +82,7 @@ class SZG_CALL arBoolAtom {
 
 class SZG_CALL arIntAtom {
  public:
-  arIntAtom(int x=0) : _x(x), _l("IntAtom") {}
+  arIntAtom(int x=0) : _x(x) {}
   operator int() const
     { _l.lock(); const int x = _x; _l.unlock(); return x; }
   void operator=(const int x)

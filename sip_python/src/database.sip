@@ -87,7 +87,7 @@ class arDatabaseNode {
   // manipulations. Each arDatabaseNode ptr returned has am extra reference
   // added.
   //list<arDatabaseNode*> getChildrenRef();
-  bool hasChildren() const;
+  // bool hasChildren() const;
 
   arNodeLevel getNodeLevel() const;
   void setNodeLevel(arNodeLevel nodeLevel);

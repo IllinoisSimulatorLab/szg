@@ -10,6 +10,7 @@
 
 arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary) :
   _dictionary(dictionary),
+  _recycleLock("DataParserRecycle"),
   _activated(true)
   {
   // Each template in the dictionary has a queue lock and a condition variable.

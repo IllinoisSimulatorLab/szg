@@ -239,7 +239,7 @@ using namespace std;
 };
 
 
-// vector<TYPE> is implemented as a Python vector.
+// vector<TYPE> is implemented as a Python list.
 template<TYPE>
 %MappedType vector<TYPE>
 {

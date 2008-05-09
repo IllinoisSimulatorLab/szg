@@ -2,6 +2,7 @@ print 'szg module:',__file__
 from _szg import *
 print 'Syzygy version:',ar_versionString()
 import sys
+import traceback
 
 # Simple embedded multiline python interpreter built around raw_input().
 # Interrupts the control flow at any given location with 'exec prompt'
@@ -114,6 +115,79 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
       if self.getMaster():
         ar_initPythonPrompt( self )
     return True
+  def _onWindowStartGL( self, winInfo ):
+    try:
+      self.onWindowStartGL( winInfo )
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'WindowStartGL', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onWindowStartGL( self, winInfo ):
+    pass
+  def _onPreExchange( self ):
+    try:
+      if self.__usePrompt:
+        ar_doPythonPrompt()
+      self.onPreExchange()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'PreExchange', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onPreExchange( self ):
+    pass
+  def _onPostExchange( self ):
+    try:
+      self.onPostExchange()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'PostExchange', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onPostExchange( self ):
+    pass
+  def _onWindowInit( self ):
+    try:
+      self.onWindowInit()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'WindowInit', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onWindowInit( self ):
+    ar_defaultWindowInitCallback()
+  def _onDraw( self, win, vp ):
+    try:
+      self.onDraw( win, vp )
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'Draw', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onDraw( self, win, vp ):
+    pass
+  def _onDisconnectDraw( self ):
+    try:
+      self.onDisconnectDraw()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'DisconnectDraw', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onDisconnectDraw( self ):
+    # just draw a black background
+    ar_defaultDisconnectDraw()
+  def _onPlay( self ):
+    try:
+      self.onPlay()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'Play', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onPlay( self ):
+    pass
+  def _onWindowEvent( self, winInfo ):
+    try:
+      self.onWindowEvent( winInfo )
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'WindowEvent', arCallbackException(str(msg)) )
+      self.stop( False )
   def onWindowEvent( self, winInfo ):
     state = winInfo.getState()
     if state == AR_WINDOW_RESIZE:
@@ -123,14 +197,33 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     # We will only get here if someone clicks the window close decoration.
     # This is NOT reached if we use the arGUIWindowManagers delete  method.
       self.stop( False )
-  def onPreExchange( self ):
-    if self.__usePrompt:
-      ar_doPythonPrompt()
-  def onWindowInit( self ):
-    ar_defaultWindowInitCallback()
-  def onDisconnectDraw( self ):
-    # just draw a black background
-    ar_defaultDisconnectDraw()
+  def _onCleanup( self ):
+    try:
+      self.onCleanup()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'Cleanup', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onCleanup( self ):
+    pass
+  def _onOverlay( self ):
+    try:
+      self.onOverlay()
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'Overlay', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onOverlay( self ):
+    pass
+  def _onKey( self, key, x, y ):
+    try:
+      self.onKey( key, x, y )
+    except Exception, msg:
+      traceback.print_exc()
+      self._stop( 'Key', arCallbackException(str(msg)) )
+      self.stop( False )
+  def onKey( self, key, x, y ):
+    pass
   # master->slave data-transfer based on cPickle module
   def initObjectTransfer(self,name): self.initStringTransfer(name)
   def setObject(self,name,obj): self.setString(name,cPickle.dumps(obj))

@@ -14,12 +14,12 @@
 
 // Used, too, by framework/arInputSimulator.cpp.
 
-class SZG_CALL arGenericDriver: public arInputSource{
+class SZG_CALL arGenericDriver: public arInputSource {
  public:
   arGenericDriver();
-  ~arGenericDriver();
+  virtual ~arGenericDriver();
   
-  void setSignature(unsigned, unsigned, unsigned);
+  void setSignature(unsigned numButtons, unsigned numAxes, unsigned numMatrices);
 };
 
 #endif

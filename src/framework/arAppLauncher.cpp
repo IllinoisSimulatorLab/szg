@@ -225,7 +225,12 @@ bool arAppLauncher::setParameters() {
     // After that come slave devices.
     const string iDev(ar_intToString(i/2));
     
-    device = (device == "inputsimulator" ? "" : "DeviceServer ") + device + " " + iDev;
+//    device = (device == "inputsimulator" ? "" : "DeviceServer ") + device + " " + iDev;
+    if ((device == "inputsimulator") || (device.substr(device.length()-3, 3) == ".py")) {
+      device += " " + iDev;
+    } else {
+      device = "DeviceServer " + device + " " + iDev;
+    }
     if (i < numTokens-2)
       device += " -netinput";
     _addService(computer, device, _getInputContext(), "SZG_INPUT"+iDev, info);
@@ -532,8 +537,8 @@ bool arAppLauncher::_prepareCommand() {
 void arAppLauncher::_addService(const string& computerName, 
                                 const string& serviceName,
                                 const string& context,
-				const string& tradingTag,
-				const string& info) {
+                                const string& tradingTag,
+                                const string& info) {
   arLaunchInfo l(computerName, serviceName, context, _location + "/" + tradingTag, info);
 
   // Trade with _location, not _vircomp, so multiple virtual computers

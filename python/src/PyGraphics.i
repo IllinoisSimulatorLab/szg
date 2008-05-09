@@ -349,16 +349,29 @@ class arTexture {
                const string& subdirectory, 
                const string& path,
                int alpha = -1, bool complain = true);
-  bool writePPM(const string& fileName, const string& subdirectory, 
-                const string& path);
   bool readJPEG(const string& fileName, 
                 const string& subdirectory, 
                 const string& path,
                 int alpha = -1, bool complain = true);
+  bool readAlphaImage(const string& fileName, 
+                 const string& subdirectory, 
+                 const string& path,
+                 bool complain = true);
+  bool readAlphaPPM(const string& fileName, 
+               const string& subdirectory, 
+               const string& path,
+               bool complain = true);
+  bool readAlphaJPEG(const string& fileName, 
+                const string& subdirectory, 
+                const string& path,
+                bool complain = true);
+  bool writePPM(const string& fileName, const string& subdirectory, 
+                const string& path);
   bool writeJPEG(const string& fileName, const string& subdirectory, 
                  const string& path);
   
   bool flipHorizontal();
+  bool fillColor(int w, int h, char r, char g, char b, int alpha=-1);
 };
 
 %{
@@ -399,6 +412,7 @@ class arMaterial {
   arVector3 emissive;
   float exponent; 
   float alpha; 
+  void activateMaterial();
 %extend{
   string __str__(void){
     stringstream s;

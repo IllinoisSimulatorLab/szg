@@ -11,6 +11,7 @@
 %Import szg.sip
 
 %ModuleHeaderCode
+#include "arExperiment.h"
 #include <string>
 using namespace std;
 %End
@@ -33,28 +34,11 @@ class arTrialGenerator {
 //                       const arStringSetMap_t& legalStringValues,
 //                       arSZGClient& SZGClient );
                     
-    virtual bool newTrial( arExperimentDataRecord& factors ) = 0 /PyName=onNewTrial/;
+    virtual bool newTrial( arExperimentDataRecord& factors /TransferBack/ ) = 0 /PyName=onNewTrial/;
     unsigned long trialNumber() const;
     virtual long numberTrials() const;
   private:
     arTrialGenerator( const arTrialGenerator& );
-};
-
-
-class arExperimentTrialPhase {
-%TypeHeaderCode
-#include "arExperimentTrialPhase.h"
-%End
-  public:
-    arExperimentTrialPhase( const string& name="" );
-    virtual ~arExperimentTrialPhase();
-    virtual bool init( arSZGAppFramework*, arExperiment* ) /PyName=onInit/;
-    virtual bool update( arSZGAppFramework*, arExperiment* ) /PyName=onUpdate/;
-    virtual bool update( arSZGAppFramework*, arExperiment*,
-                         arIOFilter*, arInputEvent& event ) /PyName=onUpdate/;
-    string getName() const;
-  private:
-    arExperimentTrialPhase( const arExperimentTrialPhase& );
 };
 
 
@@ -86,6 +70,11 @@ class arExperiment {
       sipRes = sipCpp->addFactor( *a0, AR_CHAR );
 %End
 
+
+    bool addStringFactorSet( const string& sname, vector<string>& defaultList );
+%MethodCode
+      sipRes = sipCpp->addCharFactor( *a0, *a1 );
+%End
 
     /// Get pointer to a factor
     //const void* const getFactor( const string fname,
@@ -249,12 +238,12 @@ class arExperiment {
     /// Set the trial-generation method. This would normally be read from
     /// SZG_EXPT/method, but if this has been called that parameter will be ignored.
     /// Must be called before init().
-    bool setTrialGenMethod( const string& method );
-    bool setTrialGenMethod( arTrialGenerator* methodPtr );
+    // bool setTrialGenMethod( const string& method );
+    bool setTrialGenMethod( arTrialGenerator* methodPtr /TransferBack/ ) /PyName=setTrialGenerator/;
     /// Add a data-saver. Must be called before init().
 //    bool addDataSaver( const string& dsName, arDataSaver* dsPtr );
     /// Initialize the experiment.
-    bool init( arSZGAppFramework* framework, arSZGClient& SZGClient );
+    bool init( arSZGAppFramework* framework /TransferBack/, arSZGClient& SZGClient );
     /// Start the experiment.
     bool start();
     /// Stop the experiment.
@@ -293,12 +282,12 @@ class arExperiment {
 
     long getLongSubjectParameter( const string& sname );
 %MethodCode
-      long* tmp(NULL);
-      if (!sipCpp->getSubjectParameter( *a0, AR_LONG, (void*)tmp )) {
+      long tmp;
+      if (!sipCpp->getSubjectParameter( *a0, AR_LONG, (void*)&tmp )) {
         PyErr_SetString(PyExc_ValueError,"getLongSubjectParameter() failed");
         sipIsErr = 1;
       } else {
-        sipRes = *tmp;
+        sipRes = tmp;
       }
 %End
 
@@ -337,14 +326,14 @@ class arExperiment {
 %End
     
     /// Add or replace a trial phase object by name
-    virtual bool setTrialPhase( const string theName, arExperimentTrialPhase* thePhase );
+    //virtual bool setTrialPhase( const string theName, arExperimentTrialPhase* thePhase );
     /// Get the name of the current trial phase
-    string currentTrialPhase();
+    //string currentTrialPhase();
     /// Activate a trial phase by name
-    virtual bool activateTrialPhase( const string theName, arSZGAppFramework* fw );
+    //virtual bool activateTrialPhase( const string theName, arSZGAppFramework* fw );
     /// Calls update() method of active trial phase object
-    virtual bool updateTrialPhase( arSZGAppFramework* fw );
-    virtual bool updateTrialPhase( arSZGAppFramework* fw, arIOFilter* filter, arInputEvent& event );
+    //virtual bool updateTrialPhase( arSZGAppFramework* fw );
+    //virtual bool updateTrialPhase( arSZGAppFramework* fw, arIOFilter* filter, arInputEvent& event );
     /// Allocate a named storage buffer
     /// If it has the same name and type as a data field, the data field
     /// will be set to point to the allocated buffer
@@ -360,6 +349,9 @@ class arExperiment {
 
 
 class arExperimentDataRecord  {
+%TypeHeaderCode
+#include "arExperimentDataRecord.h"
+%End
   public:
     arExperimentDataRecord( const string& name="" );
     ~arExperimentDataRecord();
@@ -476,7 +468,7 @@ class arGluQuadric : arInteractableThing {
 %End
   public:
     arGluQuadric();
-    arGluQuadric( const arGluQuadric& x );
+    arGluQuadric( const arGluQuadric& x /TransferBack/ );
     virtual ~arGluQuadric();
     void setPointStyle();
     void setLineStyle();
@@ -486,7 +478,7 @@ class arGluQuadric : arInteractableThing {
     void setNoNormals();
     void setFlatNormals();
     void setSmoothNormals();
-    virtual void draw( arMasterSlaveFramework* fw=0 )  = 0;
+    virtual void draw();
 };
 
 class arGluSphere : arGluQuadric {
@@ -495,9 +487,9 @@ class arGluSphere : arGluQuadric {
 %End
   public:
     arGluSphere( double radius, int slices=30, int stacks=5 );
-    arGluSphere( const arGluSphere& x );
+    arGluSphere( const arGluSphere& x /TransferBack/ );
     virtual ~arGluSphere();
-    virtual void draw( arMasterSlaveFramework* fw=0 );
+    virtual void draw();
     void setRadius( double radius );
     void setSlicesStacks( int slices, int stacks );
 };
@@ -509,9 +501,9 @@ class arGluCylinder : arGluQuadric {
 %End
   public:
     arGluCylinder( double startRadius, double endRadius, double length, int slices=30, int stacks=5 );
-    arGluCylinder( const arGluCylinder& x );
+    arGluCylinder( const arGluCylinder& x /TransferBack/ );
     virtual ~arGluCylinder();
-    virtual void draw( arMasterSlaveFramework* fw=0 );
+    virtual void draw();
     void setRadii( double startRadius, double endRadius );
     void setLength( double length );
     void setSlicesStacks( int slices, int stacks );
@@ -524,9 +516,9 @@ class arGluDisk : arGluQuadric {
 %End
   public:
     arGluDisk( double innerRadius, double outerRadius, int slices=30, int rings=5 );
-    arGluDisk( const arGluDisk& x );
+    arGluDisk( const arGluDisk& x /TransferBack/ );
     virtual ~arGluDisk();
-    virtual void draw( arMasterSlaveFramework* fw=0 );
+    virtual void draw();
     void setRadii( double innerRadius, double outerRadius );
     void setSlicesRings( int slices, int rings );
 };
@@ -539,11 +531,11 @@ class arPatternedBox : arInteractableThing {
   public:
     arPatternedBox();
     virtual ~arPatternedBox();
-    arPatternedBox( const arPatternedBox& b );
+    arPatternedBox( const arPatternedBox& b /TransferBack/ );
     void setUseTexture( bool useTexture );
     bool getUseTexture() const;
     void setSize( const float w, const float h, const float d, const float s=0 );
-    virtual void draw( arMasterSlaveFramework* fw=0 );
+    virtual void draw();
     void setTextureScale( float sc );
 };
 
@@ -554,7 +546,7 @@ class arGluTessObject : arInteractableThing {
 %End
   public:
     arGluTessObject( bool useDisplayList = false );
-    arGluTessObject( const arGluTessObject& x );
+    arGluTessObject( const arGluTessObject& x /TransferBack/ );
     virtual ~arGluTessObject();
     void setScaleFactors( const arVector3& scales );
     void setScaleFactors( float x, float y, float z );

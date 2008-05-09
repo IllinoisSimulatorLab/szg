@@ -282,10 +282,40 @@ class arInputSink {
   virtual bool start();
   virtual bool stop();
   virtual bool restart();
-  //virtual void receiveData(int,arStructuredData*);
   virtual bool sourceReconfig(int);
  private:
   arInputSink( const arInputSink& );
+};
+
+
+class arNetInputSink: arInputSink {
+%TypeHeaderCode
+#include "arNetInputSink.h"
+%End
+ public:
+  arNetInputSink();
+  virtual ~arNetInputSink();
+
+  bool setSlot(unsigned slot);
+  bool init(arSZGClient&);
+  bool start();
+  void setInfo(const string& info);
+ private:
+  arNetInputSink( const arNetInputSink& );
+};
+
+
+class arFileSink : arInputSink {
+%TypeHeaderCode
+#include "arFileSink.h"
+%End
+ public:
+  arFileSink();
+  ~arFileSink();
+ 
+  bool init(arSZGClient&);
+  bool start();
+  bool stop();
 };
 
 
@@ -370,6 +400,9 @@ class arInputNode: arInputSink {
 
 
 class arIOFilter {
+%TypeHeaderCode
+#include "arIOFilter.h"
+%End
   public:
     arIOFilter();
     virtual ~arIOFilter();
@@ -392,4 +425,17 @@ class arIOFilter {
   private:
     arIOFilter( const arIOFilter& );
 };
+
+class arInputNodeConfig {
+%TypeHeaderCode
+#include "arInputNodeConfig.h"
+%End
+  public:
+    arInputNodeConfig();
+    ~arInputNodeConfig();
+
+    void addInputSource( const string& source );
+    bool parseXMLRecord( const string& nodeConfig );
+};
+
 

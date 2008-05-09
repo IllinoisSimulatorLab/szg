@@ -17,7 +17,7 @@ class SZG_CALL arNetInputSink: public arInputSink{
   friend void ar_netInputSinkConnectionTask(void*);
  public:
   arNetInputSink();
-  ~arNetInputSink() {}
+  virtual ~arNetInputSink() {}
 
   bool setSlot(unsigned slot);
   bool init(arSZGClient&);

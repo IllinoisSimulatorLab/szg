@@ -141,8 +141,8 @@ class arSZGClient {
     int i;
     for (i=0; i<argc; ++i) {
       const string& s = (*a0)[i];
-      argv[i] = new char[s.size()];
-      memcpy( argv[i], s.c_str(), s.size() );
+      argv[i] = new char[s.size()+1];
+      memcpy( argv[i], s.c_str(), s.size()+1 );
     }
     sipRes = sipCpp->init( argc, argv, *a1 );
     for (i=0; i<argc; ++i) {
@@ -159,9 +159,9 @@ class arSZGClient {
   // I'm not sure how to do that yet.
 
   //stringstream& initResponse();
-  //bool sendInitResponse(bool state);
+  bool sendInitResponse(bool state);
   //stringstream& startResponse();
-  //bool sendStartResponse(bool state);
+  bool sendStartResponse(bool state);
   
   bool launchDiscoveryThreads();
 
@@ -247,6 +247,8 @@ class arSZGClient {
                          int numvalues = 1);
   string getAllAttributes(const string& substring);
 
+  string getGlobalAttribute( const string& userName, const string& attributeName );
+
   bool parseAssignmentString(const string& text);
 
   // A way to get parameters in from a file (as in dbatch, for instance)
@@ -271,19 +273,24 @@ class arSZGClient {
  
   // There appears to be a SIP bug that prevents the above from working, so this
   // is a workaround.
-  SIP_PYTUPLE receiveMessage() /ReleaseGIL/ ;
+  SIP_PYTUPLE receiveMessage();
 %MethodCode
     string userName;
     string messageType;
     string messageBody;
     string context;
-    int stat = sipCpp->receiveMessage( &userName, &messageType, &messageBody, &context );
+    PyThreadState *_save;
+    _save = PyThreadState_Swap(NULL);
+    PyEval_ReleaseLock();
+    int messageID = sipCpp->receiveMessage( &userName, &messageType, &messageBody, &context );
+    PyEval_AcquireLock();
+    PyThreadState_Swap(_save);
     sipRes = PyTuple_New(5);
     if (sipRes == NULL) {
       PyErr_SetString(PyExc_RuntimeError, "unable to allocate tuple for arSZGClient.receiveMessage");
       sipIsErr = 1;
     } else {
-      PyTuple_SetItem( sipRes, 0, PyInt_FromLong( static_cast<long>(stat) ) );
+      PyTuple_SetItem( sipRes, 0, PyInt_FromLong( static_cast<long>(messageID) ) );
       PyTuple_SetItem( sipRes, 1, PyString_FromString( userName.c_str() ) );
       PyTuple_SetItem( sipRes, 2, PyString_FromString( messageType.c_str() ) );
       PyTuple_SetItem( sipRes, 3, PyString_FromString( messageBody.c_str() ) );
@@ -315,15 +322,6 @@ class arSZGClient {
 
   // Functions dealing with locks.
   bool getLock(const string& lockName, int& ownerID /Out/);
-//  PyObject* getLock( const string& lockName ) {
-//    int ownerID;
-//    bool stat = self->getLock( lockName, ownerID );
-//    PyObject* retTuple = PyTuple_New(2);
-//    PyTuple_SetItem( retTuple, 0, PyInt_FromLong( (long)stat ) );
-//    PyTuple_SetItem( retTuple, 1, PyInt_FromLong( (long)ownerID ) );
-//    return retTuple;
-//  }
-
   bool releaseLock(const string& lockName);
   int requestLockReleaseNotification(const string& lockName);
   int getLockReleaseNotification(list<int> tags, int timeout = -1);

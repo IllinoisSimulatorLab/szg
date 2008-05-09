@@ -11,31 +11,12 @@
 #include "arInputSink.h"
 #include "arIOFilter.h"
 #include "arStringTextStream.h"
+#include "arInputNodeConfig.h"
 #include "arDriversCalling.h"
 
 #include <string>
 #include <map>
 #include <vector>
-
-class SZG_CALL arInputNodeConfig {
-  public:
-    arInputNodeConfig(): pforthProgram(""), valid(false) {}
-    ~arInputNodeConfig() {}
-
-    void addInputSource( const string& source ) { inputSources.push_back( source ); }
-    bool parseXMLRecord( const string& nodeConfig );
-
-    vector<string> inputSources;
-    vector<string> inputSinks;
-    vector<string> inputFilters; 
-    string       pforthProgram;
-    bool valid;
-
-  private:
-    bool _parseTokenList(arStringTextStream& tokenStream,
-                          const string& tagType,
-                          vector<string>& tokenList);
-};
 
 class SZG_CALL arInputFactory {
   public:

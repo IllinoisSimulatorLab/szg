@@ -207,6 +207,8 @@ class arSZGClient{
                          int numvalues = 1);
   string getAllAttributes(const string& substring);
 
+  string getGlobalAttribute(const string& attributeName);
+
   bool parseAssignmentString(const string& text);
   // A way to get parameters in from a file (as in dbatch, for instance)
   bool parseParameterFile(const string& fileName, bool warn=true);

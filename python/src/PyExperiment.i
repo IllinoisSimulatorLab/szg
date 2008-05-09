@@ -1083,7 +1083,7 @@ class arGluQuadric : public arInteractableThing {
     void setNoNormals() { _normalStyle = GLU_NONE; }
     void setFlatNormals() { _normalStyle = GLU_FLAT; }
     void setSmoothNormals() { _normalStyle = GLU_SMOOTH; }
-    virtual void draw( arMasterSlaveFramework* fw=0 )  = 0;
+    virtual void draw( arMasterSlaveFramework* fw=0 );
 };
 
 class arGluSphere : public arGluQuadric {

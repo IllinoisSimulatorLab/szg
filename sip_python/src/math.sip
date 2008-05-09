@@ -196,11 +196,60 @@ class arVector2 {
     sipIsErr = _mathSetItem( sipCpp->v, a0, 2, a1 );
 %End
 
+  //v1==v2
+  bool operator==(const arVector2& rhs) const;
+
+  //v1!=v2
+  bool operator!=(const arVector2& rhs) const;
+
+  const arVector2& operator+=(const arVector2& rhs);
+  const arVector2& operator-=(const arVector2& rhs);
+  const arVector2& operator*=(float scalar);
+  const arVector2& operator/=(float scalar);
+
+  float magnitude() const;
+  float magnitude2() const;
+
+  // dot product.
+  float dot( const arVector2& y ) const;
+
+  // C++ normalize() doesn't raise an error if norm == 0.
+  arVector2 normalize() const /TransferBack/;
+%MethodCode
+  const float mag = sipCpp->magnitude();
+  if (mag <= 0.) {
+    PyErr_SetString( PyExc_ValueError, "arVector2 error: can't normalize zero-length vector." );
+    sipIsErr = 1;
+  } else {
+    float* v = sipCpp->v;
+    sipRes = new arVector2( v[0]/mag, v[1]/mag );
+  }
+%End
+
 %PickleCode
     sipRes = Py_BuildValue( (char *)"ff", sipCpp->v[0], sipCpp->v[1] );
 %End
 
 };
+
+
+// K*v1
+arVector2 operator*( float, const arVector2 &) /TransferBack/;
+
+// v1*K
+arVector2 operator*( const arVector2 &, float) /TransferBack/;
+
+// v1/K
+arVector2 operator/(const arVector2&, float) /TransferBack/; // scalar division, handles /0
+
+// v1+v2
+arVector2 operator+(const arVector2&, const arVector2&) /TransferBack/;
+
+// -v1
+arVector2 operator-(const arVector2&) /TransferBack/; // negate
+
+// v1-v2
+arVector2 operator-(const arVector2&, const arVector2&) /TransferBack/;
 
 
 class arVector3 {
@@ -604,7 +653,7 @@ class arQuaternion {
 
   ~arQuaternion();
 
-  float magsqr() const;
+  float magnitude2() const;
   float magnitude() const;
   arQuaternion conjugate() const /TransferBack/;
   arQuaternion inverse() const /TransferBack/;

@@ -2,6 +2,7 @@
 
 // Defines mapping from python to C++ strings.
 %Include typemaps.sip
+%Include sockets.sip
 %Include datautilities.sip
 %Include database.sip
 %Include math.sip

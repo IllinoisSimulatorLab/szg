@@ -143,14 +143,26 @@ class arTexture {
                const string& subdirectory, 
                const string& path,
                int alpha = -1, bool complain = true);
-  bool writePPM(const string& fileName); 
-  bool writePPM(const string& fileName, const string& path);
-  bool writePPM(const string& fileName, const string& subdirectory, 
-                const string& path);
   bool readJPEG(const string& fileName, 
                 const string& subdirectory, 
                 const string& path,
                 int alpha = -1, bool complain = true);
+  bool readAlphaImage(const string& fileName, 
+                 const string& subdirectory, 
+                 const string& path,
+                 bool complain = true);
+  bool readAlphaPPM(const string& fileName, 
+               const string& subdirectory, 
+               const string& path,
+               bool complain = true);
+  bool readAlphaJPEG(const string& fileName, 
+                const string& subdirectory, 
+                const string& path,
+                bool complain = true);
+  bool writePPM(const string& fileName); 
+  bool writePPM(const string& fileName, const string& path);
+  bool writePPM(const string& fileName, const string& subdirectory, 
+                const string& path);
   bool writeJPEG(const string& fileName);
   bool writeJPEG(const string& fileName, const string& path);
   bool writeJPEG(const string& fileName, const string& subdirectory, 
@@ -158,6 +170,7 @@ class arTexture {
   
   //bool fill(int w, int h, bool alpha, const char* pixels);
   bool flipHorizontal();
+  bool fillColor(int w, int h, char r, char g, char b, int alpha=-1);
 };
 
 

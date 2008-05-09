@@ -5,6 +5,7 @@ VPATH = ../../../src/drivers
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS := \
+  arInputNodeConfig$(OBJ_SUFFIX) \
   arInputFactory$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
   arFileSink$(OBJ_SUFFIX) \

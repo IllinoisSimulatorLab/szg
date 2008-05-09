@@ -67,8 +67,8 @@ class arEffector {
     float calcDistance( const arMatrix4& mat );
     void setUnitConversion( float conv );
     void setTipOffset( const arVector3& offset );
-    void updateState( arInputEvent& event );
     void updateState( arInputState* state );
+    void updateState( arInputEvent& event );
     virtual bool requestGrab( arInteractable* grabee );
     virtual void requestUngrab( arInteractable* grabee );
     virtual void forceUngrab();

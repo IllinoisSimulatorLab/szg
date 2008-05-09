@@ -39,8 +39,8 @@ static bool _framework_init( arSZGAppFramework*fw, vector<string>& args ) {
   int i;
   for (i=0; i<argc; ++i) {
     const string& s = args[i];
-    argv[i] = new char[s.size()];
-    memcpy( argv[i], s.c_str(), s.size() );
+    argv[i] = new char[s.size()+1];
+    memcpy( argv[i], s.c_str(), s.size()+1 );
   }
   bool result = fw->init( argc, argv );
   for (i=0; i<argc; ++i) {
@@ -212,6 +212,13 @@ enum arDataType {
 };
 
 
+class arCallbackException {
+  public:
+    string message;
+    arCallbackException( const string& msg );
+};
+
+
 class arAppLauncher {
 %TypeHeaderCode
 #include "arAppLauncher.h"
@@ -243,8 +250,8 @@ class arAppLauncher {
     int i;
     for (i=0; i<argc; ++i) {
       const string& s = (*a0)[i];
-      argv[i] = new char[s.size()];
-      memcpy( argv[i], s.c_str(), s.size() );
+      argv[i] = new char[s.size()+1];
+      memcpy( argv[i], s.c_str(), s.size()+1 );
     }
     sipRes = sipCpp->connectSZG( argc, argv );
     for (i=0; i<argc; ++i) {
@@ -269,10 +276,10 @@ class arAppLauncher {
   // See doc/GraphicsConfiguration.html.
 
   bool isMaster() const;
-  int getNumberScreens() const;
+  int getNumberDisplays() const;
   string getMasterName() const;
   string getTriggerName() const;
-  string getScreenName(const int) const;
+  string getDisplayName(const int) const;
   bool getRenderProgram(const int num, string& computer, string& renderName);
   void updateRenderers(const string& attribute, const string& value);
 };
@@ -509,17 +516,17 @@ class arMasterSlaveFramework : arSZGAppFramework {
 
   // Convenient options for arSZGClient.
   virtual bool onStart( arSZGClient& SZGClient );
-  virtual void onWindowStartGL( arGUIWindowInfo* );
-  virtual void onPreExchange();
-  virtual void onPostExchange();
-  virtual void onWindowInit();
-  virtual void onDraw( arGraphicsWindow& win, arViewport& vp );
-  virtual void onDisconnectDraw();
-  virtual void onPlay();
-  virtual void onWindowEvent( arGUIWindowInfo* );
-  virtual void onCleanup();
-  virtual void onOverlay();
-  virtual void onKey( unsigned char key, int x, int y );
+  virtual void onWindowStartGL( arGUIWindowInfo* ) /PyName=_onWindowStartGL/;
+  virtual void onPreExchange() /PyName=_onPreExchange/;
+  virtual void onPostExchange() /PyName=_onPostExchange/;
+  virtual void onWindowInit() /PyName=_onWindowInit/;
+  virtual void onDraw( arGraphicsWindow& win, arViewport& vp ) /PyName=_onDraw/;
+  virtual void onDisconnectDraw() /PyName=_onDisconnectDraw/;
+  virtual void onPlay() /PyName=_onPlay/;
+  virtual void onWindowEvent( arGUIWindowInfo* ) /PyName=_onWindowEvent/;
+  //virtual void onCleanup() /PyName=_onCleanup/;
+  virtual void onOverlay() /PyName=_onOverlay/;
+  virtual void onKey( unsigned char key, int x, int y ) /PyName=_onKey/;
 //  virtual void onKey( arGUIKeyInfo* );
 //  virtual void onMouse( arGUIMouseInfo* );
 
@@ -589,7 +596,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
       PyErr_SetString( PyExc_RuntimeError, "setString() unknown transfer field." );
       sipIsErr = 1;
     } else {
-      int size = (int)a1->size();
+      int size = (int)a1->size()+1;
       if (osize!=size) {
           if (!sipCpp->setInternalTransferFieldSize( *a0, AR_CHAR, size )) {
               PyErr_SetString(PyExc_MemoryError,
@@ -854,6 +861,9 @@ unpackdone:
   void setRandomSeed( const long newSeed );
   bool randUniformFloat( float& value /Out/ );
 
+ protected:
+  void _stop(const char*, const arCallbackException&);
+
  private:
   arMasterSlaveFramework( const arMasterSlaveFramework& );
 };
@@ -888,7 +898,7 @@ class arInteractableThing : arInteractable {
     virtual void activateColor() const;
     virtual bool activateTexture();
     virtual void deactivateTexture();
-    virtual void draw( arMasterSlaveFramework* =0 );
+    virtual void draw();
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& );
 };
 
