@@ -249,7 +249,7 @@ arInputFactory::~arInputFactory() {
 }
 
 bool arInputFactory::loadInputSources( arInputNode& inputNode,
-                                        int& slotNumber,
+                                        unsigned& slotNumber,
                                         bool fNetInput ) {
   ar_log_debug() << "SLOT NUMBER: " << slotNumber << ar_endl;
   vector<string>::const_iterator iter;
@@ -293,7 +293,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
       ar_log_error() << "arInputFactory: invalid slot " << slotNumber << ".\n";
       return false;
     }
-    // Skip over "slotNumber+1" listening slot.
+    // Skip over "slotNumber+1" listening slot. ?????
     inputNode.addInputSource( implicitNetInputSource, true );
     ar_log_debug() << "arInputFactory added implicit arNetInputSource in slot " << slotNumber << ar_endl;
     slotNumber += 2;

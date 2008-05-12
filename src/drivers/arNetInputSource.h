@@ -20,7 +20,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   arNetInputSource();
   virtual ~arNetInputSource() {}
 
-  bool setSlot(int);
+  bool setSlot(unsigned);
   bool connected() const
     { return _connected; }
 
@@ -32,7 +32,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   arSZGClient*  _szgClient;
   ARchar*       _dataBuffer;
   int           _dataBufferSize;
-  int    _slot;
+  unsigned    _slot;
   string _IP;
   int    _port;
   bool   _connected;

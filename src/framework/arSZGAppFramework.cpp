@@ -29,6 +29,9 @@ arSZGAppFramework::arSZGAppFramework() :
   _userEventFilter(NULL),
   _unitSoundConversion(1.),
   _speechNodeID(-1),
+  _useNavInputMatrix(false),
+  _navInputMatrixIndex(2),
+  _unitConvertNavInputMatrix(true),
   _wm(NULL),
   _guiXMLParser(NULL),
   _initCalled(false),
@@ -276,11 +279,27 @@ void arSZGAppFramework::ownNavParam( const std::string& paramName ) {
 }
 
 void arSZGAppFramework::navUpdate() {
+  if (_useNavInputMatrix) {
+    ar_setNavMatrix( getMatrix( _navInputMatrixIndex, _unitConvertNavInputMatrix ) );
+    return;
+  }
   _navManager.update( getInputState() );
 }
 
 void arSZGAppFramework::navUpdate( const arInputEvent& event ) {
+  if (_useNavInputMatrix) {
+    ar_setNavMatrix( getMatrix( _navInputMatrixIndex, _unitConvertNavInputMatrix ) );
+    return;
+  }
   _navManager.update( event );
+}
+
+void arSZGAppFramework::navUpdate( const arMatrix4& navMatrix ) {
+  if (_useNavInputMatrix) {
+    ar_setNavMatrix( getMatrix( _navInputMatrixIndex, _unitConvertNavInputMatrix ) );
+    return;
+  }
+  ar_setNavMatrix( navMatrix );
 }
 
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
@@ -332,8 +351,21 @@ static bool ___firstNavLoad = true; // todo: make this a member of arSZGAppFrame
 void arSZGAppFramework::_loadNavParameters() {
   ar_log_debug() << "loading SZG_NAV parameters.\n";
   std::string temp;
+  _useNavInputMatrix = _SZGClient.getAttribute("SZG_NAV", "use_nav_input_matrix") == "true";
+  _unitConvertNavInputMatrix = _SZGClient.getAttribute("SZG_NAV", "unit_convert_nav_input_matrix") == "true";
+  temp = _SZGClient.getAttribute("SZG_NAV", "nav_input_matrix_index");
+  int matrixIndex(2);
+  if (temp != "NULL") {
+    bool stat = ar_stringToIntValid( temp, matrixIndex );
+    if (!stat || (matrixIndex < 0)) {
+      matrixIndex = 2;
+      ar_log_error() << "Invalid value '" << temp << "' for SZG_NAV/nav_input_matrix_index; defaulting to "
+        << matrixIndex << ar_endl;
+    }
+  }
+  _navInputMatrixIndex = (unsigned)matrixIndex;
   if (___firstNavLoad ||_paramNotOwned( "effector" )) {
-    int params[5] = { 1, 1, 0, 4, 0 };
+    int params[5] = { 1, 1, 0, 6, 0 };
     temp = _SZGClient.getAttribute("SZG_NAV", "effector");
     if (temp != "NULL") {
       if (ar_parseIntString( temp, params, 5 ) != 5) {

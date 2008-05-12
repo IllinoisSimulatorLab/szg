@@ -241,6 +241,10 @@ SZG_CALL char* ar_packStringVector( std::vector< std::string >& stringVec,
 SZG_CALL void ar_unpackStringVector( char* inbuf, unsigned int numStrings,
                                      std::vector< std::string >& stringVec );
 
+SZG_CALL void ar_vectorToArgcArgv( std::vector< std::string >& stringVec,
+                                    int& argc, char**& argv );
+void ar_cleanupArgcArgv( int& argc, char**& argv );
+SZG_CALL void ar_argcArgvToVector( int argc, char** argv, std::vector< std::string >& stringVec );
 SZG_CALL bool ar_getTokenList( const std::string& inString,
                        std::vector<std::string>& outList,
                        const char delim = ' ' );

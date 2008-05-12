@@ -109,11 +109,7 @@ arNetInputSource::arNetInputSource() :
 // Input devices offer services based on slots. 
 // Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
 
-bool arNetInputSource::setSlot(int slot){
-  if (slot<0){
-    ar_log_error() << "ignoring negative slot.\n";
-    return false;
-  }
+bool arNetInputSource::setSlot(unsigned slot){
   _slot = slot;
   ar_log_debug() << "using slot " << _slot << ".\n";
   return true;

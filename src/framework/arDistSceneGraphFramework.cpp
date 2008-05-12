@@ -60,6 +60,43 @@ LDie:
       f->getDatabase()->printStructure();
     }
 
+
+    else if ( messageType == "use_nav_input_matrix" ) {
+      if ( messageBody == "on" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+
+            " enabling navigation from input matrix" );
+        f->setUseNavInputMatrix( true );
+      }
+      else if( messageBody == "off" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+
+            " disabling navigation from input matrix." );
+        f->setUseNavInputMatrix( false );
+      }
+      else {
+        ar_log_error() << " ignoring unexpected use_nav_input_matrix arg '" << messageBody << "'.\n";
+        f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
+            " ignoring unexpected use_nav_input_matrix arg '"+messageBody+"'." );
+      }
+    }
+
+    else if ( messageType == "unit_convert_nav_input_matrix" ) {
+      if ( messageBody == "on" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+
+            " enabling unit-conversion of navigation input matrix" );
+        f->setUnitConvertNavInputMatrix( true );
+      }
+      else if( messageBody == "off" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+
+            " disabling unit-conversion of navigation input matrix" );
+        f->setUnitConvertNavInputMatrix( false );
+      }
+      else {
+        ar_log_error() << " ignoring unexpected unit_convert_nav_input_matrix arg '" << messageBody << "'.\n";
+        f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
+            " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
+      }
+    }
+
     if (f->_peerName != "NULL" || f->_externalPeer){
       // Message to the peer.
       (void) ar_graphicsPeerStripName(messageBody);

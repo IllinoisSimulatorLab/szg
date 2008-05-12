@@ -115,6 +115,7 @@ class SZG_CALL arAppLauncher {
   bool _demoKill();
   void _relaunchAllServices(list<arLaunchInfo>&, list<int>&);
   void _relaunchIncompatibleServices(list<arLaunchInfo>&, list<int>&);
+  bool _isSpecialDeviceName( const string& deviceName );
 
   string _getRenderContext(const int) const;
   string _getInputContext() const;

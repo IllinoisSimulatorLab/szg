@@ -401,7 +401,11 @@ class arSZGAppFramework {
     void setNavEffector( const arEffector& effector );
     void ownNavParam( const string& paramName );
     void navUpdate();
-    void navUpdate( arInputEvent& event );
+    void navUpdate( const arMatrix4& navMatrix );
+    void navUpdate( const arInputEvent& event );
+    void setUseNavInputMatrix( const bool onoff );
+    void setNavInputMatrixIndex( const unsigned index );
+    void setUnitConvertNavInputMatrix( const bool onoff );
 
     // Methods for event filtering (and the callbacks that allow
     // event-based processing instead of polling-based processing).

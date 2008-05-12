@@ -263,7 +263,7 @@ class arNetInputSource: arInputSource {
  public:
   arNetInputSource();
   virtual ~arNetInputSource();
-  bool setSlot(int);
+  bool setSlot(unsigned);
   bool connected() const;
   virtual bool init( arSZGClient& );
   virtual bool start();
@@ -438,4 +438,74 @@ class arInputNodeConfig {
     bool parseXMLRecord( const string& nodeConfig );
 };
 
+
+class arPyDeviceServerFramework {
+%TypeHeaderCode
+#include "arDeviceServerFramework.h"
+class arPyDeviceServerFramework : public arDeviceServerFramework {
+  public:
+    arPyDeviceServerFramework() : arDeviceServerFramework() {}
+    virtual ~arPyDeviceServerFramework() {}
+    virtual bool init( vector<string>& argVec, const string& forcedName=string("NULL") ) {
+      int argc;
+      char** argv;
+      ar_vectorToArgcArgv( argVec, argc, argv );
+      bool stat = arDeviceServerFramework::init( argc, argv, forcedName );
+      ar_cleanupArgcArgv( argc, argv );
+      return stat;
+    }
+    bool checkCmdArg( vector<string>& argVec, const string& argVal ) {
+      int argc;
+      char** argv;
+      ar_vectorToArgcArgv( argVec, argc, argv );
+      bool stat = arDeviceServerFramework::checkCmdArg( argc, argv, (const char* const)argVal.c_str() );
+      ar_cleanupArgcArgv( argc, argv );
+      return stat;
+    }
+    bool extractCmdArg( vector<string>& argVec, int i, string& val ) {
+      int argc;
+      char** argv;
+      ar_vectorToArgcArgv( argVec, argc, argv );
+      bool stat = arDeviceServerFramework::extractCmdArg( argc, argv, i, val );
+      ar_cleanupArgcArgv( argc, argv );
+      return stat;
+    }
+  protected:
+    bool _handleArgs( int& argc, char** argv ) {
+      vector<string> argVec;
+      ar_argcArgvToVector( argc, argv, argVec );
+      return _handleArgs( argVec );
+    }
+    virtual bool _handleArgs( vector<string>& /*argVec*/ ) { return true; }
+};
+%End
+  public:
+    arPyDeviceServerFramework();
+    virtual ~arPyDeviceServerFramework();
+    virtual bool init( vector<string>& argVec, const string& forcedName=string("NULL") );
+    void setDeviceName( const string& name );
+    bool checkCmdArg( vector<string>& argVec, const string& a1 );
+    bool extractCmdArg( vector<string>& argVec, int a1, string& a2 );
+    virtual int messageLoop();
+%MethodCode
+    PyThreadState *_save;
+    _save = PyThreadState_Swap(NULL);
+    PyEval_ReleaseLock();
+    sipRes = sipCpp->messageLoop();
+    PyEval_AcquireLock();
+    PyThreadState_Swap(_save);
+%End
+
+    arSZGClient* getSZGClient();
+    arInputNode* getInputNode();
+
+  protected:
+    virtual bool _handleArgs( vector<string>& argVec ) /PyName=handleArgs/;
+    virtual void _printUsage() /PyName=printUsage/;
+    virtual bool _configureInputNode() /PyName=configureInputNode/;
+    virtual bool _handleMessage( const string& messageType, const string& messageBody ) /PyName=handleMessage/;
+    bool _addNetInput() /PyName=addNetInput/;
+  private:
+    arPyDeviceServerFramework( const arPyDeviceServerFramework& );
+};
 

@@ -34,7 +34,7 @@ class SZG_CALL arInputFactory {
     // slotNumber is a bit ugly. You pass in the value of the _output_
     // slot. It may be incremented and/or used as the number for one
     // or more _input_ slots.
-    bool loadInputSources( arInputNode& inputNode, int& slotNumber, bool fNetInput=false );
+    bool loadInputSources( arInputNode& inputNode, unsigned& slotNumber, bool fNetInput=false );
     bool loadInputSinks( arInputNode& inputNode );
     bool loadFilters( arInputNode& inputNode, const string& namedPForthProgram="" );
     arInputSource* findInputSource( const string& driverName );

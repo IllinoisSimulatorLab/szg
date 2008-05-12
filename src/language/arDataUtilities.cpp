@@ -1438,3 +1438,31 @@ void ar_unpackStringVector( char* inbuf, unsigned numStrings, std::vector< std::
     ptr += strlen(ptr) + 1;
   }
 }
+
+void ar_vectorToArgcArgv( std::vector< std::string >& stringVec,
+                                    int& argc, char**& argv ) {
+  argc = stringVec.size();
+  argv = new char*[argc];
+  for (int i=0; i<argc; ++i) {
+    const string& s = stringVec[i];
+    argv[i] = new char[s.size()+1];
+    memcpy( argv[i], s.c_str(), s.size()+1 );
+  }
+}
+
+void ar_cleanupArgcArgv( int& argc, char**& argv ) {
+  for (int i=0; i<argc; ++i) {
+    delete[] argv[i];
+  }
+  delete[] argv;
+  argv = NULL;
+  argc = 0;
+}
+
+void ar_argcArgvToVector( int argc, char** argv, std::vector< std::string >& stringVec ) {
+  stringVec.clear();
+  for (int i=0; i<argc; ++i) {
+    stringVec.push_back( string(argv[i]) );
+  }
+}
+

@@ -202,8 +202,15 @@ bool arAppLauncher::setParameters() {
   // Ensure no computer is duplicated, lest we launch two DeviceServers on one.
   for (i=2; i<numTokens; i+=2) {
     const string& computer_i = inputDevs[i];
+    const string& device_i = inputDevs[i+1];
+    if (_isSpecialDeviceName( device_i )) {
+      // We only care about multiple DeviceServers on the same computer. Multiple
+      // inputsimulators or python devices are allowed.
+      continue;
+    }
     for (int j=0; j<i; j+=2) {
-      if (computer_i == inputDevs[j]) {
+      const string& computer_j = inputDevs[j];
+      if (computer_i == computer_j) {
         ar_log_error() << "input device for virtual computer '"
           << _vircomp << "' has duplicate computer '" << computer_i
           << "', in definition \n  '" << inputDevs
@@ -226,7 +233,7 @@ bool arAppLauncher::setParameters() {
     const string iDev(ar_intToString(i/2));
     
 //    device = (device == "inputsimulator" ? "" : "DeviceServer ") + device + " " + iDev;
-    if ((device == "inputsimulator") || (device.substr(device.length()-3, 3) == ".py")) {
+    if (_isSpecialDeviceName( device )) {
       device += " " + iDev;
     } else {
       device = "DeviceServer " + device + " " + iDev;
@@ -803,3 +810,8 @@ string arAppLauncher::_getSoundContext() const {
   return _szgClient->createContext(_vircomp, "default", "component", "sound",
     _getAttribute("SZG_SOUND", "networks", ""));
 }
+
+bool arAppLauncher::_isSpecialDeviceName( const string& deviceName ) {
+  return ((deviceName == "inputsimulator") || (deviceName.substr(deviceName.length()-3, 3) == ".py"));
+}
+

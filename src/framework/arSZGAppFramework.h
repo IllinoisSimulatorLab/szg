@@ -111,6 +111,10 @@ class SZG_CALL arSZGAppFramework {
     void ownNavParam( const std::string& paramName );
     void navUpdate();
     void navUpdate( const arInputEvent& event );
+    void navUpdate( const arMatrix4& navMatrix );
+    void setUseNavInputMatrix( const bool onoff ) { _useNavInputMatrix = onoff; }
+    void setNavInputMatrixIndex( const unsigned index ) { _navInputMatrixIndex = index; }
+    void setUnitConvertNavInputMatrix( const bool onoff ) { _unitConvertNavInputMatrix = onoff; }
 
     // Methods for event filtering (and the callbacks that allow
     // event-based processing instead of polling-based processing).
@@ -212,6 +216,9 @@ class SZG_CALL arSZGAppFramework {
     int _speechNodeID;
     arNavManager _navManager;
     std::set< std::string > _ownedParams;
+    bool _useNavInputMatrix;
+    unsigned _navInputMatrixIndex;
+    bool _unitConvertNavInputMatrix;
     
     // Standalone mode requires a window manager. Master/slave framework requires
     // a window manager both in standalone and phleet modes.

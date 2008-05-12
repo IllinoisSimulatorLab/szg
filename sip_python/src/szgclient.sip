@@ -133,22 +133,14 @@ class arSZGClient {
   ~arSZGClient();
 
 //  bool init(int&, char** argv, const string& forcedName = string("NULL"));
-  bool init( vector<string> a0, const string& a1 = string("NULL") );
   // a0 and a1 in MethoCode are _pointers_ to the respective arguments!!!
+  bool init( vector<string> a0, const string& a1 = string("NULL") );
 %MethodCode
-    int argc = a0->size();
-    char** argv = new char*[argc];
-    int i;
-    for (i=0; i<argc; ++i) {
-      const string& s = (*a0)[i];
-      argv[i] = new char[s.size()+1];
-      memcpy( argv[i], s.c_str(), s.size()+1 );
-    }
+    int argc;
+    char** argv;
+    ar_vectorToArgcArgv( *a0, argc, argv );
     sipRes = sipCpp->init( argc, argv, *a1 );
-    for (i=0; i<argc; ++i) {
-      delete[] argv[i];
-    }
-    delete[] argv;
+    ar_cleanupArgcArgv( argc, argv );
 %End
 
   void simpleHandshaking(bool state);
