@@ -73,17 +73,17 @@ bool arNavManager::setTransCondition( char axis,
                                       float threshold
 				      ) {
 
-  const int axisNumber = axis - 'x';
-  if (axisNumber < 0 || axisNumber > 2) {
-    cerr << "arNavManager error: invalid axis label '" << axis << "', expected x y or z.\n";
+  const int iAxis = axis - 'x';
+  if (iAxis < 0 || iAxis > 2) {
+    ar_log_error() << "arNavManager expected axis x y or z, not '" << axis << "'.\n";
     return false;
   }
   const arGrabCondition newCondition( type, index, threshold );
   _clearCondition( newCondition );
-  if (_transConditions[axisNumber].type() != AR_EVENT_GARBAGE)
-    _navObject.deleteDrag( _transConditions[axisNumber] );
-  _navObject.setDrag( newCondition, arNavTransDrag( axis, _transSpeeds[axisNumber] ) );
-  _transConditions[axisNumber] = newCondition;
+  if (_transConditions[iAxis].type() != AR_EVENT_GARBAGE)
+    _navObject.deleteDrag( _transConditions[iAxis] );
+  _navObject.setDrag( newCondition, arNavTransDrag( axis, _transSpeeds[iAxis] ) );
+  _transConditions[iAxis] = newCondition;
   return true;
 }
 
@@ -91,17 +91,18 @@ bool arNavManager::setRotCondition( char axis,
                                     arInputEventType type,
                                     unsigned index,
                                     float threshold ) {
-  const int axisNumber = axis - 'x';
-  if (axisNumber < 0 || axisNumber > 2) {
-    cerr << "arNavManager error: invalid axis label '" << axis << "', expected x y or z.\n";
+  const int iAxis = axis - 'x';
+  if (iAxis < 0 || iAxis > 2) {
+    ar_log_error() << "arNavManager expected axis x y or z, not '" << axis << "'.\n";
     return false;
   }
+
   const arGrabCondition newCondition( type, index, threshold );
   _clearCondition( newCondition );
-  if (_rotConditions[axisNumber].type() != AR_EVENT_GARBAGE)
-    _navObject.deleteDrag( _rotConditions[axisNumber] );
-  _navObject.setDrag( newCondition, arNavRotDrag( axis, _rotSpeeds[axisNumber] ) );
-  _rotConditions[axisNumber] = newCondition;
+  if (_rotConditions[iAxis].type() != AR_EVENT_GARBAGE)
+    _navObject.deleteDrag( _rotConditions[iAxis] );
+  _navObject.setDrag( newCondition, arNavRotDrag( axis, _rotSpeeds[iAxis] ) );
+  _rotConditions[iAxis] = newCondition;
   return true;
 }
 
@@ -131,8 +132,8 @@ void arNavManager::setRotSpeed( float degPerSec ) {
   for (unsigned i = 0; i<3; i++) {
     _rotSpeeds[i] = degPerSec;
     if (_rotConditions[i].type() != AR_EVENT_GARBAGE) {
-      _navObject.setDrag( _rotConditions[i],
-                          arNavRotDrag( (char)(i+'x'), degPerSec ) );
+      _navObject.setDrag(
+	_rotConditions[i], arNavRotDrag( (char)(i+'x'), degPerSec ) );
     }
   }   
 }
