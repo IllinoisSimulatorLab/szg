@@ -144,17 +144,15 @@ bool arInputFactory::configure( arSZGClient& szgClient ) {
 
 arInputSource* arInputFactory::getInputSource( const string& driverName ) {
   arInputSource* theSource = NULL;
-  int iService;
-  for (iService = 0; iService < NUM_SERVICES; ++iService) {
-    if (driverName == string(driverTable[iService].arName)) {
+  for (int i = 0; i < NUM_SERVICES; ++i) {
+    if (driverName == string(driverTable[i].arName)) {
       // Found a match.
       //
       // This switch() could eventually become an AbstractFactory or
       // ConcreteFactory (see Design Patterns).
-      switch (iService) {
+      switch (i) {
       case 0:
         theSource = new arJoystickDriver;
-        ar_log_error() << "arJoystickDriver not supported with g++ (MinGW compiler) on Windows.\n";
         break;
       case 1:
 #ifndef AR_USE_MINGW
