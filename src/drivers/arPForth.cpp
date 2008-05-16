@@ -332,14 +332,14 @@ void arPForth::printStringspace() const {
 
 void arPForth::printStack() const {
   cerr << "Stack:\n";
-  for (unsigned i=0; i<_theStack.size(); i++)
+  for (unsigned i=0; i<_theStack.size(); ++i)
     cerr << "  [ " << _theStack[i] << " ]\n";
   cerr << "\n";
 }
 
 void arPForth::printDictionary() const {
   cerr << "Dictionary:\n";
-  for (unsigned i=0; i<_dictionary.size(); i++) {
+  for (unsigned i=0; i<_dictionary.size(); ++i) {
     if (i > 0)
       cerr << ", ";
     cerr << _dictionary[i]._word;
@@ -378,12 +378,36 @@ bool arPForth::compileProgram( const string sourceCode ) {
 //    _program.clear();
 //    _transientActions.clear();
     istringstream newStream( sourceCode );
-    string wordString;
-    while (newStream >> wordString)
-      _inputWords.push_back( wordString );
-    string theWord;
-    while ((theWord = nextWord()) != "PFORTH_NULL_WORD")
-      if (!compileWord( theWord, _program->_actionList ))
+    string word;
+
+    // Stuff _inputWords.
+    while (newStream >> word) {
+      // Convert /*foo into /* foo ,
+      // foo*/ into foo */ ,
+      // /*foo*/ into /* foo */ .
+      // But don't modify foo/*bar .
+      unsigned cch = word.size();
+      if (cch > 2) {
+	if (!strncmp(word.c_str(), "/*", 2)) {
+	  _inputWords.push_back( "/*" );
+	  // Strip the initial "/*".
+	  word = word.substr(2, cch-2);
+	  cch -= 2;
+	}
+      }
+      if (cch > 2) {
+	if (!strncmp(word.c_str()+cch-2, "*/", 2)) {
+	  _inputWords.push_back( word.substr(0, cch-2) );
+	  // Strip all but the final "*/".
+	  word = "*/";
+	}
+      }
+      _inputWords.push_back( word );
+    }
+
+    // Parse (and empty) _inputWords.
+    while ((word = nextWord()) != "PFORTH_NULL_WORD")
+      if (!compileWord( word, _program->_actionList ))
         return false;
     return true;
   }
