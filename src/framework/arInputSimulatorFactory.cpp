@@ -13,8 +13,8 @@ arInputSimulator* arInputSimulatorFactory::createSimulator( arSZGClient& szgClie
     return NULL;
   }
 
-  ar_log_debug() << "arInputSimulatorFactory: SZG_INPUTSIM/simtype '"
-                  << simType << "' unimplemented.\n";
+  ar_log_debug() << "arInputSimulatorFactory: unimplemented SZG_INPUTSIM/simtype '" <<
+    simType << "'.\n";
   // As new simulator types become available, test for them here.
   // (perhaps load from dlls?)
   // return NULL by default, telling caller to use its default simulator.
