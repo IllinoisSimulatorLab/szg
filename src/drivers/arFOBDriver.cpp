@@ -393,19 +393,6 @@ LDefaultBaudRate:
     // Every FoB unit's light should be lit solid (unblinking).
   }
 
-#if 1
-  {
-    string foo;
-    ar_usleep(500000);
-    (void)_getDataMode(foo, 1);
-    ar_usleep(100000);
-    (void)_getDataMode(foo, 2);
-    ar_usleep(100000);
-    (void)_getDataMode(foo, 3);
-    ar_usleep(100000);
-  }
-#endif
-
   return true;
 }
 
