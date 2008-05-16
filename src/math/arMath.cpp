@@ -637,14 +637,15 @@ arVector3 ar_projectPointToLine( const arVector3& linePoint,
                                  const arVector3& lineDirection,
                                  const arVector3& otherPoint,
                                  const float threshold ) {
-  const arVector3 V = otherPoint - linePoint;
-  const arVector3 tmp = V * lineDirection;
+  const arVector3 V(otherPoint - linePoint);
+  const arVector3 tmp(V * lineDirection);
   // If point is too close to line,
   // pretend point is on line so normalize() doesn't become unstable.
   if (tmp.magnitude() < threshold)
     return otherPoint;
-  const arVector3 N = tmp.normalize();
-  const arVector3 M = (lineDirection * N).normalize();
+
+  const arVector3 N(tmp.normalize());
+  const arVector3 M((lineDirection * N).normalize());
   return otherPoint - (V % M)*M;
 }
 
@@ -706,11 +707,9 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
   if (posX == 0. && posY == 0.)
     return ar_identityMatrix();
 
-  // Determine the mapping to the Riemann sphere from this piece of the plane.
-  const float t = -8./(posX*posX + posY*posY);
-  arVector3 spherePos(-t*posX/2., -t*posY/2., t+1.);
-  // a cheat
-  spherePos /= ++spherePos;
+  // Map this patch of the plane to the Riemann sphere.
+  const float t = -8. / (posX*posX + posY*posY);
+  const arVector3 spherePos(arVector3(-t*posX/2., -t*posY/2., t+1.).normalize());
 
   // Rotate (0,0,-1) to spherePos.
   return ar_rotateVectorToVector( arVector3(0,0,-1), spherePos );
