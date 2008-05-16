@@ -33,6 +33,8 @@ class SZG_CALL arPhleetConfig {
   arPhleetConfig();
   ~arPhleetConfig() {}
 
+  bool determineFileLocations( string& configLocation, string& loginFileLocation );
+  
   // Config file I/O.
   bool read();
   bool write();
@@ -94,7 +96,7 @@ class SZG_CALL arPhleetConfig {
   arPhleetConfigLanguage           _l;
   // config file locations
   string                           _configFileLocation;
-  string                           _loginPreamble;
+  string                           _loginFileLocation;
   // global computer info
   string                           _computerName;
   int                              _numberInterfaces;
@@ -115,7 +117,6 @@ class SZG_CALL arPhleetConfig {
   void _processPortsRecord(arStructuredData*);
 
   bool _createIfDoesNotExist(const string& directory);
-  bool _determineFileLocations();
   bool _findDir(const char*, const char*, const char*, const string&, string&);
   bool _writeName(FILE*);
   bool _writeInterfaces(FILE*);

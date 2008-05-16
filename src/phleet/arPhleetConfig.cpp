@@ -35,7 +35,7 @@ arPhleetConfig::arPhleetConfig(){
 // Parse the config file into internal storage, returning 
 // true iff successful. Note the logic about which config file to parse.
 bool arPhleetConfig::read(){
-  if (!_determineFileLocations())
+  if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
   arFileTextStream configStream;
@@ -69,7 +69,7 @@ bool arPhleetConfig::read(){
 // Write info to the appropriate config
 // file location (depending on the alternative config vs. actual config)
 bool arPhleetConfig::write(){
-  if (!_determineFileLocations()) {
+  if (!determineFileLocations( _configFileLocation, _loginFileLocation )) {
     ar_log_error() << "failed to write config file.\n";
     return false;
   }
@@ -98,12 +98,11 @@ bool arPhleetConfig::write(){
 // It may not be an error if this file does not exist on a
 // particular computer (the user might not have logged in yet).
 bool arPhleetConfig::readLogin(bool fFromInit){
-  if (!_determineFileLocations())
+  if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
-  string fileName(_loginPreamble + ar_getUser() + string(".conf"));
   arFileTextStream loginStream;
-  if (!loginStream.ar_open(fileName)){
+  if (!loginStream.ar_open(_loginFileLocation)){
     // Caller's responsible for printing warnings.
     return false;
   }
@@ -141,13 +140,12 @@ bool arPhleetConfig::readLogin(bool fFromInit){
 
 // Write the login file, szg_<user name>.conf.
 bool arPhleetConfig::writeLogin(){
-  if (!_determineFileLocations())
+  if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
-  const string fileName = _loginPreamble + ar_getUser() + string(".conf");
-  FILE* login = fopen(fileName.c_str(),"w");
+  FILE* login = fopen(_loginFileLocation.c_str(),"w");
   if (!login){
-    ar_log_error() << "failed to write login file '" << fileName << "'.\n";
+    ar_log_error() << "failed to write login file '" << _loginFileLocation << "'.\n";
     return false;
   }
 
@@ -370,19 +368,25 @@ bool arPhleetConfig::_createIfDoesNotExist(const string& directory){
 }
 
 // Find the config file and login preamble.
-bool arPhleetConfig::_determineFileLocations(){
-  return _findDir("SZG_CONF",  "/etc", "config file", "szg.conf", _configFileLocation)
-      && _findDir("SZG_LOGIN", "/tmp", "login",       "szg_", _loginPreamble);
+bool arPhleetConfig::determineFileLocations( string& configLocation, string& loginFileLocation ) {
+  string loginPreamble;
+#ifdef AR_USE_WIN_32
+  bool found = _findDir("SZG_CONF",  "c:\\szg", "config file", "szg.conf", configLocation)
+      && _findDir("SZG_LOGIN", "c:\\szg", "login",       "szg_", loginPreamble);
+#else
+  bool found = _findDir("SZG_CONF",  "/etc", "config file", "szg.conf", configLocation)
+      && _findDir("SZG_LOGIN", "/tmp", "login",       "szg_", loginPreamble);
+#endif
+  if (found) {
+    loginFileLocation = loginPreamble + ar_getUser() + string(".conf");
+  }
+  return found;
 }
 
 bool arPhleetConfig::_findDir(const char* envvar, const char* fallback, const char* name, const string& suffix, string& result) {
   string sz(ar_getenv(envvar));
   if (sz == "NULL"){
     // Fall back to the default.
-#ifdef AR_USE_WIN_32
-    // No trailing slash.
-    fallback = "c:\\szg";
-#endif
     sz = fallback;
   }
   if (!_createIfDoesNotExist(sz)){

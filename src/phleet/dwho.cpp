@@ -17,5 +17,36 @@ int main(int argc, char** argv){
   }
 
   arPhleetConfig config;
-  return config.readLogin() && config.printLogin() ? 0 : 1;
+  if (!config.readLogin()) {
+    string configLocation, loginLocation;
+    config.determineFileLocations( configLocation, loginLocation );
+    bool exists, isFile;
+    if (!ar_fileExists( configLocation, exists, isFile )) {
+      cerr << "Could not determine whether or not " << configLocation << " exists?!?\n";
+      return 1;
+    }
+    if (!exists) {
+      cerr << configLocation << " does not exist. You must use dname and daddinterface to create it.\n";
+      return 1;
+    }
+    if (!isFile) {
+      cerr << configLocation << " exists, but is not a file. You must delete or move it, then use dname and daddinterface to create the file.\n";
+      return 1;
+    }
+    if (!ar_fileExists( loginLocation, exists, isFile )) {
+      cerr << "Could not determine whether or not " << loginLocation << " exists?!?\n";
+      return 1;
+    }
+    if (!exists) {
+      cerr << loginLocation << " does not exist. You must dlogin.\n";
+      return 1;
+    }
+    if (!isFile) {
+      cerr << loginLocation << " exists, but is not a file. You must delete or move it, then dlogin\n";
+      return 1;
+    }
+    cerr << "Login file exists, but does not contain valid user information (possible file corruption?).\n"
+         << "Suggest you dlogin to re-create it.\n";
+  }
+  return config.printLogin() ? 0 : 1;
 }
