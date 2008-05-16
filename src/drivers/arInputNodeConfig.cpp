@@ -37,7 +37,7 @@ bool arInputNodeConfig::_parseTokenList(arStringTextStream& tokenStream,
   }
   arBuffer<char> buffer(128);
   if (!ar_getTextBeforeTag( &tokenStream, &buffer )) {
-    ar_log_error() << "arInputNodeConfig parser failed on " << tagType << " field.\n";
+    ar_log_error() << "arInputNodeConfig failed to parse " << tagType << " field.\n";
     return false;
   }
   stringstream tokens( buffer.data );
@@ -45,6 +45,10 @@ bool arInputNodeConfig::_parseTokenList(arStringTextStream& tokenStream,
   do {
     tokens >> token;
     if (!tokens.fail()) {
+      if (find(tokenList.begin(), tokenList.end(), token) != tokenList.end()) {
+	ar_log_error() << tagType << " arInputNodeConfig ignoring duplicate token '" << token << "'\n";
+	continue;
+      }
       tokenList.push_back( token );
       ar_log_debug() << tagType << " arInputNodeConfig token '" << token << "'\n";
     }
