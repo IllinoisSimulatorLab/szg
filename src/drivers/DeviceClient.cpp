@@ -27,21 +27,21 @@ void dump( arInputState& inp ) {
 
   unsigned i;
   if (cm > 0) {
-    cout << "\nmatrices (" << cm << ") :\n";
-    for (i=0; i<cm; i++)
+    cout << "\nmatrices, " << cm << ":\n";
+    for (i=0; i<cm; ++i)
       cout << inp.getMatrix(i) << "\n";
   }
   if (ca > 0) {
-    cout << "axes (" << ca << ")     : ";
-    for (i=0; i<ca; i++)
-      printf(" %.3g ", inp.getAxis(i)); // more readable than cout
+    cout << "axes, " << ca << "    : ";
+    for (i=0; i<ca; ++i)
+      printf("%8.2f ", inp.getAxis(i)); // more readable than cout
   }
   if (cb > 0) {
-    cout << "\nbuttons (" << cb << ")  : ";
-    for (i=0; i<cb; i++)
-      cout << inp.getButton(i) << " ";
+    cout << "\nbuttons, " << cb << " : ";
+    for (i=0; i<cb; ++i)
+      cout << inp.getButton(i); // no space after each button, to fit more per line.
   }
-  if (cm == 0) {
+  if (ca > 0 || cb > 0) {
     cout << "\n";
   }
   cout << "____\n";
