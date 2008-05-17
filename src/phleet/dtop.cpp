@@ -26,7 +26,7 @@ extern "C"{
 }
 #include <stdio.h> // for sscanf
 
-WINDOW* ww = NULL;
+WINDOW* ww = NULL; // if this fails, type: sudo apt-get install libncurses-dev
 int fColor = 0;
 
 bool fDone = false;
