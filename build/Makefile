@@ -1,5 +1,10 @@
 .PHONY: all drivers clean docs demo clean-sdk bin-install install-shared demo-clean demo-create-sdk demo-bin-install
 
+ifeq "$(SZGHOME)" ""
+all:
+	@cd ..; X=`pwd`; echo "Before making, set the environment variable SZGHOME to" $$X" ( export SZGHOME="$$X" )."
+else
+
 include make/Makefile.os
 ifeq "$PLATFORM" "UNKNOWN_OS"
 all:
@@ -84,4 +89,5 @@ demo-create-sdk: all
 demo-bin-install: all
 	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i --no-print-directory bin-install || exit 1 ; done
 
+endif
 endif
