@@ -61,6 +61,11 @@ bool arStandardDeviceServerFramework::_configureInputNode() {
     ar_log_critical() << "DeviceServer failed to load input sinks.\n";
     return false;
   }
+  if (!_driverFactory.loadFilters( _inputNode, "" )) {
+    ar_log_error() << "DeviceServer failed to load filters.\n";
+    return false;
+  }
+
   return true;
 }
  
