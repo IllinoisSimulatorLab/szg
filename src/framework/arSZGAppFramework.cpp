@@ -111,23 +111,18 @@ bool arSZGAppFramework::_loadInputDrivers() {
   ar_log_error() << "Can't load input drivers in standalone apps linked statically.\n";
   return false;
 #else
-  arInputNodeConfig inputConfig;
-  int slotNumber = 0;
   const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );
-
   if (!_inputDevice) {
     ar_log_error() << "Can't load input drivers; NULL input node pointer.\n";
     return false;
   }
-
-  arInputNode& inputNode = *_inputDevice;
-
   if (config == "NULL") {
     ar_log_error() << "invalid value '" << _standaloneControlMode
                    << "' for SZG_STANDALONE/input_config;\n   must be either 'simulator'"
                    << "or a global input device parameter (<param> in dbatch file).\n";
     return false;
   }
+  arInputNodeConfig inputConfig;
   if (!inputConfig.parseXMLRecord( config )) {
     ar_log_error() << "bad global input device parameter (<param> in dbatch file) '"
                    << _standaloneControlMode << "'\n";
@@ -138,6 +133,8 @@ bool arSZGAppFramework::_loadInputDrivers() {
     ar_log_error() << "failed to configure arInputFactory.\n";
     return false;
   }
+  arInputNode& inputNode = *_inputDevice;
+  unsigned slotNumber = 0;
   if (!_inputFactory.loadInputSources( inputNode, slotNumber )) {
     ar_log_error() << "failed to load input sources.\n";
     return false;
