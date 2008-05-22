@@ -144,6 +144,41 @@ bool Duplicate::run( arPForth* pf ) {
   return true;
 }
 
+// For data directly typed into PForth source code,
+// like VecStore or MatStoreTranspose.
+class ArrayStore : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ArrayStore::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long num = (long)pf->stackPop();
+  long a = (long)pf->stackPop();
+  pf->testFailAddress( a, num );
+  a += num-1;
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( a--, pf->stackPop() );
+  }
+  return true;
+}
+
+class ArrayStoreReversed : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ArrayStoreReversed::run( arPForth* pf ) {
+  if (!pf)
+    return false;
+  const long num = (long)pf->stackPop();
+  const long a = (long)pf->stackPop();
+  pf->testFailAddress( a, num );
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( a+i, pf->stackPop() );
+  }
+  return true;
+}
+
 class MatStore : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -1087,6 +1122,8 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ) &&
     pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ) &&
     pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ) &&
+    pf->addSimpleActionWord( "arrayStore", new ArrayStore() ) &&
+    pf->addSimpleActionWord( "arrayStoreReversed", new ArrayStoreReversed() ) &&
     pf->addSimpleActionWord( "matrixStore", new MatStore() ) &&
     pf->addSimpleActionWord( "matrixStoreTranspose", new MatStoreTranspose() ) &&
     pf->addSimpleActionWord( "matrixTranspose", new MatTranspose() ) &&
