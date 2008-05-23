@@ -536,11 +536,11 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   arFileTextStream fileStream;
   if (!fileStream.ar_open(fileName, dataPath)) {
     if (warn) {
-      ar_log_error() << " failed to open " << fileNameVerbose << ".\n";
+      ar_log_error() << "failed to open " << fileNameVerbose << ".\n";
     }
     return false;
   }
-  ar_log_debug() << " parsing config file " << ar_fileFind(fileName, "", dataPath) << ".\n";
+  ar_log_debug() << "parsing config file " << ar_fileFind(fileName, "", dataPath) << ".\n";
   arBuffer<char> buffer(128);
   string tagText = ar_getTagText(&fileStream, &buffer);
   if (tagText == "szg_config") {
