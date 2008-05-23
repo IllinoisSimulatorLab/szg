@@ -13,8 +13,7 @@
 
 class SZG_CALL arCubeEnvironment{
  public:
-  // this class adds texture coordinates to arCubeMesh... one picture
-  // per wall
+  // Texture coordinates for each wall of an arCubeMesh.
   arCubeEnvironment();
   ~arCubeEnvironment();
 
@@ -27,15 +26,17 @@ class SZG_CALL arCubeEnvironment{
   void attachMesh(const string&, const string&);
 
  private:
-  int       _numberWalls;
+  int       _numWalls;
   float     _vertBound;
   float     _radius;
   float*    _cornerX;
   float*    _cornerZ;
+  float*    _cosWall;
+  float*    _sinWall;
   string*   _texFileName;
   arVector3 _origin;
 
-  void      _calculateRegularWalls();
+  void      _computeSideWalls();
 };
 
 #endif
