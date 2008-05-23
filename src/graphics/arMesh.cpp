@@ -208,6 +208,7 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   // Populate the points array.
   float* ppt = pointPositions-3;
   for (i=0; i<_numberDivisions; ++i){
+    // std::iota would have been nice, had it not been deprecated.  Visual Studio 7 lacks it.
     pointIDs[i] = i;
     arVector3(_bottomRadius*cn[i], _bottomRadius*sn[i], -0.5).get(ppt+=3);
   }
@@ -217,6 +218,7 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   }
 
   // Populate the triangle arrays.
+  // std::iota would have been nice, had it not been deprecated.  Visual Studio 7 lacks it.
   for (i=0; i<2*_numberDivisions; ++i)
     triangleIDs[i] = i;
 
