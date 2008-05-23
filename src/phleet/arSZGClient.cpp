@@ -115,6 +115,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
   // Whether or not init() succeeds, finish the handshake with dex.
 
+  // But szgClient.init is called by everything, not just dex and szgd.
+  // dset, for example.
+
   const string pipeIDString = ar_getenv("SZGPIPEID");
   if (pipeIDString != "NULL") {
     _dexHandshaking = true;
@@ -2737,7 +2740,7 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
     const int temp = ar_stringToLogLevel(pair2);
     if (!ar_log().setLogLevel(temp)) {
       ar_log_critical() << "bad log level '" << pair2 <<
-        "', expected one of: SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
+        "', expected one of: " << ar_logLevelsExpected() << ".\n";
       return false;
     }
 

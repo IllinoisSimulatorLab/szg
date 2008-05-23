@@ -7,6 +7,9 @@
 #include "arLogStream.h"
 #include "arDataUtilities.h"
 
+#include <cctype>    // std::toupper
+#include <algorithm> // std::transform
+
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
 bool ar_setLogLevel( const string& level, const bool fVerbose ) {
@@ -22,19 +25,17 @@ bool ar_setLogLevel( const string& level, const bool fVerbose ) {
 }
 
 int ar_stringToLogLevel(const string& logLevel){
-  if (logLevel == "SILENT")
-    return AR_LOG_SILENT;
-  if (logLevel == "CRITICAL")
-    return AR_LOG_CRITICAL;
-  if (logLevel == "ERROR")
-    return AR_LOG_ERROR;
-  if (logLevel == "WARNING")
-    return AR_LOG_WARNING;
-  if (logLevel == "REMARK")
-    return AR_LOG_REMARK;
-  if (logLevel == "DEBUG")
-    return AR_LOG_DEBUG;
-  return AR_LOG_NIL; 
+  // Convert to uppercase, for convenience of typing "-szg log=debug" not DEBUG.
+  string s(logLevel);
+  std::transform(s.begin(), s.end(), s.begin(), (int(*)(int))std::toupper);
+  return
+    (s == "SILENT")   ? AR_LOG_SILENT :
+    (s == "CRITICAL") ? AR_LOG_CRITICAL :
+    (s == "ERROR")    ? AR_LOG_ERROR :
+    (s == "WARNING")  ? AR_LOG_WARNING :
+    (s == "REMARK")   ? AR_LOG_REMARK :
+    (s == "DEBUG")    ? AR_LOG_DEBUG :
+    AR_LOG_NIL; 
 }
 
 inline int ar_logLevelNormalize(int& l) {
@@ -62,6 +63,10 @@ string ar_logLevelToString(int l){
     "DEBUG",
     "INVALID_LOG_LEVEL" };
   return s[ar_logLevelNormalize(l)];
+}
+
+string ar_logLevelsExpected() {
+  return "SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG";
 }
 
 arLogStream::arLogStream():

@@ -107,5 +107,6 @@ SZG_CALL arLogStream& ar_hex(arLogStream& logStream);
 
 SZG_CALL void ar_setLogLabel( const string& label );
 SZG_CALL string ar_getLogLabel();
+SZG_CALL string ar_logLevelsExpected();
 
 #endif
