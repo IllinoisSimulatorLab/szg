@@ -104,7 +104,7 @@ void arLock::lock() {
     const DWORD r = WaitForSingleObject( _mutex, msecTimeout );
     switch (r) {
     case WAIT_OBJECT_0:
-      // Locked.
+      _fLocked = true;
       return;
     default:
     case WAIT_ABANDONED:
@@ -138,7 +138,7 @@ void arLock::lock() {
     switch (pthread_mutex_trylock(&_mutex)) {
     case 0:
     default:
-      // Locked.
+      _fLocked = true;
       return;
     case EBUSY:
       a.sleep();
@@ -160,9 +160,9 @@ void arLock::lock() {
 }
 
 #ifdef UNUSED
-
 // Try to lock().  Returns true also if "you" lock()'ed already.
 bool arLock::tryLock() {
+  // Don't test _fLocked.  It may have been set by someone else.
 #ifdef AR_USE_WIN_32
   // BUG: this just checks if it was locked already, it doesn't actually LOCK it.
   return WaitForSingleObject( _mutex, 0 ) != WAIT_TIMEOUT;
@@ -171,7 +171,6 @@ bool arLock::tryLock() {
   // if != 0, may equal EBUSY (locked already), EINVAL, or EFAULT.
 #endif
 }
-
 #endif
 
 void arLock::unlock() {
@@ -245,8 +244,8 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout){
   time1.sec += msecTimeout/1000;
   time1.usec += (msecTimeout%1000)*1000;
   if (time1.usec >= 1000000){
-    time1.sec++;
     time1.usec -= 1000000;
+    time1.sec++;
   }
   struct timespec ts;
   ts.tv_sec = time1.sec;
@@ -268,9 +267,8 @@ void arConditionVar::signal(){
 #endif
 }
   
-  
-//Implementation lifted from EVENT class of
-// Walmsley, "Multi-threaded Programming in C++"
+// From Walmsley, "Multi-threaded Programming in C++", class EVENT.
+
 arThreadEvent::arThreadEvent( bool automatic ) {
 #ifdef AR_USE_WIN_32
   _event = CreateEvent( NULL, (BOOL)!automatic, FALSE, NULL );

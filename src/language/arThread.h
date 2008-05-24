@@ -35,11 +35,12 @@ class SZG_CALL arLock {
   arLock(const char* name = NULL);
   ~arLock();
   void lock();
+  void unlock();
+  bool valid() const;
+  bool locked() const { return _fLocked; }
 #ifdef UNUSED
   bool tryLock();
 #endif
-  void unlock();
-  bool valid() const;
 
  protected:
 #ifdef AR_USE_WIN_32
@@ -48,6 +49,8 @@ class SZG_CALL arLock {
 #else
   pthread_mutex_t _mutex;
 #endif
+ private:
+  bool _fLocked;
 };
 
 // Lock that implicitly unlocks when out of scope.

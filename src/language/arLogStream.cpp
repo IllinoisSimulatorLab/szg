@@ -76,8 +76,7 @@ arLogStream::arLogStream():
   _threshold(AR_LOG_DEFAULT),
   _level(AR_LOG_DEFAULT),
   _fTimestamp(false),
-  _l("Global\\szgLog"),
-  _fLocked(false) {
+  _l("Global\\szgLog") {
   if (!_l.valid())
     cerr << "arLogStream warning: no locks. Expect interleaving.\n";
 }
@@ -299,7 +298,7 @@ void arLogStream::_finish(){
 }
 
 void arLogStream::_flush(const bool addNewline){
-  if (!_fLocked && _l.valid())
+  if (!_l.locked() && _l.valid())
     cerr << "arLogStream warning: internal lock mismatch.\n";
   if (_buffer.str().empty())
     return;
