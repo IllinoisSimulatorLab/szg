@@ -52,8 +52,8 @@ class SZG_CALL arNavManager {
     arGrabCondition _transConditions[3];
     arGrabCondition _rotConditions[3];
     arGrabCondition _worldGrabCondition;
-    float _transSpeeds[3];
-    float _rotSpeeds[3];
+    arVector3 _transSpeeds;
+    arVector3 _rotSpeeds;
 };
 
 #endif        //  #ifndefARNAVMANAGER_H

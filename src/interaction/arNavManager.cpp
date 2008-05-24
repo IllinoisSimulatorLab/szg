@@ -28,11 +28,9 @@ void arNavInteractable::setMatrix( const arMatrix4& matrix ) {
 
 arNavManager::arNavManager() :
   _effector(1,0,0,0,0,0,0),
-  _navObject() {
-  for (unsigned i=0; i<3; i++) {
-    _transSpeeds[i] = 5.;
-    _rotSpeeds[i] = 0.;
-  }
+  _navObject(),
+  _transSpeeds(5,5,5),
+  _rotSpeeds(0,0,0) {
   _effector.setInteractionSelector( arAlwaysInteractionSelector() );
   _navObject.useDefaultDrags( false );
 }
@@ -43,9 +41,9 @@ arNavManager::arNavManager( const arNavManager& nm ) :
   for (unsigned i=0; i<3; i++) {
     _transConditions[i] = nm._transConditions[i];
     _rotConditions[i] = nm._rotConditions[i];
-    _transSpeeds[i] = nm._transSpeeds[i];
-    _rotSpeeds[i] = nm._rotSpeeds[i];
   }
+  _transSpeeds = nm._transSpeeds;
+  _rotSpeeds = nm._rotSpeeds;
   _worldGrabCondition = nm._worldGrabCondition;
 }
 
@@ -57,9 +55,9 @@ arNavManager& arNavManager::operator=( const arNavManager& nm ) {
   for (unsigned i=0; i<3; i++) {
     _transConditions[i] = nm._transConditions[i];
     _rotConditions[i] = nm._rotConditions[i];
-    _transSpeeds[i] = nm._transSpeeds[i];
-    _rotSpeeds[i] = nm._rotSpeeds[i];
   }
+  _transSpeeds = nm._transSpeeds;
+  _rotSpeeds = nm._rotSpeeds;
   _worldGrabCondition = nm._worldGrabCondition;
   return *this;
 }
@@ -72,7 +70,6 @@ bool arNavManager::setTransCondition( char axis,
                                       unsigned index,
                                       float threshold
 				      ) {
-
   const int iAxis = axis - 'x';
   if (iAxis < 0 || iAxis > 2) {
     ar_log_error() << "arNavManager expected axis x y or z, not '" << axis << "'.\n";
