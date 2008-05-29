@@ -212,9 +212,6 @@ void doSounds(int iPing, bool fPing, bool fPong) {
   }
 }
 
-// ;;;; loop parade.mp3 a la ifitshines, ampl oc speed of wand tip extended 6 ft.
-// ;;;; visual hints for counting many buttons (digit?)
-
 void callbackPreEx(arMasterSlaveFramework& fw) {
   cb = fw.getNumberButtons();
   ca = fw.getNumberAxes();

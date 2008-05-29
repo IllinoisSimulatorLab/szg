@@ -24,8 +24,7 @@ enum arHeadWandSimState{
   AR_SIM_WAND_TRANS_BUTTONS,
   AR_SIM_WAND_ROTATE_BUTTONS,
   AR_SIM_USE_JOYSTICK,
-  AR_SIM_SIMULATOR_ROTATE,
-  AR_SIM_WAND_ROLL
+  AR_SIM_SIMULATOR_ROTATE
 };
 
 class SZG_CALL arInputSimulator: public arFrameworkObject {
@@ -40,7 +39,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
   virtual void drawWithComposition();
   virtual void advance();
 
-  // Mouse/keyboard input.
+  // used to capture and process mouse/keyboard data
   virtual void keyboard(unsigned char key, int state, int x, int y);
   virtual void mouseButton(int button, int state, int x, int y);
   virtual void mousePosition(int x, int y);
@@ -56,24 +55,27 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
   map< unsigned, int > _mouseButtons;
   unsigned _numButtonEvents;
   vector<char> _buttonLabels;
+  
+  float _rotWand[2];
   float _rotSim;
 
-  // Cycle few mousebuttons through subsets of many wandbuttons.
+  // Cycle through subsets of buttons,
+  // since mouse has fewer buttons than simulated wand.
   unsigned _buttonSelector;
 
-  // Overall state.
+  // Overall state of the simulator.
   arHeadWandSimState _interfaceState;
 
-  // Signature of the simulated headtracker+wand. 2 matrices, 2 axes, 6 buttons.
-  arMatrix4 _mHead, _mWand;
-  float _axis[2];
+  // State of the simulated device. Two 4x4 matrices. 6 buttons. 2 axes.
+  arMatrix4 _matrix[2]; // head then wand
   vector<int> _lastButtonEvents;
   vector<int> _newButtonEvents;
+  float     _axis[2];
 
-  // Communicate with the registered arInputNode.
+  // communicate with the registered arInputNode
   arGenericDriver _driver;
 
-  void _wireCube(const float size) const;
+  void _wireCube(float size) const;
   void _drawGamepad() const;
   void _drawHead() const;
   void _drawWand() const;
