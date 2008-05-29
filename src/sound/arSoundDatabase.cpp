@@ -9,7 +9,7 @@
 
 arSoundDatabase::arSoundDatabase() :
   _renderMode(mode_fmod),
-  _path(new list<string>)
+  _path(new list<string>(1,"") /* local dir */ )
 {
   // todo: initializers.  (unless these two fail in red hat 8, like other nodes)
   _typeCode = AR_SOUND_DATABASE;
@@ -18,15 +18,12 @@ arSoundDatabase::arSoundDatabase() :
   _lang = (arDatabaseLanguage*)&_langSound;
   if (!_initDatabaseLanguage())
     return;
-  // Have to add the processing callback for the "sound admin"
-  // message.
+
+  // Add the processing callback for the "sound admin" message.
   arDataTemplate* t = _lang->find("sound_admin");
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arSoundDatabase::_processAdmin;
   
-  // Initialize the path list.
-  _path->push_back(string("")); // local directory
-
   // External storage for parsing.
   arTemplateDictionary* d = _langSound.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -97,9 +94,7 @@ void arSoundDatabase::setPath(const string& thePath){
 
   arGuard dummy(_pathLock); // probably called in a thread other than the data handling
   delete _path;
-  _path = new list<string>;
-  _path->push_back(dir);
-
+  _path = new list<string>(1, dir);
   for (int nextChar=0; nextChar < length; ){
     dir = ar_pathToken(thePath, nextChar); // updates nextChar
     if (dir == "NULL")
@@ -129,31 +124,31 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
 
   arSoundFile* theFile = new arSoundFile;
   bool fDone = false;
-  string potentialFileName;
+  string s; // potential filename
   vector<string> triedPaths;
   map<string, string, less<string> >::const_iterator iter(_bundlePathMap.find(_bundlePathName));
   if (_bundlePathName != "NULL" && _bundleName != "NULL" && iter != _bundlePathMap.end()){
     // Bundle path.
     arSemicolonString bundlePath(iter->second);
     for (int n=0; n<bundlePath.size() && !fDone; n++){
-      potentialFileName = bundlePath[n];
-      ar_pathAddSlash(potentialFileName);
-      potentialFileName += _bundleName;
-      ar_pathAddSlash(potentialFileName);
-      potentialFileName += name;
-      ar_scrubPath(potentialFileName);
-      triedPaths.push_back( potentialFileName );
-      fDone = theFile->read(potentialFileName.c_str(), fLoop, _renderMode);
+      s = bundlePath[n];
+      ar_pathAddSlash(s);
+      s += _bundleName;
+      ar_pathAddSlash(s);
+      s += name;
+      ar_scrubPath(s);
+      triedPaths.push_back( s );
+      fDone = theFile->read(s.c_str(), fLoop, _renderMode);
     }
   }
 
   // Sound path.
   _pathLock.lock();
   for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i){
-    potentialFileName = *i + name;
-    ar_scrubPath(potentialFileName);
-    triedPaths.push_back( potentialFileName );
-    fDone = theFile->read(potentialFileName.c_str(), fLoop, _renderMode);
+    s = *i + name;
+    ar_scrubPath(s);
+    triedPaths.push_back( s );
+    fDone = theFile->read(s.c_str(), fLoop, _renderMode);
   }
   _pathLock.unlock();
   static bool fComplained = false;

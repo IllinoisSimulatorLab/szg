@@ -263,7 +263,7 @@ arQuaternion arQuaternion::normalize() const {
 
 arQuaternion arQuaternion::inverse() const {
   const float m = magnitude2();
-  return (fabs(m) < 1e-6) ?
+  return (m < 1e-6) ?
     arQuaternion(0,0,0,0) :
     conjugate() / m;
 }
@@ -389,15 +389,17 @@ arMatrix4 ar_identityMatrix(){
 }
 
 arMatrix4 ar_translationMatrix(float x, float y, float z){
-  arMatrix4 result;
-  result.v[12] = x; result.v[13] = y; result.v[14] = z;
-  return result;
+  arMatrix4 lhs;
+  lhs.v[12] = x;
+  lhs.v[13] = y;
+  lhs.v[14] = z;
+  return lhs;
 }
 
 arMatrix4 ar_translationMatrix(const arVector3& v){
-  arMatrix4 result;
-  memcpy(&result.v[12], &v.v[0], 3 * sizeof(float));
-  return result;
+  arMatrix4 lhs;
+  memcpy(&lhs.v[12], &v.v[0], 3 * sizeof(float));
+  return lhs;
 }
 
 // angles are all in radians
@@ -425,44 +427,21 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
        0,   0, 1, 0,
        0,   0, 0, 1);
   }
-  cerr << "syzygy ar_rotationMatrix error: unknown axis '" << axis << "'.\n";
+  ar_log_error() << "ar_rotationMatrix: unknown axis '" << axis << "'.\n";
   return ar_identityMatrix();
 }
 
-arMatrix4 ar_rotationMatrix( arAxisName axis, float r){
-  const float sr = sin(r);
-  const float cr = cos(r);
-  switch (axis){
-  case AR_X_AXIS:
-    return arMatrix4(
-      1,  0,   0, 0,
-      0, cr, -sr, 0,
-      0, sr,  cr, 0,
-      0,  0,   0, 1);
-  case AR_Y_AXIS:
-    return arMatrix4(
-       cr, 0, sr, 0,
-        0, 1,  0, 0,
-      -sr, 0, cr, 0,
-        0, 0,  0, 1);
-  case AR_Z_AXIS:
-    return arMatrix4(
-      cr, -sr, 0, 0,
-      sr,  cr, 0, 0,
-       0,   0, 1, 0,
-       0,   0, 0, 1);
-  }
-  cerr << "syzygy ar_rotationMatrix error: unknown axis '" << axis << "'.\n";
-  return ar_identityMatrix();
+arMatrix4 ar_rotationMatrix( arAxisName a, float r){
+  return ar_rotationMatrix(a - AR_X_AXIS + 'x', r);
 }
 
 arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
-  const arVector3 axis = a.magnitude2()==0 ? arVector3(1,0,0) : a;
-  const arQuaternion
-    quaternion(cos(radians/2.), (sin(radians/2.)/(axis.magnitude()))*axis);
-  const arVector3 rotX(quaternion*arVector3(1,0,0));
-  const arVector3 rotY(quaternion*arVector3(0,1,0));
-  const arVector3 rotZ(quaternion*arVector3(0,0,1));
+  radians *= .5;
+  const arVector3 axis = a.zero() ? arVector3(1,0,0) : a;
+  const arQuaternion q(cos(radians), (sin(radians)/axis.magnitude()) * axis);
+  const arVector3 rotX(q*arVector3(1,0,0));
+  const arVector3 rotY(q*arVector3(0,1,0));
+  const arVector3 rotZ(q*arVector3(0,0,1));
   return arMatrix4(
 		   rotX.v[0], rotY.v[0], rotZ.v[0], 0,
 		   rotX.v[1], rotY.v[1], rotZ.v[1], 0,
@@ -479,25 +458,24 @@ arMatrix4 ar_scaleMatrix(float s){
 }
 
 arMatrix4 ar_scaleMatrix(float x, float y, float z){
-  arMatrix4 result;
-  result[0] = x;
-  result[5] = y;
-  result[10] = z;
-  return result;
+  arMatrix4 lhs;
+  lhs[0] = x;
+  lhs[5] = y;
+  lhs[10] = z;
+  return lhs;
 }
 
 arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors){
-  arMatrix4 result;
-  result[0] = scaleFactors.v[0];
-  result[5] = scaleFactors.v[1];
-  result[10] = scaleFactors.v[2];
-  return result;
+  return ar_scaleMatrix(
+    scaleFactors.v[0],
+    scaleFactors.v[1],
+    scaleFactors.v[2]);
 }
 
 arMatrix4 ar_extractTranslationMatrix(const arMatrix4& rhs){
-  arMatrix4 result;
-  memcpy(&result.v[12], &rhs.v[12], 3 * sizeof(float));
-  return result;
+  arMatrix4 lhs;
+  memcpy(&lhs.v[12], &rhs.v[12], 3 * sizeof(float));
+  return lhs;
 }
 
 arVector3 ar_extractTranslation(const arMatrix4& rhs){
@@ -505,40 +483,40 @@ arVector3 ar_extractTranslation(const arMatrix4& rhs){
 }
 
 arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs){
-  arMatrix4 result;
-  for (int i=0; i<3; i++){
+  arMatrix4 lhs;
+  for (int i=0; i<3; ++i){
+    // i'th column of rhs's top-left 3x3 submatrix.
     const arVector3 column(&rhs.v[4*i]);
-    const float magnitude = ++column;
+    const float magnitude = column.magnitude();
     if (magnitude > 0.){
-      result.v[4*i  ] = rhs.v[4*i  ] / magnitude;
-      result.v[4*i+1] = rhs.v[4*i+1] / magnitude;
-      result.v[4*i+2] = rhs.v[4*i+2] / magnitude;
+      // i'th column of lhs's top-left 3x3 submatrix.
+      lhs.v[4*i  ] = rhs.v[4*i  ] / magnitude;
+      lhs.v[4*i+1] = rhs.v[4*i+1] / magnitude;
+      lhs.v[4*i+2] = rhs.v[4*i+2] / magnitude;
     }
     else{
-      result.v[5*i] = 0.;
+      lhs.v[5*i] = 0.;
     }
   }
-  return result;
+  return lhs;
 }
 
 arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs){
-  arMatrix4 result;
-  for (int i=0; i<3; i++){
-    result.v[5*i] = arVector3(&rhs.v[4*i]).magnitude();
+  arMatrix4 lhs;
+  for (int i=0; i<3; ++i){
+    lhs.v[5*i] = arVector3(&rhs.v[4*i]).magnitude();
   }
-  return result;
+  return lhs;
 }
 
-// Returns the nonnegative angle, in radians, from first to second
-// (counterclockwise) around the vector first*second (cross product).
+// Nonnegative radians, from first to second (counterclockwise),
+// around the vector first crossproduct second.
 float ar_angleBetween(const arVector3& first, const arVector3& second){
   if (first.magnitude() <=0. || second.magnitude() <= 0.)
     return 0.;
 
-  // In some cases the result of the dot
-  // product (presumably because of rounding error) was going
-  // outside [-1,1] (at least on Windows, I didn't check
-  // Linux), and acos() was of course returning nan.
+  // Rounding error might produce a dot product outside [-1,1].
+  // Clamp it, so acos() doesn't return nan.
   double dotProd = (first/first.magnitude()).dot(second/second.magnitude());
   if (dotProd > 1.) {
     dotProd = 1.;
@@ -548,25 +526,24 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
   return (float)acos(dotProd);
 }
 
-// Returns euler angles in radians
+// Euler angles in radians
 arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
   return arEulerAngles(o).extract(m);
 }
 
 arQuaternion ar_angleVectorToQuaternion(const arVector3& a, float radians) {
-  const arVector3 axis = a.magnitude2()==0 ? arVector3(1,0,0) : a;
+  const arVector3 axis = a.zero() ? arVector3(1,0,0) : a;
   radians *= .5;
   return arQuaternion(cos(radians), (sin(radians) / (++axis)) * axis);
 }
 
-// reflection of direction across the given normal vector
+// Reflect direction across a (normal) vector.
 arVector3 ar_reflect(const arVector3& direction, const arVector3& normal){
-  float mag2 = normal.magnitude2();
-  return direction - (2 * direction % normal / mag2) * normal;
+  const float mag2 = normal.magnitude2();
+  return (mag2 < 1e-6) ? direction : // lame error handling
+    direction - (2 * direction % normal / mag2) * normal;
 }
 
-// QUESTION: it looks like rayDirection is assumed to have been normalized.
-// If so, we should normalize it before using it.
 float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			      const arVector3& rayDirection,
 			      const arVector3& vertex1,
@@ -578,7 +555,7 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   const arVector3 u(vertex2 - vertex1);
   const arVector3 v(vertex3 - vertex1);
   const arVector3 n(u*v);
-  if (n.magnitude2() == 0){
+  if (n.zero()) {
     // degenerate triangle
     return -1;
   }
@@ -586,21 +563,22 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   const float a = n % w0;
   const float b = n % rayDir;
   if (fabs(b) < 0.000001){
-    // ray is hitting the triangle edge on...  call it "no intersection".
+    // Ray hits triangle edge-on.  No intersection.
     return -1;
   }
   const float r = -a / b;
   if (r < 0){
-    // ray goes away from triangle... no intersection
+    // Ray diverges from triangle.  No intersection.
     return -1;
   }
-  // intersection point of ray and triangle's plane
-  const arVector3 intersect = rayOrigin + r*rayDir;
-  // see if the intersection is inside the triangle
+  // Point where ray meets triangle's plane.
+  const arVector3 intersect(rayOrigin + r*rayDir);
+
+  // Is the intersection inside the triangle?
   const float uu = u % u;
   const float uv = u % v;
   const float vv = v % v;
-  const arVector3 w = intersect - vertex1;
+  const arVector3 w(intersect - vertex1);
   const float wu = w % u;
   const float wv = w % v;
   const float D = uv * uv - uu * vv;
@@ -616,7 +594,6 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   if (t < 0. || (s+t) > 1.0){
     return -1;
   }
-//  return r;
   return magnitude(r*rayDir);
 }
 
@@ -632,16 +609,16 @@ bool ar_intersectLinePlane( const arVector3& linePoint,
   return true;
 }
 
-// finds the point on a line that is nearest to some point
+// Find the point on a line that is nearest to another point.
 arVector3 ar_projectPointToLine( const arVector3& linePoint,
                                  const arVector3& lineDirection,
                                  const arVector3& otherPoint,
                                  const float threshold ) {
   const arVector3 V(otherPoint - linePoint);
   const arVector3 tmp(V * lineDirection);
-  // If point is too close to line,
-  // pretend point is on line so normalize() doesn't become unstable.
-  if (tmp.magnitude() < threshold)
+  // avoid expensive sqrt()
+  if (tmp.magnitude2() < threshold*threshold)
+    // Point is near line, so force it onto line lest normalize() become unstable.
     return otherPoint;
 
   const arVector3 N(tmp.normalize());
@@ -656,29 +633,27 @@ arVector3 ar_projectPointToLine( const arVector3& linePoint,
 //}
 
 arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal ) {
-  arVector4 tmp1( planeNormal.v[0], planeNormal.v[1], planeNormal.v[2], 0. );
+  arVector4 v1( planeNormal.v[0], planeNormal.v[1], planeNormal.v[2], 0. );
   float d = -planeNormal.dot( planePoint );
-  arVector4 tmp2( 2.*planeNormal.v[0], 2.*planeNormal.v[1], 2.*planeNormal.v[2], 2.*d );
-  return ar_identityMatrix() - tmp1.outerProduct( tmp2 );
+  arVector4 v2( 2.*planeNormal.v[0], 2.*planeNormal.v[1], 2.*planeNormal.v[2], 2.*d );
+  return ar_identityMatrix() - v1.outerProduct( v2 );
 }
 
 arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
                                const arVector4& lightPosition,
                                const arVector3& planePoint,
                                const arVector3& planeNormal ) {
-  const arMatrix4 theMatrix = objectMatrix.inverse();
-  arVector3 lightPos( lightPosition.v[0], lightPosition.v[1], lightPosition.v[2] );
-  lightPos = theMatrix * lightPos;
-  arVector4 lightVec( lightPos, lightPosition.v[3] );
-  arVector3 point = theMatrix * planePoint;
-  arVector3 normal = ar_extractRotationMatrix(theMatrix) * planeNormal;
-  arVector4 planeParams( normal, -normal.dot( point ) );
-  arMatrix4 outer( lightVec.outerProduct( planeParams ) );
-  float dot( lightVec.dot( planeParams ) );
+  const arMatrix4 m(objectMatrix.inverse());
+  const arVector3 lightPos( m * arVector3( lightPosition.v ) );
+  const arVector4 lightVec( lightPos, lightPosition.v[3] );
+  const arVector3 point( m * planePoint );
+  const arVector3 normal( ar_ERM(m) * planeNormal);
+  const arVector4 planeParams( normal, -normal.dot( point ) );
+  const arMatrix4 outer( lightVec.outerProduct( planeParams ) );
+  const float dot = lightVec.dot( planeParams );
   arMatrix4 dotMatrix( ar_scaleMatrix( dot ) );
   dotMatrix.v[15] = dot;
-  arMatrix4 result( dotMatrix - outer );
-  return result;
+  return dotMatrix - outer;
 }
 
 
@@ -686,22 +661,21 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
   const float mag1 = vec1.magnitude();
   const float mag2 = vec2.magnitude();
   if (mag1==0. || mag2==0.) {
-    cerr << "ar_rotateVectorToVector error: 0-length input vector.\n";
+    ar_log_error() << "ar_rotateVectorToVector: zero input.\n";
     return ar_identityMatrix();
   }
-  const arVector3 rotAxis = vec1 * vec2;
+
+  const arVector3 rotAxis(vec1 * vec2);
   const float mag = rotAxis.magnitude();
   if (mag<1.e-6) {
-    if (vec1.dot(vec2) < 0.) {
-      // cheat
-      return ar_scaleMatrix(-1.);
-    } else {
-      return ar_identityMatrix();
-    }
+    return (vec1.dot(vec2) >= 0.) ? ar_identityMatrix() :
+      ar_scaleMatrix(-1.); // cheat
   }
+
   return ar_rotationMatrix(rotAxis/mag, acos((vec1/mag1) % (vec2/mag2)));
 }
 
+#ifdef UNUSED
 arMatrix4 ar_planeToRotation(float posX, float posY){
   // Special case.
   if (posX == 0. && posY == 0.)
@@ -714,6 +688,7 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
   // Rotate (0,0,-1) to spherePos.
   return ar_rotateVectorToVector( arVector3(0,0,-1), spherePos );
 }
+#endif
 
 // In the screen-related math functions, screen normal points
 // from the observer to the screen (i.e. along the ray of vision)
@@ -738,8 +713,8 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 
   const float tileWidth = width/nxTiles;
   const float tileHeight = height/nyTiles;
-  return (-0.5*width + 0.5*tileWidth + xTile*tileWidth)*xHat 
-    + (-0.5*height + 0.5*tileHeight + yTile*tileHeight)*yHat;
+  return (-0.5*width  + 0.5*tileWidth  + xTile*tileWidth ) * xHat +
+         (-0.5*height + 0.5*tileHeight + yTile*tileHeight) * yHat;
 }
 
 arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,

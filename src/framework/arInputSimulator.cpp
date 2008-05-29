@@ -26,13 +26,11 @@ arInputSimulator::arInputSimulator() :
   if (!setMouseButtons( buttons ))
     ar_log_error() << "arInputSimulator setMouseButtons() failed in constructor.\n";
   setNumberButtonEvents( 8 );
-  _rotWand[0] = 0.;
-  _rotWand[1] = 0.;
 
   // Initialize the simulated device.
-  _matrix[0] = ar_translationMatrix(0,5,0);
-  _matrix[1] = ar_translationMatrix(2,3,-1);
-  _axis[0] = 0;
+  _mHead = ar_TM(0,5,0);
+  _mWand = ar_TM(2,3,-1);
+  _axis[0] =
   _axis[1] = 0;
 }
 
@@ -138,7 +136,7 @@ void arInputSimulator::draw() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,5,23,0,5,9,0,1,0);
-  glMultMatrixf(ar_rotationMatrix('y',_rotSim).v);
+  glMultMatrixf(ar_RM('y',_rotSim).v);
 
   // wireframe cube
   glLineWidth(1.); // in case embedding app changed this
@@ -170,8 +168,8 @@ void arInputSimulator::advance(){
   // clients who join late. TODO: This needs to be handled at a lower
   // level. When a remote client connects to the input device, it needs
   // to have the current state transfered to it...
-  _driver.queueMatrix(0,_matrix[0]);
-  _driver.queueMatrix(1,_matrix[1]);
+  _driver.queueMatrix(0,_mHead);
+  _driver.queueMatrix(1,_mWand);
   _driver.queueAxis(0,_axis[0]);
   _driver.queueAxis(1,_axis[1]);
 
@@ -203,67 +201,70 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
   // changes rowLength from 2 to 3 (_mouseButtons grew).
   // Todo: query the OS (platform specific) for number of mouse buttons.
   const unsigned rowLength = _mouseButtons.size();
-
   unsigned numRows = unsigned(_numButtonEvents) / rowLength;
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
+
+  // Same keystroke twice in a row ("double-click").  Reset that attribute.
+  const bool fReset = _interfaceState == key - '1';
+
   switch (key) {
   case ' ':
     {
     if (rowLength == 0 || numRows == 0) {
       ar_log_error() << "no buttons in keyboard().\n";
-      break;
+      return;
     }
     // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
     // while spacebar cycles to the next subset of buttons.
     if (++_buttonSelector >= numRows)
       _buttonSelector = 0;
-    break;
+    return;
     }
-  case '1':
-    _interfaceState = AR_SIM_HEAD_TRANSLATE;
-    break;
-  case '2':
-    _interfaceState = AR_SIM_HEAD_ROTATE;
-    break;
-  case '3':
-    _interfaceState = AR_SIM_WAND_TRANSLATE;
-    break;
-  case '4':
-    _interfaceState = AR_SIM_WAND_TRANS_BUTTONS;
-    goto LResetWand;
-  case '5':
-    if (_interfaceState == AR_SIM_WAND_ROTATE_BUTTONS) {
-      // Hit 5 twice to reset wand's rotation.
-      // todo: do this "double clicking" on other states too.
-LResetWand:
-      _rotWand[0] = 0.;
-      _rotWand[1] = 0.;
-      _matrix[1][0] = 1.;
-      _matrix[1][1] = 0.;
-      _matrix[1][2] = 0.;
-      _matrix[1][4] = 0.;
-      _matrix[1][5] = 1.;
-      _matrix[1][6] = 0.;
-      _matrix[1][8] = 0.;
-      _matrix[1][9] = 0.;
-      _matrix[1][10] = 1.;
+
+  case '1' + AR_SIM_WAND_ROTATE_BUTTONS:
+    if (fReset) {
+      _mWand = ar_ETM(_mWand);
     }
-    else
-      _interfaceState = AR_SIM_WAND_ROTATE_BUTTONS;
     break;
-  case '6':
-    _interfaceState = AR_SIM_USE_JOYSTICK;
-    _axis[0] = 0.;
-    _axis[1] = 0.;
+
+  case '1' + AR_SIM_USE_JOYSTICK:
+    if (fReset) {
+      _axis[0] = _axis[1] = 0.;
+    }
     break;
-  case  '7':
-    if (_interfaceState == AR_SIM_SIMULATOR_ROTATE) {
+
+  case '1' + AR_SIM_WAND_ROLL:
+    /*
+    if (fReset) {
+      extract only the roll component, and zero that.
+      equivalently, extract the first two components and ignore the roll component.
+      _mWand = ar_ETM(_mWand) * ... ;
+    }
+    */
+    break;
+
+  case '1' + AR_SIM_SIMULATOR_ROTATE:
+    if (fReset) {
       _rotSim = 0.;
     }
-    _interfaceState = AR_SIM_SIMULATOR_ROTATE;
+    break;
+
+  case '1' + AR_SIM_HEAD_ROTATE:
+    if (fReset) {
+      _mHead = ar_ETM(_mHead);
+    }
+    break;
+
+  case '1' + AR_SIM_HEAD_TRANSLATE:
+  case '1' + AR_SIM_WAND_TRANSLATE:
+  case '1' + AR_SIM_WAND_TRANS_BUTTONS:
     break;
   }
+
+  if (key < '1')
+    ar_log_error() << "arInputSimulator internal error.\n";
+  _interfaceState = arHeadWandSimState(key - '1');
 }
 
 // Process mouse button events.
@@ -311,12 +312,14 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     }
     break;
   case AR_SIM_USE_JOYSTICK:
-    _axis[0] = _axis[1] = 0.;
+    _axis[0] =
+    _axis[1] = 0.;
     break;
   case AR_SIM_HEAD_TRANSLATE:
   case AR_SIM_HEAD_ROTATE:
   case AR_SIM_WAND_TRANSLATE:
   case AR_SIM_SIMULATOR_ROTATE:
+  case AR_SIM_WAND_ROLL:
     // do nothing
     break;
   }
@@ -328,7 +331,6 @@ static inline float clamp(const float x, const float xMin, const float xMax) {
 
 // Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
-//cerr << "mousePosition: " << x << ", " << y << endl;
   if (!_fInit) {
     _fInit = true;
     _mouseXY[0] = x;
@@ -336,51 +338,86 @@ void arInputSimulator::mousePosition(int x, int y){
   }
 
   const float gain = 0.03;
+  const float gainRotWand = 1.7;
+  const float gainRollWand = 2.7;
   const float dx = gain * (x - _mouseXY[0]);
   const float dy = gain * (y - _mouseXY[1]);
   _mouseXY[0] = x;
   _mouseXY[1] = y;
-  const int leftButton   = (_mouseButtons.find(0) == _mouseButtons.end()) ? 0 : _mouseButtons[0];
-  const int middleButton = (_mouseButtons.find(1) == _mouseButtons.end()) ? 0 : _mouseButtons[1];
-  const int rightButton  = (_mouseButtons.find(2) == _mouseButtons.end()) ? 0 : _mouseButtons[2];
+  const bool leftButton   = (_mouseButtons.find(0) != _mouseButtons.end()) && _mouseButtons[0];
+  const bool middleButton = (_mouseButtons.find(1) != _mouseButtons.end()) && _mouseButtons[1];
+  const bool rightButton  = (_mouseButtons.find(2) != _mouseButtons.end()) && _mouseButtons[2];
+  const arMatrix4 mSideways(ar_TM(dx, -dy, 0));
+  const arMatrix4 mForwards(ar_TM(dx, 0, dy));
 
   switch (_interfaceState) {
 
   case AR_SIM_HEAD_TRANSLATE:
+    // Bug: when both buttons down, dx happens twice, translating left-right twice as fast.
+    // That's bizarre, so just ignore that case.
+    if (leftButton && rightButton)
+      break;
     if (leftButton)
-      _matrix[0] = ar_translationMatrix(dx, -dy,0) * _matrix[0];
+      _mHead = mSideways * _mHead;
     if (rightButton)
-      _matrix[0] = ar_translationMatrix(dx, 0, dy) * _matrix[0];
-    break;
-
-  case AR_SIM_HEAD_ROTATE:
-    if (leftButton) {
-      _matrix[0] = ar_extractTranslationMatrix(_matrix[0]) *
-	ar_rotationMatrix('y', -dx) *
-	ar_extractRotationMatrix(_matrix[0]);
-     }
-    if (rightButton) {
-      const arVector3 rotAxis(ar_extractRotationMatrix(_matrix[0]) * arVector3(1,0,0));
-      _matrix[0] = ar_extractTranslationMatrix(_matrix[0]) *
-	ar_rotationMatrix(rotAxis, -dy) *
-	ar_extractRotationMatrix(_matrix[0]);
-    }
+      _mHead = mForwards * _mHead;
     break;
 
   case AR_SIM_WAND_TRANSLATE:
-    if (leftButton) {
-      _matrix[1][12] += dx;
-      _matrix[1][13] -= dy;
-    }
-    if (rightButton) {
-      _matrix[1][12] += dx;
-      _matrix[1][14] += dy;
-    }
+    if (leftButton && rightButton)
+      break;
+    if (leftButton)
+      _mWand = mSideways * _mWand;
+    if (rightButton)
+      _mWand = mForwards * _mWand;
     break;
 
   case AR_SIM_WAND_TRANS_BUTTONS:
-    _matrix[1][12] += dx;
-    _matrix[1][13] -= dy;
+    _mWand = mSideways * _mWand;
+    break;
+
+  case AR_SIM_HEAD_ROTATE:
+    {
+    const arMatrix4 mRot(ar_ERM(_mHead));
+    const arVector3 aRot(mRot * arVector3(1,0,0));
+    _mHead =
+      ar_ETM(_mHead) *
+      ar_RM('y', -dx) *
+      ar_RM(aRot, -dy) *
+      mRot;
+    break;
+    }
+
+  case AR_SIM_WAND_ROTATE_BUTTONS:
+    {
+    arMatrix4 m(ar_ERM(_mWand));
+    const arMatrix4 mRot(ar_ERM(_mWand));
+    const arVector3 aRot(mRot * arVector3(1,0,0));
+    _mWand =
+      ar_ETM(_mWand) *
+      ar_RM('y', -dx*gainRotWand) *
+      ar_RM(aRot, -dy*gainRotWand) *
+      mRot;
+    break;
+    }
+
+  case AR_SIM_WAND_ROLL: {
+    const arMatrix4 mRot(ar_ERM(_mWand));
+    const arVector3 aRot(mRot * arVector3(0,0,1));
+    _mWand = ar_ETM(_mWand) *
+      ar_RM(aRot, dx*gainRollWand) *
+      mRot;
+    break;
+    }
+
+  case AR_SIM_SIMULATOR_ROTATE:
+    if (leftButton || middleButton || rightButton) {
+      _rotSim += dx;
+      if (_rotSim < -180.)
+	_rotSim += 360.;
+      if (_rotSim > 180.)
+	_rotSim -= 360.;
+    }
     break;
 
   case AR_SIM_USE_JOYSTICK:
@@ -391,70 +428,32 @@ void arInputSimulator::mousePosition(int x, int y){
     }
     break;
 
-  case AR_SIM_SIMULATOR_ROTATE:
-    if (leftButton || middleButton || rightButton) {
-      _rotSim += dx;
-      if (_rotSim < -180)
-	_rotSim += 360;
-      if (_rotSim > 180)
-	_rotSim -= 360;
-    }
-    break;
-
-  case AR_SIM_WAND_ROTATE_BUTTONS:
-    const float gainRotWand = 1.7;
-    _rotWand[0] += gainRotWand*dx;
-    _rotWand[1] -= gainRotWand*dy;
-    _matrix[1] = ar_extractTranslationMatrix(_matrix[1]) *
-      ar_planeToRotation(_rotWand[0], _rotWand[1]);
-    break;
   }
 }
 
-void arInputSimulator::_wireCube(float size) const {
-  size /= 2;
+void arInputSimulator::_wireCube(const float size) const {
+  glPushMatrix();
+  glScalef(size/2,size/2,size/2);
   glBegin(GL_LINES);
-  glVertex3f(size,size,-size);
-  glVertex3f(size,-size,-size);
-
-  glVertex3f(size,-size,-size);
-  glVertex3f(-size,-size,-size);
-
-  glVertex3f(-size,-size,-size);
-  glVertex3f(-size,size,-size);
-
-  glVertex3f(-size,size,-size);
-  glVertex3f(size,size,-size);
-
-  glVertex3f(size,size,size);
-  glVertex3f(size,-size,size);
-
-  glVertex3f(size,-size,size);
-  glVertex3f(-size,-size,size);
-
-  glVertex3f(-size,-size,size);
-  glVertex3f(-size,size,size);
-
-  glVertex3f(-size,size,size);
-  glVertex3f(size,size,size);
-
-  glVertex3f(size,size,size);
-  glVertex3f(size,size,-size);
-
-  glVertex3f(-size,size,size);
-  glVertex3f(-size,size,-size);
-
-  glVertex3f(size,-size,size);
-  glVertex3f(size,-size,-size);
-
-  glVertex3f(-size,-size,size);
-  glVertex3f(-size,-size,-size);
+    glVertex3f( 1, 1,-1); glVertex3f( 1,-1,-1);
+    glVertex3f( 1,-1,-1); glVertex3f(-1,-1,-1);
+    glVertex3f(-1,-1,-1); glVertex3f(-1, 1,-1);
+    glVertex3f(-1, 1,-1); glVertex3f( 1, 1,-1);
+    glVertex3f( 1, 1, 1); glVertex3f( 1,-1, 1);
+    glVertex3f( 1,-1, 1); glVertex3f(-1,-1, 1);
+    glVertex3f(-1,-1, 1); glVertex3f(-1, 1, 1);
+    glVertex3f(-1, 1, 1); glVertex3f( 1, 1, 1);
+    glVertex3f( 1, 1, 1); glVertex3f( 1, 1,-1);
+    glVertex3f(-1, 1, 1); glVertex3f(-1, 1,-1);
+    glVertex3f( 1,-1, 1); glVertex3f( 1,-1,-1);
+    glVertex3f(-1,-1, 1); glVertex3f(-1,-1,-1);
   glEnd();
+  glPopMatrix();
 }
 
 void arInputSimulator::_drawGamepad() const {
   const unsigned rowLength = _mouseButtons.size();
-  unsigned numRows = unsigned(_numButtonEvents / rowLength);
+  unsigned numRows = unsigned(_numButtonEvents) / rowLength;
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
@@ -544,7 +543,7 @@ void arInputSimulator::_drawGamepad() const {
 void arInputSimulator::_drawHead() const {
   glColor3f(1,1,0);
   glPushMatrix();
-    glMultMatrixf(_matrix[0].v);
+    glMultMatrixf(_mHead.v);
     glutWireSphere(1,10,10);
     // two eyes
     glColor3f(0,1,1);
@@ -568,7 +567,7 @@ void arInputSimulator::_drawWand() const {
   glDisable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
   glPushMatrix();
-    glMultMatrixf(_matrix[1].v);
+    glMultMatrixf(_mWand.v);
     glPushMatrix();
     glColor3f(0,1,0);
     glScalef(2,0.17,0.17);
@@ -608,14 +607,16 @@ void arInputSimulator::_drawTextState() const {
   glVertex3f(-1, 1,   0.00001);
   glEnd();
 
-  const char* const hint[7] = {
-      "1: Move head",
-      "2: Turn head",
-      "3: Move wand",
-      "4: Move wand + buttons",
-      "5: Turn wand + buttons",
+  const char* const hint[8] = {
+      "1: Move  head",
+      "2: Point head + buttons",
+      "3: Move  wand",
+      "4: Move  wand + buttons",
+      "5: Point wand + buttons",
       "6: Joystick",
-      "7: Turn Sim"
+      "7: Turn sim",
+      "8: Roll wand"
+	// todo: "8 roll wand, 9: Roll head"
     };
   glColor3f(1,1,1);
   glPushMatrix();

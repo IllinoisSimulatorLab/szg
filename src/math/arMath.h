@@ -134,6 +134,7 @@ class SZG_CALL arVector3{
     }
     return arVector3(v[0]/mag, v[1]/mag, v[2]/mag);
   }
+  bool zero() const { return magnitude2() < 1e-6; }
   float dot( const arVector3& rhs ) const {
     return v[0]*rhs.v[0]+v[1]*rhs.v[1]+v[2]*rhs.v[2];
   }
@@ -407,6 +408,12 @@ SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			               const arVector3& v2,
 			               const arVector3& v3);
 
+// One more abbreviation, analogous to ar_ET but after ar_extractEulerAngles
+// in this .h file.
+inline arVector3 ar_ER(const arMatrix4& m, arAxisOrder o){
+  return ar_extractEulerAngles(m, o);
+}
+
 // lineDirection & planeNormal need not be normalized (but affects interpretation of range).
 // Returns false if no intersection.
 // Otherwise, intersection = linePoint + range*lineDirection.
@@ -446,7 +453,7 @@ SZG_CALL arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
 
 //********** user interface, for mouse->3D
 
-SZG_CALL arMatrix4 ar_planeToRotation(float,float);
+//UNUSED SZG_CALL arMatrix4 ar_planeToRotation(float,float);
 
 //********** screen
 
