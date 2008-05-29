@@ -81,15 +81,15 @@ void arSZGAppFramework::_appendUserMessage( int messageID, const std::string& me
 }
 
 void arSZGAppFramework::_handleStandaloneInput() {
-  // Which mode are we using? The simulator mode is the default.
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_STANDALONE", "input_config" );
   if (_standaloneControlMode == "NULL") {
     _standaloneControlMode = "simulator";
   }
   if (_standaloneControlMode != "simulator") {
     if (!_loadInputDrivers()) {
-      ar_log_warning() << "Failed to load input devices; reverting to simulator.\n";
       _standaloneControlMode = "simulator";
+      ar_log_warning() << "Failed to load input devices; reverting to " <<
+	_standaloneControlMode << ".\n";
     }
   }
   if (_standaloneControlMode == "simulator") {
@@ -97,9 +97,9 @@ void arSZGAppFramework::_handleStandaloneInput() {
     // If it has been set to something else in code, then we don't mess with it here.
     if (_simPtr == &_simulator) {
       arInputSimulatorFactory simFactory;
-      arInputSimulator* simTemp = simFactory.createSimulator( _SZGClient );
-      if (simTemp) {
-        _simPtr = simTemp;
+      arInputSimulator* tmp = simFactory.createSimulator( _SZGClient );
+      if (tmp) {
+        _simPtr = tmp;
       }
     }
     _simPtr->registerInputNode( _inputDevice );
@@ -108,24 +108,22 @@ void arSZGAppFramework::_handleStandaloneInput() {
 
 bool arSZGAppFramework::_loadInputDrivers() {
 #ifdef AR_LINKING_STATIC
-  ar_log_error() << "Can't load input drivers in standalone apps linked statically.\n";
+  ar_log_error() << "failed to load input drivers: standalone app linked statically.\n";
   return false;
 #else
   const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );
   if (!_inputDevice) {
-    ar_log_error() << "Can't load input drivers; NULL input node pointer.\n";
+    ar_log_error() << "failed to load input drivers: NULL input node.\n";
     return false;
   }
   if (config == "NULL") {
-    ar_log_error() << "invalid value '" << _standaloneControlMode
-                   << "' for SZG_STANDALONE/input_config;\n   must be either 'simulator'"
-                   << "or a global input device parameter (<param> in dbatch file).\n";
+    ar_log_error() << "expected 'simulator' or a global input device parameter (<param> in dbatch file) for SZG_STANDALONE/input_config, not '" << _standaloneControlMode << "'.\n";
     return false;
   }
   arInputNodeConfig inputConfig;
   if (!inputConfig.parseXMLRecord( config )) {
-    ar_log_error() << "bad global input device parameter (<param> in dbatch file) '"
-                   << _standaloneControlMode << "'\n";
+    ar_log_error() << "bad global input device parameter (<param> in dbatch file) '" <<
+      _standaloneControlMode << "'\n";
     return false;
   }
   _inputFactory.setInputNodeConfig( inputConfig );
@@ -133,15 +131,13 @@ bool arSZGAppFramework::_loadInputDrivers() {
     ar_log_error() << "failed to configure arInputFactory.\n";
     return false;
   }
-  arInputNode& inputNode = *_inputDevice;
   unsigned slotNumber = 0;
-  if (!_inputFactory.loadInputSources( inputNode, slotNumber )) {
+  if (!_inputFactory.loadInputSources( *_inputDevice, slotNumber )) {
     ar_log_error() << "failed to load input sources.\n";
     return false;
   }
-  ar_log_debug() << "Loaded input sources in global param '" << _standaloneControlMode
-                 << "'.\n";
-  if (!_inputFactory.loadFilters( inputNode )) {
+  ar_log_debug() << "Loaded input sources from '" << _standaloneControlMode << "'.\n";
+  if (!_inputFactory.loadFilters( *_inputDevice )) {
     ar_log_error() << "failed to load filters.\n";
     return false;
   }
@@ -301,7 +297,7 @@ void arSZGAppFramework::navUpdate( const arMatrix4& navMatrix ) {
 
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
   if (!_inputDevice) {
-    ar_log_error() << "can't install event filter in NULL input device.\n";
+    ar_log_error() << "failed to install event filter in NULL input device.\n";
     return false;
   }
 
@@ -427,7 +423,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_remark() << "z_translation condition is " << temp << ".\n";
       } else {
         setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );
-	ar_log_error() << "failed to load SZG_NAV/z_translation, defaulting to axis/1/0.2.\n";
+	ar_log_error() << "failed to load SZG_NAV/z_translation '" << temp << "', defaulting to axis/1/0.2.\n";
       }
     } else {
       setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );  
@@ -442,7 +438,19 @@ void arSZGAppFramework::_loadNavParameters() {
         setNavTransCondition( 'y', theType, index, threshold );
 	ar_log_remark() << "y_translation condition is " << temp << ".\n";
       } else {
-	ar_log_error() << "failed to read SZG_NAV/y_translation.\n";
+	ar_log_error() << "unexpected SZG_NAV/y_translation '" << temp << "'.\n";
+      }
+    }
+  }
+
+  if (___firstNavLoad || _paramNotOwned( "x_rotation" )) {
+    temp = _SZGClient.getAttribute("SZG_NAV", "x_rotation");
+    if (temp != "NULL") {
+      if (_parseNavParamString( temp, theType, index, threshold )) {
+        setNavRotCondition( 'x', theType, index, threshold );
+	ar_log_remark() << "x_rotation condition is " << temp << ".\n";
+      } else {
+	ar_log_error() << "unexpected SZG_NAV/x_rotation '" << temp << "'.\n";
       }
     }
   }
@@ -454,10 +462,23 @@ void arSZGAppFramework::_loadNavParameters() {
         setNavRotCondition( 'y', theType, index, threshold );
 	ar_log_remark() << "y_rotation condition is " << temp << ".\n";
       } else {
-	ar_log_error() << "failed to read SZG_NAV/y_rotation.\n";
+	ar_log_error() << "unexpected SZG_NAV/y_rotation '" << temp << "'.\n";
       }
     }
   }
+
+  if (___firstNavLoad || _paramNotOwned( "z_rotation" )) {
+    temp = _SZGClient.getAttribute("SZG_NAV", "z_rotation");
+    if (temp != "NULL") {
+      if (_parseNavParamString( temp, theType, index, threshold )) {
+        setNavRotCondition( 'z', theType, index, threshold );
+	ar_log_remark() << "z_rotation condition is " << temp << ".\n";
+      } else {
+	ar_log_error() << "unexpected SZG_NAV/z_rotation '" << temp << "'.\n";
+      }
+    }
+  }
+
   ___firstNavLoad = false;
 }
 
