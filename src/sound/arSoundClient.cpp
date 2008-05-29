@@ -17,16 +17,17 @@ arSoundClient* __globalSoundClient = NULL;
 FMOD_SYSTEM* ar_fmod() {
   static FMOD_SYSTEM* s = NULL;
   static bool fFailed = false;
-  // If fFailed, returning NULL will likely crash.
-  // Oh well, they can read stderr.
+  // If fFailed, returning NULL will likely crash this exe.
+  // Oh well, they can read the diagnostic.
   if (s || fFailed)
     return s;
+
+  // ar_log_xxx() fails silently in here,
+  // perhaps because it's too early, still in constructors, before main().
 
   const FMOD_RESULT r = FMOD_System_Create(&s);
   if (r != FMOD_OK) {
     fFailed = true;
-    // ar_log_xxx() fails silently in here,
-    // perhaps because it's too early, still in constructors, before main().
     cerr << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ".\n";
     s = NULL;
     return s;
@@ -34,16 +35,16 @@ FMOD_SYSTEM* ar_fmod() {
 
   unsigned t;
   if (!ar_fmodcheck( FMOD_System_GetVersion( ar_fmod(), &t ))) {
-    cerr << "arSoundClient failed to verify fmod version.\n"; // not ar_log_xxx
+    cerr << "arSoundClient failed to verify fmod version.\n";
     s = NULL;
     return s;
   }
   if (t < FMOD_VERSION) {
     cerr << "fmod dll has version " << hex << t <<
-      ", expected at least " << FMOD_VERSION << ".\n"; // not ar_log_xxx
+      ", expected at least " << FMOD_VERSION << ".\n";
     s = NULL;
   }
-  // FMOD_VERSION == 0x40305 is known to work as of October 2007.
+  // FMOD_VERSION == 0x40305 is known to work as of September 2007.
   return s;
 }
 
@@ -58,7 +59,7 @@ bool ar_fmodcheck3(const FMOD_RESULT r, const char* file, const int line) {
   if (!strncmp(file, "src/", 4))
     file += 4;
 
-  ar_log_error() << file << ":" << line << " fmod: " << FMOD_ErrorString(r) << "\n";
+  ar_log_warning() << file << ":" << line << " fmod: " << FMOD_ErrorString(r) << "\n";
   return false;
 }
 #endif
@@ -70,134 +71,34 @@ bool ar_fmodcheck3(const FMOD_RESULT r, const char* file, const int line) {
 #endif
 
 #ifdef EnableSound
-
-const unsigned iFIRMac = 200; // ;;;;fir_length
-const unsigned iFIRMax = 256; // increase if we need greater interaural time delay
-const unsigned cEle = 50; // read from datafile
-const unsigned cAzi = 25; // read from datafile
-//;;float bleeL[iFIRMax] = {0};
-//;;float bleeR[iFIRMax] = {0};
-
-#include "subject_015.c"
-
-class dspHRTFCIPIC_state
-{
- public:
-  int azumuth;
-  int elevation;
-  int distance;
-
-  // circular buffer
-  float rgxFIR[iFIRMax];	// ;;;; fir_state
-  int iFIR;    			// ;;;; fir_state_index
-  float xL;			// left channel of input
-
-  dspHRTFCIPIC_state() :
-    iFIR(0),
-    xL(0.)
-    {}
-};
-dspHRTFCIPIC_state blee;
-// todo: member of arSoundClient? of g?  &blee passed in, a la hrtfFilter_CIPIC::firFilter?
-
 FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     FMOD_DSP_STATE* /*pState*/,
     float *  bufSrc, 
     float *  bufDst, 
-    unsigned cSamp, 
+    unsigned length, 
     int  inchannels, 
-    int  outchannels){
-
-  arSoundClient* g = __globalSoundClient; // abbreviation
-  unsigned iSamp;
-
-  switch (g->_getMode()) {
-  case mode_fmodplugins: {
-
-    // Filters *all* sounds, not one filter per sound.
-    // Bogusly localizes multiple simultaneous sounds to one location.
-
-
-    if (inchannels != 2 || outchannels != 2) {
-      ar_log_error() << "fmodplugin internal error, wrong # of channels.\n";
-      return FMOD_OK;
-    }
-
-    if (iFIRMac > iFIRMax) {
-      ar_log_error() << "fmodplugin: recompile with larger FIR buffer.\n";
-      return FMOD_OK;
-    }
-
-    unsigned iAzi = 12; // ;;;; azumuth_index
-    unsigned iEle = 25; // ;;;; elevation_index
-    // derive from cEle cAzi?
-
-    //;;bleeL[0] = 0.0;;;;
-    //;;bleeR[0] = 1.0;;;;
-
-    // todo: attenuate inversely with distance, accurate enough when distance >1 m.
-
-    blee.xL = 0.;
-
-    int& iFIR = blee.iFIR;
-    for (iSamp=0; iSamp<cSamp; ++iSamp) {
-      ++iFIR %= iFIRMax;
-      int jFIR = iFIR;
-      blee.rgxFIR[iFIR] = blee.xL;
-
-      // Monophonic input.  Discard right channel.
-      blee.xL = *bufSrc++;
-      bufSrc++;
-
-      // Convolute to get output.
-      double yL = 0;
-      double yR = 0;
-
-      // Head-Related Impulse Response
-      const float* hrirL = subject_015_hrir_left;
-      const float* hrirR = subject_015_hrir_right;
-      // todo: [250000], read from datafile, instead of from subject_015.c :
-      // humansubject ascii datafile format: iAziMax iEleMax iFIRMax, then linearized 3d array of float coeffs.
-
-      // Initial index of HRTF filter for both ears.  Linearized 3D array.
-      const unsigned iFIRMic = cEle*iFIRMac*iAzi + iFIRMac*iEle;
-      //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;cout << "todo: loop iAzi, use headphones.\n";
-
-      for (unsigned m = iFIRMic; m < iFIRMic + iFIRMac; ++m) {
-	yL += blee.rgxFIR[jFIR] * hrirL[m];
-	yR += blee.rgxFIR[jFIR] * hrirR[m];
-	--jFIR %= iFIRMax;
-      }
-
-      *bufDst++ = float(yL);
-      *bufDst++ = float(yR);
-    }
-    break;
-    }
-
-  case mode_fmod:
-    // About 35 fps.
-    for (iSamp=0; iSamp<cSamp; ++iSamp) {
-      // average the left and right channel
-      // incorrectly assumes inchannels is 2, outchannels is 1
-      g->_waveDataPtr[iSamp] = 14000*(bufSrc[inchannels*iSamp] + bufSrc[inchannels*iSamp +1]);
-    }
-    for (iSamp=0; iSamp<cSamp*inchannels; iSamp++){
-      bufDst[iSamp] = bufSrc[iSamp];
-    }
-    g->relayWaveform(); // Forward buffer to the next DSP in the chain.
-    return FMOD_OK;
-    break;
-
-  default:
-    break;
+    int  /*outchannels*/){
+  unsigned i;
+  for (i=0; i<length; i++){
+    // average the right and left channel
+    // incorrectly assumes inchannels is 2, outchannels is 1
+    __globalSoundClient->_waveDataPtr[i] 
+      = 14000*(bufSrc[inchannels*i] + bufSrc[inchannels*i +1]);
   }
+  for (i=0; i<length*inchannels; i++){
+    bufDst[i] = bufSrc[i];
+  }
+  
+  // abbreviation
+  arSoundClient* g = __globalSoundClient;
+  g->relayWaveform(); // Forward buffer to the next DSP in the chain.
+  return FMOD_OK;
 }
 #endif
 
 void ar_soundClientWaveformConnectionTask(void* soundClient){
   arSoundClient* s = (arSoundClient*) soundClient;
-  while (s->_dataServer.acceptConnection()) {
+  while (s->_dataServer.acceptConnection() != NULL) {
   }
 }
 
@@ -206,7 +107,7 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 }
  
 bool ar_soundClientDisconnectCallback(void* client){
-  ar_log_remark() << "disconnected.\n";
+  ar_log_remark() << "arSoundClient disconnected.\n";
 
   // Delete the bundle path, which is unique to each connection so
   // an app's sound files be other than "on the sound path."
@@ -228,15 +129,13 @@ arSoundClient::arSoundClient():
   _recordChannel(NULL),
 #endif
   _microphoneVolume(0){
-  // Set up the language.
+  // Set-up the language.
   _waveTemplate.add("data",AR_FLOAT);
   _dspLanguage.add(&_waveTemplate);
   _waveData = new arStructuredData(&_waveTemplate);
-
-  // Allocate enough storage. 
+  // Make sure we have enough storage. 
   _waveData->setDataDimension("data",1024);
-
-  // Locally cache the unchanging data ptr.
+  // The data ptr never changes, so let's get a hold of it here.
   _waveDataPtr = (float*) _waveData->getDataPtr("data",AR_FLOAT);
   _cliSync.setConnectionCallback(ar_soundClientConnectionCallback);
   _cliSync.setDisconnectCallback(ar_soundClientDisconnectCallback);
@@ -245,8 +144,7 @@ arSoundClient::arSoundClient():
   _cliSync.setNullCallback(ar_soundClientNullCallback);
   _cliSync.setPostSyncCallback(ar_soundClientPostSyncCallback);
   _cliSync.setBondedObject(this);
-
-  // For fmod callback.
+  // AARGH! must set this so we can get it into the fmod callback
   __globalSoundClient = this;
 }
 
@@ -263,6 +161,8 @@ arSoundClient::~arSoundClient(){
   delete _waveData;
 }
 
+// Configure the sound rendering object (i.e. the arSoundClient) using
+// the Syzygy parameter database
 bool arSoundClient::configure(arSZGClient* cli){
   setPath(cli->getAttribute("SZG_SOUND", "path"));
 
@@ -304,7 +204,7 @@ bool ar_soundClientNullCallback(void*){
 bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
   arSoundClient* c = (arSoundClient*) client;
   if (!c->_soundDatabase.handleDataQueue(buffer)) {
-    ar_log_error() << "failed to consume buffer.\n";
+    ar_log_warning() << c->getLabel() << " failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -339,7 +239,7 @@ bool arSoundClient::start(arSZGClient& client){
 	_dataServerRegistered = true;
         break;
       }
-      ar_log_error() << "failed to listen on brokered port.\n";
+      ar_log_warning() << "arSoundClient failed to listen on brokered port.\n";
       client.requestNewPorts(serviceName,"input",1,&port);
     }
     // If no success, just let this feature go.
@@ -374,13 +274,11 @@ bool arSoundClient::startDSP(){
     return true;
   _dspStarted = true;
 
-//;;;; this gets called, always.  Clone it for HRTF?
-
 #ifndef EnableSound
   return true;
 #else
 
-  ar_log_remark() << "DSP started.\n";
+  ar_log_remark() << "arSoundClient DSP started.\n";
   FMOD_SOUND* samp1 = NULL;
   // memory leak: should (void)ar_fmodcheck(_stream->release()) in stopDSP() or ~arSoundClient().
 
@@ -395,15 +293,15 @@ bool arSoundClient::startDSP(){
 //  try FMOD_HARDWARE instead of FMOD_SOFTWARE ?
     return false;
   }
-  // Allow playing from the mic.
-  // (Mic comes from setRecordDriver and windows' audio control panel.)
+  // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
-    ar_log_error() << "failed to start recording.\n";
+    ar_log_warning() << "arSoundClient failed to start recording.\n";
     // Don't abort.  Let the DSP start.
   }
 
-  // Start playing (and recording) paused,
-  // to reduce delay between sound and visualizations thereof.
+  // Start playing (and recording) paused.  Set its volume.
+  // This reduces latency between sound and visualizations thereof.
+  // Otherwise, there could be a delay in sound->animation!
   if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(),
           FMOD_CHANNEL_FREE, samp1, true, &_recordChannel )) ||
       !ar_fmodcheck( FMOD_Channel_SetVolume( _recordChannel, _microphoneVolume )) ||
@@ -456,14 +354,14 @@ bool arSoundClient::microphoneVolume(int volume){
 
 bool arSoundClient::_initSound(){
 #ifndef EnableSound
-  ar_log_error() << "silent, compiled with stub FMOD.\n";
+  ar_log_critical() << "arSoundClient silent, compiled with stub FMOD.\n";
   return false;
 
 #else
 
   if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
           44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR ))) {
-    ar_log_error() << "fmod audio failed to init.\n";
+    ar_log_warning() << "arSoundClient: fmod audio failed to init.\n";
     return false;
   }
 
@@ -484,18 +382,20 @@ bool arSoundClient::_initSound(){
 string arSoundClient::_processStreamInfo(const string& body){
   int nodeID = -1;
   if (!ar_stringToIntValid(body, nodeID)){
-    ar_log_error() << "stream_info message had invalid ID.\n";
+    ar_log_warning() << "arSoundClient stream_info message had invalid ID.\n";
     return string("SZG_ERROR");
   }
 
   // getNode() may be unsafe here when database nodes are deleted, or even added.
   arDatabaseNode* node = _soundDatabase.getNode(nodeID);
   if (!node || node->getTypeCode() != AR_S_STREAM_NODE){
-    ar_log_error() << "stream_info message found no node.\n";
+    ar_log_warning() << "arSoundClient stream_info message found no node.\n";
     return string("SZG_ERROR");
   }
 
   // node->getTypeCode() confirms that this cast is valid.
   arStreamNode* tmp = (arStreamNode*)node;
-  return tmp->getCurrentTime() + "/" + ar_intToString(tmp->getStreamLength());
+  stringstream s;
+  s << tmp->getCurrentTime() << "/" << tmp->getStreamLength();
+  return s.str();
 }

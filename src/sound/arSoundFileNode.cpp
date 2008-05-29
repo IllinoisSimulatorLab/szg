@@ -43,12 +43,6 @@ arSoundFileNode::~arSoundFileNode(){
 
 extern arMatrix4 __globalSoundListener;
 
-static inline float sq(float _) { return _*_; }
-
-// Ugly.
-#include "arSoundClient.h"
-extern arSoundClient* __globalSoundClient;
-
 bool arSoundFileNode::_adjust(bool useTrigger){
 #ifndef EnableSound
   (void)useTrigger; // avoid compiler warning
@@ -60,8 +54,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
     return false;
 
   FMOD_MODE m;
-  if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) { // BUG: cosmos's loop didn't.
-    //;; Atlantis WAS silent... until full make?
+  if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
     // _channel was invalid.
     (void) FMOD_Channel_Stop( _channel );
     _channel = NULL;
@@ -72,44 +65,20 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw )))
     return false;
 
-  const arMatrix4 mat(ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top());
+  const arMatrix4 mat = ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top();
   const arVector3& p = useTrigger ? _triggerPoint : _point;
   const arVector3 point((__globalSoundListener * mat) * p);
 
   if (m & FMOD_2D) {
     const float r = 1.5;
     const float& x = point.v[0];
-    const float& y = point.v[1];
-    const float& z = point.v[2];
-
-    const double azi = atan2(x, -z);
-    const double ele = atan2(y, sqrt(sq(x) + sq(z)));
+    const float pan = x<-r ? -1. : x>r ? 1. : x/r;
     const float dist = point.magnitude() / r;
-
-    switch (__globalSoundClient->_getMode()) {
-    default:
-      return false;
-
-    case mode_fmodplugins:
-#undef YAKYAKYAK
-#ifdef YAKYAKYAK
-      ar_log_critical() << "2D sound, azi " << azi*180./M_PI <<
-	", ele " << ele*180./M_PI <<
-	", dist " << dist << ".\n";
-#endif
-
-      // todo: pass azi,ele,dist to HRTF FIR filter.
-      // Through yet another global like __globalSoundListener?
-      return true;
-
-    case mode_fmod:
-      const float pan = x<-r ? -1. : x>r ? 1. : x/r;
-      const float aDist = dist<1. ? 1. : 1. / dist; // hack: inverse not inverse square
-      ar_log_debug() << "2D sound from " << point << ", pan " << pan <<
-	", ampl " << aDist << ".\n";
-      return ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw * aDist)) &&
-	     ar_fmodcheck( FMOD_Channel_SetPan( _channel, pan));
-    }
+    const float aDist = dist<1. ? 1. : 1. / dist; // hack: inverse not inverse square
+    ar_log_debug() << "2D sound from " << point << ", pan " << pan <<
+      ", ampl " << aDist << ".\n";
+    return ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw * aDist)) &&
+           ar_fmodcheck( FMOD_Channel_SetPan( _channel, pan));
   }
 
   if (m & FMOD_3D) {
@@ -120,7 +89,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   }
 
   // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
-  ar_log_error() << "internal FMOD mode error.\n";
+  ar_log_warning() << "internal FMOD mode error.\n";
   return true;
 
 #endif
@@ -131,7 +100,7 @@ bool arSoundFileNode::render(){
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
       _fComplained[0] = true;
-      ar_log_error() << "arSoundFileNode '"
+      ar_log_warning() << "arSoundFileNode '"
 	   << _name << "' has negative amplitude " << _amplitude << ".\n";
     }
   }
@@ -142,7 +111,7 @@ bool arSoundFileNode::render(){
   if (_amplitude > 100.) {
     if (!_fComplained[1]) {
       _fComplained[1] = true;
-      ar_log_error() << "arSoundFileNode '"
+      ar_log_warning() << "arSoundFileNode '"
 	   << _name << "' has excessive amplitude " << _amplitude << ".\n";
     }
   }
@@ -167,7 +136,7 @@ bool arSoundFileNode::render(){
 
     _psamp = _localSoundFile->psamp();
     if (!_psamp) {
-      ar_log_error() << "arSoundFileNode: no sound to play.\n";
+      ar_log_warning() << "arSoundFileNode: no sound to play.\n";
       return false;
     }
 
@@ -196,9 +165,6 @@ bool arSoundFileNode::render(){
       }
       if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false ))) // redundant, from playSound(_,_,false,_) ?
         return false;
-#ifdef YAKYAKYAK
-ar_log_critical() << "played sound\n";;
-#endif
       _action = "none";
     }
     else if (_action == "pause"){
@@ -218,14 +184,10 @@ ar_log_critical() << "played sound\n";;
 When sound finishes, call _channel->stop();
 So keep my own timer, and consult it whenever a method is called.
 Is this still a memory leak?
-getPosition, getPaused, isPlaying, getCurrentSound...
 #endif
 
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
-#ifdef YAKYAKYAK
-ar_log_critical() << "triggered sound, new _channel\n";;
-#endif
       }
       else{
 
@@ -236,9 +198,8 @@ ar_log_critical() << "triggered sound, new _channel\n";;
 //	}
 
 	const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
-	if (ok == FMOD_ERR_INVALID_HANDLE || ok == FMOD_ERR_CHANNEL_STOLEN) {
-	  // _channel is invalid, probably because it already stopped playing,
-	  // or because another sound is now playing on that channel.
+	if (ok == FMOD_ERR_INVALID_HANDLE) {
+	  // _channel is invalid, probably because it already stopped playing.
 	  _channel = NULL;
 	}
 	else if (!ar_fmodcheck(ok)) {
@@ -247,18 +208,17 @@ ar_log_critical() << "triggered sound, new _channel\n";;
 	}
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
-#ifdef YAKYAKYAK
-ar_log_critical() << "triggered sound, reused _channel\n";;
-#endif
       }
-      if (!_adjust(true) || !ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false )))
+      if (!_adjust(true))
+        return false;
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false )))
         return false;
       _action = "none";
     }
     else if (_action == "none"){
     }
     else
-      ar_log_error() << "ignoring unexpected sound action " << _action << ar_endl;
+      ar_log_warning() << "ignoring unexpected sound action " << _action << ar_endl;
   }
 #endif
   return true;
@@ -294,7 +254,7 @@ arStructuredData* arSoundFileNode::dumpData(){
 
 bool arSoundFileNode::receiveData(arStructuredData* pdata){
   if (pdata->getID() != _l.AR_FILEWAV){
-    ar_log_error() << "arSoundFileNode expected "
+    ar_log_warning() << "arSoundFileNode expected "
          << _l.AR_FILEWAV
          << " (" << _l._stringFromID(_l.AR_FILEWAV) << "), not "
          << pdata->getID()
