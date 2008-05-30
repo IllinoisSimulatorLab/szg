@@ -43,7 +43,7 @@ arInputSimulator::arInputSimulator() :
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
   if (mouseButtonString == "NULL") {
-    ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
+    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
   } else {
     const int numItems = mouseButtonString.size();
     int* mouseButtons = new int[numItems];
@@ -65,7 +65,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
 
   const int n = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (n < 2) {
-    ar_log_warning() << "SZG_INPUTSIM/number_button_events " << n <<
+    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events " << n <<
       " < 2, so defaulting to " << numberButtonEventsDefault << ".\n";
     return false;
   }
@@ -81,7 +81,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
   vector<unsigned>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
     if (_mouseButtons.find( *buttonIter ) != _mouseButtons.end()) {
-      ar_log_error() << "duplicate mouse button indices in setMouseButtons().\n";
+      ar_log_error() << "arInputSimulator: duplicate mouse button indices in setMouseButtons().\n";
       _mouseButtons = buttonsPrev;
       return false;
     }
@@ -89,7 +89,7 @@ bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
     _mouseButtons[*buttonIter] = (i == buttonsPrev.end()) ? 0 : i->second;
   }
   if ((_mouseButtons.find(0) == _mouseButtons.end())||(_mouseButtons.find(2) == _mouseButtons.end())) {
-    ar_log_error() << "mouse buttons must include 0 (left) and 2 (right).\n";
+    ar_log_error() << "arInputSimulator: mouse buttons must include 0 (left) and 2 (right).\n";
     _mouseButtons = buttonsPrev;
     return false;
   }
@@ -182,7 +182,7 @@ void arInputSimulator::advance(){
   _driver.queueAxis(1, _axis1);
 
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
-    ar_log_error() << "numbers of new & last button values out of sync.\n";
+    ar_log_error() << "arInputSimulator: numbers of new & last button values out of sync.\n";
     return;
   }
 
@@ -254,7 +254,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
     case AR_SIM_WAND_ROTATE:
       _wand.setAziEle(0,0);
       break;
-    case AR_SIM_SIMULATOR_ROTATE:
+    case AR_SIM_BOX_ROTATE:
       _box.setAziEle(0,0);
       break;
 
@@ -297,7 +297,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   case AR_SIM_WAND_ROTATE:
   case AR_SIM_WAND_TRANSLATE_VERTICAL:
   case AR_SIM_WAND_TRANSLATE_HORIZONTAL:
-  case AR_SIM_SIMULATOR_ROTATE:
+  case AR_SIM_BOX_ROTATE:
   case AR_SIM_HEAD_ROLL:
   case AR_SIM_WAND_ROLL:
     // Change only _newButton here, to send only the button event diff.
@@ -380,7 +380,7 @@ void arInputSimulator::mousePosition(int x, int y){
   case AR_SIM_WAND_ROTATE:
     _wand.rotate(-dx*gainRot, -dy*gainRot, 0);
     break;
-  case AR_SIM_SIMULATOR_ROTATE:
+  case AR_SIM_BOX_ROTATE:
     _box.rotate(-dx*gainRot, -dy*gainRot, 0);
     break;
 
@@ -615,6 +615,7 @@ void arInputSimulator::_drawTextState() const {
   glVertex3f(-1, 1,   0.00001);
   glEnd();
 
+  // Same order as enum arHeadWandSimState.
   const char* const hint[9] = {
       "1: Move head (L or R button)",
       "2: Aim head",
@@ -622,7 +623,7 @@ void arInputSimulator::_drawTextState() const {
       "4: Move wand vertical",
       "5: Aim wand",
       "6: Joystick (any button)",
-      "7: Turn sim",
+      "7: Turn box",
       "8: Roll head",
       "9: Roll wand"
     };
