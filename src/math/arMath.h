@@ -261,16 +261,19 @@ class SZG_CALL arQuaternion{
 // www.krugle.org/kse/files/svn/svn.sourceforge.net/neoengineng/neoengine/neoicexr/Imath/ImathEuler.h
 class SZG_CALL arEulerAngles {
  public:
-  // Implicit (default) angle orders are not $#(*&($#*&$ permitted!
+  // No implicit (default) angle order.  That's too subtle and dangerous.
   arEulerAngles( const arAxisOrder& ord, const arVector3& angs=arVector3() );
   ~arEulerAngles() {}
   void setOrder( const arAxisOrder& ord );
-  void setAngles( const arVector3& ang ) { _angles = ang; }
-  void setAngles( const float x, const float y, const float z ) { _angles = arVector3(x,y,z); }
+  void setAngles( const arVector3& ang ) { _angles  = ang; }
+  void addAngles( const arVector3& ang ) { _angles += ang; }
+  void setAngles( const float x, const float y, const float z ) { _angles  = arVector3(x,y,z); }
+  void addAngles( const float x, const float y, const float z ) { _angles += arVector3(x,y,z); }
   arAxisOrder getOrder() const;
   void angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const;
   arVector3 extract( const arMatrix4& mat );
   arMatrix4 toMatrix() const;
+  operator arVector3() const { return _angles; }
  private:
   arVector3 _angles;
   arAxisName _initialAxis;
