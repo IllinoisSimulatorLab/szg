@@ -18,30 +18,33 @@
 // const arMatrix4 arInputSimulator::_mHeadReset(ar_TM(0,5,0));
 // const arMatrix4 arInputSimulator::_mWandReset(ar_TM(2,3,-1));
 
+const int numberButtonEventsDefault = 8;
+
 arInputSimulator::arInputSimulator() :
   _fInit(false),
+  _xMouse(0),
+  _yMouse(0),
   _numButtonEvents(0),
-  _rotSim(0.),
   _buttonSelector(0),
-  _interfaceState(AR_SIM_HEAD_TRANSLATE) {
-  _mouseXY[0] = 0;
-  _mouseXY[1] = 0;
+  _interfaceState(AR_SIM_HEAD_TRANSLATE),
+  _head(arVector3(0,5,0)),
+  _wand(arVector3(2,3,-1)),
+  _axis0(0.),
+  _axis1(0.)
+    {
   vector<unsigned> buttons;
   buttons.push_back(0);
   buttons.push_back(2);
   if (!setMouseButtons( buttons ))
-    ar_log_error() << "arInputSimulator setMouseButtons() failed in constructor.\n";
-  setNumberButtonEvents( 8 );
-
-  // Reset the state of the simulated trackers+wand device.
-  _mHead = _mHeadReset = ar_TM(0,5,0);
-  _mWand = _mWandReset = ar_TM(2,3,-1);
-  _axis[0] = _axis[1] = 0;
+    ar_log_error() << "arInputSimulator constructor failed to setMouseButtons.\n";
+  setNumberButtonEvents( numberButtonEventsDefault );
 }
 
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
-  if (mouseButtonString != "NULL") {
+  if (mouseButtonString == "NULL") {
+    ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
+  } else {
     const int numItems = mouseButtonString.size();
     int* mouseButtons = new int[numItems];
     if (!mouseButtons) {
@@ -54,22 +57,19 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     } else {
       vector<unsigned> v(mouseButtons, mouseButtons+numValues);
       if (!setMouseButtons( v )) {
-        ar_log_error() << "arInputSimulator setMouseButtons() failed in configure().\n";
+        ar_log_error() << "arInputSimulator configure() failed to setMouseButtons.\n";
       }
     }
-    delete[] mouseButtons;
-  } else {
-    ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
+    delete [] mouseButtons;
   }
 
-  const int numButtonEvents =
-    SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
-  if (numButtonEvents < 2) {
-    ar_log_warning() << "SZG_INPUTSIM/number_button_events " << numButtonEvents <<
-      " < 2, so defaulting to 8.\n";
+  const int n = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
+  if (n < 2) {
+    ar_log_warning() << "SZG_INPUTSIM/number_button_events " << n <<
+      " < 2, so defaulting to " << numberButtonEventsDefault << ".\n";
     return false;
   }
-  setNumberButtonEvents( unsigned(numButtonEvents) );
+  setNumberButtonEvents( unsigned(n) );
   return true;
 }
 
@@ -133,7 +133,7 @@ void arInputSimulator::registerInputNode(arInputNode* node){
   node->addInputSource(&_driver, false);
 }
 
-// Draw current state, standalone or as an overlay.
+// Draw current state, either standalone or as an overlay.
 void arInputSimulator::draw() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -141,16 +141,17 @@ void arInputSimulator::draw() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,5,23,0,5,9,0,1,0);
-  glMultMatrixf(ar_RM('y', _rotSim).v);
-
-  // wireframe cube
-  glLineWidth(1.); // in case embedding app changed this
-  glColor3f(1,1,1);
-  glPushMatrix();
   glTranslatef(0,5,0);
-  _wireCube(10);
+  glMultMatrixf(arMatrix4(_box).v);
+  glTranslatef(0,-5,0);
+
+
+  glPushMatrix();
+    glTranslatef(0,5,0);
+    _wireCube(10);
   glPopMatrix();
 
+  glLineWidth(1.);
   _drawHead();
   _drawWand();
   _drawGamepad();
@@ -165,18 +166,20 @@ void arInputSimulator::drawWithComposition() {
   postComposition();
 }
 
-// Called from time to time to post the current state of the simulated
-// device to any arInputNode that has been connected.
+// Called occasionally to post the current state of the simulated
+// device to newly connected arInputNodes.
 void arInputSimulator::advance(){
   // We should send only data that changed,
   // but with an exception to send everything every few seconds for
-  // clients who join late. TODO: This needs to be handled at a lower
-  // level. When a remote client connects to the input device, it needs
-  // to have the current state transfered to it...
-  _driver.queueMatrix(0,_mHead);
-  _driver.queueMatrix(1,_mWand);
-  _driver.queueAxis(0,_axis[0]);
-  _driver.queueAxis(1,_axis[1]);
+  // clients who join late.
+  //
+  // TODO: Handle this at a lower level.
+  // When a remote client connects to the input device,
+  // it needs to get the current state.
+  _driver.queueMatrix(0, arMatrix4(_head));
+  _driver.queueMatrix(1, arMatrix4(_wand));
+  _driver.queueAxis(0, _axis0);
+  _driver.queueAxis(1, _axis1);
 
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
     ar_log_error() << "numbers of new & last button values out of sync.\n";
@@ -186,18 +189,18 @@ void arInputSimulator::advance(){
   for (unsigned i=0; i<_newButtonEvents.size(); ++i) {
     if (_newButtonEvents[i] != _lastButtonEvents[i]){
       _lastButtonEvents[i] = _newButtonEvents[i];
-      // Queue the button events where received, i.e. in the 
-      // mouseButton method instead of sending the diff here
+      // Queue the button events where received, i.e. in
+      // mouseButton() instead of sending the diff here
       // (i.e. polling, which is unreliable for transient events).
     }
   }
   _driver.sendQueue();
 }
 
-// Process keyboard events to drive the simulated interface.
+// Process keyboard events.
 void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
-  // Don't assign x,y to _mouseXY[0,1].  x,y may be invalid.
-  // See arMasterSlaveFramework.cpp
+  // Use x,y only in mouseButton, not here - they may be invalid.
+  // See arMasterSlaveFramework.cpp .
 
   for (vector<int>::iterator i = _lastButtonEvents.begin(); i != _lastButtonEvents.end(); ++i)
     *i = 0;
@@ -210,80 +213,65 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
 
-  // Same keystroke twice in a row ("double-click").  Reset that attribute.
-  const bool fReset = _interfaceState == key - '1';
-
-  switch (key) {
-  case ' ':
-    {
-    if (rowLength == 0 || numRows == 0) {
-      ar_log_error() << "no buttons in keyboard().\n";
+  if (key < '1' || key > '9') {
+    switch (key) {
+    case ' ':
+      {
+      if (rowLength == 0 || numRows == 0) {
+	ar_log_error() << "arInputSimulator keyboard has no buttons.\n";
+	return;
+      }
+      // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
+      // while spacebar cycles to the next subset of buttons.
+      if (++_buttonSelector >= numRows)
+	_buttonSelector = 0;
       return;
+      }
     }
-    // "Feature:" any buttons held down (_newButtonEvents[i] != 0) will STAY down
-    // while spacebar cycles to the next subset of buttons.
-    if (++_buttonSelector >= numRows)
-      _buttonSelector = 0;
     return;
-    }
-
-  case '1' + AR_SIM_WAND_ROTATE_BUTTONS:
-    if (fReset) {
-      _mWand = ar_ETM(_mWand);
-    }
-    break;
-
-  case '1' + AR_SIM_USE_JOYSTICK:
-    if (fReset) {
-      _axis[0] = _axis[1] = 0.;
-    }
-    break;
-
-  case '1' + AR_SIM_WAND_ROLL_BUTTONS:
-    /*
-    if (fReset) {
-      extract only the roll component, and zero that.
-      equivalently, extract the first two components and ignore the roll component.
-      _mWand = ar_ETM(_mWand) * ... ;
-    }
-    */
-    break;
-
-  case '1' + AR_SIM_SIMULATOR_ROTATE_BUTTONS:
-    if (fReset) {
-      _rotSim = 0.;
-    }
-    break;
-
-  case '1' + AR_SIM_HEAD_ROTATE_BUTTONS:
-    if (fReset) {
-      _mHead = ar_ETM(_mHead);
-    }
-    break;
-
-  case '1' + AR_SIM_HEAD_TRANSLATE:
-    if (fReset) {
-      _mHead = _mHeadReset * ar_ERM(_mHead);
-    }
-    break;
-
-  case '1' + AR_SIM_WAND_TRANSLATE:
-  case '1' + AR_SIM_WAND_TRANS_BUTTONS:
-    if (fReset) {
-      _mWand = _mWandReset * ar_ERM(_mWand);
-    }
-    break;
   }
 
-  if (key < '1')
-    ar_log_error() << "arInputSimulator internal error.\n";
+  const bool fReset = _interfaceState == key - '1';
   _interfaceState = arHeadWandSimState(key - '1');
+  if (fReset) {
+    // Same keystroke twice in a row ("double-click").  Reset that attribute.
+    switch (_interfaceState) {
+    case AR_SIM_USE_JOYSTICK:
+      _axis0 = _axis1 = 0.;
+      break;
+
+    case AR_SIM_HEAD_TRANSLATE:
+      _head.resetPos();
+      break;
+    case AR_SIM_WAND_TRANSLATE_HORIZONTAL:
+    case AR_SIM_WAND_TRANSLATE_VERTICAL:
+      _wand.resetPos();
+      break;
+
+    case AR_SIM_HEAD_ROTATE:
+      _head.setAziEle(0,0);
+      break;
+    case AR_SIM_WAND_ROTATE:
+      _wand.setAziEle(0,0);
+      break;
+    case AR_SIM_SIMULATOR_ROTATE:
+      _box.setAziEle(0,0);
+      break;
+
+    case AR_SIM_HEAD_ROLL:
+      _head.setRoll(0);
+      break;
+    case AR_SIM_WAND_ROLL:
+      _wand.setRoll(0);
+      break;
+    }
+  }
 }
 
 // Process mouse button events.
 void arInputSimulator::mouseButton(int button, int state, int x, int y){
-  _mouseXY[0] = x;
-  _mouseXY[1] = y;
+  _xMouse = x;
+  _yMouse = y;
 
   if (button < 0) {
     ar_log_error() << "arInputSimulator ignoring negative button index.\n";
@@ -305,11 +293,13 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   }
 
   switch (_interfaceState) {
-  case AR_SIM_HEAD_ROTATE_BUTTONS:
-  case AR_SIM_WAND_ROTATE_BUTTONS:
-  case AR_SIM_WAND_TRANS_BUTTONS:
-  case AR_SIM_SIMULATOR_ROTATE_BUTTONS:
-  case AR_SIM_WAND_ROLL_BUTTONS:
+  case AR_SIM_HEAD_ROTATE:
+  case AR_SIM_WAND_ROTATE:
+  case AR_SIM_WAND_TRANSLATE_VERTICAL:
+  case AR_SIM_WAND_TRANSLATE_HORIZONTAL:
+  case AR_SIM_SIMULATOR_ROTATE:
+  case AR_SIM_HEAD_ROLL:
+  case AR_SIM_WAND_ROLL:
     // Change only _newButton here, to send only the button event diff.
     if (haveIndex) {
       unsigned buttonOffset = 0;
@@ -329,10 +319,9 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     break;
   case AR_SIM_USE_JOYSTICK:
     // "Auto-centering."  Reset on button-up.  (But not button-down?)
-    _axis[0] = _axis[1] = 0.;
+    _axis0 = _axis1 = 0.;
     break;
   case AR_SIM_HEAD_TRANSLATE:
-  case AR_SIM_WAND_TRANSLATE:
     // do nothing
     break;
   }
@@ -346,22 +335,23 @@ static inline float clamp(const float x, const float xMin, const float xMax) {
 void arInputSimulator::mousePosition(int x, int y){
   if (!_fInit) {
     _fInit = true;
-    _mouseXY[0] = x;
-    _mouseXY[1] = y;
+    _xMouse = x;
+    _yMouse = y;
   }
 
   const float gain = 0.03;
-  const float gainRotWand = 1.3;
-  const float gainRollWand = 0.7;
-  const float dx = gain * (x - _mouseXY[0]);
-  const float dy = gain * (y - _mouseXY[1]);
-  _mouseXY[0] = x;
-  _mouseXY[1] = y;
+  const float gainRot = 1.2;
+  const float gainRoll = 0.5;
+  const float gainJoystick = 0.4;
+  const float dx = gain * (x - _xMouse);
+  const float dy = gain * (y - _yMouse);
+  _xMouse = x;
+  _yMouse = y;
   const bool leftButton   = (_mouseButtons.find(0) != _mouseButtons.end()) && _mouseButtons[0];
   const bool middleButton = (_mouseButtons.find(1) != _mouseButtons.end()) && _mouseButtons[1];
   const bool rightButton  = (_mouseButtons.find(2) != _mouseButtons.end()) && _mouseButtons[2];
-  const arMatrix4 mSideways(ar_TM(dx, -dy, 0));
-  const arMatrix4 mForwards(ar_TM(dx, 0, dy));
+  const arVector3 vVertical(dx, -dy, 0);
+  const arVector3 vHorizontal(dx, 0, dy);
 
   switch (_interfaceState) {
 
@@ -372,103 +362,79 @@ void arInputSimulator::mousePosition(int x, int y){
       break;
     }
     if (leftButton)
-      _mHead = mSideways * _mHead;
+      _head.translate(vVertical);
     if (rightButton)
-      _mHead = mForwards * _mHead;
+      _head.translate(vHorizontal);
     break;
 
-  case AR_SIM_WAND_TRANSLATE:
-    if (leftButton && rightButton)
-      break;
-    if (leftButton)
-      _mWand = mSideways * _mWand;
-    if (rightButton)
-      _mWand = mForwards * _mWand;
+  case AR_SIM_WAND_TRANSLATE_HORIZONTAL:
+    _wand.translate(vHorizontal);
+    break;
+  case AR_SIM_WAND_TRANSLATE_VERTICAL:
+    _wand.translate(vVertical);
     break;
 
-  case AR_SIM_WAND_TRANS_BUTTONS:
-    _mWand = mSideways * _mWand;
+  case AR_SIM_HEAD_ROTATE:
+    _head.rotate(-dx, -dy, 0);
+    break;
+  case AR_SIM_WAND_ROTATE:
+    _wand.rotate(-dx*gainRot, -dy*gainRot, 0);
+    break;
+  case AR_SIM_SIMULATOR_ROTATE:
+    _box.rotate(-dx*gainRot, -dy*gainRot, 0);
     break;
 
-  case AR_SIM_HEAD_ROTATE_BUTTONS:
-    {
-    const arMatrix4 mRot(ar_ERM(_mHead));
-    const arVector3 aRot(mRot * arVector3(1,0,0));
-    _mHead =
-      ar_ETM(_mHead) *
-      ar_RM('y',  -dx) *
-      ar_RM(aRot, -dy) *
-      mRot;
+  case AR_SIM_HEAD_ROLL:
+    _head.rotate(0, 0, -dx*gainRoll);
     break;
-    }
-
-  case AR_SIM_WAND_ROTATE_BUTTONS:
-    {
-    const arMatrix4 mRot(ar_ERM(_mWand));
-    const arVector3 aRot(mRot * arVector3(1,0,0));
-    _mWand =
-      ar_ETM(_mWand) *
-      ar_RM('y',  -dx*gainRotWand) * // cave coords
-      ar_RM(aRot, -dy*gainRotWand) * // wand coords
-      mRot;
-    // Bug:
-    // if wand has rolled, dy rotates in wand's coords,
-    // but dx still rotates in cave's coords.  Inconsistent and unusable.
-    // Preferred solution: dy rotates in cave's coords.
-    // Wrong solution: changing aRot to 'x' is cave coords, but breaks unrolled rotation.
-    //
-    // Is it intractable to extract rot and roll from just a matrix?
-    // Instead, separately store translation and euler angles,
-    // combining into a matrix only at the last minute?
-    break;
-    }
-
-  case AR_SIM_WAND_ROLL_BUTTONS:
-    {
-    const arMatrix4 mRot(ar_ERM(_mWand));
-    const arVector3 aRot(mRot * arVector3(0,0,1));
-    _mWand = ar_ETM(_mWand) *
-      ar_RM(aRot, dx*gainRollWand) *
-      mRot;
-    break;
-    }
-
-  case AR_SIM_SIMULATOR_ROTATE_BUTTONS:
-    _rotSim += dx;
-    if (_rotSim < -180.)
-      _rotSim += 360.;
-    if (_rotSim > 180.)
-      _rotSim -= 360.;
+  case AR_SIM_WAND_ROLL:
+    _wand.rotate(0, 0, -dx*gainRoll);
     break;
 
   case AR_SIM_USE_JOYSTICK:
     if (leftButton || middleButton || rightButton) {
-      const float gainJoystick = 0.4;
-      _axis[0] = clamp(_axis[0] + gainJoystick*dx, -1, 1);
-      _axis[1] = clamp(_axis[1] - gainJoystick*dy, -1, 1);
+      _axis0 = clamp(_axis0 + dx*gainJoystick, -1, 1);
+      _axis1 = clamp(_axis1 - dy*gainJoystick, -1, 1);
     }
     break;
 
   }
+
+  // Bug: a clever sequence of rotate-roll-rotate-roll can leave the
+  // wand pointing forwards-and-up, but with reversed mouse-y control.
+  // Is there a way to "normalize" azi/ele/roll to avoid this?
+  //
+  // The workaround is easy enough: doubleclick-reset both rotation and roll.
 }
 
 void arInputSimulator::_wireCube(const float size) const {
   glPushMatrix();
   glScalef(size/2,size/2,size/2);
+
+  glLineWidth(1.);
+  // Pale blue sky.
+  glColor3f(.6,.8,.8);
   glBegin(GL_LINES);
     glVertex3f( 1, 1,-1); glVertex3f( 1,-1,-1);
-    glVertex3f( 1,-1,-1); glVertex3f(-1,-1,-1);
     glVertex3f(-1,-1,-1); glVertex3f(-1, 1,-1);
     glVertex3f(-1, 1,-1); glVertex3f( 1, 1,-1);
     glVertex3f( 1, 1, 1); glVertex3f( 1,-1, 1);
-    glVertex3f( 1,-1, 1); glVertex3f(-1,-1, 1);
     glVertex3f(-1,-1, 1); glVertex3f(-1, 1, 1);
     glVertex3f(-1, 1, 1); glVertex3f( 1, 1, 1);
     glVertex3f( 1, 1, 1); glVertex3f( 1, 1,-1);
     glVertex3f(-1, 1, 1); glVertex3f(-1, 1,-1);
-    glVertex3f( 1,-1, 1); glVertex3f( 1,-1,-1);
-    glVertex3f(-1,-1, 1); glVertex3f(-1,-1,-1);
   glEnd();
+
+  // Green floor.
+  glLineWidth(2.);
+  glColor3f(0,1,0);
+  glBegin(GL_LINE_LOOP);
+    glVertex3f( 1,-1,-1);
+    glVertex3f( 1,-1, 1);
+    glVertex3f(-1,-1, 1);
+    glVertex3f(-1,-1,-1);
+  glEnd();
+
   glPopMatrix();
 }
 
@@ -478,7 +444,7 @@ void arInputSimulator::_drawGamepad() const {
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
-    ar_log_error() << "no buttons in _drawGamepad().\n";
+    ar_log_error() << "arInputSimulator: no buttons.\n";
     return;
   }
 
@@ -491,23 +457,27 @@ void arInputSimulator::_drawGamepad() const {
 
   glPushMatrix();
     glMultMatrixf(ar_translationMatrix(4,0,5).v);
+
     // Blue background for the wand.
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glColor4f(0,0,1,.25);
+    glColor4f(0,0,1, .15);
+    const float zPad = .01;
     glBegin(GL_QUADS);
-      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
-      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
-      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET, 0.1);
-      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET, 0.1);
+      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET + padHeight, zPad);
+      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET + padHeight, zPad);
+      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET, zPad);
+      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET, zPad);
     glEnd();
     glDisable( GL_BLEND );
+
     // Marker for the joystick.
     glPushMatrix();
-      glTranslatef(0.5*_axis[0], -0.3 + 0.5*_axis[1], 0.1);
+      glTranslatef(0.5*_axis0, -0.3 + 0.5*_axis1, zPad);
       glColor3f(0.3,1,0);
-      glutSolidSphere(0.25,8,8);
+      glutSolidSphere(0.25,12,12);
     glPopMatrix();
+
     // Joystick's boundary.
     glBegin(GL_LINE_STRIP);
       glColor3f(1,1,1);
@@ -517,9 +487,10 @@ void arInputSimulator::_drawGamepad() const {
       glVertex3f(0.5,0.2,0.3);
       glVertex3f(-0.5,0.2,0.3);
     glEnd();
+
     // Indicate which row of buttons is controlled by the mouse buttons
     glPushMatrix();
-      glTranslatef(-.5*padWidth,BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector,0.1);
+      glTranslatef(-.5*padWidth,BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector, zPad);
       glColor3f(1,1,1);
       glutSolidSphere(0.15,8,8);
     glPopMatrix();
@@ -535,9 +506,9 @@ void arInputSimulator::_drawGamepad() const {
           glColor3f(0.8,0,0);
         else
           glColor3f(0,0.6,0);
-        glutSolidSphere(.4*BUTTON_SPACING,8,8);
+        glutSolidSphere(.4*BUTTON_SPACING,12,12);
         if (i >= _buttonLabels.size()) {
-          ar_log_error() << "_buttonLabels too short in _drawGamepad().\n";
+          ar_log_error() << "arInputSimulator: too few button labels.\n";
         } else {
           glDisable(GL_DEPTH_TEST);
           glColor3f( 1, 1, 1 );
@@ -564,7 +535,7 @@ void arInputSimulator::_drawGamepad() const {
 void arInputSimulator::_drawHead() const {
   glColor3f(1,1,0);
   glPushMatrix();
-    glMultMatrixf(_mHead.v);
+    glMultMatrixf(arMatrix4(_head).v);
     glutWireSphere(1,10,10);
     // two eyes
     glColor3f(0,1,1);
@@ -588,27 +559,43 @@ void arInputSimulator::_drawWand() const {
   glDisable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
   glPushMatrix();
-    glMultMatrixf(_mWand.v);
-    glPushMatrix();
-    glColor3f(0,1,0);
-    glScalef(2,0.17,0.17);
-    glutSolidCube(1);
-    glPopMatrix();
-    glPushMatrix();
-    glColor3f(0,0,1);
-    glScalef(0.17,2,0.17);
-    glutSolidCube(1);
-    glPopMatrix();
-    glPushMatrix();
+    glMultMatrixf(arMatrix4(_wand).v);
+
+    // fwd-aft bar
     glColor3f(1,0,0);
-    glScalef(0.17,0.17,2);
-    glutSolidCube(1);
-    glPopMatrix();
     glPushMatrix();
-    glTranslatef(0,0,-1);
-    glColor3f(1,0,1);
-    glutSolidSphere(0.4,10,10);
+      glScalef(0.17,0.17,2);
+      glutSolidCube(1);
     glPopMatrix();
+
+    // ball at tip
+    glColor3f(1,0,1);
+    glPushMatrix();
+      glTranslatef(0,0,-1);
+      glutSolidSphere(0.4,10,10);
+    glPopMatrix();
+
+    // up-down bar
+    glColor3f(0,1,.15);
+    glPushMatrix();
+      glScalef(0.17,2,0.17);
+      glutSolidCube(1);
+    glPopMatrix();
+
+    // ball at tip
+    glColor3f(0,1,.6);
+    glPushMatrix();
+      glTranslatef(0,1,0);
+      glutSolidSphere(0.2,10,10);
+    glPopMatrix();
+
+    // left-right bar
+    glColor3f(0,0,.8);
+    glPushMatrix();
+      glScalef(2,0.17,0.17);
+      glutSolidCube(1);
+    glPopMatrix();
+
   glPopMatrix();
 }
 
@@ -620,7 +607,7 @@ void arInputSimulator::_drawTextState() const {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glDisable(GL_LIGHTING);
-  glColor3f(0.5,0.5,0.8);
+  glColor3f(0.2,0.2,0.5);
   glBegin(GL_QUADS);
   glVertex3f(-1, .88, 0.00001);
   glVertex3f( 1, .88, 0.00001);
@@ -628,16 +615,16 @@ void arInputSimulator::_drawTextState() const {
   glVertex3f(-1, 1,   0.00001);
   glEnd();
 
-  const char* const hint[8] = {
-      "1: Move  head",
-      "2: Point head + buttons",
-      "3: Move  wand",
-      "4: Move  wand + buttons",
-      "5: Point wand + buttons",
-      "6: Joystick",
-      "7: Turn sim   + buttons",
-      "8: Roll wand  + buttons"
-      // todo, when roll works with rotation: "8 roll wand, 9: Roll head"
+  const char* const hint[9] = {
+      "1: Move head (L or R button)",
+      "2: Aim head",
+      "3: Move wand horizontal",
+      "4: Move wand vertical",
+      "5: Aim wand",
+      "6: Joystick (any button)",
+      "7: Turn sim",
+      "8: Roll head",
+      "9: Roll wand"
     };
   glColor3f(1,1,1);
   glPushMatrix();

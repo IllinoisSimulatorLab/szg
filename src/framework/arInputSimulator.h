@@ -15,17 +15,54 @@
 #include <vector>
 #include <map>
 
-
-// The simulated interface is modal. The states follow.
+// Modes.
 enum arHeadWandSimState{
   AR_SIM_HEAD_TRANSLATE = 0,
-  AR_SIM_HEAD_ROTATE_BUTTONS,
-  AR_SIM_WAND_TRANSLATE,
-  AR_SIM_WAND_TRANS_BUTTONS,
-  AR_SIM_WAND_ROTATE_BUTTONS,
+  AR_SIM_HEAD_ROTATE,
+  AR_SIM_WAND_TRANSLATE_HORIZONTAL,
+  AR_SIM_WAND_TRANSLATE_VERTICAL,
+  AR_SIM_WAND_ROTATE,
   AR_SIM_USE_JOYSTICK,
-  AR_SIM_SIMULATOR_ROTATE_BUTTONS,
-  AR_SIM_WAND_ROLL_BUTTONS
+  AR_SIM_SIMULATOR_ROTATE,
+  AR_SIM_HEAD_ROLL,
+  AR_SIM_WAND_ROLL
+};
+
+class SZG_CALL arMatrix4Factored {
+ public:
+  arMatrix4Factored(const arVector3& pos = arVector3(0,0,0)) :
+    eulers(AR_YXZ),
+    _pos(pos),
+    _posReset(pos)
+  {}
+
+  void resetPos() { _pos = _posReset; }
+  void translate(const arVector3& v) { _pos += v; }
+  void rotate(const float y, const float x, const float z)
+    { eulers.addAngles(y, x, z); }
+  operator arMatrix4() const { return ar_TM(_pos) * eulers.toMatrix(); }
+
+ protected:
+  arEulerAngles eulers;
+
+ private:
+  arVector3 _pos;
+  arVector3 _posReset;
+};
+
+class SZG_CALL arAziEle : public arMatrix4Factored {
+ public:
+  arAziEle(const arVector3& pos = arVector3(0,0,0)) :
+    arMatrix4Factored(pos) {}
+
+  void setAziEle(const float azi, const float ele) {
+    arVector3 a(eulers);
+    eulers.setAngles(azi, ele, a[2]);
+  }
+  void setRoll(const float roll) {
+    arVector3 a(eulers);
+    eulers.setAngles(a[0], a[1], roll);
+  }
 };
 
 class SZG_CALL arInputSimulator: public arFrameworkObject {
@@ -52,21 +89,20 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
 
  protected:
   bool _fInit;
-  int _mouseXY[2];
-  map< unsigned, int > _mouseButtons;
+  int _xMouse, _yMouse;
   unsigned _numButtonEvents;
+  map< unsigned, int > _mouseButtons;
   vector<char> _buttonLabels;
-  float _rotSim;
 
-  // Cycle few mousebuttons through subsets of many wandbuttons.
+  // Cycle the few mousebuttons through many wandbuttons.
   unsigned _buttonSelector;
 
-  // Overall state.
   arHeadWandSimState _interfaceState;
 
   // Signature of the simulated headtracker+wand. 2 matrices, 2 axes, 6 buttons.
-  arMatrix4 _mHead, _mWand;
-  float _axis[2];
+  arAziEle _head;
+  arAziEle _wand;
+  float _axis0, _axis1;
   vector<int> _lastButtonEvents;
   vector<int> _newButtonEvents;
 
@@ -80,7 +116,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
   void _drawTextState() const;
 
  private:
-  arMatrix4 _mHeadReset, _mWandReset;
+  arAziEle _box;
 };
 
 #endif
