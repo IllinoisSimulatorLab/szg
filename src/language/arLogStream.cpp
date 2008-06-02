@@ -7,8 +7,10 @@
 #include "arLogStream.h"
 #include "arDataUtilities.h"
 
+#ifndef AR_USE_WIN_32 // visual c++ 6 lacks toupper
 #include <cctype>    // std::toupper
 #include <algorithm> // std::transform
+#endif
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
@@ -27,7 +29,9 @@ bool ar_setLogLevel( const string& level, const bool fVerbose ) {
 int ar_stringToLogLevel(const string& logLevel){
   // Convert to uppercase, for convenience of typing "-szg log=debug" not DEBUG.
   string s(logLevel);
+#ifndef AR_USE_WIN_32
   std::transform(s.begin(), s.end(), s.begin(), (int(*)(int))std::toupper);
+#endif
   return
     (s == "SILENT")   ? AR_LOG_SILENT :
     (s == "CRITICAL") ? AR_LOG_CRITICAL :
