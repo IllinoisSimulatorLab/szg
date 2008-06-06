@@ -323,15 +323,15 @@ bool arAppLauncher::waitForKill() {
     string messageType, messageBody;
     if (!_szgClient->receiveMessage(&messageType,&messageBody)) {
       ar_log_critical() << "no szgserver.\n";
-      // Don't call killApp(), since szgserver is gone.
+      // Don't killApp(), because szgserver is gone.
       break;
     }
     if (messageType == "quit") {
       killApp();
       break;
     }
-    const string lockName(getMasterName());
-    int componentID;
+    const string lockName(getMasterName()); // not expensive inside loop: we don't get MANY messages.
+    int componentID = -1;
     if (_szgClient->getLock(lockName, componentID)) {
       // nobody was holding the lock
       _szgClient->releaseLock(lockName);
@@ -347,10 +347,9 @@ bool arAppLauncher::restartServices() {
   if (!_prepareCommand())
     return false;
 
-  // Kill the services.
+  // Kill the services by trading-key (by ID), not by name.
   iLaunch iter;
   list<int> killList;
-  // NOTE: we kill the services by their TRADING KEY and NOT by name!
   for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1) {
