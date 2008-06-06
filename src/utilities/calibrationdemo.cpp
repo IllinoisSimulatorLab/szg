@@ -32,6 +32,6 @@ int main(int argc, char** argv){
   }
 
   szgClient.sendStartResponse(true);
-  launcher.waitForKill();
+  (void)launcher.waitForKill();
   return 0;
 }
