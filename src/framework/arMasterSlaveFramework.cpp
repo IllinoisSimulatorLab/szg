@@ -368,7 +368,8 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 // Initialize the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
-  _label = ar_stripExeName( string( argv[0] ) );
+  if (!_okToInit(argv[0]))
+    return false;
   
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
@@ -394,7 +395,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     if( !_loadParameters() ) {
       ar_log_error() << "failed to load parameters while standalone.\n";
     }
-    _parametersLoaded = true;
+    _initCalled = true;
 
     // Don't start the message-receiving thread yet (because there's no
     // way yet to operate in a distributed fashion).
@@ -408,23 +409,21 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   dgSetGraphicsDatabase( &_graphicsDatabase );
   dsSetSoundDatabase( &_soundServer );
 
-  // Load the parameters before executing any user callbacks
-  // (since this determines if we're master or slave).
+  // Load the parameters before executing any user callbacks,
+  // because this determines if we're master or slave).
   if( !_loadParameters() ) {
     goto fail;
   }
 
-  // Figure out whether we should launch the other executables.
-  // If so, under certain circumstances, this function may not return.
-  // NOTE: regardless of whether or not we'll be launching from here
-  // in trigger mode, we use the arAppLauncher object
-  // to query info about the virtual computer, which requires the arSZGClient
-  // be registered with the arAppLauncher
+  // In trigger mode, get virtual computer info from the arAppLauncher object.
+  // That requires that the arSZGClient be registered with the arAppLauncher.
+  //
+  // If we launch the other executables, this function might not return.
 
-  // Give _launcher info about the virtual computer.
+  // Tell _launcher about the virtual computer.
   (void)_launcher.setSZGClient( &_SZGClient );
   
-  if( _SZGClient.getMode( "default" ) == "trigger" ) {
+  if (_SZGClient.getMode("default") == "trigger") {
     // We are the trigger node.
     
     // launch components as part of a virtual computer
@@ -476,6 +475,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
 
+    _initCalled = true;
     (void)_launcher.waitForKill();
     exit(0);
   }
@@ -519,7 +519,7 @@ fail:
       return false;
     }
   }
-  _parametersLoaded = true;
+  _initCalled = true;
   if( !_SZGClient.sendInitResponse( true ) ) {
     cerr << _label << ": maybe szgserver died.\n";
   }
@@ -656,7 +656,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   
   if (_requestReload){
     (void) _loadParameters();
-    // Assume that recreating the windows will be OK. A reasonable assumption.
+    // Assume reasonably that the windows will be recreated.
     (void) createWindows(_useWindowing);
     _requestReload = false;
   }
@@ -1818,7 +1818,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   }
 
   if(!_barrierServer->init(_serviceNameBarrier, "graphics", _SZGClient)) {
-    ar_log_error() << "failed to init barrier server.\n";
+    ar_log_error() << "master failed to init barrier server.\n";
   }
 
   _barrierServer->registerLocal();
@@ -1836,7 +1836,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _inputState = &_inputDevice->_inputState;
   _inputDevice->addInputSource( &_netInputSource, false );
   if (!_netInputSource.setSlot(0)) {
-    ar_log_error() << "failed to set slot 0.\n";
+    ar_log_error() << "master failed to set slot 0.\n";
 LAbort:
     delete _inputDevice;
     _inputDevice = NULL;
@@ -1850,7 +1850,7 @@ LAbort:
 
   _soundActive = false;
   if( !_soundServer.init( _SZGClient ) ) {
-    ar_log_error() << "failed to init audio.\n";
+    ar_log_error() << "master failed to init audio.\n";
     return false;
   }
 
@@ -1880,7 +1880,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   // TODO TODO: to the other ones
   int tries = 0;
   while( tries++ < 10 && !_stateServer->beginListening( &_transferLanguage ) ) {
-    ar_log_error() << "failed to listen on port " << _masterPort[ 0 ] << ".\n";
+    ar_log_error() << "master failed to listen on port " << _masterPort[ 0 ] << ".\n";
 
     _SZGClient.requestNewPorts( _serviceName, "graphics", 1 ,_masterPort );
     _stateServer->setPort( _masterPort[ 0 ] );
@@ -1892,18 +1892,18 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   }
 
   if( !_SZGClient.confirmPorts( _serviceName, "graphics", 1, _masterPort ) ) {
-    ar_log_error() << "failed to confirm brokered port.\n";
+    ar_log_error() << "master failed to confirm brokered port.\n";
     return false;
   }
 
   if( !_barrierServer->start() ) {
-    ar_log_error() << "failed to start barrier server.\n";
+    ar_log_error() << "master failed to start barrier server.\n";
     return false;
   }
 
   if (!_harmonyInUse) {
     if (!_startInput()) {
-      ar_log_error() << "failed to start input device.\n";
+      ar_log_error() << "master failed to start input device.\n";
       return false;
     }
   }
@@ -1911,7 +1911,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   _installFilters();
 
   if( !_soundServer.start() ) {
-    ar_log_error() << "failed to start audio.\n";
+    ar_log_error() << "master failed to start audio.\n";
     return false;
   }
 
@@ -1926,22 +1926,25 @@ bool arMasterSlaveFramework::_startMasterObjects() {
 }
 
 bool arMasterSlaveFramework::_startInput() {
-  if( !_inputDevice->start() ) {
-    ar_log_error() << "failed to start input device.\n";
-
-    delete _inputDevice;
-    _inputDevice = NULL;
-
+  if (!_inputDevice) {
+    ar_log_error() << "no input device to start.\n";
     return false;
   }
+
+  if (!_inputDevice->start()) {
+    ar_log_error() << "failed to start input device.\n";
+    delete _inputDevice;
+    _inputDevice = NULL;
+    return false;
+  }
+
   _inputActive = true;
   return true;
 }
 
 bool arMasterSlaveFramework::_initSlaveObjects() {
-  // slave instead of master
-  // in this case, the component must know which networks on which it
-  // should attempt to connect
+  // Slave not master.
+  // Tell component on which networks it should connect.
   _networks = _SZGClient.getNetworks( "graphics" );
   _inBufferSize = 1000;
   _inBuffer = new ARchar[ _inBufferSize ];
@@ -1955,7 +1958,7 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   _barrierClient->setNetworks( _networks );
   _barrierClient->setServiceName( _serviceNameBarrier );
   if( !_barrierClient->init( _SZGClient ) ) {
-    ar_log_error() << "slave failed to start barrier client.\n";
+    ar_log_error() << "slave failed to init barrier client.\n";
     return false;
   }
 
@@ -1964,27 +1967,27 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
     ar_log_error() << "slave failed to construct input state.\n";
     return false;
   }
-  // of course, the state client should not have weird delays on small
-  // packets, as would be the case in the Win32 TCP/IP stack without
-  // doing the following
+
+  // In the state client, avoid weird delays with small packets from win32 tcpip.
   _stateClient.smallPacketOptimize( true );
 
-  ar_log_debug() << "slaves' objects inited.\n";
+  ar_log_debug() << "slave's objects inited.\n";
   return true;
 }
 
 bool arMasterSlaveFramework::_startSlaveObjects() {
   if( !_barrierClient->start() ) {
-    ar_log_error() << "barrier client failed to start.\n";
+    ar_log_error() << "slave failed to start barrier client.\n";
     return false;
   }
 
-  ar_log_debug() << "slaves' objects started.\n";
+  ar_log_debug() << "slave's objects started.\n";
   return true;
 }
 
 bool arMasterSlaveFramework::_startObjects( void ){
-  // THIS IS GUARANTEED TO BEGIN AFTER THE USER-DEFINED INIT!
+  // User-defined init is complete.
+  // (Both this and that are called from start().)
 
   // Create the language.
   _transferLanguage.add( &_transferTemplate );
@@ -1999,7 +2002,6 @@ bool arMasterSlaveFramework::_startObjects( void ){
   // arFrameworkObjects). Always succeeds.
   (void) _dataRouter.start();
 
-  // By now, we know if we are the master
   if( _master ) {
     if( !_startMasterObjects() ) {
       return false;
@@ -2011,7 +2013,6 @@ bool arMasterSlaveFramework::_startObjects( void ){
     }
   }
 
-  // Both master and slave need a connection thread
   if(!_connectionThread.beginThread(ar_masterSlaveFrameworkConnectionTask, this)) {
     ar_log_error() << "failed to start connection thread.\n";
     return false;
@@ -2027,22 +2028,14 @@ bool arMasterSlaveFramework::start() {
 }
 
 bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
-  _useWindowing = useWindowing;
-  if ( !_parametersLoaded ) {
-    if ( _SZGClient ) {
-      ar_log_error() << "can't start before init.\n";
-      if( !_SZGClient.sendInitResponse( false ) ) {
-        cerr << _label << ": maybe szgserver died.\n";
-      }
-    }
+  if (!_okToStart())
     return false;
-  }
 
+  _useWindowing = useWindowing;
   if( !_standalone ) {
-    // Get the screen resource.
-    // Grab this lock only AFTER an app launching:
-    // don't do this in init(), which is called even on the trigger
-    // instance, but do it here, which is only reached on render instances.
+    // Get this lock only after an app launches;
+    // not in init() which is called even on the trigger instance,
+    // but here, which only render instances reach.
     const string screenLock =
       _SZGClient.getComputerName() + "/" + _SZGClient.getMode( "graphics" );
     int graphicsID = -1;
@@ -2052,7 +2045,7 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
     }
   }
 
-  // Do user-defined init.  After _startDetermineMaster(),
+  // User-defined init.  After _startDetermineMaster(),
   // so _startCallback knows if this instance is master or slave.
   if( !onStart( _SZGClient ) ) {
     return _SZGClient &&
@@ -2087,20 +2080,18 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   }
   
   if (useEventLoop || _useWindowing){
-    // _displayThreadRunning is used to coordinate shutdown with
-    // program stop via ESC-press (arGUI keyboard callback) or kill message
-    // (received in the message thread).
+    // _displayThreadRunning coordinates shutdown with
+    // program stop via ESC-press (arGUI keyboard callback)
+    // or kill message (received in the message thread).
     _displayThreadRunning = true;
   }
 
   if( useEventLoop ) {
     // Internal event loop.
-    // NOTE: stop(...) must have been called at one of the three kill
-    // points ("quit" message, clicking on window close button, pressing
-    // ESC key) to get to here.
     while( !stopping() ){
       loopQuantum();
     }
+    // A kill point ("quit" message, click on window close button, hit ESC) called stop().
     exitFunction();
     exit(0);
   }
@@ -2143,9 +2134,8 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
     ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }
 
-  // arTexture::_loadIntoOpenGL() complains and aborts
-  // if its texture's dimensions are not powers of two.
-  // SZG_RENDER/allow_texture_not_pow2 overrides this.
+  // Hook to prevent arTexture::_loadIntoOpenGL() from aborting
+  // when its texture dimensions aren't powers of 2.
   const bool textureAllowNotPow2 =
     _SZGClient.getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
   ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );

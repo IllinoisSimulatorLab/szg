@@ -42,7 +42,7 @@ LDie:
       f->setFixedHeadMode(messageBody=="on");
     }
     else if (messageType=="reload"){
-      f->_loadParameters();
+      (void)f->_loadParameters();
     }
     else if (messageType== "user"){
       if (f->_userMessageCallback){
@@ -363,16 +363,10 @@ void arDistSceneGraphFramework::setPlayer(){
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
-  if (_initCalled) {
-    ar_log_error() << "ignoring duplicate init().\n";
+  if (!_okToInit(argv[0]))
     return false;
-  }
-  if (_startCalled) {
-    ar_log_error() << "can't init() after start().\n";
-    return false;
-  }
-  _label = ar_stripExeName(string(argv[0]));
-  // Strip out -dsg args.
+
+  // Strip -dsg args.
   if (!_stripSceneGraphArgs(argc, argv)){
     return false;
   }
@@ -380,7 +374,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking(false);
   if (!_SZGClient.init(argc, argv)){
-    // Warning was already printed.
+    // Already warned.
     return false; 
   }
   
@@ -400,15 +394,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
 }
 
 bool arDistSceneGraphFramework::start(){
-  if (!_initCalled) {
-    ar_log_error() << "can't start() before init().\n";
+  if (!_okToStart())
     return false;
-  }
-
-  if (_startCalled) {
-    ar_log_error() << "ignoring duplicate start().\n";
-    return false;
-  }
 
   if (_standalone) {
     const bool ok = _startStandaloneMode();
@@ -678,7 +665,7 @@ bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
 
 bool arDistSceneGraphFramework::_initStandaloneMode(){
   _standalone = true;
-  _loadParameters();
+  (void)_loadParameters();
   _initDatabases();
   if (!_initInput()){
     return false;
@@ -746,7 +733,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
 }
 
 bool arDistSceneGraphFramework::_initPhleetMode(){
-  _loadParameters();
+  (void)_loadParameters();
   
   if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask, this)) {
     ar_log_error() << "failed to start message thread.\n";

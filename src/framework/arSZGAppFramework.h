@@ -188,7 +188,7 @@ class SZG_CALL arSZGAppFramework {
     arThread _messageThread;
     arThread _inputConnectionThread;
         
-    // Used in standalone mode.
+    // For standalone.
     bool              _standalone;
     std::string       _standaloneControlMode;
     arInputSimulator  _simulator;
@@ -208,10 +208,9 @@ class SZG_CALL arSZGAppFramework {
     std::deque< arUserMessageInfo > _userMessageQueue;
     arLock _userMessageLock;
 
-    // Misc. member variables.
     string _dataPath;
     arHead _head;
-    // The graphics unitConversion resides in the head now for convenience.
+    // Graphics unitConversion is now in the head, for convenience.
     float _unitSoundConversion;
     int _speechNodeID;
     arNavManager _navManager;
@@ -220,44 +219,40 @@ class SZG_CALL arSZGAppFramework {
     unsigned _navInputMatrixIndex;
     bool _unitConvertNavInputMatrix;
     
-    // Standalone mode requires a window manager. Master/slave framework requires
-    // a window manager both in standalone and phleet modes.
+    // For standalone and for masterslave.
     arGUIWindowManager* _wm;
-    // The scene graph framework does not use this parser, but the m/s framework does.
+
+    // Only for masterslave, not scenegraph.
     arGUIXMLParser* _guiXMLParser;
     
-    // Various book-keeping flags.
-    // Keep track of when the init and start methods have been successfully called.
-    // This lets us tell the user if they are called in the incorrect order.
+    // Have init() and start() been called?
     bool _initCalled;
     bool _startCalled;
     // Have the parameters been loaded?
     bool _parametersLoaded;
 
-    // Variables for deterministic shutdown.
-    // The frameworks support a single, external user thread, which can be 
+    // One external app-defined thread can be 
     // deterministically shut down along with everything else.
 
-    // Is there an application-defined thread?
+    // Is there an app-defined thread?
     bool _useExternalThread;
     // Is that thread running? (methods externalThreadRunning()
     // and externalThreadStopped() let the app tell this to the framework.
     bool _externalThreadRunning;
-    // should stop() block until the GLUT display thread is done?
+    // Should stop() block until the GLUT display thread completes?
     bool _blockUntilDisplayExit;
-    // Set to true when we are intending to exit. i.e. when stop(...) has
-    // started.
+    // Has stop() commenced, i.e. is the app exiting?
     bool _exitProgram;
-    // Set to true when the GLUT display loop is going.
+    // Is the GLUT display-loop running?
     bool _displayThreadRunning;
-    // Set to true when stop(...) has completed. Might be needed if the
-    // exit(0) is going to occur in an application-defined thread.
+    // Has stop() completed?  Might be needed if the app-defined thread calls exit(0).
     bool _stopped;
     
     void _handleStandaloneInput();
     bool _loadInputDrivers();
-    // Installs two filters: _defaultUserFilter
-    // and _callbackFilter (which initially does nothing, as it has no callback).
+
+    // Install _defaultUserFilter and _callbackFilter
+    // (which initially does nothing, as it has no callback).
     // Any user-installed filter replaces _defaultUserFilter (installing a NULL
     // filter restores it), and user-installed event callback gets put in _callbackFilter.
     // NOTE: as of 1.2, _defaultUserFilter now calls framework->onInputEvent by default
@@ -271,6 +266,9 @@ class SZG_CALL arSZGAppFramework {
                                unsigned& index,
                                float& threshold );
     bool _paramNotOwned( const std::string& theString );
+
+    bool _okToInit(const char*);
+    bool _okToStart() const;
 
   private:
     bool _checkInput() const;

@@ -60,17 +60,15 @@ void arSZGAppFramework::speak( const std::string& message ) {
 }
 
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
-  if (_parametersLoaded) {
+  if (_initCalled) {
     ar_log_error() << "ignoring input-simulator change after init.\n";
     return false;
   }
 
   if (!sim) {
+    sim = &_simulator;
     ar_log_remark() << "default input simulator.\n";
-    _simPtr = &_simulator;
-    return true;
   }
-
   _simPtr = sim;
   return true;
 }
@@ -515,4 +513,31 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
 // todo: negate the sense of this, for clarity
 bool arSZGAppFramework::_paramNotOwned( const std::string& theString ) {
   return _ownedParams.find( theString ) == _ownedParams.end();
+}
+
+bool arSZGAppFramework::_okToInit(const char* exename) {
+  if (_initCalled){
+    ar_log_error() << "ignoring duplicate init().\n";
+    return false;
+  }
+  if (_startCalled){
+    ar_log_error() << "ignoring init() after start().\n";
+    return false;
+  }
+  _label = ar_stripExeName( exename );
+  return true;
+}
+
+bool arSZGAppFramework::_okToStart() const {
+  if (!_initCalled) {
+    ar_log_error() << "ignoring start() before init().\n";
+    return false;
+  }
+
+  if (_startCalled) {
+    ar_log_error() << "ignoring duplicate start().\n";
+    return false;
+  }
+
+  return true;
 }
