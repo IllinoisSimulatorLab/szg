@@ -335,15 +335,6 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
     }
   }
 
-  // Load in sounds & start them looping
-  const arMatrix4  ident;
-  whaleSoundTransformID = dsTransform( "whale sound matrix", "root", ident );
-  dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
-  (void)dsLoop("whale song", "whale sound matrix", "whale.mp3", 1,
-    1.0, arVector3(0,0,0));
-  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3", 1,
-    0.05, arVector3(0,0,0));
-
   // Register the shared memory.
   fw.addTransferField("fishCoords", fishCoords, AR_FLOAT, NUM_COORDS);
   fw.addTransferField("fishFlags", fishFlags, AR_INT, NUM_FLAGS);
@@ -356,6 +347,15 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
 
   fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
   fw.ownNavParam("translation_speed");
+
+  // Load and play looping sounds.
+  const arMatrix4 ident;
+  whaleSoundTransformID = dsTransform( "whale sound matrix", "root", ident );
+  dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
+  (void)dsLoop("whale song", "whale sound matrix", "whale.mp3",
+    1, 1.0, arVector3(0,0,0));
+  (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3",
+    1, 0.05, arVector3(0,0,0));
   return true;
 }
 
@@ -363,11 +363,10 @@ static int spearTipIndex = 0;
 float distances[3] = {2*ATLANTISUNITS_PER_FOOT,1*ATLANTISUNITS_PER_FOOT,.5*ATLANTISUNITS_PER_FOOT};
 static bool sharkAttack = false;
 
-// This is where we pack data into the networked shared memory
-// to be sent to the slaves
+// Pack data into the networked shared memory to send to slaves
 void preExchange(arMasterSlaveFramework& fw) {
   int i;
-  static bool firstAttack(true);
+  static bool firstAttack = true;
   fw.navUpdate();
   if (fw.getOnButton(0)) {
     drawVerticalBar = !drawVerticalBar;
@@ -387,7 +386,7 @@ void preExchange(arMasterSlaveFramework& fw) {
     }
   }
 
-  // Animate the fishies
+  // Animate
   const arMatrix4 headMatrix = ar_matrixToNavCoords( fw.getMatrix(0) );
   for (i = 0; i < NUM_SHARKS; i++) {
     SharkPilot(&sharks[i], headMatrix, sharkAttack);
@@ -429,8 +428,7 @@ void preExchange(arMasterSlaveFramework& fw) {
   for (i = 0; i<NUM_SHARKS; i++)
     packOneFish(&sharks[i], i+3);
 
-  // Calculate transformation matrix from head to whale (should be whale's
-  // mouth (or blowhole?), haven't gotten that far yet) for sound rendering.
+  // Calculate head-to-whale transformation for sound rendering.
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   const arMatrix4 headInvMatrix( fw.getMatrix(0).inverse() );
 
