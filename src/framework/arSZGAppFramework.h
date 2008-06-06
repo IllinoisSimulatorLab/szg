@@ -73,7 +73,7 @@ class SZG_CALL arSZGAppFramework {
     bool getStandalone() const { return _standalone; }
     const string getDataPath() const { return _dataPath; }
 
-    // Set-up the viewer (i.e. the user's head).
+    // Define the viewer, i.e., the user's eyes and ears.
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
     arHead* getHead() { return &_head; }
@@ -271,6 +271,9 @@ class SZG_CALL arSZGAppFramework {
                                unsigned& index,
                                float& threshold );
     bool _paramNotOwned( const std::string& theString );
+
+  private:
+    bool _checkInput() const;
 };
 
 #endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H

@@ -156,6 +156,9 @@ void arSZGAppFramework::setClipPlanes( float nearClip, float farClip ) {
 }
 
 void arSZGAppFramework::setUnitConversion( float unitConv ) {
+  if (_initCalled) {
+    ar_log_warning() << "setUnitConversion ineffective AFTER init, if using framework-based navigation.\n";
+  }
   _head.setUnitConversion( unitConv );
 }
 
@@ -171,74 +174,53 @@ float arSZGAppFramework::getUnitSoundConversion() {
   return _unitSoundConversion;
 }
 
+bool arSZGAppFramework::_checkInput() const {
+  if (_inputState)
+    return true;
+
+  ar_log_warning() << "no input state.\n";
+  return false;
+}
+
 int arSZGAppFramework::getButton( const unsigned i ) const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return 0;
-  }
-  return _inputState->getButton( i );
+  return _checkInput() ? _inputState->getButton( i ) : 0;
 }
 
 float arSZGAppFramework::getAxis( const unsigned i ) const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return 0.;
-  }
-  return _inputState->getAxis( i );
+  return _checkInput() ? _inputState->getAxis( i ) : 0.;
 }
 
-// Scales translation component by _unitConversion.
+// Scale translation by _unitConversion.
 arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion ) const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
+  if (!_checkInput()) {
     return ar_identityMatrix();
   }
   arMatrix4 m( _inputState->getMatrix( i ) );
   if (doUnitConversion) {
-  for (int j=12; j<15; j++)
+    for (int j=12; j<15; j++)
       m.v[j] *= _head.getUnitConversion();
-  }
+    }
   return m;
 }
 
 bool arSZGAppFramework::getOnButton( const unsigned i ) const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return false;
-  }
-  return _inputState->getOnButton( i );
+  return _checkInput() && _inputState->getOnButton( i );
 }
 
 bool arSZGAppFramework::getOffButton( const unsigned i ) const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return false;
-  }
-  return _inputState->getOffButton( i );
+  return _checkInput() && _inputState->getOffButton( i );
 }
 
 unsigned arSZGAppFramework::getNumberButtons() const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return 0;
-  }
-  return _inputState->getNumberButtons();
+  return _checkInput() ? _inputState->getNumberButtons() : 0;
 }
 
 unsigned arSZGAppFramework::getNumberAxes() const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return 0;
-  }
-  return _inputState->getNumberAxes();
+  return _checkInput() ? _inputState->getNumberAxes() : 0;
 }
 
 unsigned arSZGAppFramework::getNumberMatrices() const {
-  if (!_inputState) {
-    ar_log_warning() << "no input state.\n";
-    return 0;
-  }
-  return _inputState->getNumberMatrices();
+  return _checkInput() ? _inputState->getNumberMatrices() : 0;
 }
 
 bool arSZGAppFramework::setNavTransCondition( char axis,
@@ -256,6 +238,10 @@ bool arSZGAppFramework::setNavRotCondition( char axis,
 }
 
 void arSZGAppFramework::setNavTransSpeed( float speed ) {
+  if (_initCalled) {
+    ar_log_error() << "ignoring setNavTransSpeed after init.\n";
+    return;
+  }
   _navManager.setTransSpeed( speed );
 }
 
