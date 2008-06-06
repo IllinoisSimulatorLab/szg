@@ -284,17 +284,13 @@ void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
 // can alter it directly.
 arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
   // Standalone mode does not support peers.
-  if (_peerName == "NULL" || _standalone){
-    return &_graphicsServer;
-  }
-  else{
-    return &_graphicsPeer;
-  }
+  return (_peerName == "NULL" || _standalone) ?
+    &_graphicsServer : (arGraphicsDatabase*)&_graphicsPeer;
 }
 
 void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
   if (_initCalled){
-    ar_log_warning() << "can't setAutoBufferSwap() after init().\n";
+    ar_log_warning() << "ignoring setAutoBufferSwap() after init.\n";
     return;
   }
 
@@ -367,11 +363,11 @@ void arDistSceneGraphFramework::setPlayer(){
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
-  if (_initCalled){
+  if (_initCalled) {
     ar_log_error() << "ignoring duplicate init().\n";
     return false;
   }
-  if (_startCalled){
+  if (_startCalled) {
     ar_log_error() << "can't init() after start().\n";
     return false;
   }
@@ -404,17 +400,17 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
 }
 
 bool arDistSceneGraphFramework::start(){
-  if (!_initCalled){
+  if (!_initCalled) {
     ar_log_error() << "can't start() before init().\n";
     return false;
   }
 
-  if (_startCalled){
+  if (_startCalled) {
     ar_log_error() << "ignoring duplicate start().\n";
     return false;
   }
 
-  if (_standalone){
+  if (_standalone) {
     const bool ok = _startStandaloneMode();
     _startCalled = true;
     return ok;
