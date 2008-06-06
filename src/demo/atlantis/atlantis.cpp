@@ -617,6 +617,7 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* wI ) {
 
 int main(int argc, char** argv){
   arMasterSlaveFramework fw;
+
   fw.setStartCallback(start);
   fw.setPreExchangeCallback(preExchange);
   fw.setPostExchangeCallback(postExchange);
@@ -624,13 +625,9 @@ int main(int argc, char** argv){
   fw.setWindowEventCallback( windowEvent );
   fw.setWindowStartGLCallback( initGL );
   fw.setClipPlanes(nearClipDistance, farClipDistance);
-  // Do this before fw.init() if we use framework-based navigation.
+
   fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
-  if (!fw.init(argc, argv)){
-    return 1;
-  }
   fw.setDataBundlePath("SZG_DATA", "atlantis");
-
-  return fw.start() ? 0 : 1;
+  return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
