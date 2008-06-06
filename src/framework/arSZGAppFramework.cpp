@@ -147,6 +147,9 @@ bool arSZGAppFramework::_loadInputDrivers() {
 }
 
 void arSZGAppFramework::setEyeSpacing( float feet) {
+  if (!_initCalled) {
+    ar_log_warning() << "setEyeSpacing ineffective before init: database will overwrite value.\n";
+  }
   _head.setEyeSpacing( feet );
   ar_log_remark() << "eyeSpacing " << feet << " feet.\n";
 }
@@ -157,7 +160,7 @@ void arSZGAppFramework::setClipPlanes( float nearClip, float farClip ) {
 
 void arSZGAppFramework::setUnitConversion( float unitConv ) {
   if (_initCalled) {
-    ar_log_warning() << "setUnitConversion ineffective AFTER init, if using framework-based navigation.\n";
+    ar_log_warning() << "setUnitConversion ineffective after init, if using framework-based navigation.\n";
   }
   _head.setUnitConversion( unitConv );
 }
@@ -197,7 +200,7 @@ arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion 
   }
   arMatrix4 m( _inputState->getMatrix( i ) );
   if (doUnitConversion) {
-    for (int j=12; j<15; j++)
+    for (int j=12; j<15; ++j)
       m.v[j] *= _head.getUnitConversion();
     }
   return m;
