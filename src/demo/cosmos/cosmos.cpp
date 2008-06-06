@@ -168,7 +168,7 @@ void worldAlter(arDistSceneGraphFramework& fw) {
     howMany = 0;
   }
 
-  // Change the line length.
+  // Grow the lines.
   static float length = 1.;
   length += .25;
   if (length >= 20.0){
@@ -187,20 +187,21 @@ void worldAlter(arDistSceneGraphFramework& fw) {
 
 int main(int argc, char** argv){
   arDistSceneGraphFramework fw;
-  fw.setAutoBufferSwap(false); // Before init().
+  fw.setAutoBufferSwap(false);
+
+  // Files containing textures and sounds.
+  fw.setDataBundlePath("SZG_DATA", "cosmos");
+
   if (!fw.init(argc,argv)){
     return 1;
   }
 
   // Navigation.
-  fw.setNavTransSpeed(3.0); // After init().
+  fw.setNavTransSpeed(3.0);
   fw.setEventQueueCallback( inputEventQueueCallback );
 
   // Move from center of floor (traditional cave coords) to center of Cube.
   ar_navTranslate(arVector3(0, -5, 0));
-  
-  // Files containing textures and sounds.
-  fw.setDataBundlePath("SZG_DATA", "cosmos");
 
   worldInit(fw);
 
