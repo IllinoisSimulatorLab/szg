@@ -229,6 +229,8 @@ void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
   // nyi: set idSaber's position
 }
 
+const float wandConeLength = 1.5;
+
 void callbackPreEx(arMasterSlaveFramework& fw) {
   cb = fw.getNumberButtons();
   ca = fw.getNumberAxes();
@@ -282,8 +284,9 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
     rgm[i] = fw.getMatrix(i);
 
   static arVector3 tipPosPrev(0,5,-5);
-  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0,0,-6)));
+  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0,0,-wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
+  clamp(vSaber, 0., .8);
   tipPosPrev = tipPos;
   doSounds(iPing, fPing, fPong, vSaber>.8 ? .8 : vSaber);
 }
@@ -302,7 +305,7 @@ void bluesquare() {
 void headwands() {
   glTranslatef(0, -5, 0); // correct y coord
   for (unsigned i=1; i<cm; ++i)
-    drawWand(rgm[i], 1.5);
+    drawWand(rgm[i], wandConeLength);
   if (cm > 0) {
     glMultMatrixf(rgm[0].v);
     drawHead();
@@ -482,8 +485,9 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(-.7, -.2, 0);
       // Box for each wand button, released or depressed.
+      const float step = (1.0 / (cb-1));
       for (i=0; i<cb; ++i) {
-	glTranslatef(1.0 / (cb-1), 0, 0);
+	glTranslatef(step, 0, 0);
 	if (rgButton[i] == 0) {
 	  glColor3f(1, .3, .2);
 	  glutSolidCube(0.5 / cb);
@@ -495,6 +499,12 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	  glutSolidCube(0.7 / cb);
 	  glColor3f(0,0,0);
 	  glutWireCube(0.72 / cb);
+	}
+	// 5 buttons per line
+	const int buttonsPerLine = 5;
+	if ((i+1) % buttonsPerLine == 0) {
+	  // x = carriage return, y = line feed
+	  glTranslatef(-buttonsPerLine*step, -step, 0);
 	}
       }
     glPopMatrix();
