@@ -173,13 +173,17 @@ inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
     a = aMin;
 }
 
-void doSounds(int iPing, bool fPing, bool fPong) {
+void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
   static int idPing = -1;
   static int idPong = -1;
+  static int idSaber = -1;
   static bool fInit = false;
-  const float xyz[4][3] = // left, front, right, default
-    { {-5,4,0}, {0,4,-5}, {5,4,0}, {2.34,0,0} };
+  static float amplSaberPrev = 0.;
+
+  const float xyz[5][3] = // left, front, right, default, saber
+    { {-5,4,0}, {0,4,-5}, {5,4,0}, {2.34,0,0}, {0,5,-5} };
   const int iPingDefault = 3;
+  const int iSaber = 4;
   if (iPing < 0 || iPing > 2) {
     iPing = iPingDefault;
   }
@@ -187,6 +191,9 @@ void doSounds(int iPing, bool fPing, bool fPong) {
     fInit = true;
     idPing = dsLoop("ping", "root", "q33beep.wav", 0, 0.0, xyz[iPingDefault]);
     idPong = dsLoop("pong", "root", "q33collision.wav", 0, 0.0, xyz[iPingDefault]);
+
+    // Use .wav not .mp3, to avoid a click when the loop wraps around.
+    idSaber = dsLoop("lightsaber", "root", "parade.wav", 1, 0.0, xyz[iSaber]);
   }
 
   static bool fResetPing = true;
@@ -210,6 +217,16 @@ void doSounds(int iPing, bool fPing, bool fPong) {
     dsLoop(idPong, "q33collision.wav", 0, 0, xyz[iPingDefault]);
     fResetPong = true;
   }
+
+  // Slow decay.
+  amplSaberPrev *= .95;
+  if (amplSaber < amplSaberPrev)
+    amplSaber = amplSaberPrev;
+  amplSaberPrev = amplSaber;
+
+  dsLoop(idSaber, "parade.wav", 1, amplSaber, xyz[iSaber]);
+
+  // nyi: set idSaber's position
 }
 
 void callbackPreEx(arMasterSlaveFramework& fw) {
@@ -254,7 +271,6 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   if (cOn > 1) {
     fWhitewalls = !fWhitewalls;
   }
-  doSounds(iPing, fPing, fPong);
 
   for (i=0; i<ca; ++i) {
     if (rgfjoy32k[i] |= fabs(rgAxis[i] = fw.getAxis(i)) > 16400.)
@@ -264,17 +280,23 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   rgm[0] = fw.getMidEyeMatrix();
   for (i=1; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
+
+  static arVector3 tipPosPrev(0,5,-5);
+  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0,0,-6)));
+  float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
+  tipPosPrev = tipPos;
+  doSounds(iPing, fPing, fPong, vSaber>.8 ? .8 : vSaber);
 }
 
 void bluesquare() {
-    glColor3f(.1,.1,.4);
-    glBegin(GL_POLYGON);
-      glVertex3f( 1,  1, -.02);
-      glVertex3f( 1, -1, -.02);
-      glVertex3f(-1, -1, -.02);
-      glVertex3f(-1,  1, -.02);
-    glEnd();
-    glScalef(1,1,.001); // flatten onto front screen
+  glColor3f(.1,.1,.4);
+  glBegin(GL_POLYGON);
+    glVertex3f( 1,  1, -.02);
+    glVertex3f( 1, -1, -.02);
+    glVertex3f(-1, -1, -.02);
+    glVertex3f(-1,  1, -.02);
+  glEnd();
+  glScalef(1,1,.001); // flatten onto front screen
 }
 
 void headwands() {
@@ -538,6 +560,7 @@ bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
   fw.addTransferField("f", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
   fw.addTransferField("g", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
   fw.addTransferField("h", &fWhitewalls, AR_INT, 1);
+
   return true;
 }
 
