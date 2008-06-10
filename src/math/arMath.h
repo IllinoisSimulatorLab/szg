@@ -75,7 +75,7 @@ class SZG_CALL arVector2 {
   arVector2 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
-      cerr << "arVector2 error: cannot normalize zero vector.\n";
+      cerr << "arVector2 error: cannot normalize zero.\n";
       return arVector2(0,0);
     }
     return arVector2(v[0]/mag, v[1]/mag);
@@ -129,7 +129,7 @@ class SZG_CALL arVector3{
   arVector3 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
-      cerr << "arVector3 error: cannot normalize zero vector.\n";
+      cerr << "arVector3 error: cannot normalize zero.\n";
       return arVector3(0,0,0);
     }
     return arVector3(v[0]/mag, v[1]/mag, v[2]/mag);
@@ -154,7 +154,7 @@ class SZG_CALL arVector4{
  public:
   float v[4];
 
-  arVector4() { memset(v, 0, 4*sizeof(float)); } // identity matrix instead?
+  arVector4() { memset(v, 0, 4*sizeof(float)); }
   arVector4(const float* p){ set(p[0], p[1], p[2], p[3]); }
   arVector4(float x, float y, float z, float w){ set(x,y,z,w); }
   arVector4(const arVector3& vec, float w) { set(vec.v[0],vec.v[1],vec.v[2],w); }
@@ -184,7 +184,7 @@ class SZG_CALL arVector4{
   arVector4 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
-      cerr << "arVector4 error: cannot normalize zero vector.\n";      
+      cerr << "arVector4 error: cannot normalize zero.\n";
       return arVector4(0,0,0,0);
     }
     return arVector4(v[0]/mag, v[1]/mag, v[2]/mag, v[3]/mag);
@@ -343,7 +343,6 @@ SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 SZG_CALL bool ar_isPowerOfTwo( int x );
 
 // Matrix creation.
-SZG_CALL arMatrix4 ar_identityMatrix();
 SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_translationMatrix(const arVector3&);
 SZG_CALL arMatrix4 ar_rotationMatrix(char,float);
@@ -356,6 +355,8 @@ SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position,
 SZG_CALL arMatrix4 ar_scaleMatrix(float);
 SZG_CALL arMatrix4 ar_scaleMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
+SZG_CALL arMatrix4 ar_identityMatrix();
+
 // Abbreviations.
 inline arMatrix4 ar_TM(float x, float y, float z){
   return ar_translationMatrix(x,y,z);
