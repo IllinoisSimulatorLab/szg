@@ -32,7 +32,7 @@ void stroke::append(const arVector3& v)
   if (!l.empty()) {
     const float resolution = 0.75 / 12.; // 0.75 inches
     const arVector3 previous = l.back();
-    const float distance = magnitude(v - previous);
+    const float distance = (v - previous).magnitude();
     if (distance < resolution)
       // v is so close to previous that it's redundant.  Ignore it.
       return;
@@ -44,7 +44,7 @@ void stroke::append(const arVector3& v)
       const float dt = 1. / steps;
       for (float t=dt; t<1.; t += dt) {
 	const arVector3 vLerp = previous + (t * diff);
-	if (magnitude(vLerp - v) > resolution) {
+	if ((vLerp - v).magnitude() > resolution) {
 	  // not too close to v
 	  l.push_back(vLerp);
 	}
@@ -74,7 +74,7 @@ Lagain:
   // Mark points that need erasing.
   int i = 0;
   for (iter ii = l.begin(); ii != l.end(); ++ii,++i) {
-    if (magnitude(*ii - v) < eraserRadius) {
+    if ((*ii - v).magnitude() < eraserRadius) {
       // ii needs removing!
 
       if (ii == l.begin()) {
@@ -165,7 +165,7 @@ void DrawRibbon(const list <arVector3>& PT, float zWidth, int wLowpass)
 
     arVector3 bn = (PTprev - PTcur) * (PTnext * PTcur); // binormal
 LAgain:
-    float length = magnitude(bn);
+    float length = bn.magnitude();
     if (length <= 0.02)
       {
       // No sufficiently unique binormal, so use previous one
@@ -180,7 +180,7 @@ LAgain:
     arVector3 nn = bn * (PTnext - PTprev); // normal
     bn *= zWidth / length;
     bnPrev = bn;
-    length = magnitude(nn);
+    length = nn.magnitude();
     if (length >= .01) {
       // This might happen while erasing?
       nn /= length;
@@ -195,8 +195,8 @@ LAgain:
      * to minimize the sum of the lengths of the edges
      * of the ribbon.
      */
-    const float distA = magnitude(prev1 - tmp1) + magnitude(prev2 - tmp2);
-    const float distB = magnitude(prev1 - tmp2) + magnitude(prev2 - tmp1);
+    const float distA = (prev1 - tmp1).magnitude() + (prev2 - tmp2).magnitude();
+    const float distB = (prev1 - tmp2).magnitude() + (prev2 - tmp1).magnitude();
     if (distA < distB)
       {
       prev1 = tmp1;
