@@ -120,15 +120,16 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
   const arMatrix4 spearMatrix( spearBaseMatrix*spearOffsetMat );
   glPushMatrix();
     glMultMatrixf(spearMatrix.v);
+    const float thin = ATLANTISUNITS_PER_FOOT / 12.;
     glPushMatrix();
-      glScalef( ATLANTISUNITS_PER_FOOT/12., ATLANTISUNITS_PER_FOOT/12., SPEAR_LENGTH );
+      glScalef( thin, thin, SPEAR_LENGTH );
       glColor3f(.4,.4,.4);
       glutSolidCube(1.);
     glPopMatrix();
     if (drawVerticalBar) {
       glPushMatrix();
        glTranslatef( 0, .5*ATLANTISUNITS_PER_FOOT, 0. );
-       glScalef( ATLANTISUNITS_PER_FOOT/12., ATLANTISUNITS_PER_FOOT, ATLANTISUNITS_PER_FOOT/12. );
+       glScalef( thin, ATLANTISUNITS_PER_FOOT, thin );
        glutSolidCube(1.);
       glPopMatrix();
     }
@@ -140,7 +141,7 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
 void matrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
   fishRec& shark = sharks[object->getID()];
   arVector3 pos(ar_extractTranslation(matrix));
-  // coordinate swapping based on FishTransform()
+  // coordinate swap from FishTransform()
   shark.y = pos[0];
   shark.z = pos[1];
   shark.x = -pos[2];
@@ -345,7 +346,6 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   fw.addTransferField("drawVerticalBar", &drawVerticalBar, AR_INT, 1);
   fw.addTransferField("useTexture", &useTexture, AR_INT, 1);
 
-  fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
   fw.ownNavParam("translation_speed");
 
   // Load and play looping sounds.
@@ -629,5 +629,6 @@ int main(int argc, char** argv){
   fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
   fw.setDataBundlePath("SZG_DATA", "atlantis");
+  fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
