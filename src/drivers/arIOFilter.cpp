@@ -76,7 +76,7 @@ float arIOFilter::getAxis( const unsigned int index ) const {
 }
 
 arMatrix4 arIOFilter::getMatrix( const unsigned int index ) const {
-  return _valid() ? _inputState->getMatrix( index ) : ar_identityMatrix();
+  return _valid() ? _inputState->getMatrix( index ) : arMatrix4();
 }
 
 void arIOFilter::insertNewEvent( const arInputEvent& newEvent ) {

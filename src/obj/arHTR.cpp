@@ -154,19 +154,19 @@ void arHTR::attachChildNode(arGraphicsNode* parent,
  
   node->segment->postTransformNode = (arTransformNode*)
     parent->newNode("transform", objectName + tempName + ".postTransform");
-  node->segment->postTransformNode->setTransform(ar_identityMatrix());
+  node->segment->postTransformNode->setTransform(arMatrix4());
   node->segment->transformNode = (arTransformNode*)
     node->segment->postTransformNode->newNode("transform", objectName + tempName + ".transform");
   node->segment->transformNode->setTransform(tempTransform);
   node->segment->preTransformNode = (arTransformNode*)
     node->segment->transformNode->newNode("transform", objectName + tempName + ".preTransform");
-  node->segment->preTransformNode->setTransform(ar_identityMatrix());
+  node->segment->preTransformNode->setTransform(arMatrix4());
   node->segment->localTransformNode = (arTransformNode*)
     node->segment->preTransformNode->newNode("transform", objectName + tempName + ".localTransform");
-  node->segment->localTransformNode->setTransform(ar_identityMatrix());
+  node->segment->localTransformNode->setTransform(arMatrix4());
   node->segment->invTransformNode = (arTransformNode*)
     node->segment->localTransformNode->newNode("transform", objectName + tempName + ".invTransform");
-  node->segment->invTransformNode->setTransform(ar_identityMatrix()); 
+  node->segment->invTransformNode->setTransform(arMatrix4()); 
   node->segment->boundingSphereNode =(arBoundingSphereNode*)
     node->segment->invTransformNode->newNode("bounding sphere", objectName + tempName + ".boundingSphere");
   arBoundingSphere b;

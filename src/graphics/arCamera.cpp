@@ -9,12 +9,12 @@
 
 // Not const because derived classes aren't.
 arMatrix4 arCamera::getProjectionMatrix() {
-  return ar_identityMatrix();
+  return arMatrix4();
 }
 
 // Not const because derived classes aren't.
 arMatrix4 arCamera::getModelviewMatrix() {
-  return ar_identityMatrix();
+  return arMatrix4();
 }
 
 void arCamera::loadViewMatrices(){

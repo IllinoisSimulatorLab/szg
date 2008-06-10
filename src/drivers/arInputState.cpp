@@ -145,7 +145,7 @@ float arInputState::_getAxis( const unsigned iAxis ) const {
 }
 
 arMatrix4 arInputState::_getMatrix( const unsigned iMatrix ) const {
-  return iMatrix < _matrices.size() ?  _matrices[iMatrix] : ar_identityMatrix();
+  return iMatrix < _matrices.size() ?  _matrices[iMatrix] : arMatrix4();
 }
 
 // todo: factor out:
@@ -176,7 +176,7 @@ bool arInputState::_setAxis( const unsigned iAxis, const float value ) {
 bool arInputState::_setMatrix( const unsigned iMatrix, const arMatrix4& value ) {
   if (iMatrix >= _matrices.size()) {
     // ar_log_debug() << "arInputState grown to " << iMatrix+1 << " matrices.\n";
-    _matrices.insert(_matrices.end(), iMatrix+1 - _matrices.size(), ar_identityMatrix());
+    _matrices.insert(_matrices.end(), iMatrix+1 - _matrices.size(), arMatrix4());
   }
   _matrices[iMatrix] = value;
   return true;
@@ -217,8 +217,7 @@ void arInputState::_setSignature( const unsigned numButtons,
     _matrices.erase( _matrices.begin()+numMatrices, _matrices.end() );
     changed = true;
   } else if (numMatrices > _matrices.size()) {
-    _matrices.insert( _matrices.end(), numMatrices-_matrices.size(),
-                      ar_identityMatrix() );
+    _matrices.insert( _matrices.end(), numMatrices-_matrices.size(), arMatrix4() );
     changed = true;
   }
 

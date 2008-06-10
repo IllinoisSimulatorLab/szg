@@ -619,7 +619,7 @@ bool IdentityMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
   const long a = (long)pf->stackPop();
-  pf->putDataMatrix( a, ar_identityMatrix() );
+  pf->putDataMatrix( a, arMatrix4() );
   return true;
 }
   

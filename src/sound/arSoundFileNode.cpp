@@ -71,7 +71,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw )))
     return false;
 
-  const arMatrix4 mat(ar_transformStack.empty() ? ar_identityMatrix() : ar_transformStack.top());
+  const arMatrix4 mat(ar_transformStack.empty() ? arMatrix4() : ar_transformStack.top());
   const arVector3& p = useTrigger ? _triggerPoint : _point;
   const arVector3 point((__globalSoundListener * mat) * p);
 

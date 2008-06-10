@@ -15,7 +15,7 @@
 
 class SZG_CALL arMesh {
  public:
-  arMesh(const arMatrix4& transform = ar_identityMatrix()) :
+  arMesh(const arMatrix4& transform = arMatrix4()) :
     _matrix(transform) {}
   virtual ~arMesh() {}
 

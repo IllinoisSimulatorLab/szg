@@ -548,10 +548,10 @@ void arDistSceneGraphFramework::_initDatabases(){
   if (_graphicsNavNode == NULL){
     _graphicsNavNode = (arTransformNode*) _usedGraphicsDatabase->getRoot()->
       newNode("transform", getNavNodeName());
-    _graphicsNavNode->setTransform(ar_identityMatrix());
+    _graphicsNavNode->setTransform(arMatrix4());
   }
   if (_soundNavMatrixID == -1){
-    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", ar_identityMatrix());
+    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", arMatrix4());
   }
 }
 

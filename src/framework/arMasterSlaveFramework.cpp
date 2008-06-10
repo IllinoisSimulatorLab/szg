@@ -1798,7 +1798,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   _soundActive = false;
 
   if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",arMatrix4());
   }
   return true;
 }
@@ -1916,7 +1916,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   }
 
   if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",ar_identityMatrix());
+    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",arMatrix4());
   }
     
   _soundActive = true;

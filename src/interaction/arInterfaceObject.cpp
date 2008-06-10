@@ -193,8 +193,7 @@ void arInterfaceObject::setButtons( const int* butPtr ) {
 }
 
 arMatrix4 arInterfaceObject::getMatrix( const int i ) const {
-  static const arMatrix4 ident(ar_identityMatrix());
-  return ((i < 0)||(i >= getNumMatrices())) ? ident : _matrices[i];
+  return ((i < 0)||(i >= getNumMatrices())) ? arMatrix4() : _matrices[i];
 }
 
 float arInterfaceObject::getAxis( const int i ) const {

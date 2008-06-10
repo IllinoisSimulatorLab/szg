@@ -45,8 +45,7 @@ bool equalVectorTest(arVector3 v1, arVector3 v2) {
 int main(){
   int i, j;
 
-  cout << "Math test: if no FAILED messages are printed, then the tests have "
-       << "succeeded.\n";
+  cout << "Math test: if no FAILED messages appear, then all tests succeeded.\n";
 
   cout << "Testing vector algebra.\n";
   if (++( arVector3(1,0,0)*arVector3(0,1,0) - arVector3(0,0,1)) > epsilon){
@@ -80,15 +79,20 @@ int main(){
   }
 
   cout << "Testing matrix algebra.\n";
+
+  if (!zeroTest(arMatrix4() - ar_identityMatrix())) {
+    cout << "FAILED: matrix default constructor.\n";
+  }
+
   arMatrix4 matrix1 = arMatrix4(5,5,5,5,
 				5,5,5,5,
 				5,5,5,5,
 				5,5,5,5);
-  arMatrix4 matrix2 = arMatrix4(1,1,1,1,
+  arMatrix4 matrix2            (1,1,1,1,
 				0,0,0,0,
 				1,1,1,1,
 				0,0,0,0);
-  arMatrix4 testMatrix = ar_identityMatrix() + matrix1 - matrix2;
+  arMatrix4 testMatrix = arMatrix4() + matrix1 - matrix2;
   if (!zeroTest(testMatrix - arMatrix4(5,4,4,4,
 				       5,6,5,5,
 				       4,4,5,4,
@@ -96,15 +100,15 @@ int main(){
     cout << "FAILED: matrix addition test.\n";
   }
   
-  // test ar_identityMatrix() function plus matrix multiplication (i.e. 
+  // ar_identityMatrix() function plus matrix multiplication (i.e. 
   // multiply something by the identity matrix and you get that matrix back)
   if (!zeroTest(ar_translationMatrix(1,2,3) - 
-		ar_identityMatrix()*ar_translationMatrix(1,2,3)
-		*ar_identityMatrix())){
+		arMatrix4() * ar_translationMatrix(1,2,3) *
+		arMatrix4())){
     cout << "FAILED: identity matrix test.\n";
   }
 
-  // test matrix inverse
+  // matrix inverse
   if (!identityTest(ar_translationMatrix(1,2,3)*!ar_translationMatrix(1,2,3))){
     cout << "FAILED: matrix inverse (1).\n";
   }
@@ -118,14 +122,13 @@ int main(){
     cout << "FAILED: matrix inverse (3).\n";
   }
 
-  // test transpose. the transpose of a 3D rotation matrix is
+  // transpose. the transpose of a 3D rotation matrix is
   // the inverse of the original matrix.
   if (!identityTest(ar_rotationMatrix('x',ar_convertToRad(-45))
 	            *~ar_rotationMatrix('x',ar_convertToRad(-45)))){
     cout << "FAILED: matrix transpose.\n";
   }
 
-  // test rotation matrix code
   cout << "Testing rotation matrices.\n";
   arVector3 test1 = ar_rotationMatrix('x', ar_convertToRad(90))
     *arVector3(0,1,0);

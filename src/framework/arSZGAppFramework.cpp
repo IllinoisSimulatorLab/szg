@@ -194,7 +194,7 @@ float arSZGAppFramework::getAxis( const unsigned i ) const {
 // Scale translation by _unitConversion.
 arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion ) const {
   if (!_checkInput()) {
-    return ar_identityMatrix();
+    return arMatrix4();
   }
   arMatrix4 m( _inputState->getMatrix( i ) );
   if (doUnitConversion) {

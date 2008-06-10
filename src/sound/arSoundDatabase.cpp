@@ -200,7 +200,7 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
 stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 
 bool arSoundDatabase::render(){
-  ar_transformStack.push(ar_identityMatrix());
+  ar_transformStack.push(arMatrix4());
     //ar_mutex_lock(&_eraseLock);
     const bool ok = _render((arSoundNode*)&_rootNode);
     //ar_mutex_unlock(&_eraseLock);

@@ -31,7 +31,7 @@ class SZG_CALL arLight{
   float     spotCutoff;
   float     spotExponent;
 
-  void activateLight(){ activateLight(ar_identityMatrix()); }
+  void activateLight(){ activateLight(arMatrix4()); }
   void activateLight(arMatrix4 lightPositionTransform);
 };
 

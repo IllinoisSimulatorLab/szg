@@ -149,10 +149,11 @@ bool arSpacepadDriver::stop(){
 }
 
 arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
-  if (sensorID > 2 || sensorID < 1){
+  if (sensorID < 1 || sensorID > 2){
     ar_log_error() << "arSpacepadDriver: only sensors 1 and 2 are supported.\n";
-    return ar_identityMatrix();
+    return arMatrix4();
   }
+
   // Confusingly use the global recaddr.
   recaddr = sensorID;
   short dataStorage[20];
@@ -182,7 +183,7 @@ arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
     ar_log_error() << "arSpacepadDriver failed to read data\n";
 LAbort:
     _reset_through_isa();
-    return ar_identityMatrix();
+    return arMatrix4();
   }
   values[0] = dataStorage[0]*positionScaling;
   values[1] = dataStorage[1]*positionScaling;

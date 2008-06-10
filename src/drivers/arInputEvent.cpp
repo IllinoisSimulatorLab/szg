@@ -19,7 +19,7 @@ arInputEvent::arInputEvent( const arInputEventType type, const unsigned int inde
   _axis( 0. ),
   _matrix( NULL ) {
     if (_type == AR_EVENT_MATRIX)
-      _matrix = new arMatrix4( ar_identityMatrix() );
+      _matrix = new arMatrix4;
 }
 
 arInputEvent::~arInputEvent() {
@@ -119,7 +119,7 @@ void arInputEvent::zero() {
       setAxis(0.);
       break;
     case AR_EVENT_MATRIX:
-      setMatrix(ar_identityMatrix());
+      setMatrix(arMatrix4());
       break;
     default:
       ar_log_error() << "arInputEvent can't zero while trashed.\n";
