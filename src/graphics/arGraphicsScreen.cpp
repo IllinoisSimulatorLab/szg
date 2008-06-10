@@ -77,7 +77,15 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
   if (!client.getAttributeVector3 ( screenName, "screen_up", _up )) {
     _up = arVector3(0,1,0);
   }
+  if (_normal.zero()) {
+    ar_log_error() << "arGraphicsScreen overriding zero " << screenName << "/screen_normal.\n";
+    _normal = arVector3(0,0,-1);
+  }
   _normal = _normal.normalize();
+  if (_up.zero()) {
+    ar_log_error() << "arGraphicsScreen overriding zero " << screenName << "/screen_up.\n";
+    _up = arVector3(0,1,0);
+  }
   _up = _up.normalize();
 
   int intbuf[4];

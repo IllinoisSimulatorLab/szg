@@ -22,7 +22,7 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
            << "  (Suppressing further error messages).\n";
       _complained = true;
     }
-    return ar_identityMatrix();
+    return arMatrix4();
   }
 
   const bool demoMode =
@@ -73,7 +73,7 @@ arMatrix4 arVRCamera::getModelviewMatrix(){
            << "  (Suppressing further error messages).\n";
       _complained = true;
     }
-    return ar_identityMatrix();
+    return arMatrix4();
   }
   bool demoMode = (_head->getFixedHeadMode() && !screen->getIgnoreFixedHeadMode())
                       || screen->getAlwaysFixedHeadMode();
@@ -118,11 +118,12 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
            << " pointer. (Suppressing further error messages).\n";
       _complained = true;
     }
-    return ar_identityMatrix();
+    return arMatrix4();
   }
 
-  const arVector3 zHat(screen.getNormal().normalize());
-  const arVector3 xHat(zHat * screen.getUp().normalize());  // '*' = cross product
+  // arGraphicsScreen::configure already normalized getNormal() and getUp().
+  const arVector3 zHat(screen.getNormal());
+  const arVector3 xHat(zHat * screen.getUp());  // '*' = cross product
   const arVector3 yHat(xHat * zHat);
   const arVector3 yPrime(cos(screen.getFixedHeadHeadUpAngle())*yHat - sin(screen.getFixedHeadHeadUpAngle())*xHat);
   const arVector3 xPrime(zHat * yPrime);

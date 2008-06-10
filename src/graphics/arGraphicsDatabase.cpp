@@ -356,7 +356,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 // database operations (it uses hidden global database locks). Consequently,
 // this cannot be called from any message handling code.
 arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
-  arMatrix4 result(ar_identityMatrix());
+  arMatrix4 result;
   arDatabaseNode* thisNode = getNodeRef(nodeID);
   if (!thisNode) {
     ar_log_error() << "arGraphicsDatabase: invalid node ID for accumulateTransform.\n";
@@ -553,7 +553,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
 list<arDatabaseNode*> arGraphicsDatabase::intersect(const arBoundingSphere& b, bool addRef) {
   list<arDatabaseNode*> result;
   stack<arMatrix4> matrixStack;
-  matrixStack.push(ar_identityMatrix());
+  matrixStack.push(arMatrix4());
   float bestDist = -1;
   arDatabaseNode* bestNode = NULL;
   _intersect((arGraphicsNode*)&_rootNode, b, matrixStack, result, bestNode, bestDist, addRef);
@@ -573,7 +573,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
                                     const arBoundingSphere& b,
                                     stack<arMatrix4>& matrixStack, 
                                     list<arDatabaseNode*>& nodes,
-									arDatabaseNode*& bestNode,
+				    arDatabaseNode*& bestNode,
                                     float& bestDistance,
                                     bool useRef) {
   // If this is a transform node, transform the ray.
@@ -749,10 +749,12 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   if (node->getID() == excludeBelow) {
     return;
   }
+
   // Store the node on the arGraphicsContext's stack.
   if (context) {
     context->pushNode(node);
   }
+
   // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
@@ -761,6 +763,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
 			(!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
   }
+
   // If this is a bounding sphere, intersect.
   // If we do not intersect, return.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
@@ -777,43 +780,49 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       return;
     }
   }
+
   // If this is a drawable node, intersect.
   if (node->getTypeCode() == AR_G_DRAWABLE_NODE) {
     arRay localRay = rayStack.top();
     float rawDist = _intersectSingleGeometry(node, context, localRay);
     
     if (rawDist >= 0) {
-      // NOTE: there can be scaling. So, consequently, we DO NOT yet know how
-      // far, in global terms, the intersection is from the ray origin.
-      arMatrix4 toGlobal = accumulateTransform(node->getID());
+      // Because of possible scaling, we do not yet know how
+      // far, in global coords, the intersection is from the ray origin.
+      const arMatrix4 toGlobal(accumulateTransform(node->getID()));
+
       // Take two points on the ray, the origin and the intersection in the
       // local coordinate frame. Transform these to the global coordinate
       // system and find the distance.
-      arVector3 v1 = toGlobal*localRay.getOrigin();
-      arVector3 v2 = toGlobal*(localRay.getOrigin() 
-                               +rawDist*(localRay.getDirection().normalize()));
-      float dist = ++(v1-v2);
+      arVector3 v(localRay.getDirection());
+      if (v.zero()) {
+	ar_log_error() << "arGraphicsDatabase overriding zero ray direction\n";
+	v = arVector3(1,0,0);
+      }
+      const arVector3 v1(toGlobal * localRay.getOrigin());
+      const arVector3 v2(toGlobal * (localRay.getOrigin() +
+                         rawDist * (v.normalize())));
+      float dist = (v1-v2).magnitude();
       if (bestDistance < 0 || dist < bestDistance) {
         bestNode = node;
         bestDistance = dist;
       }
     }
   }
-  // Deal with intersections with children. For thread-safety, hold references
-  // to the node pointers,
+  // Handle intersections with children.
+  // For thread-safety, hold (and then unrelease) references to the node pointers,
   list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); ++i) {
     _intersectGeometry((arGraphicsNode*)(*i), context, rayStack, 
                        excludeBelow, bestNode, bestDistance);
   }
-  // To prevent a memory leak, must release the references.
   ar_unrefNodeList(children);
-  // On the way out, undo the effects of the transform
+
+  // Undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
     rayStack.pop();
   }
-  // Must remember to pop the node stack upon leaving this function.
   if (context) {
     context->popNode(node);
   }

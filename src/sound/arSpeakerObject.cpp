@@ -52,7 +52,7 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
 
     if (!_fFmodPluginInited) {
       _fFmodPluginInited = true;
-      head = ar_identityMatrix();
+      head = arMatrix4();
       // Set listener exactly once.
       goto LFmod;
     }
@@ -60,7 +60,8 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
 
   case mode_fmod:
   LFmod: {
-    const arMatrix4 rot(ar_extractRotationMatrix(head));
+    const arMatrix4 rot(ar_ERM(head));
+    // safe to normalize because rot can't be zero
     const arVector3 up((rot * arVector3(0,1,0)).normalize());
     const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
     const arVector3 pos(_unitConversion * (head * _midEyeOffset));
@@ -101,7 +102,8 @@ arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*mHead*/ ) {
 #ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   // copypaste from arVRCamera::_getFixedHeadModeMatrix and
   // ar_tileScreenOffset and ar_frustumMatrix
-  const arVector3 demoHeadPos( ar_extractTranslation(mHead) );
+  // bug: test or prove that _normal and _up are not zero.
+  const arVector3 demoHeadPos( ar_ET(mHead) );
   const arVector3 zHat(_normal.normalize());
   const arVector3 xHat(zHat * _up.normalize());
   const arVector3 yHat(xHat * zHat);
@@ -117,6 +119,6 @@ arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*mHead*/ ) {
   }
   return ar_translationMatrix(demoHeadPos) * demoRotMatrix;
 #else
-  return ar_identityMatrix();
+  return arMatrix4();
 #endif
 }

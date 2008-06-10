@@ -78,14 +78,11 @@ arWandTranslationDrag::arWandTranslationDrag( const arWandTranslationDrag& wtd )
 
 void arWandTranslationDrag::init( const arEffector* const effector,
                                   const arInteractable* const object ) {
-  const arMatrix4 effMatrix = effector->getMatrix();
-  const arMatrix4 objMatrix = object->getMatrix();
-  if (_allowOffset)
-    _positionOffsetMatrix = ar_translationMatrix( ar_extractTranslation( objMatrix ) -
-                                                ar_extractTranslation( effMatrix ) );
-  else
-    _positionOffsetMatrix = ar_identityMatrix();
-  _objectOrientationMatrix = ar_extractRotationMatrix( objMatrix );
+  const arMatrix4 mEff = effector->getMatrix();
+  const arMatrix4 mObj = object->getMatrix();
+  _positionOffsetMatrix = _allowOffset ?
+    ar_TM( ar_extractTranslation( mObj ) - ar_ET( mEff ) ) : arMatrix4();
+  _objectOrientationMatrix = ar_ERM( mObj );
 }
 
 void arWandTranslationDrag::update( const arEffector* const effector,
@@ -132,6 +129,7 @@ arDragBehavior* arWandRotationDrag::copy() const {
 arNavTransDrag::arNavTransDrag( const arVector3& displacement ) :
   _direction( displacement.normalize() ),
   _speed( displacement.magnitude() ) {
+  // if displacement.zero(), normalize() might complain but I think it's ok.
 }
 
 arNavTransDrag::arNavTransDrag( const arVector3& direction, const float speed ) :
@@ -165,6 +163,10 @@ void arNavTransDrag::setSpeed( const float speed ) {
 }
 
 void arNavTransDrag::setDirection( const arVector3& direction ) {
+  if (direction.zero()) {
+    ar_log_error() << "arNavTransDrag ignoring zero direction.\n";
+    return;
+  }
   _direction = direction.normalize();
 }
 
@@ -185,15 +187,15 @@ void arNavTransDrag::update( const arEffector* const effector,
     axisValue = 1.;
   else if (axisValue < -1.)
     axisValue = -1.;
-  const arMatrix4 navMatrix = navigator->getMatrix();
-  const arMatrix4 navTrans = ar_extractTranslationMatrix( navMatrix );
-  const arMatrix4 navRot = ar_extractRotationMatrix( navMatrix );
-  const arMatrix4 wandMatrix = effector->getMatrix();
-  const arVector3 direction = ar_extractRotationMatrix(wandMatrix) * _direction;
-  const ar_timeval currentTime = ar_time();
+  const arMatrix4 navMatrix(navigator->getMatrix());
+  const arMatrix4 navTrans(ar_extractTranslationMatrix( navMatrix ));
+  const arMatrix4 navRot(ar_extractRotationMatrix( navMatrix ));
+  const arMatrix4 wandMatrix(effector->getMatrix());
+  const arVector3 direction(ar_extractRotationMatrix(wandMatrix) * _direction);
+  const ar_timeval currentTime(ar_time());
   const float amount = _speed * axisValue * ar_difftimeSafe( currentTime, _lastTime )/1.e6;
-  _lastTime = currentTime;
   navigator->setMatrix( navTrans * ar_translationMatrix( direction*amount ) * navRot );
+  _lastTime = currentTime;
 }
 
 arDragBehavior* arNavTransDrag::copy() const {
@@ -203,6 +205,7 @@ arDragBehavior* arNavTransDrag::copy() const {
 arNavRotDrag::arNavRotDrag( const arVector3& axis, const float degreesPerSec ) :
   _axis( axis.normalize() ),
   _angleSpeed( ar_convertToRad( degreesPerSec ) ) {
+  // if axis.zero(), normalize() might complain but I think it's ok.
 }
 
 arNavRotDrag::arNavRotDrag( const char axis, const float degreesPerSec ) :
@@ -213,7 +216,7 @@ arNavRotDrag::arNavRotDrag( const char axis, const float degreesPerSec ) :
     case 'z': _axis = arVector3(0,0,1); break;
     default:
       _axis = arVector3(0,0,1);
-      cerr << "arNavTransDrag error: unknown axis '" << axis << "'.\n";
+      cerr << "arNavTransDrag error: unknown axis '" << axis << "' defaulting to 'z'.\n";
       break;
   }
 }

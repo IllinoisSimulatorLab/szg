@@ -10,7 +10,7 @@
 ostream& operator<<(ostream& s, arHead& h) {
   s << "  Matrix         ";
   const arMatrix4 m(h.getMatrix());
-  if (m==ar_identityMatrix())
+  if (m==arMatrix4())
     s << "identity\n";
   else
     s << m;
@@ -27,7 +27,7 @@ ostream& operator<<(ostream& s, arHead& h) {
 arLogStream& operator<<(arLogStream& s, arHead& h) {
   s << "  Matrix         ";
   const arMatrix4 m(h.getMatrix());
-  if (m==ar_identityMatrix())
+  if (m==arMatrix4())
     s << "identity\n";
   else
     s << m;
@@ -59,17 +59,20 @@ bool arHead::configure( arSZGClient& client ) {
   if (!client.getAttributeVector3( "SZG_HEAD", "eye_direction", _eyeDirection )) {
     _eyeDirection = arVector3(1,0,0);
   }
-
+  if (_eyeDirection.zero()) {
+    ar_log_error() << "arHead overriding zero SZG_HEAD/eye_direction.\n";
+    _eyeDirection = arVector3(1,0,0);
+  }
   if (!client.getAttributeVector3( "SZG_HEAD", "mid_eye_offset", _midEyeOffset )) {
     _midEyeOffset = arVector3(0,0,0);
   }
-
   _fixedHeadMode = client.getAttribute("SZG_HEAD", "fixed_head_mode", "|false|true|") == "true";
   ar_log_remark() << "Head:\n" << *this;
   return true;
 }
 
 arVector3 arHead::getEyePosition( float eyeSign, const arMatrix4* M ) const {
+  // _eyeDirection isn't zero because configure() already checked.
   const arVector3 offset(_midEyeOffset +
     0.5 *eyeSign * _eyeSpacing * _eyeDirection.normalize());
   return _unitConversion * ((M ? *M : _matrix) * offset);

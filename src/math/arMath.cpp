@@ -42,15 +42,15 @@ arLogStream& operator<<(arLogStream& os, const arVector4& x){
 
 
 arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
-  arMatrix4 result;
-  float* ptr = result.v;
-  for (unsigned int i=0; i<4; ++i) {
+  arMatrix4 lhs;
+  float* plhs = lhs.v;
+  for (unsigned i=0; i<4; ++i) {
     const float y = rhs.v[i];
-    for (unsigned int j=0; j<4; ++j) {
-      *ptr++ = this->v[j]*y;
+    for (unsigned j=0; j<4; ++j) {
+      *plhs++ = this->v[j] * y;
     }
   }
-  return result;
+  return lhs;
 }
 
 //***********************
@@ -58,7 +58,7 @@ arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
 //***********************
 
 arMatrix4::arMatrix4(){
-  // default to the identity matrix
+  // Default to ar_identityMatrix().
   memset(v, 0, sizeof(v));
   v[0] = v[5] = v[10] = v[15] = 1.;
 }
@@ -384,6 +384,7 @@ bool ar_isPowerOfTwo( int i ) {
   return i > 0 && (i & (i - 1)) == 0;
 }
 
+// Deprecated: use arMatrix4(), since a constructor needs to be called anyways.
 arMatrix4 ar_identityMatrix(){
   return arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 }
@@ -428,7 +429,7 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
        0,   0, 0, 1);
   }
   ar_log_error() << "ar_rotationMatrix: unknown axis '" << axis << "'.\n";
-  return ar_identityMatrix();
+  return arMatrix4();
 }
 
 arMatrix4 ar_rotationMatrix( arAxisName a, float r){
@@ -550,29 +551,29 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			      const arVector3& vertex2,
 			      const arVector3& vertex3){
 
-  // this algorithm is from geometrysurfer.com by Dan Sunday
-  const arVector3 rayDir( rayDirection.normalize() );
+  // Algorithm from geometrysurfer.com by Dan Sunday
   const arVector3 u(vertex2 - vertex1);
   const arVector3 v(vertex3 - vertex1);
   const arVector3 n(u*v);
   if (n.zero()) {
-    // degenerate triangle
-    return -1;
+    // Degenerate triangle.
+    return -1.;
   }
-  const arVector3 w0 = rayOrigin - vertex1;
-  const float a = n % w0;
+  const arVector3 rayDir( rayDirection.normalize() );
   const float b = n % rayDir;
   if (fabs(b) < 0.000001){
     // Ray hits triangle edge-on.  No intersection.
-    return -1;
+    return -1.;
   }
+  const arVector3 w0( rayOrigin - vertex1 );
+  const float a = n % w0;
   const float r = -a / b;
   if (r < 0){
     // Ray diverges from triangle.  No intersection.
-    return -1;
+    return -1.;
   }
   // Point where ray meets triangle's plane.
-  const arVector3 intersect(rayOrigin + r*rayDir);
+  const arVector3 intersect( rayOrigin + r*rayDir );
 
   // Is the intersection inside the triangle?
   const float uu = u % u;
@@ -584,17 +585,14 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   const float D = uv * uv - uu * vv;
   if (fabs(D) < 0.000001){
     // error
-    return -1;
+    return -1.;
   }
   const float s = (uv * wv - vv * wu) / D;
-  if (s < 0. || s > 1.0){
-    return -1;
+  if (s < 0. || s > 1.){
+    return -1.;
   }
   const float t = (uv * wu - uu * wv) / D;
-  if (t < 0. || (s+t) > 1.0){
-    return -1;
-  }
-  return magnitude(r*rayDir);
+  return (t < 0. || s+t > 1.) ? -1. : (r*rayDir).magnitude();
 }
 
 bool ar_intersectLinePlane( const arVector3& linePoint,
@@ -627,16 +625,16 @@ arVector3 ar_projectPointToLine( const arVector3& linePoint,
 }
 
 //arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix ) {
-//  arMatrix4 reflect( ar_identityMatrix() );
+//  arMatrix4 reflect( arMatrix4() );
 //  reflect.v[10] = -1.;
 //  return placementMatrix.inverse() * reflect * placementMatrix;
 //}
 
 arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal ) {
   arVector4 v1( planeNormal.v[0], planeNormal.v[1], planeNormal.v[2], 0. );
-  float d = -planeNormal.dot( planePoint );
+  const float d = -planeNormal.dot( planePoint );
   arVector4 v2( 2.*planeNormal.v[0], 2.*planeNormal.v[1], 2.*planeNormal.v[2], 2.*d );
-  return ar_identityMatrix() - v1.outerProduct( v2 );
+  return arMatrix4() - v1.outerProduct( v2 );
 }
 
 arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
@@ -662,13 +660,13 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
   const float mag2 = vec2.magnitude();
   if (mag1==0. || mag2==0.) {
     ar_log_error() << "ar_rotateVectorToVector: zero input.\n";
-    return ar_identityMatrix();
+    return arMatrix4();
   }
 
   const arVector3 rotAxis(vec1 * vec2);
   const float mag = rotAxis.magnitude();
   if (mag<1.e-6) {
-    return (vec1.dot(vec2) >= 0.) ? ar_identityMatrix() :
+    return (vec1.dot(vec2) >= 0.) ? arMatrix4() :
       ar_scaleMatrix(-1.); // cheat
   }
 
@@ -679,7 +677,7 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
 arMatrix4 ar_planeToRotation(float posX, float posY){
   // Special case.
   if (posX == 0. && posY == 0.)
-    return ar_identityMatrix();
+    return arMatrix4();
 
   // Map this patch of the plane to the Riemann sphere.
   const float t = -8. / (posX*posX + posY*posY);
@@ -701,8 +699,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      float width, float height,
 			      float xTile, int nxTiles,
 			      float yTile, int nyTiles) {
-  if (nxTiles == 0 || nyTiles == 0 ||
-      screenNormal.magnitude() <= 0. || screenUp.magnitude() <= 0.) {
+  if (nxTiles == 0 || nyTiles == 0 || screenNormal.zero() || screenUp.zero()) {
     // Invalid arguments.
     return arVector3(0,0,0);
   }
@@ -723,9 +720,9 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
                             const float halfWidth, const float halfHeight,
                             const float nearClip, const float farClip,
                             const arVector3& eyePosition ) {
-  if (screenNormal.magnitude() <= 0. || screenUp.magnitude() <= 0.) {
+  if (screenNormal.zero() || screenUp.zero()) {
 LAbort:
-    return ar_identityMatrix();
+    return arMatrix4();
   }
 
   const arVector3 zHat(screenNormal.normalize());
@@ -772,7 +769,7 @@ arMatrix4 ar_frustumMatrix( const float screenDist,
   const float screenDistance = screenDist + locEyePosition.v[2];
   if (screenDistance == 0.) {
 LAbort:
-    return ar_identityMatrix();
+    return arMatrix4();
   }
 
   const float nearFrust = nearClip;
@@ -795,7 +792,7 @@ LAbort:
 		   0., 0., -1., 0. );
 }
 
-// Like gluLookAt(), transform the frame (a,b,c) to (x,y,z), where:
+// Like gluLookAt(), transform the frame (a,b,c) to (x,y,z), where
 //   c = unit vector pointing from lookatPosition to viewPosition
 //   b = unit vector along the portion of up orthogonal to c
 //   a = b cross c
@@ -803,13 +800,20 @@ LAbort:
 arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
                            const arVector3& lookatPosition,
                            const arVector3& up ) {
-  // The unit vector from lookatPosition to viewPosition.
-  // This will be positive z (after the transform).
+  if ((viewPosition - lookatPosition).zero()) {
+    ar_log_error() << "ar_lookatMatrix myopically degenerate.\n";
+    return arMatrix4();
+  }
+  // Unit vector from lookatPosition to viewPosition.
+  // Positive z after the transform.
   const arVector3 Lhat( (viewPosition - lookatPosition).normalize() );
-  // Uhat will be positive y (after the transform).
+
+  // Positive y after the transform.
   const arVector3 Uhat( (up - (up % Lhat)*Lhat).normalize() );
-  // Xhat will be positive x (after the transform).
+
+  // Positive x after the transform.
   const arVector3 Xhat( Uhat * Lhat );
+
   const arMatrix4 look( Xhat.v[0], Xhat.v[1], Xhat.v[2], 0.,
                         Uhat.v[0], Uhat.v[1], Uhat.v[2], 0.,
                         Lhat.v[0], Lhat.v[1], Lhat.v[2], 0.,

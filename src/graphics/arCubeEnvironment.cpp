@@ -111,6 +111,10 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
     arVector3 normalDir(
       (arVector3(pointPositions+6) - arVector3(pointPositions)) *
       (arVector3(pointPositions+3) - arVector3(pointPositions)));
+    if (normalDir.zero()) {
+      ar_log_error() << "arCubeEnvironment overriding zero normal\n";
+      normalDir = arVector3(1,0,0);
+    }
     normalDir.normalize();
     for (int k=0; k<6; ++k){
       normalDir.get(normals + 3*k);
