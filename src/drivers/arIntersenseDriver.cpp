@@ -549,29 +549,31 @@ ostream& operator<<(ostream& s, const IsenseStation& t) {
     if (!t.getStatus()) {
       return s;
     }
-    s << "\n";
-    s << "\tStation ID: " << t.getID() << "\n";
-    s << "\tMatrix index: " << t.getMatrixIndex() << "\n";
-    s << "\tCompass usage: ";
+
+    s << "\n\tStation ID: " << t.getID()
+      << "\n\tMatrix index: " << t.getMatrixIndex()
+      << "\n\tCompass usage: ";
     switch (t.getCompass()) {
       case 0:
-        s << "None.\n";
+        s << "None.";
         break;
       case 1:
-        s << "Partial.\n";
+        s << "Partial.";
         break;
       case 2:
-        s << "Full.\n";
+        s << "Full.";
         break;
       default:
-        s << "??Unrecognized value.\n";
+        s << "??Unrecognized value.";
     }
-    s << "\tOther inputs:\n";
-    s << "\t\tbutton\tanalog\taux\n";
-    s << "\tFirst:\t" << t.getFirstButtonIndex() << "\t" << t.getFirstAnalogIndex()
-      << "\t" << t.getFirstAuxIndex() << "\n";
-    s << "\tTotal:\t" << t.getNumButtons() << "\t" << t.getNumAnalogInputs() << "\t"
-      << t.getNumAuxInputs() << "\n";
+    s << "\n\tOther inputs:"
+      << "\n\t\tbutton\tanalog\taux"
+      << "\n\tFirst:\t" << t.getFirstButtonIndex()
+                << "\t" << t.getFirstAnalogIndex()
+                << "\t" << t.getFirstAuxIndex()
+      << "\n\tTotal:\t" << t.getNumButtons()
+                << "\t" << t.getNumAnalogInputs()
+		<< "\t" << t.getNumAuxInputs() << "\n";
   return s;
 }
 
