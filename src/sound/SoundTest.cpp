@@ -10,65 +10,52 @@
 #include "arSZGClient.h"
 #include "arSoundAPI.h"
 
-int fooID = -1;
-int barID = -1;
-int zipID = -1;
-int speechID = -1;
-
 #ifdef AR_USE_WIN_32
 inline float drand48(){
   return float(rand()) / float(RAND_MAX);
 }
 #endif
 
-void loadParameters(arSZGClient&){
-  // Does nothing.
-}
+int fooID = -1;
+int barID = -1;
+int zipID = -1;
+int speechID = -1;
 
-// The database is a tree with one layer beneath the root.
+/* The database is a tree, one layer deep:
+ *
+ * "root" +--> "foo"
+ *        |
+ *        +--> "bar"
+ *        |
+ *        +--> "zip"
+ *        |
+ *        +--> "speech"
+ *        |
+ *        +--> "unchanging"
+ *
+ * Seen as IDs for changeable things,
+ * this is merely a set not a tree:
+ *
+ * { fooID, barID, zipID, speechID }
+ *
+ */
 
 void initDatabase(){
-  // CREATE AND INITIALIZE THE DATABASE,
-  // for later modification in changeDatabase()
-
-  const float xyz[3] = { 1, 2, 3};
+  const float xyz[3] = { 1, 2, 3 };
   fooID = dsLoop("foo", "root", "parade.wav", 0, 0.0, xyz);
   barID = dsLoop("bar", "root", "q33move.mp3", 1, 0.3, xyz);
   zipID = dsLoop("zip", "root", "q33collision.wav", 0, 0.0, xyz);
   speechID = dsSpeak("speech", "root", "Starting up" );
   (void)dsLoop("unchanging", "root", "q33beep.wav", 1, 0.1, xyz);
-
-  /* A picture of this database:
-   *
-   * "root" +--> "foo"
-   *        |
-   *        +--> "bar"
-   *        |
-   *        +--> "zip"
-   *        |
-   *        +--> "unchanging"
-   *
-   * The same picture, seen as IDs for things we want to change:
-   *
-   * ______ +--> fooID
-   *        |
-   *        +--> barID
-   *        |
-   *        +--> zipID
-   *        |
-   *        +--> ____________
-   *
-   */
 }
 
 void changeDatabase(){
-  // MODIFY THE DATABASE
   float xyz[3] = { drand48()-.5, drand48()-.5, drand48()-.5 };
   static int trigger = 0;
   ++trigger;
-  dsLoop(fooID, "parade.wav", (trigger%20==0)?-1:0, 0.8, xyz);
+  dsLoop(fooID, "parade.wav", (trigger%20)?0:-1, .8, xyz);
   dsLoop(barID, "q33move.mp3", 1, 0.2, xyz);
-  dsLoop(zipID, "q33collision.wav", (trigger%6==0)?-1:0, .8, xyz);
+  dsLoop(zipID, "q33collision.wav", (trigger%6)?0:-1, .8, xyz);
   dsSpeak(speechID, "I can talk." );
 }
 
@@ -78,7 +65,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  loadParameters(szgClient);
   arSoundServer soundServer;
   dsSetSoundDatabase(&soundServer);
 
@@ -92,9 +78,7 @@ int main(int argc, char** argv){
   }
 
   arThread dummy(ar_messageTask, &szgClient);
-
   initDatabase();
-
   while (szgClient.running()){
     ar_usleep(5000000);
     changeDatabase();
