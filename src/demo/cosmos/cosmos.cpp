@@ -192,13 +192,14 @@ int main(int argc, char** argv){
   // Files containing textures and sounds.
   fw.setDataBundlePath("SZG_DATA", "cosmos");
 
-  if (!fw.init(argc,argv)){
-    return 1;
-  }
-
   // Navigation.
   fw.setNavTransSpeed(3.0);
   fw.setEventQueueCallback( inputEventQueueCallback );
+  fw.setUnitConversion( 1. );
+
+  if (!fw.init(argc,argv)){
+    return 1;
+  }
 
   // Move from center of floor (traditional cave coords) to center of Cube.
   ar_navTranslate(arVector3(0, -5, 0));
@@ -207,7 +208,6 @@ int main(int argc, char** argv){
 
   fw.setEyeSpacing( 6/(2.54*12) );
   fw.setClipPlanes( .3, 1000. );
-  fw.setUnitConversion( 1. );
 
   if (!fw.start()) {
     return 1;
