@@ -326,39 +326,34 @@ bool arCylinderMesh::attachMesh(arGraphicsNode* parent, const string& name){
   return ok;
 }
 
-/////////  PYRAMID  /////////////////////////////////////////////////////
+/////////  FOUR-SIDED PYRAMID  //////////////////////////////////////////
 
-bool arPyramidMesh::attachMesh(arGraphicsNode* parent, 
-                               const string& name){
+bool arPyramidMesh::attachMesh(arGraphicsNode* parent, const string& name){
   const int numberPoints = 5;
-  const int numberTriangles = 6;
   float pointPositions[3*numberPoints] = {
     0,0,0.5, -0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5, -0.5,0.5,-0.5 };
+  const int numberTriangles = 6;
   int triangleVertices[3*numberTriangles] = {
     1,3,2, 1,4,3, 1,2,0, 2,3,0, 3,4,0, 4,1,0 };
-  arVector3 faceNormals[4]; // normals for the triangular sides of the pyramid
-  faceNormals[0] = arVector3(0.5,-0.5,-1)*arVector3(-0.5,-0.5,-1);
-  faceNormals[0].normalize();
-  faceNormals[1] = arVector3(0.5,0.5,-1)*arVector3(0.5,-0.5,-1);
-  faceNormals[1].normalize();
-  faceNormals[2] = arVector3(-0.5,0.5,-1)*arVector3(0.5,0.5,-1);
-  faceNormals[2].normalize();
-  faceNormals[3] = arVector3(-0.5,-0.5,-1)*arVector3(-0.5,0.5,-1);
-  faceNormals[3].normalize();
+  const arVector3 faceNormals[4] = { // for triangular sides
+    (arVector3(.5,-.5,-1)  * arVector3(-.5,-.5,-1)).normalize(),
+    (arVector3(.5,.5,-1)   * arVector3(.5,-.5,-1)) .normalize(),
+    (arVector3(-.5,.5,-1)  * arVector3(.5,.5,-1))  .normalize(),
+    (arVector3(-.5,-.5,-1) * arVector3(-.5,.5,-1)) .normalize() };
   float normals[9*numberTriangles] = {
     0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-       faceNormals[0][0], faceNormals[0][1], faceNormals[0][2], 
-       faceNormals[0][0], faceNormals[0][1], faceNormals[0][2],
-       faceNormals[0][0], faceNormals[0][1], faceNormals[0][2],
-       faceNormals[1][0], faceNormals[1][1], faceNormals[1][2], 
-       faceNormals[1][0], faceNormals[1][1], faceNormals[1][2], 
-       faceNormals[1][0], faceNormals[1][1], faceNormals[1][2], 
-       faceNormals[2][0], faceNormals[2][1], faceNormals[2][2],
-       faceNormals[2][0], faceNormals[2][1], faceNormals[2][2],
-       faceNormals[2][0], faceNormals[2][1], faceNormals[2][2],
-       faceNormals[3][0], faceNormals[3][1], faceNormals[3][2],
-       faceNormals[3][0], faceNormals[3][1], faceNormals[3][2],
-       faceNormals[3][0], faceNormals[3][1], faceNormals[3][2]};
+    faceNormals[0].v[0], faceNormals[0].v[1], faceNormals[0].v[2], 
+    faceNormals[0].v[0], faceNormals[0].v[1], faceNormals[0].v[2],
+    faceNormals[0].v[0], faceNormals[0].v[1], faceNormals[0].v[2],
+    faceNormals[1].v[0], faceNormals[1].v[1], faceNormals[1].v[2], 
+    faceNormals[1].v[0], faceNormals[1].v[1], faceNormals[1].v[2], 
+    faceNormals[1].v[0], faceNormals[1].v[1], faceNormals[1].v[2], 
+    faceNormals[2].v[0], faceNormals[2].v[1], faceNormals[2].v[2],
+    faceNormals[2].v[0], faceNormals[2].v[1], faceNormals[2].v[2],
+    faceNormals[2].v[0], faceNormals[2].v[1], faceNormals[2].v[2],
+    faceNormals[3].v[0], faceNormals[3].v[1], faceNormals[3].v[2],
+    faceNormals[3].v[0], faceNormals[3].v[1], faceNormals[3].v[2],
+    faceNormals[3].v[0], faceNormals[3].v[1], faceNormals[3].v[2]};
   float texCoords[6*numberTriangles] = {
     0,0,1,1,1,0,
     0,0,0,1,1,1,
