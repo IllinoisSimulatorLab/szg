@@ -9,20 +9,20 @@
 
 arGraphicsDatabase::arGraphicsDatabase() :
   _texturePath(new list<string>(1,"") /* local dir */),
-  _viewerNodeID(-1)
+  _pathTexFont(""),
+  _fFirstTexFont(true),
+  _viewerNodeID(-1),
+  _fComplainedImage(false),
+  _fComplainedPPM(false)
 {
   _typeCode = AR_GRAPHICS_DATABASE;
   _typeString = "graphics";
-
   _lang = (arDatabaseLanguage*)&_gfx;
   if (!_initDatabaseLanguage())
     return;
 
-  // Add the processing callback for the "graphics admin"
-  // message. The arGraphicsPeer processes this
-  // differently than here (i.e. the "graphics admin" messages 
-  // are culled from the message stream before being sent to the
-  // database for processing.
+  // Register the processing callback for "graphics admin" messages.  Unlike here,
+  // arGraphicsPeer culls such messages before forwarding them to the database.
   arDataTemplate* t = _lang->find("graphics admin");
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
@@ -71,15 +71,9 @@ arGraphicsDatabase::arGraphicsDatabase() :
     ar_log_error() << "arGraphicsDatabase: incomplete dictionary.\n";
   }
 
-  // Initialize the light container.
-  int i = 0;
-  for (i=0; i<8; ++i) {
-    _lightContainer[i] = pair<arGraphicsNode*,arLight*>(NULL,NULL);
-  }
-  // Initialize the camera container.
-  for (i=0; i<8; ++i) {
-    _cameraContainer[i] 
-      = pair<arGraphicsNode*,arPerspectiveCamera*>(NULL,NULL);
+  for (int i=0; i<8; ++i) {
+    _lightContainer [i] = pair<arGraphicsNode*,arLight*>            (NULL,NULL);
+    _cameraContainer[i] = pair<arGraphicsNode*,arPerspectiveCamera*>(NULL,NULL);
   }
 }
 
@@ -150,13 +144,11 @@ arGraphicsDatabase::~arGraphicsDatabase() {
   }
 }
 
-arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData,
-                                          bool refNode) {
+arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData, bool refNode) {
   return arDatabase::alter(inData, refNode);
 }
 
 void arGraphicsDatabase::reset() {
-  // Call base class to do that cleaning.
   arDatabase::reset();
 
   // The light container and the camera container are automatically cleared
@@ -177,12 +169,26 @@ void arGraphicsDatabase::reset() {
   _textureNameContainer.clear();
 }
 
-// ARRGH! these alphabet-handling functions just flat-out *suck*
-// hopefully, I'll be able to try again later
+// Alphabet-handling functions suck.
 
 void arGraphicsDatabase::loadAlphabet(const string& path) {
+  // Load alphabet only when actually needed.
+  _pathTexFont = path;
+}
+
+arTexFont* arGraphicsDatabase::getTexFont() {
+  // Load alphabet only when actually needed (by a billboard node, which is rare).
+  if (_fFirstTexFont) {
+    _fFirstTexFont = false;
+    _loadAlphabet(_pathTexFont);
+  }
+  return &_texFont; 
+}
+
+void arGraphicsDatabase::_loadAlphabet(const string& path) {
   if (_server)
     return;
+
   if (path == "NULL") {
     ar_log_error() << "arGraphicsDatabase: no path for texture font.\n"; 
     return;
@@ -194,10 +200,6 @@ void arGraphicsDatabase::loadAlphabet(const string& path) {
   if (!_texFont.load(fileName)) {
     ar_log_error() << "arGraphicsDatabase failed to load texture font.\n"; 
   }
-}
-
-arTexFont* arGraphicsDatabase::getTexFont() {
-  return &_texFont; 
 }
 
 void arGraphicsDatabase::setTexturePath(const string& thePath) {
@@ -218,8 +220,7 @@ void arGraphicsDatabase::setTexturePath(const string& thePath) {
   }
 }
 
-// Creates a new texture and then refs it before returning. Consequently,
-// the caller is responsible for unref'ing to prevent a memory leak.
+// Return (and ref) a new texture. Caller must unref.
 arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   const map<string,arTexture*,less<string> >::iterator
     iFind(_textureNameContainer.find(name));
@@ -228,7 +229,6 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
     return iFind->second;
   }
 
-  // A new texture.
   arTexture* theTexture = new arTexture;
   // The default for the arTexture object is to use GL_DECAL mode, but we
   // want LIT textures.
@@ -271,11 +271,10 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
       fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
       theTexture->mipmap(true);
     }
-    static bool fComplained = false; // todo: member variable
     if (!fDone) {
       theTexture->dummy();
-      if (!fComplained) {
-	fComplained = true;
+      if (!_fComplainedImage) {
+	_fComplainedImage = true;
 	ar_log_error() << "arGraphicsDatabase: no image file '"
 		       << name << "'. Tried ";
         std::vector<std::string>::iterator iter;
@@ -331,11 +330,10 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
       ar_stringToBuffer(tmp, fileNameBuffer, sizeof(fileNameBuffer));
       fDone = theBumpMap->readPPM(fileNameBuffer, 1);
     }
-    static bool fComplained = false;
     if (!fDone) {
       theBumpMap->dummy();
-      if (!fComplained) {
-	fComplained = true;
+      if (!_fComplainedPPM) {
+	_fComplainedPPM = true;
 	ar_log_error() << "arGraphicsDatabase: no PPM file '" << buffer << "' in ";
 	if (_texturePath->size() <= 1) {
 	  ar_log_error() << "empty ";

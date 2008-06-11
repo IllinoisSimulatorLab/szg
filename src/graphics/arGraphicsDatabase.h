@@ -107,13 +107,16 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   arGraphicsLanguage _gfx;  
 
-  //GLuint	_normLookupTexture; //deprecated? ;;;;
+  //GLuint	_normLookupTexture; //unused cruft from graphics/arBumpMap.cpp
 
  protected:
   arLock _texturePathLock; // guards _texturePath
   list<string>* _texturePath;
   map<string,arTexture*,less<string> > _textureNameContainer;
   arTexFont _texFont;
+  string _pathTexFont;
+  bool _fFirstTexFont;
+  void _loadAlphabet(const string&);
 
   // information about the lights in the scene
   // there's a bug here... no way is yet coded for deleting a light!
@@ -146,6 +149,10 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
                           float bestDistance);
   virtual arDatabaseNode* _makeNode(const string& type);
   arDatabaseNode* _processAdmin(arStructuredData*);
+
+ private:
+  bool _fComplainedImage;
+  bool _fComplainedPPM;
 };
 
 #endif
