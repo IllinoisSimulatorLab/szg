@@ -302,11 +302,9 @@ int main(int argc, char** argv) {
 //  framework.setUnitConversion(3.);
 //  framework.setUnitSoundConversion(3.);
   
-  // Initialize everything.
   if (!framework.init(argc,argv))
     return 1;
 
-  // Must come AFTER init().
   framework.setNavTransSpeed(3.);
   
   // Configure stereo view.
