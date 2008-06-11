@@ -573,9 +573,6 @@ inline float operator%(const arVector3& x, const arVector3& y){
 inline float operator++(const arVector3& x){
   return sqrt(x.v[0]*x.v[0]+x.v[1]*x.v[1]+x.v[2]*x.v[2]);
 }
-inline float magnitude(const arVector3& x){
-  return sqrt(x.v[0]*x.v[0]+x.v[1]*x.v[1]+x.v[2]*x.v[2]);
-}
 
 //************************************
 // matrix inline
