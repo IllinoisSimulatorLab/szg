@@ -2124,38 +2124,20 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   // Set window-wide attributes based on the display name, like
   // stereo, window size, window position, wildcat framelock.
 
-  // copypaste with graphics/arGraphicsClient.cpp, start
-  const string whichDisplay = _SZGClient.getMode( "graphics" );
-  const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
-
-  if (displayName == "NULL") {
-    ar_log_warning() << "default " << whichDisplay << "/name.\n";
-  } else {
-    ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
-  }
-
-  // Hook to prevent arTexture::_loadIntoOpenGL() from aborting
-  // when its texture dimensions aren't powers of 2.
-  const bool textureAllowNotPow2 =
-    _SZGClient.getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
-  ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );
-
-  _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
-  if( _guiXMLParser->parse() < 0 ) {
-    // already complained
+  _guiXMLParser->setConfig(_SZGClient.getDisplayName(_SZGClient.getMode("graphics")));
+  if (!_guiXMLParser->parse()) {
     return false;
   }
-  // copypaste with graphics/arGraphicsClient.cpp, end
 
-  if( getMaster() ) {
+  if ( getMaster() ) {
     _head.configure( _SZGClient );
   }
 
-  if( _standalone && (_standaloneControlMode == "simulator") ) {
+  if ( _standalone && (_standaloneControlMode == "simulator") ) {
     _simPtr->configure( _SZGClient );
   }
 
-  if( !_speakerObject.configure( _SZGClient ) ) {
+  if ( !_speakerObject.configure( _SZGClient ) ) {
     return false;
   }
 
@@ -2170,7 +2152,6 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   const string pythonPath = _SZGClient.getDataPathPython();
   addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-
   return true;
 }
 

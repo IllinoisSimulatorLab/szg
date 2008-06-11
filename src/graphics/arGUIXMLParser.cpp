@@ -4,17 +4,19 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arGUIXMLParser.h"
-#include "arGUIWindowManager.h"
+
+#include "arCamera.h"
 #include "arGUIWindow.h"
+#include "arGUIWindowManager.h"
+#include "arGUIXMLParser.h"
 #include "arGraphicsScreen.h"
 #include "arGraphicsWindow.h"
-#include "arViewport.h"
-#include "arCamera.h"
-#include "arVRCamera.h"
-#include "arPerspectiveCamera.h"
-#include "arOrthoCamera.h"
 #include "arLogStream.h"
+#include "arOrthoCamera.h"
+#include "arPerspectiveCamera.h"
+#include "arTexture.h"
+#include "arVRCamera.h"
+#include "arViewport.h"
 
 class arGUIXMLValidator {
   public:
@@ -274,7 +276,6 @@ bool arGUIXMLAttributeValueValidator::operator()( const string& valueStr ) {
   return false;
 }
 
-
 arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfig,
                                                   arGraphicsWindow* graphicsWindow,
                                                   arGUIRenderCallback* guiDrawCallback ) :
@@ -320,23 +321,26 @@ arGUIXMLParser::~arGUIXMLParser( void )
 
 void arGUIXMLParser::setConfig( const string& config )
 {
-  if( _config == config )
+  ar_setTextureAllowNotPowOf2( 
+    _SZGClient->getAttribute("SZG_RENDER", "allow_texture_not_pow2") == string("true") );
+
+  if( config == _config )
     return;
 
-  if( !config.length() || config == "NULL" ) {
-    ar_log_remark() << "arGUIXML defaulting to minimum config.\n";
+  if( config.empty() || config == "NULL" ) {
+    ar_log_remark() << "arGUIXML using default config.\n";
     _config = _mininumConfig;
   }
   else
     _config = config;
 
-  // Don't just append the new config string to the old config strings.
+  // Delete any old config strings.
   _doc.Clear();
 
+  // Append the new config string.
   _doc.Parse( _config.c_str() );
-  if (_doc.Error()) {
+  if (_doc.Error())
     _reportParseError( &_doc, _config );
-  }
 }
 
 /*
@@ -733,12 +737,12 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   return camera;
 }
 
-int arGUIXMLParser::parse( void )
+bool arGUIXMLParser::parse( void )
 {
   //  Should have already complained about any errors.
 //  if( _doc.Error() ) {
 //    ar_log_error() << "arGUIXMLParser: failed to parse at line " << _doc.ErrorRow() << ar_endl;
-//    return -1;
+//    return false;
 //  }
 
   // clear out any previous parsing constructs
@@ -752,7 +756,7 @@ int arGUIXMLParser::parse( void )
 
   if( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
     ar_log_error() << "arGUIXMLParser: malformed <szg_display> node.\n";
-    return -1;
+    return false;
   }
 
   arGUIXMLDisplayValidator displayValidator;
@@ -946,7 +950,7 @@ int arGUIXMLParser::parse( void )
 
       if( !viewportListNode->ToElement() ) {
         ar_log_error() << "arGUIXMLParser: invalid viewportlist element.\n";
-        return -1;
+        return false;
       }
 
       // determine which viewmode was specified, anything other than "custom"
@@ -972,7 +976,7 @@ int arGUIXMLParser::parse( void )
       if( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
         // malformed!, delete currentwindow, print warning, continue with next window tag
         ar_log_error() << "arGUIXMLParser: viewmode is custom, but no <szg_viewport> tags.\n";
-        return -1;
+        return false;
       }
 
       // clear out the 'standard' viewport
@@ -1134,5 +1138,5 @@ int arGUIXMLParser::parse( void )
   }
 
   _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
-  return 0;
+  return true;
 }

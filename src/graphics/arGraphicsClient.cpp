@@ -101,8 +101,7 @@ bool ar_graphicsClientNullCallback(void* client){
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientPostSyncCallback(void* client){
-  arGraphicsClient* c = (arGraphicsClient*) client;
-  c->_windowManager->swapAllWindowBuffers(true);
+  ((arGraphicsClient*) client)->_windowManager->swapAllWindowBuffers(true);
   return true;
 }
 
@@ -124,44 +123,45 @@ void arGraphicsClientWindowInitCallback::operator()( arGraphicsWindow& ) {
 class arGraphicsClientRenderCallback : public arGUIRenderCallback {
   public:
     arGraphicsClientRenderCallback( arGraphicsClient& cli ) :
-      _client( &cli ) {}
+      _cliGraphics( &cli ) {}
     ~arGraphicsClientRenderCallback() {}
     void operator()(arGraphicsWindow&, arViewport&);
     void operator()(arGUIWindowInfo*) {}
-    void operator()(arGUIWindowInfo* windowInfo,
-                    arGraphicsWindow* graphicsWindow);
+    void operator()(arGUIWindowInfo*, arGraphicsWindow*);
   private:
-    arGraphicsClient* _client;
+    arGraphicsClient* _cliGraphics;
 };
 
 // The callback for the arGraphicsWindow (i.e. for an individual viewport).
 void arGraphicsClientRenderCallback::operator()( arGraphicsWindow& w,
                                                  arViewport& v) {
-  if (_client)
-    ar_graphicsClientDraw(_client, w, v);
+  if (_cliGraphics)
+    ar_graphicsClientDraw(_cliGraphics, w, v);
 }
 
-// The callback for the arGUIWindow.
-void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
-                                                arGraphicsWindow* graphicsWindow){
-  if (!_client)
-    return;
+// Callback for the arGUIWindow.
+void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* wI,
+                                                arGraphicsWindow* w){
+  if (_cliGraphics && wI && w)
+    _cliGraphics->render(*wI, *w);
+}
 
-  // Draw window's contents.
-  graphicsWindow->draw();
+void arGraphicsClient::render(arGUIWindowInfo& wI, arGraphicsWindow& w) {
+  // Window's contents.
+  w.draw();
 
-  // Draw "main" window's additional graphical widgets.
-  if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
-    // A HACK for drawing the simulator interface. This is used in
-    // standalone mode on the arDistSceneGraphFramework.
-    if (_client->_simulator && _client->_showSimulator){
-      _client->_simulator->drawWithComposition();
+  // "Main" window's additional graphical widgets.
+  arGUIWindowManager* wm = getWindowManager();
+  const bool fFirst = wm->isFirstWindow( wI.getWindowID() );
+  if( fFirst ) {
+    // HACK for the simulator interface, when standalone in arDistSceneGraphFramework.
+    if (_simulator && _showSimulator) {
+      _simulator->drawWithComposition();
     }
-    // Used for the performance display.
-    if (_client->_drawFrameworkObjects){
-      for (list<arFrameworkObject*>::iterator i
-             = _client->_frameworkObjects.begin();
-	   i != _client->_frameworkObjects.end(); i++){
+    // Performance graphs.
+    if (_drawFrameworkObjects) {
+      for (list<arFrameworkObject*>::iterator i = _frameworkObjects.begin();
+	   i != _frameworkObjects.end(); ++i){
         (*i)->drawWithComposition();
       }
     }
@@ -174,12 +174,8 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
   glFinish(); // paranoid
 
   // Drawing thread handles screenshots (of main window).
-  if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
-    const bool stereo = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
-    if (_client->screenshotRequested()){
-      _client->takeScreenshot(stereo);
-    }
-  }
+  if ( fFirst && screenshotRequested() )
+    takeScreenshot( wm->isStereo(wI.getWindowID()));
 }
 
 arGraphicsClient::arGraphicsClient() :
@@ -215,29 +211,10 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   if (!_guiParser)
     _guiParser = new arGUIXMLParser(szgClient);
 
-  const string screenName = szgClient->getMode( "graphics" );
-
-  // copypaste with framework/arMasterSlaveFramework.cpp, start
-  const string whichDisplay = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
-  const string displayName = szgClient->getAttribute( whichDisplay, "name" );
-
-  if (displayName == "NULL") {
-    ar_log_warning() << "default " << whichDisplay << "/name.\n";
-  } else {
-    ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
-  }
-
-  // Hook to prevent arTexture::_loadIntoOpenGL() from aborting
-  // when its texture dimensions aren't powers of 2.
-  const bool textureAllowNotPow2 =
-    szgClient->getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
-  ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );
-
-  _guiParser->setConfig( szgClient->getGlobalAttribute(displayName) );
-  if (_guiParser->parse() < 0){
-    ar_log_remark() << "arGraphicsClient failed to parse XML configuration.\n";
-  }
-  // copypaste with framework/arMasterSlaveFramework.cpp, end
+  const string screenName( szgClient->getMode( "graphics" ) );
+  _guiParser->setConfig( szgClient->getDisplayName(
+    "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 )));
+  (void)_guiParser->parse();
 
   setTexturePath(szgClient->getAttribute("SZG_RENDER", "texture_path"));
   string textPath(szgClient->getAttribute("SZG_RENDER","text_path"));

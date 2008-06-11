@@ -3210,3 +3210,13 @@ void arSZGClient::killIDs(list<int>* IDList) {
     tags.remove(killedID);
   }
 }
+
+string arSZGClient::getDisplayName(const string& whichDisplay) {
+  const string displayName = getAttribute( whichDisplay, "name" );
+  if (displayName == "NULL") {
+    ar_log_warning() << "default " << whichDisplay << "/name.\n";
+  } else {
+    ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
+  }
+  return getGlobalAttribute(displayName);
+}

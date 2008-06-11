@@ -104,6 +104,7 @@ class SZG_CALL arGraphicsClient{
   void requestScreenshot(const string& path, int x, int y, int width, int height);
   bool screenshotRequested();
   void takeScreenshot(bool fStereo);
+  void render(arGUIWindowInfo&, arGraphicsWindow&);
 
   arSyncDataClient   _cliSync;
 

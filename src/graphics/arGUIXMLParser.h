@@ -3,10 +3,8 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-/**
- * @file arGUIXMLParser.h
- * For classes arGUIXMLWindowConstruct, arGUIWindowingConstruct, and arGUIXMLParser.
- */
+// For classes arGUIXMLWindowConstruct, arGUIWindowingConstruct, and arGUIXMLParser.
+
 #ifndef AR_GUI_XML_PARSER
 #define AR_GUI_XML_PARSER
 
@@ -40,28 +38,13 @@ class arHead;
  */
 class SZG_CALL arGUIXMLWindowConstruct {
   public:
-
-    /**
-     * Constructor.
-     *
-     * @param windowConfig    The base window configuration.
-     * @param graphicsWindow  An associated arGraphicsWindow.
-     * @param guiDrawCallback A draw callback for the arGUIWindow.
-     */
     arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfig = NULL,
                              arGraphicsWindow* graphicsWindow = NULL,
                              arGUIRenderCallback* guiDrawCallback = NULL );
 
-    /**
-     * Destructor.
-     */
     ~arGUIXMLWindowConstruct( void );
 
-    //@{
-    /** @name arGUIXMLWindowConstruct accessors.
-     *
-     * Retrieve or set arGUIXMLWindowConstruct state.
-     */
+    // Accessors.
     void setWindowConfig( arGUIWindowConfig* windowConfig ) { _windowConfig = windowConfig; }
     void setGraphicsWindow( arGraphicsWindow* graphicsWindow ) { _graphicsWindow = graphicsWindow; }
     void setGUIDrawCallback( arGUIRenderCallback* guiDrawCallback ) { _guiDrawCallback = guiDrawCallback; }
@@ -72,13 +55,10 @@ class SZG_CALL arGUIXMLWindowConstruct {
     arGraphicsWindow* getGraphicsWindow( void ) const { return _graphicsWindow; }
 
     arGUIRenderCallback* getGUIDrawCallback( void ) const { return _guiDrawCallback; }
-    //@}
 
   private:
-
     arGUIWindowConfig* _windowConfig;       // A window configuration object.
     arGraphicsWindow* _graphicsWindow;      // An associated arGraphicsWindow.
-
     arGUIRenderCallback* _guiDrawCallback;  // A arGUIWindow draw callback.
 
 };
@@ -95,23 +75,16 @@ class SZG_CALL arGUIWindowingConstruct {
 
     /**
      * Constructor.
-     *
-     * @param threaded         Whether the arGUIWindowManager should be
-     *                         threaded.
-     * @param useFramelock     Whether the arGUIWindowManager should use
-     *                         framelocking.
-     * @param windowConstructs A collection of windowConstructs to be created.
+     * @param threaded         Should the arGUIWindowManager be threaded.
+     * @param useFramelock     Should the arGUIWindowManager use framelocking.
+     * @param windowConstructs windowConstructs to be created.
      */
     arGUIWindowingConstruct( int threaded = -1, int useFramelock = -1,
                              std::vector< arGUIXMLWindowConstruct* >* windowConstructs = NULL );
 
     ~arGUIWindowingConstruct( void );
 
-    //@{
-    /** @name arGUIWindowingConstruct accessors.
-     *
-     * Retrieve or set arGUIWindowConstruct state.
-     */
+    // Accessors.
     void setThreaded( int threaded ) { _threaded = threaded; }
     void setUseFramelock( int useFramelock ) { _useFramelock = useFramelock; }
     void setWindowConstructs( std::vector< arGUIXMLWindowConstruct* >* windowConstructs ) { _windowConstructs = windowConstructs; }
@@ -122,10 +95,8 @@ class SZG_CALL arGUIWindowingConstruct {
     // conceptually, should probably be returned const however there are places
     // it's used where this is not possible
     std::vector< arGUIXMLWindowConstruct* >* getWindowConstructs( void ) const { return _windowConstructs; }
-    //@}
 
   private:
-
     int _threaded;        // Whether or not to use threading, -1 if not explicitly set from the XML.
     int _useFramelock;    // Whether or not to use framelocking, -1 if not explicitly set from the XML.
 
@@ -150,12 +121,8 @@ class SZG_CALL arGUIXMLParser {
      *                  additional XML strings.
      * @param config    An initial XML configuration string.
      */
-    arGUIXMLParser( arSZGClient* SZGClient = NULL,
-                    const std::string& config = "" );
+    arGUIXMLParser( arSZGClient* SZGClient = NULL, const std::string& config = "" );
 
-    /**
-     * The arGUIXMLParser destructor.
-     */
     ~arGUIXMLParser( void );
 
     /**
@@ -170,22 +137,14 @@ class SZG_CALL arGUIXMLParser {
      *           <li>-1 if xml configuration string could not be parsed.
      *         </ul>
      */
-    int parse( void );
+    bool parse( void );
 
-    //@{
-    /** @name Accessors.
-     *
-     * Get or set arGUIXMLParser state.
-     */
+    // Accessors.
     void setConfig( const std::string& config );
     std::string getConfig( void ) const { return _config; }
-
     void setSZGClient( arSZGClient* SZGClient ) { _SZGClient = SZGClient; }
-
     bool error( void ) const { return _doc.Error(); }
-
     arGUIWindowingConstruct* getWindowingConstruct( void ) const { return _windowingConstruct; }
-    //@}
 
   private:
 
@@ -207,7 +166,6 @@ class SZG_CALL arGUIXMLParser {
 
     /**
      * Forward diagnostics to ar_log_error().
-     *
      * @see _getNamedNode
      */
     void _reportParseError( TiXmlDocument* nodeDoc, const std::string& nodeDesc );

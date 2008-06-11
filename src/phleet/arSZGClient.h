@@ -144,7 +144,8 @@ class SZG_CALL arSZGClient{
   void killIDs(list<int>*);
   string getProcessLabel(int processID);
   int getProcessID(const string& computer, const string& processLabel);
-  int getProcessID(void); // get my own process ID
+  int getProcessID(void); // my own process ID
+  string getDisplayName(const string&);
 
   // Messaging.
   int sendMessage(const string& type, const string& body, int destination,
@@ -173,7 +174,7 @@ class SZG_CALL arSZGClient{
   // by getting the ID of the launching message like so.
   int getLaunchingMessageID(){ return _launchingMessageID; }
 
-  // Get a notification when a component exits.
+  // Be notified when a component exits.
   int requestKillNotification(int componentID);
   int getKillNotification(list<int> tags, int timeout = -1);
 
@@ -251,7 +252,7 @@ class SZG_CALL arSZGClient{
   string               _exeName;
   arSlashString       _networks;  // the default networks
   arSlashString       _addresses; // the default addresses
-  // A HACK to enable the arSZGClient to route network traffic differently
+  // Hack to route network traffic differently
   // for different types of services. IT SEEMS LAME TO PUT THIS HERE.
   arSlashString       _graphicsNetworks;
   arSlashString       _graphicsAddresses;
@@ -259,7 +260,7 @@ class SZG_CALL arSZGClient{
   arSlashString       _soundAddresses;
   arSlashString       _inputNetworks;
   arSlashString       _inputAddresses;
-  // the overall mode: master, trigger, component
+  // master, trigger, or component
   string               _mode;
   // SZG_DISPLAY0, etc.
   string               _graphicsMode;
@@ -318,8 +319,7 @@ class SZG_CALL arSZGClient{
   string _generateLaunchInfoHeader();
   bool _sendResponse(stringstream&, const char*, unsigned, bool, bool);
 
-  // functions dealing with the local parameter database (as will only
-  // be used in standalone mode)
+  // Local parameter database, for standalone
   string _getAttributeLocal(const string&, const string&, const string&,
 			    const string&);
   bool _setAttributeLocal(const string&, const string&, const string&,
