@@ -193,7 +193,6 @@ int main(int argc, char** argv){
   fw.setDataBundlePath("SZG_DATA", "cosmos");
 
   // Navigation.
-  fw.setNavTransSpeed(3.0);
   fw.setEventQueueCallback( inputEventQueueCallback );
   fw.setUnitConversion( 1. );
 
@@ -206,6 +205,7 @@ int main(int argc, char** argv){
 
   worldInit(fw);
 
+  fw.setNavTransSpeed(3.0);
   fw.setEyeSpacing( 6/(2.54*12) );
   fw.setClipPlanes( .3, 1000. );
 

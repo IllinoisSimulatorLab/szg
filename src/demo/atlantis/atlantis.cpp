@@ -347,6 +347,7 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
   fw.addTransferField("useTexture", &useTexture, AR_INT, 1);
 
   fw.ownNavParam("translation_speed");
+  fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
 
   // Load and play looping sounds.
   const arMatrix4 ident;
@@ -629,6 +630,5 @@ int main(int argc, char** argv){
   fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
   fw.setDataBundlePath("SZG_DATA", "atlantis");
-  fw.setNavTransSpeed( 20.*ATLANTISUNITS_PER_FOOT );
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
