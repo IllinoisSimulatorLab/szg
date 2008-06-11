@@ -105,9 +105,9 @@ class SZG_CALL arSZGAppFramework {
                              arInputEventType type,
                              unsigned index,
                              float threshold );
-    void setNavTransSpeed( float speed );
-    void setNavRotSpeed( float speed );
-    void setNavEffector( const arEffector& effector );
+    void setNavTransSpeed( float );
+    void setNavRotSpeed( float );
+    void setNavEffector( const arEffector& );
     void ownNavParam( const std::string& paramName );
     void navUpdate();
     void navUpdate( const arInputEvent& event );
@@ -272,6 +272,9 @@ class SZG_CALL arSZGAppFramework {
 
   private:
     bool _checkInput() const;
+    void _setNavTransSpeed( float );
+    void _setNavRotSpeed( float );
+    void _setNavEffector( const arEffector& );
 };
 
 #endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H

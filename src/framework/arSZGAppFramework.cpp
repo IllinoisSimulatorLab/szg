@@ -239,18 +239,40 @@ bool arSZGAppFramework::setNavRotCondition( char axis,
 }
 
 void arSZGAppFramework::setNavTransSpeed( float speed ) {
-  if (_initCalled) {
-    ar_log_error() << "ignoring setNavTransSpeed after init.\n";
+  if (!_initCalled) {
+    ar_log_error() << "ignoring setNavTransSpeed before init.\n";
     return;
   }
-  _navManager.setTransSpeed( speed );
+  _setNavTransSpeed( speed );
 }
 
 void arSZGAppFramework::setNavRotSpeed( float speed ) {
-  _navManager.setRotSpeed( speed );
+  if (!_initCalled) {
+    ar_log_error() << "ignoring setNavRotSpeed before init.\n";
+    return;
+  }
+  _setNavRotSpeed( speed );
 }
 
 void arSZGAppFramework::setNavEffector( const arEffector& effector ) {
+  if (!_initCalled) {
+    ar_log_error() << "ignoring setNavEffector before init.\n";
+    return;
+  }
+  _setNavEffector( effector );
+}
+
+void arSZGAppFramework::_setNavTransSpeed( float speed ) {
+  _navManager.setTransSpeed( speed );
+  ar_log_remark() << "translation speed is " << speed << ".\n";
+}
+
+void arSZGAppFramework::_setNavRotSpeed( float speed ) {
+  _navManager.setRotSpeed( speed );
+  ar_log_remark() << "rotation speed is " << speed << ".\n";
+}
+
+void arSZGAppFramework::_setNavEffector( const arEffector& effector ) {
   _navManager.setEffector( effector );
 }
 
@@ -330,10 +352,9 @@ static bool ___firstNavLoad = true; // todo: make this a member of arSZGAppFrame
 
 void arSZGAppFramework::_loadNavParameters() {
   ar_log_debug() << "loading SZG_NAV parameters.\n";
-  std::string temp;
   _useNavInputMatrix = _SZGClient.getAttribute("SZG_NAV", "use_nav_input_matrix") == "true";
   _unitConvertNavInputMatrix = _SZGClient.getAttribute("SZG_NAV", "unit_convert_nav_input_matrix") == "true";
-  temp = _SZGClient.getAttribute("SZG_NAV", "nav_input_matrix_index");
+  string temp = _SZGClient.getAttribute("SZG_NAV", "nav_input_matrix_index");
   int matrixIndex(2);
   if (temp != "NULL") {
     bool stat = ar_stringToIntValid( temp, matrixIndex );
@@ -357,7 +378,7 @@ void arSZGAppFramework::_loadNavParameters() {
       temp += ar_intToString(params[i]) + (i==4 ? ".\n" : "/");
     }
     ar_log_remark() << temp;
-    _navManager.setEffector(
+    _setNavEffector( 
       arEffector( params[0], params[1], params[2], 0, params[3], params[4], 0 ) );
   }
   float speed = 5.;
@@ -368,8 +389,7 @@ void arSZGAppFramework::_loadNavParameters() {
         ar_log_error() << "failed to convert SZG_NAV/translation_speed.\n";
       }
     }
-    ar_log_remark() << "translation speed is " << speed << ".\n";
-    setNavTransSpeed( speed*_head.getUnitConversion() );
+    _setNavTransSpeed( speed*_head.getUnitConversion() );
   }
   if (___firstNavLoad || _paramNotOwned( "rotation_speed" )) {
     speed = 30.;
@@ -379,8 +399,7 @@ void arSZGAppFramework::_loadNavParameters() {
         ar_log_error() << "failed to convert SZG_NAV/rotation_speed.\n";
       }
     }
-    ar_log_remark() << "rotation speed is " << speed << ".\n";
-    setNavRotSpeed( speed );
+    _setNavRotSpeed( speed );
   }
   arInputEventType theType;
   unsigned index = 1;
