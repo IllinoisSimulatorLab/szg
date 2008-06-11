@@ -2129,7 +2129,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_error() << "no display " << whichDisplay << "/name, using default.\n";
+    ar_log_warning() << "default " << whichDisplay << "/name.\n";
   } else {
     ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }

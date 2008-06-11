@@ -43,7 +43,7 @@ arInputSimulator::arInputSimulator() :
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
   if (mouseButtonString == "NULL") {
-    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/mouse_buttons undefined, using defaults.\n";
+    ar_log_warning() << "arInputSimulator: default SZG_INPUTSIM/mouse_buttons.\n";
   } else {
     const int numItems = mouseButtonString.size();
     int* mouseButtons = new int[numItems];
@@ -64,6 +64,11 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   }
 
   const int n = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
+  if (n == 0) {
+    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events defaulting to " <<
+      numberButtonEventsDefault << ".\n";
+    return false;
+  }
   if (n < 2) {
     ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events " << n <<
       " < 2, so defaulting to " << numberButtonEventsDefault << ".\n";

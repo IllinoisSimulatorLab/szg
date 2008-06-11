@@ -222,14 +222,13 @@ bool arGraphicsClient::configure(arSZGClient* szgClient){
   const string displayName = szgClient->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_error() << "no display " << whichDisplay << "/name, using default.\n";
+    ar_log_warning() << "default " << whichDisplay << "/name.\n";
   } else {
     ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }
 
-  // arTexture::_loadIntoOpenGL() complains and aborts
-  // if its texture's dimensions are not powers of two.
-  // SZG_RENDER/allow_texture_not_pow2 overrides this.
+  // Hook to prevent arTexture::_loadIntoOpenGL() from aborting
+  // when its texture dimensions aren't powers of 2.
   const bool textureAllowNotPow2 =
     szgClient->getAttribute( "SZG_RENDER", "allow_texture_not_pow2" )==string("true");
   ar_setTextureAllowNotPowOf2( textureAllowNotPow2 );

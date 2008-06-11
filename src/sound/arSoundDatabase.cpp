@@ -103,7 +103,7 @@ void arSoundDatabase::setPath(const string& thePath){
     _path->push_back(ar_pathAddSlash(dir));
   }
   if (cdir <= 0)
-    ar_log_error() << "empty SZG_SOUND/path.\n";
+    ar_log_warning() << "empty SZG_SOUND/path.\n";
 }
 
 // Only clients, not the server, load soundfiles or even check that they exist.
