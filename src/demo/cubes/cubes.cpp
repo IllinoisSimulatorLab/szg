@@ -119,10 +119,10 @@ bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
 float teapotColor[] = {.5,.5,.5,1.};
 
 void worldAlter(void* f) {
-  arDistSceneGraphFramework* framework = (arDistSceneGraphFramework*) f;
-  framework->externalThreadStarted();
+  arDistSceneGraphFramework& fw = *(arDistSceneGraphFramework*) f;
+  fw.externalThreadStarted();
   int count = 0;
-  while (!framework->stopping()) {
+  while (!fw.stopping()) {
     if (++count%100 == 0)
       ar_usleep(1000); // CPU throttle
 
@@ -177,7 +177,7 @@ void worldAlter(void* f) {
     // necessary if we're using the inputEventQueueCallback to process buffered
     // events in batches (as opposed to inputEventCallback, which handles each
     // event as it comes in).
-    framework->processEventQueue();
+    fw.processEventQueue();
 
     // Cube-dragging.
     ar_pollingInteraction( dragWand, interactionList );
@@ -185,16 +185,18 @@ void worldAlter(void* f) {
   }
 
   ar_log_remark() << ": alteration thread stopped.\n";
-  framework->externalThreadStopped();
+  fw.externalThreadStopped();
 }
 
-bool worldInit(arDistSceneGraphFramework& framework) {
+static const string baseName("cube");
+
+bool worldInit(arDistSceneGraphFramework& fw) {
   dgLight("light0", "root", 0, arVector4(0,0,1,0),  arVector3(1,1,1));
   dgLight("light1", "root", 1, arVector4(0,0,-1,0), arVector3(1,1,1));
   dgLight("light2", "root", 2, arVector4(0,1,0,0),  arVector3(1,1,1));
   dgLight("light3", "root", 3, arVector4(0,-1,0,0), arVector3(1,1,1));
   
-  const string navNodeName = framework.getNavNodeName();
+  const string navNodeName = fw.getNavNodeName();
   lightsOnOffID = dgStateInt( "light_switch", navNodeName, "lighting", AR_G_TRUE );
   soundTransformID = dsTransform( "sound_transform", navNodeName, arMatrix4() );
   wandID = dgTransform( "wand_transform", "light_switch", arMatrix4() );
@@ -208,7 +210,6 @@ bool worldInit(arDistSceneGraphFramework& framework) {
   arCylinderMesh theCylinder;
   theCylinder.setAttributes(20,1,1);
   theCylinder.toggleEnds(true);
-  const string baseName("foo");
   for (int i=0; i<NUMBER_OBJECTS; ++i) {
     const string objectName(baseName + ar_intToString(i));
     const string objectTexture(objectName + " texture");
@@ -297,23 +298,23 @@ int main(int argc, char** argv) {
     fPython |= !strcmp(argv[i], "-pyteapot"); // Load and display a python module plugin.
   }
   
-  arDistSceneGraphFramework framework;
+  arDistSceneGraphFramework fw;
 
-//  framework.setUnitConversion(3.);
-//  framework.setUnitSoundConversion(3.);
+//  fw.setUnitConversion(3.);
+//  fw.setUnitSoundConversion(3.);
   
-  if (!framework.init(argc,argv))
+  if (!fw.init(argc,argv))
     return 1;
 
-  framework.setNavTransSpeed(3.);
+  fw.setNavTransSpeed(3.);
   
   // Configure stereo view.
-  framework.setEyeSpacing( 6/(2.54*12) );
-  framework.setClipPlanes( .2, 100. );
-//  framework.setEventCallback( inputEventCallback );
-  framework.setEventQueueCallback( inputEventQueueCallback );
+  fw.setEyeSpacing( 6/(2.54*12) );
+  fw.setClipPlanes( .2, 100. );
+//  fw.setEventCallback( inputEventCallback );
+  fw.setEventQueueCallback( inputEventQueueCallback );
   // Framework should halt the worldAlter thread.
-  framework.useExternalThread();
+  fw.useExternalThread();
 
   // set max interaction distance at 5 ft.
   dragWand.setInteractionSelector( arDistanceInteractionSelector( 5 ) );
@@ -328,22 +329,22 @@ int main(int argc, char** argv) {
   headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
 
   randomSeed = -long(ar_time().usec);
-  if (!worldInit(framework) || !framework.start())
+  if (!worldInit(fw) || !fw.start())
     return 1;
     
   // Not working yet.
-//  framework.setWorldRotGrabCondition( AR_EVENT_BUTTON, 0, 0.5 );
+//  fw.setWorldRotGrabCondition( AR_EVENT_BUTTON, 0, 0.5 );
 
-  arThread dummy(worldAlter, &framework);
+  arThread dummy(worldAlter, &fw);
 
   // Attach sound to big yellow box with star on it (cube0)
-  (void)dsLoop("foo", "cube0 transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
+  (void)dsLoop("foo", baseName + "0 transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
 
   while (true) {
     ar_usleep(1000000/200); // 200 fps cpu throttle
     arGuard dummy(databaseLock);
-    framework.setViewer();
-    framework.setPlayer();
+    fw.setViewer();
+    fw.setPlayer();
   }
   return 0;
 }  
