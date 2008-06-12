@@ -263,7 +263,7 @@ class SZG_CALL arGUIWindowConfig
      *
      * @todo Test windows with XDisplay strings other than the default
      */
-    arGUIWindowConfig( int x = 50, int y = 50, 
+    arGUIWindowConfig( int x = 50, int y = 50,
                        int width = 640, int height = 480,
                        int bpp = 16, int Hz = 0, bool decorate = true,
                        arZOrder zorder = AR_ZORDER_TOP,
@@ -771,7 +771,7 @@ class SZG_CALL arGUIWindow
     arGUIEventManager* getGUIEventManager( void ) const {  return _GUIEventManager; }
 
     arGUIWindowManager* getWindowManager( void ) const { return _windowManager; }
-  
+
     void setWindowManager( arGUIWindowManager* wm ) { _windowManager = wm; }
 
   private:
@@ -962,7 +962,7 @@ class SZG_CALL arGUIWindow
 
     arLock _graphicsWindowMutex;               // Guard the arGraphicsWindow.
     arGUIWindowManager* _windowManager;   // If we were created by an arGUIWindowManager, then this points back to it. OK since the GUI window manager should outlive us.
-    arGraphicsWindow* _graphicsWindow;          // An associated arGraphicsWindow (can be NULL). 
+    arGraphicsWindow* _graphicsWindow;          // An associated arGraphicsWindow (can be NULL).
 
     /**
      * A queue of usable (and possibly in-use) arWMEvents.

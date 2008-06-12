@@ -10,8 +10,8 @@
 
 // prints the log-in information, szgserver name, szgserver IP, szgserver
 // port, and user name
-int main(int argc, char** argv){
-  if (argc != 1){
+int main(int argc, char** argv) {
+  if (argc != 1) {
     cerr << "usage: " << argv[0] << "\n";
     return 1;
   }

@@ -70,7 +70,7 @@ bool arReactionTimerDriver::start() {
     return false;
   }
   _resetStatusTimer();
-  return _eventThread.beginThread(ar_RTDriverEventTask,this);
+  return _eventThread.beginThread(ar_RTDriverEventTask, this);
 }
 
 bool arReactionTimerDriver::stop() {
@@ -101,7 +101,7 @@ bool arReactionTimerDriver::_processInput() {
       ar_log_warning() << "ReactionTimer disconnected.\n";
       _imAlive = false;
     }
-    return true; 
+    return true;
   }
   _resetStatusTimer();
   // Make sure it's 0-terminated (the arRS232Port won't)
@@ -160,7 +160,7 @@ bool arReactionTimerDriver::_processInput() {
 //      ar_log_debug() << "Button 0: '" << inputString[1] << "', " << button0    << ".\n";
 //      ar_log_debug() << "Button 1: '" << inputString[2] << "', " << button1    << ".\n";
 #endif
-      
+
       if ((rtDuration > 0.)&&(lastrt < 0.)) {
         _rtTimer.reset();
         _rtTimer.start();

@@ -336,14 +336,14 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 				p += 3;
 				continue;
 			}
-			else if(*(pU+0)==TIXML_UTF_LEAD_0
+			else if (*(pU+0)==TIXML_UTF_LEAD_0
 				 && *(pU+1)==0xbfU
 				 && *(pU+2)==0xbeU )
 			{
 				p += 3;
 				continue;
 			}
-			else if(*(pU+0)==TIXML_UTF_LEAD_0
+			else if (*(pU+0)==TIXML_UTF_LEAD_0
 				 && *(pU+1)==0xbfU
 				 && *(pU+2)==0xbfU )
 			{
@@ -414,7 +414,7 @@ const char* TiXmlBase::ReadName( const char* p, TIXML_STRING * name, TiXmlEncodi
 	if (    p && *p
 		 && ( IsAlpha( (unsigned char) *p, encoding ) || *p == '_' ) )
 	{
-		while(		p && *p
+		while (		p && *p
 				&&	(		IsAlphaNum( (unsigned char ) *p, encoding )
 						 || *p == '_'
 						 || *p == '-'
@@ -808,7 +808,7 @@ TiXmlNode* TiXmlNode::Identify( const char* p, TiXmlEncoding encoding )
 	TiXmlNode* returnNode = 0;
 
 	p = SkipWhiteSpace( p, encoding );
-	if( !p || !*p || *p != '<' )
+	if ( !p || !*p || *p != '<' )
 	{
 		return 0;
 	}
@@ -888,7 +888,7 @@ void TiXmlElement::StreamIn (TIXML_ISTREAM * in, TIXML_STRING * tag)
 {
 	// We're called with some amount of pre-parsing: some of "this"
 	// element is in "tag". Stream to the closing ">".
-	while( in->good() )
+	while ( in->good() )
 	{
 		int c = in->get();
 		if ( c <= 0 )
@@ -1507,7 +1507,7 @@ const char* TiXmlDeclaration::Parse( const char* p, TiXmlParsingData* data, TiXm
 		else
 		{
 			// Read over whatever it is.
-			while( p && *p && *p != '>' && !IsWhiteSpace( *p ) )
+			while ( p && *p && *p != '>' && !IsWhiteSpace( *p ) )
 				++p;
 		}
 	}
@@ -1533,7 +1533,7 @@ void TiXmlBase::PutString( const TIXML_STRING& str, TIXML_STRING* outString )
 {
 	int i=0;
 
-	while( i<(int)str.length() )
+	while ( i<(int)str.length() )
 	{
 		unsigned char c = (unsigned char) str[i];
 
@@ -2134,7 +2134,7 @@ TiXmlElement::~TiXmlElement()
 void TiXmlElement::ClearThis()
 {
 	Clear();
-	while( attributeSet.First() )
+	while ( attributeSet.First() )
 	{
 		TiXmlAttribute* node = attributeSet.First();
 		attributeSet.Remove( node );
@@ -2448,7 +2448,7 @@ bool TiXmlDocument::LoadFile( const char* filename, TiXmlEncoding encoding )
 		const int BUF_SIZE = 2048;
 		char buf[BUF_SIZE];
 
-		while( fgets( buf, BUF_SIZE, file ) )
+		while ( fgets( buf, BUF_SIZE, file ) )
 		{
 			data += buf;
 		}

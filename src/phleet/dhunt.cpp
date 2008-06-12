@@ -8,8 +8,8 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
-  if (argc > 2){
+int main(int argc, char** argv) {
+  if (argc > 2) {
 LUsage:
     cerr << "usage: " << argv[0] << " [-v]\n";
     return 1;
@@ -33,7 +33,7 @@ LUsage:
 
   // todo: spawn threads to broadcast on all subnets (interfaces) at once
   const int numNetworks = config.getNumNetworks();
-  for (int i=0; i<numNetworks; i++){
+  for (int i=0; i<numNetworks; i++) {
     const string broadcast = config.getBroadcast(i);
     if (broadcast == "NULL")
       continue;

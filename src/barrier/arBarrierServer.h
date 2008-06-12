@@ -19,8 +19,8 @@ class SZG_CALL arBarrierServer{
 
   friend void ar_releaseFunction(void*);
   friend void ar_connectionFunction(void*);
-  friend void ar_barrierDataFunction(arStructuredData*,void*,arSocket*);
-  friend void ar_barrierDisconnectFunction(void*,arSocket*);
+  friend void ar_barrierDataFunction(arStructuredData*, void*, arSocket*);
+  friend void ar_barrierDisconnectFunction(void*, arSocket*);
  public:
   arBarrierServer();
   ~arBarrierServer();
@@ -51,10 +51,10 @@ class SZG_CALL arBarrierServer{
   int getNumberConnectedActive() const;
   int getNumberConnected() const;
 
- private: 
+ private:
   arSZGClient*   _client;
   string         _serviceName;
-  
+
   int            _totalWaiting; // too complicated for arIntAtom
   arConditionVar _waitingCondVar;
   arLock _waitingLock; // with _waitingCondVar, guards _totalWaiting and _waitingCondVar (?)
@@ -75,7 +75,7 @@ class SZG_CALL arBarrierServer{
   int _frameNum;        // ID of the frame last processed
   int _serverSendSize;  // amount of data the server sent
 
-  // stuff that's only pertinent to the TCP connection 
+  // stuff that's only pertinent to the TCP connection
   // both checking the line and dealing with passive connection mode
   arDataServer _dataServer;
   arTemplateDictionary _theDictionary;
@@ -91,7 +91,7 @@ class SZG_CALL arBarrierServer{
   int BONDED_ID;
   int CLIENT_TUNING_DATA;
   int SERVER_TUNING_DATA;
-  list< pair<int,int> > _activationSocketIDs;
+  list< pair<int, int> > _activationSocketIDs;
   arLock _activationLock; // with _activationVar
   arConditionVar _activationVar;
   arLock _queueActivationLock;
@@ -104,7 +104,7 @@ class SZG_CALL arBarrierServer{
   bool _localConnection;
   bool _exitProgram;
   string _channel; // network route
-  void _barrierDataFunction(arStructuredData*,arSocket*);
+  void _barrierDataFunction(arStructuredData*, arSocket*);
   void _releaseFunction();
   void _barrierDisconnectFunction();
 };

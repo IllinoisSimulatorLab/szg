@@ -64,7 +64,7 @@ class arFOBDriver: public arInputSource {
   bool _sleep();
   bool _run();
   int _getFOBParam( const unsigned char paramNum,
-                    unsigned char* buf, 
+                    unsigned char* buf,
                     const unsigned int numBytes,
                     unsigned char addr = 0 );
   bool _setFOBParam( const unsigned char paramNum,
@@ -72,16 +72,16 @@ class arFOBDriver: public arInputSource {
                      const unsigned int numBytes,
                      unsigned char addr = 0 );
   bool _sendBirdAddress( const unsigned char );
-  bool _sendBirdCommand( const unsigned char* cdata, 
+  bool _sendBirdCommand( const unsigned char* cdata,
                          const unsigned int numBytes );
   bool _sendBirdByte(unsigned char c, bool fSleep = true);
-  int _getBirdData( unsigned char* cdata, 
+  int _getBirdData( unsigned char* cdata,
                     const unsigned int numBytes );
   bool _getSendNextFrame(const unsigned char addr);
   void _eventloop();
   bool _isBird(const unsigned addr) const
     { return _sensorMap[addr] >= 0; }
-  
+
   arThread _eventThread;
   const unsigned _timeoutTenths;
   arRS232Port    _comPort;

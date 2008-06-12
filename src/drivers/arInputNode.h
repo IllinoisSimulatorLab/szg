@@ -24,52 +24,52 @@ class SZG_CALL arInputNode: public arInputSink {
     // If anyone ever derives from this class, make the following virtual:
     // destructor init start stop restart receiveData sourceReconfig.
     ~arInputNode();
-  
+
     bool init(arSZGClient&);
     bool start();
     bool stop();
     bool restart();
-  
-    void receiveData(int,arStructuredData*);
+
+    void receiveData(int, arStructuredData*);
     bool sourceReconfig(int);
-  
+
     // iOwnIt iff the input node owns it & should delete it.
     void addInputSource( arInputSource*, bool iOwnIt );
     int addFilter( arIOFilter*, bool iOwnIt );
     void addInputSink( arInputSink*, bool iOwnIt );
-    
+
     bool removeFilter( int ID );
     bool replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt );
 
     void setEventCallback(void (*callback)(arInputEvent&))
       { _eventCallback = callback; }
-  
+
     // getXXX() aren't const, because they use _dataSerializationLock.
     int getButton(int);
     float getAxis(int);
     arMatrix4 getMatrix(int);
-  
+
     int getNumberButtons() const;
     int getNumberAxes() const;
     int getNumberMatrices() const;
-    
+
     void processBufferedEvents();
-    
+
     arInputState _inputState;
 
   private:
-    void _setSignature(int,int,int);
+    void _setSignature(int, int, int);
     void _remapData( unsigned channelNumber, arStructuredData* data );
     void _filterEventQueue( arInputEventQueue& queue );
     void _updateState( arInputEventQueue& queue );
     int _findUnusedFilterID() const;
-    
+
     arInputLanguage _inp;
     arInputEventQueue _eventQueue;
     std::vector< arInputState > _filterStates;
-    
+
     void (*_eventCallback)( arInputEvent& inputEvent );
-    
+
     arLock _dataSerializationLock;
     std::list<arInputSource*> _sources;
     std::list<arIOFilter*> _filters;
@@ -77,9 +77,9 @@ class SZG_CALL arInputNode: public arInputSink {
     std::vector<bool> _iOwnSources;
     std::vector<bool> _iOwnFilters;
     std::vector<bool> _iOwnSinks;
-    
+
     int _currentChannel;
-    
+
     bool _bufferInputEvents;
     arInputEventQueue _eventBuffer;
 

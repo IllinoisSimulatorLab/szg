@@ -67,27 +67,27 @@ arGrabCondition* arGrabCondition::copy() const {
 
 arDeltaGrabCondition::arDeltaGrabCondition() :
   arGrabCondition(),
-  _currentState(false) {  
+  _currentState(false) {
 }
 
 arDeltaGrabCondition::arDeltaGrabCondition( unsigned int eventIndex,
                                             bool on ) :
   arGrabCondition( AR_EVENT_BUTTON, eventIndex, 0.5 ),
   _isOnButtonEvent( on ),
-  _currentState( !on ) {  
+  _currentState( !on ) {
 }
 
 arDeltaGrabCondition::arDeltaGrabCondition( unsigned int eventIndex,
                                             bool on, bool current ) :
   arGrabCondition( AR_EVENT_BUTTON, eventIndex, 0.5 ),
   _isOnButtonEvent( on ),
-  _currentState( current ) {  
+  _currentState( current ) {
 }
 
 arDeltaGrabCondition::arDeltaGrabCondition( const arDeltaGrabCondition& x ) :
   arGrabCondition(x),
   _isOnButtonEvent(x._isOnButtonEvent),
-  _currentState(x._currentState) {  
+  _currentState(x._currentState) {
 }
 
 arDeltaGrabCondition& arDeltaGrabCondition::operator=( const arDeltaGrabCondition& x ) {

@@ -53,7 +53,7 @@ class SZG_CALL arSZGAppFramework {
   public:
     arSZGAppFramework();
     virtual ~arSZGAppFramework();
-    
+
     // Event loop management and related methods.
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
@@ -61,7 +61,7 @@ class SZG_CALL arSZGAppFramework {
     virtual bool createWindows(bool useWindowing) = 0;
     virtual void loopQuantum() = 0;
     virtual void exitFunction() = 0;
-    
+
     // Methods common to all frameworks.
 
     virtual void setDataBundlePath( const string& /*bundlePath*/,
@@ -158,7 +158,7 @@ class SZG_CALL arSZGAppFramework {
     void externalThreadStopped() { _externalThreadRunning = false; }
 
     // Accessors for various internal objects/services. Necessary for flexibility.
-    
+
     // Info about the virtual computer.
     arAppLauncher* getAppLauncher() { return &_launcher; }
     // For nonstandard use of the input node.
@@ -173,9 +173,9 @@ class SZG_CALL arSZGAppFramework {
     // Add entries to the data bundle path (used to locate texture maps by
     // szgrender for scene-graph apps in cluster mode and by SoundRender to
     // locate sounds for both types of apps in cluster mode).
-    virtual void addDataBundlePathMap(const string& /*bundlePathName*/, 
+    virtual void addDataBundlePathMap(const string& /*bundlePathName*/,
                             const string& /*bundlePath*/) {}
-      
+
   protected:
     arSZGClient _SZGClient;
     arInputNode* _inputDevice;
@@ -187,7 +187,7 @@ class SZG_CALL arSZGAppFramework {
     bool _vircompExecution;
     arThread _messageThread;
     arThread _inputConnectionThread;
-        
+
     // For standalone.
     bool              _standalone;
     std::string       _standaloneControlMode;
@@ -204,7 +204,7 @@ class SZG_CALL arSZGAppFramework {
     arFrameworkEventQueueCallback _eventQueueCallback;
     arFrameworkEventFilter _defaultUserFilter;
     arFrameworkEventFilter* _userEventFilter;
-  
+
     std::deque< arUserMessageInfo > _userMessageQueue;
     arLock _userMessageLock;
 
@@ -218,20 +218,20 @@ class SZG_CALL arSZGAppFramework {
     bool _useNavInputMatrix;
     unsigned _navInputMatrixIndex;
     bool _unitConvertNavInputMatrix;
-    
+
     // For standalone and for masterslave.
     arGUIWindowManager* _wm;
 
     // Only for masterslave, not scenegraph.
     arGUIXMLParser* _guiXMLParser;
-    
+
     // Have init() and start() been called?
     bool _initCalled;
     bool _startCalled;
     // Have the parameters been loaded?
     bool _parametersLoaded;
 
-    // One external app-defined thread can be 
+    // One external app-defined thread can be
     // deterministically shut down along with everything else.
 
     // Is there an app-defined thread?
@@ -247,7 +247,7 @@ class SZG_CALL arSZGAppFramework {
     bool _displayThreadRunning;
     // Has stop() completed?  Might be needed if the app-defined thread calls exit(0).
     bool _stopped;
-    
+
     void _handleStandaloneInput();
     bool _loadInputDrivers();
 

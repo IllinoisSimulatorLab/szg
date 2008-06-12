@@ -18,7 +18,7 @@
 //**** arXXX refers to classes in the library
 //**** important executables... like the render client...
 //**** should have names starting with SZG
-//**** global functions... like those below... should start with a 
+//**** global functions... like those below... should start with a
 //**** unique two char identifier
 //**** dg = distributed graphics
 //**** ds = distributed sound
@@ -30,7 +30,7 @@
 
 SZG_CALL void dsSetSoundDatabase(arSoundDatabase*);
 
-SZG_CALL arDatabaseNode* dsMakeNode(const string&, const string&, 
+SZG_CALL arDatabaseNode* dsMakeNode(const string&, const string&,
                                     const string&);
 
 SZG_CALL bool dsPlayer(const arMatrix4&, const arVector3&, float);
@@ -38,23 +38,22 @@ SZG_CALL bool dsPlayer(const arMatrix4&, const arVector3&, float);
 SZG_CALL int dsTransform(const string&, const string&, const arMatrix4&);
 SZG_CALL bool dsTransform(int, const arMatrix4&);
 
-SZG_CALL int dsLoop(const string&, const string&, const string&, 
+SZG_CALL int dsLoop(const string&, const string&, const string&,
                     int, float, const arVector3&);
-SZG_CALL int dsLoop(const string&, const string&, const string&, 
+SZG_CALL int dsLoop(const string&, const string&, const string&,
                     int, float, const float*);
 SZG_CALL bool dsLoop(int, const string&, int, float, const arVector3&);
 SZG_CALL bool dsLoop(int, const string&, int, float, const float*);
 
-SZG_CALL int dsSpeak( const string& name, const string& parent, 
+SZG_CALL int dsSpeak( const string& name, const string& parent,
                       const string& text );
 SZG_CALL bool dsSpeak( int ID, const string& text );
 
-SZG_CALL int dsStream( const string& name, const string& parent, 
+SZG_CALL int dsStream( const string& name, const string& parent,
                        const string& fileName,
                        int paused, float amplitude, int time);
-SZG_CALL bool dsStream(int ID, const string& fileName, int paused, 
-                       float amplitude,
-                       int time);
+SZG_CALL bool dsStream(int ID, const string& fileName, int paused,
+                       float amplitude, int time);
 
 SZG_CALL bool dsErase(const string&);
 

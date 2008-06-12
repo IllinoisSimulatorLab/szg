@@ -45,10 +45,10 @@ class arQuaternion;
 class SZG_CALL arVector2 {
  public:
   float v[2];
-  arVector2(){ v[0] = v[1] = v[2] = 0.; }
-  arVector2(float x, float y){ v[0] = x; v[1] = y; }
-  ~arVector2(){}
-  float& operator[] (int i){ return v[i]; }
+  arVector2() { v[0] = v[1] = v[2] = 0.; }
+  arVector2(float x, float y) { v[0] = x; v[1] = y; }
+  ~arVector2() {}
+  float& operator[] (int i) { return v[i]; }
   void set(const float* p)
     { memcpy(v, p, sizeof(v)); }
   void set(float x, float y)
@@ -76,7 +76,7 @@ class SZG_CALL arVector2 {
     const float mag = magnitude();
     if (mag <= 0.) {
       cerr << "arVector2 error: cannot normalize zero.\n";
-      return arVector2(0,0);
+      return arVector2(0, 0);
     }
     return arVector2(v[0]/mag, v[1]/mag);
   }
@@ -95,7 +95,7 @@ class SZG_CALL arVector3{
   arVector3(const float* p)
     { set(p[0], p[1], p[2]); }
   arVector3(float x, float y, float z)
-    { set(x,y,z); }
+    { set(x, y, z); }
   ~arVector3() {}
 
   const arVector3& operator+=(const arVector3& rhs)
@@ -130,7 +130,7 @@ class SZG_CALL arVector3{
     const float mag = magnitude();
     if (mag <= 0.) {
       cerr << "arVector3 error: cannot normalize zero.\n";
-      return arVector3(0,0,0);
+      return arVector3(0, 0, 0);
     }
     return arVector3(v[0]/mag, v[1]/mag, v[2]/mag);
   }
@@ -155,9 +155,9 @@ class SZG_CALL arVector4{
   float v[4];
 
   arVector4() { memset(v, 0, 4*sizeof(float)); }
-  arVector4(const float* p){ set(p[0], p[1], p[2], p[3]); }
-  arVector4(float x, float y, float z, float w){ set(x,y,z,w); }
-  arVector4(const arVector3& vec, float w) { set(vec.v[0],vec.v[1],vec.v[2],w); }
+  arVector4(const float* p) { set(p[0], p[1], p[2], p[3]); }
+  arVector4(float x, float y, float z, float w) { set(x, y, z, w); }
+  arVector4(const arVector3& vec, float w) { set(vec.v[0], vec.v[1], vec.v[2], w); }
   bool operator==(const arVector4& rhs) const
     { return memcmp(v, rhs.v, 4*sizeof(float)) == 0; }
   bool operator!=(const arVector4& rhs) const
@@ -175,7 +175,7 @@ class SZG_CALL arVector4{
     { memcpy(v, p, sizeof(v)); }
   void get(float* p) const
     { memcpy(p, v, sizeof(v)); }
-  float magnitude2() const 
+  float magnitude2() const
     { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+v[3]*v[3]; }
   float magnitude() const { return sqrt(magnitude2()); }
   float dot( const arVector4& y ) const {
@@ -185,7 +185,7 @@ class SZG_CALL arVector4{
     const float mag = magnitude();
     if (mag <= 0.) {
       cerr << "arVector4 error: cannot normalize zero.\n";
-      return arVector4(0,0,0,0);
+      return arVector4(0, 0, 0, 0);
     }
     return arVector4(v[0]/mag, v[1]/mag, v[2]/mag, v[3]/mag);
   }
@@ -205,10 +205,10 @@ class SZG_CALL arMatrix4{
  public:
   arMatrix4();
   arMatrix4(const float* const);
-  arMatrix4(float,float,float,float,float,float,float,float,
-	          float,float,float,float,float,float,float,float);
+  arMatrix4(float, float, float, float, float, float, float, float,
+	          float, float, float, float, float, float, float, float);
   ~arMatrix4() {}
-  
+
   arMatrix4 inverse() const;
   arMatrix4 transpose() const;
 
@@ -267,8 +267,8 @@ class SZG_CALL arEulerAngles {
   void setOrder( const arAxisOrder& ord );
   void setAngles( const arVector3& ang ) { _angles  = ang; }
   void addAngles( const arVector3& ang ) { _angles += ang; }
-  void setAngles( const float x, const float y, const float z ) { _angles  = arVector3(x,y,z); }
-  void addAngles( const float x, const float y, const float z ) { _angles += arVector3(x,y,z); }
+  void setAngles( const float x, const float y, const float z ) { _angles  = arVector3(x, y, z); }
+  void addAngles( const float x, const float y, const float z ) { _angles += arVector3(x, y, z); }
   arAxisOrder getOrder() const;
   void angleOrder( arAxisName& i, arAxisName& j, arAxisName& k ) const;
   arVector3 extract( const arMatrix4& mat );
@@ -279,8 +279,7 @@ class SZG_CALL arEulerAngles {
   arAxisName _initialAxis;
   bool _parityEven;
 };
-  
-  
+
 //***************************************************************
 // function prototypes... most are inlined below
 //***************************************************************
@@ -293,7 +292,7 @@ SZG_CALL arVector2 operator+(const arVector2&, const arVector2&);
 SZG_CALL arVector2 operator-(const arVector2&); // negation
 SZG_CALL arVector2 operator-(const arVector2&, const arVector2&);
 // cross product
-SZG_CALL arVector3 operator*(const arVector3&, const arVector3&); 
+SZG_CALL arVector3 operator*(const arVector3&, const arVector3&);
 SZG_CALL arVector3 operator*(float, const arVector3&);
 SZG_CALL arVector3 operator*(const arVector3&, float);
 SZG_CALL arVector3 operator/(const arVector3&, float); // scalar division, handles /0
@@ -310,7 +309,7 @@ SZG_CALL arLogStream& operator<<(arLogStream&, const arVector3&);
 SZG_CALL arLogStream& operator<<(arLogStream&, const arVector4&);
 
 //************ matrix *******************
-SZG_CALL arMatrix4 operator*(const arMatrix4&,const arMatrix4&); 
+SZG_CALL arMatrix4 operator*(const arMatrix4&, const arMatrix4&);
 SZG_CALL arMatrix4 operator+(const arMatrix4&, const arMatrix4&);
 SZG_CALL arMatrix4 operator-(const arMatrix4&); //negate
 SZG_CALL arMatrix4 operator-(const arMatrix4&, const arMatrix4&);
@@ -343,40 +342,40 @@ SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 SZG_CALL bool ar_isPowerOfTwo( int x );
 
 // Matrix creation.
-SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
+SZG_CALL arMatrix4 ar_translationMatrix(float, float, float);
 SZG_CALL arMatrix4 ar_translationMatrix(const arVector3&);
-SZG_CALL arMatrix4 ar_rotationMatrix(char,float);
-SZG_CALL arMatrix4 ar_rotationMatrix(arAxisName,float);
-SZG_CALL arMatrix4 ar_rotationMatrix(const arVector3&,float);
-SZG_CALL arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, 
+SZG_CALL arMatrix4 ar_rotationMatrix(char, float);
+SZG_CALL arMatrix4 ar_rotationMatrix(arAxisName, float);
+SZG_CALL arMatrix4 ar_rotationMatrix(const arVector3&, float);
+SZG_CALL arMatrix4 ar_rotateVectorToVector( const arVector3& vec1,
                                             const arVector3& vec2 );
-SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position, 
+SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position,
                                      const arQuaternion& orientation);
 SZG_CALL arMatrix4 ar_scaleMatrix(float);
-SZG_CALL arMatrix4 ar_scaleMatrix(float,float,float);
+SZG_CALL arMatrix4 ar_scaleMatrix(float, float, float);
 SZG_CALL arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
 SZG_CALL arMatrix4 ar_identityMatrix();
 
 // Abbreviations.
-inline arMatrix4 ar_TM(float x, float y, float z){
-  return ar_translationMatrix(x,y,z);
+inline arMatrix4 ar_TM(float x, float y, float z) {
+  return ar_translationMatrix(x, y, z);
 }
-inline arMatrix4 ar_TM(const arVector3& v){
+inline arMatrix4 ar_TM(const arVector3& v) {
   return ar_translationMatrix(v);
 }
-inline arMatrix4 ar_RM(char axis, float angle){
+inline arMatrix4 ar_RM(char axis, float angle) {
   return ar_rotationMatrix(axis, angle);
 }
-inline arMatrix4 ar_RM(const arVector3& axis, float angle){
+inline arMatrix4 ar_RM(const arVector3& axis, float angle) {
   return ar_rotationMatrix(axis, angle);
 }
-inline arMatrix4 ar_SM(float scale){
+inline arMatrix4 ar_SM(float scale) {
   return ar_scaleMatrix(scale);
 }
-inline arMatrix4 ar_SM(float a, float b, float c){
-  return ar_scaleMatrix(a,b,c);
+inline arMatrix4 ar_SM(float a, float b, float c) {
+  return ar_scaleMatrix(a, b, c);
 }
-inline arMatrix4 ar_SM(const arVector3& scaleFactors){
+inline arMatrix4 ar_SM(const arVector3& scaleFactors) {
   return ar_scaleMatrix(scaleFactors);
 }
 
@@ -387,23 +386,23 @@ SZG_CALL arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
 
 // Abbreviations.
-inline arMatrix4 ar_ETM(const arMatrix4& m){
+inline arMatrix4 ar_ETM(const arMatrix4& m) {
   return ar_extractTranslationMatrix(m);
 }
-inline arVector3 ar_ET(const arMatrix4& m){
+inline arVector3 ar_ET(const arMatrix4& m) {
   return ar_extractTranslation(m);
 }
-inline arMatrix4 ar_ERM(const arMatrix4& m){
+inline arMatrix4 ar_ERM(const arMatrix4& m) {
   return ar_extractRotationMatrix(m);
 }
-inline arMatrix4 ar_ESM(const arMatrix4& m){
+inline arMatrix4 ar_ESM(const arMatrix4& m) {
   return ar_extractScaleMatrix(m);
 }
 
 // Utility functions.
 SZG_CALL float     ar_angleBetween(const arVector3&, const arVector3&);
 SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o);
-SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
+SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&, float);
 // returns the relected vector of direction across normal.
 SZG_CALL arVector3 ar_reflect(const arVector3& direction, const arVector3& normal);
 SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
@@ -414,7 +413,7 @@ SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
 
 // One more abbreviation, analogous to ar_ET but after ar_extractEulerAngles
 // in this .h file.
-inline arVector3 ar_ER(const arMatrix4& m, arAxisOrder o){
+inline arVector3 ar_ER(const arMatrix4& m, arAxisOrder o) {
   return ar_extractEulerAngles(m, o);
 }
 
@@ -457,7 +456,7 @@ SZG_CALL arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
 
 //********** user interface, for mouse->3D
 
-//UNUSED SZG_CALL arMatrix4 ar_planeToRotation(float,float);
+//UNUSED SZG_CALL arMatrix4 ar_planeToRotation(float, float);
 
 //********** screen
 
@@ -467,12 +466,12 @@ SZG_CALL arVector3 ar_tileScreenOffset(const arVector3&,
 SZG_CALL arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
 			             const arVector3& screenNormal,
                                      const arVector3& screenUp,
-                                     const float halfWidth, 
+                                     const float halfWidth,
                                      const float halfHeight,
                                      const float nearClip, const float farClip,
                                      const arVector3& eyePosition );
 SZG_CALL arMatrix4 ar_frustumMatrix( const float screenDist,
-                                     const float halfWidth, 
+                                     const float halfWidth,
                                      const float halfHeight,
                                      const float nearClip, const float farClip,
                                      const arVector3& locEyePosition );
@@ -486,43 +485,43 @@ SZG_CALL arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
 
 // scalar multiply
 // Should also define operator*=
-inline arVector2 operator*(float c, const arVector2& x){
+inline arVector2 operator*(float c, const arVector2& x) {
   return arVector2(c*x.v[0], c*x.v[1]);
 }
 // Should also define operator*=
-inline arVector2 operator*(const arVector2& x, float c){
+inline arVector2 operator*(const arVector2& x, float c) {
   return c * x;
 }
 
 // scalar division, returns all zeros if scalar zero
 // Should also define operator/=
-inline arVector2 operator/(const arVector2& x, float c){
+inline arVector2 operator/(const arVector2& x, float c) {
   return (c==0) ?
-    arVector2(0,0) :
+    arVector2(0, 0) :
     arVector2(x.v[0]/c, x.v[1]/c);
 }
 
 // addition
 // Should also define operator+=
-inline arVector2 operator+(const arVector2& x, const arVector2& y){
+inline arVector2 operator+(const arVector2& x, const arVector2& y) {
   return arVector2(x.v[0]+y.v[0], x.v[1]+y.v[1]);
 }
 
 // negation
 // Should also define operator-=
-inline arVector2 operator-(const arVector2& x){
-  return arVector2(-x.v[0],-x.v[1]);
+inline arVector2 operator-(const arVector2& x) {
+  return arVector2(-x.v[0], -x.v[1]);
 }
 
 // subtraction
 // Should also define operator-=
-inline arVector2 operator-(const arVector2& x, const arVector2& y){
-  return arVector2(x.v[0]-y.v[0],x.v[1]-y.v[1]);
+inline arVector2 operator-(const arVector2& x, const arVector2& y) {
+  return arVector2(x.v[0]-y.v[0], x.v[1]-y.v[1]);
 }
 
 // cross product
 // Should also define operator*=
-inline arVector3 operator*(const arVector3& x, const arVector3& y){
+inline arVector3 operator*(const arVector3& x, const arVector3& y) {
   return arVector3(x.v[1]*y.v[2] - x.v[2]*y.v[1],
                    x.v[2]*y.v[0] - x.v[0]*y.v[2],
                    x.v[0]*y.v[1] - x.v[1]*y.v[0]);
@@ -530,47 +529,47 @@ inline arVector3 operator*(const arVector3& x, const arVector3& y){
 
 // scalar multiply
 // Should also define operator*=
-inline arVector3 operator*(float c, const arVector3& x){
+inline arVector3 operator*(float c, const arVector3& x) {
   return arVector3(c*x.v[0], c*x.v[1], c*x.v[2]);
 }
 // Should also define operator*=
-inline arVector3 operator*(const arVector3& x, float c){
+inline arVector3 operator*(const arVector3& x, float c) {
   return c * x;
 }
 
 // scalar division, returns all zeros if scalar zero
 // Should also define operator/=
-inline arVector3 operator/(const arVector3& x, float c){
+inline arVector3 operator/(const arVector3& x, float c) {
   return (c==0) ?
-    arVector3(0,0,0) :
+    arVector3(0, 0, 0) :
     arVector3(x.v[0]/c, x.v[1]/c, x.v[2]/c);
 }
 
 // addition
 // Should also define operator+=
-inline arVector3 operator+(const arVector3& x, const arVector3& y){
+inline arVector3 operator+(const arVector3& x, const arVector3& y) {
   return arVector3(x.v[0]+y.v[0], x.v[1]+y.v[1], x.v[2]+y.v[2]);
 }
 
 // negation
 // Should also define operator-=
-inline arVector3 operator-(const arVector3& x){
-  return arVector3(-x.v[0],-x.v[1],-x.v[2]);
+inline arVector3 operator-(const arVector3& x) {
+  return arVector3(-x.v[0], -x.v[1], -x.v[2]);
 }
 
 // subtraction
 // Should also define operator-=
-inline arVector3 operator-(const arVector3& x, const arVector3& y){
-  return arVector3(x.v[0]-y.v[0],x.v[1]-y.v[1],x.v[2]-y.v[2]);
+inline arVector3 operator-(const arVector3& x, const arVector3& y) {
+  return arVector3(x.v[0]-y.v[0], x.v[1]-y.v[1], x.v[2]-y.v[2]);
 }
 
 // dot product
-inline float operator%(const arVector3& x, const arVector3& y){
+inline float operator%(const arVector3& x, const arVector3& y) {
   return x.v[0]*y.v[0]+x.v[1]*y.v[1]+x.v[2]*y.v[2];
 }
 
 // magnitude
-inline float operator++(const arVector3& x){
+inline float operator++(const arVector3& x) {
   return sqrt(x.v[0]*x.v[0]+x.v[1]*x.v[1]+x.v[2]*x.v[2]);
 }
 
@@ -580,7 +579,7 @@ inline float operator++(const arVector3& x){
 
 // add matrices
 // Should also define operator+=
-inline arMatrix4 operator+(const arMatrix4& x, const arMatrix4& y){
+inline arMatrix4 operator+(const arMatrix4& x, const arMatrix4& y) {
   return arMatrix4(x.v[0]+y.v[0], x.v[4]+y.v[4],
 		   x.v[8]+y.v[8], x.v[12]+y.v[12],
 		   x.v[1]+y.v[1], x.v[5]+y.v[5],
@@ -592,15 +591,15 @@ inline arMatrix4 operator+(const arMatrix4& x, const arMatrix4& y){
 }
 
 // Should also define operator-=
-inline arMatrix4 operator-(const arMatrix4& x){
-  return arMatrix4(-x.v[0],-x.v[4],-x.v[8],-x.v[12],
-		   -x.v[1],-x.v[5],-x.v[9],-x.v[13],
-		   -x.v[2],-x.v[6],-x.v[10],-x.v[14],
-		   -x.v[3],-x.v[7],-x.v[11],-x.v[15]);
+inline arMatrix4 operator-(const arMatrix4& x) {
+  return arMatrix4(-x.v[0], -x.v[4], -x.v[8], -x.v[12],
+		   -x.v[1], -x.v[5], -x.v[9], -x.v[13],
+		   -x.v[2], -x.v[6], -x.v[10], -x.v[14],
+		   -x.v[3], -x.v[7], -x.v[11], -x.v[15]);
 }
 
 // Should also define operator-=
-inline arMatrix4 operator-(const arMatrix4& x, const arMatrix4& y){
+inline arMatrix4 operator-(const arMatrix4& x, const arMatrix4& y) {
   return arMatrix4(x.v[0]-y.v[0], x.v[4]-y.v[4],
 		   x.v[8]-y.v[8], x.v[12]-y.v[12],
 		   x.v[1]-y.v[1], x.v[5]-y.v[5],
@@ -611,11 +610,11 @@ inline arMatrix4 operator-(const arMatrix4& x, const arMatrix4& y){
 		   x.v[11]-y.v[11], x.v[15]-y.v[15]);
 }
 
-inline arMatrix4 operator~(const arMatrix4& x){
-  return arMatrix4(x.v[0],x.v[1],x.v[2],x.v[3],
-		   x.v[4],x.v[5],x.v[6],x.v[7],
-		   x.v[8],x.v[9],x.v[10],x.v[11],
-		   x.v[12],x.v[13],x.v[14],x.v[15]);
+inline arMatrix4 operator~(const arMatrix4& x) {
+  return arMatrix4(x.v[0], x.v[1], x.v[2], x.v[3],
+		   x.v[4], x.v[5], x.v[6], x.v[7],
+		   x.v[8], x.v[9], x.v[10], x.v[11],
+		   x.v[12], x.v[13], x.v[14], x.v[15]);
 }
 
 //******************************
@@ -624,7 +623,7 @@ inline arMatrix4 operator~(const arMatrix4& x){
 
 // multiplication
 // Should also define operator*=
-inline arQuaternion operator*(const arQuaternion& x, const arQuaternion& y){
+inline arQuaternion operator*(const arQuaternion& x, const arQuaternion& y) {
   return arQuaternion(
     x.real*y.real-x.pure.v[0]*y.pure.v[0]-x.pure.v[1]*y.pure.v[1]-
     x.pure.v[2]*y.pure.v[2],
@@ -638,39 +637,39 @@ inline arQuaternion operator*(const arQuaternion& x, const arQuaternion& y){
 
 // scalar multiplication
 // Should also define operator*=
-inline arQuaternion operator*(const float c, const arQuaternion& x){
+inline arQuaternion operator*(const float c, const arQuaternion& x) {
   return arQuaternion(c*x.real, c*x.pure);
 }
-inline arQuaternion operator*(const arQuaternion& x, const float c){
+inline arQuaternion operator*(const arQuaternion& x, const float c) {
   return c * x;
 }
 
 // scalar division, return all zeros if scalar==0
 // Should also define operator/=
-inline arQuaternion operator/(const arQuaternion& x, const float c){
-  return c==0 ? arQuaternion(0,0,0,0) : x * (1./c);
+inline arQuaternion operator/(const arQuaternion& x, const float c) {
+  return c==0 ? arQuaternion(0, 0, 0, 0) : x * (1./c);
 }
 
 // addition
 // Should also define operator+=
-inline arQuaternion operator+(const arQuaternion& x, const arQuaternion& y){
+inline arQuaternion operator+(const arQuaternion& x, const arQuaternion& y) {
   return arQuaternion(x.real + y.real, x.pure + y.pure);
 }
 
 // negation
 // Should also define operator-=
-inline arQuaternion operator-(const arQuaternion& x){
+inline arQuaternion operator-(const arQuaternion& x) {
   return arQuaternion(-x.real, -x.pure);
 }
 
 // subtraction
 // Should also define operator-=
-inline arQuaternion operator-(const arQuaternion& x, const arQuaternion& y){
+inline arQuaternion operator-(const arQuaternion& x, const arQuaternion& y) {
   return arQuaternion(x.real - y.real, x.pure - y.pure);
 }
 
 // inverse of quaternion
-inline arQuaternion operator!(const arQuaternion& x){
+inline arQuaternion operator!(const arQuaternion& x) {
   return x.inverse();
 }
 
@@ -684,42 +683,42 @@ inline float ar_cmToFeet( float cm ) {
 
 // todo: rename like DegFromRad, RadFromDeg.
 
-inline SZG_CALL float ar_convertToDeg(const float angle){
+inline SZG_CALL float ar_convertToDeg(const float angle) {
   return angle * 180 / M_PI;
 }
 
-inline SZG_CALL float ar_convertToRad(const float angle){
+inline SZG_CALL float ar_convertToRad(const float angle) {
   return angle / 180 * M_PI;
 }
 
-inline SZG_CALL arVector3 ar_convertToDeg(const arVector3 v){
+inline SZG_CALL arVector3 ar_convertToDeg(const arVector3 v) {
   return 180 / M_PI * v;
 }
 
-inline SZG_CALL arVector3 ar_convertToRad(const arVector3 v){
+inline SZG_CALL arVector3 ar_convertToRad(const arVector3 v) {
   return M_PI / 180 * v;
 }
 
 // Division by 4th homogeneous coordinate handles projective transformations.
-inline arVector3 operator*(const arMatrix4& m,const arVector3& x){
+inline arVector3 operator*(const arMatrix4& m, const arVector3& x) {
   arVector3 result;
-  for (int i=0; i<3; i++){
+  for (int i=0; i<3; i++) {
     result.v[i] = m.v[i]*x.v[0] + m.v[i+4]*x.v[1] + m.v[i+8]*x.v[2] + m.v[i+12];
   }
   return 1 / (m.v[3]*x.v[0] + m.v[7]*x.v[1] + m.v[11]*x.v[2] + m.v[15]) * result;
 }
 
-//inline arVector4 operator*(const arMatrix4& m,const arVector4& x){
+//inline arVector4 operator*(const arMatrix4& m, const arVector4& x) {
 // arVector4 result;
 // float scaleFactor = 1./(m.v[3]*x.v[0]+m.v[7]*x.v[1]+m.v[11]*x.v[2]+m.v[15]);
-//  for (int i=0; i<4; i++){
+//  for (int i=0; i<4; i++) {
 //    result.v[i] = scaleFactor*(m.v[i]*x.v[0]+m.v[i+4]*x.v[1]+m.v[i+8]*x.v[2]+x.v[3]*m.v[i+12]);
 //  }
 //  return result;
 //}
 
-inline arVector3 operator*(const arQuaternion& q ,const arVector3& x){
-  return (q * arQuaternion(0,x.v[0],x.v[1],x.v[2]) * !q).pure;
+inline arVector3 operator*(const arQuaternion& q , const arVector3& x) {
+  return (q * arQuaternion(0, x.v[0], x.v[1], x.v[2]) * !q).pure;
 }
 
 float SZG_CALL ar_randUniformFloat(long* idum);

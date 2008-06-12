@@ -37,7 +37,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   int    _port;
   bool   _connected;
   bool   _sigOK;
-  
+
   void _closeConnection();
   void _dataTask();
   void _connectionTask();

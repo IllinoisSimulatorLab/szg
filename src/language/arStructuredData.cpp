@@ -10,7 +10,7 @@
 #include "arLogStream.h"
 #include "arStructuredData.h"
 
-static const char* debugTypename(int i){
+static const char* debugTypename(int i) {
   const char* internalTypeNames[7] = {
     "AR_GARBAGE", "AR_CHAR", "AR_INT", "AR_LONG", "AR_FLOAT", "AR_DOUBLE", "AR_INT64" };
   if (i>=0 && i<7)
@@ -37,17 +37,17 @@ arStructuredData::arStructuredData(arDataTemplate* theTemplate) :
   _construct(theTemplate);
 }
 
-void arStructuredData::_construct(arDataTemplate* theTemplate){
+void arStructuredData::_construct(arDataTemplate* theTemplate) {
   if (!theTemplate) {
     cerr << "arStructuredData warning: constructor got NULL template.\n";
     return;
     }
-  
+
   _fValid = true;
   _dataID = theTemplate->getID();
   _name = theTemplate->getName();
   _numberDataItems = theTemplate->getNumberAttributes();
-  if (_numberDataItems < 0 || _numberDataItems > 100000){
+  if (_numberDataItems < 0 || _numberDataItems > 100000) {
     ar_log_error() << "arStructuredData template " << _name << " has "
       << _numberDataItems << " data items;  overriding to 1.\n";
     _numberDataItems = 1;
@@ -62,7 +62,7 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
   _dataName = new string[_numberDataItems];
   _dataType = new arDataType[_numberDataItems];
   for (arAttribute::const_iterator iAttr(theTemplate->attributeBegin());
-       iAttr != theTemplate->attributeEnd(); ++iAttr){
+       iAttr != theTemplate->attributeEnd(); ++iAttr) {
     const int i = iAttr->second.second;
     _dataPtr[i] = NULL;
     _owned[i] = false;
@@ -71,7 +71,7 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
     _dataName[i] = iAttr->first;
     _dataType[i] = iAttr->second.first;
     _dataNameMap.insert(arNameMap::value_type(iAttr->first, i));
-    if (_dataType[i] == AR_GARBAGE){
+    if (_dataType[i] == AR_GARBAGE) {
       ar_log_error() << "arStructuredData template " << _name <<
         " has not-yet-typed attribute (# " << i << ", name " << _dataName[i] << ").\n";
     }
@@ -88,7 +88,7 @@ arStructuredData::arStructuredData(arTemplateDictionary* d, const char* name) :
   _construct(t);
 }
 
-const char* arDataTypeName(arDataType theType){
+const char* arDataTypeName(arDataType theType) {
   static const char* names[7] = {
     "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble", "ARint64" };
   return names[int(theType)];
@@ -98,12 +98,12 @@ arDataType arDataNameType(const char* const theName) {
   static const char* names[7] = {
     "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble", "ARint64" };
   for (int i=0; i<7; i++)
-    if (strcmp(theName,names[i])==0)
+    if (strcmp(theName, names[i])==0)
       return arDataType(i);
   return AR_GARBAGE;
 }
 
-int arDataTypeSize(arDataType theType){
+int arDataTypeSize(arDataType theType) {
   // Faster than a switch(), but crashes with bad input data.
   static const int sizes[7] = {
     AR_GARBAGE_SIZE,
@@ -112,7 +112,7 @@ int arDataTypeSize(arDataType theType){
     AR_LONG_SIZE,
     AR_FLOAT_SIZE,
     AR_DOUBLE_SIZE,
-    AR_INT64_SIZE,};
+    AR_INT64_SIZE};
   const int t = int(theType);
   if (t<0 || t>AR_DOUBLE) {
     cerr << "syzygy warning: unknown arDataType " << theType << endl;
@@ -127,7 +127,7 @@ arLock arStructuredData::_dumpLock;
 
 std::ostream& operator<<(std::ostream& os, __int64 i ) {
   char buf[40];
-  sprintf(buf,"%I64d", i);
+  sprintf(buf, "%I64d", i);
   os << buf;
   return os;
 }
@@ -145,7 +145,7 @@ void arStructuredData::dump(bool verbosity)
        << "name = \"" << _name << "\"" << endl
        << "size = " << size() << "\n";
 
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     // readable
     cout << "[" << i << "]: "
 	 << (_owned[i] ? "owned " : "      ")
@@ -153,9 +153,9 @@ void arStructuredData::dump(bool verbosity)
 	 << _dataName[i] << "\"["
 	 << _dataDimension[i] << " of "
 	 << _storageDimension[i] << "]\n";
-    if (verbosity){
+    if (verbosity) {
       cout << "  ";
-      for (int j=0; j<_dataDimension[i]; j++){
+      for (int j=0; j<_dataDimension[i]; j++) {
 	switch (_dataType[i]) {
 	case AR_CHAR:
 	  cout << ((ARchar*)_dataPtr[i])[j] << " ";
@@ -188,7 +188,7 @@ void arStructuredData::dump(bool verbosity)
   _dumpLock.unlock();
 }
 
-void arStructuredData::copy(arStructuredData const& rhs){
+void arStructuredData::copy(arStructuredData const& rhs) {
   _dataID = rhs._dataID;
   _numberDataItems = rhs._numberDataItems;
   _name = rhs._name;
@@ -202,13 +202,13 @@ void arStructuredData::copy(arStructuredData const& rhs){
   _dataName = new string[_numberDataItems];
   _dataType = new arDataType[_numberDataItems];
   _dataNameMap = rhs._dataNameMap;
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     _dataDimension[i] = rhs._dataDimension[i];
     _storageDimension[i] = rhs._storageDimension[i];
     _dataName[i] = rhs._dataName[i];
     _dataType[i] = rhs._dataType[i];
     _owned[i] = rhs._owned[i];
-    if (_owned[i]){
+    if (_owned[i]) {
       // Internally managed memory: make a local copy.
       _dataPtr[i] =
         new ARchar[_storageDimension[i] * arDataTypeSize(_dataType[i])];
@@ -226,8 +226,8 @@ void arStructuredData::destroy()
 {
   if (_numberDataItems == 0)
     return;
-  for (int i=0; i<_numberDataItems; i++){
-    if (_dataPtr[i] && _owned[i]){
+  for (int i=0; i<_numberDataItems; i++) {
+    if (_dataPtr[i] && _owned[i]) {
       delete [] (ARchar*) _dataPtr[i];
     }
   }
@@ -240,7 +240,7 @@ void arStructuredData::destroy()
 }
 
 arStructuredData const& arStructuredData::operator=(
-        arStructuredData const& rhs){
+        arStructuredData const& rhs) {
   if (this != &rhs) {
     destroy();
     copy(rhs);
@@ -248,31 +248,31 @@ arStructuredData const& arStructuredData::operator=(
   return *this;
 }
 
-arStructuredData::arStructuredData(arStructuredData const& rhs){
+arStructuredData::arStructuredData(arStructuredData const& rhs) {
   copy(rhs);
 }
 
-arStructuredData::~arStructuredData(){
+arStructuredData::~arStructuredData() {
   destroy();
 }
 
 const void* arStructuredData::getConstDataPtr(int field, arDataType type) const {
-  if (_numberDataItems <= 0){
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring getDataPtr() on empty arDataTemplate for \"" << _name << "\".\n";
     return NULL;
     }
-  if (field<0 || field>=_numberDataItems){
+  if (field<0 || field>=_numberDataItems) {
     cerr << "arStructuredData warning: getDataPtr() failed with field " << field
          << " out of range [0," << _numberDataItems-1 << "] for \"" << _name << "\".\n";
     return NULL;
   }
-  if (_dataType[field] == AR_GARBAGE){
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: ignoring getDataPtr() on not-yet-typed field "
          << field << " (name is \""
          << _name << "/" << _dataName[field] << "\").\n";
     return NULL;
-  } 
-  if (type != _dataType[field]){
+  }
+  if (type != _dataType[field]) {
     cerr << "arStructuredData warning: getDataPtr() failed with type mismatch(\n"
          << arDataTypeName(type) << ", expected "
 	 << arDataTypeName(_dataType[field]) << ") for \"" << _name << "\".\n";
@@ -282,24 +282,24 @@ const void* arStructuredData::getConstDataPtr(int field, arDataType type) const 
 }
 
 int arStructuredData::getDataDimension(const int field) const {
-  if (_numberDataItems <= 0){
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring getDataDimension() on\n"
          << "  empty arDataTemplate for \"" << _name << "\".\n";
     return 0;
     }
-  if (field<0 || field>=_numberDataItems){
+  if (field<0 || field>=_numberDataItems) {
     cerr << "arStructuredData warning: getDataDimension() failed with field "
          << field << " out of range [0," << _numberDataItems-1 << "]. for \""
 	 << _name << "\".\n";
     return 0;
   }
-  if (_dataType[field] == AR_GARBAGE){
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: getDataDimension() failed on\n"
          << "  not-yet-typed field " << field << " in \"" << _name << "\".\n";
     return 0;
-  } 
+  }
   const int dim = _dataDimension[field];
-  if (dim < 0){
+  if (dim < 0) {
     cerr << "arStructuredData warning: negative dimension "
          << dim << " for field "
          << field << " (\"" << _name << "/" << _dataName[field] << "\").\n";
@@ -308,54 +308,54 @@ int arStructuredData::getDataDimension(const int field) const {
   return dim;
 }
 
-string arStructuredData::getDataString(int field){
+string arStructuredData::getDataString(int field) {
   const char* pch = (char*)getDataPtr(field, AR_CHAR);
   if (!pch)
     return string(""); // Don't complain; getDataPtr already did.
   return string(pch, getDataDimension(field));
 }
 
-string arStructuredData::getDataString(const string& fieldName){
+string arStructuredData::getDataString(const string& fieldName) {
   const arNameMap::iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return string("NULL");
   }
   return getDataString(i->second);
 }
 
-bool arStructuredData::setDataDimension(int field, int dim){
-  if (_numberDataItems <= 0){
+bool arStructuredData::setDataDimension(int field, int dim) {
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring setDataDimension() on empty arDataTemplate. for \"" << _name << "\".\n";
     return false;
     }
-  if (field<0 || field>=_numberDataItems){
+  if (field<0 || field>=_numberDataItems) {
     cerr << "arStructuredData warning: setDataDimension() failed with field " << field
          << " out of range [0," << _numberDataItems-1 << "]. for \"" << _name << "\".\n";
     return false;
   }
-  if (dim<0){
+  if (dim<0) {
     cerr << "arStructuredData warning: setDataDimension() failed with negative dimension "
          << dim << " for \"" << _name << "\".\n";
     return false;
   }
-  if (_dataType[field] == AR_GARBAGE){
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: setDataDimension() failed on not-yet-typed field "
          << field << ".\n";
     return false;
-  } 
+  }
 
-  if (dim>_storageDimension[field]){
+  if (dim>_storageDimension[field]) {
     int copySize = _storageDimension[field]*arDataTypeSize(_dataType[field]);
     const int totalSize = dim*arDataTypeSize(_dataType[field]);
-    if (_dataPtr[field]){
+    if (_dataPtr[field]) {
       // we need to allocate a new memory chunk and copy the old data
       ARchar* source = (ARchar*) _dataPtr[field];
       ARchar* dest = new ARchar[totalSize];
-      memcpy(dest,source,copySize);
+      memcpy(dest, source, copySize);
       _dataPtr[field] = dest;
       _storageDimension[field] = dim;
-      if (_owned[field]){
+      if (_owned[field]) {
         // only delete if this was previosuly owned
 	delete [] source;
       }
@@ -372,12 +372,12 @@ bool arStructuredData::setDataDimension(int field, int dim){
 }
 
 int arStructuredData::getStorageDimension(int field) const {
-  if (_numberDataItems <= 0){
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring getStorageDimension() for empty \""
          << _name << "\".\n";
     return -1;
     }
-  if (field<0 || field>=_numberDataItems){
+  if (field<0 || field>=_numberDataItems) {
     cerr << "arStructuredData warning: getStorageDimension() failed with field " << field
          << " out of range [0," << _numberDataItems-1 << "] for \""
 	 << _name << "\".\n";
@@ -387,12 +387,12 @@ int arStructuredData::getStorageDimension(int field) const {
 }
 
 arDataType arStructuredData::getDataType(int fieldIndex) const {
-  if (_numberDataItems <= 0){
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring getDataType() for empty \""
          << _name << "\".\n";
     return AR_GARBAGE;
     }
-  if (fieldIndex<0 || fieldIndex>=_numberDataItems){
+  if (fieldIndex<0 || fieldIndex>=_numberDataItems) {
     cerr << "arStructuredData warning: getDataType() failed with field " << fieldIndex
          << " out of range [0," << _numberDataItems-1 << "] for \""
 	 << _name << "\".\n";
@@ -406,45 +406,45 @@ arDataType arStructuredData::getDataType(int fieldIndex) const {
 // already which you're adding to, then call
 // setDataDimension() instead of setStorageDimension().
 //
-bool arStructuredData::setStorageDimension(int field, int dim){
-  if (_numberDataItems <= 0){
+bool arStructuredData::setStorageDimension(int field, int dim) {
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring setStorageDimension() on empty arDataTemplate for \""
          << _name << "\".\n";
     return false;
   }
-  if (field<0 || field>=_numberDataItems){
+  if (field<0 || field>=_numberDataItems) {
     cerr << "arStructuredData warning: setStorageDimension() failed with field " << field
          << " out of range [0," << _numberDataItems-1 << "] for \""
 	 << _name << "\".\n";
     return false;
   }
-  if (dim<=0){
+  if (dim<=0) {
     cerr << "arStructuredData warning: setStorageDimension() failed with negative dimension "
          << dim << " for \"" << _name << "\".\n";
     return false;
   }
-  if (dim < _dataDimension[field]){
+  if (dim < _dataDimension[field]) {
     cerr << "arStructuredData warning: setStorageDimension() failed with dimension "
          << dim << " less than field size "
 	 << _dataDimension[field] << " for \"" << _name << "\".\n";
     return false;
-  } 
-  if (_dataType[field] == AR_GARBAGE){
+  }
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: setStorageDimension() failed on not-yet-typed field "
          << field << ".\n";
     return false;
-  } 
-  
+  }
+
   const int totalSize = dim * arDataTypeSize(_dataType[field]);
 
-  if (_dataPtr[field]){
+  if (_dataPtr[field]) {
     // Allocate a new chunk of memory and copy old data into it.
     ARchar* source = (ARchar*) _dataPtr[field];
     ARchar* dest = new ARchar[totalSize];
     memcpy(dest, source,
            _dataDimension[field] * arDataTypeSize(_dataType[field]));
     _dataPtr[field] = dest;
-    if (_owned[field]){
+    if (_owned[field]) {
       delete [] source;
     }
   }
@@ -460,7 +460,7 @@ bool arStructuredData::setStorageDimension(int field, int dim){
 
 const void* arStructuredData::getConstDataPtr(const string& fieldName, arDataType theType) const {
   const arNameMap::const_iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return NULL;
   }
@@ -469,7 +469,7 @@ const void* arStructuredData::getConstDataPtr(const string& fieldName, arDataTyp
 
 int arStructuredData::getDataDimension(const string& fieldName) const {
   const arNameMap::const_iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return 0;
   }
@@ -478,16 +478,16 @@ int arStructuredData::getDataDimension(const string& fieldName) const {
 
 arDataType arStructuredData::getDataType(const string& fieldName) const {
   const arNameMap::const_iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return AR_GARBAGE;
   }
   return getDataType(i->second);
 }
 
-bool arStructuredData::setDataDimension(const string& fieldName, int theSize){
+bool arStructuredData::setDataDimension(const string& fieldName, int theSize) {
  const arNameMap::iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return false;
   }
@@ -495,52 +495,52 @@ bool arStructuredData::setDataDimension(const string& fieldName, int theSize){
 }
 
 bool arStructuredData::dataIn(int field, const void* data,
-                               arDataType type, int dim){
-  if (_numberDataItems <= 0){
+                               arDataType type, int dim) {
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring dataIn() on "
          << "empty arDataTemplate for \"" << _name << "\".\n";
     return false;
     }
-  if (field<0 || field >= _numberDataItems){
+  if (field<0 || field >= _numberDataItems) {
     cerr << "arStructuredData warning: ignoring dataIn() with field " << field
          << " out of range [0," << _numberDataItems-1 << "].\n";
     return false;
   }
-  if (_dataType[field] == AR_GARBAGE){
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: ignoring dataIn() on "
          << "not-yet-typed field "
          << field << " for \"" << _name << "\".\n";
     return false;
-  } 
-  if (type != _dataType[field]){
+  }
+  if (type != _dataType[field]) {
     cerr << "arStructuredData warning: ignoring dataIn() with type mismatch ("
          << arDataTypeName(type) << ", expected "
 	 << arDataTypeName(_dataType[field]) << ") for \"" << _name << "\".\n";
     return false;
-  } 
-  if (dim < 0){
+  }
+  if (dim < 0) {
     cerr << "arStructuredData warning: ignoring dataIn() with negative "
 	 << "dimension " << dim
          << " for data type \"" << _name << "\" on field "
 	 << _dataName[field] << ".\n";
     return false;
   }
-  if (!data){
+  if (!data) {
     cerr << "arStructuredData warning: ignoring dataIn() with null data "
 	 << "source "
          << " for \"" << _name << "\".\n";
     return false;
   }
   const int cb = dim*arDataTypeSize(_dataType[field]);
-  if (dim>_storageDimension[field] || !_owned[field]){
-    if (_dataPtr[field] && _owned[field]){
+  if (dim>_storageDimension[field] || !_owned[field]) {
+    if (_dataPtr[field] && _owned[field]) {
       delete [] (ARchar*) _dataPtr[field];
     }
 
     _dataPtr[field] = new ARchar[cb];
     // sometimes more bytes are read from this block than were allocated!
 
-    _storageDimension[field] = dim; 
+    _storageDimension[field] = dim;
     _owned[field] = true;
   }
   _dataDimension[field] = dim;
@@ -552,23 +552,23 @@ bool arStructuredData::dataIn(int field, const void* data,
 
 bool arStructuredData::dataOut(int field, void* destination,
                                arDataType type, int dim) const {
-  if (_numberDataItems <= 0){
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ignoring dataOut() on empty arDataTemplate for \"" << _name << "\".\n";
     return false;
     }
-  if (field<0 || field >= _numberDataItems){
+  if (field<0 || field >= _numberDataItems) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut field " << field
       << " is out of range [0, "
       << _numberDataItems-1 << "]\n";
     return false;
   }
-  if (_dataType[field] == AR_GARBAGE){
+  if (_dataType[field] == AR_GARBAGE) {
     cerr << "arStructuredData warning: ignoring dataOut() on not-yet-typed field "
          << field << " for \"" << _name << "\".\n";
     return false;
-  } 
-  if (type != _dataType[field]){
+  }
+  if (type != _dataType[field]) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut field " << field
       << " (" << _dataName[field] << ") has type "
@@ -577,7 +577,7 @@ bool arStructuredData::dataOut(int field, void* destination,
 
 #if 0
     cout << "\n\t___DUMP " << _name << "___\n\n";
-    for (int i=0; i<_numberDataItems; i++){
+    for (int i=0; i<_numberDataItems; i++) {
       cout << "\tname: "
       << _dataName[i]
       << "\t  type: "
@@ -593,11 +593,11 @@ bool arStructuredData::dataOut(int field, void* destination,
 
     return false;
   }
-  if (dim == 0){
+  if (dim == 0) {
     // nothing to do!
     return true;
   }
-  if (dim < 0){
+  if (dim < 0) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut field "
       << field << " (\"" << _name << "/" << _dataName[field] << "\")"
@@ -605,7 +605,7 @@ bool arStructuredData::dataOut(int field, void* destination,
       << dim << ".\n";
     return false;
   }
-  if (_dataDimension[field] < 0){
+  if (_dataDimension[field] < 0) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut field "
       << field << " (\"" << _name << "/" << _dataName[field] << "\")"
@@ -613,7 +613,7 @@ bool arStructuredData::dataOut(int field, void* destination,
       << _dataDimension[field] << ".\n";
     return false;
   }
-  if (dim > _dataDimension[field]){
+  if (dim > _dataDimension[field]) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut request for field "
       << field << " (\"" << _name << "/" << _dataName[field] << "\")"
@@ -621,7 +621,7 @@ bool arStructuredData::dataOut(int field, void* destination,
       << dim << " which exceeds " << _dataDimension[field] << ".\n";
     return false;
   }
-  if (!_dataPtr[field]){
+  if (!_dataPtr[field]) {
     cerr << "arStructuredData error: \""
       << _name << "\", dataOut field "
       << field << " (\"" << _name << "/" << _dataName[field] << "\")"
@@ -633,14 +633,14 @@ bool arStructuredData::dataOut(int field, void* destination,
 }
 
 bool arStructuredData::dataIn(const string& fieldName, const void* data,
-			      arDataType theType, int dimension){
+			      arDataType theType, int dimension) {
   if (data == 0 || dimension <= 0) {
     // Convenient abbreviation.
     return setDataDimension(fieldName, 0);
   }
 
   const arNameMap::iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return false;
   }
@@ -649,7 +649,7 @@ bool arStructuredData::dataIn(const string& fieldName, const void* data,
 
 int arStructuredData::getDataFieldIndex( const string& fieldName ) const {
   const arNameMap::const_iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return -1;
   }
@@ -679,7 +679,7 @@ void arStructuredData::getFieldNames( std::vector< std::string >& names ) const 
 bool arStructuredData::dataOut(const string& fieldName, void* data,
 			       arDataType theType, int dimension) const {
   const arNameMap::const_iterator i(_dataNameMap.find(fieldName));
-  if (i == _dataNameMap.end()){
+  if (i == _dataNameMap.end()) {
     cerr << "arStructuredData warning: no field \"" << fieldName << "\".\n";
     return false;
   }
@@ -687,25 +687,25 @@ bool arStructuredData::dataOut(const string& fieldName, void* data,
 }
 
 // ptr is not const void*
-bool arStructuredData::ptrIn(int field, void* ptr, int dim){
-  if (_numberDataItems <= 0){
+bool arStructuredData::ptrIn(int field, void* ptr, int dim) {
+  if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ptrIn failed on empty \""
          << _name << "\".\n";
     return false;
   }
-  if (field < 0 || field >= _numberDataItems){
+  if (field < 0 || field >= _numberDataItems) {
     cerr << "arStructuredData warning: ptrIn failed because field "
          << field << " in \"" << _name << "\" is out of range [0, "
 	 << _numberDataItems << "].\n";
     return false;
   }
-  if (dim < 0){
+  if (dim < 0) {
     cerr << "arStructuredData warning: ptrIn failed on field "
          << field << " in \"" << _name << "\" because dimension "
 	 << dim << " is negative.\n";
     return false;
   }
-  if (_owned[field] && _dataPtr[field]){
+  if (_owned[field] && _dataPtr[field]) {
     delete [] (ARchar*) _dataPtr[field];
   }
   _dataPtr[field] = ptr;
@@ -716,8 +716,8 @@ bool arStructuredData::ptrIn(int field, void* ptr, int dim){
 }
 
 #ifdef UNUSED
-void* arStructuredData::ptrOut(int field){
-  if (field < 0 || field >= _numberDataItems){
+void* arStructuredData::ptrOut(int field) {
+  if (field < 0 || field >= _numberDataItems) {
     cerr << "arStructuredData warning: ptrOut failed because field "
          << field << " in \"" << _name << "\" is out of range [0, "
 	 << _numberDataItems << "].\n";
@@ -731,13 +731,13 @@ int arStructuredData::size() const {
   // 3 ARint entries for the data header
   // 2 Arint entries per field header
   int total = 3*AR_INT_SIZE;
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     total += 2*AR_INT_SIZE +
-             ar_fieldSize(_dataType[i],_dataDimension[i]) +
-             ar_fieldOffset(_dataType[i],total);
+             ar_fieldSize(_dataType[i], _dataDimension[i]) +
+             ar_fieldOffset(_dataType[i], total);
   }
   // records are aligned at 8 byte boundaries
-  return total + ar_fieldOffset(AR_DOUBLE,total);
+  return total + ar_fieldOffset(AR_DOUBLE, total);
 }
 
 bool arStructuredData::pack(ARchar* destination) const {
@@ -752,7 +752,7 @@ bool arStructuredData::pack(ARchar* destination) const {
   ar_packData(destination + offset, &_numberDataItems, AR_INT, 1);
   offset += AR_INT_SIZE;
 
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     ar_packData(destination + offset, &_dataDimension[i], AR_INT, 1);
     offset += AR_INT_SIZE;
 
@@ -768,72 +768,72 @@ bool arStructuredData::pack(ARchar* destination) const {
 
     ar_packData(destination + offset, &type, AR_INT, 1);
     offset += AR_INT_SIZE;
-    offset += ar_fieldOffset(_dataType[i],offset);
+    offset += ar_fieldOffset(_dataType[i], offset);
 
     ar_packData(destination + offset, _dataPtr[i], type, dim);
-    offset += ar_fieldSize(_dataType[i],_dataDimension[i]);
+    offset += ar_fieldSize(_dataType[i], _dataDimension[i]);
   }
   return true;
 }
 
-bool arStructuredData::unpack(const ARchar* source){
+bool arStructuredData::unpack(const ARchar* source) {
   ARint theSize = -1;
   ARint offset = 0;
-  ar_unpackData(source,&theSize,AR_INT,1);
+  ar_unpackData(source, &theSize, AR_INT, 1);
   offset += AR_INT_SIZE;
-  if (theSize <= 0){
+  if (theSize <= 0) {
     cerr << "arStructuredData::unpack error: size is " << theSize << endl;
     return false;
   }
-  ar_unpackData(source+offset,&_dataID,AR_INT,1);
+  ar_unpackData(source+offset, &_dataID, AR_INT, 1);
   offset += AR_INT_SIZE;
   ARint numberFields = -1;
-  ar_unpackData(source+offset,&numberFields,AR_INT,1);
+  ar_unpackData(source+offset, &numberFields, AR_INT, 1);
   offset += AR_INT_SIZE;
-  if (numberFields != _numberDataItems){
+  if (numberFields != _numberDataItems) {
     cerr << "arStructuredData::unpack error: found " << numberFields
       << " instead of " << _numberDataItems << " data fields.\n";
     cerr << "\tfyi, overall size is " << theSize << " bytes, and dataID is "
       << _dataID << ".\n";
     return false;
   }
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     ARint dim = -1;
-    ar_unpackData(source+offset,&dim,AR_INT,1);
+    ar_unpackData(source+offset, &dim, AR_INT, 1);
     offset += AR_INT_SIZE;
     ARint type = AR_GARBAGE;
-    ar_unpackData(source+offset,&type,AR_INT,1);
+    ar_unpackData(source+offset, &type, AR_INT, 1);
     if (type == AR_GARBAGE)
       cerr << "arStructuredData::unpack warning: got an AR_GARBAGE type.\n";
     offset += AR_INT_SIZE;
-    if (!setDataDimension(i,dim)) {
+    if (!setDataDimension(i, dim)) {
       cerr << "arStructuredData error: setDataDimension failed.\n";
       return false;
     }
     // remember that we align AR_DOUBLE fields on an eight byte boundary
-    offset += ar_fieldOffset((arDataType)type,offset);
+    offset += ar_fieldOffset((arDataType)type, offset);
     ar_unpackData(source+offset, _dataPtr[i], (arDataType)type, dim);
-    offset += ar_fieldSize((arDataType)type,dim);
+    offset += ar_fieldSize((arDataType)type, dim);
   }
   return true;
 }
 
 // source isn't const, because it's passed to ptrIn.
-bool arStructuredData::parse(ARchar* source){
+bool arStructuredData::parse(ARchar* source) {
   ARint theSize = -1;
   ARint offset = 0;
-  ar_unpackData(source,&theSize,AR_INT,1);
+  ar_unpackData(source, &theSize, AR_INT, 1);
   offset += AR_INT_SIZE;
-  if (theSize <= 0){
+  if (theSize <= 0) {
     cerr << "arStructuredData::parse error: size is " << theSize << endl;
     return false;
   }
-  ar_unpackData(source+offset,&_dataID,AR_INT,1);
+  ar_unpackData(source+offset, &_dataID, AR_INT, 1);
   offset += AR_INT_SIZE;
   ARint numberFields = -1;
-  ar_unpackData(source+offset,&numberFields,AR_INT,1);
+  ar_unpackData(source+offset, &numberFields, AR_INT, 1);
   offset += AR_INT_SIZE;
-  if (numberFields != _numberDataItems){
+  if (numberFields != _numberDataItems) {
     cerr << "arStructuredData::parse error: found " << numberFields
       << " instead of " << _numberDataItems << " data fields.\n";
     cerr << "\tfyi, overall size is " << theSize << " bytes, and dataID is "
@@ -841,18 +841,18 @@ bool arStructuredData::parse(ARchar* source){
     return false;
   }
 
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     ARint dim = -1, type = -1;
-    ar_unpackData(source+offset,&dim,AR_INT,1);
-    if (dim < 0){
+    ar_unpackData(source+offset, &dim, AR_INT, 1);
+    if (dim < 0) {
       cerr << "arStructuredData::parse error: got a negative dimension "
            << dim << " in "
            << i+1 << " of " << _numberDataItems << " records.\n";
       return false;
     }
     offset += AR_INT_SIZE;
-    ar_unpackData(source+offset,&type,AR_INT,1);
-    if (type == AR_GARBAGE){
+    ar_unpackData(source+offset, &type, AR_INT, 1);
+    if (type == AR_GARBAGE) {
       cerr << "arStructuredData::parse error: got an AR_GARBAGE type in "
            << i+1 << " of " << _numberDataItems << " "
 	   << "records.  (dim == "
@@ -861,11 +861,11 @@ bool arStructuredData::parse(ARchar* source){
     }
     offset += AR_INT_SIZE;
     // we align AR_DOUBLE fields on an eight byte boundary
-    offset += ar_fieldOffset((arDataType)type,offset);
-    if (!ptrIn(i, source+offset, dim)){
+    offset += ar_fieldOffset((arDataType)type, offset);
+    if (!ptrIn(i, source+offset, dim)) {
       return false;
     }
-    offset += ar_fieldSize((arDataType)type,dim);
+    offset += ar_fieldSize((arDataType)type, dim);
   }
   return true;
 }
@@ -874,16 +874,16 @@ void arStructuredData::print(ostream& s) const {
   const int numbersInRow = 8;
   _dumpLock.lock();
   s << "<" << _name << ">\n";
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     s << "  <" << _dataName[i] << ">";
-    if (_dataType[i] == AR_CHAR){
-      for (int j=0; j<_dataDimension[i]; j++){
+    if (_dataType[i] == AR_CHAR) {
+      for (int j=0; j<_dataDimension[i]; j++) {
         s << ((ARchar*)_dataPtr[i])[j];
       }
     }
     else{
       s << "\n    ";
-      for (int j=0; j<_dataDimension[i]; j++){
+      for (int j=0; j<_dataDimension[i]; j++) {
         switch (_dataType[i]) {
 	case AR_CHAR:
 	  s << ((ARchar*)_dataPtr[i])[j] << " ";
@@ -921,24 +921,24 @@ void arStructuredData::print(ostream& s) const {
 }
 
 void arStructuredData::print(FILE* theFile) const {
-  if (!theFile){
+  if (!theFile) {
     ar_log_error() << "arStructuredData: no file to print to.\n";
     return;
   }
   _dumpLock.lock();
   const int numbersInRow = 8;
   fprintf(theFile, "<%s>\n", _name.c_str());
-  for (int i=0; i<_numberDataItems; i++){
+  for (int i=0; i<_numberDataItems; i++) {
     int j;
     fprintf(theFile, "  <%s>", _dataName[i].c_str());
-    if (_dataType[i] == AR_CHAR){
-      for (j=0; j<_dataDimension[i]; j++){
+    if (_dataType[i] == AR_CHAR) {
+      for (j=0; j<_dataDimension[i]; j++) {
 	fprintf(theFile, "%c", ((ARchar*)_dataPtr[i])[j]);
       }
     }
     else{
       fprintf(theFile, "\n    ");
-      for (j=0; j<_dataDimension[i]; j++){
+      for (j=0; j<_dataDimension[i]; j++) {
         switch (_dataType[i]) {
 	case AR_CHAR:
 	  fprintf(theFile, "%c ", ((ARchar*)_dataPtr[i])[j]);
@@ -977,7 +977,7 @@ void arStructuredData::print(FILE* theFile) const {
 
 bool ar_getStructuredDataStringField(
   arStructuredData* dataPtr, const string& name, string& value ) {
-  const char* charPtr = (const char*)dataPtr->getConstDataPtr(name,AR_CHAR);
+  const char* charPtr = (const char*)dataPtr->getConstDataPtr(name, AR_CHAR);
   if (!charPtr) {
     cerr << "ar_getStringField error: no pointer to field '" << name << "'.\n";
     return false;
@@ -1001,5 +1001,5 @@ bool ar_getStructuredDataStringField(
 
 ostream& operator<<(ostream&s, const arStructuredData& d ) {
   const_cast<arStructuredData&>(d).print(s);
-  return s; 
+  return s;
 }

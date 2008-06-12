@@ -26,7 +26,7 @@ arInputNode::~arInputNode() {
   iterSink sinkIter;
   iterFlt filterIter;
   std::vector<bool>::iterator iter;
-  
+
   for (sourceIter = _sources.begin(), iter = _iOwnSources.begin();
          sourceIter != _sources.end() && iter != _iOwnSources.end();
          sourceIter++, iter++) {
@@ -57,12 +57,12 @@ arInputNode::~arInputNode() {
   _eventBuffer.clear();
 }
 
-bool arInputNode::init(arSZGClient& szgClient){
+bool arInputNode::init(arSZGClient& szgClient) {
   _initOK = false;
   _label = szgClient.getLabel();
 
   // Initialize the registered input sources.
-  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i) {
     // If one fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
       ar_log_error() << _label << " failed to init input source.\n";
@@ -73,9 +73,9 @@ bool arInputNode::init(arSZGClient& szgClient){
   }
 
   // Initialize the registered input sinks.
-  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
     // If one fails, the whole thing fails.
-    if (!(*j)->init(szgClient)){
+    if (!(*j)->init(szgClient)) {
       ar_log_error() << _label << " failed to init input sink.\n";
       return false;
     }
@@ -84,18 +84,18 @@ bool arInputNode::init(arSZGClient& szgClient){
   return true;
 }
 
-bool arInputNode::start(){
+bool arInputNode::start() {
   if (!_initOK)
     // init() already complained.
     return false;
 
   _complained = false;
   bool ok = true;
-  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i) {
     ok &= (*i)->start();
   }
-  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
-    if ( (*j)->_autoActivate ){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
+    if ( (*j)->_autoActivate ) {
       // Skip the file logging input sink, which auto-activates in DeviceServer.
       ok &= (*j)->start();
     }
@@ -103,31 +103,31 @@ bool arInputNode::start(){
   return ok;
 }
 
-bool arInputNode::stop(){
+bool arInputNode::stop() {
   if (!_initOK)
     // init() already complained.
     return false;
 
   bool ok = true;
-  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i) {
     ok &= (*i)->stop();
   }
-  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
     ok &= (*j)->stop();
   }
   return ok;
 }
 
-bool arInputNode::restart(){
+bool arInputNode::restart() {
   if (!_initOK)
     // init() already complained.
     return false;
 
   bool ok = true;
-  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i) {
     ok &= (*i)->restart();
   }
-  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
     ok &= (*j)->restart();
   }
   return ok;
@@ -139,7 +139,7 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
     ar_log_error() << _label << ": negative channel number.\n";
     return;
   }
-  
+
   arGuard dummy(_dataSerializationLock);
   _remapData( unsigned(channelNumber), data );
 
@@ -149,23 +149,23 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
 LAbort:
     return;
   }
-  
+
   if (_bufferInputEvents) {
     _eventBuffer.appendQueue( _eventQueue );
     _eventQueue.clear();
     goto LAbort;
   }
-  
+
   _filterEventQueue( _eventQueue );
-  if (!ar_saveEventQueueToStructuredData( &_eventQueue, data )){
+  if (!ar_saveEventQueueToStructuredData( &_eventQueue, data )) {
     ar_log_error() << _label << " arInputNode failed to convert event queue to arStructuredData.\n";
   }
 
   // Update node's arInputState, and empty queue.
   _updateState( _eventQueue );
-  
+
   // Forward this to the input sinks.
-  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
     (*j)->receiveData(channelNumber, data);
   }
 }
@@ -180,7 +180,7 @@ void arInputNode::processBufferedEvents() {
 // Called when a connected devices has changed its signature.
 // Bug: called too many times, resetting the signature n times instead of just once.
 
-bool arInputNode::sourceReconfig(int whichChannel){
+bool arInputNode::sourceReconfig(int whichChannel) {
   arGuard dummy(_dataSerializationLock);
   if (whichChannel < 0 || whichChannel >= (int)_sources.size()) {
     ar_log_error() << _label << " arInputNode ignoring out-of-range channel "
@@ -197,13 +197,13 @@ bool arInputNode::sourceReconfig(int whichChannel){
     _inputState.remapInputDevice(whichChannel,
       (*i)->getNumberButtons(), (*i)->getNumberAxes(), (*i)->getNumberMatrices());
     return true;
-  }    
+  }
 
   ar_log_error() << _label << " arInputNode internally missing a channel.\n";
   return false;
 }
 
-void arInputNode::addInputSource( arInputSource* src, bool iOwnIt ){
+void arInputNode::addInputSource( arInputSource* src, bool iOwnIt ) {
   if (!src) {
     ar_log_error() << _label << "arInputNode ignoring NULL source.\n";
     return;
@@ -214,7 +214,7 @@ void arInputNode::addInputSource( arInputSource* src, bool iOwnIt ){
   _iOwnSources.push_back( iOwnIt );
 }
 
-int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
+int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ) {
   if (!theFilter) {
     ar_log_error() << _label << "arInputNode ignoring NULL filter.\n";
     return -1;
@@ -233,7 +233,7 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
 bool arInputNode::removeFilter( int ID ) {
   arGuard dummy(_dataSerializationLock);
   unsigned filterNumber = 0;
-  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
+  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f, ++filterNumber) {
     if ((*f)->getID() != ID)
       continue;
 
@@ -252,7 +252,7 @@ bool arInputNode::removeFilter( int ID ) {
 bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
   arGuard dummy(_dataSerializationLock);
   unsigned filterNumber = 0;
-  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
+  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f, ++filterNumber) {
     if ((*f)->getID() != ID)
       continue;
 
@@ -269,12 +269,12 @@ bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
 }
 
 
-void arInputNode::addInputSink( arInputSink* theSink, bool iOwnIt ){
+void arInputNode::addInputSink( arInputSink* theSink, bool iOwnIt ) {
   if (_bufferInputEvents) {
     ar_log_error() << _label << "arInputNode event buffer ignoring attempted sink.\n";
     return;
   }
-  
+
   if (!theSink) {
     ar_log_error() << _label << "arInputNode ignoring NULL sink.\n";
     return;
@@ -288,11 +288,11 @@ int arInputNode::getButton(int i) {
   return _inputState.getButton(unsigned(i));
 }
 
-float arInputNode::getAxis(int i){
+float arInputNode::getAxis(int i) {
   return _inputState.getAxis(unsigned(i));
 }
 
-arMatrix4 arInputNode::getMatrix(int i){
+arMatrix4 arInputNode::getMatrix(int i) {
   return _inputState.getMatrix(unsigned(i));
 }
 
@@ -308,7 +308,7 @@ int arInputNode::getNumberMatrices() const {
   return (int)_inputState.getNumberMatrices();
 }
 
-void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
+void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices) {
   if (numButtons < 0) {
     numButtons = 0;
     ar_log_error() << _label << "arInputNode overriding negative button signature, to 0.\n";
@@ -331,10 +331,10 @@ void arInputNode::_remapData( unsigned channelNumber, arStructuredData* data ) {
   const int sig[3] = { _inputState.getNumberButtons(),
                        _inputState.getNumberAxes(),
                        _inputState.getNumberMatrices() };
-  if (!data->dataIn(_inp._SIGNATURE,sig,AR_INT,3))
+  if (!data->dataIn(_inp._SIGNATURE, sig, AR_INT, 3))
     ar_log_error() << _label << "arInputNode problem in receiveData.\n";
 
-  // loop through events.  For each event, change its index to 
+  // loop through events.  For each event, change its index to
   // index + sum for i=0 to channelNumber-1 of e.g. _deviceButton[i] so we
   // don't get collisions.
   unsigned i, buttonOffset=0, axisOffset=0, matrixOffset=0;
@@ -347,19 +347,19 @@ void arInputNode::_remapData( unsigned channelNumber, arStructuredData* data ) {
   if (!_inputState.getMatrixOffset( channelNumber, matrixOffset ))
     ar_log_error() << _label << "arInputNode got no matrix offset for device"
                      << channelNumber << " from arInputState.\n";
-  
+
   const int numEvents = data->getDataDimension(_inp._TYPES);
   for (i=0; (int)i<numEvents; ++i) {
-    const int eventIndex = ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i];
-    const int eventType = ((int*)data->getDataPtr(_inp._TYPES,AR_INT))[i];
-    if (eventType==AR_EVENT_BUTTON){
-      ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i] = eventIndex + buttonOffset;
+    const int eventIndex = ((int*)data->getDataPtr(_inp._INDICES, AR_INT))[i];
+    const int eventType = ((int*)data->getDataPtr(_inp._TYPES, AR_INT))[i];
+    if (eventType==AR_EVENT_BUTTON) {
+      ((int*)data->getDataPtr(_inp._INDICES, AR_INT))[i] = eventIndex + buttonOffset;
     }
-    else if (eventType==AR_EVENT_AXIS){
-      ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i] = eventIndex + axisOffset;
+    else if (eventType==AR_EVENT_AXIS) {
+      ((int*)data->getDataPtr(_inp._INDICES, AR_INT))[i] = eventIndex + axisOffset;
     }
-    else if (eventType==AR_EVENT_MATRIX){
-      ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i] = eventIndex + matrixOffset;
+    else if (eventType==AR_EVENT_MATRIX) {
+      ((int*)data->getDataPtr(_inp._INDICES, AR_INT))[i] = eventIndex + matrixOffset;
     }
     else
       ar_log_error() << _label << "arInputNode ignoring unexpected eventType (not button, axis, or matrix).\n";
@@ -395,7 +395,7 @@ void arInputNode::_updateState( arInputEventQueue& queue ) {
       _eventCallback( e );
   }
 }
-    
+
 int arInputNode::_findUnusedFilterID() const {
   int id = 1;
   // Find an id already in _filters; fall back to one past its end.

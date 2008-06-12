@@ -7,13 +7,13 @@
 #include "arGraphicsDatabase.h"
 #include "arGlut.h"
 
-arBoundingSphereNode::arBoundingSphereNode(){
+arBoundingSphereNode::arBoundingSphereNode() {
   _name = "bounding_sphere_node";
   _typeCode = AR_G_BOUNDING_SPHERE_NODE;
   _typeString = "bounding sphere";
 }
 
-void arBoundingSphereNode::draw(arGraphicsContext*){
+void arBoundingSphereNode::draw(arGraphicsContext*) {
   _nodeLock.lock();
     const bool vis = _boundingSphere.visibility;
     arVector3 p(_boundingSphere.position);
@@ -23,15 +23,15 @@ void arBoundingSphereNode::draw(arGraphicsContext*){
     return;
 
   glDisable(GL_LIGHTING);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
-  glColor3f(1,1,1);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+  glColor3f(1, 1, 1);
   glPushMatrix();
   glTranslatef(p[0], p[1], p[2]);
   glutWireSphere(r, 15, 15);
   glPopMatrix();
 }
 
-bool arBoundingSphereNode::receiveData(arStructuredData* inData){
+bool arBoundingSphereNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_BOUNDING_SPHERE, inData->getID(), "arBoundingSphereNode"))
     return false;
 
@@ -45,13 +45,13 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
+arBoundingSphere arBoundingSphereNode::getBoundingSphere() {
   arGuard dummy(_nodeLock);
   return _boundingSphere;
 }
 
-void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
-  if (active()){
+void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(b, true);
     _nodeLock.unlock();
@@ -64,13 +64,13 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
   }
 }
 
-arStructuredData* arBoundingSphereNode::dumpData(){
+arStructuredData* arBoundingSphereNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(_boundingSphere, false);
 }
 
 arStructuredData* arBoundingSphereNode::_dumpData(
-  const arBoundingSphere& b, bool owned){
+  const arBoundingSphere& b, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_BOUNDING_SPHERE);
   _dumpGenericNode(r, _g->AR_BOUNDING_SPHERE_ID);
   const ARint visible = b.visibility ? 1 : 0;

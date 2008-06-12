@@ -27,7 +27,7 @@ class SZG_CALL arInputSink{
   virtual bool restart()
     { return stop() && start(); }
 
-  virtual void receiveData(int,arStructuredData*)
+  virtual void receiveData(int, arStructuredData*)
     {}
   virtual bool sourceReconfig(int)
     { return true; }

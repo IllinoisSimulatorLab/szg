@@ -8,13 +8,13 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
-  if (argc != 3 && argc != 4){
+int main(int argc, char** argv) {
+  if (argc != 3 && argc != 4) {
     cerr << "usage: " << argv[0] << " szgserver_name user_name\n"
 	 << "       " << argv[0] << " szgserver_IP szgserver_port user_name\n";
     return 1;
   }
- 
+
   arPhleetConfig config;
   if (!config.read()) {
     cerr << "dlogin error: failed to parse config file.\n";
@@ -28,18 +28,18 @@ int main(int argc, char** argv){
     return 1;
 
   string userName;
-  if (argc == 3){
+  if (argc == 3) {
     userName = string(argv[2]);
 
     // Send a broadcast packet on each interface, to find an szgserver.
     bool found = false;
     const int numNetworks = config.getNumNetworks();
-    for (int i=0; i<numNetworks && !found; ++i){
+    for (int i=0; i<numNetworks && !found; ++i) {
       const string broadcast = config.getBroadcast(i);
       found |= (broadcast != "NULL") && szgClient.discoverSZGServer(argv[1], broadcast);
     }
 
-    if (!found){
+    if (!found) {
       ar_log_critical() << "dlogin found no szgserver named '" << argv[1] << "'.\n";
       return 1;
     }

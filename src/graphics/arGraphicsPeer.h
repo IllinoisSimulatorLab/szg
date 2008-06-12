@@ -15,8 +15,8 @@
 // Hack.
 class SZG_CALL arGraphicsPeerCullObject{
  public:
-  arGraphicsPeerCullObject(){}
-  ~arGraphicsPeerCullObject(){}
+  arGraphicsPeerCullObject() {}
+  ~arGraphicsPeerCullObject() {}
 
   void clear();
   void frame();
@@ -29,9 +29,9 @@ class SZG_CALL arGraphicsPeerCullObject{
 
 class SZG_CALL arGraphicsPeerUpdateInfo{
  public:
-  arGraphicsPeerUpdateInfo(){ invalidUpdateTime = true; }
-  ~arGraphicsPeerUpdateInfo(){}
-  
+  arGraphicsPeerUpdateInfo() { invalidUpdateTime = true; }
+  ~arGraphicsPeerUpdateInfo() {}
+
   bool invalidUpdateTime;
   ar_timeval lastUpdate;
 };
@@ -39,13 +39,13 @@ class SZG_CALL arGraphicsPeerUpdateInfo{
 class SZG_CALL arGraphicsPeerConnection{
  public:
   arGraphicsPeerConnection();
-  ~arGraphicsPeerConnection(){};
+  ~arGraphicsPeerConnection() {};
 
   string    remoteName;
   // Critical that we use the connection ID... this is one thing that is
   // actually unique about the connection. The remoteName is not unique
   // (though it is at any particular time) since we could have open, then
-  // closed, then opened again, a connection between two peers. 
+  // closed, then opened again, a connection between two peers.
   int       connectionID;
   arSocket* socket;
   list<int> nodesLockedLocal;
@@ -60,7 +60,7 @@ class SZG_CALL arGraphicsPeerConnection{
   // The in map starts somewhere, by default at the root node, but it
   // could be elsewhere.
   arDatabaseNode* rootMapNode;
-  // Controls whether mapped nodes should send messages back to the mapping 
+  // Controls whether mapped nodes should send messages back to the mapping
   // peer or not.
   arNodeLevel sendLevel;
 
@@ -91,21 +91,21 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arGraphicsPeer();
   ~arGraphicsPeer();
 
-  string getName(){ return _name; }
+  string getName() { return _name; }
   void setName(const string&);
 
   bool init(arSZGClient& client);
   // Included solely to handle a disambiguation bug in SWIG.
-  bool initSZG(arSZGClient& client){ return init(client); }
+  bool initSZG(arSZGClient& client) { return init(client); }
   bool init(int& argc, char** argv);
   bool start();
   void stop();
 
-  void setBridge(arGraphicsDatabase* database){
+  void setBridge(arGraphicsDatabase* database) {
     _bridgeDatabase = database;
     _bridgeRootMapNode = database->getRoot();
   }
-  void setBridgeRootMapNode(arDatabaseNode* node){
+  void setBridgeRootMapNode(arDatabaseNode* node) {
     _bridgeRootMapNode = node;
   }
 
@@ -126,7 +126,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   virtual bool mergeXML(arDatabaseNode* parent, const string& fileName,
 		        const string& path="");
   virtual bool writeDatabase(const string& fileName, const string& path="");
-  virtual bool writeDatabaseXML(const string& fileName, 
+  virtual bool writeDatabaseXML(const string& fileName,
                                 const string& path="");
   virtual bool writeRooted(arDatabaseNode* parent,
                            const string& fileName,
@@ -139,15 +139,15 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   void useLocalDatabase(bool);
   void queueData(bool);
   int consume();
-  
+
   // These form the most important part of the API.
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
-                  arNodeLevel sendLevel, 
+                  arNodeLevel sendLevel,
                   arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
-                  arNodeLevel sendLevel, 
+                  arNodeLevel sendLevel,
                   arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool closeAllAndReset();
   bool pingPeer(const string& name);
@@ -221,7 +221,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
 
   // As a preliminary HACK for drawing a peer in a CLUSTER display environment,
   // we might have a "bridge" to a local database. The bridge database might,
-  // for instance, be an arGraphicsServer embedded in an 
+  // for instance, be an arGraphicsServer embedded in an
   // arDistSceneGraphFramework.
   arGraphicsDatabase* _bridgeDatabase;
   map<int, int, less<int> > _bridgeInMap;
@@ -237,13 +237,13 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   int _getRoutingFieldID(int dataID);
   int _getWorkingFieldID(int dataID);
 
-  void _motionCull(arGraphicsNode*, stack<arMatrix4>&, 
+  void _motionCull(arGraphicsNode*, stack<arMatrix4>&,
                    arGraphicsPeerCullObject*, arMatrix4&);
   bool _setRemoteLabel(arSocket* sock, const string& name);
-  bool _serializeAndSend(arSocket* socket, int remoteRootID, 
-                         int localRootID, 
-                         arNodeLevel sendLevel, 
-                         arNodeLevel remoteSendLevel, 
+  bool _serializeAndSend(arSocket* socket, int remoteRootID,
+                         int localRootID,
+                         arNodeLevel sendLevel,
+                         arNodeLevel remoteSendLevel,
                          arNodeLevel localSendLevel);
   void _serializeDoneNotify(arSocket* socket);
 
@@ -259,8 +259,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                         arNodeLevel level);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
                      arSocket* socket, map<int, int, less<int> >& outFilter,
-                     arNodeLevel localSendLevel, 
-                     arNodeLevel sendLevel, 
+                     arNodeLevel localSendLevel,
+                     arNodeLevel sendLevel,
                      int& dataSent,
                      bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
@@ -268,7 +268,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                      map<int, int, less<int> >& filterMap); // Call only when _lock()'ed.
   void _sendDataToBridge(arStructuredData*);
   bool _updateTransientMap(int nodeID,
-		  map<int, arGraphicsPeerUpdateInfo,less<int> >& transientMap,
+		  map<int, arGraphicsPeerUpdateInfo, less<int> >& transientMap,
 		  int remoteFrameTime);
 };
 

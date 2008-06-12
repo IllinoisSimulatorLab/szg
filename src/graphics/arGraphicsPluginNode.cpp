@@ -147,7 +147,7 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
 
   // Use the function arg, not the member variable.
   r->dataInString( _g->AR_GRAPHICS_PLUGIN_NAME, fileName );
-  
+
   int* intPtr = new int[intData.size()];
   long* longPtr = new long[longData.size()];
   float* floatPtr = new float[floatData.size()];
@@ -165,7 +165,7 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
   std::copy( floatData.begin(), floatData.end(), floatPtr );
   std::copy( doubleData.begin(), doubleData.end(), doublePtr );
   const int numStrings = (int)stringData.size();
-  
+
   const bool ok = r->dataIn( _g->AR_GRAPHICS_PLUGIN_INT, (const void*)intPtr, AR_INT, intData.size() )
     && r->dataIn( _g->AR_GRAPHICS_PLUGIN_LONG, (const void*)longPtr, AR_LONG, longData.size() )
     && r->dataIn( _g->AR_GRAPHICS_PLUGIN_FLOAT, (const void*)floatPtr, AR_FLOAT, floatData.size() )
@@ -183,7 +183,7 @@ arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
     ar_log_error() << "arGraphicsPluginNode _dumpData() failed.\n";
     return NULL;
   }
-  
+
   return r;
 }
 
@@ -195,7 +195,7 @@ arGraphicsPlugin* arGraphicsPluginNode::_makeObject() {
     ar_log_error() << "arGraphicsPluginNode failed to load shared library "
                    << _fileName << ar_endl;
     return NULL;
-  } 
+  }
   arGraphicsPlugin* obj = (arGraphicsPlugin*)lib->createObject();
   if (!obj) {
     ar_log_error() << "arGraphicsPluginNode failed to create object from shared library "

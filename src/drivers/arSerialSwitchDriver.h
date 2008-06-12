@@ -39,7 +39,7 @@ class arSerialSwitchDriver: public arInputSource {
  private:
   bool _poll();
   void _eventloop();
-  
+
   arThread _eventThread;
   const unsigned _timeoutTenths;
   arRS232Port    _comPort;

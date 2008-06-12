@@ -7,20 +7,20 @@
 #include "arSyncDataServer.h"
 #include "arLogStream.h"
 
-void ar_syncDataServerConnectionTask(void* pv){
+void ar_syncDataServerConnectionTask(void* pv) {
   arSyncDataServer* server = (arSyncDataServer*)pv;
-  while (!server->_exitProgram){
-    if (!server->_dataServer.acceptConnectionNoSend()){
+  while (!server->_exitProgram) {
+    if (!server->_dataServer.acceptConnectionNoSend()) {
       ar_usleep(1000); // CPU throttle, if errors occur.
     }
   }
 }
 
-void ar_syncDataServerSendTask(void* pv){
+void ar_syncDataServerSendTask(void* pv) {
   ((arSyncDataServer*)pv)->_sendTask();
 }
 
-void arSyncDataServer::_sendTask(){
+void arSyncDataServer::_sendTask() {
   _sendThreadRunning = true;
   if (_locallyConnected)
     _sendTaskLocal();
@@ -38,29 +38,29 @@ void arSyncDataServer::_sendTaskLocal() {
   // our process), just wait for arSyncDataClient and then
   // signal arSyncDataClient to swap buffers.
 
-  // Hack. If locally connected to an 
+  // Hack. If locally connected to an
   // arSyncDataClient, we assume that there's no need to dump state. The
   // two objects have been connected since the beginning. Also, we just
   // take a different code path...
 
-  while (!_exitProgram){
+  while (!_exitProgram) {
     // Don't swap buffers until the consumer is ready.
     _localConsumerReadyLock.lock();
     // _localConsumerReady takes one of 3 values:
     // 0: not ready for new data
     // 1: ready for new data
     // 2: stop program
-    while (!_localConsumerReady){
+    while (!_localConsumerReady) {
       _localConsumerReadyVar.wait(_localConsumerReadyLock);
     }
-    if (_localConsumerReady == 2){
+    if (_localConsumerReady == 2) {
       _localConsumerReadyLock.unlock();
       break;
     }
 
     _localConsumerReady = 0;
     _localConsumerReadyLock.unlock();
-    if (_mode != AR_SYNC_AUTO_SERVER){
+    if (_mode != AR_SYNC_AUTO_SERVER) {
       // Sync mode is manual, so wait for a buffer swap command.
       _signalObject.receiveSignal();
     }
@@ -79,7 +79,7 @@ void arSyncDataServer::_sendTaskLocal() {
     //   0: not ready for consumer to take new data
     //   1: ready for consumer to take new data
     //   2: stop program
-    if (_localProducerReady == 2){
+    if (_localProducerReady == 2) {
       _localProducerReadyLock.unlock();
       break;
     }
@@ -88,7 +88,7 @@ void arSyncDataServer::_sendTaskLocal() {
     _localProducerReadyVar.signal();
     _localProducerReadyLock.unlock();
     // If in manual buffer swap mode, release bufferSwap().
-    if (_mode != AR_SYNC_AUTO_SERVER){
+    if (_mode != AR_SYNC_AUTO_SERVER) {
       _signalObjectRelease.sendSignal();
     }
   }
@@ -105,7 +105,7 @@ void arSyncDataServer::_sendTaskRemote() {
   // terminated on this end DOES NOT mean that it has been received on the
   // other side.  Major redesign needed?
 
-  while (!_exitProgram){
+  while (!_exitProgram) {
     // wait for a send action to be requested
     _signalObject.receiveSignal();
     // _signalObject may have been released because we should be exiting.
@@ -117,15 +117,15 @@ void arSyncDataServer::_sendTaskRemote() {
     _dataQueue->swapBuffers(); // This can crash if app is dkill'ed.
     _messageBufferFull = false;
     _messageBufferVar.signal();
-    if (_barrierServer.checkWaitingSockets()){
+    if (_barrierServer.checkWaitingSockets()) {
       // this is what occurs upon connection
       _barrierServer.lockActivationQueue();
       list<arSocket*>* newSocketList =
         _barrierServer.getWaitingBondedSockets(&_dataServer);
       list<arSocket*>* activeSocketList = _dataServer.getActiveSockets();
       _barrierServer.activatePassiveSockets(&_dataServer);
-      _dataServer.sendDataQueue(_dataQueue,activeSocketList);
-      _connectionCallback(_bondedObject, _dataQueue, newSocketList); 
+      _dataServer.sendDataQueue(_dataQueue, activeSocketList);
+      _connectionCallback(_bondedObject, _dataQueue, newSocketList);
       delete newSocketList;
       delete activeSocketList;
       _queueLock.unlock();
@@ -136,7 +136,7 @@ void arSyncDataServer::_sendTaskRemote() {
       //time1 = ar_time();
       _dataServer.sendDataQueue(_dataQueue);
       //time2 = ar_time();
-      //      cout << "send time = " << ar_difftime(time2,time1) << "\n";
+      //      cout << "send time = " << ar_difftime(time2, time1) << "\n";
       // Set tuning data.
       _barrierServer.setServerSendSize(
         _dataQueue->getFrontBufferSize() * _dataServer.getNumberConnected());
@@ -148,7 +148,7 @@ void arSyncDataServer::_sendTaskRemote() {
     // This local loop needs to be in the synchronization group.
     // we do not do this if we are in nosync mode!
     // The following call will not block forever!
-    if (_mode != AR_NOSYNC_MANUAL_SERVER){
+    if (_mode != AR_NOSYNC_MANUAL_SERVER) {
       _barrierServer.localSync();
     }
   }
@@ -167,18 +167,18 @@ arSyncDataServer::arSyncDataServer() :
   _channel("NULL"),
   _locallyConnected(false),
   _localConsumerReady(0),
-  _localProducerReady(0){
+  _localProducerReady(0) {
 }
 
-arSyncDataServer::~arSyncDataServer(){
+arSyncDataServer::~arSyncDataServer() {
   if (_dataQueue)
     delete _dataQueue;
 }
 
-bool arSyncDataServer::setMode(int theMode){
+bool arSyncDataServer::setMode(int theMode) {
   if (theMode != AR_SYNC_AUTO_SERVER &&
       theMode != AR_SYNC_MANUAL_SERVER &&
-      theMode != AR_NOSYNC_MANUAL_SERVER){
+      theMode != AR_NOSYNC_MANUAL_SERVER) {
     ar_log_error() << "arDataSyncServer: invalid operating mode " << theMode << ".\n";
     return false;
   }
@@ -188,52 +188,52 @@ bool arSyncDataServer::setMode(int theMode){
 
 // In the case of arGraphicsServer and arSoundServer, we want to pass in
 // the appropriate language (i.e. a graphics dictionary or a sound dictionary
-// respectively). 
-bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary){
+// respectively).
+bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary) {
   if (!dictionary) {
     ar_log_error() << "arSyncDataServer: NULL dictionary.\n";
     return false;
   }
   _dictionary = dictionary;
-  if (!_dataQueue){
+  if (!_dataQueue) {
     _dataQueue = new arQueuedData();
   }
   return true;
 }
 
-void arSyncDataServer::setBondedObject(void* bondedObject){
+void arSyncDataServer::setBondedObject(void* bondedObject) {
   _bondedObject = bondedObject;
 }
 
 void arSyncDataServer::setConnectionCallback
-  (bool (*connectionCallback)(void*,arQueuedData*,list<arSocket*>*)){
+  (bool (*connectionCallback)(void*, arQueuedData*, list<arSocket*>*)) {
   _connectionCallback = connectionCallback;
 }
 
 void arSyncDataServer::setMessageCallback
-  (arDatabaseNode* (*messageCallback)(void*,arStructuredData*)){
+  (arDatabaseNode* (*messageCallback)(void*, arStructuredData*)) {
   _messageCallback = messageCallback;
 }
 
-void arSyncDataServer::setServiceName(const string& serviceName){
+void arSyncDataServer::setServiceName(const string& serviceName) {
   _serviceName = serviceName;
 }
 
-void arSyncDataServer::setChannel(const string& channel){
+void arSyncDataServer::setChannel(const string& channel) {
   _channel = channel;
 }
 
 // Setup, but do not start, various threads
-bool arSyncDataServer::init(arSZGClient& client){
-  if (_locallyConnected){
+bool arSyncDataServer::init(arSZGClient& client) {
+  if (_locallyConnected) {
     ar_log_error() << "arSyncDataServer ignoring locally connected init().\n";
     return false;
   }
 
   // There is not much consistency between the
-  // way calls are broken-up in my various init's and start's. 
+  // way calls are broken-up in my various init's and start's.
   // Should they be combined into one????
-  if (_channel == "NULL"){
+  if (_channel == "NULL") {
     ar_log_error() << "arSyncDataServer: no channel before init().\n";
     return false;
   }
@@ -247,7 +247,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   // connection brokering goes here
   _dataServer.smallPacketOptimize(true);
   int port = -1;
-  if (!_client->registerService(_serviceName,_channel,1,&port)){
+  if (!_client->registerService(_serviceName, _channel, 1, &port)) {
     ar_log_error() << "arSyncDataServer failed to register service.\n";
     return false;
   }
@@ -262,15 +262,15 @@ bool arSyncDataServer::init(arSZGClient& client){
       break;
     }
     ar_log_warning() << "arSyncDataServer retrying to listen on brokered port.\n";
-    _client->requestNewPorts(_serviceName,_channel,1,&port);
+    _client->requestNewPorts(_serviceName, _channel, 1, &port);
     _dataServer.setPort(port);
   }
-  if (!success){
+  if (!success) {
     // failed to bind to ports
     ar_log_error() << "arSyncDataServer failed to listen on brokered port.\n";
     return false;
   }
-  if (!_client->confirmPorts(_serviceName,_channel,1,&port)){
+  if (!_client->confirmPorts(_serviceName, _channel, 1, &port)) {
     ar_log_error() << "arSyncDataServer error: failed to confirm ports.\n";
     return false;
   }
@@ -284,11 +284,11 @@ bool arSyncDataServer::init(arSZGClient& client){
   return true;
 }
 
-bool arSyncDataServer::start(){
-  if (_locallyConnected){
+bool arSyncDataServer::start() {
+  if (_locallyConnected) {
     // Not much happens if locally connected.
     // Copypaste from below.
-    if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
+    if (!_sendThread.beginThread(ar_syncDataServerSendTask, this)) {
       ar_log_error() << "arSyncDataServer failed to start send thread.\n";
       return false;
     }
@@ -296,7 +296,7 @@ bool arSyncDataServer::start(){
   }
 
   // This is what we do in the case of network connections (i.e. traditional)
-  if (!_client){
+  if (!_client) {
     ar_log_error() << "arSyncDataServer: init was not called before start.\n";
     return false;
   }
@@ -327,11 +327,11 @@ bool arSyncDataServer::start(){
     ar_log_error() << "arSyncDataServer failed to start barrier server.\n";
     return false;
   }
-  if (!_connectionThread.beginThread(ar_syncDataServerConnectionTask,this)) {
+  if (!_connectionThread.beginThread(ar_syncDataServerConnectionTask, this)) {
     ar_log_error() << "arSyncDataServer failed to start connection thread.\n";
     return false;
   }
-  if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
+  if (!_sendThread.beginThread(ar_syncDataServerSendTask, this)) {
     ar_log_error() << "arSyncDataServer failed to start send thread.\n";
     return false;
   }
@@ -339,12 +339,12 @@ bool arSyncDataServer::start(){
   return true;
 }
 
-void arSyncDataServer::stop(){
+void arSyncDataServer::stop() {
   _exitProgram = true;
   // Ensure the send data thread isn't blocked.
   _signalObject.sendSignal();
 
-  if (_locallyConnected){
+  if (_locallyConnected) {
     // Set the queue variables to "finished."
 
     _localConsumerReadyLock.lock();
@@ -359,32 +359,32 @@ void arSyncDataServer::stop(){
   }
 
   arSleepBackoff a(8, 20, 1.15);
-  while (_sendThreadRunning){
+  while (_sendThreadRunning) {
     a.sleep();
   }
 }
 
-void arSyncDataServer::swapBuffers(){
-  if (_mode == AR_SYNC_AUTO_SERVER){
+void arSyncDataServer::swapBuffers() {
+  if (_mode == AR_SYNC_AUTO_SERVER) {
     ar_log_remark() << "arSyncDataServer ignoring swapBuffers() in sync mode.\n";
     return;
   }
 
   _signalObject.sendSignal();
-  if (_mode != AR_NOSYNC_MANUAL_SERVER){
+  if (_mode != AR_NOSYNC_MANUAL_SERVER) {
     // Wait for the other side to consume the buffer.
     _signalObjectRelease.receiveSignal();
   }
 }
 
-arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
+arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data) {
   // Caller ensures atomicity.
   arGuard dummy(_queueLock);
   if (_dataQueue->getBackBufferSize() > _sendLimit &&
       _barrierServer.getNumberConnectedActive() > 0 &&
-      _mode == AR_SYNC_AUTO_SERVER){
+      _mode == AR_SYNC_AUTO_SERVER) {
     _messageBufferFull = true;
-    while (_messageBufferFull){
+    while (_messageBufferFull) {
       _messageBufferVar.wait(_queueLock);
     }
   }
@@ -393,19 +393,19 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
   //
   // If before the wait on full buffer, a connection
   // happening on a blocked buffer could send an initial
-  // dump that's one record ahead of the buffer sent to the already 
+  // dump that's one record ahead of the buffer sent to the already
   // connected clients.
   //
   // After queueing the data, send the
   // record to a connected client without crucial info added (like the ID
   // of a new node, as in newNode or insert).
 
-  arDatabaseNode* node = _messageCallback(_bondedObject,data); 
+  arDatabaseNode* node = _messageCallback(_bondedObject, data);
 
   if (_barrierServer.getNumberConnectedActive() > 0 || _locallyConnected) {
     // Something, local or remote, wants our data.  Queue it.
     _dataQueue->forceQueueData(data);
   }
-  
-  return node;  
+
+  return node;
 }

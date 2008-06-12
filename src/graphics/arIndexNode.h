@@ -13,7 +13,7 @@
 class SZG_CALL arIndexNode:public arGraphicsArrayNode{
  public:
   arIndexNode();
-  virtual ~arIndexNode(){}
+  virtual ~arIndexNode() {}
 
   virtual void initialize(arDatabase* database);
 

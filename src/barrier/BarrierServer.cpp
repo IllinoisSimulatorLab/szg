@@ -12,7 +12,7 @@
 
 using namespace std;
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -26,7 +26,7 @@ int main(int argc, char** argv){
   while (szgClient.running()) {
     barrierServer.activatePassiveSockets(NULL);
     ar_usleep(100000);
-  } 
+  }
   szgClient.messageTaskStop();
   return 0;
 }

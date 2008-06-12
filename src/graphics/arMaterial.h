@@ -17,7 +17,7 @@ class SZG_CALL arMaterial{
  public:
   arMaterial();
   arMaterial(const arMaterial&);
-  ~arMaterial(){}
+  ~arMaterial() {}
 
   arVector3 diffuse;
   arVector3 ambient;
@@ -25,7 +25,7 @@ class SZG_CALL arMaterial{
   arVector3 emissive;
   float exponent;     // i.e. shininess
   float alpha;        // transparency of the material
- 
+
   void activateMaterial();
 };
 

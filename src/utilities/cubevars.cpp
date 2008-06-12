@@ -12,26 +12,26 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
     glScalef(large, large, large);
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
-      glColor3f(0,1,1);
-        glVertex3f(.25,0,0);
-        glVertex3f(-.25,0,0);
-        glVertex3f(0,.5,0);
-        glVertex3f(0,-.25,0);
+      glColor3f(0, 1, 1);
+        glVertex3f(.25, 0, 0);
+        glVertex3f(-.25, 0, 0);
+        glVertex3f(0, .5, 0);
+        glVertex3f(0, -.25, 0);
     glEnd();
 
     // Forward
     glPushMatrix();
-      glTranslatef(0,0,1);
-      glScalef(1,1,-1);
-      glColor3f(1,0,1);
-      glutWireCone(0.12,2,8,2);
+      glTranslatef(0, 0, 1);
+      glScalef(1, 1, -1);
+      glColor3f(1, 0, 1);
+      glutWireCone(0.12, 2, 8, 2);
     glPopMatrix();
 
     // Up
     glPushMatrix();
-      glTranslatef(0,.6,0);
-      glColor3f(.8,.8,.8);
-      glutWireSphere(0.07,5,5);
+      glTranslatef(0, .6, 0);
+      glColor3f(.8, .8, .8);
+      glutWireSphere(0.07, 5, 5);
     glPopMatrix();
 
   glPopMatrix();
@@ -71,36 +71,36 @@ void glutEyeglasses(float x, float y, float z, const int i,
 
     // nosepiece and temples
     glBegin(GL_LINES);
-    glVertex3f(-xNose,0,0);
-    glVertex3f( xNose,0,0);
-    glVertex3f(-xEar,0,0);
-    glVertex3f(-xEar,0,dz);
-    glVertex3f( xEar,0,0);
-    glVertex3f( xEar,0,dz);
+    glVertex3f(-xNose, 0, 0);
+    glVertex3f( xNose, 0, 0);
+    glVertex3f(-xEar, 0, 0);
+    glVertex3f(-xEar, 0, dz);
+    glVertex3f( xEar, 0, 0);
+    glVertex3f( xEar, 0, dz);
     glEnd();
 
     // earpieces
     glPushMatrix();
-      glTranslatef( xEar,-r,dz);
-      glArc(0,0,r);
+      glTranslatef( xEar, -r, dz);
+      glArc(0, 0, r);
     glPopMatrix();
     glPushMatrix();
-      glTranslatef(-xEar,-r,dz);
-      glArc(0,0,r);
+      glTranslatef(-xEar, -r, dz);
+      glArc(0, 0, r);
     glPopMatrix();
 
     if (i < 2) {
       // left lens
       glPushMatrix();
-	glTranslatef(-xPupil,0,0);
-	glCircle(0,0,r);
+	glTranslatef(-xPupil, 0, 0);
+	glCircle(0, 0, r);
       glPopMatrix();
     }
     if (i > 0) {
       // right lens
       glPushMatrix();
-	glTranslatef( xPupil,0,0);
-	glCircle(0,0,r);
+	glTranslatef( xPupil, 0, 0);
+	glCircle(0, 0, r);
       glPopMatrix();
     }
   glPopMatrix();
@@ -128,24 +128,24 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
 // derived from arInputSimulator::_drawHead()
 void drawHead() {
   glPushMatrix();
-    glScalef(1.5,1.5,1.5); // larger for visibility
-    glColor3f(.8,.8,0);
-    glutSolidSphere(1,16,16);
+    glScalef(1.5, 1.5, 1.5); // larger for visibility
+    glColor3f(.8, .8, 0);
+    glutSolidSphere(1, 16, 16);
     // two eyes
-    glColor3f(0,1,1);
+    glColor3f(0, 1, 1);
     glPushMatrix();
-      glTranslatef(0.5,0,-0.7);
-      glutSolidSphere(0.4,8,8);
-      glTranslatef(0,0,-0.34);
-      glColor3f(1,0,0);
-      glutSolidSphere(0.15,5,5);
+      glTranslatef(0.5, 0, -0.7);
+      glutSolidSphere(0.4, 8, 8);
+      glTranslatef(0, 0, -0.34);
+      glColor3f(1, 0, 0);
+      glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
-      glTranslatef(-0.5,0,-0.7);
-      glColor3f(0,1,1);
-      glutSolidSphere(0.4,8,8);
-      glTranslatef(0,0,-0.34);
-      glColor3f(1,0,0);
-      glutSolidSphere(0.15,5,5);
+      glTranslatef(-0.5, 0, -0.7);
+      glColor3f(0, 1, 1);
+      glutSolidSphere(0.4, 8, 8);
+      glTranslatef(0, 0, -0.34);
+      glColor3f(1, 0, 0);
+      glutSolidSphere(0.15, 5, 5);
   glPopMatrix();
 }
 
@@ -181,7 +181,7 @@ void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
   static float amplSaberPrev = 0.;
 
   const float xyz[5][3] = // left, front, right, default, saber
-    { {-5,4,0}, {0,4,-5}, {5,4,0}, {2.34,0,0}, {0,5,-5} };
+    { {-5, 4, 0}, {0, 4, -5}, {5, 4, 0}, {2.34, 0, 0}, {0, 5, -5} };
   const int iPingDefault = 3;
   const int iSaber = 4;
   if (iPing < 0 || iPing > 2) {
@@ -283,8 +283,8 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   for (i=1; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
 
-  static arVector3 tipPosPrev(0,5,-5);
-  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0,0,-wandConeLength)));
+  static arVector3 tipPosPrev(0, 5, -5);
+  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0, 0, -wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
   clamp(vSaber, 0., .8);
   tipPosPrev = tipPos;
@@ -292,14 +292,14 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
 }
 
 void bluesquare() {
-  glColor3f(.1,.1,.4);
+  glColor3f(.1, .1, .4);
   glBegin(GL_POLYGON);
     glVertex3f( 1,  1, -.02);
     glVertex3f( 1, -1, -.02);
     glVertex3f(-1, -1, -.02);
     glVertex3f(-1,  1, -.02);
   glEnd();
-  glScalef(1,1,.001); // flatten onto front screen
+  glScalef(1, 1, .001); // flatten onto front screen
 }
 
 void headwands() {
@@ -314,22 +314,22 @@ void headwands() {
 
 inline void drawSliderCube() {
   glutSolidCube(0.37);
-  glColor3f(0,0,0);
+  glColor3f(0, 0, 0);
   glutWireCube(0.42);
 }
 
 void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   if (fWhitewalls)
-    glClearColor(1,1,1,0);
+    glClearColor(1, 1, 1, 0);
   else
-    glClearColor(0,0,0,0);
+    glClearColor(0, 0, 0, 0);
   glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
   glPushMatrix();
-    glTranslatef(0,5,0);
+    glTranslatef(0, 5, 0);
     glColor3f(.9, .9, .9);
     glutWireCube( 9.8);
     glColor3f(1, 1, 1);
@@ -349,7 +349,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
   glutPrintf(0,  0,  0, "Floor", 0, -90);
 
   const int iEye = 1 + int(gw.getCurrentEyeSign());
-  glColor3f(.2,.8,0);
+  glColor3f(.2, .8, 0);
   glLineWidth(3);
 
   glutEyeglasses( .7, 0.5+.5,  -5, iEye, 0, 0);
@@ -378,7 +378,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       bluesquare();
       glPushMatrix();
 	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-	glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
+	glRotatef(90, 1, 0, 0); // rotate back view to top view: 90 degrees about x axis
 	headwands();
       glPopMatrix();
     glPopMatrix();
@@ -389,7 +389,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       bluesquare();
       glPushMatrix();
 	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-	glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
+	glRotatef(-90, 0, 1, 0); // rotate back view to side view: 90 degrees about y axis
 	headwands();
       glPopMatrix();
     glPopMatrix();
@@ -411,9 +411,9 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glLineWidth(2);
     glPushMatrix();
       glMultMatrixf(rgm[0].v);
-      glTranslatef(0,0,-3); // in front of your eyes
-      glColor3f(.6,.3,.9);
-      glScalef(4.,1.,9.); // ratios of the Monolith
+      glTranslatef(0, 0, -3); // in front of your eyes
+      glColor3f(.6, .3, .9);
+      glScalef(4., 1., 9.); // ratios of the Monolith
       glutWireCube(.3);
     glPopMatrix();
 
@@ -426,7 +426,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(xyz[0], -.1, xyz[2]); // project
       glScalef(1, 0.01, 1); // squash
-      glScalef(.4,.4,.4);
+      glScalef(.4, .4, .4);
       glMultMatrixf(mRot.v);
       drawHead();
     glPopMatrix();
@@ -435,7 +435,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(xyz[0], 10.1, xyz[2]); // project
       glScalef(1, 0.01, 1); // squash
-      glScalef(.4,.4,.4);
+      glScalef(.4, .4, .4);
       glMultMatrixf(mRot.v);
       drawHead();
     glPopMatrix();
@@ -444,7 +444,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(-5.1, xyz[1], xyz[2]); // project
       glScalef(0.01, 1, 1); // squash
-      glScalef(.4,.4,.4);
+      glScalef(.4, .4, .4);
       glMultMatrixf(mRot.v);
       drawHead();
     glPopMatrix();
@@ -453,7 +453,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(5.1, xyz[1], xyz[2]); // project
       glScalef(0.01, 1, 1); // squash
-      glScalef(.4,.4,.4);
+      glScalef(.4, .4, .4);
       glMultMatrixf(mRot.v);
       drawHead();
     glPopMatrix();
@@ -462,7 +462,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(xyz[0], xyz[1], 5.1); // project
       glScalef(1, 1, 0.01); // squash
-      glScalef(.4,.4,.4);
+      glScalef(.4, .4, .4);
       glMultMatrixf(mRot.v);
       drawHead();
     glPopMatrix();
@@ -491,13 +491,13 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	if (rgButton[i] == 0) {
 	  glColor3f(1, .3, .2);
 	  glutSolidCube(0.5 / cb);
-	  glColor3f(0,0,0);
+	  glColor3f(0, 0, 0);
 	  glutWireCube(0.52 / cb);
 	}
 	else {
 	  glColor3f(.3, 1, .6);
 	  glutSolidCube(0.7 / cb);
-	  glColor3f(0,0,0);
+	  glColor3f(0, 0, 0);
 	  glutWireCube(0.72 / cb);
 	}
 	// 5 buttons per line
@@ -513,9 +513,9 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       // Box for the wand's joystick, in a square.
       const float joy=0.28;
       glLineWidth(3);
-      glTranslatef(0.0 ,joy, 0.0);
+      glTranslatef(0.0 , joy, 0.0);
       glScalef(joy, joy, joy);
-      glColor3f(.8,.4,.3);
+      glColor3f(.8, .4, .3);
       glBegin(GL_LINE_LOOP);
 	glVertex3f( 1,  1, 0);
 	glVertex3f( 1, -1, 0);
@@ -528,7 +528,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	glVertex3f(-1,  0, 0);
 	glVertex3f( 1,  0, 0);
       glEnd();
-      glColor3f(.3,.9,0);
+      glColor3f(.3, .9, 0);
       glPushMatrix();
 	glTranslatef(rgAxis[0], rgAxis[1], 0);
 	drawSliderCube();
@@ -540,10 +540,10 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glLineWidth(2);
     for (i=0; i<ca; ++i) {
       if (rgfjoy32k[i]) {
-	glColor3f(1,.7,0);
+	glColor3f(1, .7, 0);
 	glutPrintf(0, 1.1, 0, "32K" );
       } else {
-	glColor3f(.8,.4,.3);
+	glColor3f(.8, .4, .3);
       }
       glTranslatef(.5, 0, 0);
       glLineWidth(2); // paranoid
@@ -552,7 +552,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	glVertex3f( 0,  1, 0);
       glEnd();
       glPushMatrix();
-	glColor3f(.3,.9,0);
+	glColor3f(.3, .9, 0);
 	glTranslatef(0, rgAxis[i], 0);
 	drawSliderCube();
       glPopMatrix();
@@ -574,7 +574,7 @@ bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
   return true;
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arMasterSlaveFramework fw;
   fw.setStartCallback(callbackStart);
   fw.setDrawCallback(callbackDraw);

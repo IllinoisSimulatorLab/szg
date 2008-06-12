@@ -97,7 +97,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value) {
       !_data->dataIn("indices", &theIndex, AR_INT, 1) ||
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", 0) ||
-      !_data->dataIn("matrices", value.v, AR_FLOAT,16)) {
+      !_data->dataIn("matrices", value.v, AR_FLOAT, 16)) {
     ar_log_error() << "arInputSource: problem in sendMatrix.\n";
   }
   _sendData();

@@ -8,13 +8,13 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
     return szgClient.failStandalone(fInit);
-  
-  if (argc < 2){
+
+  if (argc < 2) {
     cerr << "usage: dbatch filename.xml\n";
     return 1;
   }

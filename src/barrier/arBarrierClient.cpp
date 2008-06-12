@@ -6,19 +6,19 @@
 #include "arPrecompiled.h"
 #include "arBarrierClient.h"
 
-void ar_barrierClientConnection(void* barrierClient){
+void ar_barrierClientConnection(void* barrierClient) {
   ((arBarrierClient*)barrierClient)->_connectionTask();
 }
 
-void arBarrierClient::_connectionTask(){
+void arBarrierClient::_connectionTask() {
   _connectionThreadRunning = true;
-  if (!_client){
+  if (!_client) {
     ar_log_error() << getLabel() << ": barrier client uninitialized.\n";
     _keepRunningThread = false;
     return;
   }
   arSleepBackoff a(7, 50, 1.2);
-  while (_keepRunningThread && !_exitProgram){
+  while (_keepRunningThread && !_exitProgram) {
     a.sleep();
     if (_connected)
       continue;
@@ -33,20 +33,20 @@ void arBarrierClient::_connectionTask(){
       break;
     _connectionThreadRunning = true;
 
-    if (!result.valid){
+    if (!result.valid) {
       ar_log_error() << getLabel() << ": no service '"
            << _serviceName << "' on network '" << _networks << "'.\n";
       continue;
-    } 
+    }
 
     _connected = _dataClient.dialUpFallThrough(result.address, result.portIDs[0]);
-    if (!_connected){
+    if (!_connected) {
       ar_log_error() << getLabel() << " failed to connect to brokered address '"
 	   << result.address << "' for service '"
 	   << _serviceName << "' on network '" << _networks << "'.\n";
     }
 
-    if (_connected && !_handshakeData){
+    if (_connected && !_handshakeData) {
       arTemplateDictionary* d = _dataClient.getDictionary();
       _responseData = new arStructuredData(d, "response");
 
@@ -55,32 +55,32 @@ void arBarrierClient::_connectionTask(){
       BONDED_ID = d->find("handshake")->getAttributeID("bonded ID");
 
       _clientTuningData = new arStructuredData(d, "client tuning");
-      CLIENT_TUNING_DATA = 
+      CLIENT_TUNING_DATA =
 	d->find("client tuning")->getAttributeID("client tuning data");
 
       _serverTuningData = new arStructuredData(d, "server tuning");
-      SERVER_TUNING_DATA = 
+      SERVER_TUNING_DATA =
 	d->find("server tuning")->getAttributeID("server tuning data");
     }
   }
   _connectionThreadRunning = false;
 }
 
-void ar_barrierClientData(void* barrierClient){
+void ar_barrierClientData(void* barrierClient) {
   ((arBarrierClient*)barrierClient)->_dataTask();
 }
 
-void arBarrierClient::_dataTask(){
+void arBarrierClient::_dataTask() {
   _dataThreadRunning = true;
   arSleepBackoff a(1, 10, 1.2);
-  while (_keepRunningThread && !_exitProgram){
-    if (!_connected){
+  while (_keepRunningThread && !_exitProgram) {
+    if (!_connected) {
       a.sleep();
       continue;
     }
     a.reset();
 
-    if (!_dataClient.getData(_dataBuffer, _bufferSize)){
+    if (!_dataClient.getData(_dataBuffer, _bufferSize)) {
       _connected = false;
       _activated = false;
       // must send release (if someone is waiting at a sync barrier,
@@ -88,13 +88,13 @@ void arBarrierClient::_dataTask(){
       _releaseSignal.sendSignal();
       continue;
     }
-    if (ar_rawDataGetID(_dataBuffer) == _handshakeData->getID()){
+    if (ar_rawDataGetID(_dataBuffer) == _handshakeData->getID()) {
       // Round 2 of the handshake.
       arGuard dummy(_activationLock);
       _activationResponse = true;
       _activationVar.signal();
     }
-    else if (ar_rawDataGetID(_dataBuffer) == _serverTuningData->getID()){
+    else if (ar_rawDataGetID(_dataBuffer) == _serverTuningData->getID()) {
       // the server has sent a release packet
       _serverTuningData->unpack(_dataBuffer);
       _serverSendSize = _serverTuningData->getDataInt(SERVER_TUNING_DATA);
@@ -109,7 +109,7 @@ void arBarrierClient::_dataTask(){
   _dataThreadRunning = false;
 }
 
-arBarrierClient::arBarrierClient(){
+arBarrierClient::arBarrierClient() {
   // ;; all these should be initializers, not assignments...
   _serviceName = string("NULL");
   _networks = string("NULL");
@@ -121,7 +121,7 @@ arBarrierClient::arBarrierClient(){
   _procTime = 0;
   _frameNum = 0;
   _serverSendSize = 0;
-  
+
   // set up the TCP sockets who monitor connectivity and
   // provide a way to transmit the 3-way handshake
   // in passive connection mode
@@ -142,7 +142,7 @@ arBarrierClient::arBarrierClient(){
   _finalSyncSent = false;
 }
 
-arBarrierClient::~arBarrierClient(){
+arBarrierClient::~arBarrierClient() {
   //********************************************************************
   // better release the sync call.... this is a bit of a kludge, I know
   //********************************************************************
@@ -151,7 +151,7 @@ arBarrierClient::~arBarrierClient(){
   delete [] _dataBuffer;
 }
 
-bool arBarrierClient::requestActivation(){
+bool arBarrierClient::requestActivation() {
   // could use some internal error checking here...
   // what if the server goes away during the connection handshake?
   if (!_connected)
@@ -162,11 +162,11 @@ bool arBarrierClient::requestActivation(){
     _activationResponse = false;
   _activationLock.unlock();
 
-  _handshakeData->dataIn(BONDED_ID,&_bondedSocketID,AR_INT,1);
+  _handshakeData->dataIn(BONDED_ID, &_bondedSocketID, AR_INT, 1);
   _sendLock.lock();
     const bool ok = _dataClient.sendData(_handshakeData);
   _sendLock.unlock();
-  if (!ok){
+  if (!ok) {
     ar_log_error() << getLabel() << ": requestActivation failed to send data.\n";
     return false;
   }
@@ -178,13 +178,13 @@ bool arBarrierClient::requestActivation(){
   // _activationResponse is set to false above and see the race condition
   // w/ stop(). Consequently, we also need to test for _exitProgram below
   _activationLock.lock();
-    while (!_activationResponse && !_exitProgram){
+    while (!_activationResponse && !_exitProgram) {
       _activationVar.wait(_activationLock);
     }
   _activationLock.unlock();
   // if we pushed through the following wait because of stop()... DO NOT
   // send a response
-  if (!_exitProgram){
+  if (!_exitProgram) {
     // send 3-way handshake completion
     arGuard dummy(_sendLock);
     _dataClient.sendData(_responseData);
@@ -196,48 +196,48 @@ bool arBarrierClient::requestActivation(){
   // finally, it would be a good idea to *reset* the release signal.
   // while it is necessary to send a release signal on disconnect
   // (what if we are waiting in the sync method), we could also *not*
-  // be in the sync call on disconnect, in which case there is a 
+  // be in the sync call on disconnect, in which case there is a
   // spurious release tagged on the next connect (unless we reset the
   // signal as here)
   _releaseSignal.reset();
   return true;
 }
 
-bool arBarrierClient::checkActivation(){
+bool arBarrierClient::checkActivation() {
   return _activated;
 }
 
-bool arBarrierClient::setBondedSocketID(int theID){
+bool arBarrierClient::setBondedSocketID(int theID) {
   // needs error handling
   _bondedSocketID = theID;
   return true;
 }
 
-void arBarrierClient::setServiceName(const string& serviceName){
+void arBarrierClient::setServiceName(const string& serviceName) {
   _serviceName = serviceName;
 }
 
 // A slash-delimited string containing the networks, in order of descending preference,
 // that the object will use to connect to a service
-void arBarrierClient::setNetworks(const string& networks){
+void arBarrierClient::setNetworks(const string& networks) {
   _networks = networks;
 }
 
 // The arSZGClient object is needed later in the connection thread.
-bool arBarrierClient::init(arSZGClient& client){
+bool arBarrierClient::init(arSZGClient& client) {
   _client = &client;
   return true;
 }
 
-bool arBarrierClient::start(){
+bool arBarrierClient::start() {
   _keepRunningThread = true;
   _dataClient.setLabel("syzygy barrier_thread");
   _dataClient.smallPacketOptimize(true);
   return _connectionThread.beginThread(ar_barrierClientConnection, this) &&
-         _dataThread.beginThread(ar_barrierClientData, this); 
+         _dataThread.beginThread(ar_barrierClientData, this);
 }
 
-void arBarrierClient::stop(){
+void arBarrierClient::stop() {
   // make sure we are not blocking on any calls (like requestActivation())
   // this really is somewhat cheesy SO FAR
   _activationLock.lock();
@@ -248,7 +248,7 @@ void arBarrierClient::stop(){
   // so that readDataThread will not block.
   // _sendLock here avoids a race condition in sync().
   _sendLock.lock();
-  _exitProgram = true; 
+  _exitProgram = true;
   _sendLock.unlock();
 
   _activationResponse = true;
@@ -259,10 +259,10 @@ void arBarrierClient::stop(){
   _sendLock.lock();
   // If we have never connected,
   // _clientTuningData is uninitialized and doesn't need to be sent anyway.
-  if (_clientTuningData){
-    _clientTuningData->dataIn(CLIENT_TUNING_DATA,tuningData,AR_INT,4);
+  if (_clientTuningData) {
+    _clientTuningData->dataIn(CLIENT_TUNING_DATA, tuningData, AR_INT, 4);
     // Send only one final sync packet.
-    if (!_finalSyncSent){
+    if (!_finalSyncSent) {
       _dataClient.sendData(_clientTuningData);
       _finalSyncSent = true;
     }
@@ -277,23 +277,23 @@ void arBarrierClient::stop(){
   _releaseSignal.sendSignal();
 
   arSleepBackoff a(8, 20, 1.08);
-  while (_dataThreadRunning || _connectionThreadRunning){
+  while (_dataThreadRunning || _connectionThreadRunning) {
     a.sleep();
   }
 }
 
 void arBarrierClient::setTuningData(int drawTime, int rcvTime,
-				    int procTime, int frameNum){
+				    int procTime, int frameNum) {
   _drawTime = drawTime;
   _rcvTime = rcvTime;
   _procTime = procTime;
   _frameNum = frameNum;
 }
 
-bool arBarrierClient::sync(){
+bool arBarrierClient::sync() {
   // if the object is being told to stop, this call should become NULL
 
-  if (_exitProgram || !_connected || !_activated){
+  if (_exitProgram || !_connected || !_activated) {
     // does it really make sense to return true here????
     return true;
   }
@@ -303,9 +303,9 @@ bool arBarrierClient::sync(){
   // Pack the buffer with the tuning data.
   _sendLock.lock();
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
-  _clientTuningData->dataIn(CLIENT_TUNING_DATA,tuningData,AR_INT,4);
+  _clientTuningData->dataIn(CLIENT_TUNING_DATA, tuningData, AR_INT, 4);
   bool ok = false;
-  if (!_finalSyncSent){
+  if (!_finalSyncSent) {
     ok = _dataClient.sendData(_clientTuningData);
     // NOTE: _exitProgram could have, very easily, been set sometime
     // between the check at the beginning of the function
@@ -313,12 +313,12 @@ bool arBarrierClient::sync(){
     // exactly one send (here and in stop) can occur. Otherwise,
     // multiple release signals to the server will confuse it (in the
     // case of clients going away and reconnecting)
-    if (_exitProgram){
+    if (_exitProgram) {
       _finalSyncSent = true;
     }
   }
   _sendLock.unlock();
-  if (!ok){
+  if (!ok) {
     ar_log_error() << getLabel() << " barrier client failed to sync.\n";
     return false;
   }

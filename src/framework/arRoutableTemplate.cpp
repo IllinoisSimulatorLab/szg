@@ -6,10 +6,10 @@
 #include "arPrecompiled.h"
 #include "arRoutableTemplate.h"
 
-arRoutableTemplate::arRoutableTemplate(const string& name){
+arRoutableTemplate::arRoutableTemplate(const string& name) {
   setName(name);
   add("szg_router_id", AR_INT);
 }
 
-arRoutableTemplate::~arRoutableTemplate(){
+arRoutableTemplate::~arRoutableTemplate() {
 }

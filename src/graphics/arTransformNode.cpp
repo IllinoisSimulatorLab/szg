@@ -6,18 +6,18 @@
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h" // too bad this must be included
 
-arTransformNode::arTransformNode(){
+arTransformNode::arTransformNode() {
   _name = "transform_node";
   _typeCode = AR_G_TRANSFORM_NODE;
   _typeString = "transform";
 }
 
-void arTransformNode::draw(arGraphicsContext*){ 
+void arTransformNode::draw(arGraphicsContext*) {
   arGuard dummy(_nodeLock);
   glMultMatrixf(_transform.v);
 }
 
-bool arTransformNode::receiveData(arStructuredData* inData){
+bool arTransformNode::receiveData(arStructuredData* inData) {
   // Get the name change record, for instance, if sent.
   if (arDatabaseNode::receiveData(inData))
     return true;
@@ -29,13 +29,13 @@ bool arTransformNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-arMatrix4 arTransformNode::getTransform(){
+arMatrix4 arTransformNode::getTransform() {
   arGuard dummy(_nodeLock);
   return _transform;
 }
 
-void arTransformNode::setTransform(const arMatrix4& transform){
-  if (active()){
+void arTransformNode::setTransform(const arMatrix4& transform) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(transform, true);
     _nodeLock.unlock();
@@ -48,15 +48,15 @@ void arTransformNode::setTransform(const arMatrix4& transform){
   }
 }
 
-arStructuredData* arTransformNode::dumpData(){
+arStructuredData* arTransformNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(_transform, false);
 }
 
-arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform, bool owned){
+arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_TRANSFORM);
   _dumpGenericNode(r, _g->AR_TRANSFORM_ID);
-  if (!r->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16)) {
+  if (!r->dataIn(_g->AR_TRANSFORM_MATRIX, transform.v, AR_FLOAT, 16)) {
     delete r;
     return NULL;
   }

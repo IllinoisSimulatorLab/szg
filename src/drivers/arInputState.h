@@ -30,7 +30,7 @@ template <class eventDataType> class arInputDeviceMap {
     bool getEventOffset( const unsigned iDevice, unsigned& offset ) const;
     void addInputDevice( const unsigned numEvents,
                          vector<eventDataType>& dataSpace );
-    bool remapInputEvents( const unsigned iDevice, 
+    bool remapInputEvents( const unsigned iDevice,
                            const unsigned newNumEvents,
                            vector<eventDataType>& dataSpace );
   private:
@@ -94,11 +94,11 @@ class SZG_CALL arInputState {
     bool saveToBuffers( int* const buttonBuf,
                         float* const axisBuf,
                         float* const matrixBuf ) const;
-                        
+
     void updateLastButtons();
     void updateLastButton( const unsigned index );
 
-  private:    
+  private:
     void _init();
 
     // Call  setX and  getX only while unlocked.
@@ -122,14 +122,14 @@ class SZG_CALL arInputState {
     vector<float> _axes;
     vector<arMatrix4> _matrices;
     vector<int> _lastButtons;
-    
+
     // Map multiple inputs to a single event index space.
     arInputDeviceMap<int> _buttonInputMap;
     arInputDeviceMap<float> _axisInputMap;
     arInputDeviceMap<arMatrix4> _matrixInputMap;
 
     mutable arLock _l;
-};  
+};
 
 ostream& operator<<(ostream& os, const arInputState& inp );
 
@@ -137,7 +137,7 @@ template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberEvents() const {
   return accumulate( _deviceNumEvents.begin(), _deviceNumEvents.end(), 0 );
 }
-  
+
 template <class eventDataType>
 unsigned arInputDeviceMap<eventDataType>::getNumberDeviceEvents(
     const unsigned iDevice) const {
@@ -200,7 +200,7 @@ bool arInputDeviceMap<eventDataType>::remapInputEvents(
     // difference < 0
     dataSpace.erase( dataSpace.begin()+devOffset+newNumEvents,
                      dataSpace.begin()+devOffset+oldNumEvents );
-  }   
+  }
   for (unsigned i=iDevice+1; i<_deviceEventOffsets.size(); i++)
     _deviceEventOffsets[i] += difference;
   _deviceNumEvents[iDevice] = newNumEvents;

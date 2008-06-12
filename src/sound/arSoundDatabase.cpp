@@ -9,12 +9,12 @@
 
 arSoundDatabase::arSoundDatabase() :
   _renderMode(mode_fmod),
-  _path(new list<string>(1,"") /* local dir */ )
+  _path(new list<string>(1, "") /* local dir */ )
 {
   // todo: initializers.  (unless these two fail in red hat 8, like other nodes)
   _typeCode = AR_SOUND_DATABASE;
   _typeString = "sound";
-  
+
   _lang = (arDatabaseLanguage*)&_langSound;
   if (!_initDatabaseLanguage())
     return;
@@ -23,7 +23,7 @@ arSoundDatabase::arSoundDatabase() :
   arDataTemplate* t = _lang->find("sound_admin");
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arSoundDatabase::_processAdmin;
-  
+
   // External storage for parsing.
   arTemplateDictionary* d = _langSound.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -35,12 +35,12 @@ arSoundDatabase::arSoundDatabase() :
       !filewavData   || !*filewavData   ||
       !playerData    || !*playerData    ||
       !speechData    || !*speechData    ||
-      !streamData    || !*streamData){
+      !streamData    || !*streamData) {
     ar_log_error() << "arSoundDatabase: incorrect dictionary.\n";
   }
 }
 
-arSoundDatabase::~arSoundDatabase(){
+arSoundDatabase::~arSoundDatabase() {
   if (transformData)
     delete transformData;
   if (filewavData)
@@ -53,18 +53,18 @@ arSoundDatabase::~arSoundDatabase(){
     delete streamData;
 }
 
-arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData, bool refNode){
+arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData, bool refNode) {
   return arDatabase::alter(inData, refNode);
 }
 
-void arSoundDatabase::reset(){
+void arSoundDatabase::reset() {
   arDatabase::reset();
 
   // Delete wavfiles.
-  for (map<string,arSoundFile*,less<string> >::iterator
+  for (map<string, arSoundFile*, less<string> >::iterator
         i(_filewavNameContainer.begin());
        i != _filewavNameContainer.end();
-       ++i){
+       ++i) {
     delete i->second;
   }
   _filewavNameContainer.clear();
@@ -72,21 +72,21 @@ void arSoundDatabase::reset(){
 
 string arSoundDatabase::getPath() const {
   arGuard dummy(_pathLock);
-  if (_path->empty()){
+  if (_path->empty()) {
     return string("NULL");
   }
 
   string s;
   for (list<string>::const_iterator i = _path->begin(); i!=_path->end(); i++) {
-    if (*i != ""){
-      s += *i + ";"; 
+    if (*i != "") {
+      s += *i + ";";
     }
   }
   return s;
 }
-    
+
 // Only arSoundClient, not arSoundServer, should ever call setPath().
-void arSoundDatabase::setPath(const string& thePath){
+void arSoundDatabase::setPath(const string& thePath) {
   // Parse the path.
   const int length = thePath.length();
   string dir; // always search local directory
@@ -95,7 +95,7 @@ void arSoundDatabase::setPath(const string& thePath){
   arGuard dummy(_pathLock); // probably called in a thread other than the data handling
   delete _path;
   _path = new list<string>(1, dir);
-  for (int nextChar=0; nextChar < length; ){
+  for (int nextChar=0; nextChar < length; ) {
     dir = ar_pathToken(thePath, nextChar); // updates nextChar
     if (dir == "NULL")
       continue;
@@ -110,15 +110,15 @@ void arSoundDatabase::setPath(const string& thePath){
 // Client and server may be different machines, mounting different disks).
 
 // Only arSoundClient, not arSoundServer, should ever call addFile().
-arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
+arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop) {
   if (_server) {
     // arDatabase is a server.  Nothing to do.
     return NULL;
   }
 
-  const map<string,arSoundFile*,less<string> >::const_iterator
+  const map<string, arSoundFile*, less<string> >::const_iterator
     iFind(_filewavNameContainer.find(name));
-  if (iFind != _filewavNameContainer.end()){
+  if (iFind != _filewavNameContainer.end()) {
     return iFind->second;
   }
 
@@ -127,10 +127,10 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   string s; // potential filename
   vector<string> triedPaths;
   map<string, string, less<string> >::const_iterator iter(_bundlePathMap.find(_bundlePathName));
-  if (_bundlePathName != "NULL" && _bundleName != "NULL" && iter != _bundlePathMap.end()){
+  if (_bundlePathName != "NULL" && _bundleName != "NULL" && iter != _bundlePathMap.end()) {
     // Bundle path.
     arSemicolonString bundlePath(iter->second);
-    for (int n=0; n<bundlePath.size() && !fDone; n++){
+    for (int n=0; n<bundlePath.size() && !fDone; n++) {
       s = bundlePath[n];
       ar_pathAddSlash(s);
       s += _bundleName;
@@ -144,7 +144,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
 
   // Sound path.
   _pathLock.lock();
-  for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i){
+  for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i) {
     s = *i + name;
     ar_scrubPath(s);
     triedPaths.push_back( s );
@@ -152,11 +152,11 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   }
   _pathLock.unlock();
   static bool fComplained = false;
-  if (!fDone){
+  if (!fDone) {
     if (!theFile->dummy()) {
       ar_log_error() << "arSoundDatabase failed to create dummy sound.\n";
     }
-    if (!fComplained){
+    if (!fComplained) {
       fComplained = true;
       ar_log_error() << "arSoundDatabase: no soundfile '" << name << "'. Tried ";
       std::vector<std::string>::iterator iter;
@@ -168,11 +168,11 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   }
   triedPaths.clear();
   _filewavNameContainer.insert(
-    map<string,arSoundFile*,less<string> >::value_type(name, theFile));
-  return theFile; 
+    map<string, arSoundFile*, less<string> >::value_type(name, theFile));
+  return theFile;
 }
 
-void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
+void arSoundDatabase::setPlayTransform(arSpeakerObject* s) {
   arDatabaseNode* n = getNode("szg_player", false);
   float unitConversion = 1.;
   arMatrix4 mHead;
@@ -180,8 +180,8 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
   if (n) {
     arStructuredData* pdata = n->dumpData();
     const bool ok =
-      pdata->dataOut(_langSound.AR_PLAYER_MATRIX,mHead.v,AR_FLOAT,16) &&
-      pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion,AR_FLOAT,1);
+      pdata->dataOut(_langSound.AR_PLAYER_MATRIX, mHead.v, AR_FLOAT, 16) &&
+      pdata->dataOut(_langSound.AR_PLAYER_UNIT_CONVERSION, &unitConversion, AR_FLOAT, 1);
     if (!ok)
       ar_log_error() << "arSoundDatabase: bogus head or unitConversion.\n";
     delete pdata; // dumpData() allocated it.
@@ -199,7 +199,7 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
 // Copy of OpenGL's matrix stack, for sound rendering.
 stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 
-bool arSoundDatabase::render(){
+bool arSoundDatabase::render() {
   ar_transformStack.push(arMatrix4());
     //ar_mutex_lock(&_eraseLock);
     const bool ok = _render((arSoundNode*)&_rootNode);
@@ -208,7 +208,7 @@ bool arSoundDatabase::render(){
   return ok;
 }
 
-bool arSoundDatabase::_render(arSoundNode* node){
+bool arSoundDatabase::_render(arSoundNode* node) {
   const bool fTransform = node->getTypeCode() == AR_S_TRANSFORM_NODE;
   if (fTransform)
     ar_transformStack.push(ar_transformStack.top());
@@ -218,7 +218,7 @@ bool arSoundDatabase::_render(arSoundNode* node){
 
   // Use _children, not getChildren(), to avoid copying the whole list.
   const list<arDatabaseNode*>& children = node->_children;
-  for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i){
+  for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i) {
     ok &= _render((arSoundNode*)*i);
   }
   if (fTransform)
@@ -226,7 +226,7 @@ bool arSoundDatabase::_render(arSoundNode* node){
   return ok;
 }
 
-arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
+arDatabaseNode* arSoundDatabase::_makeNode(const string& type) {
   if (type=="transform")
     return (arDatabaseNode*) new arSoundTransformNode();
   if (type=="fileWav")
@@ -241,7 +241,7 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
   return NULL;
 }
 
-arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
+arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data) {
   const string name(data->getDataString("name"));
   const arSlashString bundleInfo(name);
   if (bundleInfo.size() == 2) {

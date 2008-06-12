@@ -14,7 +14,7 @@
 #include <iostream>
 using namespace std;
 
-typedef map<string,arDataTemplate*,less<string> > arTemplateType;  
+typedef map<string, arDataTemplate*, less<string> > arTemplateType;
 
 // Collection of arDataTemplate objects.
 
@@ -43,7 +43,7 @@ class SZG_CALL arTemplateDictionary{
    // FORTUNATELY, THAT ONLY OCCURS IN arMasterSlaveDataRouter...
    int size() const;
    void pack(ARchar*) const;
-   bool unpack(ARchar*,arStreamConfig);  
+   bool unpack(ARchar*, arStreamConfig);
    bool unpack(ARchar* buf)
      { return unpack(buf, ar_getLocalStreamConfig()); };
    void dump();
@@ -51,13 +51,13 @@ class SZG_CALL arTemplateDictionary{
  private:
    arTemplateType _templateContainer;
 
-   typedef map<string,bool,less<string> > arOwnerType;
+   typedef map<string, bool, less<string> > arOwnerType;
    arOwnerType _ownershipContainer;
 
-   typedef map<int,arDataTemplate*,less<int> > arTemplat2Type;
+   typedef map<int, arDataTemplate*, less<int> > arTemplat2Type;
    arTemplat2Type _templateIDContainer;
    int _numberTemplates;
    bool _addNoSetID(arDataTemplate*);
 };
-   
+
 #endif

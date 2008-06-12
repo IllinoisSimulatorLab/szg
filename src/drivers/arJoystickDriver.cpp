@@ -18,7 +18,7 @@
 
 DriverFactory(arJoystickDriver, "arInputSource")
 
-void ar_joystickDriverEventTask(void* joystickDriver){
+void ar_joystickDriverEventTask(void* joystickDriver) {
   ((arJoystickDriver*)joystickDriver)->_eventTask();
 }
 
@@ -28,10 +28,10 @@ void arJoystickDriver::_eventTask() {
   while (!_shutdown) {
     // NOTE: THERE IS A SHUTDOWN BUG IN HERE! Specifically, we are relying
     // on the device producing an event to get us out of this loop!
-    // Consequently, the linux arJoystickDriver DOES NOT shut down in an 
+    // Consequently, the linux arJoystickDriver DOES NOT shut down in an
     // orderly fashion.
     read(_fd, &js, sizeof(js_event));
-    switch (js.type & ~JS_EVENT_INIT){
+    switch (js.type & ~JS_EVENT_INIT) {
     case JS_EVENT_BUTTON:
       sendButton(js.number, js.value);
       // js.value is 0 or 1, experimentally determined
@@ -47,8 +47,8 @@ void arJoystickDriver::_eventTask() {
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
 	MMRESULT result;
-	int i,j;
-	DWORD flags[MAX_AXES] = { JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ, 
+	int i, j;
+	DWORD flags[MAX_AXES] = { JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ,
 				  JOY_RETURNR, JOY_RETURNU, JOY_RETURNV };
 	DWORD pos[MAX_AXES];
 	int value, change;
@@ -112,19 +112,19 @@ void arJoystickDriver::_eventTask() {
       sendQueue();
     }
   }
-  
+
 #else
 // Poll pStick.
   memset(&_jsPrev, 0, sizeof(_jsPrev));
-  while (!_shutdown){
+  while (!_shutdown) {
     ar_usleep(10000); // 100 Hz
-    if (FAILED(_pStick->Poll())){
+    if (FAILED(_pStick->Poll())) {
       cerr << "DirectInput poll failed.\n";
       break;
     }
     DIJOYSTATE2	js;
     int rc = _pStick->GetDeviceState(sizeof(js), &js);
-    if (FAILED(rc)){
+    if (FAILED(rc)) {
       cerr << "DirectInput GetDeviceState failed.\n";
       break;
     }
@@ -133,9 +133,9 @@ void arJoystickDriver::_eventTask() {
     // js.lR[xyz] are rotation axes.
     // js.rglSlider[2] might be rotation axes as well, with some joysticks.
     // js.rgdwPOV[0] is 8-way hat-switch, 0 to 36000 in hundredths of a degree.
-    // Implement hatswitch later as a single button, 
+    // Implement hatswitch later as a single button,
     // which has one of nine values...
-    // js.rgbButtons[0..9] are the switches, 0==off, 128==on.  
+    // js.rgbButtons[0..9] are the switches, 0==off, 128==on.
     // (We convert to 0 or 1.)
 
     if (!_fFirst && memcmp(&js, &_jsPrev, sizeof(js)) == 0)
@@ -203,10 +203,10 @@ arJoystickDriver::arJoystickDriver() :
 }
 
 
-bool arJoystickDriver::init(arSZGClient& szgClient){
+bool arJoystickDriver::init(arSZGClient& szgClient) {
   // Many gamepads have 6 axes and 10 buttons in 2007.  Default generously.
-  int sig[3] = {10,6,0};
-  if (!szgClient.getAttributeInts("SZG_JOYSTICK","signature",sig,3)) {
+  int sig[3] = {10, 6, 0};
+  if (!szgClient.getAttributeInts("SZG_JOYSTICK", "signature", sig, 3)) {
     sig[0] = 10;
     sig[1] = 6;
     sig[2] = 0;
@@ -222,9 +222,9 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
 
 #ifdef AR_USE_LINUX
   _fd = open("/dev/js0", O_RDONLY);
-  if (_fd < 0){
+  if (_fd < 0) {
     _fd = open("/dev/input/js0", O_RDONLY);
-    if (_fd < 0){
+    if (_fd < 0) {
       ar_log_error() << "arJoystickDriver failed to open /dev/js0 or /dev/input/js0\n";
       // bug: should keep retrying js1... like kam3:wandcassatt/cavewand.c does.
       return false;
@@ -234,7 +234,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
 
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
-	int	i,j;
+	int i, j;
 	int maxDevices;
 	int numDevices;
 	JOYINFOEX joyInfo;
@@ -267,7 +267,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
 	}
   _numJoysticks = numDevices;
   ar_log_critical() << "Found " << _numJoysticks << " joysticks.\n";
-  
+
   for (j=0; j<_numJoysticks; ++j) {
     struct JoystickInfo* joystick = _joysticks+j;
     joystick->index = j;
@@ -302,14 +302,14 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     ar_log_critical() << "Joystick #" << j << " has " << joystick->numButtons
                       << " buttons and " << joystick->numAxes << " axes.\n";
   }
-  
+
 #else
   // Initialize pStick.
   IDirectInput* pDI = NULL;
   _pStick = NULL;
   DirectInputCreate(GetModuleHandle(NULL), DIRECTINPUT_VERSION, &pDI, NULL);
   DIDEVICEINSTANCE dev;
-  if (FAILED(pDI->EnumDevices(DIDEVTYPE_JOYSTICK, DIDevCallback, &dev,  
+  if (FAILED(pDI->EnumDevices(DIDEVTYPE_JOYSTICK, DIDevCallback, &dev,
       DIEDFL_ATTACHEDONLY))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 1.\n";
     return false;
@@ -319,16 +319,16 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     << dev.tszInstanceName << "', product '" << dev.tszProductName << "'.\n";
   // e.g. "Joystick 2" and "Microsoft SideWinder Freestyle Pro (USB)" respectively.
 
-  if (FAILED(pDI->CreateDevice(dev.guidInstance, 
-                               (IDirectInputDevice**)&_pStick, NULL))){ 
+  if (FAILED(pDI->CreateDevice(dev.guidInstance,
+                               (IDirectInputDevice**)&_pStick, NULL))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 2.\n";
-    return false; 
+    return false;
   }
   if (!_pStick)
     return false;
-  if (FAILED(_pStick->SetDataFormat(&c_dfDIJoystick2))){ 
+  if (FAILED(_pStick->SetDataFormat(&c_dfDIJoystick2))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 3.\n";
-    return false; 
+    return false;
   }
   _pStick->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
 
@@ -340,12 +340,12 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   range.diph.dwObj = DIJOFS_X;
   range.lMax = 32767;
   range.lMin = -32768;
-  if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))){
+  if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 4.\n";
     return false;
   }
   range.diph.dwObj = DIJOFS_Y;
-  if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))){
+  if (FAILED(_pStick->SetProperty(DIPROP_RANGE, &range.diph))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 5.\n";
     return false;
   }
@@ -355,11 +355,11 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   dw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
   dw.diph.dwHow = DIPH_DEVICE;
   dw.diph.dwObj = 0;
-  if (FAILED(_pStick->SetProperty(DIPROP_AXISMODE, &dw.diph))){
+  if (FAILED(_pStick->SetProperty(DIPROP_AXISMODE, &dw.diph))) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 6.\n";
     return false;
   }
-  if (FAILED(_pStick->Acquire())){
+  if (FAILED(_pStick->Acquire())) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 7.\n";
     return false;
   }
@@ -369,16 +369,16 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
   return true;
 }
 
-bool arJoystickDriver::start(){
-  return _eventThread.beginThread(ar_joystickDriverEventTask,this);
+bool arJoystickDriver::start() {
+  return _eventThread.beginThread(ar_joystickDriverEventTask, this);
 }
 
-bool arJoystickDriver::stop(){
+bool arJoystickDriver::stop() {
   // Windows probably needs a clean shutdown
   _shutdown = true;
   arGuard dummy(_shutdownLock);
   // Wait for thread to end
-  while (!_pollingDone){
+  while (!_pollingDone) {
     _shutdownVar.wait(_shutdownLock);
   }
   ar_log_debug() << "arJoystickDriver polling thread done.\n";

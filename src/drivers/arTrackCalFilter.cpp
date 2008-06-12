@@ -26,13 +26,13 @@ arTrackCalFilter::~arTrackCalFilter() {
 bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   unsigned long i = 0;
   float floatBuf[3] = {0};
-  
+
   // This part is still a bit hokey.
   // y_rot_angle_deg is just a correction for the sensor on the goggles
   // not pointing straight ahead.  At some point we'll do this more formally.
   // y_filter_weight determines behavior of an IIR filter (y(i) = (1-w)y(i) + wy(i-1))
   // applied to the head vertical position to remove jitter.
-  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
+  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR", "IIR_filter_weights", floatBuf, 3)) {
     for (i=0; i<3; i++) {
       if ((floatBuf[i] < 0)||(floatBuf[i] >= 1)) {
         ar_log_error() << "arTrackCalFilter SZG_MOTIONSTAR/IIR_filter_weight value " << floatBuf[i]
@@ -46,7 +46,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
          << _filterWeights[0] << ", " << _filterWeights[1]
          << ", " << _filterWeights[2] << " ).\n";
   }
-    
+
   // copypasted about 30 lines with drivers/arPForthDatabaseVocabulary.cpp TrackCalAction::configure
   const string dataPath = szgClient->getDataPath();
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
@@ -71,7 +71,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
     fclose(fp);
     return false;
   }
-  
+
   // BIG grab
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];

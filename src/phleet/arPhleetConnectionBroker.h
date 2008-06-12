@@ -71,7 +71,7 @@ class SZG_CALL arPhleetServiceRequest{
   int    match;        // "async rpc" message matcher
   string serviceName;  // requested service's name
   string networks;     // networks on which the requester
-                       // can communicate, slash-delimited list 
+                       // can communicate, slash-delimited list
 };
 
 // the connection broker must keep track of which ports have what status on
@@ -89,10 +89,8 @@ class SZG_CALL arBrokerComputerData{
   int       blockSize; // the size of the current reserved block
 };
 
-// for each active component which has come to the attention of the connection
-// broker, we need to store some info. This is especially important when
-// a component exits somehow and we need to adjust the various global
-// lists.
+// Store info for each active component which has come to the attention of the connection
+// broker.  Especially when a component exits and global lists need to be adjusted.
 class SZG_CALL arBrokerComponentData{
  public:
   arBrokerComponentData() : computer("NULL") {}
@@ -109,14 +107,14 @@ class SZG_CALL arBrokerComponentData{
   list<int>    usedPorts;      // ports to which this component has bound
 };
 
-// without typedefs, the STL code can get very,very verbose
-typedef map<string,arBrokerComputerData,less<string> > SZGComputerData;
-typedef map<int,arBrokerComponentData,less<int> >      SZGComponentData;
-typedef map<string,arPhleetService,less<string> >      SZGServiceData;
+// Abbreviations.
+typedef map<string, arBrokerComputerData, less<string> > SZGComputerData;
+typedef map<int, arBrokerComponentData, less<int> >      SZGComponentData;
+typedef map<string, arPhleetService, less<string> >      SZGServiceData;
 typedef list<arPhleetServiceRequest>                   SZGRequestList;
 
 // Manages connection brokering services for the szgserver. This code
-// could actually go in szgserver.cpp, but that file is getting too 
+// could actually go in szgserver.cpp, but that file is getting too
 // complicated. An important long term strategy would be to create more
 // managers like this one (for instance for messages, locks, and the
 // database)
@@ -124,22 +122,22 @@ class SZG_CALL arPhleetConnectionBroker{
  public:
   arPhleetConnectionBroker();
 
-  void setReleaseNotificationCallback(void(*callback)(int,int,const string&))
+  void setReleaseNotificationCallback(void(*callback)(int, int, const string&))
     { _releaseNotificationCallback = callback; }
-  arPhleetService requestPorts(int componentID, const string& serviceName, 
+  arPhleetService requestPorts(int componentID, const string& serviceName,
                                const string& computer, const string& networks,
-                               const string& addresses, int size, 
+                               const string& addresses, int size,
                                int firstPort, int blockSize);
   arPhleetService retryPorts(int componentID, const string& serviceName);
   bool confirmPorts(int componentID, const string& serviceName);
   string getServiceInfo(const string& serviceName) const;
-  bool setServiceInfo(const int componentID, 
+  bool setServiceInfo(const int componentID,
                       const string& serviceName,
                       const string& info);
   bool checkService(const string& serviceName) const;
-  arPhleetAddress requestService(int componentID, const string& computer, 
+  arPhleetAddress requestService(int componentID, const string& computer,
                                  int match,
-                                 const string& serviceName, 
+                                 const string& serviceName,
                                  const arSlashString& networks, bool async);
   SZGRequestList  getPendingRequests(const string& serviceName);
   SZGRequestList  getPendingRequests() const;
@@ -147,14 +145,14 @@ class SZG_CALL arPhleetConnectionBroker{
   arSlashString getServiceComputers() const;
   int    getServiceComponents(int*& IDs) const;
   int    getServiceComponentID(const string& serviceName) const;
-  void   registerReleaseNotification(int componentID, 
+  void   registerReleaseNotification(int componentID,
                                      int match,
                                      const string& computer,
 				     const string& serviceName);
   void _removeService(const string& serviceName);
   void removeComponent(int componentID);
   void print() const;
-  
+
  private:
   SZGComputerData  _computerData;
   SZGComponentData _componentData;
@@ -162,7 +160,7 @@ class SZG_CALL arPhleetConnectionBroker{
   SZGServiceData   _usedServices;
   SZGRequestList   _requestedServices;
   mutable arLock _l;
-  void (*_releaseNotificationCallback)(int,int,const string&);
+  void (*_releaseNotificationCallback)(int, int, const string&);
 
   void _resizeComputerPorts(arBrokerComputerData& computer,
                             const int first, const int size);

@@ -71,7 +71,7 @@ bool arDeviceServerFramework::init( int& argc, char** argv, string forcedName ) 
   }
 
   // by this point all args except for the app name and the output slot
-  // _must_ have been removed from (argc,argv).
+  // _must_ have been removed from (argc, argv).
   if (argc != 2) {
     _printUsage();
     return false;
@@ -140,7 +140,7 @@ bool arDeviceServerFramework::_configureInputNode() {
 }
 
 bool arDeviceServerFramework::_addNetInput() {
-  if (_fNetInput){
+  if (_fNetInput) {
     arNetInputSource* implicitNetInputSource = new arNetInputSource();
     if (!implicitNetInputSource) {
       ar_log_error() << "arDeviceServerFramework::loadInputSources out of memory.\n";

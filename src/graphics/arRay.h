@@ -17,7 +17,7 @@ class SZG_CALL arBoundingSphere{
   arBoundingSphere(): radius(0), visibility(false) {}
   arBoundingSphere(const arVector3& pos, float rad) : radius(rad), position(pos) {}
   arBoundingSphere(const arBoundingSphere&);
-  ~arBoundingSphere(){}
+  ~arBoundingSphere() {}
 
   // Assumes that m maps spheres to spheres (scaling is uniform).
   void transform(const arMatrix4& m);
@@ -38,10 +38,10 @@ class SZG_CALL arBoundingSphere{
 
 class SZG_CALL arRay{
  public:
-  arRay(){}
+  arRay() {}
   arRay(const arVector3& o, const arVector3& d): origin(o), direction(d) {}
   arRay(const arRay&);
-  ~arRay(){}
+  ~arRay() {}
 
   void transform(const arMatrix4&);
 

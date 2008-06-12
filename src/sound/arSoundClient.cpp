@@ -98,11 +98,11 @@ dspHRTFCIPIC_state dspHRTF;
 
 FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     FMOD_DSP_STATE* /*pState*/,
-    float *  bufSrc, 
-    float *  bufDst, 
-    unsigned cSamp, 
-    int  inchannels, 
-    int  outchannels){
+    float *  bufSrc,
+    float *  bufDst,
+    unsigned cSamp,
+    int  inchannels,
+    int  outchannels) {
 
   arSoundClient* g = __globalSoundClient; // abbreviation
   unsigned iSamp;
@@ -183,7 +183,7 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
       // Incorrectly assumes inchannels is 2, outchannels is 1.
       g->_waveDataPtr[iSamp] = 14000*(bufSrc[inchannels*iSamp] + bufSrc[inchannels*iSamp +1]);
     }
-    for (iSamp=0; iSamp<cSamp*inchannels; iSamp++){
+    for (iSamp=0; iSamp<cSamp*inchannels; iSamp++) {
       bufDst[iSamp] = bufSrc[iSamp];
     }
     g->relayWaveform(); // Forward buffer to the next DSP in the chain.
@@ -193,23 +193,23 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
 }
 #endif
 
-void ar_soundClientWaveformConnectionTask(void* soundClient){
+void ar_soundClientWaveformConnectionTask(void* soundClient) {
   arSoundClient* s = (arSoundClient*) soundClient;
   while (s->_dataServer.acceptConnection()) {
   }
 }
 
-bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
+bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*) {
   return true;
 }
- 
-bool ar_soundClientDisconnectCallback(void* client){
+
+bool ar_soundClientDisconnectCallback(void* client) {
   ar_log_remark() << "disconnected.\n";
 
   // Delete the bundle path, which is unique to each connection so
   // an app's sound files be other than "on the sound path."
   arSoundClient* c = (arSoundClient*)client;
-  c->setDataBundlePath("NULL","NULL");
+  c->setDataBundlePath("NULL", "NULL");
   c->reset();
 
   // Call skipConsumption from arSyncDataClient, not from here.
@@ -225,17 +225,17 @@ arSoundClient::arSoundClient():
 #ifdef EnableSound
   _recordChannel(NULL),
 #endif
-  _microphoneVolume(0){
+  _microphoneVolume(0) {
   // Set up the language.
-  _waveTemplate.add("data",AR_FLOAT);
+  _waveTemplate.add("data", AR_FLOAT);
   _dspLanguage.add(&_waveTemplate);
   _waveData = new arStructuredData(&_waveTemplate);
 
-  // Allocate enough storage. 
-  _waveData->setDataDimension("data",1024);
+  // Allocate enough storage.
+  _waveData->setDataDimension("data", 1024);
 
   // Locally cache the unchanging data ptr.
-  _waveDataPtr = (float*) _waveData->getDataPtr("data",AR_FLOAT);
+  _waveDataPtr = (float*) _waveData->getDataPtr("data", AR_FLOAT);
   _cliSync.setConnectionCallback(ar_soundClientConnectionCallback);
   _cliSync.setDisconnectCallback(ar_soundClientDisconnectCallback);
   _cliSync.setConsumptionCallback(ar_soundClientConsumptionCallback);
@@ -248,7 +248,7 @@ arSoundClient::arSoundClient():
   __globalSoundClient = this;
 }
 
-void arSoundClient::terminateSound(){
+void arSoundClient::terminateSound() {
 #ifdef EnableSound
   if (!_fSilent) {
     FMOD_System_Release( ar_fmod() );
@@ -256,12 +256,12 @@ void arSoundClient::terminateSound(){
 #endif
 }
 
-arSoundClient::~arSoundClient(){
+arSoundClient::~arSoundClient() {
   // Don't delete _speakerObject, since we don't own it.
   delete _waveData;
 }
 
-bool arSoundClient::configure(arSZGClient* cli){
+bool arSoundClient::configure(arSZGClient* cli) {
   setPath(cli->getAttribute("SZG_SOUND", "path"));
 
   string renderMode(cli->getAttribute("SZG_SOUND", "render",
@@ -291,20 +291,20 @@ bool arSoundClient::configure(arSZGClient* cli){
   return true;
 }
 
-bool ar_soundClientActionCallback(void* client){
+bool ar_soundClientActionCallback(void* client) {
   return ((arSoundClient*)client)->_render();
 }
 
-bool ar_soundClientPostSyncCallback(void*){
+bool ar_soundClientPostSyncCallback(void*) {
   // todo: with a local timer, call it no more than every 20 msec.
   return ar_fmodcheck( FMOD_System_Update( ar_fmod() ) );
 }
 
-bool ar_soundClientNullCallback(void*){
+bool ar_soundClientNullCallback(void*) {
   return true;
 }
 
-bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
+bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer) {
   arSoundClient* c = (arSoundClient*) client;
   if (!c->_soundDatabase.handleDataQueue(buffer)) {
     ar_log_error() << "failed to consume buffer.\n";
@@ -321,29 +321,29 @@ bool arSoundClient::_render() {
 
 // Sets the networks on which the arSoundClient will attempt to connect to the
 // server, in order of descending preference
-void arSoundClient::setNetworks(string networks){
+void arSoundClient::setNetworks(string networks) {
   _cliSync.setNetworks(networks);
 }
 
-bool arSoundClient::start(arSZGClient& client){
+bool arSoundClient::start(arSZGClient& client) {
   // Register the service for sending out the waveform, if possible.
   const string serviceName(client.createComplexServiceName("SZG_WAVEFORM"));
   int port = -1;
-  if (client.registerService(serviceName,"sound",1,&port)){
+  if (client.registerService(serviceName, "sound", 1, &port)) {
     _dataServer.setPort(port);
     _dataServer.setInterface("INADDR_ANY");
     // TODO TODO TODO TODO TODO TODO TODO TODO TODO
     // This material is cut-and-pasted from many other locations...
-    for (int trials=0; trials < 10; ++trials){
-      if (_dataServer.beginListening(&_dspLanguage)){
-	client.confirmPorts(serviceName,"sound",1,&port);
+    for (int trials=0; trials < 10; ++trials) {
+      if (_dataServer.beginListening(&_dspLanguage)) {
+	client.confirmPorts(serviceName, "sound", 1, &port);
 	_connectionThread.beginThread(ar_soundClientWaveformConnectionTask, this);
 	// We registered the service.
 	_dataServerRegistered = true;
         break;
       }
       ar_log_error() << "failed to listen on brokered port.\n";
-      client.requestNewPorts(serviceName,"input",1,&port);
+      client.requestNewPorts(serviceName, "input", 1, &port);
     }
     // If no success, just let this feature go.
   }
@@ -352,11 +352,11 @@ bool arSoundClient::start(arSZGClient& client){
   return _cliSync.init(client) && _cliSync.start();
 }
 
-string arSoundClient::processMessage(const string& type, 
-				     const string& body){
+string arSoundClient::processMessage(const string& type,
+				     const string& body) {
   if (type == "szg_sound_stream_info")
-    return _processStreamInfo(body); 
-  
+    return _processStreamInfo(body);
+
   // We need a way to say that the message type is not
   // supported. There will have to be a general message processing
   // mechanism for RPC... Without RPC, we could just have message handlers
@@ -372,7 +372,7 @@ const string& arSoundClient::getLabel() const {
   return s == "arSyncDataClient" ? noname : s;
 }
 
-bool arSoundClient::startDSP(){
+bool arSoundClient::startDSP() {
   if (_dspStarted)
     return true;
   _dspStarted = true;
@@ -423,21 +423,21 @@ bool arSoundClient::startDSP(){
 #endif
 }
 
-void arSoundClient::relayWaveform(){
+void arSoundClient::relayWaveform() {
   if (_dspTap)
     _dspTap(_waveDataPtr);
 
-  if (_dataServerRegistered){
+  if (_dataServerRegistered) {
     // Post the data to the network.
     _dataServer.sendData(_waveData);
   }
 }
 
-void arSoundClient::setDSPTap(void (*callback)(float*)){
+void arSoundClient::setDSPTap(void (*callback)(float*)) {
   _dspTap = callback;
 }
 
-bool arSoundClient::microphoneVolume(int volume){
+bool arSoundClient::microphoneVolume(int volume) {
   _microphoneVolume = (volume < 0) ? 0 : (volume > 255) ? 255 : volume;
 #ifdef EnableSound
   if (_recordChannel) {
@@ -453,7 +453,7 @@ bool arSoundClient::microphoneVolume(int volume){
   return true;
 }
 
-bool arSoundClient::_initSound(){
+bool arSoundClient::_initSound() {
 #ifndef EnableSound
   ar_log_error() << "silent, compiled with stub FMOD.\n";
   return false;
@@ -470,7 +470,7 @@ bool arSoundClient::_initSound(){
   const float rolloff = 0.008; // .8 is faint, 70 feet away.  .008 is much more gradual.
   const int numVirtualVoices = 40;
   return ar_fmodcheck( FMOD_System_Set3DSettings( ar_fmod(), 1.0, feetNotMeters, rolloff )) &&
-         ar_fmodcheck( FMOD_System_Init( ar_fmod(), 
+         ar_fmodcheck( FMOD_System_Init( ar_fmod(),
              numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0 ));
 
   // ar_fmodcheck(ar_fmod()->setOutput(FMOD_OUTPUTTYPE_AUTODETECT));
@@ -480,16 +480,16 @@ bool arSoundClient::_initSound(){
 #endif
 }
 
-string arSoundClient::_processStreamInfo(const string& body){
+string arSoundClient::_processStreamInfo(const string& body) {
   int nodeID = -1;
-  if (!ar_stringToIntValid(body, nodeID)){
+  if (!ar_stringToIntValid(body, nodeID)) {
     ar_log_error() << "stream_info message had invalid ID.\n";
     return string("SZG_ERROR");
   }
 
   // getNode() may be unsafe here when database nodes are deleted, or even added.
   arDatabaseNode* node = _soundDatabase.getNode(nodeID);
-  if (!node || node->getTypeCode() != AR_S_STREAM_NODE){
+  if (!node || node->getTypeCode() != AR_S_STREAM_NODE) {
     ar_log_error() << "stream_info message found no node.\n";
     return string("SZG_ERROR");
   }

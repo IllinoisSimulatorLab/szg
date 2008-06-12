@@ -8,7 +8,7 @@
 // Each sublibrary of Syzygy defines or undefines SZG_IMPORT_LIBRARY.
 // So undefine it here.
 #undef SZG_IMPORT_LIBRARY
-#ifndef SZG_COMPILING_LANGUAGE 
+#ifndef SZG_COMPILING_LANGUAGE
 #define SZG_IMPORT_LIBRARY
 #endif
 

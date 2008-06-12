@@ -23,9 +23,9 @@ class arWinSockHelper{
     _lock.lock();
     // If we do not need to initialize, return true.
     bool ok = true;
-    if (!_fInit){
+    if (!_fInit) {
       ok = ar_winSockInit();
-      if (!ok){
+      if (!ok) {
         ar_log_error() << "WinSock failed to initialize.\n";
       }
       _fInit = true;
@@ -39,13 +39,13 @@ class arWinSockHelper{
   arLock _lock;
 };
 
-bool ar_winSockHelper(){
+bool ar_winSockHelper() {
   static arWinSockHelper h;
   return h.init();
 }
 #endif
 
-arCommunicator::arCommunicator(){
+arCommunicator::arCommunicator() {
 #ifdef AR_USE_WIN_32
   (void) ar_winSockHelper();
 #endif
@@ -59,13 +59,13 @@ arSocket::arSocket(int type) : _type(type), _ID(-1) {
 #else
   _socketFD = -1;
 #endif
-  if (_type != AR_LISTENING_SOCKET && _type != AR_STANDARD_SOCKET){
+  if (_type != AR_LISTENING_SOCKET && _type != AR_STANDARD_SOCKET) {
     ar_log_error() << "arSocket ignoring unexpected type " << _type << ".\n";
     _type = AR_STANDARD_SOCKET;
   }
 }
 
-arSocket::~arSocket(){
+arSocket::~arSocket() {
   //**********************************************************************
   // This is causing problems on IRIX, specifically when we've issued
   // a blocking-read call on a socket in another thread, the close
@@ -76,11 +76,11 @@ arSocket::~arSocket(){
   //ar_close();
 }
 
-void arSocket::setID(int theID){
+void arSocket::setID(int theID) {
   _ID = theID;
 }
 
-int arSocket::ar_create(){
+int arSocket::ar_create() {
 #ifdef AR_USE_WIN_32
   _socketFD = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (_socketFD == INVALID_SOCKET)
@@ -96,58 +96,58 @@ int arSocket::ar_create(){
   return 0;
 }
 
-bool arSocket::setReceiveBufferSize(int size){
+bool arSocket::setReceiveBufferSize(int size) {
   if (setsockopt(_socketFD, SOL_SOCKET, SO_RCVBUF, (char*)&size,
-                 sizeof(int)) < 0){
+                 sizeof(int)) < 0) {
     perror("arSocket error: setReceiveBufferSize failed");
     return false;
   }
   return true;
 }
 
-bool arSocket::setSendBufferSize(int size){
+bool arSocket::setSendBufferSize(int size) {
   if (setsockopt(_socketFD, SOL_SOCKET, SO_SNDBUF, (char*)&size,
-                 sizeof(int)) < 0){
+                 sizeof(int)) < 0) {
     perror("arSocket error: setSendBufferSize failed");
     return false;
   }
   return true;
 }
 
-bool arSocket::smallPacketOptimize(bool flag){
+bool arSocket::smallPacketOptimize(bool flag) {
   const int parameter = flag ? 1 : 0;
   if (setsockopt(_socketFD, IPPROTO_TCP, TCP_NODELAY, (const char*)&parameter,
-                 sizeof(int)) < 0){
+                 sizeof(int)) < 0) {
     perror("arSocket error: smallPacketOptimize failed");
     return false;
   }
   return true;
 }
 
-bool arSocket::reuseAddress(bool flag){
+bool arSocket::reuseAddress(bool flag) {
   const int parameter = flag ? 1 : 0;
   if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, (const char*)&parameter,
-                 sizeof(int)) < 0){
+                 sizeof(int)) < 0) {
     perror("arSocket error: reuseAddress failed");
     return false;
   }
   return true;
 }
 
-int arSocket::ar_connect(const char* IPaddress, int port){
-  if (_type != AR_STANDARD_SOCKET){
+int arSocket::ar_connect(const char* IPaddress, int port) {
+  if (_type != AR_STANDARD_SOCKET) {
     return -1;
   }
   // ar_log_debug() << "arSocket connecting to " << IPaddress << ":" << port << ".\n";
   sockaddr_in servAddr;
-  memset(&servAddr,0,sizeof(servAddr));
+  memset(&servAddr, 0, sizeof(servAddr));
   servAddr.sin_family = AF_INET;
   servAddr.sin_port = htons(port);
 #ifdef AR_USE_WIN_32
   servAddr.sin_addr.S_un.S_addr = inet_addr(IPaddress);
   const int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
 #else
-  inet_pton(AF_INET,IPaddress,&(servAddr.sin_addr)); 
+  inet_pton(AF_INET, IPaddress, &(servAddr.sin_addr));
   const int fOriginal = fcntl(_socketFD, F_GETFL, NULL);
   fcntl(_socketFD, F_SETFL, fOriginal | O_NONBLOCK);
 
@@ -226,14 +226,14 @@ LError:
   return ok;
 }
 
-int arSocket::ar_bind(const char* IPaddress, int port){
-  if (_type != AR_LISTENING_SOCKET){
+int arSocket::ar_bind(const char* IPaddress, int port) {
+  if (_type != AR_LISTENING_SOCKET) {
     ar_log_error() << "arSocket: ar_bind() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
 
   sockaddr_in servAddr;
-  memset(&servAddr,0,sizeof(servAddr));
+  memset(&servAddr, 0, sizeof(servAddr));
   servAddr.sin_family = AF_INET;
   servAddr.sin_port = htons(port);
 #ifdef AR_USE_WIN_32
@@ -255,8 +255,8 @@ int arSocket::ar_bind(const char* IPaddress, int port){
   return err;
 }
 
-int arSocket::ar_listen(int queueSize){
-  if (_type != AR_LISTENING_SOCKET){
+int arSocket::ar_listen(int queueSize) {
+  if (_type != AR_LISTENING_SOCKET) {
     ar_log_error() << "arSocket: ar_listen() needs an AR_LISTENING_SOCKET.\n";
     return -1;
   }
@@ -264,7 +264,7 @@ int arSocket::ar_listen(int queueSize){
 }
 
 // If addr != NULL, stuff it with who we accepted a connection from.
-int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
+int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr) {
   if (!communicationSocket) {
     ar_log_error() << "arSocket can't accept on null socket.\n";
     return -1;
@@ -273,12 +273,12 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
 
   // must be called by a listening socket and operate on a standard socket
   if (_type != AR_LISTENING_SOCKET ||
-      communicationSocket->_type != AR_STANDARD_SOCKET){
+      communicationSocket->_type != AR_STANDARD_SOCKET) {
     ar_log_error() << "arSocket: ar_accept() needs an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
     return -1;
   }
 
-  if (_socketFD < 0){
+  if (_socketFD < 0) {
     ar_log_error() << "arSocket: ar_accept() got a bad _socketFD.\n" <<
       "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
     return -1;
@@ -292,7 +292,7 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
         (socklen_t*)
 #endif
             socketAddress.getAddressLengthPtr());
-    if (communicationSocket->_socketFD < 0){
+    if (communicationSocket->_socketFD < 0) {
       ar_log_error() << "arSocket: accept() failed: ";
       perror("");
       return -1;
@@ -313,9 +313,9 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
 
 int arSocket::ar_read(char* theData, const int numBytes) const {
 #ifdef AR_USE_WIN_32
-  return recv(_socketFD,theData,numBytes,0);
+  return recv(_socketFD, theData, numBytes, 0);
 #else
-  return read(_socketFD,theData,numBytes);
+  return read(_socketFD, theData, numBytes);
 #endif
 }
 
@@ -340,11 +340,11 @@ bool arSocket::writable(const ar_timeval& timeout) const {
 }
 
 bool arSocket::readable() const {
-  return readable(ar_timeval(0,0));
+  return readable(ar_timeval(0, 0));
 }
 
 bool arSocket::writable() const {
-  return writable(ar_timeval(0,0));
+  return writable(ar_timeval(0, 0));
 }
 
 #ifndef AR_USE_WIN_32
@@ -377,20 +377,20 @@ ioctl(_socketFD, SIOCSIFTXQLEN, &ifr);
 cerr << "attempt #2: queue length == " << ifr.ifr_qlen << endl;
 
 //cat /proc/net/tcp
-//sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode                               
-//0: 2A7F7E82:271A 2A7F7E82:10B2 01 00002F08:00002000 01:00000042 00000002 12159        0 318758                              
-//1: 2A7F7E82:10B2 2A7F7E82:271A 01 00001B00:00000000 01:00000056 00000003 12159        0 318761                              
+//sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode
+//0: 2A7F7E82:271A 2A7F7E82:10B2 01 00002F08:00002000 01:00000042 00000002 12159        0 318758
+//1: 2A7F7E82:10B2 2A7F7E82:271A 01 00001B00:00000000 01:00000056 00000003 12159        0 318761
 }
 #endif
 
-  return write(_socketFD,theData,numBytes);
+  return write(_socketFD, theData, numBytes);
 #else
   // Win32
-  return send(_socketFD,theData,numBytes,0);
+  return send(_socketFD, theData, numBytes, 0);
 #endif
 }
 
-int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout){
+int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout) {
   const bool fTimeout = usecTimeout > 0.;
   const ar_timeval tStart = ar_time();
   ++_usageCount;
@@ -410,11 +410,11 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
       a.reset();
     }
     const int n = ar_read(theData, numBytes);
-    if (n <= 0) { 
+    if (n <= 0) {
       //  <0: failed to read from socket.
       // ==0: socket closed, but caller wants still more bytes.
       --_usageCount;
-      return false; 
+      return false;
       }
     numBytes -= n;
     theData += n;
@@ -423,7 +423,7 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
   return true;
 }
 
-int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecTimeout){
+int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecTimeout) {
   const bool fTimeout = usecTimeout > 0.;
   const ar_timeval tStart = ar_time();
   ++_usageCount;
@@ -442,7 +442,7 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
       }
       a.reset();
     }
-    const int n = ar_write(theData,numBytes);
+    const int n = ar_write(theData, numBytes);
     if (n<0) {
       // an error in writing to the socket
       --_usageCount;
@@ -455,17 +455,17 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
   return true;
 }
 
-int arSocket::getUsageCount(){
+int arSocket::getUsageCount() {
   return _usageCount;
 }
 
-void arSocket::ar_close(){
+void arSocket::ar_close() {
 #ifdef AR_USE_WIN_32
-  if (_socketFD != INVALID_SOCKET){
+  if (_socketFD != INVALID_SOCKET) {
     closesocket(_socketFD);
   }
 #else
-  if (_socketFD != -1){
+  if (_socketFD != -1) {
     close(_socketFD);
   }
 #endif

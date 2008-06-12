@@ -40,7 +40,7 @@ class SZG_CALL arDataServer : public arDataPoint {
      { return _portNumber; }
    const string& getInterface() const
      { return _interfaceIP; }
-   
+
    // delete a connection (whatever that means)
    bool removeConnection(int id);
    // accept a single new connection
@@ -48,28 +48,28 @@ class SZG_CALL arDataServer : public arDataPoint {
      { return _acceptConnection(true); };
    // accept a single new connection... but do not add to the sending list yet
    arSocket* acceptConnectionNoSend()
-     { return _acceptConnection(false); };  
+     { return _acceptConnection(false); };
    // add the passive sockets to the send queue
-   void activatePassiveSockets(); 
+   void activatePassiveSockets();
    void activatePassiveSocket(int);
    // are there any passive sockets?
    bool checkPassiveSockets();
    list<arSocket*>* getActiveSockets();
-           
+
    // Send data to all connected clients.
    bool sendData(arStructuredData*);
    bool sendDataQueue(arQueuedData*);
-  
+
    // Send data to someone in particular.
-   bool sendData(arStructuredData*,arSocket*); 
-   bool sendDataNoLock(arStructuredData*,arSocket*);
-   bool sendDataQueue(arQueuedData*,arSocket*);
+   bool sendData(arStructuredData*, arSocket*);
+   bool sendDataNoLock(arStructuredData*, arSocket*);
+   bool sendDataQueue(arQueuedData*, arSocket*);
 
    // Send data to a group of someone's in particular.
-   bool sendDataQueue(arQueuedData*,list<arSocket*>*);
+   bool sendDataQueue(arQueuedData*, list<arSocket*>*);
 
    void setConsumerFunction
-     (void (*consumerFunction)(arStructuredData*,void*,arSocket*));
+     (void (*consumerFunction)(arStructuredData*, void*, arSocket*));
    void setConsumerObject(void*);
 
    int getNumberConnected() const       // passive and active connections
@@ -78,7 +78,7 @@ class SZG_CALL arDataServer : public arDataPoint {
      { return _numberConnectedActive; }
 
    void setDisconnectFunction
-     (void (*disconnectFunction)(void*,arSocket*));
+     (void (*disconnectFunction)(void*, arSocket*));
    void setDisconnectObject(void*);
 
    // For the database of labels, and choosing a connection based on a given ID
@@ -93,7 +93,7 @@ class SZG_CALL arDataServer : public arDataPoint {
    int dialUpFallThrough(const string& s, int port);
 
    // Restrict connections to certain IPs (see arSocket and arSocketAddress).
-   void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
+   void setAcceptMask(list<string>& mask) { _acceptMask = mask; }
 
  private:
    string _interfaceIP;
@@ -106,10 +106,10 @@ class SZG_CALL arDataServer : public arDataPoint {
    int _numberConnected;
    int _numberConnectedActive;
    int _nextID;  // The next socket will get this ID.
-   map<int,string,less<int> >         _connectionLabels;  // all communications points have
+   map<int, string, less<int> >         _connectionLabels;  // all communications points have
                                                           // a text label.
-   map<int,arSocket*,less<int> >      _connectionIDs;     // map from ID to comm point
-   map<int,arStreamConfig,less<int> > _connectionConfigs; // remote stream's binary data format
+   map<int, arSocket*, less<int> >      _connectionIDs;     // map from ID to comm point
+   map<int, arStreamConfig, less<int> > _connectionConfigs; // remote stream's binary data format
 
    // Helpers for _connectionLabels and _connectionIDs
    void _addSocketLabel(arSocket*, const string&);
@@ -131,9 +131,9 @@ class SZG_CALL arDataServer : public arDataPoint {
    list<arSocket*> _pendingConsumers;
    arLock _lockConsume; // Serialize data consumption.
 
-   void (*_consumerFunction)(arStructuredData*,void*,arSocket*);
+   void (*_consumerFunction)(arStructuredData*, void*, arSocket*);
    void* _consumerObject;
-   void (*_disconnectFunction)(void*,arSocket*);
+   void (*_disconnectFunction)(void*, arSocket*);
    void* _disconnectObject;
 
    bool _atomicReceive;

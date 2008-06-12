@@ -16,7 +16,7 @@ using namespace std;
 
 class SZG_CALL arLaunchInfo {
  public:
-  arLaunchInfo(){}
+  arLaunchInfo() {}
   arLaunchInfo(const string& a, const string& b, const string& c) :
     computer(a), process(b), context(c) {}
   arLaunchInfo(const string& a, const string& b, const string& c,
@@ -57,8 +57,8 @@ class SZG_CALL arAppLauncher {
   bool setRenderProgram(const string&);
   bool setAppType(const string&);
   bool setVircomp();
-  bool setVircomp(const string& vircomp); 
-  string getVircomp() const { return _vircomp; }   
+  bool setVircomp(const string& vircomp);
+  string getVircomp() const { return _vircomp; }
   string getLocation() const { return _location; }
 
   bool connectSZG(int& argc, char** argv);

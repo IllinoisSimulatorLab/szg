@@ -25,9 +25,9 @@ class SZG_CALL arOBJMaterial {
  public:
   arOBJMaterial() :
     Ns(60),
-    Kd(arVector3(1,1,1)),
-    Ks(arVector3(0,0,0)),
-    Ka(arVector3(.2,.2,.2)),
+    Kd(arVector3(1, 1, 1)),
+    Ks(arVector3(0, 0, 0)),
+    Ka(arVector3(.2, .2, .2)),
     map_Kd("none"),
     map_Bump("none"),
     map_Opacity("none")
@@ -58,7 +58,7 @@ class arOBJRenderer;
 
 // Representation of a .OBJ file.
 class SZG_CALL arOBJ : public arObject {
-  friend class arOBJRenderer; 
+  friend class arOBJRenderer;
   public:
 
     arOBJ();
@@ -108,7 +108,7 @@ class SZG_CALL arOBJ : public arObject {
     int  _thisMaterial;  // the material being used
     int  _thisSG;        // the smoothing group in use now
     int  _thisGroup;     // current group
-    
+
     // data
     vector<arVector3>	_vertex;	// Vertices
     vector<arVector3>	_normal;	// Normals
@@ -178,7 +178,7 @@ class SZG_CALL arOBJRenderer {
     string _subdirectory;
     string _searchPath;
     vector<arVector3> _vertices;
-    vector<arMaterial> _materials; 
+    vector<arMaterial> _materials;
     vector<arTexture*> _textures;
     vector<bool> _fOpacityMap;
     vector<arOBJGroupRenderer*> _renderGroups;

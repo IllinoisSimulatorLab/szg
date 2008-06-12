@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -33,12 +33,12 @@ int main(int argc, char** argv){
   int count = 0;
   ar_timeval timePrev;
   while (szgClient.running()) {
-    while (!barrierClient.checkConnection()){
+    while (!barrierClient.checkConnection()) {
       ar_usleep(100000);
     }
 
     // Connected to the barrier server.
-    if (!barrierClient.checkActivation()){
+    if (!barrierClient.checkActivation()) {
       barrierClient.requestActivation();
       count = 0;
       timePrev = ar_time();
@@ -46,10 +46,10 @@ int main(int argc, char** argv){
     if (!barrierClient.sync())
       cerr << "BarrierClient warning: sync failed.\n";
     const int countMax = 1000;
-    if (++count == countMax){
+    if (++count == countMax) {
       const ar_timeval timeNow = ar_time();
       count = 0;
-      cout << "Barrier sync averages " 
+      cout << "Barrier sync averages "
            << ar_difftime(timeNow, timePrev) / float(countMax)
 	   << " usec.\n";
       timePrev = ar_time();

@@ -71,22 +71,22 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
   _setDeviceElements( 0, 0, 1 );
   const unsigned comPortID = static_cast<unsigned>
     (SZGClient.getAttributeInt("SZG_LOGITECH", "com_port"));
-  if (!_comPort.ar_open( comPortID, 19200, 8, 1, "none" )){
+  if (!_comPort.ar_open( comPortID, 19200, 8, 1, "none" )) {
     ar_log_error() << "arLogitechDriver failed to open serial port " << comPortID << ".\n";
     return false;
   }
   ar_log_debug() << "arLogitechDriver opened serial port.\n";
 
-  if (!_comPort.setReadTimeout(10)){
+  if (!_comPort.setReadTimeout(10)) {
     ar_log_error() << "arLogitechDriver failed to set 1-second timeout for COM port.\n";
     return false;
   }
-  
+
   _woken = _reset() && _runDiagnostics();
   return _woken;
 }
 
-bool arLogitechDriver::start(){
+bool arLogitechDriver::start() {
   if (!_woken) {
     ar_log_error() << "arLogitechDriver ignoring start() before init().\n";
     return false;
@@ -99,7 +99,7 @@ bool arLogitechDriver::start(){
   return true;
 }
 
-bool arLogitechDriver::stop(){
+bool arLogitechDriver::stop() {
   _stopped = true;
   arSleepBackoff a(10, 20, 1.1);
   while (_eventThreadRunning) {
@@ -111,7 +111,7 @@ bool arLogitechDriver::stop(){
       return false;
     }
     _woken = false;
-    ar_log_debug() << "arLogitechDriver stopped.\n";   
+    ar_log_debug() << "arLogitechDriver stopped.\n";
   }
   return true;
 }
@@ -162,7 +162,7 @@ bool arLogitechDriver::_runDiagnostics() {
          << "   (# bytes read = " << bytesRead << ").\n";
     return false;
   }
-//  printf("%x %x\n",(int)_dataBuffer[0],_dataBuffer[1]);
+//  printf("%x %x\n", (int)_dataBuffer[0], _dataBuffer[1]);
 //  cerr << (int)_dataBuffer[0] << ", " << (int)_dataBuffer[1] << "\n";
   const unsigned char aByte( ~_dataBuffer[0] );
   const unsigned char bByte( ~_dataBuffer[1] );
@@ -210,7 +210,7 @@ bool arLogitechDriver::_update() {
     const unsigned numUsed = numElements*ELEMENT_SIZE;
     const unsigned numLeft = _charsInBuffer - numUsed;
     for (i=0; i<numLeft; ++i) {
-      _dataBuffer[i] = _dataBuffer[i+numUsed]; 
+      _dataBuffer[i] = _dataBuffer[i+numUsed];
     }
     _charsInBuffer = numLeft;
   }
@@ -266,8 +266,8 @@ void arLogitechDriver::_convertSendData( char* record ) {
   const float yAngle = ar_convertToRad( ((float) ary) / 40.0 );
   const float zAngle = ar_convertToRad( ((float) arz) / 40.0 );
 
-  sendMatrix( ar_translationMatrix(x,y,z) *
-     ar_rotationMatrix('y',yAngle) *
-     ar_rotationMatrix('x',xAngle) *
-     ar_rotationMatrix('z',zAngle) );
+  sendMatrix( ar_translationMatrix(x, y, z) *
+     ar_rotationMatrix('y', yAngle) *
+     ar_rotationMatrix('x', xAngle) *
+     ar_rotationMatrix('z', zAngle) );
 }

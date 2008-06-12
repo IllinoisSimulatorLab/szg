@@ -52,7 +52,7 @@ arGUIKeyInfo::arGUIKeyInfo( arGUIEventType eventType, arGUIState state,
 arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_KEY_EVENT ) {
+  if ( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_KEY_EVENT ) {
     ar_log_error() << "arGUIKeyInfo: not an AR_KEY_EVENT.\n";
     return;
   }
@@ -77,7 +77,7 @@ arGUIMouseInfo::arGUIMouseInfo( arGUIEventType eventType, arGUIState state,
 arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_MOUSE_EVENT ) {
+  if ( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_MOUSE_EVENT ) {
     ar_log_error() << "arGUIMouseInfo: not an AR_MOUSE_EVENT.\n";
     return;
   }
@@ -106,7 +106,7 @@ arGUIWindowInfo::arGUIWindowInfo( arGUIEventType eventType, arGUIState state,
 arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_WINDOW_EVENT ) {
+  if ( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_WINDOW_EVENT ) {
     ar_log_error() << "arGUIWindowInfo: not an AR_WINDOW_EVENT.\n";
     return;
   }

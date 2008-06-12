@@ -136,7 +136,7 @@ arPForthProgram::~arPForthProgram() {
   _transientActions.clear();
   _actionList.clear();
 }
-  
+
 arPForth::arPForth():
   anonymousActionsAreTransient(true),
   _program(NULL) {
@@ -195,7 +195,7 @@ bool arPForth::addSimpleActionWord(
   addCompiler( compiler );
   return addDictionaryEntry( arPForthSpace::arPForthDictionaryEntry( theWord, compiler ) );
 }
-  
+
 float arPForth::stackPop() {
   if (_theStack.empty())
     throw arPForthSpace::arPForthException("stack underflow.");
@@ -253,7 +253,7 @@ float arPForth::getDataValue( long address ) {
 
 void arPForth::putDataValue( long address, const float val ) {
   testFailAddress( address, 1 );
-  _dataSpace[address] = val;  
+  _dataSpace[address] = val;
 }
 
 arMatrix4 arPForth::getDataMatrix( long address ) {

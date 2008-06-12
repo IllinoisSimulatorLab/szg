@@ -13,23 +13,23 @@ arTextureNode::arTextureNode():
   _width(0),
   _height(0),
   _texture(NULL),
-  _locallyHeldTexture(true){
+  _locallyHeldTexture(true) {
   _name = "texture_node";
   // Does not compile on RedHat 8 if these are not in the constructor's body.
   _typeCode = AR_G_TEXTURE_NODE;
   _typeString = "texture";
 }
 
-arTextureNode::~arTextureNode(){
+arTextureNode::~arTextureNode() {
   // The only thing to do is to remove our reference to the arTexture.
   // This will result in it being deleted if we are the only object
   // still referencing it.
-  if (_texture){
+  if (_texture) {
     _texture->unref();
   }
 }
 
-bool arTextureNode::receiveData(arStructuredData* inData){
+bool arTextureNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_TEXTURE, inData->getID(), "arTextureNode"))
     return false;
 
@@ -39,7 +39,7 @@ bool arTextureNode::receiveData(arStructuredData* inData){
   // based on a resource handle or is based on a bitmap.
   if (inData->getDataDimension(_g->AR_TEXTURE_WIDTH) == 0) {
     _alpha = inData->getDataInt(_g->AR_TEXTURE_ALPHA);
-    if (_texture){
+    if (_texture) {
       _texture->unref();
     }
     // addTexture() returns an already ref'd pointer.
@@ -60,8 +60,8 @@ bool arTextureNode::receiveData(arStructuredData* inData){
 // If alpha is < 0, then no alpha blending. This is the default.
 // If alpha is >= 0, then the low order 3 bytes of alpha are interpreted
 // as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
-void arTextureNode::setFileName(const string& fileName, int alpha){
-  if (active()){
+void arTextureNode::setFileName(const string& fileName, int alpha) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
     _nodeLock.unlock();
@@ -81,8 +81,8 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
   }
 }
 
-void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
-  if (active()){
+void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha) {
+  if (active()) {
     _nodeLock.lock();
     arStructuredData* r =
       _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
@@ -97,20 +97,20 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
   }
 }
 
-arStructuredData* arTextureNode::dumpData(){
+arStructuredData* arTextureNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(
-      _fileName, _alpha, _width, _height, 
+      _fileName, _alpha, _width, _height,
       _texture ? _texture->getPixels() : NULL,
       false);
 }
 
 arStructuredData* arTextureNode::_dumpData(
     const string& fileName, int alpha, int width, int height,
-    const char* pixels, bool owned){
+    const char* pixels, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_TEXTURE);
   _dumpGenericNode(r, _g->AR_TEXTURE_ID);
-  if (fileName != ""){
+  if (fileName != "") {
     // Tell the remote node to not render pixels.
     r->setDataDimension(_g->AR_TEXTURE_WIDTH, 0);
     // Don't send unnecessary pixels.
@@ -133,7 +133,7 @@ arStructuredData* arTextureNode::_dumpData(
     const int bytesPerPixel = alpha ? 4 : 3;
     const int cPixels = width * height * bytesPerPixel;
     r->setDataDimension(_g->AR_TEXTURE_PIXELS, cPixels);
-    if (cPixels > 0){
+    if (cPixels > 0) {
       ARchar* outPixels = (ARchar*)r->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR);
       // There must be a _texture.
       memcpy(outPixels, pixels, cPixels);
@@ -142,7 +142,7 @@ arStructuredData* arTextureNode::_dumpData(
   return r;
 }
 
-void arTextureNode::_addLocalTexture(int alpha, int width, int height, char* pixels){
+void arTextureNode::_addLocalTexture(int alpha, int width, int height, char* pixels) {
   _width = width;
   _height = height;
   _alpha = alpha;

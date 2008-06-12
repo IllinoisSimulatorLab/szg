@@ -17,7 +17,7 @@
 #endif
 
 // todo: use initializers
-arPhleetConfig::arPhleetConfig(){
+arPhleetConfig::arPhleetConfig() {
   _computerName = string("NULL");
   _numberInterfaces = 0;
   _numNetworks = 0;
@@ -32,24 +32,24 @@ arPhleetConfig::arPhleetConfig(){
 }
 
 // \todo Unify the callers' error messages, they differ wildly at the moment.
-// Parse the config file into internal storage, returning 
+// Parse the config file into internal storage, returning
 // true iff successful. Note the logic about which config file to parse.
-bool arPhleetConfig::read(){
+bool arPhleetConfig::read() {
   if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
   arFileTextStream configStream;
-  if (!configStream.ar_open(_configFileLocation.c_str())){
+  if (!configStream.ar_open(_configFileLocation.c_str())) {
     return false;
   }
 
   // clear internal storage
   _networkList.clear();
 
-  // sadly, this is actually normal... 
+  // sadly, this is actually normal...
   // Bug: arStructuredDataParser should distinguish between end-of-file and error.
   arStructuredData* data = NULL;
-  while ((data = _fileParser->parse(&configStream)) != NULL){
+  while ((data = _fileParser->parse(&configStream)) != NULL) {
     const int ID = data->getID();
     if (ID == _l.AR_COMPUTER)
       _processComputerRecord(data);
@@ -68,18 +68,18 @@ bool arPhleetConfig::read(){
 
 // Write info to the appropriate config
 // file location (depending on the alternative config vs. actual config)
-bool arPhleetConfig::write(){
+bool arPhleetConfig::write() {
   if (!determineFileLocations( _configFileLocation, _loginFileLocation )) {
     ar_log_error() << "failed to write config file.\n";
     return false;
   }
 
   FILE* config = fopen(_configFileLocation.c_str(), "w");
-  if (!config){
+  if (!config) {
     ar_log_error() << "failed to write config file '" << _configFileLocation << "'.\n";
     return false;
   }
-  
+
   _writeName(config);
   _writeInterfaces(config);
   _writePorts(config);
@@ -97,17 +97,17 @@ bool arPhleetConfig::write(){
 // Try to read in the login-file szg_<user name>.conf.
 // It may not be an error if this file does not exist on a
 // particular computer (the user might not have logged in yet).
-bool arPhleetConfig::readLogin(bool fFromInit){
+bool arPhleetConfig::readLogin(bool fFromInit) {
   if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
   arFileTextStream loginStream;
-  if (!loginStream.ar_open(_loginFileLocation)){
+  if (!loginStream.ar_open(_loginFileLocation)) {
     // Caller's responsible for printing warnings.
     return false;
   }
   arStructuredData* data = _fileParser->parse(&loginStream);
-  if (!data || data->getID() != _l.AR_LOGIN){
+  if (!data || data->getID() != _l.AR_LOGIN) {
     // there must be exactly one login record in the file
     return false;
   }
@@ -139,12 +139,12 @@ bool arPhleetConfig::readLogin(bool fFromInit){
 }
 
 // Write the login file, szg_<user name>.conf.
-bool arPhleetConfig::writeLogin(){
+bool arPhleetConfig::writeLogin() {
   if (!determineFileLocations( _configFileLocation, _loginFileLocation ))
     return false;
 
-  FILE* login = fopen(_loginFileLocation.c_str(),"w");
-  if (!login){
+  FILE* login = fopen(_loginFileLocation.c_str(), "w");
+  if (!login) {
     ar_log_error() << "failed to write login file '" << _loginFileLocation << "'.\n";
     return false;
   }
@@ -164,8 +164,8 @@ bool arPhleetConfig::writeLogin(){
 // Print human-readable config file information
 bool arPhleetConfig::print() const {
   cout << "computer = " << _computerName << "\n";
-  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i){
-    cout << "network  = " << i->first << ", " << i->second.address 
+  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i) {
+    cout << "network  = " << i->first << ", " << i->second.address
 	 << "/" << i->second.mask  << "\n";
   }
   cout << "ports    = " << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
@@ -184,7 +184,7 @@ bool arPhleetConfig::printLogin() const {
 // interfaces used by this computer, or empty string if there are none.
 arSlashString arPhleetConfig::getAddresses() const {
   arSlashString result;
-  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i) {
     result /= i->second.address;
   }
   return result;
@@ -197,7 +197,7 @@ arSlashString arPhleetConfig::getAddresses() const {
 // form slices of a given "interface" structure.
 arSlashString arPhleetConfig::getNetworks() const {
   arSlashString result;
-  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i) {
     result /= i->first;
   }
   return result;
@@ -212,7 +212,7 @@ arSlashString arPhleetConfig::getNetworks() const {
 // idea that some of these interfaces might be of a different sort entirely.
 arSlashString arPhleetConfig::getMasks() const {
   arSlashString result;
-  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i) {
     result /= i->second.mask;
   }
   return result;
@@ -233,7 +233,7 @@ string arPhleetConfig::getBroadcast(const string& mask, const string& address) c
 }
 
 string arPhleetConfig::getBroadcast(const int index) const {
-  
+
   if (index >= _numNetworks) {
     ar_log_error() << "config file specifies only " << _numNetworks <<
       " networks, not " << index << ".\n";
@@ -249,7 +249,7 @@ string arPhleetConfig::getBroadcast(const int index) const {
 
 // Set the computer name internally (you have to invoke write
 // explicitly to write this change out to disk).
-void arPhleetConfig::setComputerName(const string& name){
+void arPhleetConfig::setComputerName(const string& name) {
   _computerName = name;
 }
 
@@ -258,20 +258,20 @@ void arPhleetConfig::setComputerName(const string& name){
 // not exist, add a pair to the list;  otherwise, alter the address.
 void arPhleetConfig::addInterface(const string& networkName,
 					const string& address,
-                                        const string& netmask){
+                                        const string& netmask) {
   bool result = true; // don't know if it is a duplicate yet
   for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
-       i != _networkList.end(); i++){
-    if (networkName == i->first){
+       i != _networkList.end(); i++) {
+    if (networkName == i->first) {
       result = false;
       i->second.address = address;
       i->second.mask = netmask;
       break; // no need to search further
     }
   }
-  if (result){
+  if (result) {
     // Found no match.
-    _networkList.push_back( pair<string,arInterfaceDescription>(networkName,
+    _networkList.push_back( pair<string, arInterfaceDescription>(networkName,
       arInterfaceDescription(address, netmask)));
     // This is the only place _networkList grows.
     ++_numNetworks;
@@ -283,9 +283,9 @@ void arPhleetConfig::addInterface(const string& networkName,
 // network name/ address does not describe an existing interface and
 // returns true otherwise.
 bool arPhleetConfig::deleteInterface(const string& networkName,
-					   const string& address){
-  for (iNet i = _networkList.begin(); i != _networkList.end(); ++i){
-    if (i->first == networkName && i->second.address == address){
+					   const string& address) {
+  for (iNet i = _networkList.begin(); i != _networkList.end(); ++i) {
+    if (i->first == networkName && i->second.address == address) {
       _networkList.erase(i);
       return true; // no need to search further
     }
@@ -299,12 +299,12 @@ bool arPhleetConfig::deleteInterface(const string& networkName,
 // explicitly to write this change out to disk). Returns false if
 // the port block description is nonsensical somehow (for instance
 // the block size is less than 1) and returns true otherwise.
-bool arPhleetConfig::setPortBlock(int firstPort, int blockSize){
+bool arPhleetConfig::setPortBlock(int firstPort, int blockSize) {
   if (firstPort < 1024) {
     ar_log_error() << "arPhleetConfig: port-block starts below 1024.\n";
     return false;
   }
-  if (blockSize < 1){
+  if (blockSize < 1) {
     ar_log_error() << "arPhleetConfig: less than 1 port in block, " << blockSize << ".\n";
     return false;
   }
@@ -314,50 +314,50 @@ bool arPhleetConfig::setPortBlock(int firstPort, int blockSize){
 }
 
 // Sets the internal user name
-void arPhleetConfig::setUserName(string name){
+void arPhleetConfig::setUserName(string name) {
   _userName = name;
 }
 
 // Sets the internal szgserver name
-void arPhleetConfig::setServerName(string name){
+void arPhleetConfig::setServerName(string name) {
   _serverName = name;
 }
 
 // Sets the internal szgserver IP
-void arPhleetConfig::setServerIP(string IP){
+void arPhleetConfig::setServerIP(string IP) {
   _serverIP = IP;
 }
 
 // Sets the internal szgserver port
-void arPhleetConfig::setServerPort(int port){
+void arPhleetConfig::setServerPort(int port) {
   _serverPort = port;
 }
 
 // If the directory exists, return true. If it does not exist, try to
 // create it, returning true on success and false on failure.
-bool arPhleetConfig::_createIfDoesNotExist(const string& directory){
+bool arPhleetConfig::_createIfDoesNotExist(const string& directory) {
 #ifdef AR_USE_WIN_32
   struct _stat statbuf;
-  if (_stat(directory.c_str(), &statbuf) < 0){
+  if (_stat(directory.c_str(), &statbuf) < 0) {
     // Not found.
-    if (_mkdir(directory.c_str()) < 0){
+    if (_mkdir(directory.c_str()) < 0) {
       return false;
     }
-    // AARGH! This does't seem to work as expected! 
-    // Specifically, the hope is that any user will be able to change the 
-    // szg.conf file. Unfortunately, Windows file permissions are not really 
-    // accessed this way (i.e. group and all don't seem to work). The upshot 
+    // AARGH! This does't seem to work as expected!
+    // Specifically, the hope is that any user will be able to change the
+    // szg.conf file. Unfortunately, Windows file permissions are not really
+    // accessed this way (i.e. group and all don't seem to work). The upshot
     // is that only an administrator or the original creator of the
-    // szg.conf file can change it after it has been created. Maybe that's a 
+    // szg.conf file can change it after it has been created. Maybe that's a
     // good thing...
     _chmod(directory.c_str(), 00777);
   }
   return true;
 #else
   struct stat statbuf;
-  if (stat(directory.c_str(), &statbuf) < 0){
+  if (stat(directory.c_str(), &statbuf) < 0) {
     // Not found.
-    if (mkdir(directory.c_str(), 00777) < 0){
+    if (mkdir(directory.c_str(), 00777) < 0) {
       return false;
     }
     // Anybody should be able to modify a file in this directory.
@@ -385,11 +385,11 @@ bool arPhleetConfig::determineFileLocations( string& configLocation, string& log
 
 bool arPhleetConfig::_findDir(const char* envvar, const char* fallback, const char* name, const string& suffix, string& result) {
   string sz(ar_getenv(envvar));
-  if (sz == "NULL"){
+  if (sz == "NULL") {
     // Fall back to the default.
     sz = fallback;
   }
-  if (!_createIfDoesNotExist(sz)){
+  if (!_createIfDoesNotExist(sz)) {
     ar_log_error() << "failed to create " << name << " directory '" << sz << "'.\n";
     return false;
   }
@@ -400,13 +400,13 @@ bool arPhleetConfig::_findDir(const char* envvar, const char* fallback, const ch
   return true;
 }
 
-void arPhleetConfig::_processComputerRecord(arStructuredData* data){
+void arPhleetConfig::_processComputerRecord(arStructuredData* data) {
   setComputerName(data->getDataString(_l.AR_COMPUTER_NAME));
 }
 
-void arPhleetConfig::_processInterfaceRecord(arStructuredData* data){
+void arPhleetConfig::_processInterfaceRecord(arStructuredData* data) {
   string netmask = data->getDataString(_l.AR_INTERFACE_MASK);
-  if (netmask == ""){
+  if (netmask == "") {
     // Default, if not in config file.
     netmask = "255.255.255.0";
   }
@@ -415,12 +415,12 @@ void arPhleetConfig::_processInterfaceRecord(arStructuredData* data){
                netmask);
 }
 
-void arPhleetConfig::_processPortsRecord(arStructuredData* data){
+void arPhleetConfig::_processPortsRecord(arStructuredData* data) {
   setPortBlock(data->getDataInt(_l.AR_PORTS_FIRST),
 	       data->getDataInt(_l.AR_PORTS_SIZE));
 }
 
-bool arPhleetConfig::_writeName(FILE* output){
+bool arPhleetConfig::_writeName(FILE* output) {
   arStructuredData* data = _fileParser->getStorage(_l.AR_COMPUTER);
   data->dataInString(_l.AR_COMPUTER_NAME, _computerName);
   data->print(output);
@@ -428,9 +428,9 @@ bool arPhleetConfig::_writeName(FILE* output){
   return true;
 }
 
-bool arPhleetConfig::_writeInterfaces(FILE* output){
+bool arPhleetConfig::_writeInterfaces(FILE* output) {
   arStructuredData* data = _fileParser->getStorage(_l.AR_INTERFACE);
-  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i){
+  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i) {
     // so far, the software only supports socket communications
     data->dataInString(_l.AR_INTERFACE_TYPE, "IP");
     data->dataInString(_l.AR_INTERFACE_NAME, i->first);
@@ -442,7 +442,7 @@ bool arPhleetConfig::_writeInterfaces(FILE* output){
   return true;
 }
 
-bool arPhleetConfig::_writePorts(FILE*output){
+bool arPhleetConfig::_writePorts(FILE*output) {
   arStructuredData* data = _fileParser->getStorage(_l.AR_PORTS);
   data->dataIn(_l.AR_PORTS_FIRST, &_firstPort, AR_INT, 1);
   data->dataIn(_l.AR_PORTS_SIZE, &_blockSize, AR_INT, 1);

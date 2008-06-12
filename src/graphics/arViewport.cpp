@@ -19,7 +19,7 @@ arViewport::arViewport() :
   _blue(GL_TRUE),
   _alpha(GL_TRUE),
   _oglDrawBuffer(GL_BACK_LEFT),
-  _clearDepthBuffer(false){
+  _clearDepthBuffer(false) {
 }
 
 arViewport::arViewport( float left, float bottom, float width, float height,
@@ -85,14 +85,14 @@ arViewport::arViewport( const arViewport& v ) :
   _blue( v._blue ),
   _alpha( v._alpha ),
   _oglDrawBuffer( v._oglDrawBuffer ),
-  _clearDepthBuffer( v._clearDepthBuffer){
+  _clearDepthBuffer( v._clearDepthBuffer) {
   if (v._camera) {
     _camera = v._camera->clone();
   }
 }
 
 arViewport& arViewport::operator=( const arViewport& v ) {
-  if (&v == this){
+  if (&v == this) {
     return *this;
   }
 
@@ -138,7 +138,7 @@ void arViewport::setViewport( float left, float bottom,
   _height = height;
 }
 
-arCamera* arViewport::setCamera(arCamera* camera){
+arCamera* arViewport::setCamera(arCamera* camera) {
   if (_camera) {
     delete _camera;
     _camera = 0;
@@ -149,24 +149,24 @@ arCamera* arViewport::setCamera(arCamera* camera){
   return _camera;
 }
 
-arCamera* arViewport::getCamera(){
+arCamera* arViewport::getCamera() {
   return _camera;
 }
 
 // IT SEEMS LIKE THIS SHOULD GO AWAY... BEING FOLDED BACK IN TO THE
 // CAMERA....
 // No, I don't think so.
-void arViewport::setEyeSign(float eyeSign){
+void arViewport::setEyeSign(float eyeSign) {
   _eyeSign = eyeSign;
 }
 
-float arViewport::getEyeSign(){
+float arViewport::getEyeSign() {
   return _eyeSign;
 }
 
 // The viewport sets the color mask upon drawing (used for anaglyph stereo).
 void arViewport::setColorMask(GLboolean red, GLboolean green,
-		              GLboolean blue, GLboolean alpha){
+		              GLboolean blue, GLboolean alpha) {
   _red = red;
   _blue = blue;
   _green = green;
@@ -175,11 +175,11 @@ void arViewport::setColorMask(GLboolean red, GLboolean green,
 
 // The viewport might clear the depth buffer upon drawing (used for
 // anaplyph stereo).
-void arViewport::clearDepthBuffer(bool flag){
+void arViewport::clearDepthBuffer(bool flag) {
   _clearDepthBuffer = flag;
 }
 
-void arViewport::activate(){
+void arViewport::activate() {
   // The viewport does not call glDrawBuffer(). The arGraphicsWindow performs
   // rendering passes in which it clears the appropriate buffer & the queries
   // its viewport list to determine which ones want to render into that buffer.
@@ -190,8 +190,8 @@ void arViewport::activate(){
   glGetIntegerv( GL_VIEWPORT, (GLint*)params );
 
   // there's a whole complicated song and dance to ensure that, for instance,
-  // viewports of (0,0,0.5,1) and (0.5,0,0.5,1) on a window of size 1024x768
-  // give OpenGL viewports of (0,0,512,768) and (512,0,512,768) respectively
+  // viewports of (0, 0, 0.5, 1) and (0.5, 0, 0.5, 1) on a window of size 1024x768
+  // give OpenGL viewports of (0, 0, 512, 768) and (512, 0, 512, 768) respectively
   const GLint left = int(params[2]*_left);
   const GLint bottom = int(params[3]*_bottom);
   const GLsizei width = int(params[2]*_width);
@@ -208,7 +208,7 @@ void arViewport::activate(){
   // set the follow mask
   glColorMask(_red, _green, _blue, _alpha);
 
-  if (_clearDepthBuffer){
+  if (_clearDepthBuffer) {
     // clear the depth buffer
     glClear(GL_DEPTH_BUFFER_BIT);
   }

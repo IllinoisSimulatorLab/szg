@@ -140,7 +140,7 @@ bool SetCurrentEventMatrix::run( arPForth* pf ) {
   long address = (long)pf->stackPop();
   arMatrix4 temp = pf->getDataMatrix( address );
   if (!e->setMatrix( temp ))
-    throw arPForthException("failed to set matrix event value.");  
+    throw arPForthException("failed to set matrix event value.");
   return true;
 }
 
@@ -331,7 +331,6 @@ arPForthFilter* ar_PForthGetFilter() {
 }
 
 bool ar_PForthAddEventVocabulary( arPForth* pf ) {
-  
   // Simple action words (run-time behavior only)
   if (!pf->addSimpleActionWord( "getCurrentEventIndex", new arPForthSpace::GetCurrentEventIndex() ))
     return false;
@@ -369,4 +368,4 @@ bool ar_PForthAddEventVocabulary( arPForth* pf ) {
     return false;
 
   return true;
-}    
+}

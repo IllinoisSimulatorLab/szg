@@ -25,9 +25,9 @@ bool arOBJ::readOBJ(FILE* inputFile) {
   arOBJMaterial tempMaterial;
   _material.push_back(arOBJMaterial());
   sprintf(_material[0].name, "default");
-  _material[0].Kd = arVector3(1,1,1);
-  _normal.push_back(arVector3(0,0,0));
-  _texCoord.push_back(arVector3(0,0,0));
+  _material[0].Kd = arVector3(1, 1, 1);
+  _normal.push_back(arVector3(0, 0, 0));
+  _texCoord.push_back(arVector3(0, 0, 0));
   _smoothingGroup.push_back(arOBJSmoothingGroup());
   _smoothingGroup[0]._name = 0;
   _group.push_back(vector<int>());
@@ -58,8 +58,8 @@ bool arOBJ::readOBJ(const string& fileName, const string& path) {
 // data_directory/my_program_name instead of just data_directory.
 // @param path a search path upon which we look for the file. this is useful
 // when data files need to be installed in a special directory
-bool arOBJ::readOBJ(const string& fileName, 
-                    const string& subdirectory, 
+bool arOBJ::readOBJ(const string& fileName,
+                    const string& subdirectory,
                     const string& path) {
   _fileName = string(fileName);
   _searchPath = path;
@@ -118,7 +118,7 @@ bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName) {
 // @param where The node to which we will attach the points information.
 // @param nodeName The name to give the points node.
 // Just attaches points (vertices) of the OBJ.  No geometry or transforms.
-arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where, 
+arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where,
                                     const string& nodeName) {
   if (_invalidFile) {
     // already complained
@@ -173,7 +173,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
   const string baseName((base=="" ? "myOBJ." : base+".") + _groupName[groupID]);
 
   vector<int>& thisGroup = _group[groupID];
-  
+
   // Attach triangles (faces)
   const int numberTriangles = thisGroup.size();
 
@@ -190,7 +190,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
       // No triangles use this material.
       continue;
     }
-    
+
     unsigned numTriUsingMaterial = thisMatTriangleIDs.size();
     float* normals   = new float[9*numTriUsingMaterial];
     int*   indices   = new int[3*numTriUsingMaterial];
@@ -230,18 +230,18 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
     normalNode->setNormal3( 3*numTriUsingMaterial, normals );
 
     // Some exporters attach "pure black" color to anything textures.
-    // Replace that with (1,1,1), so GL_MODULATE works with textures.
+    // Replace that with (1, 1, 1), so GL_MODULATE works with textures.
     arVector3 correctedDiffuse(thisMaterial.Kd);
     if (correctedDiffuse.magnitude() < 0.003)
-      correctedDiffuse = arVector3(1,1,1);
-    
+      correctedDiffuse = arVector3(1, 1, 1);
+
     arMaterialNode* materialNode = (arMaterialNode*)
       normalNode->newNode("material", baseName+colorsModifier+matIDBuf );
     arMaterial tmp;
     tmp.diffuse = correctedDiffuse;
     tmp.ambient = thisMaterial.Ka;
     tmp.specular = thisMaterial.Ks;
-    tmp.emissive = arVector3(0,0,0);
+    tmp.emissive = arVector3(0, 0, 0);
     tmp.exponent = thisMaterial.Ns;
     materialNode->setMaterial(tmp);
 
@@ -349,7 +349,7 @@ float arOBJ::intersectGroup(int groupID, const arRay& theRay) {
     const arVector3& v2 = _vertex[_triangle[_group[groupID][i]].vertices[1]];
     const arVector3& v3 = _vertex[_triangle[_group[groupID][i]].vertices[2]];
     const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3);
-    if (intersectionDistance < 0 || 
+    if (intersectionDistance < 0 ||
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
     }
@@ -369,7 +369,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]) {
   char *vertexToken[4] = {0};
   for (i=0; i<numTokens-1; i++) {
     texCoordID[i] = normalID[i] = 0;
-  
+
     int numVTokens = 0;
     vertexToken[numVTokens++] = strtok(token[i+1], "/");
     while (vertexToken[numVTokens-1]) {
@@ -418,7 +418,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]) {
       _group[_thisGroup].push_back(_triangle.size()-1);
     }
   } else { // more than 4 vertices
-    arVector3 center(0,0,0), normalVec(0,0,0), texCoordVec(0,0,0);
+    arVector3 center(0, 0, 0), normalVec(0, 0, 0), texCoordVec(0, 0, 0);
     for (i=1; i<howManyVertices-1; i++) {
       arOBJTriangle tempTriangle;
       tempTriangle.vertices[0] = vertexID[0]-1;
@@ -449,7 +449,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]) {
 // adjust backwards-facing normals
 void arOBJ::_generateNormals() {
   unsigned i=0, j=0, k=0;
-  _normal.erase(_normal.begin(),_normal.begin()+1);
+  _normal.erase(_normal.begin(), _normal.begin()+1);
   _texCoord.erase(_texCoord.begin(), _texCoord.begin()+1);
   for (i=0; i<_triangle.size(); i++) {
     // no normals
@@ -467,7 +467,7 @@ void arOBJ::_generateNormals() {
   }
 
   for (i=0; i<_triangle.size(); ++i) {
-    arVector3 naturalDirection = 
+    arVector3 naturalDirection =
       (_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
       (_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]);
     if (_normal[_triangle[i].normals[0]]%naturalDirection < 0) {
@@ -523,8 +523,8 @@ void arOBJ::_generateNormals() {
 // Make the object fit in a unit sphere.
 // Move its vertices, don't just add a transformation matrix.
 void arOBJ::normalizeModelSize() {
-  arVector3 maxVec(-1000000,-1000000,-1000000);
-  arVector3 minVec(1000000,1000000,1000000);
+  arVector3 maxVec(-1000000, -1000000, -1000000);
+  arVector3 minVec(1000000, 1000000, 1000000);
   unsigned i = 0;
   const unsigned iMax = _vertex.size();
   for (i=0; i<iMax; i++) {
@@ -735,7 +735,7 @@ arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
   }
   vector<arVector3>& vertices = _renderer->_vertices;
   // first, walk through the triangle list and accumulate the average position
-  arVector3 center(0,0,0);
+  arVector3 center(0, 0, 0);
   vector<int>::iterator iter;
   for (iter = _vertexIndices.begin(); iter != _vertexIndices.end(); ++iter) {
     center += vertices[*iter];
@@ -810,7 +810,7 @@ float arOBJGroupRenderer::getIntersection( const arRay& theRay ) {
     const arVector3& v2 = vertices[*iter++];
     const arVector3& v3 = vertices[*iter++];
     const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3 );
-    if (intersectionDistance < 0 || 
+    if (intersectionDistance < 0 ||
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
     }
@@ -836,8 +836,8 @@ arOBJRenderer::~arOBJRenderer() {
 // data_directory/my_program_name instead of just data_directory.
 // @param path a search path upon which we look for the file. this is useful
 // when data files need to be installed in a special directory
-bool arOBJRenderer::readOBJ(const string& fileName, 
-                    const string& subdirectory, 
+bool arOBJRenderer::readOBJ(const string& fileName,
+                    const string& subdirectory,
                     const string& path) {
   _subdirectory = subdirectory;
   _searchPath = path;
@@ -867,7 +867,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   }
   ar_log_debug() << "arOBJRenderer::readOBJ() done parsing file.\n";
   clear();
-  
+
   // Copy out the name
   _name = theFile.name();
 
@@ -887,19 +887,19 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     // copypaste -- look for "exporters" elsewhere in this source file
     // NOTE: some exporters will attach a "pure black" color to anything
     // with a texture. Since by default we use GL_MODULATE with textures,
-    // this will be a problem. Instead, use (1,1,1).
+    // this will be a problem. Instead, use (1, 1, 1).
     arVector3 correctedDiffuse = thisMaterial.Kd;
-    if (correctedDiffuse[0] < 0.001 
-        && correctedDiffuse[1] < 0.001 
+    if (correctedDiffuse[0] < 0.001
+        && correctedDiffuse[1] < 0.001
         && correctedDiffuse[2] < 0.001) {
-      correctedDiffuse = arVector3(1,1,1);
+      correctedDiffuse = arVector3(1, 1, 1);
     }
-    
+
     arMaterial tmp;
     tmp.diffuse = correctedDiffuse;
     tmp.ambient = thisMaterial.Ka;
     tmp.specular = thisMaterial.Ks;
-    tmp.emissive = arVector3(0,0,0);
+    tmp.emissive = arVector3(0, 0, 0);
     tmp.exponent = thisMaterial.Ns;
     _materials.push_back( tmp );
 
@@ -939,7 +939,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
       tex->setTextureFunc( GL_MODULATE );
       _textures[matID] = tex;
       _fOpacityMap[matID] = true;
-      ar_log_remark() << "arOBJRenderer::readOBJ() read opacity map " 
+      ar_log_remark() << "arOBJRenderer::readOBJ() read opacity map "
                       << thisMaterial.map_Opacity << ar_endl;
     }
     ar_log_debug() << "arOBJRenderer::readOBJ() done preparing material #" << matID << ar_endl;
@@ -1013,8 +1013,8 @@ void arOBJRenderer::clear() {
 
 // Move vertices to fit the object fit into a unit sphere.
 void arOBJRenderer::normalizeModelSize() {
-  arVector3 maxVec(-1.e6,-1.e6,-1.e6);
-  arVector3 minVec(1.e6,1.e6,1.e6);
+  arVector3 maxVec(-1.e6, -1.e6, -1.e6);
+  arVector3 minVec(1.e6, 1.e6, 1.e6);
   vector<arVector3>::iterator iter;
   for (iter = _vertices.begin(); iter != _vertices.end(); ++iter) {
     arVector3& vert = *iter;
@@ -1039,7 +1039,7 @@ void arOBJRenderer::normalizeModelSize() {
 arBoundingSphere arOBJRenderer::getBoundingSphere() {
   // copypaste -- look for radius2 in this source file
   // first, walk through the triangle list and accumulate the average position
-  arVector3 center(0,0,0);
+  arVector3 center(0, 0, 0);
   vector<arVector3>::iterator iter;
   for (iter = _vertices.begin(); iter != _vertices.end(); ++iter) {
     center += *iter;
@@ -1104,7 +1104,7 @@ float arOBJRenderer::getIntersection( const arRay& theRay ) {
     const arVector3& v2 = *iter++;
     const arVector3& v3 = *iter++;
     const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3 );
-    if (intersectionDistance < 0 || 
+    if (intersectionDistance < 0 ||
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
     }

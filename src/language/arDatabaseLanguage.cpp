@@ -12,7 +12,7 @@ arDatabaseLanguage::arDatabaseLanguage():
     _nameNode("name_node"),
     _insertNode("insert_node"),
     _cut("cut"),
-    _permute("permute"){
+    _permute("permute") {
 
   AR_ERASE_ID = _erase.add("ID", AR_INT);
   AR_ERASE = _dictionary.add(&_erase);

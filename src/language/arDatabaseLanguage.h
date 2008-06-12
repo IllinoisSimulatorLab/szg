@@ -21,7 +21,7 @@ enum{
 class SZG_CALL arDatabaseLanguage: public arLanguage{
  public:
   arDatabaseLanguage();
-  ~arDatabaseLanguage(){};
+  ~arDatabaseLanguage() {};
 
   // These values must be public. This is how applications
   // are able to use high-speed, ID-based access to data fields.

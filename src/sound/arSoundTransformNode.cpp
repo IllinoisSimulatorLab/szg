@@ -8,12 +8,12 @@
 #include "arMath.h"
 #include "arSoundDatabase.h" // for ar_transformStack
 
-arSoundTransformNode::arSoundTransformNode(){
+arSoundTransformNode::arSoundTransformNode() {
   _typeCode = AR_S_TRANSFORM_NODE;
   _typeString = "transform";
 }
 
-bool arSoundTransformNode::render(){
+bool arSoundTransformNode::render() {
   ar_transformStack.top() = ar_transformStack.top() *
     arMatrix4(_commandBuffer.v); // "glMultMatrixf"
   return true;
@@ -21,7 +21,7 @@ bool arSoundTransformNode::render(){
 
 const int len = sizeof(arMatrix4) / sizeof(float);
 
-arStructuredData* arSoundTransformNode::dumpData(){
+arStructuredData* arSoundTransformNode::dumpData() {
   arStructuredData* result = _l.makeDataRecord(_l.AR_TRANSFORM);
   _dumpGenericNode(result, _l.AR_TRANSFORM_ID);
   if (!result->dataIn(_l.AR_TRANSFORM_MATRIX, _commandBuffer.v, AR_FLOAT, len)) {
@@ -31,8 +31,8 @@ arStructuredData* arSoundTransformNode::dumpData(){
   return result;
 }
 
-bool arSoundTransformNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _l.AR_TRANSFORM){
+bool arSoundTransformNode::receiveData(arStructuredData* inData) {
+  if (inData->getID() != _l.AR_TRANSFORM) {
     ar_log_error() << "arTransformNode expected " << _l.AR_TRANSFORM
          << " (" << _l._stringFromID(_l.AR_TRANSFORM) << "), not "
          << inData->getID()

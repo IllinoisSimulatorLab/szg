@@ -80,7 +80,7 @@ bool IsenseTracker::GetTrackerConfig()
     */
 bool IsenseTracker::LoadStationInfo()
 {
-  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ){
+  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ) {
     Bool gotConfig = ISD_GetStationConfig(
       m_handle,
       &m_station[ statIdx-1 ],
@@ -109,7 +109,7 @@ bool IsenseTracker::ResetAlignmentReferenceFrame()
 {
   bool success = false;
   char chReset[10];
-  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ){
+  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ) {
     sprintf( chReset, "R%d\n", statIdx );
     Bool bSent = ISD_SendScript( m_handle, chReset );
     if ( TRUE == bSent ) success = true;
@@ -350,8 +350,8 @@ bool IsenseTracker::SetConversionMatrix( arMatrix4& convert )
 /*! You must call Init() before calling GetData().
     The data is translated so that the Intersense position and
     orientation becomes a szg sensor, buttons become szg buttons,
-    analogs become szg axes normalized (-1,1), and aux inputs 
-    become szg axes normalized (0,1).  Not having seen an aux
+    analogs become szg axes normalized (-1, 1), and aux inputs 
+    become szg axes normalized (0, 1).  Not having seen an aux
     input or any documentation about it, I don't know whether
     this normalization is correct.
 
@@ -418,7 +418,7 @@ bool IsenseTracker::GetData( arInputSource* source )
       theTransMatrix*transformedMatrix );
 
     const int analogCenter = 127;
-    // Normalize axis from (0,255) to (-1,1).
+    // Normalize axis from (0, 255) to (-1, 1).
     const float axisMultiple = 1.0f/128.0f;
     if ( TRUE == stationInfo->GetInputs ) {
       // Get buttons
@@ -437,7 +437,7 @@ bool IsenseTracker::GetData( arInputSource* source )
 
     // Get aux inputs, whatever they are.
     const BYTE auxCenter = 0;
-    // Normalize BYTE from (0,255) to (0,1).
+    // Normalize BYTE from (0, 255) to (0, 1).
     const float auxMultiple = 1.0f/255.0f;
     if ( TRUE == stationInfo->GetAuxInputs ) {
       for ( size_t auxIdx = 0; auxIdx < stationSettings->auxCnt; auxIdx++ ) {
@@ -464,7 +464,7 @@ bool IsenseTracker::GetData( arInputSource* source )
     driver does not report an error when its tracker is
     disconnected.
     */
-void ar_intersenseDriverEventTask(void* intersenseDriver){
+void ar_intersenseDriverEventTask(void* intersenseDriver) {
   arIntersenseDriver* isense =
     (arIntersenseDriver*) intersenseDriver;
 
@@ -486,12 +486,12 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
 /***********************************************************/
 
 arIntersenseDriver::arIntersenseDriver()
-  :m_tracker(0), m_trackerFailed(0), m_isVerbose(TRUE){
+  :m_tracker(0), m_trackerFailed(0), m_isVerbose(TRUE) {
   // does nothing yet
 }
 
 
-arIntersenseDriver::~arIntersenseDriver(){
+arIntersenseDriver::~arIntersenseDriver() {
   if ( 0 != m_tracker )       delete[] m_tracker;
   if ( 0 != m_trackerFailed ) delete[] m_trackerFailed;
 }
@@ -502,7 +502,7 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
   const size_t charCnt = 200;
   char chStation[ charCnt ];
 
-  int sig[3] = {0,0,0};
+  int sig[3] = {0, 0, 0};
   for ( size_t trackIdx=0; trackIdx < m_trackerCnt; trackIdx++ ) {
     for ( size_t statIdx=0; statIdx <= ISD_MAX_STATIONS; statIdx++ ) {
       sprintf( chStation, "station%d_%d", trackIdx, statIdx );
@@ -552,7 +552,7 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
     trackmach SZG_INTERSENSE station0_2 4/2/0
     # Rotate isense axes to szg axes with
     #  0  1  0  3  (x -> -z, y ->  x, z -> -y)
-    #  0  0 -1  1  Then translate (3,1,-2) feet.
+    #  0  0 -1  1  Then translate (3, 1, -2) feet.
     # -1  0  0 -2  
     #  0  0  0  1
     trackmach SZG_INTERSENSE convert0_0 0/0/-1.0/2.0
@@ -575,11 +575,11 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
     4x4 matrix expressing how to rotate and translate the sensor's 
     output.  Each entry is a column in the matrix.
     */
-bool arIntersenseDriver::init(arSZGClient& client){
+bool arIntersenseDriver::init(arSZGClient& client) {
 
   // Retrieve settings from client
-  int sig[2] = {10,0};
-  if (!client.getAttributeInts(ISENSE_GROUP_NAME,"sleep",sig,2)) {
+  int sig[2] = {10, 0};
+  if (!client.getAttributeInts(ISENSE_GROUP_NAME, "sleep", sig, 2)) {
     m_sleepTime = 10;
     ar_log_remark() << "arIntersenseDriver: " << ISENSE_GROUP_NAME <<
       "/sleep defaulting to " << m_sleepTime << ".\n";
@@ -717,6 +717,6 @@ bool arIntersenseDriver::Reacquire()
 /*! Start a thread for ar_intersenseDriverEventTask to poll the
     driver and send events.
     */
-bool arIntersenseDriver::start(){
-  return _eventThread.beginThread(ar_intersenseDriverEventTask,this);
+bool arIntersenseDriver::start() {
+  return _eventThread.beginThread(ar_intersenseDriverEventTask, this);
 }

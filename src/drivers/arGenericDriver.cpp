@@ -6,12 +6,12 @@
 #include "arPrecompiled.h"
 #include "arGenericDriver.h"
 
-arGenericDriver::arGenericDriver(){
+arGenericDriver::arGenericDriver() {
 }
 
-arGenericDriver::~arGenericDriver(){
+arGenericDriver::~arGenericDriver() {
 }
 
-void arGenericDriver::setSignature(unsigned buttons, unsigned axes, unsigned matrices){
-  _setDeviceElements(buttons,axes,matrices);
+void arGenericDriver::setSignature(unsigned buttons, unsigned axes, unsigned matrices) {
+  _setDeviceElements(buttons, axes, matrices);
 }

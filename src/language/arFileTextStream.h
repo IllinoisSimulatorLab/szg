@@ -15,7 +15,7 @@ using namespace std;
 class SZG_CALL arFileTextStream: public arTextStream{
  public:
   arFileTextStream();
-  virtual ~arFileTextStream(){}
+  virtual ~arFileTextStream() {}
 
   bool ar_open(const string& name, const string& subdirectory,
                const string& path);

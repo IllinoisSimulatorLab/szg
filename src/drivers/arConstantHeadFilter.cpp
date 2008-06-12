@@ -16,4 +16,4 @@ bool arConstantHeadFilter::_processEvent( arInputEvent& inputEvent ) {
   return inputEvent.setMatrix(
     arMatrix4(1,0,0,0, 0,1,0,5, 0,0,1,0, 0,0,0,1) *
     ar_extractRotationMatrix(inputEvent.getMatrix()));
-}  
+}

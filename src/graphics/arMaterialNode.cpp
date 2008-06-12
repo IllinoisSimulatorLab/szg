@@ -17,12 +17,12 @@ bool arMaterialNode::receiveData(arStructuredData* inData) {
     return false;
 
   arGuard dummy(_nodeLock);
-  inData->dataOut(_g->AR_MATERIAL_DIFFUSE,_lMaterial.diffuse.v,AR_FLOAT,3);
-  inData->dataOut(_g->AR_MATERIAL_AMBIENT,_lMaterial.ambient.v,AR_FLOAT,3);
-  inData->dataOut(_g->AR_MATERIAL_SPECULAR,_lMaterial.specular.v,AR_FLOAT,3);
-  inData->dataOut(_g->AR_MATERIAL_EMISSIVE,_lMaterial.emissive.v,AR_FLOAT,3);
-  inData->dataOut(_g->AR_MATERIAL_EXPONENT,&_lMaterial.exponent,AR_FLOAT,1);
-  inData->dataOut(_g->AR_MATERIAL_ALPHA,&_lMaterial.alpha,AR_FLOAT,1); 
+  inData->dataOut(_g->AR_MATERIAL_DIFFUSE, _lMaterial.diffuse.v, AR_FLOAT, 3);
+  inData->dataOut(_g->AR_MATERIAL_AMBIENT, _lMaterial.ambient.v, AR_FLOAT, 3);
+  inData->dataOut(_g->AR_MATERIAL_SPECULAR, _lMaterial.specular.v, AR_FLOAT, 3);
+  inData->dataOut(_g->AR_MATERIAL_EMISSIVE, _lMaterial.emissive.v, AR_FLOAT, 3);
+  inData->dataOut(_g->AR_MATERIAL_EXPONENT, &_lMaterial.exponent, AR_FLOAT, 1);
+  inData->dataOut(_g->AR_MATERIAL_ALPHA, &_lMaterial.alpha, AR_FLOAT, 1);
   return true;
 }
 
@@ -52,12 +52,12 @@ arStructuredData* arMaterialNode::dumpData() {
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_MATERIAL);
   _dumpGenericNode(r, _g->AR_MATERIAL_ID);
-  if (!r->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3) ||
-      !r->dataIn(_g->AR_MATERIAL_AMBIENT,material.ambient.v,AR_FLOAT,3) ||
-      !r->dataIn(_g->AR_MATERIAL_SPECULAR,material.specular.v,AR_FLOAT,3) ||
-      !r->dataIn(_g->AR_MATERIAL_EMISSIVE,material.emissive.v,AR_FLOAT,3) ||
-      !r->dataIn(_g->AR_MATERIAL_EXPONENT,&material.exponent,AR_FLOAT,1) ||
-      !r->dataIn(_g->AR_MATERIAL_ALPHA,&material.alpha,AR_FLOAT,1)) {
+  if (!r->dataIn(_g->AR_MATERIAL_DIFFUSE, material.diffuse.v, AR_FLOAT, 3) ||
+      !r->dataIn(_g->AR_MATERIAL_AMBIENT, material.ambient.v, AR_FLOAT, 3) ||
+      !r->dataIn(_g->AR_MATERIAL_SPECULAR, material.specular.v, AR_FLOAT, 3) ||
+      !r->dataIn(_g->AR_MATERIAL_EMISSIVE, material.emissive.v, AR_FLOAT, 3) ||
+      !r->dataIn(_g->AR_MATERIAL_EXPONENT, &material.exponent, AR_FLOAT, 1) ||
+      !r->dataIn(_g->AR_MATERIAL_ALPHA, &material.alpha, AR_FLOAT, 1)) {
     delete r;
     return NULL;
   }

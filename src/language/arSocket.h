@@ -80,7 +80,7 @@ public:
   // This is a tcp-wrappers-esque feature. As explained below, the mask
   // allows ar_accept to automatically drop attempted connections,
   // based on IP address.
-  void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
+  void setAcceptMask(list<string>& mask) { _acceptMask = mask; }
 
 private:
   int _type;

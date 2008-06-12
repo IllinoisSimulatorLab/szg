@@ -59,9 +59,9 @@ string ar_getLastWin32ErrorString() {
 
 // todo: call WSACleanup somewhere!
 
-bool ar_winSockInit(){
+bool ar_winSockInit() {
   WSADATA wsaData;
-  switch(WSAStartup(MAKEWORD(2,0), &wsaData))
+  switch(WSAStartup(MAKEWORD(2, 0), &wsaData))
     {
   case 0:
     return true;
@@ -99,7 +99,7 @@ bool ar_winSockInit(){
 // Current time.
 
 // todo: assumes that ticks/second fits in a single int, not true in a few years.
-ar_timeval ar_time(){
+ar_timeval ar_time() {
 #if 0
   // an earlier implementation
   struct _timeb t;
@@ -120,7 +120,7 @@ ar_timeval ar_time(){
 
 #else
 
-ar_timeval ar_time(){
+ar_timeval ar_time() {
   struct timeval tNow;
   gettimeofday(&tNow, 0);
   return ar_timeval(tNow.tv_sec, tNow.tv_usec);
@@ -130,19 +130,19 @@ ar_timeval ar_time(){
 
 // Take two timevals closer than 4000000000 usec, and report their diff in usec.
 
-double ar_difftime(const ar_timeval& a, const ar_timeval& b){
+double ar_difftime(const ar_timeval& a, const ar_timeval& b) {
   return 1e6*(a.sec-b.sec) + (a.usec-b.usec);
 }
 
 // Return a nonzero value, safe to divide by, e.g. for computing fps.
-double ar_difftimeSafe(const ar_timeval& a, const ar_timeval& b){
+double ar_difftimeSafe(const ar_timeval& a, const ar_timeval& b) {
   const double diff = ar_difftime(a, b);
   return diff > 1. ? diff : 1.;
 }
 
 // Add two ar_timeval's.  Return (a ref to) the first argument.
 
-ar_timeval& ar_addtime(ar_timeval& lhs, const ar_timeval& rhs){
+ar_timeval& ar_addtime(ar_timeval& lhs, const ar_timeval& rhs) {
   lhs.sec += rhs.sec;
   if ((lhs.usec += rhs.usec) >= 1000000) {
     // Carry.
@@ -245,14 +245,14 @@ bool arTimer::running() const {
 // @param pipeID Pipe's file descriptor
 // @param theData Buffer into which the data gets packed
 // @param numBytes Number of data bytes requested
-bool ar_safePipeRead(int pipeID, char* theData, int numBytes){
+bool ar_safePipeRead(int pipeID, char* theData, int numBytes) {
 #ifdef AR_USE_WIN_32
   return false;
 #else
   while (numBytes>0) {
     const int n = read(pipeID, theData, numBytes);
-    if (n<0) { 
-      return false; 
+    if (n<0) {
+      return false;
     }
     numBytes -= n;
     theData += n;
@@ -268,7 +268,7 @@ bool ar_safePipeRead(int pipeID, char* theData, int numBytes){
 // @param timeout Maximum number of milliseconds we will block
 // Returns number of bytes read.
 int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
-		            int timeout){
+		            int timeout) {
 #ifdef AR_USE_WIN_32
   return 0;
 #else
@@ -281,20 +281,20 @@ int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
   ar_timeval originalTime = ar_time();
   struct timeval waitTime;
   int requestedBytes = numBytes;
-  while (numBytes>0){
+  while (numBytes>0) {
     const double elapsedMicroseconds = ar_difftime(ar_time(), originalTime);
     const int remainingTime = timeout*1000 - int(elapsedMicroseconds);
-    if (remainingTime <= 0){
+    if (remainingTime <= 0) {
       break;
     }
     waitTime.tv_sec = remainingTime/1000000;
     waitTime.tv_usec = remainingTime%1000000;
     select(maxFD, &rset, &wset, NULL, &waitTime);
-    if (FD_ISSET(pipeID, &rset)){
+    if (FD_ISSET(pipeID, &rset)) {
       int n = read(pipeID, theData, numBytes);
-      if (n<0){
+      if (n<0) {
 	// This is an error, I think
-        break; 
+        break;
       }
       numBytes -= n;
       theData += n;
@@ -306,19 +306,19 @@ int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
 
 // for some unknown reason, VC++ 6.0 barfs on linking TestLanguageClient.exe
 // if this isn't in here
-void stupid_compiler_placeholder(){
+void stupid_compiler_placeholder() {
 }
 
 // Safely write to a (unix) pipe.
 // @param pipeID Pipe's file descriptor
 // @param theData Buffer from which data is read
 // @param numBytes number of data bytes written
-bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes){
+bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes) {
 #ifdef AR_USE_WIN_32
   return false;
 #else
   while (numBytes>0) {
-    const int n = write(pipeID,theData,numBytes);
+    const int n = write(pipeID, theData, numBytes);
     if (n<0) {
       return false;
     }
@@ -332,45 +332,45 @@ bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes){
 // The following functions are platform dependent (endianness).
 
 void ar_packData(ARchar* destination, const void* data,
-                 arDataType type, int dimension){
+                 arDataType type, int dimension) {
   const int totalSize = dimension * arDataTypeSize(type);
-  memcpy(destination,data,totalSize);
+  memcpy(destination, data, totalSize);
 }
 
 void ar_unpackData(const ARchar* source, void* destination,
-                   arDataType type, int dimension){
+                   arDataType type, int dimension) {
   const int totalSize = dimension * arDataTypeSize(type);
-  memcpy(destination,source,totalSize);
+  memcpy(destination, source, totalSize);
 }
 
-ARint ar_rawDataGetSize(ARchar* data){
+ARint ar_rawDataGetSize(ARchar* data) {
   ARint result = -1;
-  ar_unpackData(data,(void*) &result, AR_INT, 1);
+  ar_unpackData(data, (void*) &result, AR_INT, 1);
   return result;
 }
 
-ARint ar_rawDataGetID(ARchar* data){
+ARint ar_rawDataGetID(ARchar* data) {
   ARint result = -1;
-  ar_unpackData(data+AR_INT_SIZE,(void*) &result, AR_INT, 1);
+  ar_unpackData(data+AR_INT_SIZE, (void*) &result, AR_INT, 1);
   return result;
 }
 
-ARint ar_rawDataGetFields(ARchar* data){
+ARint ar_rawDataGetFields(ARchar* data) {
   ARint result = -1;
-  ar_unpackData(data+2*AR_INT_SIZE,(void*) &result, AR_INT, 1);
+  ar_unpackData(data+2*AR_INT_SIZE, (void*) &result, AR_INT, 1);
   return result;
 }
 
-arStreamConfig ar_getLocalStreamConfig(){
+arStreamConfig ar_getLocalStreamConfig() {
   arStreamConfig config;
   config.endian = AR_ENDIAN_MODE;
   return config;
 }
 
-ARint ar_translateInt(ARchar* buffer,arStreamConfig conf){
+ARint ar_translateInt(ARchar* buffer, arStreamConfig conf) {
   ARint result = -1;
   char* dest = (char*) &result;
-  if (conf.endian == AR_ENDIAN_MODE){
+  if (conf.endian == AR_ENDIAN_MODE) {
     dest[0] = buffer[0];
     dest[1] = buffer[1];
     dest[2] = buffer[2];
@@ -385,7 +385,7 @@ ARint ar_translateInt(ARchar* buffer,arStreamConfig conf){
   return result;
 }
 
-ARint ar_fieldSize(arDataType theType, ARint dim){
+ARint ar_fieldSize(arDataType theType, ARint dim) {
   // We pad out char fields to end on a 4-byte boundary.
   ARint result = arDataTypeSize(theType) * dim;
   if (theType == AR_CHAR && dim%4)
@@ -402,11 +402,11 @@ ARint ar_fieldOffset(arDataType theType, ARint startOffset) {
 
 // Special case of ar_translateField(...arInt...).
 // Implicitly assumes that AR_INT_SIZE == 4.
-ARint ar_translateInt(ARchar* dest, ARint& destPos, 
-                     ARchar* src, ARint& srcPos, arStreamConfig conf){
+ARint ar_translateInt(ARchar* dest, ARint& destPos,
+                     ARchar* src, ARint& srcPos, arStreamConfig conf) {
   src += srcPos;
   dest += destPos;
-  if (conf.endian != AR_ENDIAN_MODE){
+  if (conf.endian != AR_ENDIAN_MODE) {
     dest[0] = src[3];
     dest[1] = src[2];
     dest[2] = src[1];
@@ -426,13 +426,13 @@ ARint ar_translateInt(ARchar* dest, ARint& destPos,
   destPos += AR_INT_SIZE;
   return *(ARint*)dest;
 }
-    
-void ar_translateField(ARchar* dest, ARint& destPos, 
-                       ARchar* src, ARint& srcPos, 
-                       arDataType theType, ARint dim, arStreamConfig conf){
-  srcPos  += ar_fieldOffset(theType,srcPos);
-  destPos += ar_fieldOffset(theType,destPos);
-  const ARint srcFieldSize = ar_fieldSize(theType,dim);
+
+void ar_translateField(ARchar* dest, ARint& destPos,
+                       ARchar* src, ARint& srcPos,
+                       arDataType theType, ARint dim, arStreamConfig conf) {
+  srcPos  += ar_fieldOffset(theType, srcPos);
+  destPos += ar_fieldOffset(theType, destPos);
+  const ARint srcFieldSize = ar_fieldSize(theType, dim);
   src  += srcPos;
   dest += destPos;
   if (conf.endian == AR_ENDIAN_MODE) {
@@ -445,7 +445,7 @@ void ar_translateField(ARchar* dest, ARint& destPos,
         memcpy(dest, src, dim);
         break;
       case 4:
-        for (i=0; i<dim; i++){
+        for (i=0; i<dim; i++) {
           dest[0] = src[3];
           dest[1] = src[2];
           dest[2] = src[1];
@@ -455,7 +455,7 @@ void ar_translateField(ARchar* dest, ARint& destPos,
         }
         break;
       case 8:
-        for (i=0; i<dim; i++){
+        for (i=0; i<dim; i++) {
           dest[0] = src[7];
           dest[1] = src[6];
           dest[2] = src[5];
@@ -468,13 +468,13 @@ void ar_translateField(ARchar* dest, ARint& destPos,
 	  dest += 8;
         }
         break;
-    } 
+    }
   }
   srcPos  += srcFieldSize;
   destPos += srcFieldSize;
 }
 
-void ar_usleep(int microseconds){
+void ar_usleep(int microseconds) {
 #if defined(AR_USE_WIN_32)
   Sleep(microseconds/1000);
 #elif defined(AR_USE_SGI)
@@ -603,7 +603,7 @@ bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
   return true;
 }
 
-void ar_stringToBuffer(const string& s, char* buf, int len){
+void ar_stringToBuffer(const string& s, char* buf, int len) {
   if (len <= 0) {
     ar_log_error() << "ar_stringToBuffer: nonpositive length.\n";
     *buf = '\0';
@@ -638,7 +638,7 @@ bool ar_stringToFloatValid( const string& theString, float& theFloat ) {
 }
 
 // len is the size of outArray.
-int ar_parseFloatString(const string& theString, float* outArray, int len){
+int ar_parseFloatString(const string& theString, float* outArray, int len) {
 
   // Converts a string which is a slash-delimited sequence of floats
   // into an array of floats.
@@ -660,15 +660,15 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   int currentPosition = 0;
   int dimension = 0;
   bool flag = false;
-  while (!flag){
-    if (dimension >= len){
+  while (!flag) {
+    if (dimension >= len) {
       ar_log_error() << "arParseFloatString truncating '" <<
         theString << "' after " << len << " floats.\n";
       return dimension;
     }
     outArray[dimension++] = atof(buf+currentPosition);
-    while (buf[currentPosition]!='/' && !flag){
-      if (++currentPosition >= length){
+    while (buf[currentPosition]!='/' && !flag) {
+      if (++currentPosition >= length) {
         flag = true;
       }
     }
@@ -679,7 +679,7 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
 
 // todo: refactor massive copypaste ar_parseIntString ar_parseLongString
 
-int ar_parseIntString(const string& theString, int* outArray, int len){
+int ar_parseIntString(const string& theString, int* outArray, int len) {
   // Takes a string of slash-delimited ints and fills an array of ints.
   // Returns how many ints were found, possibly fewer than len (which is ok).
 
@@ -698,7 +698,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
 
   string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
   if (localString[length-1] != '/')
-    localString += "/";    
+    localString += "/";
   std::istringstream inStream( localString );
   int numValues = 0;
   string wordString;
@@ -750,7 +750,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
     return 0;
 
   if (localString[length-1] != '/')
-    localString += "/";    
+    localString += "/";
   std::istringstream inStream( localString );
   int numValues = 0;
   string wordString;
@@ -775,7 +775,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
 
 // todo: unify arPathToken with ar_semicolonstring; use an iterator pattern.
 
-string ar_pathToken(const string& theString, int& start){
+string ar_pathToken(const string& theString, int& start) {
   // starts scanning theString at location start until the first ';'
   // appears (or end of file). start is modified to be the first position
   // after the ';'... for easier iterative calling
@@ -785,7 +785,7 @@ string ar_pathToken(const string& theString, int& start){
     ++start;
   string result;
   if (start>original)
-    result.assign(theString,original,start-original);
+    result.assign(theString, original, start-original);
   ++start; // skip past the ';'
   return result;
 }
@@ -802,7 +802,7 @@ char ar_pathDelimiter() {
 // Returns the other delimiter. This is used, for instance, to automatically
 // convert Win32 paths to Unix paths. This can be useful for software
 // that must store is data in portable way across various systems.
-char ar_oppositePathDelimiter(){
+char ar_oppositePathDelimiter() {
 #ifdef AR_USE_WIN_32
   return '/';
 #else
@@ -812,9 +812,9 @@ char ar_oppositePathDelimiter(){
 
 // Makes sure a given path string has the right delimiter character for
 // our OS (i.e / or \)
-string& ar_scrubPath(string& s){
-  for (unsigned int i=0; i<s.length(); i++){
-    if (s[i] == ar_oppositePathDelimiter()){
+string& ar_scrubPath(string& s) {
+  for (unsigned int i=0; i<s.length(); i++) {
+    if (s[i] == ar_oppositePathDelimiter()) {
       s[i] = ar_pathDelimiter();
     }
   }
@@ -822,7 +822,7 @@ string& ar_scrubPath(string& s){
 }
 
 // Append a path-separator to arg; return arg.
-string& ar_pathAddSlash(string& s){
+string& ar_pathAddSlash(string& s) {
   if (s[s.length()-1] != ar_pathDelimiter())
     s += ar_pathDelimiter();
   return s;
@@ -843,16 +843,16 @@ string arDelimitedString::operator[](int which) const {
 
   // find the beginning of this particular substring
   int i = 0;
-  for (int j = 0; j < which; ++j){
+  for (int j = 0; j < which; ++j) {
     // skip past the next slash
-    i = find(_delimiter,i) + 1;
+    i = find(_delimiter, i) + 1;
   }
   // find the end of the substring
-  if (which == numstrings-1){
+  if (which == numstrings-1) {
     // the last substring
     return substr(i, length()-i);
   }
-  return substr(i, find(_delimiter,i) - i);
+  return substr(i, find(_delimiter, i) - i);
 }
 // Append delimiter IF length <> 0 and it doesn't already end with one
 void arDelimitedString::appendDelimiter() {
@@ -899,12 +899,12 @@ bool ar_getTokenList( const string& inString,
   return true;
 }
 
-string ar_packParameters(int argc, char** argv){
+string ar_packParameters(int argc, char** argv) {
   string result;
-  for (int i=0; i<argc; i++){
+  for (int i=0; i<argc; i++) {
     const string nextParam(argv[i]);
     result += nextParam;
-    if (i != argc-1){
+    if (i != argc-1) {
       result += " ";
     }
   }
@@ -914,7 +914,7 @@ string ar_packParameters(int argc, char** argv){
 // Reduce an executable name to a canonical form,
 // to convert argv[0] into a component name.
 // Remove the path.  On Win32, remove the trailing .EXE.
-string ar_stripExeName(const string& name){
+string ar_stripExeName(const string& name) {
   // Find the last '/' or '\'.
   const int position = name.find_last_of("/\\") == string::npos ?
     0 : name.find_last_of("/\\")+1;
@@ -922,7 +922,7 @@ string ar_stripExeName(const string& name){
   bool extension = false;
 #ifdef AR_USE_WIN_32
   // Some win32 shells append a ".exe".  Truncate such extensions.
-  if (name.length() >= 4){
+  if (name.length() >= 4) {
     const string& lastFour = name.substr(name.length()-4, 4);
     extension = lastFour == ".EXE" || lastFour == ".exe";
   }
@@ -937,9 +937,9 @@ string ar_stripExeName(const string& name){
 // return:
 //   /home/public/schaeffr/bin/linux
 // This is used in szgd when setting the DLL library path.
-string ar_exePath(const string& name){
+string ar_exePath(const string& name) {
   unsigned int position = 0;
-  if (name.find_last_of("/\\") != string::npos){
+  if (name.find_last_of("/\\") != string::npos) {
     position = name.find_last_of("/\\");
   }
   return name.substr(0, position);
@@ -949,7 +949,7 @@ string ar_exePath(const string& name){
 // a string filled with the characters to the right of the period.
 // We want to do this to determine if something is a python script,
 // for instance.
-string ar_getExtension(const string& name){
+string ar_getExtension(const string& name) {
   const unsigned position = name.find_last_of(".");
   if (position == string::npos || position == name.length())
     return string("");
@@ -957,7 +957,7 @@ string ar_getExtension(const string& name){
 }
 
 // Append the appropriate shared lib extension for the system.
-void ar_addSharedLibExtension(string& name){
+void ar_addSharedLibExtension(string& name) {
 #ifdef AR_USE_WIN_32
   name += ".dll";
 #else
@@ -990,7 +990,7 @@ string ar_replaceAll(const string& s, const string& from, const string& to) {
   return os.str() + *(v.end() - 1);
 }
 
-void ar_setenv(const string& variable, const string& value){
+void ar_setenv(const string& variable, const string& value) {
 
   // putenv is OS-dependent.  On Win32, the string is copied
   // into the environment. On Linux, it is referenced.
@@ -1006,18 +1006,18 @@ void ar_setenv(const string& variable, const string& value){
   putenv(buf);
 }
 
-void ar_setenv(const string& variableName, int val){
+void ar_setenv(const string& variableName, int val) {
   ar_setenv(variableName, ar_intToString(val));
 }
 
-string ar_getenv(const string& variable){
+string ar_getenv(const string& variable) {
   char buf[1024]; // todo: fixed size buffer
   ar_stringToBuffer(variable, buf, sizeof(buf));
   const char* res = getenv(buf);
   return string(res ? res : "NULL");
 }
 
-string ar_getUser(){
+string ar_getUser() {
 #ifdef AR_USE_WIN_32
   const unsigned long size = 1024; // todo: fixed size buffer
   char buf[size];
@@ -1060,7 +1060,7 @@ bool ar_directoryExists( const string name, bool& exists, bool& isDirectory ) {
 // return value indicates success, 2nd arg indicates existence
 bool ar_fileItemExists( const string name, bool& exists ) {
   struct stat fileInfo;
-  if (stat(name.c_str(),&fileInfo) == 0) {
+  if (stat(name.c_str(), &fileInfo) == 0) {
     exists = true;
     return true;
   }
@@ -1084,29 +1084,29 @@ bool ar_setWorkingDirectory( const string name ) {
   return chdir(name.c_str()) == 0;
 }
 
-bool ar_isFile(const char* name){
+bool ar_isFile(const char* name) {
   struct stat infoBuffer;
   stat(name, &infoBuffer);
   return (infoBuffer.st_mode & S_IFMT) == S_IFREG;
 }
 
-bool ar_isDirectory(const char* name){
+bool ar_isDirectory(const char* name) {
   struct stat infoBuffer;
   stat(name, &infoBuffer);
   return (infoBuffer.st_mode & S_IFMT) == S_IFDIR;
 }
 
 // todo: copy-paste from ar_fileOpen
-// Returns the first file name of a file that can be opened on 
+// Returns the first file name of a file that can be opened on
 // <path component>/<subdirectory>/<name>
-string ar_fileFind(const string& name, 
+string ar_fileFind(const string& name,
 		   const string& subdirectory,
-		   const string& path){
+		   const string& path) {
   // First, search the explicitly given path
   FILE* result = NULL;
   int location = 0;
   string possiblePath("junk");
-  while (!result && possiblePath != ""){
+  while (!result && possiblePath != "") {
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
@@ -1118,27 +1118,27 @@ string ar_fileFind(const string& name,
     // to have multiple levels in a cross-platform sort of way.
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), "r");
-    if (result && ar_isDirectory(possiblePath.c_str())){
-      // Reject this directory.
-      fclose(result);
-      result = NULL;
-    }
-  }
-  
-  // Next, try to find the file locally
-  if (!result){
-    possiblePath = name;
-    // Do not forget to "scrub" the path.
-    ar_scrubPath(possiblePath);
-    result = fopen(possiblePath.c_str(),"r");
-    if (result && ar_isDirectory(possiblePath.c_str())){
+    if (result && ar_isDirectory(possiblePath.c_str())) {
       // Reject this directory.
       fclose(result);
       result = NULL;
     }
   }
 
-  if (!result){
+  // Next, try to find the file locally
+  if (!result) {
+    possiblePath = name;
+    // Do not forget to "scrub" the path.
+    ar_scrubPath(possiblePath);
+    result = fopen(possiblePath.c_str(), "r");
+    if (result && ar_isDirectory(possiblePath.c_str())) {
+      // Reject this directory.
+      fclose(result);
+      result = NULL;
+    }
+  }
+
+  if (!result) {
     return string("NULL");
   }
 
@@ -1149,16 +1149,16 @@ string ar_fileFind(const string& name,
 // todo: copy-paste from ar_fileOpen and ar_fileFind
 // Returns the first directory name determined like so:
 // <path component>/<subdirectory>/<name>
-string ar_directoryFind(const string& name, 
+string ar_directoryFind(const string& name,
 		        const string& subdirectory,
-		        const string& path){
+		        const string& path) {
   // First, search the explicitly given path
   bool fileExists = false;
   bool isDirectory = false;
   bool result = false;
   int location = 0;
   string possiblePath("junk");
-  while (!result && possiblePath != ""){
+  while (!result && possiblePath != "") {
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
@@ -1167,17 +1167,17 @@ string ar_directoryFind(const string& name,
     possiblePath = ar_pathAddSlash(possiblePath)+name;
     ar_scrubPath(possiblePath);
     if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
-        isDirectory){
+        isDirectory) {
       result = true;
     }
   }
-  
+
   // Next, try to find the file locally
-  if (!result){
+  if (!result) {
     possiblePath = name;
     ar_scrubPath(possiblePath);
     if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
-        isDirectory){
+        isDirectory) {
       result = true;
     }
   }
@@ -1187,15 +1187,15 @@ string ar_directoryFind(const string& name,
 
 // todo: cut-and-paste with ar_directoryOpen and ar_fileFind
 FILE* ar_fileOpen(const string& name,
-                  const string& subdirectory, 
+                  const string& subdirectory,
                   const string& path,
                   const string& operation,
-		  const char* warner){
+		  const char* warner) {
   // Search the path
   FILE* result = NULL;
   int location = 0;
   string possiblePath("junk");
-  while (!result && possiblePath != ""){
+  while (!result && possiblePath != "") {
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
@@ -1206,7 +1206,7 @@ FILE* ar_fileOpen(const string& name,
     // for OS-independent subsubdirectories.
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
-    if (result && ar_isDirectory(possiblePath.c_str())){
+    if (result && ar_isDirectory(possiblePath.c_str())) {
       fclose(result);
       result = NULL;
     }
@@ -1214,13 +1214,13 @@ FILE* ar_fileOpen(const string& name,
 
   if (result)
     ar_log_remark() << "ar_fileOpen opened '" << possiblePath << "' as '" << operation << "'.\n";
-  
+
   // Find the file locally
   if (!result) {
     possiblePath = name;
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
-    if (result && ar_isDirectory(possiblePath.c_str())){
+    if (result && ar_isDirectory(possiblePath.c_str())) {
       fclose(result);
       result = NULL;
     }
@@ -1237,7 +1237,7 @@ FILE* ar_fileOpen(const string& name,
   return result;
 }
 
-FILE* ar_fileOpen(const string& name, const string& path, const string& operation){
+FILE* ar_fileOpen(const string& name, const string& path, const string& operation) {
   return ar_fileOpen(name, "", path, operation);
 }
 
@@ -1246,7 +1246,7 @@ FILE* ar_fileOpen(const string& name, const string& path, const string& operatio
 // paths to each of its contents (since this is what is needed
 // for further recursive operations on those contents).
 // We filter out the standard ".." entries, but not ".".
-list<string> ar_listDirectory(const string& name){
+list<string> ar_listDirectory(const string& name) {
   // We will return a full path to the included file.
   string directoryPrefix = name;
   string fileNameString;
@@ -1254,11 +1254,11 @@ list<string> ar_listDirectory(const string& name){
   ar_pathAddSlash(directoryPrefix);
   list<string> result;
   struct stat statbuf;
-  if (stat(name.c_str(), &statbuf) == -1){
+  if (stat(name.c_str(), &statbuf) == -1) {
     // Cannot access the file system entity.
     return result;
   }
-  if ((statbuf.st_mode & S_IFMT) != S_IFDIR){
+  if ((statbuf.st_mode & S_IFMT) != S_IFDIR) {
     // Exists but is not a directory.
     return result;
   }
@@ -1266,12 +1266,12 @@ list<string> ar_listDirectory(const string& name){
 #ifndef AR_USE_WIN_32
 
   DIR* directory = opendir(name.c_str());
-  if (!directory){
+  if (!directory) {
     return result;
   }
 
   dirent* directoryEntry = NULL;
-  while ((directoryEntry = readdir(directory)) != NULL){
+  while ((directoryEntry = readdir(directory)) != NULL) {
     // There is another entry. Push the name.
     fileNameString = string( directoryEntry->d_name );
     if (fileNameString != "..") {
@@ -1282,7 +1282,7 @@ list<string> ar_listDirectory(const string& name){
 
 #else
 
-  // Browse a list of files that match a name (including wildcards). 
+  // Browse a list of files that match a name (including wildcards).
   string fileSpecification(name);
   ar_scrubPath(fileSpecification);
   ar_pathAddSlash(fileSpecification);
@@ -1293,7 +1293,7 @@ list<string> ar_listDirectory(const string& name){
   // int may be safe, though 6's docs say long.
   _finddata_t fileinfo;
   const int fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
-  if (fileHandle == -1){
+  if (fileHandle == -1) {
     // No file matches the specification.
     return result;
   }
@@ -1312,15 +1312,15 @@ list<string> ar_listDirectory(const string& name){
   return result;
 }
 
-int ar_fileClose(FILE* pf){
+int ar_fileClose(FILE* pf) {
   return pf ? fclose(pf) : 0;
 }
 
 /*
 ifstream ar_istreamOpen(const string& name,
-                  const string& subdirectory, 
+                  const string& subdirectory,
                   const string& path,
-                  int mode ){
+                  int mode ) {
   // First, search the explicitly given path
   char bName[1024]; // todo: fixed size buffer
   ar_stringToBuffer(name, bName, sizeof(bName));
@@ -1335,7 +1335,7 @@ ifstream ar_istreamOpen(const string& name,
     // ar_pathAddSlash modifies its argument
     ar_pathAddSlash(partialPath);
     fullPath = partialPath+subdirectory;
-    ar_stringToBuffer(ar_pathAddSlash(fullPath)+name, 
+    ar_stringToBuffer(ar_pathAddSlash(fullPath)+name,
                       bName, sizeof(bName));
     istr.open( bName, mode );
     if (istr.is_open() && ar_isDirectory(bName)) {
@@ -1343,12 +1343,12 @@ ifstream ar_istreamOpen(const string& name,
       istr.close();
     }
   }
-  
+
   // Next, try to find the file locally
-  if (!istr.is_open()){
+  if (!istr.is_open()) {
     ar_stringToBuffer(name, bName, sizeof(bName));
     istr.open( bName, mode );
-    if (istr.is_open() && ar_isDirectory(bName)){
+    if (istr.is_open() && ar_isDirectory(bName)) {
       // Reject this directory.
       istr.close();
     }
@@ -1357,7 +1357,7 @@ ifstream ar_istreamOpen(const string& name,
   return istr;
 }
 
-ifstream ar_istreamOpen(const string& name, const string& path, int mode ){
+ifstream ar_istreamOpen(const string& name, const string& path, int mode ) {
   return ar_istreamOpen(name, "", path, mode);
 }
 */
@@ -1365,7 +1365,7 @@ ifstream ar_istreamOpen(const string& name, const string& path, int mode ){
 bool ar_growBuffer(ARchar*& buf, int& size, int newSize) {
   if (newSize <= size)
     return true;
- 
+
   // At least double the size, if it grows at all.
   // This reduces calls to new [].
   const int doublesize = 2*size;
@@ -1392,16 +1392,16 @@ void ar_copyBuffer( void* const outBuf, const void* const inBuf,
   memcpy( outBuf, inBuf, size * arDataTypeSize(theType) );
 }
 
-void ar_refNodeList(list<arDatabaseNode*>& nodeList){
+void ar_refNodeList(list<arDatabaseNode*>& nodeList) {
   for (list<arDatabaseNode*>::iterator i = nodeList.begin();
-       i != nodeList.end(); i++){
+       i != nodeList.end(); i++) {
     (*i)->ref();
   }
 }
 
-void ar_unrefNodeList(list<arDatabaseNode*>& nodeList){
+void ar_unrefNodeList(list<arDatabaseNode*>& nodeList) {
   for (list<arDatabaseNode*>::iterator i = nodeList.begin();
-       i != nodeList.end(); i++){
+       i != nodeList.end(); i++) {
     (*i)->unref();
   }
 }

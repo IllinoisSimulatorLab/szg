@@ -156,8 +156,8 @@ void IsenseTracker::setStationIndices( unsigned int& matrixIndex,
 /*! You must call init() before calling getData().
     The data is translated so that the Intersense position and
     orientation becomes a szg sensor, buttons become szg buttons,
-    analogs become szg axes normalized (-1,1), and aux inputs 
-    become szg axes normalized (0,1).  Not having seen an aux
+    analogs become szg axes normalized (-1, 1), and aux inputs 
+    become szg axes normalized (0, 1).  Not having seen an aux
     input or any documentation about it, I don't know whether
     this normalization is correct.
 
@@ -343,7 +343,7 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
   const unsigned int charCnt = 200;
   char chStation[ charCnt ];
 
-  int sig[3] = {0,0,0};
+  int sig[3] = {0, 0, 0};
   sprintf( chStation, "station%d_%d", trackerIndex, getID() );
   if (client.getAttributeInts( "SZG_INTERSENSE", chStation, sig, 3 ) ) {
     _setInputCounts( sig[0], sig[1], sig[2] );
@@ -472,8 +472,8 @@ void IsenseStation::setIndices( unsigned int& matrixIndex,
 
 /*! The data is translated so that the Intersense position and
     orientation becomes a szg sensor, buttons become szg buttons,
-    analogs become szg axes normalized (-1,1), and aux inputs 
-    become szg axes normalized (0,1).  Not having seen an aux
+    analogs become szg axes normalized (-1, 1), and aux inputs 
+    become szg axes normalized (0, 1).  Not having seen an aux
     input or any documentation about it, I don't know whether
     this normalization is correct.
 
@@ -515,7 +515,7 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
   inputSource->queueMatrix( _matrixIndex, theTransMatrix*theRotMatrix );
 
   const int analogCenter = 127;
-  // Normalize axis from (0,255) to (-1,1).
+  // Normalize axis from (0, 255) to (-1, 1).
   const float axisMultiple = 1.0f/128.0f;
   if ( TRUE == _stationConfig.GetInputs ) {
     // Get buttons
@@ -535,7 +535,7 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
 
   // Get aux inputs, whatever they are.
   const BYTE auxCenter = 0;
-  // Normalize BYTE from (0,255) to (0,1).
+  // Normalize BYTE from (0, 255) to (0, 1).
   const float auxMultiple = 1.0f/255.0f;
   if ( TRUE == _stationConfig.GetAuxInputs ) {
     for ( unsigned int auxIndex = 0; auxIndex < _numAuxInputs; auxIndex++ ) {
@@ -589,7 +589,7 @@ ostream& operator<<(ostream& s, const IsenseStation& t) {
     driver does not report an error when its tracker is
     disconnected.
     */
-void ar_intersenseDriverEventTask(void* intersenseDriver){
+void ar_intersenseDriverEventTask(void* intersenseDriver) {
   arIntersenseDriver* isense =
     (arIntersenseDriver*) intersenseDriver;
 
@@ -630,7 +630,7 @@ arIntersenseDriver::~arIntersenseDriver() {
     trackmach SZG_INTERSENSE station0_2 4/2/0
     # Rotate isense axes to szg axes with
     #  0  1  0  3  (x -> -z, y ->  x, z -> -y)
-    #  0  0 -1  1  Then translate (3,1,-2) feet.
+    #  0  0 -1  1  Then translate (3, 1, -2) feet.
     # -1  0  0 -2  
     #  0  0  0  1
     trackmach SZG_INTERSENSE convert0_0 0/0/-1.0/2.0
@@ -655,8 +655,8 @@ arIntersenseDriver::~arIntersenseDriver() {
     */
 bool arIntersenseDriver::init(arSZGClient& client) {
   // Retrieve settings from client
-  int sig[2] = {10,0};
-  if (!client.getAttributeInts("SZG_INTERSENSE","sleep",sig,2)) {
+  int sig[2] = {10, 0};
+  if (!client.getAttributeInts("SZG_INTERSENSE", "sleep", sig, 2)) {
     _sleepTime = 10000;
     ar_log_warning() << "arIntersenseDriver: SZG_INTERSENSE/sleep defaulting to "
          << _sleepTime << ".\n";
@@ -792,7 +792,7 @@ bool arIntersenseDriver::_reacquire() {
 /*! Start a thread for ar_intersenseDriverEventTask to poll the
     driver and send events.
     */
-bool arIntersenseDriver::start(){
+bool arIntersenseDriver::start() {
   return _eventThread.beginThread(ar_intersenseDriverEventTask, this);
 }
 
@@ -818,7 +818,7 @@ void arIntersenseDriver::handleMessage( const string& messageType, const string&
       ar_log_error() << "arIntersenseDriver reset usage: reset <tracker #>/<station #>.\n";
       return;
     }
-    if (_resetHeading((unsigned int)items[0],(unsigned int)items[1])) {
+    if (_resetHeading((unsigned int)items[0], (unsigned int)items[1])) {
       ar_log_remark() << "arIntersenseDriver reset heading for tracker #" << items[0]
            << ", station #" << items[1] << "\n";
     } else {

@@ -86,7 +86,7 @@ class arMSVectorSynchronizer  {
   public:
     
 //    template <class DataClass>
-//    typedef std::vector< arMSVecTransferField<ObjectClass,DataClass> > arMSTransferFieldContainer_t;
+//    typedef std::vector< arMSVecTransferField<ObjectClass, DataClass> > arMSTransferFieldContainer_t;
       
     typedef std::vector<ObjectClass> arMSVecObjectContainer_t;
       
@@ -104,32 +104,32 @@ class arMSVectorSynchronizer  {
       _framework = fw;
     }
     bool addFloatField( const std::string& msFieldName,
-               typename arMSVecTransferField<ObjectClass,float>::arMSVecSetterFunc_t setterFunc,
-               typename arMSVecTransferField<ObjectClass,float>::arMSVecGetterFunc_t getterFunc,
+               typename arMSVecTransferField<ObjectClass, float>::arMSVecSetterFunc_t setterFunc,
+               typename arMSVecTransferField<ObjectClass, float>::arMSVecGetterFunc_t getterFunc,
                unsigned int numElements = 1 );
     bool addIntField( const std::string& msFieldName,
-               typename arMSVecTransferField<ObjectClass,int>::arMSVecSetterFunc_t setterFunc,
-               typename arMSVecTransferField<ObjectClass,int>::arMSVecGetterFunc_t getterFunc,
+               typename arMSVecTransferField<ObjectClass, int>::arMSVecSetterFunc_t setterFunc,
+               typename arMSVecTransferField<ObjectClass, int>::arMSVecGetterFunc_t getterFunc,
                unsigned int numElements = 1 );
     bool sendData();
     bool receiveData();
   private:
 //    template <class DataClass>
-//      bool _sendData( std::vector< arMSVecTransferField<ObjectClass,DataClass> >& fields, arDataType dtype );
+//      bool _sendData( std::vector< arMSVecTransferField<ObjectClass, DataClass> >& fields, arDataType dtype );
 //    template <class DataClass>
-//      bool _receiveData( std::vector< arMSVecTransferField<ObjectClass,DataClass> >& fields, arDataType dtype );
+//      bool _receiveData( std::vector< arMSVecTransferField<ObjectClass, DataClass> >& fields, arDataType dtype );
     void _adjustContainerSize( unsigned int newSize );
     arMSVecObjectContainer_t& _vector;
     arMasterSlaveFramework* _framework;
-    std::vector< arMSVecTransferField<ObjectClass,float> > _floatFields;
-    std::vector< arMSVecTransferField<ObjectClass,int> > _intFields;
+    std::vector< arMSVecTransferField<ObjectClass, float> > _floatFields;
+    std::vector< arMSVecTransferField<ObjectClass, int> > _intFields;
 };
 
 template <class ObjectClass>
 bool arMSVectorSynchronizer<ObjectClass>::addFloatField(
                const std::string& msFieldName,
-               typename arMSVecTransferField<ObjectClass,float>::arMSVecSetterFunc_t setterFunc,
-               typename arMSVecTransferField<ObjectClass,float>::arMSVecGetterFunc_t getterFunc,
+               typename arMSVecTransferField<ObjectClass, float>::arMSVecSetterFunc_t setterFunc,
+               typename arMSVecTransferField<ObjectClass, float>::arMSVecGetterFunc_t getterFunc,
                unsigned int numElements ) {
   if (!_framework) {
     cerr << "arMSVectorSynchronizer error: NULL framework pointer.\n";
@@ -139,15 +139,15 @@ bool arMSVectorSynchronizer<ObjectClass>::addFloatField(
     cerr << "arMSVectorSynchronizer error: addInternalTransferField() failed.\n";
     return false;
   }
-  _floatFields.push_back( arMSVecTransferField<ObjectClass,float>
+  _floatFields.push_back( arMSVecTransferField<ObjectClass, float>
     ( msFieldName, setterFunc, getterFunc, numElements) );
   return true;
 }
 
 template <class ObjectClass>
 bool arMSVectorSynchronizer<ObjectClass>::addIntField( const std::string& msFieldName,
-                 typename arMSVecTransferField<ObjectClass,int>::arMSVecSetterFunc_t setterFunc,
-                 typename arMSVecTransferField<ObjectClass,int>::arMSVecGetterFunc_t getterFunc,
+                 typename arMSVecTransferField<ObjectClass, int>::arMSVecSetterFunc_t setterFunc,
+                 typename arMSVecTransferField<ObjectClass, int>::arMSVecGetterFunc_t getterFunc,
                  unsigned int numElements ) {
   if (!_framework) {
     cerr << "arMSVectorSynchronizer error: NULL framework pointer.\n";
@@ -157,7 +157,7 @@ bool arMSVectorSynchronizer<ObjectClass>::addIntField( const std::string& msFiel
     cerr << "arMSVectorSynchronizer error: addInternalTransferField() failed.\n";
     return false;
   }
-  _intFields.push_back( arMSVecTransferField<ObjectClass,int>
+  _intFields.push_back( arMSVecTransferField<ObjectClass, int>
     ( msFieldName, setterFunc, getterFunc, numElements) );
   return true;
 }
@@ -177,7 +177,7 @@ bool arMSVectorSynchronizer<ObjectClass>::sendData() {
   int intFieldSize;
   unsigned int fieldSize;
   
-  typename std::vector< arMSVecTransferField<ObjectClass,float> >::iterator floatIter;
+  typename std::vector< arMSVecTransferField<ObjectClass, float> >::iterator floatIter;
   for (floatIter = _floatFields.begin(); floatIter != _floatFields.end(); ++floatIter) {
     float* floatPtr = static_cast<float*>( _framework->getTransferField( floatIter->fieldName, AR_FLOAT, intFieldSize ) );
     if (!floatPtr) {
@@ -217,7 +217,7 @@ bool arMSVectorSynchronizer<ObjectClass>::sendData() {
       floatPtr += floatIter->numElements;
     }
   }  
-  typename std::vector< arMSVecTransferField<ObjectClass,int> >::iterator intIter;
+  typename std::vector< arMSVecTransferField<ObjectClass, int> >::iterator intIter;
   for (intIter = _intFields.begin(); intIter != _intFields.end(); ++intIter) {
     int* intPtr = static_cast<int*>( _framework->getTransferField( intIter->fieldName, AR_INT, intFieldSize ) );
     if (!intPtr) {
@@ -275,7 +275,7 @@ bool arMSVectorSynchronizer<ObjectClass>::receiveData() {
   int intFieldSize;
   unsigned int fieldSize;
   
-  typename std::vector< arMSVecTransferField<ObjectClass,float> >::iterator floatIter;
+  typename std::vector< arMSVecTransferField<ObjectClass, float> >::iterator floatIter;
   for (floatIter = _floatFields.begin(); floatIter != _floatFields.end(); ++floatIter) {
     float* floatPtr = static_cast<float*>( _framework->getTransferField( floatIter->fieldName, AR_FLOAT, intFieldSize ) );
     fieldSize = static_cast<unsigned int>( intFieldSize );
@@ -307,7 +307,7 @@ bool arMSVectorSynchronizer<ObjectClass>::receiveData() {
     }
   }
 
-  typename std::vector< arMSVecTransferField<ObjectClass,int> >::iterator intIter;
+  typename std::vector< arMSVecTransferField<ObjectClass, int> >::iterator intIter;
   for (intIter = _intFields.begin(); intIter != _intFields.end(); ++intIter) {
     int* intPtr = static_cast<int*>( _framework->getTransferField( intIter->fieldName, AR_INT, intFieldSize ) );
     if (fieldSize == 0) {

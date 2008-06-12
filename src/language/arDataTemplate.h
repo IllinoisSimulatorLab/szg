@@ -23,7 +23,7 @@ typedef pair< arDataType, int > arDataPair;
 // so add()'s return value, arDataPair.second,
 // does not change as a result of future add()'s.
 
-typedef map< string,arDataPair,less<string> > arAttribute;
+typedef map< string, arDataPair, less<string> > arAttribute;
 
 // Contains a list of arAttribute objects (string and arDataType).
 
@@ -35,7 +35,7 @@ class SZG_CALL arDataTemplate{
    arDataTemplate(const string&, int templateID = -1);
    arDataTemplate(const arDataTemplate&);
    arDataTemplate& operator=( const arDataTemplate& dataTemplate );
-   ~arDataTemplate(){}
+   ~arDataTemplate() {}
 
    int add(const string&, arDataType);
    void addAttribute(const string& s, arDataType d); // backwards-compatible
@@ -51,7 +51,7 @@ class SZG_CALL arDataTemplate{
    int getNumberAttributes() const
      { return _numberAttributes; }
    void dump() const;
-   int translate(ARchar*,ARchar*,arStreamConfig);
+   int translate(ARchar*, ARchar*, arStreamConfig);
 
    arAttribute::iterator attributeBegin()
      { return _attributeContainer.begin(); }
@@ -67,7 +67,7 @@ class SZG_CALL arDataTemplate{
    int    _templateID; // set by owning dictionary
    int    _numberAttributes;
    arAttribute _attributeContainer;
-};  
+};
 
 SZG_CALL bool ar_addAttributesFromString( arDataTemplate& t,
   const string& nameString, const string& typeString );

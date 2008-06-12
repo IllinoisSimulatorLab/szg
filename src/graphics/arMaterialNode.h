@@ -13,9 +13,9 @@
 class SZG_CALL arMaterialNode:public arGraphicsNode{
  public:
   arMaterialNode();
-  virtual ~arMaterialNode(){}
+  virtual ~arMaterialNode() {}
 
-  void draw(arGraphicsContext*){} 
+  void draw(arGraphicsContext*) {}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -25,7 +25,7 @@ class SZG_CALL arMaterialNode:public arGraphicsNode{
   // Sometimes it seems like a good idea to allow direct access to the
   // material (for instance, so the database draw can set materials
   // without copying data out). BUG BUG BUG. THREAD-SAFETY PROBLEM?
-  arMaterial* getMaterialPtr(){ return &_lMaterial; }
+  arMaterial* getMaterialPtr() { return &_lMaterial; }
 
  protected:
   arMaterial _lMaterial;

@@ -61,7 +61,7 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
     virtual void operator()( arGraphicsWindow&, arViewport& ) {}
     virtual void operator()( arGUIWindowInfo* ) {}
     virtual void operator()( arGUIWindowInfo* /*wI*/, arGraphicsWindow* gW ) {
-      if( gW ) {
+      if ( gW ) {
 #ifdef UNUSED
         arVector3 size(wm->getWindowSize(wI->getWindowID()));
 #endif
@@ -75,14 +75,14 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
 void drawHUD()
 {
   // menu text
-  const arVector3 highlight(1,1,1);
-  const arVector3 other(0.6,0.6,0.6);
+  const arVector3 highlight(1, 1, 1);
+  const arVector3 other(0.6, 0.6, 0.6);
   arTextBox box;
   box.width = 45;
-  box.color = arVector3(1,0,0);
+  box.color = arVector3(1, 0, 0);
   box.columns = 15;
   box.color = (oldState == PAN) ?  highlight : other;
-  box.upperLeft = arVector3(0,100,-0.1);
+  box.upperLeft = arVector3(0, 100, -0.1);
   texFont.renderString( "[1] Translate", box);
   box.color = (oldState == ROTATE) ?  highlight : other;
   box.upperLeft = arVector3(0, 95, -0.1);
@@ -146,7 +146,7 @@ void drawHUD()
   sprintf( displayString, "%4i", theObject->currentFrame() );
   box.columns = 4;
   box.width = 15;
-  box.color = arVector3(0,0,0);
+  box.color = arVector3(0, 0, 0);
   box.upperLeft = arVector3(85, 5, 0);
   texFont.renderString( displayString, box);
 }
@@ -154,13 +154,13 @@ void drawHUD()
 void display( arGUIWindowInfo*, arGraphicsWindow* )
 {
   // loop animation
-  if( isPlaying ) {
-    if( !theObject->nextFrame() ) {
+  if ( isPlaying ) {
+    if ( !theObject->nextFrame() ) {
       theObject->setFrame( 0 );
     }
   }
 
-  if( isModelSpinning ) {
+  if ( isModelSpinning ) {
     mouseWorldMatrix = ar_rotationMatrix( arVector3( 0., 1., 0. ), 0.001 ) *
     		       ar_rotationMatrix( arVector3( 1., 0., 0. ), 0.002 ) *
 	    	       mouseWorldMatrix;
@@ -188,14 +188,14 @@ void display( arGUIWindowInfo*, arGraphicsWindow* )
 
 void keyboardCB( arGUIKeyInfo* keyInfo )
 {
-  if( !keyInfo ) {
+  if ( !keyInfo ) {
     cerr << "NULL keyInfo in keyboardCB!" << endl;
     return;
   }
 
   // only perform actions on key release, otherwise everything is done
   // twice, once on press and once on release
-  if( keyInfo->getState() == AR_KEY_DOWN ) {
+  if ( keyInfo->getState() == AR_KEY_DOWN ) {
     return;
   }
 
@@ -247,7 +247,7 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
   }
 
   // animation functions
-  if( theObject->supportsAnimation() ) {
+  if ( theObject->supportsAnimation() ) {
     switch( keyInfo->getKey() ) {
       case AR_VK_j:
         theObject->prevFrame();
@@ -269,7 +269,7 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
 
 void windowCB( arGUIWindowInfo* wI )
 {
-  if( !wI ) {
+  if ( !wI ) {
     cerr << "NULL windowInfo in windowCB!" << endl;
     return;
   }
@@ -282,7 +282,7 @@ void windowCB( arGUIWindowInfo* wI )
     case AR_WINDOW_CLOSE:
       wm->deleteWindow( wI->getWindowID() );
 
-      if( !wm->hasActiveWindows() ) {
+      if ( !wm->hasActiveWindows() ) {
         exit( 0 );
       }
     break;
@@ -298,7 +298,7 @@ void mouseCB( arGUIMouseInfo* mI )
   const int width = int( size.v[ 0 ] );
   const int height = int( size.v[ 1 ] );
 
-  if( mI->getState() == AR_MOUSE_DRAG ) {
+  if ( mI->getState() == AR_MOUSE_DRAG ) {
     const float deltaX = float(mI->getPosX() - mI->getPrevPosX());
     const float deltaY = float(mI->getPosY() - mI->getPrevPosY());
 
@@ -321,7 +321,7 @@ void mouseCB( arGUIMouseInfo* mI )
       {
         arVector3 rotationAxis(arVector3( 0., 0., 1. ) * arVector3( deltaX, deltaY, 0. ));
 
-        if( ++rotationAxis > 0 ) {
+        if ( ++rotationAxis > 0 ) {
           float mag = ++rotationAxis;
           rotationAxis /= mag;
           mouseWorldMatrix = ar_ETM( mouseWorldMatrix ) *
@@ -344,22 +344,22 @@ void mouseCB( arGUIMouseInfo* mI )
   }
 
   // the rest is only applicable when the model supports animation
-  if( mI->getButton() != AR_LBUTTON || !theObject->supportsAnimation() ||
+  if ( mI->getButton() != AR_LBUTTON || !theObject->supportsAnimation() ||
       ( theObject->numberOfFrames() < 1 ) ) {
     return;
   }
 
   // mouse down on the slider bar
-  if( mI->getPosY() > height - 20 && mI->getState() == AR_MOUSE_DOWN ) {
+  if ( mI->getPosY() > height - 20 && mI->getState() == AR_MOUSE_DOWN ) {
     oldState = mouseManipState;
     mouseManipState = ( mI->getPosX() <= width-57 && mI->getPosX() >= 20 ) ? SLIDER : NONE;
   }
 
-  if( mouseManipState == SLIDER ) { // we're dragging
-    if( mI->getPosX() < 20 ) {
+  if ( mouseManipState == SLIDER ) { // we're dragging
+    if ( mI->getPosX() < 20 ) {
       theObject->setFrame( 0 );
     }
-    else if( mI->getPosX() > width-57 ) {
+    else if ( mI->getPosX() > width-57 ) {
       theObject->setFrame( theObject->numberOfFrames() - 1 );
     }
     else {
@@ -368,12 +368,12 @@ void mouseCB( arGUIMouseInfo* mI )
 	  }
   }
 
-  if( mI->getState() == AR_MOUSE_UP ) {
+  if ( mI->getState() == AR_MOUSE_UP ) {
     mouseManipState = oldState;	// done dragging bar
   }
 }
 
-int main( int argc, char** argv ){
+int main( int argc, char** argv ) {
   string fileName;
   if (argc > 1) {
     fileName = string(argv[1]);
@@ -381,23 +381,23 @@ int main( int argc, char** argv ){
   else {
     // Use local config file.
     FILE* configFile = fopen("szgview.txt", "r");
-    if (!configFile){
+    if (!configFile) {
       cout << "szgview error: no parameter supplied and no szgview.txt config file.\n";
       cout << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} [mesh.obj]\n";
       return 1;
     }
 
     char buf[1024];
-    if (fscanf(configFile, "%s", buf) < 1){
+    if (fscanf(configFile, "%s", buf) < 1) {
       cout << "szgview error: config file szgview.txt is empty.\n";
       return 1;
     }
 
     fileName = string(buf);
   }
-   
+
   theObject = ar_readObjectFromFile( fileName, "" );
-  if( !theObject ) {
+  if ( !theObject ) {
     cerr << "Invalid File: " << fileName << endl;
     return 1;
   }
@@ -406,11 +406,11 @@ int main( int argc, char** argv ){
 
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
-  if( !SZGClient ) {
+  if ( !SZGClient ) {
     // init() may fail.
     cout << "running standalone.\n";
   }
-  const string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
+  const string textPath = SZGClient.getAttribute("SZG_RENDER", "text_path");
   theDatabase = new arGraphicsDatabase;
   char texPath[ 256 ] = {0};
 #ifndef AR_USE_WIN_32
@@ -426,14 +426,14 @@ int main( int argc, char** argv ){
   mouseTransformID = theDatabase->getNodeID( "mouse" );
 
   // Add some lights.
-  (void) dgLight( "light0", "root", 0, arVector4(0,1,0,0), arVector3( 1,1,1 ) );
-  (void) dgLight( "light0", "root", 1, arVector4(0,-1,0,0), arVector3( 1,1,1 ) );
-  (void) dgLight( "light0", "root", 2, arVector4(0,0,1,0), arVector3( 1,1,1 ) );
+  (void) dgLight( "light0", "root", 0, arVector4(0, 1, 0, 0), arVector3( 1, 1, 1 ) );
+  (void) dgLight( "light0", "root", 1, arVector4(0, -1, 0, 0), arVector3( 1, 1, 1 ) );
+  (void) dgLight( "light0", "root", 2, arVector4(0, 0, 1, 0), arVector3( 1, 1, 1 ) );
   theObject->normalizeModelSize();    // fits into unit sphere
 
-  if( theObject->type() == "HTR" ) {
+  if ( theObject->type() == "HTR" ) {
     ((arHTR*) theObject)->basicDataSmoothing();
-    if( argc == 3 ) {
+    if ( argc == 3 ) {
       ar_mergeOBJandHTR( (arOBJ*) theMesh, (arHTR*) theObject, "mouse" );
     }
     else {
@@ -457,7 +457,7 @@ int main( int argc, char** argv ){
 
   arGUIXMLParser guiXMLParser( &SZGClient, SZGClient.getGlobalAttribute( displayName ) );
 
-  if( guiXMLParser.parse() < 0 ) {
+  if ( guiXMLParser.parse() < 0 ) {
     return -1;
   }
 
@@ -474,18 +474,18 @@ int main( int argc, char** argv ){
     vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
     vector<arViewport>::iterator vItr;
     for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
-      if( vItr->getCamera()->type() == "arVRCamera" ) {
+      if ( vItr->getCamera()->type() == "arVRCamera" ) {
         ((arVRCamera*) vItr->getCamera())->setHead( &head );
       }
     }
   }
 
-  if( wm->createWindows( guiXMLParser.getWindowingConstruct() ) < 0 ) {
+  if ( wm->createWindows( guiXMLParser.getWindowingConstruct() ) < 0 ) {
     return -1;
   }
 
   string fontLocation = ar_fileFind( "courier-bold.ppm", "", textPath );
-  if( fontLocation != "NULL" ) {
+  if ( fontLocation != "NULL" ) {
     ar_log_remark() << "szgview found szg system font.\n";
   }
   else {

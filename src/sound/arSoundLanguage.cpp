@@ -12,17 +12,17 @@ arSoundLanguage::arSoundLanguage():
   _player("player"),
   _speech("speech"),
   _stream("stream"),
-  _soundAdmin("sound_admin"){
-  
-  AR_TRANSFORM_ID = _transform.add("ID",AR_INT);
-  AR_TRANSFORM_MATRIX = _transform.add("matrix",AR_FLOAT);
+  _soundAdmin("sound_admin") {
+
+  AR_TRANSFORM_ID = _transform.add("ID", AR_INT);
+  AR_TRANSFORM_MATRIX = _transform.add("matrix", AR_FLOAT);
   AR_TRANSFORM = _dictionary.add(&_transform);
 
-  AR_FILEWAV_ID = _fileWav.add("ID",AR_INT);
-  AR_FILEWAV_FILE = _fileWav.add("file",AR_CHAR);
-  AR_FILEWAV_LOOP = _fileWav.add("loop",AR_INT);
-  AR_FILEWAV_AMPL = _fileWav.add("amplitude",AR_FLOAT);
-  AR_FILEWAV_XYZ = _fileWav.add("xyz",AR_FLOAT);
+  AR_FILEWAV_ID = _fileWav.add("ID", AR_INT);
+  AR_FILEWAV_FILE = _fileWav.add("file", AR_CHAR);
+  AR_FILEWAV_LOOP = _fileWav.add("loop", AR_INT);
+  AR_FILEWAV_AMPL = _fileWav.add("amplitude", AR_FLOAT);
+  AR_FILEWAV_XYZ = _fileWav.add("xyz", AR_FLOAT);
   AR_FILEWAV = _dictionary.add(&_fileWav);
 
   AR_PLAYER_ID = _player.add("ID", AR_INT);
@@ -30,9 +30,9 @@ arSoundLanguage::arSoundLanguage():
   AR_PLAYER_MID_EYE_OFFSET = _player.add("mid eye offset", AR_FLOAT);
   AR_PLAYER_UNIT_CONVERSION = _player.add("unit conversion", AR_FLOAT);
   AR_PLAYER = _dictionary.add(&_player);
-  
+
   AR_SPEECH_ID = _speech.add("ID", AR_INT);
-  AR_SPEECH_TEXT = _speech.add("text",AR_CHAR);
+  AR_SPEECH_TEXT = _speech.add("text", AR_CHAR);
   AR_SPEECH = _dictionary.add(&_speech);
 
   AR_STREAM_ID = _stream.add("ID", AR_INT);

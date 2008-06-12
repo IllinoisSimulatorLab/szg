@@ -26,13 +26,13 @@ arDataServer::arDataServer(int dataBufferSize) :
 {
 }
 
-arDataServer::~arDataServer(){
+arDataServer::~arDataServer() {
   // Close all connections.
-  if (_numberConnected > 0){
+  if (_numberConnected > 0) {
     ar_log_remark() << "arDataServer destructor closing sockets.\n";
     for (list<arSocket*>::iterator i(_connectionSockets.begin());
          i != (_connectionSockets.end());
-         i++){
+         i++) {
       arSocket* theSocket = *i;
       theSocket->ar_close();
       delete theSocket;
@@ -44,16 +44,16 @@ arDataServer::~arDataServer(){
   delete _listeningSocket;
 }
 
-void ar_readDataThread(void* dataServer){
+void ar_readDataThread(void* dataServer) {
   ((arDataServer*)dataServer)->_readDataTask();
 }
 
-void arDataServer::_readDataTask(){
+void arDataServer::_readDataTask() {
   // Bug: chaos ensues if _atomicReceive changes during this thread.  Cache a local copy thereof.
   arSocket* newFD = _nextConsumer;
 
   // Determine the formatting used by this client's remote thread.
-  map<int,arStreamConfig,less<int> >::iterator iter = 
+  map<int, arStreamConfig, less<int> >::iterator iter =
     _connectionConfigs.find(newFD->getID());
   if (iter == _connectionConfigs.end()) {
     ar_log_error() <<
@@ -88,22 +88,22 @@ void arDataServer::_readDataTask(){
       // Bug? if !_atomicReceive, this still needs to be locked.
       arGuard dummy(_lockConsume);
       arDataTemplate* t = _theDictionary->find(recordID);
-      if (!t || t->translate(dest,transBuffer,remoteConfig) <= 0) {
+      if (!t || t->translate(dest, transBuffer, remoteConfig) <= 0) {
 	ar_log_error() << "arDataServer failed to translate record.\n";
         break;
       }
     }
 
     // data is OK
-    if (_atomicReceive){
+    if (_atomicReceive) {
       _lockConsume.lock();
     }
     arStructuredData* inData = _dataParser->parse(dest, theSize);
     if (inData) {
-      _consumerFunction(inData,_consumerObject,newFD);
+      _consumerFunction(inData, _consumerObject, newFD);
       _dataParser->recycle(inData);
     }
-    if (_atomicReceive){
+    if (_atomicReceive) {
       _lockConsume.unlock();
     }
     if (!inData) {
@@ -118,23 +118,23 @@ void arDataServer::_readDataTask(){
   // that lock here. Why? The delete socket callback might very well
   // want to to stuff (as in szgserver) that expects to be atomic
   // vis-a-vis the consumer function invoked above
-  if (_atomicReceive){
+  if (_atomicReceive) {
     _lockConsume.lock();
   }
   _lockTransfer.lock();
   _deleteSocketFromDatabase(newFD);
   _lockTransfer.unlock();
-  if (_atomicReceive){
+  if (_atomicReceive) {
     _lockConsume.unlock();
   }
 }
 
-void arDataServer::atomicReceive(bool atomicReceive){
+void arDataServer::atomicReceive(bool atomicReceive) {
   _atomicReceive = atomicReceive;
 }
 
-bool arDataServer::setPort(int thePort){
-  if (thePort < 1024 || thePort > 50000){
+bool arDataServer::setPort(int thePort) {
+  if (thePort < 1024 || thePort > 50000) {
     ar_log_error() << "arDataServer ignoring out-of-range (1024-50000) port value " <<
       thePort << ".\n";
     return false;
@@ -144,8 +144,8 @@ bool arDataServer::setPort(int thePort){
   return true;
 }
 
-bool arDataServer::setInterface(const string& theInterface){
-  if (theInterface == "NULL"){
+bool arDataServer::setInterface(const string& theInterface) {
+  if (theInterface == "NULL") {
     ar_log_error() << "arDataServer ignoring NULL setInterface.\n";
     return false;
   }
@@ -153,22 +153,22 @@ bool arDataServer::setInterface(const string& theInterface){
   return true;
 }
 
-bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
-  if (_portNumber == -1){
+bool arDataServer::beginListening(arTemplateDictionary* theDictionary) {
+  if (_portNumber == -1) {
     ar_log_error() << "arDataServer failed to listen on undefined port.\n";
     return false;
   }
 
-  if (!theDictionary){
+  if (!theDictionary) {
     cerr << "arDataServer error: no dictionary.\n";
     return false;
   }
 
   _theDictionary = theDictionary;
-  if (!_dataParser){
+  if (!_dataParser) {
     _dataParser = new arStructuredDataParser(_theDictionary);
   }
-  if (!_listeningSocket){
+  if (!_listeningSocket) {
     _listeningSocket = new arSocket(AR_LISTENING_SOCKET);
   }
   if (_listeningSocket->ar_create() < 0 ||
@@ -187,7 +187,7 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
   char addressBuffer[256];
   ar_stringToBuffer(_interfaceIP, addressBuffer, sizeof(addressBuffer));
   if (_listeningSocket->
-      ar_bind(_interfaceIP == "INADDR_ANY" ? NULL : addressBuffer, _portNumber) < 0){
+      ar_bind(_interfaceIP == "INADDR_ANY" ? NULL : addressBuffer, _portNumber) < 0) {
     ar_log_error() << "arDataServer failed to bind to "
          << _interfaceIP << ":" << _portNumber
          << "\n\t(not this host's IP address?  port in use?).\n";
@@ -195,20 +195,20 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
     return false;
   }
 
-  _listeningSocket->ar_listen(256); 
+  _listeningSocket->ar_listen(256);
   return true;
 }
 
-bool arDataServer::removeConnection(int id){
+bool arDataServer::removeConnection(int id) {
   arGuard dummy(_lockTransfer);
-  const map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
+  const map<int, arSocket*, less<int> >::iterator i(_connectionIDs.find(id));
   const bool found = (i != _connectionIDs.end());
   if (found)
     _deleteSocketFromDatabase(i->second);
   return found;
 }
 
-arSocket* arDataServer::_acceptConnection(bool addToActive){
+arSocket* arDataServer::_acceptConnection(bool addToActive) {
   if (!_listeningSocket) {
     ar_log_error() << "arDataServer can't acceptConnection before beginListening.\n";
     return NULL;
@@ -217,7 +217,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
 
   // Accept connections in a different thread from the one sending data.
   arSocket* sockNew = new arSocket(AR_STANDARD_SOCKET);
-  if (!sockNew){
+  if (!sockNew) {
     ar_log_error() << "arDataServer: no socket in _acceptConnection.\n";
     return NULL;
   }
@@ -233,7 +233,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   // Caching a single addr as a member variable is too simplistic.
 
   ar_log_remark() << "arDataServer connected from " << addr.getRepresentation() << ".\n";
- 
+
   arGuard dummy(_lockTransfer);
   _addSocketToDatabase(sockNew);
   if (!sockNew->smallPacketOptimize(_smallPacketOptimize)) {
@@ -245,7 +245,7 @@ LAbort:
   // Add the new socket to either the active or the passive list.
   (addToActive ? _connectionSockets : _passiveSockets).push_back(sockNew);
 
-  if (!_theDictionary){
+  if (!_theDictionary) {
     // We expected to SEND the dictionary to the connected data point.
     ar_log_error() << "arDataServer: no dictionary.\n";
     _deleteSocketFromDatabase(sockNew);
@@ -282,11 +282,11 @@ LAbort:
   }
   // We need to know the remote stream config for this socket, since we
   // might send data (i.e. szgserver or arBarrierServer).
-  _setSocketRemoteConfig(sockNew,remoteStreamConfig);
+  _setSocketRemoteConfig(sockNew, remoteStreamConfig);
 
   // Send the dictionary.
   const int theSize = _theDictionary->size();
-  if (theSize<=0){
+  if (theSize<=0) {
     ar_log_error() << "arDataServer failed to pack dictionary.\n";
     _deleteSocketFromDatabase(sockNew);
     goto LAbort;
@@ -294,7 +294,7 @@ LAbort:
 
   ARchar* buffer = new ARchar[theSize]; // Storage for the dictionary.
   _theDictionary->pack(buffer);
-  if (!sockNew->ar_safeWrite(buffer,theSize)){
+  if (!sockNew->ar_safeWrite(buffer, theSize)) {
     ar_log_error() << "arDataServer failed to send dictionary.\n";
     _deleteSocketFromDatabase(sockNew);
     goto LAbort;
@@ -305,51 +305,51 @@ LAbort:
   if (addToActive)
     _numberConnectedActive++;
 
-  if (_consumerFunction){
+  if (_consumerFunction) {
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = sockNew;
     arThread* dummy = new arThread; // memory leak?
-    if (!dummy->beginThread(ar_readDataThread, this)){
+    if (!dummy->beginThread(ar_readDataThread, this)) {
       ar_log_error() << "arDataServer failed to start read thread.\n";
       return NULL;
-    } 
+    }
     // Wait until ar_readDataThread reads _nextConsumer into local storage.
     _threadLaunchSignal.receiveSignal();
   }
- 
+
   return sockNew;
 }
 
-void arDataServer::activatePassiveSockets(){
+void arDataServer::activatePassiveSockets() {
   arGuard dummy(_lockTransfer);
   for (list<arSocket*>::const_iterator i(_passiveSockets.begin());
-       i != _passiveSockets.end(); ++i){
+       i != _passiveSockets.end(); ++i) {
     _connectionSockets.push_back(*i);
     _numberConnectedActive++;
   }
   _passiveSockets.clear();
 }
 
-bool arDataServer::checkPassiveSockets(){
+bool arDataServer::checkPassiveSockets() {
   arGuard dummy(_lockTransfer);
   return _passiveSockets.begin() != _passiveSockets.end();
 }
 
-list<arSocket*>* arDataServer::getActiveSockets(){
+list<arSocket*>* arDataServer::getActiveSockets() {
   list<arSocket*>* result = new list<arSocket*>;
   arGuard dummy(_lockTransfer);
   for (list<arSocket*>::const_iterator i=_connectionSockets.begin();
-       i != _connectionSockets.end(); ++i){
+       i != _connectionSockets.end(); ++i) {
     result->push_back(*i);
   }
   return result;
 }
 
-void arDataServer::activatePassiveSocket(int socketID){
+void arDataServer::activatePassiveSocket(int socketID) {
   arGuard dummy(_lockTransfer);
   for (list<arSocket*>::iterator i(_passiveSockets.begin());
-       i != _passiveSockets.end(); ++i){
-    if ((*i)->getID() == socketID){
+       i != _passiveSockets.end(); ++i) {
+    if ((*i)->getID() == socketID) {
       _connectionSockets.push_back(*i);
       _passiveSockets.erase(i);
       ++_numberConnectedActive;
@@ -358,7 +358,7 @@ void arDataServer::activatePassiveSocket(int socketID){
   }
 }
 
-bool arDataServer::sendData(arStructuredData* pData){
+bool arDataServer::sendData(arStructuredData* pData) {
   const int theSize = pData->size();
   arGuard dummy(_lockTransfer);
   return ar_growBuffer(_dataBuffer, _dataBufferSize, theSize) &&
@@ -366,7 +366,7 @@ bool arDataServer::sendData(arStructuredData* pData){
     _sendDataCore(_dataBuffer, theSize);
 }
 
-bool arDataServer::sendDataQueue(arQueuedData* pData){
+bool arDataServer::sendDataQueue(arQueuedData* pData) {
   arGuard dummy(_lockTransfer);
   return _sendDataCore(pData->getFrontBufferRaw(), pData->getFrontBufferSize());
 }
@@ -374,13 +374,13 @@ bool arDataServer::sendDataQueue(arQueuedData* pData){
 // Send data in a different thread from where we accept connections.
 // Call this only inside _lockTransfer.
 // Return true if any connections.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize){
+bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize) {
   bool ok = false;
   list<arSocket*> removalList;
   list<arSocket*>::iterator iter;
-  for (iter = _connectionSockets.begin(); iter != _connectionSockets.end(); ++iter){
+  for (iter = _connectionSockets.begin(); iter != _connectionSockets.end(); ++iter) {
     arSocket* fd = *iter;
-    if (fd->ar_safeWrite(theBuffer,theSize)){
+    if (fd->ar_safeWrite(theBuffer, theSize)) {
       ok = true;
     }
     else{
@@ -393,13 +393,13 @@ bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize){
   return ok;
 }
 
-bool arDataServer::sendData(arStructuredData* pData, arSocket* fd){
+bool arDataServer::sendData(arStructuredData* pData, arSocket* fd) {
   arGuard dummy(_lockTransfer);
   return sendDataNoLock(pData, fd);
 }
 
-bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
-  if (!fd){
+bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd) {
+  if (!fd) {
     ar_log_error() << "arDataServer ignoring send to NULL socket.\n";
     return false;
   }
@@ -412,8 +412,8 @@ bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
   return _sendDataCore(_dataBuffer, theSize, fd);
 }
 
-bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd){
-  if (!fd){
+bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd) {
+  if (!fd) {
     ar_log_error() << "arDataServer ignoring queue-send to NULL socket.\n";
     return false;
   }
@@ -422,24 +422,24 @@ bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd){
 }
 
 // Call this only inside _lockTransfer.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd){
+bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd) {
   // Caller ensures that fd != NULL.
-  if (fd->ar_safeWrite(theBuffer,theSize))
+  if (fd->ar_safeWrite(theBuffer, theSize))
     return true;
   ar_log_error() << "arDataServer failed to send data to specific socket.\n";
   _deleteSocketFromDatabase(fd);
   return false;
 }
 
-bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketList){
+bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketList) {
   const int theSize = theData->getFrontBufferSize();
   list<arSocket*> removalList;
   bool ok = false;
   ARchar* theBuffer = theData->getFrontBufferRaw();
   list<arSocket*>::iterator i;
   arGuard dummy(_lockTransfer);
-  for (i = socketList->begin(); i != socketList->end(); ++i){
-    if ((*i)->ar_safeWrite(theBuffer, theSize)){
+  for (i = socketList->begin(); i != socketList->end(); ++i) {
+    if ((*i)->ar_safeWrite(theBuffer, theSize)) {
       ok = true;
     }
     else{
@@ -447,66 +447,66 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
       removalList.push_back(*i);
     }
   }
-  for (i = removalList.begin(); i != removalList.end(); i++){
+  for (i = removalList.begin(); i != removalList.end(); i++) {
     _deleteSocketFromDatabase(*i);
   }
   return ok;
 }
 
 void arDataServer::setConsumerFunction(void (*consumerFunction)
-			               (arStructuredData*,void*,arSocket*)){
+			               (arStructuredData*, void*, arSocket*)) {
   _consumerFunction = consumerFunction;
 }
 
-void arDataServer::setConsumerObject(void* consumerObject){
+void arDataServer::setConsumerObject(void* consumerObject) {
   _consumerObject = consumerObject;
 }
 
 void arDataServer::setDisconnectFunction
-  (void (*disconnectFunction)(void*,arSocket*)){
+  (void (*disconnectFunction)(void*, arSocket*)) {
   _disconnectFunction = disconnectFunction;
 }
 
-void arDataServer::setDisconnectObject(void* disconnectObject){
+void arDataServer::setDisconnectObject(void* disconnectObject) {
   _disconnectObject = disconnectObject;
 }
 
-string arDataServer::dumpConnectionLabels(){
+string arDataServer::dumpConnectionLabels() {
   string s;
   arGuard dummy(_lockTransfer);
-  for (map<int,string,less<int> >::const_iterator iLabel(_connectionLabels.begin());
-       iLabel != _connectionLabels.end(); ++iLabel){
+  for (map<int, string, less<int> >::const_iterator iLabel(_connectionLabels.begin());
+       iLabel != _connectionLabels.end(); ++iLabel) {
     s += iLabel->second + "/" + ar_intToString(iLabel->first) + ":";
   }
   return s;
 }
 
-arSocket* arDataServer::getConnectedSocket(int id){
+arSocket* arDataServer::getConnectedSocket(int id) {
   arGuard dummy(_lockTransfer);
   return getConnectedSocketNoLock(id);
 }
 
-arSocket* arDataServer::getConnectedSocketNoLock(int id){
-  map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
+arSocket* arDataServer::getConnectedSocketNoLock(int id) {
+  map<int, arSocket*, less<int> >::iterator i(_connectionIDs.find(id));
   return i==_connectionIDs.end() ? NULL : i->second;
 }
 
-void arDataServer::setSocketLabel(arSocket* theSocket, const string& theLabel){
+void arDataServer::setSocketLabel(arSocket* theSocket, const string& theLabel) {
   arGuard dummy(_lockTransfer);
   _addSocketLabel(theSocket, theLabel);
 }
 
-string arDataServer::getSocketLabel(int theSocketID){
+string arDataServer::getSocketLabel(int theSocketID) {
   arGuard dummy(_lockTransfer);
-  map<int,string,less<int> >::const_iterator i(_connectionLabels.find(theSocketID));
+  map<int, string, less<int> >::const_iterator i(_connectionLabels.find(theSocketID));
   return i==_connectionLabels.end() ? string("NULL") : i->second;
 }
 
-int arDataServer::getFirstIDWithLabel(const string& theSocketLabel){
+int arDataServer::getFirstIDWithLabel(const string& theSocketLabel) {
   arGuard dummy(_lockTransfer);
-  for (map<int,string,less<int> >::const_iterator i = _connectionLabels.begin();
+  for (map<int, string, less<int> >::const_iterator i = _connectionLabels.begin();
       i != _connectionLabels.end(); ++i) {
-    if (theSocketLabel == i->second){
+    if (theSocketLabel == i->second) {
       return i->first;
     }
   }
@@ -514,47 +514,47 @@ int arDataServer::getFirstIDWithLabel(const string& theSocketLabel){
 }
 
 // _lockTransfer serializes this, so 2 sockets don't get the same ID.
-void arDataServer::_addSocketToDatabase(arSocket* theSocket){
+void arDataServer::_addSocketToDatabase(arSocket* theSocket) {
   theSocket->setID(_nextID++);         // give the socket an ID
   _addSocketLabel(theSocket, "NULL");  // give the socket a default label
   _addSocketID(theSocket);             // insert in the ID table
 }
 
-bool arDataServer::_delSocketID(arSocket* s){
-  map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(s->getID()));
+bool arDataServer::_delSocketID(arSocket* s) {
+  map<int, arSocket*, less<int> >::iterator i(_connectionIDs.find(s->getID()));
   if (i == _connectionIDs.end())
     return false;
   _connectionIDs.erase(i); // Socket already existed.
   return true;
 }
 
-bool arDataServer::_delSocketLabel(arSocket* s){
-  map<int,string,less<int> >::iterator i(_connectionLabels.find(s->getID()));
+bool arDataServer::_delSocketLabel(arSocket* s) {
+  map<int, string, less<int> >::iterator i(_connectionLabels.find(s->getID()));
   if (i == _connectionLabels.end())
     return false;
   _connectionLabels.erase(i); // Socket already existed.
   return true;
 }
 
-void arDataServer::_addSocketID(arSocket* s){
+void arDataServer::_addSocketID(arSocket* s) {
   (void)_delSocketID(s);
   _connectionIDs.insert(
-    map<int,arSocket*,less<int> >::value_type(s->getID(), s));
+    map<int, arSocket*, less<int> >::value_type(s->getID(), s));
 }
 
-void arDataServer::_addSocketLabel(arSocket* s, const string& label){
+void arDataServer::_addSocketLabel(arSocket* s, const string& label) {
   (void)_delSocketLabel(s);
   _connectionLabels.insert(
-    map<int,string,less<int> >::value_type(s->getID(), label));
+    map<int, string, less<int> >::value_type(s->getID(), label));
 }
 
-void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
+void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket) {
   // we have the following problem with the sockets: since reading
   // and writing occur in seperate threads, we cannot arbitrairly delete the socket
   // in one or another of the threads. It might be the case that the other thread
   // is still actively using that socket. Also, we need to be careful that a socket
   // is not deleted twice. Consequently, a count, per socket, is maintained of the
-  // operations pending upon it. This count is incremented and decremented 
+  // operations pending upon it. This count is incremented and decremented
   // internally in the socket upon entrance to and exit from
   // ar_safeRead and ar_safeWrite. The _deleteSocketFromDatabase
   // function will, the first time it has been called, delete the socket from the
@@ -580,8 +580,8 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
   // Remove the socket*.
   for (list<arSocket*>::iterator removalIterator(_connectionSockets.begin());
        removalIterator != _connectionSockets.end();
-       ++removalIterator){
-    if (theSocket->getID() == (*removalIterator)->getID()){
+       ++removalIterator) {
+    if (theSocket->getID() == (*removalIterator)->getID()) {
       _connectionSockets.erase(removalIterator);
       theSocket->ar_close(); // good idea
       --_numberConnected;
@@ -589,7 +589,7 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
       break; // Stop looking.
     }
   }
-  if (_disconnectFunction){
+  if (_disconnectFunction) {
     // Call the user-supplied disconnect function.
     _disconnectFunction(_disconnectObject, theSocket);
   }
@@ -600,22 +600,22 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
   // after _disconnectFunction has used it, of course.
 }
 
-void arDataServer::_setSocketRemoteConfig(arSocket* theSocket, 
-                                          const arStreamConfig& config){
-  map<int,arStreamConfig,less<int> >::iterator
+void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
+                                          const arStreamConfig& config) {
+  map<int, arStreamConfig, less<int> >::iterator
     iter(_connectionConfigs.find(theSocket->getID()));
-  if (iter != _connectionConfigs.end()){
+  if (iter != _connectionConfigs.end()) {
     ar_log_error() << "arDataServer erasing duplicate socket ID.\n";
     _connectionConfigs.erase(iter);
   }
   _connectionConfigs.insert
-    (map<int,arStreamConfig,less<int> >::value_type 
+    (map<int, arStreamConfig, less<int> >::value_type
       (theSocket->getID(), config));
 }
 
 // -1 is returned on error. Otherwise the ID of the new socket.
 // Unlike arDataClient, which returns bool.  Beware!
-int arDataServer::dialUpFallThrough(const string& s, int port){
+int arDataServer::dialUpFallThrough(const string& s, int port) {
   arSocket* socket = new arSocket(AR_STANDARD_SOCKET);
   if (socket->ar_create() < 0) {
     ar_log_error() << "arDataServer: dialUp(" << s << ":" << port
@@ -623,18 +623,18 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     return -1;
   }
 
-  if (!setReceiveBufferSize(socket)){
+  if (!setReceiveBufferSize(socket)) {
     return -1;
   }
 
-  if (!socket->smallPacketOptimize(_smallPacketOptimize)){
+  if (!socket->smallPacketOptimize(_smallPacketOptimize)) {
     ar_log_error() << "arDataServer: dialUp(" << s << ":" << port
          << ") failed to smallPacketOptimize.\n";
     return -1;
   }
 
   arSocketAddress addr;
-  if (socket->ar_connect(s.c_str(), port) < 0){
+  if (socket->ar_connect(s.c_str(), port) < 0) {
     ar_log_error() << "arDataServer failed to dialUp.\n";
     socket->ar_close();
     // delete socket?
@@ -648,8 +648,8 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   // use it yet.  This breaks symmetry, but no code depends on it yet.
   localConfig.ID = 0;
   arStreamConfig remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
-  if (!remoteStreamConfig.valid){
-    if (remoteStreamConfig.refused){
+  if (!remoteStreamConfig.valid) {
+    if (remoteStreamConfig.refused) {
       ar_log_remark() << "arDataServer disconnected (host not on szgserver's whitelist?).\n";
       return -1;
     }
@@ -657,18 +657,18 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
          << remoteStreamConfig.version << ".\n";
     return -1;
   }
-  
+
   ARchar sizeBuffer[AR_INT_SIZE];
   // Unlike arDataClient, don't *use* sizeBuffer.
   // arDataClient would store the remote socket ID here.
-  if (!socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
+  if (!socket->ar_safeRead(sizeBuffer, AR_INT_SIZE)) {
     ar_log_error() << "arDataServer: dialUp got no dictionary size.\n";
     socket->ar_close();
     return -1;
   }
 
-  const ARint totalSize = ar_translateInt(sizeBuffer,remoteStreamConfig);
-  if (totalSize < AR_INT_SIZE){
+  const ARint totalSize = ar_translateInt(sizeBuffer, remoteStreamConfig);
+  if (totalSize < AR_INT_SIZE) {
     ar_log_error() << "arDataServer: dialUp failed to translate dictionary.\n";
     socket->ar_close();
     return -1;
@@ -676,7 +676,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
 
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
-  if (!socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
+  if (!socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)) {
     ar_log_error() << "arDataServer: dialUp got no dictionary.\n";
     delete [] dataBuffer;
     return -1;
@@ -696,14 +696,14 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   //if (addToActive)
   //  _numberConnectedActive++;
 
-  if (_consumerFunction){
+  if (_consumerFunction) {
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = socket;
     arThread* dummy = new arThread; // \bug memory leak?
-    if (!dummy->beginThread(ar_readDataThread, this)){
+    if (!dummy->beginThread(ar_readDataThread, this)) {
       ar_log_error() << "arDataServer failed to start read thread.\n";
       return -1;
-    } 
+    }
     // Wait until the new thread reads _nextConsumer into local storage.
     _threadLaunchSignal.receiveSignal();
   }

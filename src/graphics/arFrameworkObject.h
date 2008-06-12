@@ -16,14 +16,14 @@ using namespace std;
 class SZG_CALL arFrameworkObject{
  public:
   arFrameworkObject();
-  virtual ~arFrameworkObject(){};
+  virtual ~arFrameworkObject() {};
 
   // Don't declare these functions as pure virtual.
   // That would force all subclasses to implement them.
 
   // Framework objects like head-wand simulator can draw themselves.
   // Not const, because of derived classes' implementations.
-  virtual void draw(){}
+  virtual void draw() {}
 
   // Inelegant and lacking features?
   virtual void drawWithComposition() {}

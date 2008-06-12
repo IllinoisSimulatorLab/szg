@@ -1,4 +1,3 @@
-
 /* Copyright (c) Mark J. Kilgard, 1997. */
 
 /* This program is freely distributable without licensing fees  and is
@@ -413,8 +412,7 @@ mouse(int button, int state, int x, int y)
 
     } else {
 
-      /* Left mouse button released; unset "moving" since button no longer
-         pressed. */
+      /* Left mouse button released; unset "moving" since button no longer pressed. */
       moving = 0;
 
     }

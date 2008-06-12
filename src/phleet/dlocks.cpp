@@ -8,7 +8,7 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)

@@ -42,8 +42,8 @@ class htrFrame;
 class SZG_CALL htrSegmentData{
  public:
   htrSegmentData(): transformNode(NULL), scaleNode(NULL), preTransformNode(NULL), postTransformNode(NULL),
-    localTransformNode(NULL), invTransformNode(NULL), boundingSphereNode(NULL), parent(NULL){}
-  ~htrSegmentData(){}
+    localTransformNode(NULL), invTransformNode(NULL), boundingSphereNode(NULL), parent(NULL) {}
+  ~htrSegmentData() {}
 
   string segmentName;
   // Transform node associated with this segment
@@ -83,7 +83,7 @@ class SZG_CALL htrBasePosition {
     { if (name) free(name); }
   char* name;
   htrSegmentData* segment;
-  double Tx, Ty, Tz;  
+  double Tx, Ty, Tz;
   arMatrix4 trans;
   double Rx, Ry, Rz;
   arMatrix4 rot;
@@ -93,13 +93,13 @@ class SZG_CALL htrBasePosition {
 // Frame data
 class SZG_CALL htrFrame{
  public:
-  htrFrame(){}
-  ~htrFrame(){}
+  htrFrame() {}
+  ~htrFrame() {}
   int frameNum;
-  arMatrix4 trans;  
-  double Tx, Ty, Tz; 
+  arMatrix4 trans;
+  double Tx, Ty, Tz;
   double Rx, Ry, Rz;
-  double scale;    
+  double scale;
   double totalScale;
 };
 
@@ -115,7 +115,7 @@ class SZG_CALL arHTR : public arObject {
 
     // DEPRECATED! Use the arGraphicsNode* parent version instead!
     bool attachMesh(const string& objectName, const string& parent);
-    bool attachMesh(arGraphicsNode* parent, const string& objectName=""){
+    bool attachMesh(arGraphicsNode* parent, const string& objectName="") {
       return attachMesh(parent, objectName, false);
     }
     // DEPRECATED! Use the arGraphicsNode* parent version instead!
@@ -140,18 +140,18 @@ class SZG_CALL arHTR : public arObject {
     inline int numberOfSegments() const { return numSegments; }
     inline int version() const { return fileVersion; }
     inline string nameOfSegment(const int i) const { return segmentData[i]->segmentName; }
-    inline arTransformNode* transformForSegment(int i){ return segmentData[i]->transformNode; }
-    inline arTransformNode* preTransformForSegment(int i){ return segmentData[i]->preTransformNode; }
-    inline arTransformNode* postTransformForSegment(int i){ return segmentData[i]->postTransformNode; }
-    inline arTransformNode* localTransformForSegment(int i){ return segmentData[i]->localTransformNode; }
-    inline arTransformNode* inverseForSegment(int i){ return segmentData[i]->invTransformNode; }
-    inline arBoundingSphereNode* boundingSphereForSegment(int i){ return segmentData[i]->boundingSphereNode; }
-    int transformIDForSegment(int i){ return segmentData[i]->transformNode ? segmentData[i]->transformNode->getID() : -1; }
-    int preTransformIDForSegment(int i){ return segmentData[i]->preTransformNode ? segmentData[i]->preTransformNode->getID() : -1; }
-    int postTransformIDForSegment(int i){ return segmentData[i]->postTransformNode ? segmentData[i]->postTransformNode->getID() : -1; }
-    int localTransformIDForSegment(int i){ return segmentData[i]->localTransformNode ? segmentData[i]->localTransformNode->getID() : -1; }
-    int inverseIDForSegment(int i){ return segmentData[i]->invTransformNode ? segmentData[i]->invTransformNode->getID() : -1; }
-    int boundingSphereIDForSegment(int i){ return segmentData[i]->boundingSphereNode ? segmentData[i]->boundingSphereNode->getID() : -1; }
+    inline arTransformNode* transformForSegment(int i) { return segmentData[i]->transformNode; }
+    inline arTransformNode* preTransformForSegment(int i) { return segmentData[i]->preTransformNode; }
+    inline arTransformNode* postTransformForSegment(int i) { return segmentData[i]->postTransformNode; }
+    inline arTransformNode* localTransformForSegment(int i) { return segmentData[i]->localTransformNode; }
+    inline arTransformNode* inverseForSegment(int i) { return segmentData[i]->invTransformNode; }
+    inline arBoundingSphereNode* boundingSphereForSegment(int i) { return segmentData[i]->boundingSphereNode; }
+    int transformIDForSegment(int i) { return segmentData[i]->transformNode ? segmentData[i]->transformNode->getID() : -1; }
+    int preTransformIDForSegment(int i) { return segmentData[i]->preTransformNode ? segmentData[i]->preTransformNode->getID() : -1; }
+    int postTransformIDForSegment(int i) { return segmentData[i]->postTransformNode ? segmentData[i]->postTransformNode->getID() : -1; }
+    int localTransformIDForSegment(int i) { return segmentData[i]->localTransformNode ? segmentData[i]->localTransformNode->getID() : -1; }
+    int inverseIDForSegment(int i) { return segmentData[i]->invTransformNode ? segmentData[i]->invTransformNode->getID() : -1; }
+    int boundingSphereIDForSegment(int i) { return segmentData[i]->boundingSphereNode ? segmentData[i]->boundingSphereNode->getID() : -1; }
     arMatrix4 segmentBaseTransformRelative(int segmentID);
     int	numberOfSegment(const string& segmentName);
     arMatrix4 inverseTransformForSegment(int i);
@@ -172,10 +172,10 @@ class SZG_CALL arHTR : public arObject {
     void frameInterpolate(htrFrame*, const htrFrame*, const htrFrame*);
     arMatrix4 HTRTransform(htrBasePosition* theBP, htrFrame* theFrame);
     arMatrix4 HTRRotation(double Rx, double Ry, double Rz);
-    
+
     void attachChildNode(arGraphicsNode* parent,
-                         const string& baseName, 
-                         htrBasePosition* node, 
+                         const string& baseName,
+                         htrBasePosition* node,
                          bool withLines=false);
 
   private:
@@ -185,13 +185,13 @@ class SZG_CALL arHTR : public arObject {
     int dataFrameRate;
     char* fileType;
     char* dataType;
-    arAxisOrder eulerRotationOrder;    
-    char* calibrationUnits;   
+    arAxisOrder eulerRotationOrder;
+    char* calibrationUnits;
     char* rotationUnits;
     char globalAxisOfGravity;
     char boneLengthAxis;
     double scaleFactor;
-    vector<htrSegmentHierarchy*> childParent;  
+    vector<htrSegmentHierarchy*> childParent;
     vector<htrBasePosition*> basePosition;
     vector<htrSegmentData*> segmentData;
 

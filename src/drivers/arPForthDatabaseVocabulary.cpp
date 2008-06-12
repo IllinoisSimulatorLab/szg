@@ -111,7 +111,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
     fclose(fp);
     return false;
   }
-  
+
   // BIG grab
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];
@@ -239,7 +239,7 @@ bool TrackCalCompiler::compile( arPForth* pf,
   pf->addAction( action );
   arPForthCompiler* compiler = new SimpleCompiler( action );
   if (compiler == 0)
-    throw arPForthException("failed to allocate compiler object.");    
+    throw arPForthException("failed to allocate compiler object.");
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
 }
@@ -267,7 +267,7 @@ bool IIRFilterAction::configure(arSZGClient* szgClient) {
   float floatBuf[3] = {0};
   // y_filter_weight determines behavior of an IIR filter (y(i) = (1-w)y(i) + wy(i-1))
   // applied to the head vertical position to remove jitter.
-  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
+  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR", "IIR_filter_weights", floatBuf, 3)) {
     for (unsigned int i=0; i<3; i++) {
       if (floatBuf[i] < 0. || floatBuf[i] >= 1.) {
         ar_log_error() << "SZG_MOTIONSTAR/IIR_filter_weight " << floatBuf[i] <<
@@ -283,7 +283,7 @@ bool IIRFilterAction::configure(arSZGClient* szgClient) {
   }
   return true;
 }
-static float _lastPosition[] = {-1000,-1000,-1000};
+static float _lastPosition[] = {-1000, -1000, -1000};
 void IIRFilterAction::_doIIRFilter( arMatrix4& m ) {
   for (int i=0; i<3; i++) {
     float p = m[12+i];
@@ -320,7 +320,7 @@ bool IIRFilterCompiler::compile( arPForth* pf,
   pf->addAction( action );
   arPForthCompiler* compiler = new SimpleCompiler( action );
   if (compiler == 0)
-    throw arPForthException("failed to allocate compiler object.");    
+    throw arPForthException("failed to allocate compiler object.");
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
 }
@@ -332,10 +332,10 @@ bool IIRFilterCompiler::compile( arPForth* pf,
 
 // installer function
 bool ar_PForthAddDatabaseVocabulary( arPForth* pf ) {
-  if (!pf->addSimpleActionWord( "getStringParameter", 
+  if (!pf->addSimpleActionWord( "getStringParameter",
                              new arPForthSpace::GetDatabaseParameter() ))
     return false;
-  if (!pf->addSimpleActionWord( "getFloatParameters", 
+  if (!pf->addSimpleActionWord( "getFloatParameters",
                              new arPForthSpace::GetFloatDatabaseParameters() ))
     return false;
   arPForthSpace::arPForthCompiler* compiler = new arPForthSpace::TrackCalCompiler();

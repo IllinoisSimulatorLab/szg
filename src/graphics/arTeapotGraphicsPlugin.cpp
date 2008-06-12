@@ -17,7 +17,7 @@ class arTeapotGraphicsPlugin: public arGraphicsPlugin {
 
     // Draw the object.  Restore any modified OpenGL state.
     virtual void draw( arGraphicsWindow& win, arViewport& view );
-    
+
     // Update the object's state based on changes to the database made
     // by the controller program. Feel free to ignore any of the arguments.
     // Unused ones are commented out to avoid compiler warnings.

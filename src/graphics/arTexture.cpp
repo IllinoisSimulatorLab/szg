@@ -5,7 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arDataUtilities.h"
-#include "arTexture.h" 
+#include "arTexture.h"
 #include "arLogStream.h"
 #include "arMath.h"
 
@@ -112,7 +112,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   // In this case, the number of references should not change. After the
   // assignment operation, the number of external objects using this
   // texture will remain the same. There will just be a different image
-  // inside it. 
+  // inside it.
   if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
     ar_log_remark() << "arTexture copied " << numbytes() << " bytes.\n";
@@ -122,7 +122,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   return *this;
 }
 
-arTexture::arTexture( const arTexture& rhs, 
+arTexture::arTexture( const arTexture& rhs,
                       unsigned int left, unsigned int bottom,
                       unsigned int width, unsigned int height ) :
   _alpha( rhs._alpha ),
@@ -184,16 +184,16 @@ bool arTexture::activate(bool forceReload) {
     ARint64(pthread_self());
 #endif
   // Has it been used so far?
-  map<ARint64,GLuint,less<ARint64> >::const_iterator i = _texNameMap.find(threadID);
+  map<ARint64, GLuint, less<ARint64> >::const_iterator i = _texNameMap.find(threadID);
   GLuint temp;
   if (i == _texNameMap.end()) {
-    glGenTextures(1,&temp);
+    glGenTextures(1, &temp);
     if (temp == 0) {
       ar_log_error() << "arTexture glGenTextures() failed in activate().\n";
       _lock.unlock();
       return false;
     }
-    _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
+    _texNameMap.insert(map<ARint64, GLuint, less<ARint64> >::value_type
                        (threadID, temp));
     // Load the bitmap on the graphics card, anyways.
     forceReload = true;
@@ -258,7 +258,7 @@ void arTexture::setPixels(char* pixels, int width, int height) {
 
 // Return a buffer containing a sub-image of the original.
 // Caller owns the new buffer.
-char* arTexture::getSubImage( unsigned left, unsigned bottom, 
+char* arTexture::getSubImage( unsigned left, unsigned bottom,
     unsigned width, unsigned height ) const {
   const int depth = getDepth();
   char* newPixels = new char[width*height*depth];
@@ -307,7 +307,7 @@ bool arTexture:: readImage(const string& fileName, const string& path,
   return readImage(fileName, "", path, alpha, complain);
 }
 
-bool arTexture::readImage(const string& fileName, 
+bool arTexture::readImage(const string& fileName,
                           const string& subdirectory,
                           const string& path,
                           int alpha, bool complain) {
@@ -317,9 +317,9 @@ bool arTexture::readImage(const string& fileName,
 
   if (extension == "ppm")
     return readPPM(fileName, subdirectory, path, alpha, complain);
-  
+
   ar_log_error() << "unsupported texture file format '." << extension << "'.\n";
-  return false;  
+  return false;
 }
 
 bool arTexture::readAlphaImage(const string& fileName, bool complain) {
@@ -331,7 +331,7 @@ bool arTexture:: readAlphaImage(const string& fileName, const string& path,
   return readAlphaImage(fileName, "", path, complain);
 }
 
-bool arTexture::readAlphaImage(const string& fileName, 
+bool arTexture::readAlphaImage(const string& fileName,
                           const string& subdirectory,
                           const string& path,
                           bool complain) {
@@ -341,9 +341,9 @@ bool arTexture::readAlphaImage(const string& fileName,
 
   if (extension == "ppm")
     return readAlphaPPM(fileName, subdirectory, path, complain);
-  
+
   ar_log_error() << "unsupported texture file format '." << extension << "'.\n";
-  return false;  
+  return false;
 }
 
 bool arTexture::readPPM(const string& fileName, int alpha, bool complain) {
@@ -355,10 +355,10 @@ bool arTexture::readPPM(const string& fileName, const string& path,
   return readPPM(fileName, "", path, alpha, complain);
 }
 
-bool arTexture::readPPM(const string& fileName, 
+bool arTexture::readPPM(const string& fileName,
                         const string& subdirectory,
                         const string& path,
-                        int alpha, 
+                        int alpha,
                         bool complain) {
   // todo: grayscale ppm
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb", complain ? "arTexture readPPM" : NULL);
@@ -382,12 +382,12 @@ bool arTexture::readPPM(const string& fileName,
       PPMHeader << "' in PPM file '" << fileName << "'.\n";
     return false;
   }
-  
+
   // Strip some characters.
   char buffer[512];
   while (true) {
     const char nextChar = getc(fd);
-    ungetc(nextChar,fd);
+    ungetc(nextChar, fd);
     if (nextChar != '#') {
       break;
     }
@@ -412,7 +412,7 @@ bool arTexture::readPPM(const string& fileName,
   fgetc(fd);
   int i, j;
   char* pPixel;
-  if (!strcmp(PPMHeader,"P6")) {
+  if (!strcmp(PPMHeader, "P6")) {
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
     if (!localBuffer) {
@@ -445,7 +445,7 @@ bool arTexture::readPPM(const string& fileName,
   }
 
   _assignAlpha(alpha);
-  
+
   fclose(fd);
   _fDirty = true;
   return true;
@@ -460,7 +460,7 @@ bool arTexture::readAlphaPPM(const string& fileName, const string& path,
   return readAlphaPPM(fileName, "", path, complain);
 }
 
-bool arTexture::readAlphaPPM(const string& fileName, 
+bool arTexture::readAlphaPPM(const string& fileName,
                         const string& subdirectory,
                         const string& path,
                         bool complain) {
@@ -490,12 +490,12 @@ bool arTexture::readAlphaPPM(const string& fileName,
       PPMHeader << "' in PPM file '" << fileName << "'.\n";
     return false;
   }
-  
+
   // Strip some characters.
   char buffer[512];
   while (true) {
     const char nextChar = getc(fd);
-    ungetc(nextChar,fd);
+    ungetc(nextChar, fd);
     if (nextChar != '#') {
       break;
     }
@@ -534,7 +534,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
   fgetc(fd);
   int i, j, k, sum;
   char* pPixel;
-  if (!strcmp(PPMHeader,"P6")) {
+  if (!strcmp(PPMHeader, "P6")) {
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
     if (!localBuffer) {
@@ -585,20 +585,20 @@ bool arTexture::writePPM(const string& fileName, const string& path) {
 }
 
 // Write texture to the given file name on the given subdirectory of the given path.
-bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
+bool arTexture::writePPM(const string& fileName, const string& subdirectory,
                          const string& path) {
-  
+
   FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb", "arTexture write ppm");
   if (fp == NULL) {
     return false;
   }
-  fprintf(fp,"P6\n%i %i\n255\n", _width, _height);
+  fprintf(fp, "P6\n%i %i\n255\n", _width, _height);
   char* buffer = _packPixels(); // Possibly convert RGBA array to RGB.
   if (!buffer) {
     ar_log_error() << "arTexture writePPM _packPixels failed.\n";
     return false;
   }
-  fwrite(buffer,1,_height*_width*3,fp);
+  fwrite(buffer, 1, _height*_width*3, fp);
   fclose(fp);
   delete[] buffer;
   return true;
@@ -613,11 +613,11 @@ bool arTexture::readJPEG(const string& fileName, const string& path,
   return readJPEG(fileName, "", path, alpha, complain);
 }
 
-// Read a jpeg file. 
-bool arTexture::readJPEG(const string& fileName, 
+// Read a jpeg file.
+bool arTexture::readJPEG(const string& fileName,
                          const string& subdirectory,
                          const string& path,
-                         int alpha, 
+                         int alpha,
                          bool complain) {
 #ifndef EnableJPEG
   ar_log_error() << "compiled without jpg support. No textures.\n";
@@ -633,14 +633,14 @@ bool arTexture::readJPEG(const string& fileName,
   if (!fd) {
     return false;
   }
-  
+
   struct jpeg_decompress_struct _cinfo;
   struct arTexture_error_mgr _jerr;
   // Set up the normal JPEG error routines, then override error_exit.
   // Before jpeg_create_decompress!
   _cinfo.err = jpeg_std_error(&_jerr.pub);
   jpeg_create_decompress(&_cinfo);
-  
+
   jpeg_stdio_src(&_cinfo, fd);
   jpeg_read_header(&_cinfo, TRUE);
   jpeg_start_decompress(&_cinfo);
@@ -671,19 +671,19 @@ bool arTexture::readJPEG(const string& fileName,
         // line image flip).
         // OpenGL textures have as their first
         // line the bottom of the image, jpeg's the top.
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
                 + x*getDepth() + component] = buffer[0][i];
       } else {
         // 1 component
         // Might be a better way to do this using OpenGL
         // grayscale textures. For now, just
         // expand the grayscale jpeg into an RGB one.
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
                 + i*getDepth()] = buffer[0][i];
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
                 + i*getDepth() + 1] = buffer[0][i];
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
-                + i*getDepth() + 2] = buffer[0][i]; 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
+                + i*getDepth() + 2] = buffer[0][i];
       }
     }
   }
@@ -704,8 +704,8 @@ bool arTexture::readAlphaJPEG(const string& fileName, const string& path,
   return readAlphaJPEG(fileName, "", path, complain);
 }
 
-// Read a jpeg file into alpha channel. 
-bool arTexture::readAlphaJPEG(const string& fileName, 
+// Read a jpeg file into alpha channel.
+bool arTexture::readAlphaJPEG(const string& fileName,
                          const string& subdirectory,
                          const string& path,
                          bool complain) {
@@ -726,14 +726,14 @@ bool arTexture::readAlphaJPEG(const string& fileName,
   if (!fd) {
     return false;
   }
-  
+
   struct jpeg_decompress_struct _cinfo;
   struct arTexture_error_mgr _jerr;
   // Set up the normal JPEG error routines, then override error_exit.
   // Before jpeg_create_decompress!
   _cinfo.err = jpeg_std_error(&_jerr.pub);
   jpeg_create_decompress(&_cinfo);
-  
+
   jpeg_stdio_src(&_cinfo, fd);
   jpeg_read_header(&_cinfo, TRUE);
   jpeg_start_decompress(&_cinfo);
@@ -772,14 +772,14 @@ bool arTexture::readAlphaJPEG(const string& fileName,
         for (i=0; i<3; ++i) {
           sum +=  buffer[0][jpgPixOffset+i];
         }
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
                   + szgPixNum*getDepth() + 3] = static_cast<char>( sum/3 );
       }
     } else {
       for (szgPixNum=0; szgPixNum < _width; ++szgPixNum) {
         jpgPixOffset = szgPixNum;
-        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
-                + szgPixNum*getDepth() + 3] = buffer[0][jpgPixOffset]; 
+        _pixels[(_height-_cinfo.output_scanline)*_width*getDepth()
+                + szgPixNum*getDepth() + 3] = buffer[0][jpgPixOffset];
       }
     }
   }
@@ -801,7 +801,7 @@ bool arTexture::writeJPEG(const string& fileName, const string& path) {
 
 // Write texture as a jpeg with the given file name on
 // the given subdirectory of the given path
-bool arTexture::writeJPEG(const string& fileName, const string& subdirectory, 
+bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
                           const string& path) {
 #ifndef EnableJPEG
   ar_log_error() << "compiled without jpeg support.  No textures.\n";
@@ -830,10 +830,10 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
   jpeg_stdio_dest(&cinfo, outFile);
-  cinfo.image_width = _width; 
+  cinfo.image_width = _width;
   cinfo.image_height = _height;
-  cinfo.input_components = 3;	
-  cinfo.in_color_space = JCS_RGB; 
+  cinfo.input_components = 3;
+  cinfo.in_color_space = JCS_RGB;
   jpeg_set_defaults(&cinfo);
   // I think this means the highest quality settings
   jpeg_set_quality(&cinfo, 100, TRUE);
@@ -960,7 +960,7 @@ void arTexture::_assignAlpha(int alpha) {
   _textureFunc = GL_MODULATE; // for texture blending
 }
 
-// Return an RGB array of pixels suitable for writing to a file. 
+// Return an RGB array of pixels suitable for writing to a file.
 // Maybe work around the pixels' internal RGBA packing.
 // Also account for the pixels' internal storage
 // in OpenGL format (as returned form glReadPixels or as in texture
@@ -1006,11 +1006,11 @@ bool arTexture::_loadIntoOpenGL() {
                   _repeating ? GL_REPEAT : GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
                     _repeating ? GL_REPEAT : GL_CLAMP);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 //                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR); 
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
   // _width and _height must both be a power of two... otherwise
   // no texture will appear when this is invoked.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );

@@ -36,7 +36,7 @@
 
  Win32 Timeout Info (From MSDN):
 
- ReadIntervalTimeout 
+ ReadIntervalTimeout
   Specifies the maximum time, in milliseconds, allowed to elapse between
   the arrival of two characters on the communications line. During a
   ReadFile operation, the time period begins when the first character is
@@ -49,12 +49,12 @@
   the characters that have already been received, even if no characters
   have been received.
 
- ReadTotalTimeoutMultiplier 
+ ReadTotalTimeoutMultiplier
   Specifies the multiplier, in milliseconds, used to calculate the
   total time-out period for read operations. For each read operation,
   this value is multiplied by the requested number of bytes to be read.
 
- ReadTotalTimeoutConstant 
+ ReadTotalTimeoutConstant
   Specifies the constant, in milliseconds, used to calculate the
   total time-out period for read operations. For each read operation,
   this value is added to the product of the ReadTotalTimeoutMultiplier
@@ -62,7 +62,7 @@
   the ReadTotalTimeoutMultiplier and ReadTotalTimeoutConstant members
   indicates that total time-outs are not used for read operations.
 
- WriteTotalTimeoutMultiplier 
+ WriteTotalTimeoutMultiplier
 
   Specifies the multiplier, in milliseconds, used to calculate the
   total time-out period for write operations. For each write operation,
@@ -87,7 +87,7 @@
   ReadTotalTimeoutConstant, ReadFile times out.
 
  From The Serial Programming Guide for POSIX Operating Systems by Michael R. Sweet
- 
+
  Setting Read Timeouts
 
   UNIX serial interface drivers provide the ability to specify character
@@ -131,8 +131,8 @@ arRS232Port::arRS232Port() :
   _readTimeoutTenths(10)
 {
 #ifdef AR_USE_WIN_32
-  _timeoutStruct.ReadIntervalTimeout = 0; 
-  _timeoutStruct.ReadTotalTimeoutMultiplier = 0; 
+  _timeoutStruct.ReadIntervalTimeout = 0;
+  _timeoutStruct.ReadTotalTimeoutMultiplier = 0;
   _timeoutStruct.ReadTotalTimeoutConstant = 1000;
   _timeoutStruct.WriteTotalTimeoutMultiplier = 0;
   _timeoutStruct.WriteTotalTimeoutConstant = 100;
@@ -224,7 +224,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       return false;
   }
   if (dBits < 4 || dBits > 8) {
-    ar_log_error() << "arRS232Port: data bits must be one of 4,5,6,7,8.\n";
+    ar_log_error() << "arRS232Port: data bits must be one of 4, 5, 6, 7, 8.\n";
     return false;
   }
   const BYTE byteSize = static_cast<BYTE>( dBits );
@@ -267,13 +267,13 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   if (_portHandle == INVALID_HANDLE_VALUE) {
     ar_log_error() << "arRS232Port failed to open " << portString << ".\n";
     return false;
-  }  
+  }
   ar_log_remark() << "arRS232Port opened " << portString << ".\n";
-  
+
   DCB dcb;
   GetCommState( _portHandle, &dcb );
 
-  // These two are needed by the Flock of Birds, should probably be optional. 
+  // These two are needed by the Flock of Birds, should probably be optional.
   dcb.fDtrControl = DTR_CONTROL_ENABLE;
   dcb.fRtsControl = RTS_CONTROL_DISABLE;
 
@@ -315,7 +315,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   _isOpen = true;
   if (!setReadTimeout( _readTimeoutTenths )) {
     return false;
-  } 
+  }
 
   if (!flushInput())
     ar_log_error() << "arRS232Port: flushInput() failed.\n";
@@ -348,7 +348,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   }
   char portString[64];
   sprintf( portString, "/dev/ttyS%d", port-1 ); // port numbers are 0-based
-  
+
   // Open the port.
   _fileDescriptor = open( portString, O_RDWR | O_NOCTTY );
   if (_fileDescriptor < 0) {
@@ -357,7 +357,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
     return false;
   }
   ar_log_remark() << "arRS232Port opened '" << portString << "'.\n";
-  
+
   if (tcgetattr( _fileDescriptor, &_oldConfig ) < 0) // save port settings
     perror("arRS232Port error");
   memcpy( &_newConfig, &_oldConfig, sizeof(_newConfig) );
@@ -365,7 +365,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   // Set baud rate.
   cfsetispeed( &_newConfig, baudRate );
   cfsetospeed( &_newConfig, baudRate );
-  
+
   _newConfig.c_cflag &= ~CSIZE;
   switch (dBits) {
     case 5:
@@ -381,7 +381,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       _newConfig.c_cflag |= CS8;
       break;
     default:
-      ar_log_error() << "arRS232Port: data bits must be one of 5,6,7,8.\n";
+      ar_log_error() << "arRS232Port: data bits must be one of 5, 6, 7, 8.\n";
       return false;
   }
   if (fltcomp( stBits, 1 )) {
@@ -408,19 +408,19 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   }
 
   // Set flags.
-  
+
   _newConfig.c_cflag |= CLOCAL | CREAD;
   // _newConfig.c_cflag |= CRTSCTS;
 #if 0
   _newConfig.c_cflag |= HUPCL;
 #endif
-  
+
   // change old flag: _newConfig.c_iflag |= (INPCK | ISTRIP); to the flag
   // below to make the FOB work (see SERKNR.C from the ascension driver or
   // fob.cpp from libfob)
   _newConfig.c_iflag = IXOFF;
   _newConfig.c_oflag &= ~OPOST;
-  
+
   // set input mode (non-canonical, no echo, ...)
   // _newConfig.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
   _newConfig.c_lflag = 0;
@@ -445,11 +445,11 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
     ar_log_error() << "arRS232Port: flushInput() failed.\n";
   if (!flushOutput())
     ar_log_error() << "arRS232Port: flushOutput() failed.\n";
-    
+
   // Reconfigure port.
   if (tcsetattr( _fileDescriptor, TCSANOW, &_newConfig ) < 0)
     perror("arRS232Port error");
-  
+
   // Set some flags needed by FOB, will likely break other stuff.
   int status = 0;
   ioctl( _fileDescriptor, TIOCMGET, &status);
@@ -496,7 +496,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
 bool arRS232Port::ar_close() {
   if (!_isOpen)
     return true;
-  
+
   if (!flushInput())
     ar_log_error() << "arRS232Port: flushInput() failed.\n";
   if (!flushOutput())
@@ -527,7 +527,7 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
   unsigned numBytesAvailable = getNumberBytes();
   unsigned numToRead = numBytes;
   if ((numBytesAvailable <= maxBytes) && (numBytesAvailable > numBytes))
-    numToRead = numBytesAvailable; 
+    numToRead = numBytesAvailable;
 
   // Do one blocking read with a total timeout.
   if (!ReadFile(_portHandle, buf, numToRead, &bytesThisTime, NULL)) {
@@ -569,7 +569,7 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
     const long startTimeSecs = tStruct.tv_sec;
     const long startTimeMicSecs = tStruct.tv_usec;
     if (numBytesAvailable <= maxBytes && numBytesAvailable > numBytes)
-      numToRead = numBytesAvailable; 
+      numToRead = numBytesAvailable;
     unsigned long timeElapsedTenths = 0;
 
     while (static_cast<unsigned>(numRead) < numToRead &&
@@ -586,12 +586,13 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
         if (gettimeofday( &tStruct, &zStruct )!=0) {
           ar_log_error() << "arRS232Port: gettimeofday failed during read.\n";
           return -1;
-        }      
+	}
+
         timeElapsedTenths = static_cast<unsigned long>( static_cast<unsigned long>(
 	  10 * (tStruct.tv_sec-startTimeSecs) +
 	  static_cast<long>(floor((tStruct.tv_usec-startTimeMicSecs)/1.0e5)) ) );
       }
-    } 
+    }
 
 #if 0
   static int myLimit = 20;
@@ -610,7 +611,7 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
     if (numBytesAvailable == 0)
       return 0;
     if (numBytesAvailable < numToRead)
-      numToRead = numBytesAvailable; 
+      numToRead = numBytesAvailable;
     numRead = read( _fileDescriptor, buf, numToRead );
     if (numRead < 0) {
       ar_log_error() << "arRS232Port: read() failed.\n";
@@ -646,7 +647,7 @@ int arRS232Port::readAll( char**bufAdd, unsigned& currentBufferSize ) {
     *bufAdd = new char[numBytes];
     if (!*bufAdd) {
       ar_log_error() << "arRS232Port: readAll() out of memory.\n";
-      return 0; 
+      return 0;
     }
     currentBufferSize = numBytes;
   }
@@ -703,7 +704,7 @@ bool arRS232Port::flushInput() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
   nyi();
   return false;
-#endif 
+#endif
 
   if (!_isOpen) {
     ar_log_error() << "arRS232Port: can't flush a closed port.\n";
@@ -721,7 +722,7 @@ bool arRS232Port::flushOutput() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
   nyi();
   return false;
-#endif 
+#endif
 
   if (!_isOpen) {
     ar_log_error() << "arRS232Port: can't flush a closed port.\n";
@@ -739,7 +740,7 @@ bool arRS232Port::setReadTimeout( const unsigned timeoutTenths ) {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
   nyi();
   return false;
-#endif 
+#endif
   if (!_isOpen) {
     ar_log_error() << "arRS232Port: port closed\n";
     return false;

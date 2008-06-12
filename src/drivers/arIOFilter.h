@@ -17,7 +17,7 @@ class SZG_CALL arIOFilter {
   public:
     arIOFilter();
     virtual ~arIOFilter() {}
-  
+
     virtual bool configure(arSZGClient*);
     bool filter( arInputEventQueue* qin, arInputState* s );
     int getButton( const unsigned int index ) const;
@@ -29,10 +29,10 @@ class SZG_CALL arIOFilter {
     void insertNewEvent( const arInputEvent& newEvent );
     void setID( int id ) { _id = id; }
     int getID() const { return _id; }
-    
+
   protected:
     virtual bool _processEvent( arInputEvent& /*inputEvent*/ ) { return true; }
-    
+
   private:
     int _id;
     arInputEventQueue _outputQueue;

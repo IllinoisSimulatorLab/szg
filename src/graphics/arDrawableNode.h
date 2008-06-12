@@ -24,7 +24,7 @@ enum arDrawableType {
 class SZG_CALL arDrawableNode:public arGraphicsNode{
  public:
   arDrawableNode();
-  virtual ~arDrawableNode(){}
+  virtual ~arDrawableNode() {}
 
   void draw(arGraphicsContext*);
   arStructuredData* dumpData();

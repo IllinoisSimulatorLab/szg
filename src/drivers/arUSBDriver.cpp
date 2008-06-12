@@ -376,7 +376,7 @@ int DoRS232Read(unsigned char& c) {
 int DoGetRS232Baud(int* BaudRate) {
   LOCK
   OutLength = 2;
-  if (!SendToDriver(FNCNumberDoGetRS232Baud,0,0,OutputData,OutLength)) {
+  if (!SendToDriver(FNCNumberDoGetRS232Baud, 0, 0, OutputData, OutLength)) {
     UNLOCK
     return DEVICE_NOT_PRESENT;
   }
@@ -425,7 +425,7 @@ int DoSetRS232Baud(int BaudRate) {
   BaudRateByte = int(BaudRateDouble);
   LOCK
   OutLength = 1;
-  const bool ok = SendToDriver(FNCNumberDoSetRS232Baud,LoByte(BaudRateByte),HiByte(BaudRateByte),OutputData,OutLength);
+  const bool ok = SendToDriver(FNCNumberDoSetRS232Baud, LoByte(BaudRateByte), HiByte(BaudRateByte), OutputData, OutLength);
   UNLOCK
   return ok ? USB_NO_ERROR : DEVICE_NOT_PRESENT;
 }
@@ -495,7 +495,7 @@ DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
 	if (DoGetRS232BufferLocal(bufCG + RS232BufferWrite, BufferLength) != USB_NO_ERROR) {
           ar_log_error() << "arUSBDriver: rs232 problem\n";
 	  // wait 2 seconds if no answer, to save bandwidth for non-rs232 devices
-	  if (WaitForSingleObject(RS232BufferEndEvent,2000) != WAIT_TIMEOUT)
+	  if (WaitForSingleObject(RS232BufferEndEvent, 2000) != WAIT_TIMEOUT)
 	    goto LDone;
 	}
 	// now BufferLength is how many bytes were actually read from the USB hardware
@@ -599,7 +599,7 @@ bool arUSBDriver::init(arSZGClient&) {
   }
   const int baudSet = 57692; // close enough to 57600
   int baud = -1;
-  if (DoSetRS232Baud(baudSet) != USB_NO_ERROR || DoGetRS232Baud(&baud) != USB_NO_ERROR){
+  if (DoSetRS232Baud(baudSet) != USB_NO_ERROR || DoGetRS232Baud(&baud) != USB_NO_ERROR) {
     ar_log_error() << "arUSBDriver failed to set+get baud rate.\n";
     return false;
   }
@@ -622,7 +622,7 @@ bool arUSBDriver::start() {
     ar_log_error() << "arUSBDriver can't start before init.\n";
     return false;
   }
-  return _eventThread.beginThread(ar_USBDriverDataTask,this);
+  return _eventThread.beginThread(ar_USBDriverDataTask, this);
 #endif
 }
 
@@ -772,7 +772,7 @@ ar_log_debug() << "\txy average = " << xAvg << ", " << yAvg << "\n";;;;
       yMax = yUse;
 ar_log_remark() << "use xy: " << xUse << ", " << yUse << "\n";
 
-    // Scale to [-1,1] by lerping xUse w.r.t. xMin xMax xAvg.
+    // Scale to [-1, 1] by lerping xUse w.r.t. xMin xMax xAvg.
     // Though an exponential curve fit would better model the 555 timing circuit.
     float xx = (xUse <= xAvg) ?
       (xUse - xMin) / (xAvg - xMin) - 1. :
@@ -807,8 +807,8 @@ ar_log_remark() << "Nrm xy: " << xx << ", " << yy << "\n";
     }
 
 //	printf("X %.1f %.1f %.1f   %5.0f = %5.2f           Y %.1f %.1f %.1f  %5.0f = %5.2f\n",
-//	  xMin,xAvg,xMax, xUse,xx,
-//	  yMin,yAvg,yMax, yUse,yy);
+//	  xMin, xAvg, xMax, xUse, xx,
+//	  yMin, yAvg, yMax, yUse, yy);
 
 	printf("\t\t\tmsec: %6.1f %6.1f %6.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
 	// ar_usleep failing?  Why 4.0 or 13.5 msec, +- .7 ?  Expected 150.

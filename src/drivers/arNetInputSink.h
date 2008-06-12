@@ -23,7 +23,7 @@ class SZG_CALL arNetInputSink: public arInputSink{
   bool init(arSZGClient&);
   bool start();
   void setInfo(const string& info);
-  virtual void receiveData(int,arStructuredData*);
+  virtual void receiveData(int, arStructuredData*);
  private:
   arSZGClient* _szgClient;
   arDataServer _dataServer;

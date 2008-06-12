@@ -16,7 +16,7 @@
 class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
  public:
   arSoundLanguage();
-  ~arSoundLanguage(){}
+  ~arSoundLanguage() {}
 
  // can these ints be made non-public?
   int AR_TRANSFORM;
@@ -33,11 +33,11 @@ class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
   int AR_PLAYER;
   int AR_PLAYER_ID;
   // transformation matrix of head
-  int AR_PLAYER_MATRIX;     
-  // distance from motiontracking sensor to midpoint between eyes?     
-  int AR_PLAYER_MID_EYE_OFFSET;  
+  int AR_PLAYER_MATRIX;
+  // distance from motiontracking sensor to midpoint between eyes?
+  int AR_PLAYER_MID_EYE_OFFSET;
   int AR_PLAYER_UNIT_CONVERSION;
-  
+
   int AR_SPEECH;
   int AR_SPEECH_ID;
   int AR_SPEECH_TEXT;
@@ -49,7 +49,7 @@ class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
   int AR_STREAM_AMPLITUDE;
   int AR_STREAM_TIME;
 
-  int AR_SOUND_ADMIN;       
+  int AR_SOUND_ADMIN;
   int AR_SOUND_ADMIN_ACTION;
   int AR_SOUND_ADMIN_NODE_ID;
   int AR_SOUND_ADMIN_NAME;

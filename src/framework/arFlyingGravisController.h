@@ -4,7 +4,7 @@
 //********************************************************
 
 #ifndef AR_FLYING_GRAVIS_CONTROLLER_H
-#define AR_FLYING_GRAVIS_CONTROLLER_H 
+#define AR_FLYING_GRAVIS_CONTROLLER_H
 
 #include "arController.h"
 #include "arInputNode.h"
@@ -30,5 +30,5 @@ class SZG_CALL arFlyingGravisController:public arController{
   arInputNode      _joystickClient;
   arNetInputSource _netInputSource;
 };
-  
+
 #endif

@@ -12,13 +12,13 @@ int main() {
   }
   cout << "Path = " << here.path().c_str() << "\n\n";
   unsigned int i;
-  
+
   std::vector<std::string> fileList = here.files();
   cout << "List of " << fileList.size() << " files:\n\n";
   for (i=0; i<fileList.size(); i++)
     cout << fileList[i].c_str() << endl;
   cout << endl;
-  
+
   std::vector<std::string> dirList = here.subDirectories();
   cout << "\nList of " << dirList.size() << " subdirectories:\n\n";
   for (i=0; i<dirList.size(); i++)
@@ -29,12 +29,12 @@ int main() {
   cout << here.fileExists(".bashrc") ?
     "File .bashrc found.\n\n" :
     "No file named .bashrc found.\n\n";
-  
+
   cout << "Testing subdirectory search:\n";
-  arDirectory tempDir = here.getSubdirectory("temp");
-  cout << !tempDir ?
-    "Subdirectory temp not found.\n" :
-    "Opened subdirectory temp.\n";
-  
+  arDirectory tempDir(here.getSubdirectory("temp"));
+  cout << tempDir ?
+    "Opened subdirectory temp.\n" :
+    "Subdirectory temp not found.\n";
+
   return 0;
 }

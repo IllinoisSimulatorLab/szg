@@ -17,7 +17,7 @@
 class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
  public:
   arGraphicsLanguage();
-  ~arGraphicsLanguage(){}
+  ~arGraphicsLanguage() {}
 
   string typeFromID(int ID);
 
@@ -60,10 +60,10 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   int AR_VIEWER_ID;
   int AR_VIEWER_MATRIX;          // transformation matrix of head
   int AR_VIEWER_MID_EYE_OFFSET;  // offset of "between eyes" from head position
-  int AR_VIEWER_EYE_DIRECTION;   // unit vector from midpoint between eyes 
+  int AR_VIEWER_EYE_DIRECTION;   // unit vector from midpoint between eyes
                                  // to right eye
   int AR_VIEWER_EYE_SPACING;     // interpupillary distance
-  int AR_VIEWER_NEAR_CLIP;       // near clipping plane (measured from 
+  int AR_VIEWER_NEAR_CLIP;       // near clipping plane (measured from
                                  // tracker, not from midpoint between eyes)
   int AR_VIEWER_FAR_CLIP;        // far clipping plane
   int AR_VIEWER_UNIT_CONVERSION; // and here we can have a global scale factor
@@ -143,16 +143,16 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   int AR_GRAPHICS_STATE_STRING; // line width, etc.
   int AR_GRAPHICS_STATE_INT;
   int AR_GRAPHICS_STATE_FLOAT;
-  
+
   int AR_GRAPHICS_PLUGIN;     // A node defined in a dll.
-  int AR_GRAPHICS_PLUGIN_ID;     
-  int AR_GRAPHICS_PLUGIN_NAME;     
-  int AR_GRAPHICS_PLUGIN_INT;     
-  int AR_GRAPHICS_PLUGIN_LONG;     
-  int AR_GRAPHICS_PLUGIN_FLOAT;     
-  int AR_GRAPHICS_PLUGIN_DOUBLE;     
-  int AR_GRAPHICS_PLUGIN_STRING;     
-  int AR_GRAPHICS_PLUGIN_NUMSTRINGS;     
+  int AR_GRAPHICS_PLUGIN_ID;
+  int AR_GRAPHICS_PLUGIN_NAME;
+  int AR_GRAPHICS_PLUGIN_INT;
+  int AR_GRAPHICS_PLUGIN_LONG;
+  int AR_GRAPHICS_PLUGIN_FLOAT;
+  int AR_GRAPHICS_PLUGIN_DOUBLE;
+  int AR_GRAPHICS_PLUGIN_STRING;
+  int AR_GRAPHICS_PLUGIN_NUMSTRINGS;
 
  protected:
   arDataTemplate _transform;

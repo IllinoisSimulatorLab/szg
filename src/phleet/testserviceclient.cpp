@@ -18,10 +18,10 @@ string serviceName[2];
 arLock printLock;
 arSlashString networks;
 
-void readDataTask(void* num){
+void readDataTask(void* num) {
   int number = *((int*) num);
   int trial = 0;
-  while(true){
+  while (true) {
     printLock.lock();
     cout << "&&&&&& Component ID of service " << serviceName[number]
 	 << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
@@ -46,14 +46,14 @@ void readDataTask(void* num){
          << "  Address = " << result.address << "\n"
          << "  Number ports = " << result.numberPorts << "\n"
          << "  Ports = ";
-    for (int i=0; i<result.numberPorts; i++){
+    for (int i=0; i<result.numberPorts; i++) {
       cout << result.portIDs[i] << " ";
     }
     cout << "\n";
     printLock.unlock();
-    
-    if (!dataClient[number].dialUpFallThrough(result.address.c_str(), 
-                                              result.portIDs[0])){
+
+    if (!dataClient[number].dialUpFallThrough(result.address.c_str(),
+                                              result.portIDs[0])) {
       arGuard dummy(printLock);
       cout << "***** Thread number = " << number << "\n"
            << "  trial = " << trial << "\n"
@@ -64,8 +64,8 @@ void readDataTask(void* num){
     int bufferSize = 1000;
     ARchar* buffer = new ARchar[bufferSize];
     arStructuredData* data = new arStructuredData(dictionary->find("test"));
-    for (int k=0; k<10; k++){
-      if (!dataClient[number].getData(buffer, bufferSize)){
+    for (int k=0; k<10; k++) {
+      if (!dataClient[number].getData(buffer, bufferSize)) {
 	arGuard dummy(printLock);
         cout << "***** Thread number = " << number << "\n"
              << "  trial = " << trial << "\n"
@@ -82,8 +82,8 @@ void readDataTask(void* num){
   }
 }
 
-int main(int argc, char** argv){
-  if (argc < 3){
+int main(int argc, char** argv) {
+  if (argc < 3) {
     cout << "usage: testserviceclient <service name 1> <service name 2>\n";
     return 1;
   }
@@ -97,18 +97,16 @@ int main(int argc, char** argv){
   networks = config.getNetworks();
   serviceName[0] = string(argv[1]);
   serviceName[1] = string(argv[2]);
-  
-  // num1 and num2 need to be distinct, lest each thread attach to source 1.
 
+  // num1 and num2 need to be distinct, lest each thread attach to source 1.
   int num1 = 0;
   arThread thread1;
   thread1.beginThread(readDataTask, &num1);
-
   int num2 = 1;
   arThread thread2;
   thread2.beginThread(readDataTask, &num2);
 
-  while (true){
+  while (true) {
     ar_usleep(100000);
   }
   return 0;

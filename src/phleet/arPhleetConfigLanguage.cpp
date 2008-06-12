@@ -10,8 +10,7 @@ arPhleetConfigLanguage::arPhleetConfigLanguage():
   _computer("computer"),
   _interface("interface"),
   _ports("ports"),
-  _login("login"){
-  
+  _login("login") {
   AR_COMPUTER_NAME = _computer.add("name", AR_CHAR);
   AR_COMPUTER = _dictionary.add(&_computer);
 

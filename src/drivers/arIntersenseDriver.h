@@ -2,7 +2,7 @@
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
-// The arIntersenseDriver was written by 
+// The arIntersenseDriver was written by
 // Drew Dolgert ajd27@cornell.edu
 //********************************************************
 
@@ -20,11 +20,11 @@ class IsenseStation;
 /*  The tracker is the external box connected to the PC,
     and the stations are the various devices (wand, glasses) attached to
     the tracker.
-    
+
     This class calls the Intersense SDK, which is a set of functions
     in isense.cpp which then load and call isense.dll.  The DLL is
     not required in order to compile.
-    
+
     Notice that the interface does not provide us with the number of
     buttons, valuators, or AuxInputs on each station.
     */
@@ -32,7 +32,7 @@ class IsenseTracker {
 public:
   // Constructor clears memory of structs.
   IsenseTracker();
-  
+
   // Destructor closes tracker handle.
   ~IsenseTracker();
 
@@ -67,7 +67,7 @@ public:
   void setStationIndices( unsigned int& matrixIndex,
                           unsigned int& buttonIndex,
                           unsigned int& axisIndex );
-  
+
   // Send tracker data to an arInputSource.
   bool getData( arInputSource* source );
 
@@ -140,19 +140,18 @@ class IsenseStation {
     void setIndices( unsigned int& matrixIndex,
                      unsigned int& buttonIndex,
                      unsigned int& axisIndex );
-    
+
     void queueData( ISD_TRACKER_DATA_TYPE& data,
                     bool usePositionMeasurement,
                     arInputSource* inputSource );
-    
+
   private:
     void _setInputCounts( unsigned int buttonCnt,
                           unsigned int analogCnt,
                           unsigned int auxCnt );
-    
+
     bool _setUseCompass( unsigned int compassVal );
 
-      
     // Intersense configuration info for this station.
     ISD_STATION_INFO_TYPE _stationConfig;
 
@@ -162,12 +161,11 @@ class IsenseStation {
     unsigned  int _numButtons;      // Number of buttons set by user
     unsigned  int _numAnalogInputs; // Number of valuators set by user.
     unsigned  int _numAuxInputs;    // Number of aux inputs set by user.
-    
     unsigned  int _firstButtonIndex; // Index into szg driver's list of buttons.
     unsigned  int _firstAnalogIndex; // Index into szg driver's list of axes.
     unsigned  int _firstAuxIndex;    // Index into szg driver's list of axes.
 
-    // We only send button events when button state CHANGES!!!!!
+    // Only send button events when button state changes.
     Bool _lastButtonState[ISD_MAX_BUTTONS];
 };
 

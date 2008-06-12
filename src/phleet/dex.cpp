@@ -14,8 +14,8 @@ const int chost = 60;
 const int cchMax = 30;
 static char hosts[chost * cchMax + 2];
 
-void getHostsRunningSzgd(arSZGClient& szgClient){
-  
+void getHostsRunningSzgd(arSZGClient& szgClient) {
+
   const string& lines = szgClient.getProcessList();
   strcpy(hosts, " ");
 
@@ -51,7 +51,7 @@ void getHostsRunningSzgd(arSZGClient& szgClient){
   }
 }
 
-bool isRunningSzgd(const char* szHost){
+bool isRunningSzgd(const char* szHost) {
   if (!szHost || !*szHost)
     return false;
   char buf[256];
@@ -60,11 +60,11 @@ bool isRunningSzgd(const char* szHost){
 }
 
 // todo: make this a member of szgClient, and use it wherever SZG_CONF/virtual is mentioned.
-bool isVirtualComputer(arSZGClient& szgClient, const char* host){
+bool isVirtualComputer(arSZGClient& szgClient, const char* host) {
   return szgClient.getAttribute(host, "SZG_CONF", "virtual", "") == "true";
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   int i=0, j=0;
 
   // Default is no timeouts.
@@ -81,9 +81,9 @@ int main(int argc, char** argv){
   // parse and remove the command-line options
   int iVerbose = 1;
 
-  for (i=0; i<argc; i++){
+  for (i=0; i<argc; i++) {
 
-    if (!strcmp(argv[i],"-q")){
+    if (!strcmp(argv[i], "-q")) {
       iVerbose = 0;
       // remove the arg from the list
       for (j=i; j<argc-1; j++)
@@ -91,7 +91,7 @@ int main(int argc, char** argv){
       argc--;
     }
 
-    if (!strcmp(argv[i],"-v")){
+    if (!strcmp(argv[i], "-v")) {
       iVerbose = 2;
       // remove the arg from the list
       for (j=i; j<argc-1; j++)
@@ -101,9 +101,9 @@ int main(int argc, char** argv){
 
     // factor out copypaste from these two blocks.
 
-    if (!strcmp(argv[i],"-lt")){
+    if (!strcmp(argv[i], "-lt")) {
       // The next arg must be a timeout, in seconds.
-      if (argc <= i+1){
+      if (argc <= i+1) {
         cerr << "dex error: a timeout in seconds must follow the -lt option.\n";
         return 1;
       }
@@ -111,7 +111,7 @@ int main(int argc, char** argv){
         cerr << "dex error: local timeout must be a number.\n";
         return 1;
       }
-      if (t <= 0.){
+      if (t <= 0.) {
         cerr << "dex error: local timeout must be a number of seconds > 0.\n";
         return 1;
       }
@@ -122,9 +122,9 @@ int main(int argc, char** argv){
       argc -= 2;
     }
 
-    if (!strcmp(argv[i],"-t")){
+    if (!strcmp(argv[i], "-t")) {
       // The next arg must be a remote timeout, in seconds.
-      if (argc <= i+1){
+      if (argc <= i+1) {
         cerr << "dex error: a timeout in seconds must follow the -t option.\n";
         return 1;
       }
@@ -132,7 +132,7 @@ int main(int argc, char** argv){
         cerr << "dex error: timeout must be a number.\n";
         return 1;
       }
-      if (t <= 0.){
+      if (t <= 0.) {
         cerr << "dex error: timeout must be a number of seconds > 0.\n";
         return 1;
       }

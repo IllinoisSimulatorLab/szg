@@ -14,25 +14,25 @@
 #include <fstream>
 
 // Inefficient, but it won't be parsing long strings.
-list<string> ar_parseLineBreaks(const string& text){
+list<string> ar_parseLineBreaks(const string& text) {
   list<string> result;
   string currentLine("");
   char lastChar = '\0';
   int stringHead = 0;
-  for (unsigned i=0; i<text.length(); i++){
-    if (text[i] == '\n'){
-      if (lastChar != '\r'){
+  for (unsigned i=0; i<text.length(); i++) {
+    if (text[i] == '\n') {
+      if (lastChar != '\r') {
         result.push_back(text.substr(stringHead, i-stringHead));
       }
       stringHead = i+1;
     }
-    else if (text[i] == '\r'){
-      if (lastChar != '\n'){
+    else if (text[i] == '\r') {
+      if (lastChar != '\n') {
         result.push_back(text.substr(stringHead, i-stringHead));
       }
       stringHead = i+1;
     }
-    else if (i == text.length()-1){
+    else if (i == text.length()-1) {
       result.push_back(text.substr(stringHead, i+1-stringHead));
     }
     lastChar = text[i];
@@ -40,25 +40,23 @@ list<string> ar_parseLineBreaks(const string& text){
   return result;
 }
 
-arTexFont::arTexFont() 
-{
+arTexFont::arTexFont() {
 }
 
-arTexFont::~arTexFont()
-{
+arTexFont::~arTexFont() {
 }
 
-float arTexFont::characterWidth(){
+float arTexFont::characterWidth() {
   return _charWidth;
 }
 
 // The line can have extra spacing, as given by the format.
-float arTexFont::lineHeight(arTextBox& format){
+float arTexFont::lineHeight(arTextBox& format) {
   return _charHeight*format.lineSpacing;
 }
 
-float arTexFont::characterHeight(){
-  return _charHeight; 
+float arTexFont::characterHeight() {
+  return _charHeight;
 }
 
 bool arTexFont::load( const string& fontFilePath, int transparentColor ) {
@@ -74,21 +72,21 @@ void arTexFont::setFontTexture( const arTexture& newFont ) {
   _fontTexture = newFont;
 }
 
-void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format){
+void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format) {
   glTranslatef( -currentColumn*characterWidth(), -lineHeight(format), 0);
   currentColumn = 0;
   currentRow++;
 }
 
-void arTexFont::advanceCursor(int& currentColumn, int& currentRow, arTextBox& format){
+void arTexFont::advanceCursor(int& currentColumn, int& currentRow, arTextBox& format) {
   glTranslatef( characterWidth(), 0, 0 );
   currentColumn++;
-  if (currentColumn >= format.columns){
+  if (currentColumn >= format.columns) {
     lineFeed( currentColumn, currentRow, format );
   }
 }
 
-void arTexFont::renderGlyph(int c, int& currentColumn, int& currentRow, arTextBox& format){
+void arTexFont::renderGlyph(int c, int& currentColumn, int& currentRow, arTextBox& format) {
   // Handle whitespace. Wrap lines. ar_parseLineBreaks() already eliminated cr/lf's.
   if (c == ' ') {
     advanceCursor(currentColumn, currentRow, format);
@@ -118,51 +116,51 @@ void arTexFont::renderGlyph(int c, int& currentColumn, int& currentRow, arTextBo
     glVertex3f(   0, charOffsetY+charHeight, 0 );
     glEnd();
     advanceCursor(currentColumn, currentRow, format);
-  }	
+  }
 }
 
-float arTexFont::getTextWidth( const string& text, arTextBox& format){
+float arTexFont::getTextWidth( const string& text, arTextBox& format) {
   float width = 0;
   float height = 0;
   getTextMetrics(text, format, width, height);
   return width;
 }
 
-float arTexFont::getTextHeight( const string& text, arTextBox& format){
+float arTexFont::getTextHeight( const string& text, arTextBox& format) {
   float width = 0;
   float height = 0;
   getTextMetrics(text, format, width, height);
   return height;
 }
 
-void arTexFont::getTextMetrics(const string& text, arTextBox& format, float& width, float& height){
+void arTexFont::getTextMetrics(const string& text, arTextBox& format, float& width, float& height) {
   list<string> parse = ar_parseLineBreaks(text);
   getTextMetrics(parse, format, width, height);
 }
 
-void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& width, float& height){
+void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& width, float& height) {
   int maxColumns = -1;
   int rows = 0;
-  for (list<string>::iterator i = parse.begin(); i != parse.end(); i++){
-    if (i->length() >= unsigned(format.columns)){
+  for (list<string>::iterator i = parse.begin(); i != parse.end(); i++) {
+    if (i->length() >= unsigned(format.columns)) {
       // There is overflow on the line.
       rows += i->length() / format.columns;
       // Handle the case where the line isn't a multiple of the column width.
-      if (i->length()%format.columns != 0){
+      if (i->length()%format.columns != 0) {
 	++rows;
       }
     }
     else{
       // No overflow for this line.
-      ++rows; 
+      ++rows;
     }
     // Our text box is taking up all the format columns if any row does.
-    if (i->length() >= unsigned(format.columns)){
-      maxColumns = format.columns; 
+    if (i->length() >= unsigned(format.columns)) {
+      maxColumns = format.columns;
     }
     // If the row does not take up the whole width, only increase maxColumns if the line is bigger.
-    else if (maxColumns < 0 || i->length() > unsigned(maxColumns)){
-      maxColumns = i->length(); 
+    else if (maxColumns < 0 || i->length() > unsigned(maxColumns)) {
+      maxColumns = i->length();
     }
   }
   // We know the number of rows and columns. compute the floating point size.
@@ -177,13 +175,13 @@ void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& wi
     actualCharHeight + (rows-1)*actualLineHeight;
 }
 
-void arTexFont::renderString(const string& text, arTextBox& format ){
+void arTexFont::renderString(const string& text, arTextBox& format ) {
   // Breaks our text up into a collection of lines.
   list<string> parse = ar_parseLineBreaks(text);
   renderText(parse, format);
 }
 
-void arTexFont::renderText(list<string>& parse, arTextBox& format ){
+void arTexFont::renderText(list<string>& parse, arTextBox& format ) {
   glPushAttrib(GL_LIGHTING | GL_BLEND);
   glDisable(GL_LIGHTING);
   glEnable(GL_BLEND);
@@ -211,14 +209,14 @@ void arTexFont::renderText(list<string>& parse, arTextBox& format ){
   // character. It also handles advancing the cursor for spaces, tabs, and line overflows (when there
   // are more characters on a line than the text box has columns.
   for (list<string>::iterator i = parse.begin();
-       i != parse.end(); i++){
+       i != parse.end(); i++) {
     for ( unsigned int j = 0; j < (*i).length(); j++ ) {
       glColor3f(format.color[0], format.color[1], format.color[2]);
       renderGlyph( (*i)[j], column, row, format );
     }
     // Do not line feed if cursor advance already did so. True if length is an integer mutliple
     // of columns.
-    if ((*i).length()%format.columns != 0){
+    if ((*i).length()%format.columns != 0) {
       // Increments the row, returns the column to 0, and makes the appropriate glTranslatef.
       lineFeed(column, row, format);
     }
@@ -229,9 +227,9 @@ void arTexFont::renderText(list<string>& parse, arTextBox& format ){
   glPopAttrib();
 }
 
-bool arTexFont::renderFile(const string& filename, arTextBox& format){
+bool arTexFont::renderFile(const string& filename, arTextBox& format) {
   std::ifstream file(filename.c_str(), std::ios::in);
-  if(!file.is_open()) {
+  if (!file.is_open()) {
     return false;
   }
   // Get length of file:

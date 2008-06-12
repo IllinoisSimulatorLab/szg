@@ -108,7 +108,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // since some component management uses names.
   _exeName = ar_stripExeName(string(argv[0]));
   ar_setLogLabel( _exeName );
-  
+
   // On Unix, we might need to finish a handshake with szgd,
   // telling it we've been successfully forked.
   // Before dialUpFallThrough.
@@ -148,7 +148,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   //
   // argc is passed by reference (and modified) because the special args that
   // manipulate these values are stripped after use.
-  
+
   // Parse the config file BEFORE parsing the Syzygy args (and the "context"),
   // to set the _networks and _addresses.
   // If these files cannot be read, it is still possible to recover.
@@ -206,7 +206,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     ar_log_critical() << "running standalone.\n";
     _connected = false;
 
-    const bool gotParams = 
+    const bool gotParams =
       (_parameterFileName == "USE_DEFAULT" &&
         (parseParameterFile("szg_parameters.xml", false) ||
          parseParameterFile("szg_parameters.txt", false))) ||
@@ -230,17 +230,17 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
   _connected = true;
   const string configfile_serverName(_serverName);
-  
+
   // Tell szgserver our name.
   if (forcedName == "NULL") {
-    _setLabel(_exeName); 
+    _setLabel(_exeName);
   }
   else{
     if (forcedName != _exeName) {
       ar_log_error() << "component name overriding exe name, Win98-style.\n";
     }
     // This also updates _exeName.
-    _setLabel(forcedName); 
+    _setLabel(forcedName);
   }
 
   if (configfile_serverName != "NULL" && configfile_serverName != _serverName) {
@@ -298,10 +298,10 @@ int arSZGClient::failStandalone(bool fInited) const {
 }
 
 // Common core of sendInitResponse() and sendStartResponse().
-bool arSZGClient::_sendResponse(stringstream& s, 
+bool arSZGClient::_sendResponse(stringstream& s,
 				const char* sz,
 				unsigned initialStreamLength,
-                                bool ok, 
+                                bool ok,
 				bool fNotFinalMessage) {
   // Does new stuff follow the header?
   const bool printInfo = s.str().length() > initialStreamLength;
@@ -383,14 +383,14 @@ bool arSZGClient::launchDiscoveryThreads() {
   _discoverySocket->setBroadcast(true);
   _discoverySocket->reuseAddress(true);
   arSocketAddress incomingAddress;
-  incomingAddress.setAddress(NULL,4620);
+  incomingAddress.setAddress(NULL, 4620);
   if (_discoverySocket->ar_bind(&incomingAddress) < 0) {
     ar_log_error() << "failed to bind discovery response socket.\n";
     return false;
   }
 
-  arThread dummy1(arSZGClientServerResponseThread,this);
-  arThread dummy2(arSZGClientTimerThread,this);
+  arThread dummy1(arSZGClientServerResponseThread, this);
+  arThread dummy2(arSZGClientTimerThread, this);
   _discoveryThreadsLaunched = true;
   return true;
 }
@@ -410,9 +410,9 @@ string arSZGClient::getAllAttributes(const string& substring) {
     _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   const int match = _fillMatchField(getRequestData); // for thread safety
   string result;
-  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,substring) ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) ||
-      !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
+  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR, substring) ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE, type) ||
+      !getRequestData->dataInString(_l.AR_PHLEET_USER, _userName) ||
       !_dataClient.sendData(getRequestData)) {
     ar_log_error() << "failed to send command.\n";
     result = string("NULL");
@@ -462,7 +462,7 @@ LFail:
         ++count;
       }
     }
-    if (group.substr(0,10) == "SZG_SCREEN") {
+    if (group.substr(0, 10) == "SZG_SCREEN") {
       ar_log_error() << "deprecated SZG_SCREEN parameters.\n";
     }
     setAttribute(computer, group, name, value);
@@ -493,7 +493,7 @@ inline bool arSZGClient::_parseBetweenTags(arFileTextStream& fs,
 // Read parameters from a file, as in
 // dbatch or when starting a program standalone.
 bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
-  const string dataPath(getAttribute("SZG_SCRIPT","path"));
+  const string dataPath(getAttribute("SZG_SCRIPT", "path"));
   // There are two parameter file formats.
   // (1) The legacy format is a sequence of lines of the form:
   //
@@ -658,7 +658,7 @@ string arSZGClient::getAttribute(const string& computerName,
                                  const string& groupName,
 				 const string& parameterName,
 	      			 const string& validValues) {
-  return getAttribute(_userName,computerName,groupName,parameterName,
+  return getAttribute(_userName, computerName, groupName, parameterName,
                       validValues);
 }
 
@@ -681,9 +681,9 @@ string arSZGClient::getAttribute(const string& userName,
       "/" + groupName + "/" + parameterName);
     arStructuredData* getRequestData = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
     int match = _fillMatchField(getRequestData);
-    if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,query) ||
-        !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
-        !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
+    if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR, query) ||
+        !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE, "value") ||
+        !getRequestData->dataInString(_l.AR_PHLEET_USER, userName) ||
         !_dataClient.sendData(getRequestData)) {
       ar_log_error() << "failed to send command.\n";
       tmp = ar_getenv(groupName+"_"+parameterName);
@@ -733,7 +733,7 @@ bool arSZGClient::getAttributeFloats(const string& groupName,
     // Don't warn, since callers should fall back to a default.
     return false;
   }
-  const int num = ar_parseFloatString(s,values,numvalues);
+  const int num = ar_parseFloatString(s, values, numvalues);
   if (num != numvalues) {
     ar_log_error() << "parameter " << groupName << "/" << parameterName <<
       " needed " << numvalues << " floats, but got only " << num <<
@@ -751,7 +751,7 @@ bool arSZGClient::getAttributeInts( const string& groupName,
   if (s == "NULL") {
     return false;
   }
-  const int num = ar_parseIntString(s,values,numvalues);
+  const int num = ar_parseIntString(s, values, numvalues);
   if (num != numvalues) {
     ar_log_error() << "parameter " << groupName << "/" << parameterName <<
       " needed " << numvalues << " longs, but got only " << num <<
@@ -769,7 +769,7 @@ bool arSZGClient::getAttributeLongs(const string& groupName,
   if (s == "NULL") {
     return false;
   }
-  const int num = ar_parseLongString(s,values,numvalues);
+  const int num = ar_parseLongString(s, values, numvalues);
   if (num != numvalues) {
     ar_log_error() << "parameter " << groupName << "/" << parameterName <<
       " needed " << numvalues << " longs, but got only " << num <<
@@ -790,8 +790,8 @@ bool arSZGClient::setAttribute(const string& computerName,
 			       const string& parameterName,
 			       const string& parameterValue) {
   // Default userName is _userName.
-  return setAttribute(_userName,computerName,groupName,
-                      parameterName,parameterValue);
+  return setAttribute(_userName, computerName, groupName,
+                      parameterName, parameterValue);
 }
 
 bool arSZGClient::setAttribute(const string& userName,
@@ -814,10 +814,10 @@ bool arSZGClient::setAttribute(const string& userName,
   bool ok = true;
   const ARint temp = 0; // don't test-and-set.
   int match = _fillMatchField(setRequestData);
-  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,query) ||
-      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL,parameterValue) ||
-      !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
-      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
+  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR, query) ||
+      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL, parameterValue) ||
+      !setRequestData->dataInString(_l.AR_PHLEET_USER, userName) ||
+      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE, &temp, AR_INT, 1) ||
       !_dataClient.sendData(setRequestData)) {
     ar_log_error() << "send failed while setting "
       << groupName << "/" << parameterName << " on host '"
@@ -860,9 +860,9 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   string result;
   arStructuredData* getRequestData = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   const int match = _fillMatchField(getRequestData);
-  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,attributeName) ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
-      !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
+  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR, attributeName) ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE, "value") ||
+      !getRequestData->dataInString(_l.AR_PHLEET_USER, userName) ||
       !_dataClient.sendData(getRequestData)) {
     ar_log_error() << "failed to send command.\n";
     result = string("NULL");
@@ -894,10 +894,10 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
   bool status = true;
   const ARint temp = 0; // don't test-and-set.
   int match = _fillMatchField(setRequestData);
-  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,attributeName) ||
-      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL,attributeValue) ||
-      !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
-      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
+  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR, attributeName) ||
+      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL, attributeValue) ||
+      !setRequestData->dataInString(_l.AR_PHLEET_USER, userName) ||
+      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE, &temp, AR_INT, 1) ||
       !_dataClient.sendData(setRequestData)) {
     ar_log_error() << "send failed while setting " << attributeName << "to " <<
       attributeValue << ".\n";
@@ -995,7 +995,7 @@ pathList gives the path, which is parsed and interpreted as above.
 attributeValue is set to something besides "NULL" if we will be altering
 an attribute value. If the path does not parse to an attribute, then this
 is an error (returning "NULL") but otherwise returning "SZG_SUCCESS".
-On the other hand, if attributeValue is "NULL" (the default) then the 
+On the other hand, if attributeValue is "NULL" (the default) then the
 method just returns the value indicated by the parsed path (or "NULL"
 if there is an error in the parsing).
 
@@ -1080,11 +1080,11 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     // array index) or we've got an error (maybe there weren't enough elements
     // of this type in the doc tree to justify the array index).
     if (which < actualArrayIndex) {
-      ar_log_error() << "no elements of type " << actualElementType << ", up to index " 
+      ar_log_error() << "no elements of type " << actualElementType << ", up to index "
 	             << actualArrayIndex << ".\n";
       return string("NULL");
     }
-     
+
     // Actually, there is one more possibility. Our path might have specified
     // an "attribute" instead of an "element". This is OK (as long as it is the
     // final step in the path and does not have an array index).
@@ -1116,7 +1116,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       return attribute;
     }
     else{
-      // Check to make sure this is valid XML. 
+      // Check to make sure this is valid XML.
       if (!newChild->ToElement()) {
 	ar_log_error() << "malformed XML in " << pathList[iPath] << ".\n";
         return string("NULL");
@@ -1131,7 +1131,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       // very next step in the path is "usenamed" then do not retrieve the
       // pointed-to data.
       if (newChild->ToElement()->Attribute("usenamed")
-          && (iPath+1 >= pathList.size() 
+          && (iPath+1 >= pathList.size()
               || pathList[iPath+1] != "usenamed")) {
 	// Keep track of which sub-document we are in fact
 	// holding, as we search down the tree of pointers.
@@ -1197,10 +1197,10 @@ string arSZGClient::testSetAttribute(const string& userName,
   // Do test-and-set.
   ARint temp = 1;
   int match = _fillMatchField(setRequestData);
-  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,query) ||
-      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL,parameterValue) ||
-      !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
-      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
+  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR, query) ||
+      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL, parameterValue) ||
+      !setRequestData->dataInString(_l.AR_PHLEET_USER, userName) ||
+      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE, &temp, AR_INT, 1) ||
       !_dataClient.sendData(setRequestData)) {
     ar_log_error() << "failed to send command.\n";
     result = string("NULL");
@@ -1222,9 +1222,9 @@ string arSZGClient::getProcessList() {
   string result;
   // "NULL" asks the server for the process table
   int match = _fillMatchField(getRequestData);
-  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,"NULL") ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"NULL") ||
-      !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
+  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR, "NULL") ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE, "NULL") ||
+      !getRequestData->dataInString(_l.AR_PHLEET_USER, _userName) ||
       !_dataClient.sendData(getRequestData)) {
     ar_log_error() << "failed to send getProcessList command.\n";
     result = string("NULL");
@@ -1247,7 +1247,7 @@ bool arSZGClient::killProcessID(int id) {
   bool ok = true;
   // One of the few places where we DON'T USE MATCH!
   (void)_fillMatchField(killIDData);
-  if (!killIDData->dataIn(_l.AR_KILL_ID,&id,AR_INT,1) ||
+  if (!killIDData->dataIn(_l.AR_KILL_ID, &id, AR_INT, 1) ||
       !_dataClient.sendData(killIDData)) {
     ar_log_error() << "failed to send kill-process message.\n";
     ok = false;
@@ -1394,7 +1394,7 @@ bool arSZGClient::sendReload(const string& computer,
 
 int arSZGClient::sendMessage(const string& type, const string& body,
 			     int destination, bool responseRequested) {
-  return sendMessage(type,body,"NULL",destination, responseRequested);
+  return sendMessage(type, body, "NULL", destination, responseRequested);
 }
 
 // Sends a message and returns the "match" for use with getMessageResponse.
@@ -1411,12 +1411,12 @@ int arSZGClient::sendMessage(const string& type, const string& body,
   // convert from bool to int
   const int response = responseRequested ? 1 : 0;
   int match = _fillMatchField(messageData);
-  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE, &response, AR_INT,1) ||
-      !messageData->dataInString(_l.AR_SZG_MESSAGE_TYPE,type) ||
-      !messageData->dataInString(_l.AR_SZG_MESSAGE_BODY,body) ||
-      !messageData->dataIn(_l.AR_SZG_MESSAGE_DEST,&destination,AR_INT,1) ||
-      !messageData->dataInString(_l.AR_PHLEET_USER,_userName) ||
-      !messageData->dataInString(_l.AR_PHLEET_CONTEXT,context) ||
+  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE, &response, AR_INT, 1) ||
+      !messageData->dataInString(_l.AR_SZG_MESSAGE_TYPE, type) ||
+      !messageData->dataInString(_l.AR_SZG_MESSAGE_BODY, body) ||
+      !messageData->dataIn(_l.AR_SZG_MESSAGE_DEST, &destination, AR_INT, 1) ||
+      !messageData->dataInString(_l.AR_PHLEET_USER, _userName) ||
+      !messageData->dataInString(_l.AR_PHLEET_CONTEXT, context) ||
       !_dataClient.sendData(messageData)) {
     ar_log_error() << "failed to send message.\n";
     match = -1;
@@ -1485,7 +1485,7 @@ int arSZGClient::getMessageResponse(list<int> tags,
     return 0;
   }
   arStructuredData* ack = NULL;
-  match = _getTaggedData(ack, tags,_l.AR_SZG_MESSAGE_ADMIN, timeout);
+  match = _getTaggedData(ack, tags, _l.AR_SZG_MESSAGE_ADMIN, timeout);
   if (match < 0) {
     ar_log_error() << "no message response.\n";
     return 0;
@@ -1898,7 +1898,7 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
 // methods to be called freely from different application threads.
 int arSZGClient::_fillMatchField(arStructuredData* data) {
   const int match = ++_match;
-  data->dataIn(_l.AR_PHLEET_MATCH,&match,AR_INT,1);
+  data->dataIn(_l.AR_PHLEET_MATCH, &match, AR_INT, 1);
   return match;
 }
 
@@ -2396,8 +2396,8 @@ string arSZGClient::createComplexServiceName(const string& serviceName) {
     return serviceName + string("/") + _userName;
   }
 
-  // getAttribute(_,_,_,"") avoids getAttribute(_,_,_) which lists default values.
-  const string location(getAttribute(_virtualComputer,"SZG_CONF","location",""));
+  // getAttribute(_, _ , _, "") avoids getAttribute(_, _, _) which lists default values.
+  const string location(getAttribute(_virtualComputer, "SZG_CONF", "location", ""));
   return ((location == "NULL") ? _virtualComputer : location) +
     string("/") + serviceName;
 }
@@ -2487,7 +2487,7 @@ arStructuredData* arSZGClient::_getDataByID(int recordID) {
 arStructuredData* arSZGClient::_getTaggedData(int tag, int recordID, int msecTimeout) {
   arStructuredData* message = NULL;
   return (_dataParser->getNextTaggedMessage(
-    message, list<int>(1,tag), recordID, msecTimeout) < 0) ? NULL : message;
+    message, list<int>(1, tag), recordID, msecTimeout) < 0) ? NULL : message;
 }
 
 int arSZGClient::_getTaggedData(arStructuredData*& message,
@@ -2607,7 +2607,7 @@ bool arSZGClient::_parsePair(const string& thePair,
     return false;
   }
 
-  pair1 = thePair.substr(0,i);
+  pair1 = thePair.substr(0, i);
   pair2 = thePair.substr(i+1, length-i);
   pair1Type = pair1[0];
   return true;
@@ -2619,7 +2619,7 @@ bool arSZGClient::_parsePair(const string& thePair,
 // If args are removed, argc and argv change, to hide the removals from the caller.
 bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
   for (int i=0; i<argc; ++i) {
-    if (strcmp(argv[i],"-szg"))
+    if (strcmp(argv[i], "-szg"))
       continue;
 
     if (i+1 >= argc) {
@@ -2859,7 +2859,7 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
     _localParameters.erase(i);
   if (parameterValue != "NULL") {
     // Effectively "unset" the previous value.
-    _localParameters.insert(map<string,string,less<string> >::value_type
+    _localParameters.insert(map<string, string, less<string> >::value_type
       (query, parameterValue));
   }
   return true;
@@ -2879,8 +2879,8 @@ bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
     _localParameters.find(attributeName);
   if (i != _localParameters.end())
     _localParameters.erase(i);
-  _localParameters.insert(map<string,string,less<string> >::value_type
-                          (attributeName,attributeValue));
+  _localParameters.insert(map<string, string, less<string> >::value_type
+                          (attributeName, attributeValue));
   return true;
 }
 
@@ -2931,7 +2931,7 @@ void arSZGClient::_serverResponseThread() {
       // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
           buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1) {
-        memcpy(_responseBuffer,buffer,200);
+        memcpy(_responseBuffer, buffer, 200);
         if (_bufferResponse) {
           // Print this packet's contents.
           const string serverInfo(
@@ -3043,7 +3043,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _beginTimer = true;
   _requestedName = name;
   _foundServers.clear();
-  _sendDiscoveryPacket(name,broadcast);
+  _sendDiscoveryPacket(name, broadcast);
   _timerCondVar.signal();
   while (_dataRequested && _beginTimer) {
     _dataCondVar.wait(_lock);
@@ -3073,7 +3073,7 @@ void arSZGClient::printSZGServers(const string& broadcast) {
     _dataRequested = true;
     _beginTimer = true;
     _requestedName = "";
-    _sendDiscoveryPacket("*",broadcast);
+    _sendDiscoveryPacket("*", broadcast);
     _timerCondVar.signal();
     while (_beginTimer) {
       _dataCondVar.wait(_lock);
@@ -3098,7 +3098,7 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = "";
-  _sendDiscoveryPacket("*",broadcast);
+  _sendDiscoveryPacket("*", broadcast);
   _timerCondVar.signal();
   while (_beginTimer) {
     _dataCondVar.wait(_lock);
@@ -3176,7 +3176,7 @@ void arSZGClient::killIDs(list<int>* IDList) {
   for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter) {
     const int tag = requestKillNotification(*iter);
     tags.push_back(tag);
-    tagToID.insert(map<int,int,less<int> >::value_type(tag, *iter));
+    tagToID.insert(map<int, int, less<int> >::value_type(tag, *iter));
     sendMessage("quit", "", *iter);
   }
 
@@ -3188,7 +3188,7 @@ void arSZGClient::killIDs(list<int>* IDList) {
       for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n) {
 	// These components are unhealthy, if not already dead.
 	// So just remove them from szgserver's process table.
-	map<int,int,less<int> >::const_iterator iter = tagToID.find(*n);
+	map<int, int, less<int> >::const_iterator iter = tagToID.find(*n);
         if (iter == tagToID.end()) {
 	  ar_log_critical() << "internal error: missing kill ID.\n";
 	}
@@ -3200,7 +3200,7 @@ void arSZGClient::killIDs(list<int>* IDList) {
       ar_log_remark() << "\nThese components have been removed from szgserver's process table.\n";
       return;
     }
-    map<int,int,less<int> >::const_iterator iter = tagToID.find(killedID);
+    map<int, int, less<int> >::const_iterator iter = tagToID.find(killedID);
     if (iter == tagToID.end()) {
       ar_log_critical() << "internal error: missing kill ID.\n";
     }

@@ -18,7 +18,7 @@ arSoundFileNode::arSoundFileNode() :
   _oldFileName("NULL"),
   _action("none"),
   _triggerAmplitude(0),
-  _triggerPoint(arVector3(0,0,0)){
+  _triggerPoint(arVector3(0, 0, 0)) {
 
   _fComplained[0] = _fComplained[1] = false;
 
@@ -28,7 +28,7 @@ arSoundFileNode::arSoundFileNode() :
   _typeString = "fileWav";
 }
 
-arSoundFileNode::~arSoundFileNode(){
+arSoundFileNode::~arSoundFileNode() {
 #ifdef EnableSound
   if (_channel && isClient()) {
     const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
@@ -49,7 +49,7 @@ static inline float sq(float _) { return _*_; }
 #include "arSoundClient.h"
 extern arSoundClient* __globalSoundClient;
 
-bool arSoundFileNode::_adjust(bool useTrigger){
+bool arSoundFileNode::_adjust(bool useTrigger) {
 #ifndef EnableSound
   (void)useTrigger; // avoid compiler warning
   return true;
@@ -97,7 +97,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
 	", dist " << dist << ".\n";
 #endif
 
-      // todo: pass azi,ele,dist to HRTF FIR filter.
+      // todo: pass azi, ele, dist to HRTF FIR filter.
       // Through yet another global like __globalSoundListener?
       return true;
 
@@ -113,7 +113,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
 
   if (m & FMOD_3D) {
     static const FMOD_VECTOR velocity_unused(
-      FmodvectorFromArvector(arVector3(0,0,0))); // doppler nyi
+      FmodvectorFromArvector(arVector3(0, 0, 0))); // doppler nyi
     const FMOD_VECTOR tmp(FmodvectorFromArvector(point));
     return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity_unused ));
   }
@@ -125,7 +125,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
 #endif
 }
 
-bool arSoundFileNode::render(){
+bool arSoundFileNode::render() {
 #ifdef EnableSound
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
@@ -154,9 +154,9 @@ bool arSoundFileNode::render(){
   // all fmod calls should go in render.
 
   // Bug: we only change the sample once.
-  if (_oldFileName != _fileName && !_fInit){
+  if (_oldFileName != _fileName && !_fInit) {
     // Do this only once in the lifetime of the node.
-    _fInit = true; 
+    _fInit = true;
 
     // This file is either our file OR a dummy.
     // If _fLoop is 0 or -1, we likely want a NON-LOOPING sound.
@@ -182,7 +182,7 @@ ar_log_critical() << "playpaused sound acquired _channel " << _channel << "\n";;
 #endif
   }
 
-  if (_fInit){
+  if (_fInit) {
     // Use the sound.
 
     // Only adjust if the loop is playing (fLoop == 1) or if triggered:
@@ -190,13 +190,13 @@ ar_log_critical() << "playpaused sound acquired _channel " << _channel << "\n";;
     // an fLoop diff, there needed to be a fLoop of 0 passed in after the
     // triggering fLoop of -1. NO ADJUSTMENT SHOULD OCCUR on that data!
     // (i.e. the volume might have been 0). This is a backwards compatibility hack.
-    if (_fLoop == 1){
+    if (_fLoop == 1) {
       if (!_adjust(false))
         return false;
     }
 
-    if (_action == "play"){
-      if (!_channel){
+    if (_action == "play") {
+      if (!_channel) {
 #ifdef YAKYAKYAK
 ar_log_critical() << "gonna play sound " << _fileName << "\n";;
 #endif
@@ -207,24 +207,24 @@ ar_log_critical() << "gonna play sound " << _fileName << "\n";;
       else
 ar_log_critical() << "shoulda already playpaused sound " << _fileName << "\n";;
 #endif
-      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false ))) // redundant, from playSound(_,_,false,_) ?
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false ))) // redundant, from playSound(_, _, false, _) ?
         return false;
 #ifdef YAKYAKYAK
 ar_log_critical() << "played sound " << _fileName << "\n";;
 #endif
       _action = "none";
     }
-    else if (_action == "pause"){
-      if (!_channel){
+    else if (_action == "pause") {
+      if (!_channel) {
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
       }
-      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, true ))) // redundant, from playSound(_,_,true,_) ?
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, true ))) // redundant, from playSound(_, _, true, _) ?
 	return false;
       _action = "none";
     }
-    else if (_action == "trigger"){
-      if (!_channel){
+    else if (_action == "trigger") {
+      if (!_channel) {
 
 #if 0
 ;;;;
@@ -268,7 +268,7 @@ ar_log_critical() << "triggered sound, reused _channel " << _fileName << "\n";;
         return false;
       _action = "none";
     }
-    else if (_action == "none"){
+    else if (_action == "none") {
     }
     else {
       ar_log_error() << "ignoring unexpected sound action " << _action <<
@@ -279,9 +279,9 @@ ar_log_critical() << "triggered sound, reused _channel " << _fileName << "\n";;
   return true;
 }
 
-arStructuredData* arSoundFileNode::dumpData(){
+arStructuredData* arSoundFileNode::dumpData() {
   arStructuredData* pdata = _l.makeDataRecord(_l.AR_FILEWAV);
-  _dumpGenericNode(pdata,_l.AR_FILEWAV_ID);
+  _dumpGenericNode(pdata, _l.AR_FILEWAV_ID);
 
   // Stuff member variables into pdata.
   if (!pdata->dataIn(_l.AR_FILEWAV_LOOP, &_fLoop, AR_INT, 1) ||
@@ -298,8 +298,8 @@ arStructuredData* arSoundFileNode::dumpData(){
 // Bug: Can't update ampl or xyz of a triggered sound, once it's started.
 // Workaround:  keep triggered sounds short.
 
-bool arSoundFileNode::receiveData(arStructuredData* pdata){
-  if (pdata->getID() != _l.AR_FILEWAV){
+bool arSoundFileNode::receiveData(arStructuredData* pdata) {
+  if (pdata->getID() != _l.AR_FILEWAV) {
     ar_log_error() << "arSoundFileNode expected "
          << _l.AR_FILEWAV
          << " (" << _l._stringFromID(_l.AR_FILEWAV) << "), not "
@@ -326,13 +326,13 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
   // Rely on the fact that sound rendering is distinct from the
   // actual modifying of the nodes.
 
-  if (_fLoop == 1 && fLoopPrev == 0){
+  if (_fLoop == 1 && fLoopPrev == 0) {
     _action = "play";
   }
-  else if (_fLoop == 0 && fLoopPrev == 1){
+  else if (_fLoop == 0 && fLoopPrev == 1) {
     _action = "pause";
   }
-  else if (_fLoop == -1 && fLoopPrev != -1){
+  else if (_fLoop == -1 && fLoopPrev != -1) {
     // Workaround that only the initial volume and location matter in
     // the old (messed-up) implementation.
     _action = "trigger";

@@ -13,8 +13,8 @@
 
 class SZG_CALL arConstantHeadFilter: public arIOFilter{
   public:
-    arConstantHeadFilter(){}
-    virtual ~arConstantHeadFilter(){}
+    arConstantHeadFilter() {}
+    virtual ~arConstantHeadFilter() {}
 
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );

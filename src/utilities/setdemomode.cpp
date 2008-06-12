@@ -19,13 +19,13 @@ int main(int argc, char** argv) {
     return szgClient.failStandalone(fInit);
 
   if (argc != 2 && argc != 3) {
-Usage:    
+Usage:
     ar_log_critical() << "usage: setdemomode [virtual_computer] true|false\n";
     return 1;
   }
 
   arAppLauncher launcher("setdemomode", &szgClient);
-  if (argc == 3){
+  if (argc == 3) {
     if (!launcher.setVircomp(argv[1])) {
       return 1;
     }
@@ -37,7 +37,7 @@ Usage:
 
   const string paramVal(argv[argc-1]);
   if (paramVal != "true" && paramVal != "false")
-    goto Usage; 
+    goto Usage;
   // end copypaste
 
   if (!launcher.setParameters()) {
@@ -86,6 +86,6 @@ Usage:
     ar_log_critical() << "setAttribute failed.\n";
     return 1;
   }
-  
-  return 0; 
+
+  return 0;
 }

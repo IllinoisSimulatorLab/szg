@@ -8,7 +8,7 @@
 #include "arLogStream.h"
 
 arGraphicsDatabase::arGraphicsDatabase() :
-  _texturePath(new list<string>(1,"") /* local dir */),
+  _texturePath(new list<string>(1, "") /* local dir */),
   _pathTexFont(""),
   _fFirstTexFont(true),
   _viewerNodeID(-1),
@@ -26,7 +26,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
   arDataTemplate* t = _lang->find("graphics admin");
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
-  
+
   // make the external parsing storage
   arTemplateDictionary* d = _gfx.getDictionary();
   transformData = new arStructuredData(d, "transform");
@@ -72,8 +72,8 @@ arGraphicsDatabase::arGraphicsDatabase() :
   }
 
   for (int i=0; i<8; ++i) {
-    _lightContainer [i] = pair<arGraphicsNode*,arLight*>            (NULL,NULL);
-    _cameraContainer[i] = pair<arGraphicsNode*,arPerspectiveCamera*>(NULL,NULL);
+    _lightContainer [i] = pair<arGraphicsNode*, arLight*>            (NULL, NULL);
+    _cameraContainer[i] = pair<arGraphicsNode*, arPerspectiveCamera*>(NULL, NULL);
   }
 }
 
@@ -133,12 +133,12 @@ arGraphicsDatabase::~arGraphicsDatabase() {
   if (graphicsPluginData) {
     delete graphicsPluginData;
   }
-  
+
   // Don't forget to get rid of the textures. However, deleting them isn't
   // so smart. Instead, unref and let that operator delete if no one else
   // is holding a reference.
-  for (map<string,arTexture*,less<string> >::iterator 
-       i = _textureNameContainer.begin(); i != _textureNameContainer.end(); 
+  for (map<string, arTexture*, less<string> >::iterator
+       i = _textureNameContainer.begin(); i != _textureNameContainer.end();
        ++i) {
     i->second->unref();
   }
@@ -157,7 +157,7 @@ void arGraphicsDatabase::reset() {
 
   // Unref the textures. Do not delete them. They will be automatically
   // deleted if no other object has ref-ed them.
-  for (map<string,arTexture*,less<string> >::iterator i
+  for (map<string, arTexture*, less<string> >::iterator i
         (_textureNameContainer.begin());
        i != _textureNameContainer.end();
        ++i) {
@@ -182,7 +182,7 @@ arTexFont* arGraphicsDatabase::getTexFont() {
     _fFirstTexFont = false;
     _loadAlphabet(_pathTexFont);
   }
-  return &_texFont; 
+  return &_texFont;
 }
 
 void arGraphicsDatabase::_loadAlphabet(const string& path) {
@@ -190,7 +190,7 @@ void arGraphicsDatabase::_loadAlphabet(const string& path) {
     return;
 
   if (path == "NULL") {
-    ar_log_error() << "arGraphicsDatabase: no path for texture font.\n"; 
+    ar_log_error() << "arGraphicsDatabase: no path for texture font.\n";
     return;
   }
 
@@ -198,7 +198,7 @@ void arGraphicsDatabase::_loadAlphabet(const string& path) {
   ar_pathAddSlash(fileName);
   fileName += "courier-bold.ppm";
   if (!_texFont.load(fileName)) {
-    ar_log_error() << "arGraphicsDatabase failed to load texture font.\n"; 
+    ar_log_error() << "arGraphicsDatabase failed to load texture font.\n";
   }
 }
 
@@ -207,7 +207,7 @@ void arGraphicsDatabase::setTexturePath(const string& thePath) {
   arGuard dummy(_texturePathLock);
 
   delete _texturePath;
-  _texturePath = new list<string>(1,""); // local directory
+  _texturePath = new list<string>(1, ""); // local directory
 
   // Parse the path.
   int nextChar = 0;
@@ -222,7 +222,7 @@ void arGraphicsDatabase::setTexturePath(const string& thePath) {
 
 // Return (and ref) a new texture. Caller must unref.
 arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
-  const map<string,arTexture*,less<string> >::iterator
+  const map<string, arTexture*, less<string> >::iterator
     iFind(_textureNameContainer.find(name));
   if (iFind != _textureNameContainer.end()) {
     iFind->second->ref(); // Ref the texture.
@@ -288,13 +288,13 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   }
   triedPaths.clear();
   _textureNameContainer.insert(
-    map<string,arTexture*,less<string> >::value_type(name,theTexture));
+    map<string, arTexture*, less<string> >::value_type(name, theTexture));
 
   // Ref this texture again for its return, so the
   // arTextureNode, who called addTexture, can unref it
   // on deletion or texture change.
   theTexture->ref();
-  return theTexture; 
+  return theTexture;
 }
 
 arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
@@ -344,13 +344,13 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
     _texturePathLock.unlock();
   }
  /* _textureNameContainer.insert(
-    map<string,arTexture*,less<string> >::value_type(name,theBumpMap));
+    map<string, arTexture*, less<string> >::value_type(name, theBumpMap));
  */
-  return theBumpMap; 
+  return theBumpMap;
 }
 
 // Figure out the total transformation matrix from ABOVE the current node
-// to the database's root. This call is thread-safe with respect to 
+// to the database's root. This call is thread-safe with respect to
 // database operations (it uses hidden global database locks). Consequently,
 // this cannot be called from any message handling code.
 arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
@@ -380,7 +380,7 @@ arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
   return result;
 }
 
-arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, 
+arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID,
                                                   int endNodeID) {
   return accumulateTransform(startNodeID).inverse() *
          accumulateTransform(endNodeID);
@@ -415,7 +415,7 @@ void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix) {
         projectionCullMatrix);
 }
 
-void arGraphicsDatabase::_draw(arGraphicsNode* node, 
+void arGraphicsDatabase::_draw(arGraphicsNode* node,
                                stack<arMatrix4>& transformStack,
                                arGraphicsContext* context,
                                arMatrix4* projectionCullMatrix) {
@@ -450,7 +450,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 
   // View frustum culling.
-  if (projectionCullMatrix && node->getTypeCode() 
+  if (projectionCullMatrix && node->getTypeCode()
       == AR_G_BOUNDING_SPHERE_NODE) {
     glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
     arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
@@ -465,7 +465,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 
   // Visibility nodes.
-  if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE 
+  if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE
          && !((arVisibilityNode*)node)->getVisibility() ) ) {
     // Not an invisible visibility node.  Draw children.
     // Use _children, not getChildren(), to avoid copying the whole list.
@@ -502,7 +502,7 @@ int arGraphicsDatabase::intersect(const arRay& theRay) {
 }
 
 void arGraphicsDatabase::_intersect(arGraphicsNode* node,
-                                    float& bestDistance, 
+                                    float& bestDistance,
                                     int& bestNodeID,
                                     stack<arRay>& rayStack) {
   // If this is a transform node, transform the ray.
@@ -511,14 +511,14 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
     arRay currentRay = rayStack.top();
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
 	                    (!theMatrix)*currentRay.getDirection()
-                        - (!theMatrix)*arVector3(0,0,0)));
+                        - (!theMatrix)*arVector3(0, 0, 0)));
   }
   // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
-    arBoundingSphere sphere 
+    arBoundingSphere sphere
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
     arRay intRay(rayStack.top());
-    float distance = intRay.intersect(sphere.radius, 
+    float distance = intRay.intersect(sphere.radius,
                                       sphere.position);
     if (distance>0) {
       // intersection
@@ -546,7 +546,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
 // Returns a list of bounding sphere nodes that either intersect or contain the
 // given bounding sphere. The sphere "closest" to the given sphere is
 // first in the list. If addRef is true, all nodes returned have an extra reference
-// added to them (and consequently this is thread-safe). 
+// added to them (and consequently this is thread-safe).
 // Otherwise, no extra ref (the default).
 list<arDatabaseNode*> arGraphicsDatabase::intersect(const arBoundingSphere& b, bool addRef) {
   list<arDatabaseNode*> result;
@@ -569,7 +569,7 @@ list<arDatabaseNode*> arGraphicsDatabase::intersectRef(const arBoundingSphere& b
 
 void arGraphicsDatabase::_intersect(arGraphicsNode* node,
                                     const arBoundingSphere& b,
-                                    stack<arMatrix4>& matrixStack, 
+                                    stack<arMatrix4>& matrixStack,
                                     list<arDatabaseNode*>& nodes,
 				    arDatabaseNode*& bestNode,
                                     float& bestDistance,
@@ -642,7 +642,7 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
     arRay currentRay(rayStack.top());
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
 			(!theMatrix)*currentRay.getDirection()
-                        - (!theMatrix)*arVector3(0,0,0)));
+                        - (!theMatrix)*arVector3(0, 0, 0)));
   }
   // Copypaste "intersect" with 2 previous instances in this file.
   // If this is a bounding sphere, intersect.
@@ -672,7 +672,7 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
 
 // Intersect a ray with the database. At bounding sphere nodes, if there
 // is no intersection, skip that subtree. At drawable nodes
-// (consisting of triangles or quads... incompletely implemented) 
+// (consisting of triangles or quads... incompletely implemented)
 // intersect the ray with the polygons, figuring out the point of closest
 // intersection. Return a pointer to the geometry node with
 // the closest intersection point, or NULL if none intersect.
@@ -691,7 +691,7 @@ arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
 }
 
 // A helper function for _intersectGeometry, which is, in turn, a helper
-// function for intersectGeometry. 
+// function for intersectGeometry.
 float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
                                                    arGraphicsContext* context,
                                                    const arRay& theRay) {
@@ -759,16 +759,16 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
     arRay currentRay = rayStack.top();
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
 			(!theMatrix)*currentRay.getDirection()
-                        - (!theMatrix)*arVector3(0,0,0)));
+                        - (!theMatrix)*arVector3(0, 0, 0)));
   }
 
   // If this is a bounding sphere, intersect.
   // If we do not intersect, return.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
-    arBoundingSphere sphere 
+    arBoundingSphere sphere
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
     arRay intRay(rayStack.top());
-    float distance = intRay.intersect(sphere.radius, 
+    float distance = intRay.intersect(sphere.radius,
 				      sphere.position);
     if (distance < 0) {
       // Must remember to pop the node stack upon leaving this function.
@@ -783,7 +783,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   if (node->getTypeCode() == AR_G_DRAWABLE_NODE) {
     arRay localRay = rayStack.top();
     float rawDist = _intersectSingleGeometry(node, context, localRay);
-    
+
     if (rawDist >= 0) {
       // Because of possible scaling, we do not yet know how
       // far, in global coords, the intersection is from the ray origin.
@@ -795,7 +795,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       arVector3 v(localRay.getDirection());
       if (v.zero()) {
 	ar_log_error() << "arGraphicsDatabase overriding zero ray direction\n";
-	v = arVector3(1,0,0);
+	v = arVector3(1, 0, 0);
       }
       const arVector3 v1(toGlobal * localRay.getOrigin());
       const arVector3 v2(toGlobal * (localRay.getOrigin() +
@@ -812,7 +812,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); ++i) {
-    _intersectGeometry((arGraphicsNode*)(*i), context, rayStack, 
+    _intersectGeometry((arGraphicsNode*)(*i), context, rayStack,
                        excludeBelow, bestNode, bestDistance);
   }
   ar_unrefNodeList(children);
@@ -829,7 +829,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
 // Only call from arLightNode::receiveData. This guarantees that
 // _lightContainer is modified atomically when thread-safety matters
 // (like arGraphicsServer and arGraphicsPeer),
-bool arGraphicsDatabase::registerLight(arGraphicsNode* node, 
+bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
                                        arLight* theLight) {
   if (!theLight) {
     ar_log_error() << "arGraphicsDatabase: no light pointer.\n";
@@ -847,7 +847,7 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
   (void) removeLight(node);
   // Insert the new light.
   _lightContainer[theLight->lightID] =
-    pair<arGraphicsNode*,arLight*>(node, theLight);
+    pair<arGraphicsNode*, arLight*>(node, theLight);
   return true;
 }
 
@@ -926,7 +926,7 @@ bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
   // Just in case the camera ID has changed, must remove it from other slots.
   removeCamera(node);
   _cameraContainer[theCamera->cameraID]
-    = pair<arGraphicsNode*,arPerspectiveCamera*>(node,theCamera);
+    = pair<arGraphicsNode*, arPerspectiveCamera*>(node, theCamera);
   return true;
 }
 

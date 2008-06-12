@@ -20,9 +20,9 @@ int serverPort = -1;
 string textPath;
 arSpeakerObject speakerObject;
 
-bool loadParameters(arSZGClient& cli){
+bool loadParameters(arSZGClient& cli) {
   soundClient->configure(&cli);
-  if (soundClient->getPath() == "NULL"){
+  if (soundClient->getPath() == "NULL") {
     ar_log_warning() << "bad or no SZG_SOUND/path.\n";
   }
 
@@ -31,22 +31,22 @@ bool loadParameters(arSZGClient& cli){
   return speakerObject.configure(cli);
 }
 
-void messageTask(void* pClient){
+void messageTask(void* pClient) {
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (cli->running()) {
-    const int sendID = cli->receiveMessage(&messageType,&messageBody);
-    if (!sendID){
+    const int sendID = cli->receiveMessage(&messageType, &messageBody);
+    if (!sendID) {
       ar_log_debug() << "shutdown.\n";
       goto LQuit;
     }
-    if (messageType=="quit"){
+    if (messageType=="quit") {
 LQuit:
       soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
       soundClient->terminateSound();
       exit(0);
     }
-    if (messageType=="reload"){
+    if (messageType=="reload") {
       if (!loadParameters(*cli))
         exit(0);
     }
@@ -55,14 +55,14 @@ LQuit:
       (void)ar_setLogLevel( messageBody );
     }
 
-    else if (messageType=="szg_sound_stream_info"){
-      const string response(soundClient->processMessage(messageType,messageBody));
+    else if (messageType=="szg_sound_stream_info") {
+      const string response(soundClient->processMessage(messageType, messageBody));
       cli->messageResponse(sendID, response);
     }
   }
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   soundClient = new arSoundClient;
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
@@ -74,21 +74,21 @@ int main(int argc, char** argv){
   // Only one SoundRender per host.
   // copypasted (more or less) from szgd.cpp
   int ownerID = -1;
-  if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
+  if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)) {
     ar_log_critical() << "another copy is already running (pid = " << ownerID << ").\n";
 LDie:
-    if (!szgClient.sendInitResponse(false)){
+    if (!szgClient.sendInitResponse(false)) {
       cerr << "SoundRender error: maybe szgserver died.\n";
     }
     return 1;
   }
 
-  if (!loadParameters(szgClient)){
+  if (!loadParameters(szgClient)) {
     goto LDie;
   }
 
   // init succeeded
-  if (!szgClient.sendInitResponse(true)){
+  if (!szgClient.sendInitResponse(true)) {
     cerr << "SoundRender error: maybe szgserver died.\n";
   }
 
@@ -108,7 +108,7 @@ LDie:
     return 1;
   }
 
-  if (!szgClient.sendStartResponse(true)){
+  if (!szgClient.sendStartResponse(true)) {
     cerr << "SoundRender error: maybe szgserver died.\n";
   }
 

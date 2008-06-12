@@ -75,7 +75,7 @@ arBumpMap::arBumpMap( const arBumpMap& rhs ) : arTexture(rhs) {
 void arBumpMap::activate() {
 }
 
-void arBumpMap::reactivate(){
+void arBumpMap::reactivate() {
 }
 
 bool arBumpMap::_loadIntoOpenGL() {

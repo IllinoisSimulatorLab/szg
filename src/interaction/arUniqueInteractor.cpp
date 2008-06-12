@@ -75,10 +75,10 @@ void arUniqueInteractor::disable() {
 void arUniqueInteractor::activateInteractionGroup( const unsigned int group ) {
   if (group == _activeInteractionGroup)
     return;
-    
+
   if (_lockedPtr)
       _lockedPtr = NULL;
-      
+
   unsigned int numTouched = 0;
   for (list<arUniqueInteractor*>::iterator iter = _listUs.begin();
        iter != _listUs.end(); iter++) {
@@ -132,7 +132,7 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     }
     _lastButtons[i] = button;
   }
-    
+
   if (_lockedPtr) {
     // See if locked guy still exists
     list<arUniqueInteractor*>::iterator lockedIter =
@@ -178,7 +178,7 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
   }
   const bool ok = (highPriorityIter != _listUs.end()) &&
     (*highPriorityIter)->processTouch( inputState, wandTipMatrix, events );
-  events.clear();   
+  events.clear();
   return ok;
 }
 

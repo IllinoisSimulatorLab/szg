@@ -19,12 +19,12 @@ class SZG_CALL arMesh {
     _matrix(transform) {}
   virtual ~arMesh() {}
 
-  void setTransform(const arMatrix4& matrix){ _matrix = matrix; }
+  void setTransform(const arMatrix4& matrix) { _matrix = matrix; }
   arMatrix4 getTransform() const { return _matrix; }
 
   // DEPRECATED. Assumes that nameParent gives a unique node name... and
   // just calls the real attachMesh method (which uses an arGraphicsNode*
-  // parameter). 
+  // parameter).
   // It is annoying that we have to make this virtual
   // and repeat it for each subclass (otherwise the compiler gets confused
   // because of the other attachMesh methods).
@@ -46,11 +46,11 @@ class SZG_CALL arCubeMesh : public arMesh {
  public:
   arCubeMesh() {}
   arCubeMesh(const arMatrix4& transform) : arMesh(transform) {}
-  bool attachMesh(const string& name, const string& parentName){
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "cube");
   }
 };
@@ -61,11 +61,11 @@ class SZG_CALL arRectangleMesh : public arMesh {
  public:
   arRectangleMesh() {}
   arRectangleMesh(const arMatrix4& transform) : arMesh(transform) {}
-  bool attachMesh(const string& name, const string& parentName){
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "rectangle");
   }
 };
@@ -77,19 +77,19 @@ class SZG_CALL arCylinderMesh : public arMesh {
   arCylinderMesh();
   arCylinderMesh(const arMatrix4&);
 
-  void setAttributes(int numberDivisions, 
+  void setAttributes(int numberDivisions,
                      float bottomRadius,
                      float topRadius);
-  int getNumberDivisions(){ return _numberDivisions; }
-  float getBottomRadius(){ return _bottomRadius; }
-  float getTopRadius(){ return _topRadius; }
+  int getNumberDivisions() { return _numberDivisions; }
+  float getBottomRadius() { return _bottomRadius; }
+  float getTopRadius() { return _topRadius; }
   void toggleEnds(bool);
-  bool getUseEnds(){ return _useEnds; }
-  bool attachMesh(const string& name, const string& parentName){
+  bool getUseEnds() { return _useEnds; }
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "cylinder");
   }
 
@@ -103,11 +103,11 @@ class SZG_CALL arCylinderMesh : public arMesh {
 class SZG_CALL arPyramidMesh : public arMesh {
  public:
   arPyramidMesh() {}
-  bool attachMesh(const string& name, const string& parentName){
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "pyramid");
   }
 };
@@ -118,32 +118,32 @@ class SZG_CALL arSphereMesh : public arMesh {
   arSphereMesh(const arMatrix4&, int numberDivisions=10);
 
   void setAttributes(int numberDivisions);
-  int getNumberDivisions(){ return _numberDivisions; }
+  int getNumberDivisions() { return _numberDivisions; }
   void setSectionSkip(int skip);
-  int getSectionSkip(){ return _sectionSkip; }
-  bool attachMesh(const string& name, const string& parentName){
+  int getSectionSkip() { return _sectionSkip; }
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "sphere");
   }
  private:
   // How many polygons are use to approximate the object.
-  int _numberDivisions; 
+  int _numberDivisions;
   // Whether we will draw every vertical section. Default
   // of one does this, which 2 draws every other, etc.
-  int _sectionSkip; 
+  int _sectionSkip;
 };
 
 class SZG_CALL arTorusMesh : public arMesh {
  public:
-  arTorusMesh(int numberBigAroundQuads, 
+  arTorusMesh(int numberBigAroundQuads,
               int numberSmallAroundQuads,
-              float bigRadius, 
+              float bigRadius,
               float smallRadiusint);
   ~arTorusMesh();
- 
+
   void reset(int numberBigAroundQuads,
              int numberSmallAroundQuads,
              float bigRadius,
@@ -152,11 +152,11 @@ class SZG_CALL arTorusMesh : public arMesh {
   int getNumberSmallAroundQuads() const { return _numberSmallAroundQuads; }
   float getBigRadius() const { return _bigRadius; }
   float getSmallRadius() const { return _smallRadius; }
-  bool attachMesh(const string& name, const string& parentName){
+  bool attachMesh(const string& name, const string& parentName) {
     return arMesh::attachMesh(name, parentName);
   }
   bool attachMesh(arGraphicsNode* parent, const string& name);
-  bool attachMesh(arGraphicsNode* parent){
+  bool attachMesh(arGraphicsNode* parent) {
     return attachMesh(parent, "torus");
   }
 
@@ -167,13 +167,13 @@ class SZG_CALL arTorusMesh : public arMesh {
   float _smallRadius;
   int _numberPoints;
   int _numberTriangles;
-  
+
   float* _pointPositions;
   int* _triangleVertices;
   float* _surfaceNormals;
-  float* _textureCoordinates; 
+  float* _textureCoordinates;
 
-  void _reset(const int,const int,const float,const float);
+  void _reset(const int, const int, const float, const float);
   void _destroy();
 };
 

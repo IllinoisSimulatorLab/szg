@@ -43,7 +43,7 @@ class SZG_CALL arStreamNode: public arSoundNode {
   bool _paused;
 
   // Current loudness.
-  // Like arSoundFileNode::render, amplitude is in [0,100], with 1 the default.
+  // Like arSoundFileNode::render, amplitude is in [0, 100], with 1 the default.
   float _amplitude;
 
   int _msecRequested;

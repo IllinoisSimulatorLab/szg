@@ -15,8 +15,8 @@
 // Bug (in visual studio 7?): global static const arMatrix4's are all zeros
 // during arInputSimulator's constructor, but fine later.
 // Static, or const static, class variables fail similarly.
-// const arMatrix4 arInputSimulator::_mHeadReset(ar_TM(0,5,0));
-// const arMatrix4 arInputSimulator::_mWandReset(ar_TM(2,3,-1));
+// const arMatrix4 arInputSimulator::_mHeadReset(ar_TM(0, 5, 0));
+// const arMatrix4 arInputSimulator::_mWandReset(ar_TM(2, 3, -1));
 
 const int numberButtonEventsDefault = 8;
 
@@ -27,8 +27,8 @@ arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),
   _buttonSelector(0),
   _interfaceState(AR_SIM_HEAD_TRANSLATE),
-  _head(arVector3(0,5,0)),
-  _wand(arVector3(2,3,-1)),
+  _head(arVector3(0, 5, 0)),
+  _wand(arVector3(2, 3, -1)),
   _axis0(0.),
   _axis1(0.)
     {
@@ -78,10 +78,10 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   return true;
 }
 
-typedef map<unsigned,int>::const_iterator IterButton;
+typedef map<unsigned, int>::const_iterator IterButton;
 
 bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
-  map<unsigned,int> buttonsPrev = _mouseButtons;
+  map<unsigned, int> buttonsPrev = _mouseButtons;
   _mouseButtons.clear();
   vector<unsigned>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
@@ -120,21 +120,21 @@ void arInputSimulator::setNumberButtonEvents( unsigned numButtonEvents ) {
     _newButtonEvents.erase( _newButtonEvents.end()-diff, _newButtonEvents.end() );
   }
   _numButtonEvents = numButtonEvents;
-  _driver.setSignature(_numButtonEvents,2,2);
+  _driver.setSignature(_numButtonEvents, 2, 2);
   _buttonLabels.clear();
   for (unsigned i=0; i<_numButtonEvents; ++i) {
     _buttonLabels.push_back( char((i % 10) + '0') );
   }
 }
 
-arInputSimulator::~arInputSimulator(){
+arInputSimulator::~arInputSimulator() {
   _mouseButtons.clear();
   _lastButtonEvents.clear();
   _newButtonEvents.clear();
 }
 
 // Connect to an arInputNode.
-void arInputSimulator::registerInputNode(arInputNode* node){
+void arInputSimulator::registerInputNode(arInputNode* node) {
   node->addInputSource(&_driver, false);
 }
 
@@ -142,17 +142,17 @@ void arInputSimulator::registerInputNode(arInputNode* node){
 void arInputSimulator::draw() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glFrustum(-0.1,0.1,-0.1,0.1,0.3,1000);
+  glFrustum(-0.1, 0.1, -0.1, 0.1, 0.3, 1000);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(0,5,23,0,5,9,0,1,0);
-  glTranslatef(0,5,0);
+  gluLookAt(0, 5, 23, 0, 5, 9, 0, 1, 0);
+  glTranslatef(0, 5, 0);
   glMultMatrixf(arMatrix4(_box).v);
-  glTranslatef(0,-5,0);
+  glTranslatef(0, -5, 0);
 
 
   glPushMatrix();
-    glTranslatef(0,5,0);
+    glTranslatef(0, 5, 0);
     _wireCube(10);
   glPopMatrix();
 
@@ -173,7 +173,7 @@ void arInputSimulator::drawWithComposition() {
 
 // Called occasionally to post the current state of the simulated
 // device to newly connected arInputNodes.
-void arInputSimulator::advance(){
+void arInputSimulator::advance() {
   // We should send only data that changed,
   // but with an exception to send everything every few seconds for
   // clients who join late.
@@ -192,7 +192,7 @@ void arInputSimulator::advance(){
   }
 
   for (unsigned i=0; i<_newButtonEvents.size(); ++i) {
-    if (_newButtonEvents[i] != _lastButtonEvents[i]){
+    if (_newButtonEvents[i] != _lastButtonEvents[i]) {
       _lastButtonEvents[i] = _newButtonEvents[i];
       // Queue the button events where received, i.e. in
       // mouseButton() instead of sending the diff here
@@ -254,13 +254,13 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
       break;
 
     case AR_SIM_HEAD_ROTATE:
-      _head.setAziEle(0,0);
+      _head.setAziEle(0, 0);
       break;
     case AR_SIM_WAND_ROTATE:
-      _wand.setAziEle(0,0);
+      _wand.setAziEle(0, 0);
       break;
     case AR_SIM_BOX_ROTATE:
-      _box.setAziEle(0,0);
+      _box.setAziEle(0, 0);
       break;
 
     case AR_SIM_HEAD_ROLL:
@@ -274,7 +274,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
 }
 
 // Process mouse button events.
-void arInputSimulator::mouseButton(int button, int state, int x, int y){
+void arInputSimulator::mouseButton(int button, int state, int x, int y) {
   _xMouse = x;
   _yMouse = y;
 
@@ -337,7 +337,7 @@ static inline float clamp(const float x, const float xMin, const float xMax) {
 }
 
 // The mouse moved.
-void arInputSimulator::mousePosition(int x, int y){
+void arInputSimulator::mousePosition(int x, int y) {
   if (!_fInit) {
     _fInit = true;
     _xMouse = x;
@@ -414,11 +414,11 @@ void arInputSimulator::mousePosition(int x, int y){
 
 void arInputSimulator::_wireCube(const float size) const {
   glPushMatrix();
-  glScalef(size/2,size/2,size/2);
+  glScalef(size/2, size/2, size/2);
 
   glLineWidth(1.);
   // Pale blue sky.
-  glColor3f(.6,.8,.8);
+  glColor3f(.6, .8, .8);
   glBegin(GL_LINES);
     glVertex3f( 1, 1,-1); glVertex3f( 1,-1,-1);
     glVertex3f(-1,-1,-1); glVertex3f(-1, 1,-1);
@@ -432,7 +432,7 @@ void arInputSimulator::_wireCube(const float size) const {
 
   // Green floor.
   glLineWidth(2.);
-  glColor3f(0,1,0);
+  glColor3f(0, 1, 0);
   glBegin(GL_LINE_LOOP);
     glVertex3f( 1,-1,-1);
     glVertex3f( 1,-1, 1);
@@ -461,12 +461,12 @@ void arInputSimulator::_drawGamepad() const {
   const float padHeight = GAMEPAD_WIDTH + numRows*BUTTON_SPACING;
 
   glPushMatrix();
-    glMultMatrixf(ar_translationMatrix(4,0,5).v);
+    glMultMatrixf(ar_translationMatrix(4, 0, 5).v);
 
     // Blue background for the wand.
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glColor4f(0,0,1, .15);
+    glColor4f(0, 0, 1, .15);
     const float zPad = .01;
     glBegin(GL_QUADS);
       glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET + padHeight, zPad);
@@ -479,25 +479,25 @@ void arInputSimulator::_drawGamepad() const {
     // Marker for the joystick.
     glPushMatrix();
       glTranslatef(0.5*_axis0, -0.3 + 0.5*_axis1, zPad);
-      glColor3f(0.3,1,0);
-      glutSolidSphere(0.25,12,12);
+      glColor3f(0.3, 1, 0);
+      glutSolidSphere(0.25, 12, 12);
     glPopMatrix();
 
     // Joystick's boundary.
     glBegin(GL_LINE_STRIP);
-      glColor3f(1,1,1);
-      glVertex3f(-0.5,0.2,0.3);
-      glVertex3f(-0.5,-0.8,0.3);
-      glVertex3f(0.5,-0.8,0.3);
-      glVertex3f(0.5,0.2,0.3);
-      glVertex3f(-0.5,0.2,0.3);
+      glColor3f(1, 1, 1);
+      glVertex3f(-0.5, 0.2, 0.3);
+      glVertex3f(-0.5, -0.8, 0.3);
+      glVertex3f(0.5, -0.8, 0.3);
+      glVertex3f(0.5, 0.2, 0.3);
+      glVertex3f(-0.5, 0.2, 0.3);
     glEnd();
 
     // Indicate which row of buttons is controlled by the mouse buttons
     glPushMatrix();
-      glTranslatef(-.5*padWidth,BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector, zPad);
-      glColor3f(1,1,1);
-      glutSolidSphere(0.15,8,8);
+      glTranslatef(-.5*padWidth, BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector, zPad);
+      glColor3f(1, 1, 1);
+      glutSolidSphere(0.15, 8, 8);
     glPopMatrix();
     const float xlo = (-.5*((float)rowLength) + .5) * BUTTON_SPACING;
     float x = xlo;
@@ -506,12 +506,12 @@ void arInputSimulator::_drawGamepad() const {
     const float labelScale = .004*BUTTON_SPACING;
     for (unsigned i = 0; i<_newButtonEvents.size(); ++i) {
       glPushMatrix();
-        glTranslatef(x,y,0.1);
+        glTranslatef(x, y, 0.1);
         if (_newButtonEvents[i] == 0)
-          glColor3f(0.8,0,0);
+          glColor3f(0.8, 0, 0);
         else
-          glColor3f(0,0.6,0);
-        glutSolidSphere(.4*BUTTON_SPACING,12,12);
+          glColor3f(0, 0.6, 0);
+        glutSolidSphere(.4*BUTTON_SPACING, 12, 12);
         if (i >= _buttonLabels.size()) {
           ar_log_error() << "arInputSimulator: too few button labels.\n";
         } else {
@@ -538,25 +538,25 @@ void arInputSimulator::_drawGamepad() const {
 }
 
 void arInputSimulator::_drawHead() const {
-  glColor3f(1,1,0);
+  glColor3f(1, 1, 0);
   glPushMatrix();
     glMultMatrixf(arMatrix4(_head).v);
-    glutWireSphere(1,10,10);
+    glutWireSphere(1, 10, 10);
     // two eyes
-    glColor3f(0,1,1);
+    glColor3f(0, 1, 1);
     glPushMatrix();
-      glTranslatef(0.5,0,-0.8);
-      glutSolidSphere(0.4,8,8);
-      glTranslatef(0,0,-0.4);
-      glColor3f(1,0,0);
-      glutSolidSphere(0.15,5,5);
+      glTranslatef(0.5, 0, -0.8);
+      glutSolidSphere(0.4, 8, 8);
+      glTranslatef(0, 0, -0.4);
+      glColor3f(1, 0, 0);
+      glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
-    glTranslatef(-0.5,0,-0.8);
-    glColor3f(0,1,1);
-    glutSolidSphere(0.4,8,8);
-    glTranslatef(0,0,-0.4);
-    glColor3f(1,0,0);
-    glutSolidSphere(0.15,5,5);
+    glTranslatef(-0.5, 0, -0.8);
+    glColor3f(0, 1, 1);
+    glutSolidSphere(0.4, 8, 8);
+    glTranslatef(0, 0, -0.4);
+    glColor3f(1, 0, 0);
+    glutSolidSphere(0.15, 5, 5);
   glPopMatrix();
 }
 
@@ -567,37 +567,37 @@ void arInputSimulator::_drawWand() const {
     glMultMatrixf(arMatrix4(_wand).v);
 
     // fwd-aft bar
-    glColor3f(1,0,0);
+    glColor3f(1, 0, 0);
     glPushMatrix();
-      glScalef(0.17,0.17,2);
+      glScalef(0.17, 0.17, 2);
       glutSolidCube(1);
     glPopMatrix();
 
     // ball at tip
-    glColor3f(1,0,1);
+    glColor3f(1, 0, 1);
     glPushMatrix();
-      glTranslatef(0,0,-1);
-      glutSolidSphere(0.4,10,10);
+      glTranslatef(0, 0, -1);
+      glutSolidSphere(0.4, 10, 10);
     glPopMatrix();
 
     // up-down bar
-    glColor3f(0,1,.15);
+    glColor3f(0, 1, .15);
     glPushMatrix();
-      glScalef(0.17,2,0.17);
+      glScalef(0.17, 2, 0.17);
       glutSolidCube(1);
     glPopMatrix();
 
     // ball at tip
-    glColor3f(0,1,.6);
+    glColor3f(0, 1, .6);
     glPushMatrix();
-      glTranslatef(0,1,0);
-      glutSolidSphere(0.2,10,10);
+      glTranslatef(0, 1, 0);
+      glutSolidSphere(0.2, 10, 10);
     glPopMatrix();
 
     // left-right bar
-    glColor3f(0,0,.8);
+    glColor3f(0, 0, .8);
     glPushMatrix();
-      glScalef(2,0.17,0.17);
+      glScalef(2, 0.17, 0.17);
       glutSolidCube(1);
     glPopMatrix();
 
@@ -612,7 +612,7 @@ void arInputSimulator::_drawTextState() const {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glDisable(GL_LIGHTING);
-  glColor3f(0.2,0.2,0.5);
+  glColor3f(0.2, 0.2, 0.5);
   glBegin(GL_QUADS);
   glVertex3f(-1, .88, 0.00001);
   glVertex3f( 1, .88, 0.00001);
@@ -632,10 +632,10 @@ void arInputSimulator::_drawTextState() const {
       "8: Roll head",
       "9: Roll wand"
     };
-  glColor3f(1,1,1);
+  glColor3f(1, 1, 1);
   glPushMatrix();
-    glTranslatef(-0.95,0.91,0.000001);
-    glScalef(0.0006,0.0006,0.0006);
+    glTranslatef(-0.95, 0.91, 0.000001);
+    glScalef(0.0006, 0.0006, 0.0006);
     for (const char* pch=hint[_interfaceState]; *pch; ++pch)
       glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *pch);
   glPopMatrix();

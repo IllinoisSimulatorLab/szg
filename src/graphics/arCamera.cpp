@@ -17,7 +17,7 @@ arMatrix4 arCamera::getModelviewMatrix() {
   return arMatrix4();
 }
 
-void arCamera::loadViewMatrices(){
+void arCamera::loadViewMatrices() {
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
   glMultMatrixf(getProjectionMatrix().v);

@@ -250,7 +250,7 @@ LAbort:
 
   arThread dummy(ar_messageTask, &szgClient);
 
-  while (szgClient.connected()){
+  while (szgClient.connected()) {
     if (mode == CONTINUOUS_DUMP && src.connected())
       dump(inputNode._inputState);
     ar_usleep(150000);

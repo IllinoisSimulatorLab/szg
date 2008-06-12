@@ -20,7 +20,7 @@ class arPForth;
 
 namespace arPForthSpace {
 
-// Base class for run-time behaviors  
+// Base class for run-time behaviors
 class SZG_CALL arPForthAction {
   public:
     virtual ~arPForthAction() {}
@@ -78,7 +78,7 @@ class SZG_CALL NumberCompiler: public arPForthCompiler {
                   vector<arPForthSpace::arPForthAction*>& actionList );
 };
 
-// Compiler for words that allocate a predetermined number of cells 
+// Compiler for words that allocate a predetermined number of cells
 // in the dataspace (determined by constructor arg)
 class SZG_CALL VariableCompiler : public arPForthCompiler {
   private:
@@ -90,7 +90,7 @@ class SZG_CALL VariableCompiler : public arPForthCompiler {
                   vector<arPForthSpace::arPForthAction*>& actionList );
 };
 
-// Compiler for words that allocate variable numbers of cells 
+// Compiler for words that allocate variable numbers of cells
 // in the dataspace (determined by next word in input stream)
 class SZG_CALL ArrayCompiler : public arPForthCompiler {
   public:
@@ -149,7 +149,7 @@ class SZG_CALL arPForth {
     bool runProgram( arPForthProgram* program );
     arPForthProgram* getProgram();
     vector<string> getVocabulary();
-    
+
     // "Programmer" interface (for adding new words).
     // Catch arPForthExceptions if you call these outside a normal compile or run.
     bool compileWord( const string theWord,
@@ -191,7 +191,7 @@ class SZG_CALL arPForth {
     void printStack() const;
     void printDictionary() const;
     bool anonymousActionsAreTransient;
-    
+
   protected:
     bool _valid;
 

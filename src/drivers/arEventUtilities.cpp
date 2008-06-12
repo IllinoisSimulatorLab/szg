@@ -33,20 +33,20 @@ bool ar_fromStructuredData(int& sigLen, int& sigField, int* sigBuf,
   if (sigLen != 3)
     ar_log_error() << "ar_fromStructuredData: invalid signature.\n";
 
-  if (numMatrices % 16 != 0){
+  if (numMatrices % 16 != 0) {
     ar_log_error() << "ar_fromStructuredData: fractional number of matrices (" <<
       numMatrices << "/16).\n";
     return false;
   }
 
   numMatrices /= 16;
-  if (numItems != numIndices){
+  if (numItems != numIndices) {
     ar_log_error() << "ar_fromStructuredData mismatch: " <<
       numItems << " types but " << numIndices << " indices.\n";
     return false;
   }
 
-  if (numButtons + numAxes + numMatrices != numItems){
+  if (numButtons + numAxes + numMatrices != numItems) {
     ar_log_error() << "ar_fromStructuredData dictionary mismatch: " <<
       numButtons <<"+"<< numAxes <<"+"<< numMatrices << " != " << numItems << ".\n";
     return false;

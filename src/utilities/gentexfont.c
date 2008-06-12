@@ -83,10 +83,10 @@ int gap = 1;
 
 /* #define REPORT_GLYPHS */
 #ifdef REPORT_GLYPHS
-#define DEBUG_GLYPH4(msg,a,b,c,d) printf(msg,a,b,c,d)
+#define DEBUG_GLYPH4(msg, a, b, c, d) printf(msg, a, b, c, d)
 #define DEBUG_GLYPH(msg) printf(msg)
 #else
-#define DEBUG_GLYPH4(msg,a,b,c,d) { /* nothing */ }
+#define DEBUG_GLYPH4(msg, a, b, c, d) { /* nothing */ }
 #define DEBUG_GLYPH(msg) { /* nothing */ }
 #endif
 

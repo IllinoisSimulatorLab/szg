@@ -14,12 +14,12 @@ arGraphicsServer* g = NULL;
 arGraphicsPeer peer;
 
 // Makes a simple test texture.
-char* makePixels(){
+char* makePixels() {
   int width = 256;
   int height = 256;
   char* pixels = new char[width*height*4];
-  for (int i = 0; i < height; i++){
-    for (int j = 0; j < width; j++){
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
       pixels[4*(i*width + j)] = 128 & (j << 2) ? 255 : 0;
       pixels[4*(i*width + j)+1] = 0;
       pixels[4*(i*width + j)+2] = 0;
@@ -29,41 +29,41 @@ char* makePixels(){
   return pixels;
 }
 
-void testDatabase(arGraphicsDatabase& g){
+void testDatabase(arGraphicsDatabase& g) {
   // For drawing from szgrender, there must be a viewer node.
-  arViewerNode* viewer 
+  arViewerNode* viewer
     = (arViewerNode*) g.newNode(g.getRoot(), "viewer", "szg_viewer");
   arHead head;
-  head.setMatrix(ar_translationMatrix(0,5,0));
+  head.setMatrix(ar_translationMatrix(0, 5, 0));
   viewer->setHead(head);
 
   // This database tests using different point sizes and line widths, along
   // with color variations.
-  arTransformNode* globalTrans 
+  arTransformNode* globalTrans
     = (arTransformNode*) g.newNode(g.getRoot(), "transform", "global_trans");
-  globalTrans->setTransform(ar_translationMatrix(0,5,-5));
+  globalTrans->setTransform(ar_translationMatrix(0, 5, -5));
 
-  arGraphicsStateNode* s 
+  arGraphicsStateNode* s
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s->setGraphicsStateFloat("point_size", 20.0);
-  float c[12] = {-1, -1, 0, 
+  float c[12] = {-1, -1, 0,
                  1, -1, 0,
 		 1, 1, 0,
 		 -1, 1, 0};
   arMaterialNode* m = (arMaterialNode*) g.newNode(s, "material");
   arMaterial mat;
-  mat.diffuse = arVector3(1,1,0);
+  mat.diffuse = arVector3(1, 1, 0);
   m->setMaterial(mat);
   arPointsNode* p = (arPointsNode*) g.newNode(m, "points");
   p->setPoints(4, c);
   arDrawableNode* d = (arDrawableNode*) g.newNode(p, "drawable");
-  d->setDrawable(DG_POINTS, 4); 
-  
-  arGraphicsStateNode* s2 
+  d->setDrawable(DG_POINTS, 4);
+
+  arGraphicsStateNode* s2
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
   s2->setGraphicsStateFloat("line_width", 5.0);
   arIndexNode* in = (arIndexNode*) g.newNode(s2, "index");
-  int index[8] = {0,1, 1,2, 2,3, 3,0};
+  int index[8] = {0, 1, 1, 2, 2, 3, 3, 0};
   in->setIndices(8, index);
   arColor4Node* color = (arColor4Node*) g.newNode(in, "color4");
   float lineColor[32] = {1,0,0,1, 1,0,0,1,
@@ -74,20 +74,20 @@ void testDatabase(arGraphicsDatabase& g){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 4);
 
-  arGraphicsStateNode* s3 
+  arGraphicsStateNode* s3
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
   s3->setGraphicsStateFloat("line_width", 2.0);
   in = (arIndexNode*) g.newNode(s3, "index");
-  int index2[4] = {0,2, 1,3};
+  int index2[4] = {0, 2, 1, 3};
   in->setIndices(4, index2);
   color = (arColor4Node*) g.newNode(in, "color4");
   float lineColor2[16] = {0,1,0,1, 0,1,0,1,
-			 0,1,0,1, 0,1,0,1};
+			  0,1,0,1, 0,1,0,1};
   color->setColor4(4, lineColor2);
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 2);
 
-  arGraphicsStateNode* s4 
+  arGraphicsStateNode* s4
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s4->setGraphicsStateFloat("point_size", 10.0);
   float c2[12] = {-0.7, -0.7, 0,
@@ -103,7 +103,7 @@ void testDatabase(arGraphicsDatabase& g){
 		   0,1,1,1};
   color->setColor4(4, clr);
   d = (arDrawableNode*) g.newNode(color, "drawable");
-  d->setDrawable(DG_POINTS, 4); 
+  d->setDrawable(DG_POINTS, 4);
 
   // Try the other mode of node insertion, whereby
   // the node in question makes its parent's children its own.
@@ -114,7 +114,7 @@ void testDatabase(arGraphicsDatabase& g){
   arPointsNode* additionalPoints = (arPointsNode*) n->newNode("points");
   float c3[3] = { -0.5, 0, 0 };
   additionalPoints->setPoints(1, c3);
-  arDrawableNode* additionalDraw 
+  arDrawableNode* additionalDraw
     = (arDrawableNode*) additionalPoints->newNode("drawable");
   additionalDraw->setDrawable(DG_POINTS, 1);
   additionalPoints = (arPointsNode*) n->newNode("points");
@@ -126,11 +126,11 @@ void testDatabase(arGraphicsDatabase& g){
   // Attach a rectangle. This tests textures and transparency.
   arTransformNode* rt =
     (arTransformNode*) globalTrans->newNode("transform", "rect_rot");
-  rt->setTransform(ar_translationMatrix(0,0,0.1)
+  rt->setTransform(ar_translationMatrix(0, 0, 0.1)
                    *ar_rotationMatrix('x', ar_convertToRad(-90)));
   // Turn off lighting for our rectangle since there are no lights in the scene.
-  arGraphicsStateNode* ls 
-    = (arGraphicsStateNode*) rt->newNode("graphics state", "lighting_off");
+  arGraphicsStateNode* ls =
+    (arGraphicsStateNode*) rt->newNode("graphics state", "lighting_off");
   ls->setGraphicsStateInt("lighting", AR_G_FALSE );
   arTextureNode* tn = (arTextureNode*) ls->newNode("texture", "rect_texture");
   tn->setPixels(256, 256, makePixels(), true);
@@ -140,25 +140,25 @@ void testDatabase(arGraphicsDatabase& g){
   int count = 0;
   arGraphicsStateNode* insertedState = NULL;
   arGraphicsStateNode* insertedState2 = NULL;
-  while (count <= 600){
+  while (count <= 600) {
     g.setVRCameraID(viewer->getID());
-    if (count == 100){
+    if (count == 100) {
       cout << "About to insert node.\n";
       insertedState = (arGraphicsStateNode*) g.insertNode(color, d, "graphics state");
-      if (!insertedState){
+      if (!insertedState) {
         cout << "Insert node failed.\n";
       }
       insertedState->setGraphicsStateFloat("point_size", 5);
       insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL, "graphics state");
       insertedState2->setGraphicsStateFloat("point_size", 10);
     }
-    if (count == 200){
+    if (count == 200) {
       cout << "About to cut node.\n";
       g.cutNode(insertedState->getID());
       g.cutNode(insertedState2->getID());
     }
     list<arDatabaseNode*> IDs;
-    if (count == 300){
+    if (count == 300) {
       cout << "testgraphics remark: about to permute nodes.\n";
       // s, s4, n, rt are the initial children for the global trans node.
       IDs.push_back(rt);
@@ -167,7 +167,7 @@ void testDatabase(arGraphicsDatabase& g){
       IDs.push_back(n);
       g.permuteChildren(globalTrans, IDs);
     }
-    if (count == 400){
+    if (count == 400) {
       // s, s4, n, rt are the initial children for the global trans node.
       // Return to the original order.
       cout << "testgraphics remark: about to permute again.\n";
@@ -182,11 +182,11 @@ void testDatabase(arGraphicsDatabase& g){
   }
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   ar_timeval time1 = ar_time();
   int i;
   const int num = 100000;
-  for (i=0; i<num; i++){
+  for (i=0; i<num; i++) {
     arGraphicsContext* g = new arGraphicsContext();
     delete g;
   }
@@ -203,42 +203,42 @@ int main(int argc, char** argv){
 
   arSZGClient client;
   client.init(argc, argv);
-  if (!client){
+  if (!client) {
     // Failed to connect to szgserver. That's it since we are testing
     // the distributed graphics as well.
     cout << "TestGraphics error: szgserver must be running and user must be dlogin'ed.\n";
     return 1;
   }
   g = new arGraphicsServer;
-  if (!g->init(client)){
+  if (!g->init(client)) {
     cout << "TestGraphics error: graphics server failed to init.\n";
     return 1;
   }
-  if (!g->start()){
+  if (!g->start()) {
     cout << "TestGraphics error: graphics server failed to start.\n";
     return 1;
   }
   testDatabase(*g);
-  // PLEASE NOTE: it is actually UNSAFE to delete an arDataServer object that
-  // is currently receiving connections. Consequently, these objects should
-  // never be declared as static globals in an szg application.
- 
+
+  // Because it is unsafe to delete an arDataServer that is receiving connections,
+  // don't declare them as static globals in syzygy apps.
+
   peer.setName("test_graphics");
-  if (!peer.init(client)){
+  if (!peer.init(client)) {
     cout << "TestGraphics error: could not initialize graphics peer.\n";
     return 1;
   }
-  if (!peer.start()){
+  if (!peer.start()) {
     cout << "TestGraphics error: could not start graphics peer.\n";
     return 1;
   }
-  if (peer.connectToPeer("target")<0){
+  if (peer.connectToPeer("target")<0) {
     cout << "TestGraphics error: peer \"target\" does not exist.\n";
     peer.closeAllAndReset();;
     return 1;
   }
-  peer.pullSerial("target",0,0,
-                  AR_TRANSIENT_NODE,AR_TRANSIENT_NODE,AR_TRANSIENT_NODE);
+  peer.pullSerial("target", 0, 0,
+                  AR_TRANSIENT_NODE, AR_TRANSIENT_NODE, AR_TRANSIENT_NODE);
   peer.reset();
   ar_usleep(2000000);
   testDatabase(peer);

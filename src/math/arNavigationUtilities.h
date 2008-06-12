@@ -3,7 +3,7 @@
 
 #include "arMath.h"
 #include "arMathCalling.h"
-  
+
 SZG_CALL void ar_setNavMatrix( const arMatrix4& matrix );
 SZG_CALL arMatrix4 ar_getNavMatrix();
 SZG_CALL arMatrix4 ar_getNavInvMatrix();

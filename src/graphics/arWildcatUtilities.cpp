@@ -66,7 +66,7 @@ void ar_activateWildcatFramelock() {
 
 void ar_deactivateWildcatFramelock() {
   arGuard dummy(arWildcatNamespace::lock);
-  if (!arWildcatNamespace::fActive){
+  if (!arWildcatNamespace::fActive) {
     ar_log_error() << "Ignoring duplicate ar_deactivateWildcatFramelock.\n";
     return;
   }

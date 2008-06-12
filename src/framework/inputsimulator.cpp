@@ -23,10 +23,10 @@ arInputNode inputNode;
 int xPos = 0;
 int yPos = 0;
 
-void loadParameters(arSZGClient& szgClient){
+void loadParameters(arSZGClient& szgClient) {
   int posBuffer[2];
   const string posString = szgClient.getAttribute("SZG_INPUTSIM", "position");
-  if (posString != "NULL" && ar_parseIntString(posString,posBuffer,2)){
+  if (posString != "NULL" && ar_parseIntString(posString, posBuffer, 2)) {
     xPos = posBuffer[0];
     yPos = posBuffer[1];
   }
@@ -36,14 +36,14 @@ void loadParameters(arSZGClient& szgClient){
   }
 }
 
-void display(){
-  glClearColor(0,0,0,0);
+void display() {
+  glClearColor(0, 0, 0, 0);
   glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
   pSim->draw();
   glutSwapBuffers();
 }
 
-void idle(){
+void idle() {
   pSim->advance();
 #if 0
   bool dump = false;
@@ -57,18 +57,18 @@ void idle(){
   ar_usleep(20000); // Mild CPU throttle
 }
 
-void keyboard(unsigned char key, int x, int y){
-  pSim->keyboard(key,1,x,y);
-  switch(key){
+void keyboard(unsigned char key, int x, int y) {
+  pSim->keyboard(key, 1, x, y);
+  switch(key) {
   case 27:
     pszgClient->messageTaskStop();
     exit(0);
   }
 }
 
-void mouseButton(int button, int state, int x, int y){
+void mouseButton(int button, int state, int x, int y) {
   // Translate GLUT numbers to Syzygy.
-  const int whichButton = 
+  const int whichButton =
   //(button == GLUT_LEFT_BUTTON  ) ? 0:
     (button == GLUT_MIDDLE_BUTTON) ? 1 :
     (button == GLUT_RIGHT_BUTTON ) ? 2 : 0;
@@ -76,19 +76,19 @@ void mouseButton(int button, int state, int x, int y){
   pSim->mouseButton(whichButton, whichState, x, y);
 }
 
-void mousePosition(int x, int y){
-  pSim->mousePosition(x,y);
+void mousePosition(int x, int y) {
+  pSim->mousePosition(x, y);
 }
 
-void messageTask(void* pv){
+void messageTask(void* pv) {
   arSZGClient* pszgClient = (arSZGClient*)pv;
   string messageType, messageBody;
   while (pszgClient->running()) {
-    if (!pszgClient->receiveMessage(&messageType,&messageBody)){
+    if (!pszgClient->receiveMessage(&messageType, &messageBody)) {
       ar_log_debug() << "inputsimulator shutdown.\n";
       goto LStop;
     }
-    if (messageType=="quit"){
+    if (messageType=="quit") {
 LStop:
       inputNode.stop();
       exit(0);
@@ -96,7 +96,7 @@ LStop:
   }
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   const bool fInit = szgClient.init(argc, argv);
@@ -127,18 +127,18 @@ LAbort:
   netInputSink.setInfo("inputsimulator");
 
   const string pforthProgramName = szgClient.getAttribute("SZG_PFORTH", "program_names");
-  if (pforthProgramName == "NULL"){
+  if (pforthProgramName == "NULL") {
     ar_log_remark() << "no pforth program for standalone joystick.\n";
   }
   else{
     const string pforthProgram = szgClient.getGlobalAttribute(pforthProgramName);
-    if (pforthProgram == "NULL"){
+    if (pforthProgram == "NULL") {
       ar_log_remark() << "no pforth program for '" << pforthProgramName << "'\n";
     }
     else{
       arPForthFilter* filter = new arPForthFilter();
       ar_PForthSetSZGClient( &szgClient );
-      if (!filter->loadProgram( pforthProgram )){
+      if (!filter->loadProgram( pforthProgram )) {
         ar_log_critical() << "failed to configure pforth filter with program '" <<
 	  pforthProgram << "'.\n";
 	goto LAbort;
@@ -147,7 +147,7 @@ LAbort:
       inputNode.addFilter(filter, false);
     }
   }
-  
+
   {
     arInputSimulatorFactory simFactory;
     arInputSimulator* simTemp = simFactory.createSimulator( szgClient );
@@ -166,7 +166,7 @@ LAbort:
     ar_log_remark() << "using net input, slot " << slot+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
-  inputNode.addInputSink(&netInputSink,false);
+  inputNode.addInputSink(&netInputSink, false);
 
   if (!inputNode.init(szgClient)) {
     goto LAbort;
@@ -174,7 +174,7 @@ LAbort:
 
   (void)szgClient.sendInitResponse(true);
 
-  if (!inputNode.start()){
+  if (!inputNode.start()) {
     (void)szgClient.sendStartResponse(false);
     return 1;
   }
@@ -184,9 +184,9 @@ LAbort:
   arThread dummy(messageTask, &szgClient);
   loadParameters(szgClient);
 
-  glutInit(&argc,argv);
+  glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
-  glutInitWindowSize(250,250);
+  glutInitWindowSize(250, 250);
   glutInitWindowPosition(xPos, yPos);
   glutCreateWindow(szgClient.getUserName() == "gfrancis" ? "wandsimpercolator" : "inputsimulator");
   glutDisplayFunc(display);

@@ -15,7 +15,7 @@
 class SZG_CALL arPhleetConfigLanguage: public arLanguage{
  public:
   arPhleetConfigLanguage();
-  ~arPhleetConfigLanguage(){}
+  ~arPhleetConfigLanguage() {}
 
   // these integers are used for fast access to the various data fields
   int AR_COMPUTER;       // used to set the computer name

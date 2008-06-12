@@ -9,37 +9,33 @@
 #include "arDeviceServerFramework.h"
 #include "arInputFactory.h"
 
-
 class arStandardDeviceServerFramework : public arDeviceServerFramework {
-  public:
-    arStandardDeviceServerFramework() : 
-      arDeviceServerFramework(),
-      _driverFactory(),
-      _fSimpleConfig(false) {}
-    ~arStandardDeviceServerFramework() {}
+ public:
+  arStandardDeviceServerFramework() :
+    arDeviceServerFramework(),
+    _driverFactory(),
+    _fSimpleConfig(false) {}
+  ~arStandardDeviceServerFramework() {}
 
-  protected:
-    bool _handleArgs( int& argc, char **argv );
-    void _printUsage();
-    bool _configureInputNode();
-    bool _handleMessage( const string& messageType, const string& messageBody );
-    void _simpleConfig( arInputNodeConfig& inputConfig );
-    bool _normalConfig( arInputNodeConfig& inputConfig );
-    arInputFactory _driverFactory;
-    bool _fSimpleConfig;
+ protected:
+  bool _handleArgs( int& argc, char **argv );
+  void _printUsage();
+  bool _configureInputNode();
+  bool _handleMessage( const string& messageType, const string& messageBody );
+  void _simpleConfig( arInputNodeConfig& inputConfig );
+  bool _normalConfig( arInputNodeConfig& inputConfig );
+  arInputFactory _driverFactory;
+  bool _fSimpleConfig;
 };
-
 
 bool arStandardDeviceServerFramework::_handleArgs( int& argc, char ** argv ) {
   _fSimpleConfig = checkCmdArg( argc, argv, "-s" );
   return extractCmdArg( argc, argv, 1, _deviceName );
 }
-  
 
 void arStandardDeviceServerFramework::_printUsage() {
   ar_log_error() << "usage: DeviceServer [-s] [-netinput] device_description driver_slot\n";
 }
-
 
 bool arStandardDeviceServerFramework::_configureInputNode() {
   arInputNodeConfig inputConfig;
@@ -68,7 +64,6 @@ bool arStandardDeviceServerFramework::_configureInputNode() {
 
   return true;
 }
- 
 
 bool arStandardDeviceServerFramework::_handleMessage( const string& messageType, const string& messageBody ) {
   arInputSource* driver = _driverFactory.findInputSource( messageType );
@@ -80,11 +75,9 @@ bool arStandardDeviceServerFramework::_handleMessage( const string& messageType,
   return false;
 }
 
-
 void arStandardDeviceServerFramework::_simpleConfig( arInputNodeConfig& inputConfig ) {
   inputConfig.addInputSource( _deviceName );
 }
-
 
 bool arStandardDeviceServerFramework::_normalConfig( arInputNodeConfig& inputConfig ) {
   const string& config = _szgClient.getGlobalAttribute( _deviceName );
@@ -100,8 +93,6 @@ bool arStandardDeviceServerFramework::_normalConfig( arInputNodeConfig& inputCon
   }
   return true;
 }
-
-
 
 int main(int argc, char** argv) {
   arStandardDeviceServerFramework fw;

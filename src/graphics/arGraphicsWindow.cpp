@@ -20,7 +20,7 @@ void arDefaultWindowInitCallback::operator()( arGraphicsWindow& ) {
 }
 
 void arDefaultRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
-  glClearColor( 0,0,0,1 );
+  glClearColor( 0, 0, 0, 1 );
 }
 
 arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
@@ -73,7 +73,7 @@ arGraphicsWindow::~arGraphicsWindow() {
   }
 }
 
-bool arGraphicsWindow::configure( arSZGClient& client ){
+bool arGraphicsWindow::configure( arSZGClient& client ) {
   const string screenName(client.getMode("graphics"));
   float colorFilterParams[7];
   _useColorFilter = client.getAttributeFloats( screenName, "color_filter", colorFilterParams, 7 );
@@ -185,76 +185,76 @@ bool arGraphicsWindow::setViewMode( const std::string& viewModeString ) {
 bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
   // Use a "default camera". The only thing that might change
   // between views is the eye sign.
-  if (viewModeString == "normal" || viewModeString == "NULL"){
+  if (viewModeString == "normal" || viewModeString == "NULL") {
     _clearViewportListNoLock();
     if (!_useOGLStereo) {
       _addViewportNoLock(
-        arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, 0.,
+        arViewport( 0, 0, 1, 1, _defaultScreen, _defaultCamera, 0.,
                     GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                     GL_BACK_LEFT, true )
         );
     } else {
       _addViewportNoLock(
-        arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, -1.,
+        arViewport( 0, 0, 1, 1, _defaultScreen, _defaultCamera, -1.,
                     GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                     GL_BACK_LEFT, true )
         );
       _addViewportNoLock(
-        arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, 1.,
+        arViewport( 0, 0, 1, 1, _defaultScreen, _defaultCamera, 1.,
                     GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                     GL_BACK_RIGHT, true )
         );
     }
   }
-  else if (viewModeString == "anaglyph"){
+  else if (viewModeString == "anaglyph") {
     // Only uses GL_BACK_LEFT buffer.
     _clearViewportListNoLock();
     _addViewportNoLock(
-      arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, -1.,
+      arViewport( 0, 0, 1, 1, _defaultScreen, _defaultCamera, -1.,
                   GL_TRUE, GL_FALSE, GL_FALSE, GL_TRUE,
                   GL_BACK_LEFT, false )
       );
     _addViewportNoLock(
-      arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, 1.,
+      arViewport( 0, 0, 1, 1, _defaultScreen, _defaultCamera, 1.,
                   GL_FALSE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
   }
-  else if (viewModeString == "walleyed"){
+  else if (viewModeString == "walleyed") {
     _clearViewportListNoLock();
     _addViewportNoLock(
-      arViewport( 0,0,.5,1, _defaultScreen, _defaultCamera, -1.,
+      arViewport( 0, 0, .5, 1, _defaultScreen, _defaultCamera, -1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
     _addViewportNoLock(
-      arViewport( .5,0,.5,1, _defaultScreen, _defaultCamera, 1.,
+      arViewport( .5, 0, .5, 1, _defaultScreen, _defaultCamera, 1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
   }
-  else if (viewModeString == "crosseyed"){
+  else if (viewModeString == "crosseyed") {
     _clearViewportListNoLock();
     _addViewportNoLock(
-      arViewport( 0,0,.5,1, _defaultScreen, _defaultCamera, 1.,
+      arViewport( 0, 0, .5, 1, _defaultScreen, _defaultCamera, 1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
     _addViewportNoLock(
-      arViewport( .5,0,.5,1, _defaultScreen, _defaultCamera, -1.,
+      arViewport( .5, 0, .5, 1, _defaultScreen, _defaultCamera, -1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
   }
-  else if (viewModeString == "overunder"){
+  else if (viewModeString == "overunder") {
     _clearViewportListNoLock();
     _addViewportNoLock(
-      arViewport( 0,0,1,.5, _defaultScreen, _defaultCamera, -1.,
+      arViewport( 0, 0, 1, .5, _defaultScreen, _defaultCamera, -1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
     _addViewportNoLock(
-      arViewport( 0,.5,1,.5, _defaultScreen, _defaultCamera, 1.,
+      arViewport( 0, .5, 1, .5, _defaultScreen, _defaultCamera, 1.,
                   GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE,
                   GL_BACK_LEFT, true )
       );
@@ -267,27 +267,27 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
   return true;
 }
 
-void arGraphicsWindow::addViewport(const arViewport& v){
+void arGraphicsWindow::addViewport(const arViewport& v) {
   lockViewports();
   _addViewportNoLock(v);
   unlockViewports();
 }
 
-void arGraphicsWindow::_addViewportNoLock(const arViewport& v){
+void arGraphicsWindow::_addViewportNoLock(const arViewport& v) {
   _viewportVector.push_back(v);
 }
 
-void arGraphicsWindow::clearViewportList(){
+void arGraphicsWindow::clearViewportList() {
   lockViewports();
   _clearViewportListNoLock();
   unlockViewports();
 }
 
-void arGraphicsWindow::_clearViewportListNoLock(){
+void arGraphicsWindow::_clearViewportListNoLock() {
   _viewportVector.clear();
 }
 
-std::vector<arViewport>* arGraphicsWindow::getViewports(){
+std::vector<arViewport>* arGraphicsWindow::getViewports() {
   return &_viewportVector;
 }
 
@@ -371,7 +371,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
   glGetIntegerv(GL_VIEWPORT, (GLint*)viewportExtent);
 
   std::vector<arViewport>::iterator i;
-  for (i=_viewportVector.begin(); i != _viewportVector.end(); ++i){
+  for (i=_viewportVector.begin(); i != _viewportVector.end(); ++i) {
     if (i->getDrawBuffer() != oglDrawBuffer)
       continue;
     i->activate();
@@ -448,8 +448,8 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
       return false;
     }
 
-    ar_log_error() << "arGraphicsWindow: " << screenName
-         << "/viewport_dim (master viewport) defaulting to (0,0,1,1) aka full window.\n";
+    ar_log_error() << "arGraphicsWindow: master viewport " << screenName
+         << "/viewport_dim defaulting to full window (0,0,1,1).\n";
     dim[0] = dim[1] = 0;
     dim[2] = dim[3] = 1;
   }
@@ -482,10 +482,10 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
       return false;
   }
     for (i=0; i<4; ++i) {
-      if (colorMask[i] == "true"){
+      if (colorMask[i] == "true") {
         mask[i] = GL_TRUE;
       }
-      else if (colorMask[i] == "false"){
+      else if (colorMask[i] == "false") {
         mask[i] = GL_FALSE;
       }
       else {

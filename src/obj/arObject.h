@@ -40,7 +40,7 @@ class SZG_CALL arObject {
   // name, as specified by read/attach function
   string name() { return _name; }
   string setName(const string& newName) { return (_name = newName); }
-  
+
   // Deprecated.
   // Annoyingly, this must be repeated in each subclass (because of the
   // *other* attachMesh virtual method).
@@ -69,7 +69,7 @@ class SZG_CALL arObject {
   virtual void normalizeModelSize() = 0;
 
   // Return arDatabaseNode ID where object's vertices exist, or -1 if undefined
-  int vertexNodeID() { return _vertexNodeID; } 
+  int vertexNodeID() { return _vertexNodeID; }
 
  protected:
   string _name;

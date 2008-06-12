@@ -10,32 +10,32 @@
 // vector not-inlined
 //***********************
 
-ostream& operator<<(ostream& os, const arVector2& x){
+ostream& operator<<(ostream& os, const arVector2& x) {
   os <<"( "<<x.v[0]<<", "<< x.v[1]<<" )";
   return os;
 }
 
-ostream& operator<<(ostream& os, const arVector3& x){
+ostream& operator<<(ostream& os, const arVector3& x) {
   os <<"( "<<x.v[0]<<", "<< x.v[1]<<", "<<x.v[2]<<" )";
   return os;
 }
 
-ostream& operator<<(ostream& os, const arVector4& x){
+ostream& operator<<(ostream& os, const arVector4& x) {
   os <<"( "<<x.v[0]<<", "<< x.v[1]<<", "<<x.v[2]<<", "<<x.v[3]<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arVector2& x){
+arLogStream& operator<<(arLogStream& os, const arVector2& x) {
   os <<"( "<<x.v[0]<<" "<< x.v[1]<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arVector3& x){
+arLogStream& operator<<(arLogStream& os, const arVector3& x) {
   os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arVector4& x){
+arLogStream& operator<<(arLogStream& os, const arVector4& x) {
   os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" "<<x.v[3]<<" )";
   return os;
 }
@@ -57,20 +57,20 @@ arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
 // matrix not-inlined
 //***********************
 
-arMatrix4::arMatrix4(){
+arMatrix4::arMatrix4() {
   // Default to ar_identityMatrix().
   memset(v, 0, sizeof(v));
   v[0] = v[5] = v[10] = v[15] = 1.;
 }
 
-arMatrix4::arMatrix4(const float* const matrixRef){
+arMatrix4::arMatrix4(const float* const matrixRef) {
   memcpy(v, matrixRef, 16 * sizeof(float));
 }
 
 arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
 		    float v1, float v5, float v9, float v13,
 		    float v2, float v6, float v10, float v14,
-		    float v3, float v7, float v11, float v15){
+		    float v3, float v7, float v11, float v15) {
   v[0] = v0; v[1] = v1; v[2] = v2; v[3] = v3;
   v[4] = v4; v[5] = v5; v[6] = v6; v[7] = v7;
   v[8] = v8; v[9] = v9; v[10] = v10; v[11] = v11;
@@ -79,7 +79,7 @@ arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
 
 // matrix inverse
 arMatrix4 arMatrix4::inverse() const {
-  int i=0,j=0;
+  int i=0, j=0;
   float buffer[4][8];
 
   // Prepare the Gaussian elimination.
@@ -91,8 +91,8 @@ arMatrix4 arMatrix4::inverse() const {
   }
 
   // Traverse the columns in order.
-  for (i=0; i<4; i++){
-    if (fabs(buffer[i][i])==0){
+  for (i=0; i<4; i++) {
+    if (fabs(buffer[i][i])==0) {
       // swap rows
       int which = i+1;
       while (which<4) {
@@ -100,12 +100,12 @@ arMatrix4 arMatrix4::inverse() const {
 	  break;
 	++which;
       }
-      if (which==4){
+      if (which==4) {
         // singular
         return arMatrix4(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
       }
 
-      for (j=0;j<8;j++){
+      for (j=0;j<8;j++) {
         const float temp = buffer[i][j];
         buffer[i][j] = buffer[which][j];
         buffer[which][j] = temp;
@@ -113,14 +113,14 @@ arMatrix4 arMatrix4::inverse() const {
     }
     // make buffer[i][i] == 1
     const float temp = buffer[i][i];
-    for (j=0; j<8; j++){
+    for (j=0; j<8; j++) {
       buffer[i][j] /= temp;
     }
     // zero rest of column
-    for (int k=0; k<4; k++){
-      if (k!=i){
+    for (int k=0; k<4; k++) {
+      if (k!=i) {
         const float scale = buffer[k][i];
-        for (j=0; j<8; j++){
+        for (j=0; j<8; j++) {
           buffer[k][j] -= scale*buffer[i][j];
 	}
       }
@@ -142,10 +142,10 @@ arMatrix4 arMatrix4::transpose() const {
 
 // matrix multiply
 // todo: define operator*= as well!
-arMatrix4 operator*(const arMatrix4& A, const arMatrix4& B){
+arMatrix4 operator*(const arMatrix4& A, const arMatrix4& B) {
   arMatrix4 C;
   for (int i=0; i<4; i++)
-    for (int j=0; j<4; j++){
+    for (int j=0; j<4; j++) {
       C.v[4*j+i] = A.v[i]*B.v[4*j] + A.v[i+4]*B.v[4*j+1] +
                    A.v[i+8]*B.v[4*j+2] + A.v[i+12]*B.v[4*j+3];
       }
@@ -160,48 +160,48 @@ arMatrix4::operator arQuaternion() const {
   const float trace = v[0]+v[5]+v[10]+1.;
   if (trace > 1e-8) {
     const float scale = 0.5 / sqrt(trace);
-    return arQuaternion( 0.25/scale, 
-                         (v[6]-v[9])*scale, 
-                         (v[8]-v[2])*scale, 
+    return arQuaternion( 0.25/scale,
+                         (v[6]-v[9])*scale,
+                         (v[8]-v[2])*scale,
                          (v[1]-v[4])*scale );
   }
 
   if ((v[0]>v[5])&&(v[0]>v[10]))  {	// Column 0:
-    if (1.+v[0]-v[5]-v[10] <= 0){
+    if (1.+v[0]-v[5]-v[10] <= 0) {
       // Error.
-      return arQuaternion(0,0,0,1);
+      return arQuaternion(0, 0, 0, 1);
     }
     const float scale  = 0.5/sqrt( 1.+v[0]-v[5]-v[10] ) ;
-    return arQuaternion( (v[6]-v[9])*scale, 
-                          0.25/scale, 
-                          (v[1]+v[4])*scale, 
+    return arQuaternion( (v[6]-v[9])*scale,
+                          0.25/scale,
+                          (v[1]+v[4])*scale,
                           (v[8]+v[2])*scale );
   }
 
   if ( v[5] > v[10] ) {			// Column 1:
-    if (1.+v[5]-v[0]-v[10] <= 0){
+    if (1.+v[5]-v[0]-v[10] <= 0) {
       // Error
-      return arQuaternion(0,0,0,1);
+      return arQuaternion(0, 0, 0, 1);
     }
     const float scale = 0.5/sqrt( 1.+v[5]-v[0]-v[10] );
-    return arQuaternion( (v[8]-v[2] )*scale, 
-                         (v[1]+v[4] )*scale, 
-                         0.25/scale, 
+    return arQuaternion( (v[8]-v[2] )*scale,
+                         (v[1]+v[4] )*scale,
+                         0.25/scale,
                          (v[6]+v[9] )*scale );
-  } 				      
+  }
   // Column 2
-  if (1.+v[10]-v[0]-v[5] <= 0){
+  if (1.+v[10]-v[0]-v[5] <= 0) {
     // Error
-    return arQuaternion(0,0,0,1);
+    return arQuaternion(0, 0, 0, 1);
   }
   const float scale = 0.5/sqrt( 1.+v[10]-v[0]-v[5] );
-  return arQuaternion( (v[1]-v[4])*scale, 
-                       (v[8]+v[2])*scale, 
-                       (v[6]+v[9])*scale, 
+  return arQuaternion( (v[1]-v[4])*scale,
+                       (v[8]+v[2])*scale,
+                       (v[6]+v[9])*scale,
                        0.25/scale );
 }
 
-istream& operator>>(istream& is, arMatrix4& x){
+istream& operator>>(istream& is, arMatrix4& x) {
   is >>x.v[0]     >>x.v[4]     >>x.v[8 ]    >>x.v[12]
      >>x.v[1]     >>x.v[5]     >>x.v[9 ]    >>x.v[13]
      >>x.v[2]     >>x.v[6]     >>x.v[10]    >>x.v[14]
@@ -209,7 +209,7 @@ istream& operator>>(istream& is, arMatrix4& x){
   return is;
 }
 
-ostream& operator<<(ostream& os, const arMatrix4& x){
+ostream& operator<<(ostream& os, const arMatrix4& x) {
   os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8 ]<<" "<<x.v[12]<<"\n"
      <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9 ]<<" "<<x.v[13]<<"\n"
      <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
@@ -217,7 +217,7 @@ ostream& operator<<(ostream& os, const arMatrix4& x){
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arMatrix4& x){
+arLogStream& operator<<(arLogStream& os, const arMatrix4& x) {
   os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8 ]<<" "<<x.v[12]<<"\n"
      <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9 ]<<" "<<x.v[13]<<"\n"
      <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
@@ -231,13 +231,13 @@ arLogStream& operator<<(arLogStream& os, const arMatrix4& x){
 
 arQuaternion::arQuaternion() :
   real(1),
-  pure(arVector3(0,0,0))
+  pure(arVector3(0, 0, 0))
 {
 }
 
 arQuaternion::arQuaternion(float x, float a, float b, float c) :
   real(x),
-  pure(arVector3(a,b,c))
+  pure(arVector3(a, b, c))
 {
 }
 
@@ -264,7 +264,7 @@ arQuaternion arQuaternion::normalize() const {
 arQuaternion arQuaternion::inverse() const {
   const float m = magnitude2();
   return (m < 1e-6) ?
-    arQuaternion(0,0,0,0) :
+    arQuaternion(0, 0, 0, 0) :
     conjugate() / m;
 }
 
@@ -286,8 +286,7 @@ arQuaternion::operator arMatrix4() const {
     0, 0, 0, 1);
 }
 
-arEulerAngles::arEulerAngles( const arAxisOrder& ord, 
-    const arVector3& angs ) :
+arEulerAngles::arEulerAngles( const arAxisOrder& ord, const arVector3& angs ) :
     _angles(angs) {
   setOrder( ord );
 }
@@ -332,10 +331,10 @@ arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   angleOrder( i, j, k );
 
   arMatrix4 M(mat.inverse());
-#define AR_MATRIX4_INDEX(i,j) (4*(i) + (j))
+#define AR_MATRIX4_INDEX(i, j) (4*(i) + (j))
 
   // Extract the first angle, x.
-  const float x = atan2( M[AR_MATRIX4_INDEX(j,k)], M[AR_MATRIX4_INDEX(k,k)] );
+  const float x = atan2( M[AR_MATRIX4_INDEX(j, k)], M[AR_MATRIX4_INDEX(k, k)] );
 
   // Remove x from M, so the remaining rotation N is only around two axes,
   // preventing gimbal lock.
@@ -344,13 +343,13 @@ arVector3 arEulerAngles::extract( const arMatrix4& mat ) {
   arMatrix4 N(M * ar_rotationMatrix( r, x ));
 
   // Extract from N the other two angles, y and z.
-  const float cy = sqrt(  N[AR_MATRIX4_INDEX(i,i)] * N[AR_MATRIX4_INDEX(i,i)] +
-                          N[AR_MATRIX4_INDEX(i,j)] * N[AR_MATRIX4_INDEX(i,j)] );
-  const float y = atan2( -N[AR_MATRIX4_INDEX(i,k)], cy );
-  const float z = atan2( -N[AR_MATRIX4_INDEX(j,i)],  N[AR_MATRIX4_INDEX(j,j)] );
+  const float cy = sqrt(  N[AR_MATRIX4_INDEX(i, i)] * N[AR_MATRIX4_INDEX(i, i)] +
+                          N[AR_MATRIX4_INDEX(i, j)] * N[AR_MATRIX4_INDEX(i, j)] );
+  const float y = atan2( -N[AR_MATRIX4_INDEX(i, k)], cy );
+  const float z = atan2( -N[AR_MATRIX4_INDEX(j, i)],  N[AR_MATRIX4_INDEX(j, j)] );
 
 #undef AR_MATRIX4_INDEX
-  _angles = arVector3(x,y,z);
+  _angles = arVector3(x, y, z);
   if (_parityEven)
     _angles *= -1;
   return _angles;
@@ -366,12 +365,12 @@ arMatrix4 arEulerAngles::toMatrix() const {
 }
 
 
-ostream& operator<<(ostream& os, const arQuaternion& x){
+ostream& operator<<(ostream& os, const arQuaternion& x) {
   os<<"("<<x.real<<" "<<x.pure.v[0]<<" "<<x.pure.v[1]<<" "<<x.pure.v[2]<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arQuaternion& x){
+arLogStream& operator<<(arLogStream& os, const arQuaternion& x) {
   os<<"("<<x.real<<" "<<x.pure.v[0]<<" "<<x.pure.v[1]<<" "<<x.pure.v[2]<<" )";
   return os;
 }
@@ -385,11 +384,11 @@ bool ar_isPowerOfTwo( int i ) {
 }
 
 // Deprecated: use arMatrix4(), since a constructor needs to be called anyways.
-arMatrix4 ar_identityMatrix(){
+arMatrix4 ar_identityMatrix() {
   return arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 }
 
-arMatrix4 ar_translationMatrix(float x, float y, float z){
+arMatrix4 ar_translationMatrix(float x, float y, float z) {
   arMatrix4 lhs;
   lhs.v[12] = x;
   lhs.v[13] = y;
@@ -397,7 +396,7 @@ arMatrix4 ar_translationMatrix(float x, float y, float z){
   return lhs;
 }
 
-arMatrix4 ar_translationMatrix(const arVector3& v){
+arMatrix4 ar_translationMatrix(const arVector3& v) {
   arMatrix4 lhs;
   memcpy(&lhs.v[12], &v.v[0], 3 * sizeof(float));
   return lhs;
@@ -405,10 +404,10 @@ arMatrix4 ar_translationMatrix(const arVector3& v){
 
 // angles are all in radians
 
-arMatrix4 ar_rotationMatrix(char axis, float r){
+arMatrix4 ar_rotationMatrix(char axis, float r) {
   const float sr = sin(r);
   const float cr = cos(r);
-  switch (axis){
+  switch (axis) {
   case 'x':
     return arMatrix4(
       1,  0,   0, 0,
@@ -432,17 +431,17 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
   return arMatrix4();
 }
 
-arMatrix4 ar_rotationMatrix( arAxisName a, float r){
+arMatrix4 ar_rotationMatrix( arAxisName a, float r) {
   return ar_rotationMatrix(a - AR_X_AXIS + 'x', r);
 }
 
-arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
+arMatrix4 ar_rotationMatrix(const arVector3& a, float radians) {
   radians *= .5;
-  const arVector3 axis = a.zero() ? arVector3(1,0,0) : a;
+  const arVector3 axis = a.zero() ? arVector3(1, 0, 0) : a;
   const arQuaternion q(cos(radians), (sin(radians)/axis.magnitude()) * axis);
-  const arVector3 rotX(q*arVector3(1,0,0));
-  const arVector3 rotY(q*arVector3(0,1,0));
-  const arVector3 rotZ(q*arVector3(0,0,1));
+  const arVector3 rotX(q*arVector3(1, 0, 0));
+  const arVector3 rotY(q*arVector3(0, 1, 0));
+  const arVector3 rotZ(q*arVector3(0, 0, 1));
   return arMatrix4(
 		   rotX.v[0], rotY.v[0], rotZ.v[0], 0,
 		   rotX.v[1], rotY.v[1], rotZ.v[1], 0,
@@ -454,11 +453,11 @@ arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orien
   return ar_translationMatrix( position ) * arMatrix4( orientation );
 }
 
-arMatrix4 ar_scaleMatrix(float s){
+arMatrix4 ar_scaleMatrix(float s) {
   return ar_scaleMatrix(s, s, s);
 }
 
-arMatrix4 ar_scaleMatrix(float x, float y, float z){
+arMatrix4 ar_scaleMatrix(float x, float y, float z) {
   arMatrix4 lhs;
   lhs[0] = x;
   lhs[5] = y;
@@ -466,30 +465,30 @@ arMatrix4 ar_scaleMatrix(float x, float y, float z){
   return lhs;
 }
 
-arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors){
+arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors) {
   return ar_scaleMatrix(
     scaleFactors.v[0],
     scaleFactors.v[1],
     scaleFactors.v[2]);
 }
 
-arMatrix4 ar_extractTranslationMatrix(const arMatrix4& rhs){
+arMatrix4 ar_extractTranslationMatrix(const arMatrix4& rhs) {
   arMatrix4 lhs;
   memcpy(&lhs.v[12], &rhs.v[12], 3 * sizeof(float));
   return lhs;
 }
 
-arVector3 ar_extractTranslation(const arMatrix4& rhs){
+arVector3 ar_extractTranslation(const arMatrix4& rhs) {
   return arVector3(rhs.v + 12);
 }
 
-arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs){
+arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs) {
   arMatrix4 lhs;
-  for (int i=0; i<3; ++i){
+  for (int i=0; i<3; ++i) {
     // i'th column of rhs's top-left 3x3 submatrix.
     const arVector3 column(&rhs.v[4*i]);
     const float magnitude = column.magnitude();
-    if (magnitude > 0.){
+    if (magnitude > 0.) {
       // i'th column of lhs's top-left 3x3 submatrix.
       lhs.v[4*i  ] = rhs.v[4*i  ] / magnitude;
       lhs.v[4*i+1] = rhs.v[4*i+1] / magnitude;
@@ -502,9 +501,9 @@ arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs){
   return lhs;
 }
 
-arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs){
+arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs) {
   arMatrix4 lhs;
-  for (int i=0; i<3; ++i){
+  for (int i=0; i<3; ++i) {
     lhs.v[5*i] = arVector3(&rhs.v[4*i]).magnitude();
   }
   return lhs;
@@ -512,11 +511,11 @@ arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs){
 
 // Nonnegative radians, from first to second (counterclockwise),
 // around the vector first crossproduct second.
-float ar_angleBetween(const arVector3& first, const arVector3& second){
+float ar_angleBetween(const arVector3& first, const arVector3& second) {
   if (first.magnitude() <=0. || second.magnitude() <= 0.)
     return 0.;
 
-  // Rounding error might produce a dot product outside [-1,1].
+  // Rounding error might produce a dot product outside [-1, 1].
   // Clamp it, so acos() doesn't return nan.
   double dotProd = (first/first.magnitude()).dot(second/second.magnitude());
   if (dotProd > 1.) {
@@ -528,18 +527,18 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
 }
 
 // Euler angles in radians
-arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
+arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o) {
   return arEulerAngles(o).extract(m);
 }
 
 arQuaternion ar_angleVectorToQuaternion(const arVector3& a, float radians) {
-  const arVector3 axis = a.zero() ? arVector3(1,0,0) : a;
+  const arVector3 axis = a.zero() ? arVector3(1, 0, 0) : a;
   radians *= .5;
   return arQuaternion(cos(radians), (sin(radians) / (++axis)) * axis);
 }
 
 // Reflect direction across a (normal) vector.
-arVector3 ar_reflect(const arVector3& direction, const arVector3& normal){
+arVector3 ar_reflect(const arVector3& direction, const arVector3& normal) {
   const float mag2 = normal.magnitude2();
   return (mag2 < 1e-6) ? direction : // lame error handling
     direction - (2 * direction % normal / mag2) * normal;
@@ -549,7 +548,7 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			      const arVector3& rayDirection,
 			      const arVector3& vertex1,
 			      const arVector3& vertex2,
-			      const arVector3& vertex3){
+			      const arVector3& vertex3) {
 
   // Algorithm from geometrysurfer.com by Dan Sunday
   const arVector3 u(vertex2 - vertex1);
@@ -561,14 +560,14 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   }
   const arVector3 rayDir( rayDirection.normalize() );
   const float b = n % rayDir;
-  if (fabs(b) < 0.000001){
+  if (fabs(b) < 0.000001) {
     // Ray hits triangle edge-on.  No intersection.
     return -1.;
   }
   const arVector3 w0( rayOrigin - vertex1 );
   const float a = n % w0;
   const float r = -a / b;
-  if (r < 0){
+  if (r < 0) {
     // Ray diverges from triangle.  No intersection.
     return -1.;
   }
@@ -583,12 +582,12 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
   const float wu = w % u;
   const float wv = w % v;
   const float D = uv * uv - uu * vv;
-  if (fabs(D) < 0.000001){
+  if (fabs(D) < 0.000001) {
     // error
     return -1.;
   }
   const float s = (uv * wv - vv * wu) / D;
-  if (s < 0. || s > 1.){
+  if (s < 0. || s > 1.) {
     return -1.;
   }
   const float t = (uv * wu - uu * wv) / D;
@@ -674,7 +673,7 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
 }
 
 #ifdef UNUSED
-arMatrix4 ar_planeToRotation(float posX, float posY){
+arMatrix4 ar_planeToRotation(float posX, float posY) {
   // Special case.
   if (posX == 0. && posY == 0.)
     return arMatrix4();
@@ -683,8 +682,8 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
   const float t = -8. / (posX*posX + posY*posY);
   const arVector3 spherePos(arVector3(-t*posX/2., -t*posY/2., t+1.).normalize());
 
-  // Rotate (0,0,-1) to spherePos.
-  return ar_rotateVectorToVector( arVector3(0,0,-1), spherePos );
+  // Rotate (0, 0, -1) to spherePos.
+  return ar_rotateVectorToVector( arVector3(0, 0, -1), spherePos );
 }
 #endif
 
@@ -693,7 +692,7 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
 
 // Calculate the offset vector from the overall screen center to
 // the center of an individual tile.  Tiles are in a rectangular,
-// planar grid covering the screen, tile (0,0) at lower left.
+// planar grid covering the screen, tile (0, 0) at lower left.
 arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      const arVector3& screenUp,
 			      float width, float height,
@@ -701,7 +700,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      float yTile, int nyTiles) {
   if (nxTiles == 0 || nyTiles == 0 || screenNormal.zero() || screenUp.zero()) {
     // Invalid arguments.
-    return arVector3(0,0,0);
+    return arVector3(0, 0, 0);
   }
 
   const arVector3 zHat(screenNormal.normalize());
@@ -792,7 +791,7 @@ LAbort:
 		   0., 0., -1., 0. );
 }
 
-// Like gluLookAt(), transform the frame (a,b,c) to (x,y,z), where
+// Like gluLookAt(), transform the frame (a, b, c) to (x, y, z), where
 //   c = unit vector pointing from lookatPosition to viewPosition
 //   b = unit vector along the portion of up orthogonal to c
 //   a = b cross c

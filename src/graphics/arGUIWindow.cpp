@@ -26,31 +26,31 @@ const double USEC = 1000000.0;
 // NULL(s)), but they *should* be robust to deal with such a situation.  This
 // allows us a bit more flexibility in how callbacks are registered and used.
 void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
-  if( _drawCallback0 ) {
+  if ( _drawCallback0 ) {
     _drawCallback0( windowInfo, graphicsWindow );
   }
-  else if( _drawCallback1 ) {
+  else if ( _drawCallback1 ) {
     _drawCallback1( windowInfo );
   }
 }
 
 void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
-  if( _drawCallback1 ) {
+  if ( _drawCallback1 ) {
     _drawCallback1( windowInfo );
   }
-  else if( _drawCallback0 ) {
+  else if ( _drawCallback0 ) {
     _drawCallback0( windowInfo, NULL );
   }
 }
 
 void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, arViewport& viewport ) {
-  if( _drawCallback2 ) {
+  if ( _drawCallback2 ) {
     _drawCallback2( graphicsWindow, viewport );
   }
-  else if( _drawCallback0 ) {
+  else if ( _drawCallback0 ) {
     _drawCallback0( NULL, NULL );
   }
-  else if( _drawCallback1 ) {
+  else if ( _drawCallback1 ) {
     _drawCallback1( NULL );
   }
 }
@@ -97,10 +97,10 @@ void arWMEvent::reset( const arGUIWindowInfo& event )
 
 void arWMEvent::wait( const bool blocking )
 {
-  if( blocking ) {
+  if ( blocking ) {
     _eventMutex.lock();
-    while( !_conditionFlag ) {
-      if( !_eventCond.wait( _eventMutex ) ) {
+    while ( !_conditionFlag ) {
+      if ( !_eventCond.wait( _eventMutex ) ) {
         // print error?
       }
     }
@@ -134,15 +134,15 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& h, const bool stereo
 
 #if defined( AR_USE_WIN_32 )
 
-  if( stereo ) {
+  if ( stereo ) {
     // www.stereographics.com/support/developers/pcsdk.htm says to call this
     // for active stereo, even though glut and freeglut don't.
-    if( !wglSwapLayerBuffers( h._hDC, WGL_SWAP_MAIN_PLANE ) ) {
+    if ( !wglSwapLayerBuffers( h._hDC, WGL_SWAP_MAIN_PLANE ) ) {
       ar_log_error() << "wglSwapLayerBuffers failed.\n";
     }
   }
   else {
-    if( !SwapBuffers( h._hDC ) ) {
+    if ( !SwapBuffers( h._hDC ) ) {
       // Window might be minimized.
       ar_log_debug() << "swapBuffer failed.\n";
     }
@@ -189,23 +189,23 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
 arGUIWindow::~arGUIWindow( void )
 {
 #if 0
-  if( _running ) {
-    if( _killWindow() < 0 ) {
+  if ( _running ) {
+    if ( _killWindow() < 0 ) {
       // print error?
     }
   }
 #endif
 
   // delete both event queues (what if the wm is still holding onto a handle?)
-  if( _GUIEventManager ) {
+  if ( _GUIEventManager ) {
     delete _GUIEventManager;
   }
 
-  if( _windowBuffer ) {
+  if ( _windowBuffer ) {
     delete _windowBuffer;
   }
 
-  if( _drawCallback ) {
+  if ( _drawCallback ) {
     delete _drawCallback;
   }
 }
@@ -213,12 +213,12 @@ arGUIWindow::~arGUIWindow( void )
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
   _creationMutex.lock();
-  if( _drawCallback ) {
+  if ( _drawCallback ) {
     // print warning that previous callback is being overwritten?
     delete _drawCallback;
   }
 
-  if( !drawCallback ) {
+  if ( !drawCallback ) {
     // print warning that there is now no draw callback?
   }
   else {
@@ -230,10 +230,10 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 void arGUIWindow::_drawHandler( void )
 {
   _creationMutex.lock();
-  if( _running && _drawCallback ) {
+  if ( _running && _drawCallback ) {
 
     // ensure (in non-threaded mode) that this window's opengl context is current
-    if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+    if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
       ar_log_error() << "_drawHandler failed to make context current.\n";
     }
 
@@ -293,7 +293,7 @@ void InitGL( int width, int height )
 
 int arGUIWindow::beginEventThread( void )
 {
-  if( !_windowEventThread.beginThread( arGUIWindow::mainLoop, this ) ) {
+  if ( !_windowEventThread.beginThread( arGUIWindow::mainLoop, this ) ) {
     ar_log_error() << "beginEventThread: beginThread failed.\n";
     return -1;
   }
@@ -304,8 +304,8 @@ int arGUIWindow::beginEventThread( void )
   // race conditions from window manager trying to modify a
   // half-baked window.  Time out after 5 seconds.
   _creationMutex.lock();
-    while( !_creationFlag ) {
-      if( !_creationCond.wait( _creationMutex, 5000 ) )
+    while ( !_creationFlag ) {
+      if ( !_creationCond.wait( _creationMutex, 5000 ) )
 	return -1;
     }
   _creationMutex.unlock();
@@ -321,13 +321,13 @@ void arGUIWindow::mainLoop( void* data )
 
 void arGUIWindow::_mainLoop( void )
 {
-  if( _performWindowCreation() < 0 ) {
+  if ( _performWindowCreation() < 0 ) {
     // cleanup?
     return;
   }
 
-  while( _running ) {
-    if( _consumeWindowEvents() < 0 ) {
+  while ( _running ) {
+    if ( _consumeWindowEvents() < 0 ) {
       // print error?
     }
   }
@@ -335,10 +335,10 @@ void arGUIWindow::_mainLoop( void )
 
 int arGUIWindow::_consumeWindowEvents( void )
 {
-  if( !_running )
+  if ( !_running )
     return -1;
 
-  if( _GUIEventManager->consumeEvents( this, false ) < 0 )
+  if ( _GUIEventManager->consumeEvents( this, false ) < 0 )
     return -1;
 
   // Spin only a "little bit" (time out).
@@ -353,7 +353,7 @@ int arGUIWindow::_consumeWindowEvents( void )
 
 arGUIInfo* arGUIWindow::getNextGUIEvent( void )
 {
-  if( !_running )
+  if ( !_running )
     return NULL;
 
   arGUIInfo* result = _GUIEventManager->getNextEvent();
@@ -383,7 +383,7 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
   _creationMutex.lock();
   _graphicsWindowMutex.lock();
-    if( _graphicsWindow ) {
+    if ( _graphicsWindow ) {
       delete _graphicsWindow; // do we really own this?
     }
     _graphicsWindow = graphicsWindow;
@@ -393,27 +393,27 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 {
-  if( !_running )
+  if ( !_running )
     return NULL;
 
   arWMEvent* event = NULL;
 
   // every event's user data should be set
-  if( !wmEvent.getUserData() )
+  if ( !wmEvent.getUserData() )
     wmEvent.setUserData( _userData );
 
   _usableEventsMutex.lock();
     // find an 'empty' event and recycle it
     for (EventIterator eitr = _usableEvents.begin();
          eitr != _usableEvents.end(); eitr++ ) {
-      if( (*eitr)->getDone() == 2 ) {
+      if ( (*eitr)->getDone() == 2 ) {
 	event = *eitr;
 	event->reset( wmEvent );
 	break;
       }
     }
     // no usable events found, need to create a new one
-    if( !event ) {
+    if ( !event ) {
       event = new arWMEvent( wmEvent );
       _usableEvents.push_back( event );
     }
@@ -429,14 +429,14 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
 int arGUIWindow::_processWMEvents( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
      // print warning / return?
   }
 
   _WMEventsMutex.lock();
 
   // process every wm event received in the last iteration
-  while( !_WMEvents.empty() ) {
+  while ( !_WMEvents.empty() ) {
 
     arWMEvent* wmEvent = _WMEvents.front();
 
@@ -446,7 +446,7 @@ int arGUIWindow::_processWMEvents( void )
 #if 0
         // Ignore _Hz. It complicates control flow in different modes and may be unimportant.
         // Revisit it when arGUI is successfully integrated into syzygy.
-        if( 0 /* _windowConfig._Hz > 0 */ ) {
+        if ( 0 /* _windowConfig._Hz > 0 */ ) {
           ar_timeval currentTime = ar_time();
 
           // assumes at least 1 fps
@@ -456,13 +456,13 @@ int arGUIWindow::_processWMEvents( void )
 	    _lastFrameTime.usec + ( uSec > int(USEC) ? int(USEC) : uSec ) );
 
           // carry the microseconds
-          if( nextFrameTime.usec > 1000000 ) {
+          if ( nextFrameTime.usec > 1000000 ) {
             nextFrameTime.usec -= 1000000;
             nextFrameTime.sec++;
           }
 
           // relinquish the cpu until it's time to draw the next frame
-          while( ar_difftime( nextFrameTime, currentTime ) > 0.0 ) {
+          while ( ar_difftime( nextFrameTime, currentTime ) > 0.0 ) {
             // without actually returning from this function all windows are kept
             // to the window with the lowest Hz as the wm will have to wait to
             // add events to the 'slow' window until it is done sleeping in
@@ -484,25 +484,25 @@ int arGUIWindow::_processWMEvents( void )
       break;
 
       case AR_WINDOW_SWAP:
-        if( swap() < 0 ) {
+        if ( swap() < 0 ) {
           ar_log_error() << "_processWMEvents: swap failed.\n";
         }
       break;
 
       case AR_WINDOW_MOVE:
-        if( move( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY() ) < 0 ) {
+        if ( move( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY() ) < 0 ) {
           ar_log_error() << "_processWMEvents: move failed.\n";
         }
       break;
 
       case AR_WINDOW_RESIZE:
-        if( resize( wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
+        if ( resize( wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
           ar_log_error() << "_processWMEvents: resize failed.\n";
         }
       break;
 
       case AR_WINDOW_VIEWPORT:
-        if( setViewport( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY(),
+        if ( setViewport( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY(),
                          wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
           ar_log_error() << "_processWMEvents: setViewport failed.\n";
         }
@@ -525,8 +525,8 @@ int arGUIWindow::_processWMEvents( void )
       break;
 
       case AR_WINDOW_CLOSE:
-        if( _running ) {
-          if( _killWindow() < 0 ) {
+        if ( _running ) {
+          if ( _killWindow() < 0 ) {
             // print error?
           }
         }
@@ -549,17 +549,17 @@ int arGUIWindow::_processWMEvents( void )
 
 int arGUIWindow::_performWindowCreation( void )
 {
-  if( _setupWindowCreation() < 0 ) {
+  if ( _setupWindowCreation() < 0 ) {
     ar_log_error() << "arGUIWindow: _setupWindowCreation failed.\n";
     return -1;
   }
 
-  if( _windowCreation() < 0 ) {
+  if ( _windowCreation() < 0 ) {
     // Already printed warning.
     return -1;
   }
 
-  if( _tearDownWindowCreation() < 0 ) {
+  if ( _tearDownWindowCreation() < 0 ) {
     ar_log_error() << "arGUIWindow: _tearDownWindowCreation failed.\n";
     return -1;
   }
@@ -581,7 +581,7 @@ int arGUIWindow::_windowCreation( void )
 #if defined( AR_USE_WIN_32 )
 
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-  if( _windowConfig.getStereo() ) {
+  if ( _windowConfig.getStereo() ) {
     ar_log_debug() << "Creating a stereo arGUIWindow.\n";
     dwFlags |= PFD_STEREO;
   } else {
@@ -610,7 +610,7 @@ int arGUIWindow::_windowCreation( void )
   DWORD windowExtendedStyle = WS_EX_APPWINDOW;
   DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
 
-  if( _windowConfig.getDecorate() ) {
+  if ( _windowConfig.getDecorate() ) {
     windowStyle |= WS_OVERLAPPEDWINDOW;
   }
   else {
@@ -628,14 +628,14 @@ int arGUIWindow::_windowCreation( void )
   // adjust window to true requested size since Win32 treats the width and
   // height as the whole window (including decorations) but we want it to be
   // just the client area
-  if( !AdjustWindowRectEx( &windowRect, windowStyle, 0, windowExtendedStyle ) ) {
+  if ( !AdjustWindowRectEx( &windowRect, windowStyle, 0, windowExtendedStyle ) ) {
     ar_log_error() << "_windowCreation: AdjustWindowRectEx failed.\n";
   }
 
   // create the OpenGL window
   // NOTE: the last argument needs to be a pointer to this object so that the
   // static event processing function in GUIEventManager can access the window
-  if( !( _windowHandle._hWnd = CreateWindowEx( windowExtendedStyle,
+  if ( !( _windowHandle._hWnd = CreateWindowEx( windowExtendedStyle,
                                  _className.c_str(),
                                  _windowConfig.getTitle().c_str(),
                                  windowStyle,
@@ -651,20 +651,20 @@ int arGUIWindow::_windowCreation( void )
     return -1;
   }
 
-  if( !( _windowHandle._hDC = GetDC( _windowHandle._hWnd ) ) ) {
+  if ( !( _windowHandle._hDC = GetDC( _windowHandle._hWnd ) ) ) {
     ar_log_error() << "_windowCreation: GetDC failed.\n";
     _killWindow();
     return -1;
   }
 
   const GLuint PixelFormat = ChoosePixelFormat( _windowHandle._hDC, &pfd );
-  if(!PixelFormat) {
+  if (!PixelFormat) {
     ar_log_error() << "_windowCreation: ChoosePixelFormat failed.\n";
     _killWindow();
     return -1;
   }
 
-  if( !SetPixelFormat( _windowHandle._hDC, PixelFormat, &pfd ) ) {
+  if ( !SetPixelFormat( _windowHandle._hDC, PixelFormat, &pfd ) ) {
     ar_log_error() << "_windowCreation: SetPixelFormat failed.\n";
     _killWindow();
     return -1;
@@ -672,13 +672,13 @@ int arGUIWindow::_windowCreation( void )
 
   // should check if setting up stereo succeeded with DescribePixelFormat
 
-  if( !( _windowHandle._hRC = wglCreateContext( _windowHandle._hDC ) ) ) {
+  if ( !( _windowHandle._hRC = wglCreateContext( _windowHandle._hDC ) ) ) {
     ar_log_error() << "_windowCreation: wglCreateContext failed.\n";
     _killWindow();
     return -1;
   }
 
-  if( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
+  if ( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
     ar_log_error() << "_windowCreation: wglMakeCurrent failed.\n";
     _killWindow();
     return -1;
@@ -686,7 +686,7 @@ int arGUIWindow::_windowCreation( void )
 
   _running = true;
 
-  if( _windowConfig.getFullscreen() ) {
+  if ( _windowConfig.getFullscreen() ) {
     fullscreen();
   }
 
@@ -694,17 +694,17 @@ int arGUIWindow::_windowCreation( void )
 
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
-  if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
+  if ( !SetForegroundWindow( _windowHandle._hWnd ) ) {
     // Commonly happens on "caveinabox" multi-screen PCs.
     ar_log_remark() << "_windowCreation: SetForegroundWindow failed.\n";
   }
 
-  if( !SetFocus( _windowHandle._hWnd ) ) {
+  if ( !SetFocus( _windowHandle._hWnd ) ) {
     ar_log_error() << "_windowCreation: SetFocus failure.\n";
   }
 
   // Not redundant, since SetForegroundWindow might have failed.
-  if( !_windowConfig.getFullscreen() ) {
+  if ( !_windowConfig.getFullscreen() ) {
     raise( _windowConfig.getZOrder() );
   }
 
@@ -718,7 +718,7 @@ int arGUIWindow::_windowCreation( void )
                          GLX_DEPTH_SIZE,   16,
                          None };
 
-  if( _windowConfig.getStereo() ) {
+  if ( _windowConfig.getStereo() ) {
     attrList[ 10 ] = GLX_STEREO;
     attrList[ 11 ] = None;
   }
@@ -732,14 +732,14 @@ int arGUIWindow::_windowCreation( void )
   const char* disp = disp_str.empty() ? NULL : disp_str.c_str();
   _windowHandle._dpy = XOpenDisplay(disp);
 
-  if( !_windowHandle._dpy ) {
+  if ( !_windowHandle._dpy ) {
     ar_log_error() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
 
     // Sometimes $DISPLAY is :1.0 but getXDisplay still says :0.0.
     // So fall back to $DISPLAY, and then to :1.0 .
     disp = ar_getenv("DISPLAY").c_str();
     _windowHandle._dpy = XOpenDisplay(disp);
-    if( !_windowHandle._dpy ) {
+    if ( !_windowHandle._dpy ) {
       const char* dispFallback = ":1.0";
       // Don't try dispFallback twice.
       if (!strcmp(disp, dispFallback) ||
@@ -752,12 +752,12 @@ int arGUIWindow::_windowCreation( void )
 
   _windowHandle._screen = DefaultScreen( _windowHandle._dpy );
 
-  if( !glXQueryExtension( _windowHandle._dpy, NULL, NULL ) ) {
+  if ( !glXQueryExtension( _windowHandle._dpy, NULL, NULL ) ) {
     ar_log_error() << "_windowCreation: OpenGL GLX extensions not supported.\n";
     return -1;
   }
 
-  if( !( _windowHandle._vi = glXChooseVisual( _windowHandle._dpy, _windowHandle._screen, attrList ) ) ) {
+  if ( !( _windowHandle._vi = glXChooseVisual( _windowHandle._dpy, _windowHandle._screen, attrList ) ) ) {
     ar_log_error() << "_windowCreation failed to create double-buffered window.\n";
     // _killWindow();
     return -1;
@@ -765,7 +765,7 @@ int arGUIWindow::_windowCreation( void )
 
   _windowHandle._root = RootWindow( _windowHandle._dpy, _windowHandle._vi->screen );
 
-  if( !( _windowHandle._ctx = glXCreateContext( _windowHandle._dpy, _windowHandle._vi, NULL, GL_TRUE ) ) ) {
+  if ( !( _windowHandle._ctx = glXCreateContext( _windowHandle._dpy, _windowHandle._vi, NULL, GL_TRUE ) ) ) {
     ar_log_error() << "_windowCreation failed to create rendering context.\n";
     // _killWindow();
     return -1;
@@ -792,7 +792,7 @@ int arGUIWindow::_windowCreation( void )
   int trueY = 0;
   int trueWidth = 0;
   int trueHeight = 0;
-  if( 0 /* _windowConfig._fullscreen */ ) {
+  if ( 0 /* _windowConfig._fullscreen */ ) {
 
 #ifdef HAVE_X11_EXTENSIONS
 
@@ -807,7 +807,7 @@ int arGUIWindow::_windowCreation( void )
     _windowHandle._dMode = *modes[ 0 ];
 
     for( int i = 0; i < modeNum; i++) {
-      if( ( modes[ i ]->hdisplay == _windowConfig.getWidth() ) &&
+      if ( ( modes[ i ]->hdisplay == _windowConfig.getWidth() ) &&
           ( modes[ i ]->vdisplay == _windowConfig.getHeight() ) ) {
         bestMode = i;
         // break here? i.e. should the last or first usable mode we find be the
@@ -865,7 +865,7 @@ int arGUIWindow::_windowCreation( void )
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                            trueX, trueY, &x, &y, &w );
 
-    if( x || y ) {
+    if ( x || y ) {
       XMoveWindow( _windowHandle._dpy, _windowHandle._win, -x, -y );
     }
 
@@ -922,20 +922,20 @@ int arGUIWindow::_windowCreation( void )
   XSetWMProtocols( _windowHandle._dpy, _windowHandle._win, &_windowHandle._wDelete, 1 );
 
   /*
-  if( _windowConfig._fullscreen ) {
+  if ( _windowConfig._fullscreen ) {
     XGrabKeyboard( _windowHandle._dpy, _windowHandle._win, True, GrabModeAsync, GrabModeAsync, CurrentTime );
     XGrabPointer( _windowHandle._dpy, _windowHandle._win, True, ButtonPressMask, GrabModeAsync, GrabModeAsync,
                   _windowHandle._win, None, CurrentTime );
   }
   */
 
-  if( _windowConfig.getFullscreen() ) {
+  if ( _windowConfig.getFullscreen() ) {
     raise( _windowConfig.getZOrder() );
   }
 
   decorate( _windowConfig.getDecorate() );
 
-  if( _windowConfig.getFullscreen() ) {
+  if ( _windowConfig.getFullscreen() ) {
     fullscreen();
   }
 
@@ -945,7 +945,7 @@ int arGUIWindow::_windowCreation( void )
 
   glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx );
 
-  if( !glXIsDirect( _windowHandle._dpy, _windowHandle._ctx ) ) {
+  if ( !glXIsDirect( _windowHandle._dpy, _windowHandle._ctx ) ) {
     ar_log_error() << "No hardware acceleration available.\n";
   }
 
@@ -980,7 +980,7 @@ int arGUIWindow::_setupWindowCreation( void )
   // Each window has its own _className, to avoid identically named windows.
   windowClass.lpszClassName = _className.c_str();
 
-  if( !RegisterClassEx( &windowClass ) ) {
+  if ( !RegisterClassEx( &windowClass ) ) {
     ar_log_error() << "_setupWindowCreation: RegisterClassEx Failed.\n";
     return -1;
   }
@@ -994,7 +994,7 @@ int arGUIWindow::_tearDownWindowCreation( void )
 {
   // now that the window is created, perform any necessary user-defined opengl
   // initialization.
-  if( _windowInitGLCallback ) {
+  if ( _windowInitGLCallback ) {
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
     windowInfo->setPos( getPosX(), getPosY() );
     windowInfo->setSize( getWidth(), getHeight() );
@@ -1007,11 +1007,11 @@ int arGUIWindow::_tearDownWindowCreation( void )
 
 int arGUIWindow::swap( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "swap failed to make context current.\n";
   }
 
@@ -1020,7 +1020,7 @@ int arGUIWindow::swap( void )
 
 int arGUIWindow::resize( int newWidth, int newHeight )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
@@ -1028,13 +1028,13 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "resize: could not make context current.\n";
   }
   */
 
   // avoid divide-by-0
-  if( newHeight == 0 ) {
+  if ( newHeight == 0 ) {
     newHeight = 1;
   }
 
@@ -1042,18 +1042,18 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
   RECT rect;
 
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "resize: GetWindowRect failed.\n";
   }
 
-  if( _decorate )
+  if ( _decorate )
   {
     newWidth  += GetSystemMetrics( SM_CXSIZEFRAME ) * 2;
     newHeight += GetSystemMetrics( SM_CYSIZEFRAME ) * 2 +
                  GetSystemMetrics( SM_CYCAPTION );
   }
 
-  if( !SetWindowPos( _windowHandle._hWnd, HWND_TOP,
+  if ( !SetWindowPos( _windowHandle._hWnd, HWND_TOP,
                      rect.left, rect.top, newWidth, newHeight,
                      SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER ) ) {
     // print error?
@@ -1072,13 +1072,13 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
   // changing from fullscreen to less-than-fullscreen -> position the window at
   // the original coordinates and redecorate if necessary
-  if( _fullscreen ) {
+  if ( _fullscreen ) {
     _fullscreen = false;
 
     // don't need to do this under win32 as the window didn't get undecorated
     // to go fullscreen
 #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-    if( _windowConfig.getDecorate() ) {
+    if ( _windowConfig.getDecorate() ) {
       decorate( true );
     }
 #endif
@@ -1107,13 +1107,13 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
 int arGUIWindow::fullscreen( void )
 {
-  if( !_running || _fullscreen ) {
+  if ( !_running || _fullscreen ) {
     return -1;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "fullscreen failed to make context current.\n";
   }
   */
@@ -1175,7 +1175,7 @@ int arGUIWindow::fullscreen( void )
   XTranslateCoordinates( _windowHandle._dpy,  _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
 
-  if( x || y ) {
+  if ( x || y ) {
     XMoveWindow( _windowHandle._dpy,  _windowHandle._win, -x, -y );
   }
   */
@@ -1211,11 +1211,11 @@ int arGUIWindow::fullscreen( void )
 
 int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "setviewport: failed to make context current.\n";
   }
 
@@ -1225,13 +1225,13 @@ int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
 
 void arGUIWindow::decorate( const bool decorate )
 {
-  if( !_running || _fullscreen ) {
+  if ( !_running || _fullscreen ) {
     return;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "decorateWindow: failed to make context current.\n";
   }
   */
@@ -1241,7 +1241,7 @@ void arGUIWindow::decorate( const bool decorate )
   DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
   DWORD windowExtendedStyle = WS_EX_APPWINDOW;
 
-  if( !decorate ) {
+  if ( !decorate ) {
     windowStyle |= WS_POPUP;
     windowExtendedStyle |= WS_EX_TOOLWINDOW;
   }
@@ -1262,9 +1262,9 @@ void arGUIWindow::decorate( const bool decorate )
 
   XLockDisplay( _windowHandle._dpy );
 
-  if( !decorate && _windowHandle._wHints == None ) {
+  if ( !decorate && _windowHandle._wHints == None ) {
     // try Motif hints
-    if( XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False ) != None ) {
+    if ( XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False ) != None ) {
       _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False );
 
       MotifWmHints hints = { (1L << 1), 0, 0, 0, 0 };
@@ -1274,7 +1274,7 @@ void arGUIWindow::decorate( const bool decorate )
     }
     else
     // try KDE hints
-    if( XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", False ) != None ) {
+    if ( XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", False ) != None ) {
       _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", False );
 
       long hints = 0;
@@ -1284,7 +1284,7 @@ void arGUIWindow::decorate( const bool decorate )
     }
     else
     // try GNOME hints
-    if( XInternAtom( _windowHandle._dpy, "_WIN_HINTS", False ) != None ) {
+    if ( XInternAtom( _windowHandle._dpy, "_WIN_HINTS", False ) != None ) {
       _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_WIN_HINTS", False );
 
       long hints = 0;
@@ -1299,7 +1299,7 @@ void arGUIWindow::decorate( const bool decorate )
 
     set = true;
   }
-  else if( decorate && _windowHandle._wHints != None ) {
+  else if ( decorate && _windowHandle._wHints != None ) {
     XDeleteProperty( _windowHandle._dpy, _windowHandle._win, _windowHandle._wHints );
     _windowHandle._wHints = None;
 
@@ -1313,7 +1313,7 @@ void arGUIWindow::decorate( const bool decorate )
   // so for now windows on OS X can't be redecorated
   // (which has implications for going in and out of fullscreen mode as well).
   // Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at all.
-  if( set ) {
+  if ( set ) {
 #if !defined( AR_USE_DARWIN )
     // While Xandros needs these calls to redecorate a window at
     // runtime, they also seem to break fullscreen
@@ -1337,13 +1337,13 @@ void arGUIWindow::decorate( const bool decorate )
 
 void arGUIWindow::raise( const arZOrder zorder )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "raise: failed to make context current.\n";
   }
   */
@@ -1376,13 +1376,13 @@ void arGUIWindow::raise( const arZOrder zorder )
 
 void arGUIWindow::lower( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "lowerWindow: failed to make context current.\n";
   }
   */
@@ -1407,13 +1407,13 @@ void arGUIWindow::lower( void )
 
 void arGUIWindow::minimize( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "minimizeWindow: failed to make context current.\n";
   }
   */
@@ -1436,13 +1436,13 @@ void arGUIWindow::minimize( void )
 
 void arGUIWindow::restore( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return;
   }
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "restoreWindow: failed to make context current.\n";
   }
   */
@@ -1465,7 +1465,7 @@ void arGUIWindow::restore( void )
 
 int arGUIWindow::move( int newX, int newY )
 {
-  if( !_running || _fullscreen ) {
+  if ( !_running || _fullscreen ) {
     return -1;
   }
 
@@ -1473,7 +1473,7 @@ int arGUIWindow::move( int newX, int newY )
 
   /*
   // is this necessary in this function?
-  if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
     ar_log_error() << "move: failed to make context current.\n";
   }
   */
@@ -1483,12 +1483,12 @@ int arGUIWindow::move( int newX, int newY )
   /*
   RECT rect;
 
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "move: GetWindowRect failed.\n";
     return -1;
   }
 
-  if( !MoveWindow( _windowHandle._hWnd, newX, newY,
+  if ( !MoveWindow( _windowHandle._hWnd, newX, newY,
                    rect.right - rect.left, rect.bottom - rect.top, false ) ) {
     // print error
   }
@@ -1511,7 +1511,7 @@ int arGUIWindow::move( int newX, int newY )
 
 arCursor arGUIWindow::setCursor( arCursor cursor )
 {
-  if( !_running ) {
+  if ( !_running ) {
     ar_log_remark() << "arGUIWindow ignoring setCursor while not running.\n";
     return _cursor;
   }
@@ -1606,7 +1606,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
     break;
   }
 
-  if( XCursor == None ) {
+  if ( XCursor == None ) {
     ar_log_error() << "failed to create requested X cursor.\n";
     return _cursor;
   }
@@ -1621,7 +1621,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
 void arGUIWindow::setTitle( const std::string& title )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return;
   }
 
@@ -1643,7 +1643,7 @@ void arGUIWindow::setTitle( const std::string& title )
 
 int arGUIWindow::getWidth( void ) const
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
@@ -1651,12 +1651,12 @@ int arGUIWindow::getWidth( void ) const
 
   RECT rect;
 
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "getWidth: GetWindowRect failed.\n";
     return -1;
   }
 
-  if( _decorate ) {
+  if ( _decorate ) {
     rect.left  += GetSystemMetrics( SM_CXSIZEFRAME );
     rect.right -= GetSystemMetrics( SM_CXSIZEFRAME );
   }
@@ -1677,7 +1677,7 @@ int arGUIWindow::getWidth( void ) const
 
 int arGUIWindow::getHeight( void ) const
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
@@ -1685,11 +1685,11 @@ int arGUIWindow::getHeight( void ) const
 
   RECT rect;
 
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "getHeight: GetWindowRect failed.\n";
     return -1;
   }
-  if( _decorate ) {
+  if ( _decorate ) {
     rect.top    += GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
     rect.bottom -= GetSystemMetrics( SM_CYSIZEFRAME );
   }
@@ -1708,19 +1708,19 @@ int arGUIWindow::getHeight( void ) const
 
 int arGUIWindow::getPosX( void ) const
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
 #if defined( AR_USE_WIN_32 )
 
   RECT rect;
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "getPosX: GetWindowRect failed.\n";
     return -1;
   }
 
-  if( 0 /*_windowConfig._decorate*/ ) {
+  if ( 0 /*_windowConfig._decorate*/ ) {
     rect.left += GetSystemMetrics( SM_CXSIZEFRAME );
   }
   return rect.left;
@@ -1735,7 +1735,7 @@ int arGUIWindow::getPosX( void ) const
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
 
-  if( _windowConfig.getDecorate() ) {
+  if ( _windowConfig.getDecorate() ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
     x -= bx;
@@ -1749,7 +1749,7 @@ int arGUIWindow::getPosX( void ) const
 
 int arGUIWindow::getPosY( void ) const
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
@@ -1757,12 +1757,12 @@ int arGUIWindow::getPosY( void ) const
 
   RECT rect;
 
-  if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
+  if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "getPosY: GetWindowRect failed.\n";
     return -1;
   }
 
-  if( 0 /*_windowConfig._decorate*/ ) {
+  if ( 0 /*_windowConfig._decorate*/ ) {
     rect.top += GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
   }
 
@@ -1778,7 +1778,7 @@ int arGUIWindow::getPosY( void ) const
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
 
-  if( _windowConfig.getDecorate() ) {
+  if ( _windowConfig.getDecorate() ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
     y -= by;
@@ -1792,7 +1792,7 @@ int arGUIWindow::getPosY( void ) const
 
 int arGUIWindow::_changeScreenResolution( void )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
@@ -1806,7 +1806,7 @@ int arGUIWindow::_changeScreenResolution( void )
   dmScreenSettings.dmBitsPerPel = _windowConfig.getBpp();
   dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-  if( ChangeDisplaySettings( &dmScreenSettings, CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL ) {
+  if ( ChangeDisplaySettings( &dmScreenSettings, CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL ) {
     ar_log_error() << "_changeScreenResolution: ChangeDisplaySettinges failed.\n";
     return -1;
   }
@@ -1829,9 +1829,9 @@ int arGUIWindow::_killWindow( void )
 #if defined( AR_USE_WIN_32 )
 
   // switch back to the desktop
-  if( _fullscreen ) {
+  if ( _fullscreen ) {
     /*
-    if( ChangeDisplaySettings( NULL, 0 ) != DISP_CHANGE_SUCCESSFUL ) {
+    if ( ChangeDisplaySettings( NULL, 0 ) != DISP_CHANGE_SUCCESSFUL ) {
       ar_log_error() << "_killWindow: ChangeDisplaySettings failed.\n";
       return -1;
     }
@@ -1840,37 +1840,37 @@ int arGUIWindow::_killWindow( void )
     ShowCursor( true );
   }
 
-  if( _windowHandle._hRC ){
-    if( !wglMakeCurrent( NULL, NULL ) ) {
+  if ( _windowHandle._hRC ) {
+    if ( !wglMakeCurrent( NULL, NULL ) ) {
       ar_log_error() << "_killWindow: release of DC and RC failed.\n";
     }
 
-    if( !wglDeleteContext( _windowHandle._hRC ) ) {
+    if ( !wglDeleteContext( _windowHandle._hRC ) ) {
       ar_log_error() << "_killWindow: delete RC failed.\n";
     }
 
     _windowHandle._hRC = NULL;
   }
 
-  if( _windowHandle._hDC && !ReleaseDC( _windowHandle._hWnd, _windowHandle._hDC ) ) {
+  if ( _windowHandle._hDC && !ReleaseDC( _windowHandle._hWnd, _windowHandle._hDC ) ) {
     ar_log_error() << "_killWindow: release DC failed.\n";
     _windowHandle._hDC = NULL;
   }
 
-  if( _windowHandle._hWnd && !DestroyWindow( _windowHandle._hWnd ) ) {
+  if ( _windowHandle._hWnd && !DestroyWindow( _windowHandle._hWnd ) ) {
     ar_log_error() << "_killWindow: could not release hWnd.\n";
     _windowHandle._hWnd = NULL;
   }
 
-  if( !UnregisterClass( _className.c_str(), _windowHandle._hInstance ) ) {
+  if ( !UnregisterClass( _className.c_str(), _windowHandle._hInstance ) ) {
     ar_log_error() << "_killWindow: failed to unregister class.\n";
     _windowHandle._hInstance = NULL;
   }
 
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
-  if( _windowHandle._ctx ) {
-    if( !glXMakeCurrent( _windowHandle._dpy, None, NULL ) ) {
+  if ( _windowHandle._ctx ) {
+    if ( !glXMakeCurrent( _windowHandle._dpy, None, NULL ) ) {
       ar_log_error() << "_killWindow failed to release drawing context.\n";
     }
 
@@ -1880,14 +1880,14 @@ int arGUIWindow::_killWindow( void )
   }
 
   // switch back to the desktop
-  if( _fullscreen ) {
+  if ( _fullscreen ) {
 #ifdef HAVE_X11_EXTENSIONS
       XF86VidModeSwitchToMode( _windowHandle._dpy, _windowHandle._screen, &_windowHandle._dMode );
       XF86VidModeSetViewPort( _windowHandle._dpy, _windowHandle._screen, 0, 0 );
 #endif
   }
 
-  if( XCloseDisplay( _windowHandle._dpy ) == BadGC ) {
+  if ( XCloseDisplay( _windowHandle._dpy ) == BadGC ) {
     ar_log_error() << "_killWindow failed to close display.\n";
   }
 
@@ -1906,24 +1906,24 @@ int arGUIWindow::_killWindow( void )
 
 int arGUIWindow::makeCurrent( bool release )
 {
-  if( !_running ) {
+  if ( !_running ) {
     return -1;
   }
 
 #if defined( AR_USE_WIN_32 )
 
-  if( release ) {
-    if( !wglMakeCurrent( NULL, NULL ) ) {
+  if ( release ) {
+    if ( !wglMakeCurrent( NULL, NULL ) ) {
       return -1;
     }
   }
-  else if( ( wglGetCurrentContext() == _windowHandle._hRC ) &&
+  else if ( ( wglGetCurrentContext() == _windowHandle._hRC ) &&
            ( wglGetCurrentDC() == _windowHandle._hDC ) ) {
     // already current (do this check so we aren't constantly switching
     // contexts and getting hit by the flushes that that incurs)
     return 0;
   }
-  if( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
+  if ( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
     return -1;
   }
 
@@ -1931,20 +1931,20 @@ int arGUIWindow::makeCurrent( bool release )
 
   XLockDisplay( _windowHandle._dpy );
 
-  if( release ) {
-    if( !glXMakeCurrent( _windowHandle._dpy, None, NULL ) ) {
+  if ( release ) {
+    if ( !glXMakeCurrent( _windowHandle._dpy, None, NULL ) ) {
       XUnlockDisplay( _windowHandle._dpy );
       return -1;
     }
   }
-  else if( ( glXGetCurrentContext() == _windowHandle._ctx ) &&
+  else if ( ( glXGetCurrentContext() == _windowHandle._ctx ) &&
            ( glXGetCurrentDisplay() == _windowHandle._dpy ) ) {
     // already current (do this check so we aren't constantly switching
     // contexts and getting hit by the flushes that that incurs)
     XUnlockDisplay( _windowHandle._dpy );
     return 0;
   }
-  if( !glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx ) ) {
+  if ( !glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx ) ) {
     XUnlockDisplay( _windowHandle._dpy );
     return -1;
   }

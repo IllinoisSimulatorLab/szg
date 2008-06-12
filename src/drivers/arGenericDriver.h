@@ -18,7 +18,6 @@ class SZG_CALL arGenericDriver: public arInputSource {
  public:
   arGenericDriver();
   virtual ~arGenericDriver();
-  
   void setSignature(unsigned numButtons, unsigned numAxes, unsigned numMatrices);
 };
 

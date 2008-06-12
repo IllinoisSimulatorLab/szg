@@ -11,7 +11,7 @@ arIOFilter::arIOFilter() :
   _inputState(NULL) {
 }
 
-bool arIOFilter::configure(arSZGClient*){
+bool arIOFilter::configure(arSZGClient*) {
   return true;
 }
 

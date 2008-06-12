@@ -6,13 +6,13 @@
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h"
 
-arViewerNode::arViewerNode(){
+arViewerNode::arViewerNode() {
   _name = "viewer_node";
   _typeCode = AR_G_VIEWER_NODE;
   _typeString = "viewer";
 }
 
-bool arViewerNode::receiveData(arStructuredData* inData){
+bool arViewerNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_VIEWER, inData->getID(), "arViewerNode"))
     return false;
 
@@ -28,8 +28,8 @@ bool arViewerNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-void arViewerNode::setHead(const arHead& head){
-  if (active()){
+void arViewerNode::setHead(const arHead& head) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(head, true);
     _nodeLock.unlock();
@@ -42,12 +42,12 @@ void arViewerNode::setHead(const arHead& head){
   }
 }
 
-arStructuredData* arViewerNode::dumpData(){
+arStructuredData* arViewerNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(_head, false);
 }
 
-arStructuredData* arViewerNode::_dumpData(const arHead& head, const bool owned){
+arStructuredData* arViewerNode::_dumpData(const arHead& head, const bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_VIEWER);
   _dumpGenericNode(r, _g->AR_VIEWER_ID);
   if (!r->dataIn(_g->AR_VIEWER_MATRIX, head._matrix.v, AR_FLOAT, 16) ||

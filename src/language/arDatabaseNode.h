@@ -52,7 +52,7 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* newNode(const string& type, const string& name = "",
                           bool refNode = false);
   arDatabaseNode* newNodeRef(const string& type, const string& name = "");
- 
+
   // Sometimes we want to work with node trees that are not controlled by
   // an arDatabase. This method will NOT work with an "owned" node.
   bool addChild(arDatabaseNode* child);
@@ -72,7 +72,7 @@ class SZG_CALL arDatabaseNode{
   virtual bool receiveData(arStructuredData*);
   virtual void initialize(arDatabase* d);
   // Called by arDatabase upon removing the node.
-  virtual void deactivate(){}
+  virtual void deactivate() {}
 
   void permuteChildren(list<arDatabaseNode*>& children);
   void permuteChildren(int number, int* children);
@@ -160,9 +160,9 @@ class SZG_CALL arDatabaseNode{
   void _dumpGenericNode(arStructuredData*, int);
   // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
-		 const map<int,int,less<int> >* nodeMap, const bool checkTop);
+		 const map<int, int, less<int> >* nodeMap, const bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
-                       bool& success, const map<int,int,less<int> >* nodeMap,  
+                       bool& success, const map<int, int, less<int> >* nodeMap,
                        const bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);
 };

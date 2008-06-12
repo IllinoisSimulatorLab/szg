@@ -10,14 +10,14 @@
 arLight::arLight() {
   // OpenGL's defaults.
   lightID = 0;
-  position = arVector4(0,0,1,0);
-  diffuse = arVector3(1,1,1);
-  ambient = arVector3(0,0,0);
-  specular = arVector3(1,1,1);
+  position = arVector4(0, 0, 1, 0);
+  diffuse = arVector3(1, 1, 1);
+  ambient = arVector3(0, 0, 0);
+  specular = arVector3(1, 1, 1);
   constantAttenuation = 1;
   linearAttenuation = 0;
   quadraticAttenuation = 0;
-  spotDirection = arVector3(0,0,-1);
+  spotDirection = arVector3(0, 0, -1);
   spotCutoff = 180;
   spotExponent = 0;
 }
@@ -51,20 +51,20 @@ void arLight::activateLight(arMatrix4 lightPositionTransform) {
   // styles transform differently.  (See arGraphicsAPI.cpp's dgLight.)
 
   arVector4 transformedPosition;
-  arVector3 dir(position[0],position[1],position[2]);
+  arVector3 dir(position[0], position[1], position[2]);
   const arVector3 transformedSpotDirection(
-    lightPositionTransform * (spotDirection - arVector3(0,0,0)));
-  
+    lightPositionTransform * (spotDirection - arVector3(0, 0, 0)));
+
   if (position[3] == 0) {
     // directional light
-    dir = lightPositionTransform*dir - lightPositionTransform*arVector3(0,0,0);
-    transformedPosition = arVector4(dir[0],dir[1],dir[2],0);
+    dir = lightPositionTransform*dir - lightPositionTransform*arVector3(0, 0, 0);
+    transformedPosition = arVector4(dir[0], dir[1], dir[2], 0);
   } else {
     // positional light
     // Mangle the OpenGL. The original code can specify a w-coordinate != 0 or 1,
     // which changes the final on-screen coordinate via a division. Not so here.
     dir = lightPositionTransform*dir;
-    transformedPosition = arVector4(dir[0],dir[1],dir[2],1);
+    transformedPosition = arVector4(dir[0], dir[1], dir[2], 1);
   }
   glLightfv(lightIdentifier, GL_POSITION, transformedPosition.v);
   arVector4 temp(diffuse[0], diffuse[1], diffuse[2], 1);

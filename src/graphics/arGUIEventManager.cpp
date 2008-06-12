@@ -75,7 +75,7 @@ bool arGUIEventManager::eventsPending( void )
 arGUIInfo* arGUIEventManager::getNextEvent( void )
 {
   _eventsMutex.lock();
-  if( _events.empty() ) {
+  if ( _events.empty() ) {
     _eventsMutex.unlock();
     return NULL;
   }
@@ -87,13 +87,13 @@ arGUIInfo* arGUIEventManager::getNextEvent( void )
   const arGUIEventType eventType = arGUIEventType( event.getDataInt( "eventType" ) );
 
   // Caller (normally arGUIWindowManager::_processEvents) deletes these.
-  if( eventType == AR_KEY_EVENT )
+  if ( eventType == AR_KEY_EVENT )
     return new arGUIKeyInfo( event );
 
-  if( eventType == AR_MOUSE_EVENT )
+  if ( eventType == AR_MOUSE_EVENT )
     return new arGUIMouseInfo( event );
 
-  if( eventType == AR_WINDOW_EVENT )
+  if ( eventType == AR_WINDOW_EVENT )
     return new arGUIWindowInfo( event );
 
   // Warn? does user ever actually expect this?
@@ -102,7 +102,7 @@ arGUIInfo* arGUIEventManager::getNextEvent( void )
 
 int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 {
-  if( !_active || !window ) {
+  if ( !_active || !window ) {
     return -1;
   }
 
@@ -111,12 +111,12 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 
 #if defined( AR_USE_WIN_32 )
 
-  if( blocking && !WaitMessage() ) {
+  if ( blocking && !WaitMessage() ) {
     ar_log_error() << "consumeEvents WaitMessage failed.\n";
   }
   MSG msg;
-  while( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )  {
-    if( GetMessage( &msg, NULL, 0, 0 ) == -1 ) {
+  while ( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )  {
+    if ( GetMessage( &msg, NULL, 0, 0 ) == -1 ) {
       ar_log_error() << "consumeEvents GetMessage failed.\n";
       return -1;
     }
@@ -131,24 +131,24 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   // to mitigate the problem
   XLockDisplay( window->getWindowHandle()._dpy );
   XEvent event;
-  if( blocking ) {
+  if ( blocking ) {
     XPeekEvent( window->getWindowHandle()._dpy, &event );
   }
 
-  while( XPending( window->getWindowHandle()._dpy ) ) {
+  while ( XPending( window->getWindowHandle()._dpy ) ) {
     memset( &event, 0, sizeof( XEvent ) );
     XNextEvent( window->getWindowHandle()._dpy, &event );
 
     switch( event.type ) {
       case ClientMessage:
-        if( (Atom) event.xclient.data.l[ 0 ] == window->getWindowHandle()._wDelete ) {
+        if ( (Atom) event.xclient.data.l[ 0 ] == window->getWindowHandle()._wDelete ) {
           int posX = _windowState.getPosX();
           int posY = _windowState.getPosY();
 
           int sizeX = _windowState.getSizeX();
           int sizeY = _windowState.getSizeY();
 
-          if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
+          if ( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error
           }
         }
@@ -165,11 +165,11 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 
         // ConfigureNotify's are passed on both window move's and resize's,
         // it's up to us to figure out which one it was. If x and y are not both
-		// 0 then it must be a move event (this is a quirk of how the XServer reports 
+		// 0 then it must be a move event (this is a quirk of how the XServer reports
 		// events). If window sizes change, then it must be a resize event.
-        if( ( posX != _windowState.getPosX() || posY != _windowState.getPosY() ) &&
+        if ( ( posX != _windowState.getPosX() || posY != _windowState.getPosY() ) &&
             ( posX != 0 || posY != 0 ) ) {
-          if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
+          if ( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error?
           }
         }
@@ -177,13 +177,13 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 #ifdef AR_USE_DARWIN
         // The Mac OS X xserver is different than the other Unixes with this event. It does not hurt to have
 		// additional resize events (one more for each window move event).
-        if (true){
+        if (true) {
 #else
-        if( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY() ) {
+        if ( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY() ) {
 #endif
           posX = _windowState.getPosX();
           posY = _windowState.getPosY();
-          if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
+          if ( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error?
           }
         }
@@ -240,14 +240,14 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         arGUIButton button = _mouseState.getButton();
         arGUIState state = AR_GENERIC_STATE;
 
-        if( button ) {
+        if ( button ) {
           state = AR_MOUSE_DRAG;
         }
         else {
           state = AR_MOUSE_MOVE;
         }
 
-        if( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
+        if ( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
           // print an error?
         }
       }
@@ -265,7 +265,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         arGUIButton button = AR_BUTTON_GARBAGE;
         arGUIState state = AR_GENERIC_STATE;
 
-        if( event.type == ButtonRelease ) {
+        if ( event.type == ButtonRelease ) {
           state = AR_MOUSE_UP;
         }
         else {
@@ -286,7 +286,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
           break;
         }
 
-        if( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
+        if ( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
           // print an error?
         }
       }
@@ -306,14 +306,14 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         // determining the "right" mask to use
         int ctrl = 0, alt = 0;
 
-        if( event.xkey.state & ControlMask ) {
+        if ( event.xkey.state & ControlMask ) {
           ctrl = 1;
         }
 
         // there's a weird issue on slackware 10 + XFree86 6.7 + KDE 3.2.3 with
         // the right alt key showing up as the correct keycode but getting
         // converted to the XK_ISO_Level3_Shift keysym, no idea why...
-        if( event.xkey.state & Mod1Mask ) {
+        if ( event.xkey.state & Mod1Mask ) {
           alt = 1;
         }
 
@@ -326,7 +326,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         // ctrl'ed ascii keys are in fact translated, but we want to tease out
         // ctrl as a standalone modifier, also make sure only "true" ASCII keys
         // are being converted
-        if( len > 0 && !ctrl && keySym > 31 && keySym < 127 ) {
+        if ( len > 0 && !ctrl && keySym > 31 && keySym < 127 ) {
           key = arGUIKey( asciiCode[ 0 ] );
         }
         else {
@@ -337,11 +337,11 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 
         KeyboardIterator kitr;
 
-        if( event.type == KeyRelease ) {
+        if ( event.type == KeyRelease ) {
           XQueryKeymap( window->getWindowHandle()._dpy, keys );
 
-           if( event.xkey.keycode < 256 ) {
-             if( keys[ event.xkey.keycode >> 3 ] & ( 1 << ( event.xkey.keycode % 8 ) ) ) {
+           if ( event.xkey.keycode < 256 ) {
+             if ( keys[ event.xkey.keycode >> 3 ] & ( 1 << ( event.xkey.keycode % 8 ) ) ) {
                // ignore the KeyRelease of the KeyPress/KeyRelease pair
                // NOTE: some key press (but not key release) events that have
                // both ctrl and alt set seem to get eaten by the OS if they are
@@ -356,7 +356,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
              }
            }
         }
-        else if( ( kitr = _keyboardState.find( key ) ) != _keyboardState.end() &&
+        else if ( ( kitr = _keyboardState.find( key ) ) != _keyboardState.end() &&
               (kitr->second).getState() != AR_KEY_UP ) {
           // ARGH, _only_ place we need to use recorded state, Windows has a
           // flag set in the message for determining repeatedness, can't find
@@ -367,7 +367,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
           state = AR_KEY_DOWN;
         }
 
-        if( addEvent( arGUIKeyInfo( AR_KEY_EVENT, state, window->getID(), 0, key, ctrl, alt ) ) < 0 ) {
+        if ( addEvent( arGUIKeyInfo( AR_KEY_EVENT, state, window->getID(), 0, key, ctrl, alt ) ) < 0 ) {
           // print an error?
         }
       }
@@ -390,7 +390,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 }
 
 int arGUIEventManager::addEvent( arStructuredData& event ) {
-  if( !_active ) {
+  if ( !_active ) {
     return -1;
   }
 
@@ -401,10 +401,10 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
   // Experimenting with removing it.
   //event.dataIn( "userData", &_userData, AR_INT, 1 );
 
-  if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_KEY_EVENT ) {
+  if ( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_KEY_EVENT ) {
     int key = event.getDataInt( "key" );
 
-    if( key < 0 ) {
+    if ( key < 0 ) {
       std::cerr << "addEvent: getDataInt error" << std::endl;
       return -1;
     }
@@ -418,17 +418,17 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
     // since they aren't bit masks there doesn't seem to be a cross-platform
     // way of doing this
     #if defined( AR_USE_WIN_32 )
-    if( key == AR_VK_SHIFT || key == AR_VK_CTRL || key == AR_VK_ALT ) {
+    if ( key == AR_VK_SHIFT || key == AR_VK_CTRL || key == AR_VK_ALT ) {
       return 0;
     }
     #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-    if( key == AR_VK_LSHIFT || key == AR_VK_RSHIFT || key == AR_VK_LCTRL ||
+    if ( key == AR_VK_LSHIFT || key == AR_VK_RSHIFT || key == AR_VK_LCTRL ||
         key == AR_VK_RCTRL || key == AR_VK_LALT || key == AR_VK_RALT ) {
       return 0;
     }
     #endif
   }
-  else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_MOUSE_EVENT ) {
+  else if ( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_MOUSE_EVENT ) {
     arGUIState state = arGUIState( event.getDataInt( "state" ) );
     arGUIButton button = arGUIButton( event.getDataInt( "button" ) );
 
@@ -436,10 +436,10 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
 
     // "add" on to the mouse state which button is now down, or "subtract" off
     // which button is now up so that the mouse callback can do boolean comparisons
-    if( state == AR_MOUSE_DOWN ) {
+    if ( state == AR_MOUSE_DOWN ) {
       totalButtons = button | _mouseState.getButton();
     }
-    else if( state == AR_MOUSE_UP ) {
+    else if ( state == AR_MOUSE_UP ) {
       totalButtons = ~button & _mouseState.getButton();
     }
 
@@ -447,7 +447,7 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
 
     _mouseState.setButton( totalButtons );
   }
-  else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_WINDOW_EVENT ) {
+  else if ( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_WINDOW_EVENT ) {
     if (event.getDataInt( "state" ) == AR_WINDOW_RESIZE) {
     }
     _windowState = arGUIWindowInfo( event );
@@ -467,41 +467,41 @@ int arGUIEventManager::addEvent( const arGUIKeyInfo& keyInfo )
   arStructuredData keyInfoSD( _keyInfoTemplate );
 
   arGUIEventType eventType = keyInfo.getEventType();
-  if( !keyInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
   arGUIState state = keyInfo.getState();
-  if( !keyInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
   int windowID = keyInfo.getWindowID();
-  if( !keyInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
   int flag = keyInfo.getFlag();
-  if( !keyInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
   arGUIKey key = keyInfo.getKey();
-  if( !keyInfoSD.dataIn( "key",       &key,       AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "key",       &key,       AR_INT, 1 ) ) {
     return -1;
   }
 
   int ctrl = keyInfo.getCtrl();
-  if( !keyInfoSD.dataIn( "ctrl",      &ctrl,      AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "ctrl",      &ctrl,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int alt = keyInfo.getAlt();
-  if( !keyInfoSD.dataIn( "alt",       &alt,       AR_INT, 1 ) ) {
+  if ( !keyInfoSD.dataIn( "alt",       &alt,       AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( addEvent( keyInfoSD ) < 0 ) {
+  if ( addEvent( keyInfoSD ) < 0 ) {
     return -1;
   }
 
@@ -513,51 +513,51 @@ int arGUIEventManager::addEvent( const arGUIMouseInfo& mouseInfo )
   arStructuredData mouseInfoSD( _mouseInfoTemplate );
 
   arGUIEventType eventType = mouseInfo.getEventType();
-  if( !mouseInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
   arGUIState state = mouseInfo.getState();
-  if( !mouseInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
   int windowID = mouseInfo.getWindowID();
-  if( !mouseInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
   int flag = mouseInfo.getFlag();
-  if( !mouseInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
   arGUIButton button = mouseInfo.getButton();
-  if( !mouseInfoSD.dataIn( "button",    &button,    AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "button",    &button,    AR_INT, 1 ) ) {
     return -1;
   }
 
   int posX = mouseInfo.getPosX();
-  if( !mouseInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int posY = mouseInfo.getPosY();
-  if( !mouseInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int prevPosX = mouseInfo.getPrevPosX();
-  if( !mouseInfoSD.dataIn( "prevPosX",  &prevPosX,  AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "prevPosX",  &prevPosX,  AR_INT, 1 ) ) {
     return -1;
   }
 
   int prevPosY = mouseInfo.getPrevPosY();
-  if( !mouseInfoSD.dataIn( "prevPosY",  &prevPosY,  AR_INT, 1 ) ) {
+  if ( !mouseInfoSD.dataIn( "prevPosY",  &prevPosY,  AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( addEvent( mouseInfoSD ) < 0 ) {
+  if ( addEvent( mouseInfoSD ) < 0 ) {
     return -1;
   }
 
@@ -569,46 +569,46 @@ int arGUIEventManager::addEvent( const arGUIWindowInfo& windowInfo )
   arStructuredData windowInfoSD( _windowInfoTemplate );
 
   arGUIEventType eventType = windowInfo.getEventType();
-  if( !windowInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
   arGUIState state = windowInfo.getState();
-  if( !windowInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
   int windowID = windowInfo.getWindowID();
-  if( !windowInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
   int flag = windowInfo.getFlag();
-  if( !windowInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int posX = windowInfo.getPosX();
-  if( !windowInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int posY = windowInfo.getPosY();
-  if( !windowInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
     return -1;
   }
 
   int sizeX = windowInfo.getSizeX();
-  if( !windowInfoSD.dataIn( "sizeX",     &sizeX,     AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "sizeX",     &sizeX,     AR_INT, 1 ) ) {
     return -1;
   }
 
   int sizeY = windowInfo.getSizeY();
-  if( !windowInfoSD.dataIn( "sizeY",     &sizeY,     AR_INT, 1 ) ) {
+  if ( !windowInfoSD.dataIn( "sizeY",     &sizeY,     AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( addEvent( windowInfoSD ) < 0 ) {
+  if ( addEvent( windowInfoSD ) < 0 ) {
     return -1;
   }
 
@@ -618,13 +618,13 @@ int arGUIEventManager::addEvent( const arGUIWindowInfo& windowInfo )
 #if defined( AR_USE_WIN_32 )
 LRESULT CALLBACK arGUIEventManager::windowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-  if( uMsg == WM_NCCREATE ) {
+  if ( uMsg == WM_NCCREATE ) {
     // store the pointer to the arGUIWindow
     // see note in MSDN about how this function's possible return values
     // interact with GetLastError()
     SetLastError( 0 );
-    if( !SetWindowLong( hWnd, GWL_USERDATA, (LONG) ((LPCREATESTRUCT) lParam)->lpCreateParams ) ) {
-      if( GetLastError() ) {
+    if ( !SetWindowLong( hWnd, GWL_USERDATA, (LONG) ((LPCREATESTRUCT) lParam)->lpCreateParams ) ) {
+      if ( GetLastError() ) {
         std::cerr << "windowProc: SetWindowLong error" << std::endl;
         return -1;
       }
@@ -633,7 +633,7 @@ LRESULT CALLBACK arGUIEventManager::windowProc( HWND hWnd, UINT uMsg, WPARAM wPa
   else {
     arGUIWindow* currentWindow = (arGUIWindow*) GetWindowLong( hWnd, GWL_USERDATA );
 
-    if( currentWindow && currentWindow->running() && currentWindow->getGUIEventManager()->isActive() ) {
+    if ( currentWindow && currentWindow->running() && currentWindow->getGUIEventManager()->isActive() ) {
       return currentWindow->getGUIEventManager()->windowProcCB( hWnd, uMsg, wParam, lParam, currentWindow );
     }
   }
@@ -665,7 +665,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
     break;
 
     case WM_ACTIVATE:
-      if( LOWORD( wParam ) != WA_INACTIVE ) {
+      if ( LOWORD( wParam ) != WA_INACTIVE ) {
         window->setCursor( window->getCursor() );
       }
     break;
@@ -677,7 +677,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
     break;
 
     case WM_SETCURSOR:
-      if( LOWORD( lParam ) == HTCLIENT ) {
+      if ( LOWORD( lParam ) == HTCLIENT ) {
         window->setCursor( window->getCursor() );
       }
     break;
@@ -719,24 +719,24 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
 
       arGUIState state = AR_GENERIC_STATE;
 
-      if( uMsg == WM_MOVE ) {
+      if ( uMsg == WM_MOVE ) {
         posX = (int)(short) LOWORD( lParam );
         posY = (int)(short) HIWORD( lParam );
 
         state = AR_WINDOW_MOVE;
       }
-      else if( uMsg == WM_SIZE ) {
+      else if ( uMsg == WM_SIZE ) {
         sizeX = (int)(short) LOWORD( lParam );
         sizeY = (int)(short) HIWORD( lParam );
 
         state = AR_WINDOW_RESIZE;
       }
-      else if( uMsg == WM_CLOSE ) {
+      else if ( uMsg == WM_CLOSE ) {
         state = AR_WINDOW_CLOSE;
       }
 
       // dummy move and/or resize message from a minimization
-      if( ( ( sizeX == 0 ) && ( sizeY == 0 ) ) ||
+      if ( ( ( sizeX == 0 ) && ( sizeY == 0 ) ) ||
           ( ( posX < 0 ) && ( posY < 0 ) ) ) {
         return 0;
       }
@@ -744,7 +744,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       // could also check if the current x/y, width/height are the exact same
       // as the new ones, probably don't need to send the message in that case
 
-      if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, state, window->getID(), 0,
+      if ( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, state, window->getID(), 0,
                                      posX, posY, sizeX, sizeY ) ) < 0 ) {
         // print an error?
       }
@@ -761,11 +761,11 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       // check the state of the modifiers
       int ctrl = 0, alt = 0;
 
-      if( GetKeyState( AR_VK_CTRL ) < 0 ) {
+      if ( GetKeyState( AR_VK_CTRL ) < 0 ) {
         ctrl = 1;
       }
 
-      if( GetKeyState( AR_VK_ALT ) < 0 ) {
+      if ( GetKeyState( AR_VK_ALT ) < 0 ) {
         alt = 1;
       }
 
@@ -773,7 +773,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       WORD code[ 2 ] = { 0 };
       int len;
 
-      if( !GetKeyboardState( kstate ) ) {
+      if ( !GetKeyboardState( kstate ) ) {
         std::cerr << "WindowProcCB: GetKeyboardState error" << std::endl;
         return -1;
       }
@@ -781,30 +781,30 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       // ToAscii will take into account whether a ctrl key is down
       // when translating (i.e. turning them into control codes), but
       // we don't want that so strip out the ctrl
-      if( ctrl ) {
+      if ( ctrl ) {
         kstate[ AR_VK_CTRL ] &= 0x0F;
       }
 
       // try to translate to ascii
       len = ToAscii( wParam, 0, kstate, code, 0 );
 
-      if( len > 0 && code[ 0 ] > 31 && code[ 0 ] < 127 ) {
+      if ( len > 0 && code[ 0 ] > 31 && code[ 0 ] < 127 ) {
         wParam = (char) code[ 0 ];
       }
 
       arGUIState state = AR_GENERIC_STATE;
 
-      if( uMsg == WM_SYSKEYUP || uMsg == WM_KEYUP ) {
+      if ( uMsg == WM_SYSKEYUP || uMsg == WM_KEYUP ) {
         state = AR_KEY_UP;
       }
-      else if( HIWORD( lParam ) & KF_REPEAT ) {
+      else if ( HIWORD( lParam ) & KF_REPEAT ) {
         state = AR_KEY_REPEAT;
       }
       else {
         state = AR_KEY_DOWN;
       }
 
-      if( addEvent( arGUIKeyInfo( AR_KEY_EVENT, state, window->getID(), 0, arGUIKey( wParam ), ctrl, alt ) ) < 0 ) {
+      if ( addEvent( arGUIKeyInfo( AR_KEY_EVENT, state, window->getID(), 0, arGUIKey( wParam ), ctrl, alt ) ) < 0 ) {
         // print an error?
       }
 
@@ -828,16 +828,16 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
 
 
       // Match X11 behavior by restricting to [ -32768, 32767 ]
-      if( posX > 32767 ) {
+      if ( posX > 32767 ) {
         posX -= 65536;
       }
-      if( posY > 32767 ) {
+      if ( posY > 32767 ) {
         posY -= 65536;
       }
 
       // do a quick check before we do any more work (seems to only be a
       // problem on the windows side)
-      if( uMsg == WM_MOUSEMOVE && posX == prevPosX && posY == prevPosY ) {
+      if ( uMsg == WM_MOUSEMOVE && posX == prevPosX && posY == prevPosY ) {
         return -1;
       }
 
@@ -849,7 +849,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
         case WM_MOUSEMOVE:
           button = _mouseState.getButton();
 
-          if( button ) {
+          if ( button ) {
             state = AR_MOUSE_DRAG;
           }
           else {
@@ -898,14 +898,14 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       // attempt to match X11 behavior by capturing the mouse if a button was
       // pressed and held inside the window, and releasing once /all/ the
       // buttons have been released.
-      if( state == AR_MOUSE_DOWN ) {
+      if ( state == AR_MOUSE_DOWN ) {
         SetCapture( window->getWindowHandle()._hWnd );
       }
-      else if( !(~button & _mouseState.getButton()) && ( state == AR_MOUSE_UP ) ) {
+      else if ( !(~button & _mouseState.getButton()) && ( state == AR_MOUSE_UP ) ) {
         ReleaseCapture();
       }
 
-      if( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
+      if ( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {
         // print an error?
       }
 

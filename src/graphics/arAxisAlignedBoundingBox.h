@@ -11,9 +11,9 @@
 
 class arAxisAlignedBoundingBox{
  public:
-  arAxisAlignedBoundingBox(){ xSize=ySize=zSize=0; }
-  ~arAxisAlignedBoundingBox(){}
- 
+  arAxisAlignedBoundingBox() { xSize=ySize=zSize=0; }
+  ~arAxisAlignedBoundingBox() {}
+
   arVector3 center;
   float xSize;
   float ySize;

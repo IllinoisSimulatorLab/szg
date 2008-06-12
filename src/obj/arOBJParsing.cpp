@@ -36,7 +36,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
   if (!found) { // End of file
     return false;
   }
-  
+
   // Parse Line
   token[numTokens++] = strtok(buffer, " \t\r\n");
   while (token[numTokens-1])
@@ -54,25 +54,25 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
     x = atof(token[1]);
     y = atof(token[2]);
     z = atof(token[3]);
-    _normal.push_back(arVector3(x,y,z) / ++arVector3(x,y,z));
+    _normal.push_back(arVector3(x, y, z).normalize());
   }
-  
+
   ///// vt: vertex texture coord /////
   else if (lineType == "vt") {
     x = atof(token[1]);
-    y = atof(token[2]); 
-    _texCoord.push_back(arVector3(x,y,0));
+    y = atof(token[2]);
+    _texCoord.push_back(arVector3(x, y, 0));
   }
-  
+
   ///// vp: parametric vertex /////
   //else if (lineType == "vp") {
-  
+
   ///// v: regular 3D vertex /////
   else if (lineType == "v") {
     x = atof(token[1]);
     y = atof(token[2]);
     z = atof(token[3]);
-    _vertex.push_back(arVector3(x,y,z));
+    _vertex.push_back(arVector3(x, y, z));
   }
 
   ///// f/fo: face /////
@@ -139,7 +139,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
     else{
       matFileName = token[1];
     }
-    FILE* matFile = ar_fileOpen(matFileName,_subdirectory,_searchPath,"rb", "arOBJ mtllib");
+    FILE* matFile = ar_fileOpen(matFileName, _subdirectory, _searchPath, "rb", "arOBJ mtllib");
     if (matFile) {
       ar_log_debug() << "Parsing mtl file '" << matFileName << "'.\n";
       while (_readMaterialsFromFile(matFile));
@@ -177,7 +177,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
 // Reads in .mtl file conforming to OBJ spec
 // @param matFile the .mtl file to read in
 // Hides colors and textures of OBJ files in the difficult .mtl file format.
-bool arOBJ::_readMaterialsFromFile(FILE* matFile) { 
+bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
   char buffer[1000] = {0};
   int typeChar = fgetc(matFile);
 
@@ -187,13 +187,13 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
 
   case 'n':                   // newmtl
     {
-    fseek(matFile,-1,SEEK_CUR);
+    fseek(matFile, -1, SEEK_CUR);
     char mtlNameBuf[256] = {0};
-    fscanf(matFile,"%s %s",buffer,mtlNameBuf);
+    fscanf(matFile, "%s %s", buffer, mtlNameBuf);
     string mtlName(mtlNameBuf);
     if (!strcmp(buffer, "newmtl")) {
       const unsigned cchMax = 64;
-      ar_log_debug() << "Found newmtl token '" << mtlName << "'.\n";      
+      ar_log_debug() << "Found newmtl token '" << mtlName << "'.\n";
       const unsigned cch = mtlName.size();
       if (cch < 1) {
         ar_log_error() << "arObj: empty material name.\n";
@@ -208,16 +208,16 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
       for (i=0; i<_material.size(); i++)
         if (strcmp(buffer, _material[i].name) == 0) {
           _thisMaterial = i;
-          ar_log_debug() << "Material '" << mtlName << "' already exists.\n";      
+          ar_log_debug() << "Material '" << mtlName << "' already exists.\n";
           break;
         }
       if (i == _material.size()) {
-        ar_log_debug() << "Adding new material '" << mtlName << "'.\n";      
+        ar_log_debug() << "Adding new material '" << mtlName << "'.\n";
         _material.push_back(arOBJMaterial());
         _thisMaterial = _material.size()-1;
         memcpy( _material[_thisMaterial].name, mtlName.c_str(), mtlName.size()+1 );
       }
-      ar_log_debug() << "Handled newmtl token '" << string(mtlName) << "'.\n";      
+      ar_log_debug() << "Handled newmtl token '" << string(mtlName) << "'.\n";
     }
     break;
     }
@@ -227,33 +227,33 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     switch (typeChar) {
       float x1, y1, z1;
       case 'a':      // ambient coeff
-        fscanf(matFile,"%f %f %f",&x1, &y1, &z1);
-        _material[_thisMaterial].Ka = arVector3(x1,y1,z1);
+        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        _material[_thisMaterial].Ka = arVector3(x1, y1, z1);
         break;
       case 'd':      // diffuse coeff (MAIN)
-        fscanf(matFile,"%f %f %f",&x1, &y1, &z1);
-        _material[_thisMaterial].Kd = arVector3(x1,y1,z1);
+        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        _material[_thisMaterial].Kd = arVector3(x1, y1, z1);
         break;
       case 's':      // specular coeff
-        fscanf(matFile,"%f %f %f",&x1, &y1, &z1);
-        _material[_thisMaterial].Ks = arVector3(x1,y1,z1);
+        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        _material[_thisMaterial].Ks = arVector3(x1, y1, z1);
         break;
       default:        // ignore line
-        fgets(buffer,1000,matFile);
+        fgets(buffer, 1000, matFile);
         break;
     }
     break;
 
   case 'm':
   case 'M':
-    //fseek(matFile,-1,SEEK_CUR);
+    //fseek(matFile, -1, SEEK_CUR);
     char mapName[256];
-    fscanf(matFile,"%s %s",buffer,mapName);
-    if (!strcmp(buffer,"ap_Kd")) {
+    fscanf(matFile, "%s %s", buffer, mapName);
+    if (!strcmp(buffer, "ap_Kd")) {
       ar_log_debug() << "OBJ diffuse map: " << (_material[_thisMaterial].map_Kd = string(mapName)) << ar_endl;
-    } else if (!strcmp(buffer,"ap_Bump")) {
+    } else if (!strcmp(buffer, "ap_Bump")) {
       ar_log_debug() << "OBJ bump map: " << (_material[_thisMaterial].map_Bump = string(mapName)) << ar_endl;
-    } else if (!strcmp(buffer,"ap_opacity")) {
+    } else if (!strcmp(buffer, "ap_opacity")) {
       ar_log_debug() << "OBJ opacity map: " << (_material[_thisMaterial].map_Opacity = string(mapName)) << ar_endl;
     }
     break;
@@ -266,12 +266,12 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     break;
 
   case '#':       // comment; ignore line
-    fgets(buffer,1000,matFile);
+    fgets(buffer, 1000, matFile);
     break;
 
   default:        // ignore line
   //  printf("(MTL file)Got char: %c\n", typeChar);
-    fgets(buffer,1000,matFile);
+    fgets(buffer, 1000, matFile);
     break;
   } // end case
   return true;

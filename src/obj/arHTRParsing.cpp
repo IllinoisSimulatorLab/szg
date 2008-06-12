@@ -18,11 +18,11 @@ arHTR::arHTR() :
   calibrationUnits(NULL),
   rotationUnits(NULL),
   _currentFrame(0),
-  _normCenter(arVector3(0,0,0)),
+  _normCenter(arVector3(0, 0, 0)),
   _normScaleAmount(1) {
 }
 
-arHTR::~arHTR(){
+arHTR::~arHTR() {
   if (fileType)
     free(fileType);
   if (dataType)
@@ -34,13 +34,13 @@ arHTR::~arHTR(){
 }
 
 // marks this HTR file as invalid
-bool arHTR::setInvalid(void){
+bool arHTR::setInvalid(void) {
   _invalidFile = true;
   return false;
 }
 
 // Wrapper for the 3 parameter version.
-bool arHTR::readHTR(const string& fileName, const string& path){
+bool arHTR::readHTR(const string& fileName, const string& path) {
   return readHTR(fileName, "", path);
 }
 
@@ -48,15 +48,15 @@ bool arHTR::readHTR(const string& fileName, const string& path){
 // @param fileName name of the HTR file, including extension
 // @param path for some reason, a path string
 // Actually checks that it exists and calls readHTR(FILE*)
-bool arHTR::readHTR(const string& fileName, const string& subdirectory, const string& path){
+bool arHTR::readHTR(const string& fileName, const string& subdirectory, const string& path) {
   FILE* htrFileHandle = ar_fileOpen(fileName, subdirectory, path, "r", "arHTR");
   return htrFileHandle ? readHTR(htrFileHandle) : setInvalid();
 }
 
 // reads HTR file specified
 // @param htrFileHandle HTR file to read in
-bool arHTR::readHTR(FILE* htrFileHandle){
-  if (!htrFileHandle){
+bool arHTR::readHTR(FILE* htrFileHandle) {
+  if (!htrFileHandle) {
     ar_log_error() << "arHTR: invalid file pointer.\n";
     return setInvalid();
   }
@@ -64,7 +64,7 @@ bool arHTR::readHTR(FILE* htrFileHandle){
   if (!parseHeader(htrFileHandle) ||
       !parseHierarchy(htrFileHandle) ||
       !parseBasePosition(htrFileHandle) ||
-      !parseSegmentData(htrFileHandle)){
+      !parseSegmentData(htrFileHandle)) {
     return setInvalid();
   }
   fclose(htrFileHandle);
@@ -75,16 +75,16 @@ bool arHTR::readHTR(FILE* htrFileHandle){
 // @param theFile the file we're reading
 // @param theResult pointers to c-strings containing the data
 // @param buffer holds the current line to read from
-// @param desiredTokens how many arguments we're expecting on this line -- 
+// @param desiredTokens how many arguments we're expecting on this line --
 //	determines whether we pass back true or false
-// @param errorString the argument to write out in case of an error -- 
+// @param errorString the argument to write out in case of an error --
 //	very useful for finding syntax errors in files
-bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens, string errorString){
+bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens, string errorString) {
   bool found = false;
   char* value = (char *)1;
   int numTokens = 0;
 
-  while (!found && value){
+  while (!found && value) {
     value = fgets(buffer, MAXLINE, theFile);
     if (buffer[0] == '\n' || buffer[0] == '#')
       // Skip comment or newline.
@@ -92,7 +92,7 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
     else if (value)
       found = true;
   }
-  if (!found){
+  if (!found) {
     ar_log_error() << "arHTR: premature end of file.\n";
     return false;
   }
@@ -100,10 +100,10 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
   // Parse Line. Note how we need to add the '\r' to acomodate reading Win32
   // text files on Unix.
   theResult[numTokens++] = strtok(buffer, " \t\n\r");
-  while (theResult[numTokens-1]){
+  while (theResult[numTokens-1]) {
     theResult[numTokens++] = strtok(NULL, " \t\n\r");
   }
-  if (--numTokens < desiredTokens){
+  if (--numTokens < desiredTokens) {
     ar_log_error() << "arHTR: invalid or missing parameter '" << errorString <<
       "'.\n  Found '" <<  string(theResult[0]) << "' in line '" << buffer << "'.\n";
     return false;
@@ -112,16 +112,16 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
   return true;
 }
 
-bool arHTR::parseHeader(FILE* htrFileHandle){
+bool arHTR::parseHeader(FILE* htrFileHandle) {
   bool found = false;
   char textLine[MAXLINE];
   char *token[MAXTOKENS];
 
-  while (!found && fgets(textLine, MAXLINE, htrFileHandle)){
+  while (!found && fgets(textLine, MAXLINE, htrFileHandle)) {
     if (!strncmp("[Header]", textLine, strlen("[Header]")))
       found = true;
   }
-  if (!found){
+  if (!found) {
     ar_log_error() << "arHTR: no [Header].\n";
     return false;
   }
@@ -189,7 +189,7 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
     return false;
 
   boneLengthAxis = *token[1];
-  if (!parseLine(htrFileHandle, token, textLine, 2, "scaleFactor")){
+  if (!parseLine(htrFileHandle, token, textLine, 2, "scaleFactor")) {
     scaleFactor = .1;
     rewind(htrFileHandle);
   }
@@ -202,21 +202,21 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
 // @param htrFileHandle the HTR file
 // Will read from pointer to end of file until it finds
 // "[SegmentNames&Hierarchy]"... or doesn't
-bool arHTR::parseHierarchy(FILE *htrFileHandle){
+bool arHTR::parseHierarchy(FILE *htrFileHandle) {
   bool found = false;
   char textLine[MAXLINE];
   char *token[MAXTOKENS];
-  while (!found && fgets(textLine, MAXLINE, htrFileHandle)){
-    if (!strncmp("[SegmentNames&Hierarchy]",textLine,strlen("[SegmentNames&Hierarchy]")))
+  while (!found && fgets(textLine, MAXLINE, htrFileHandle)) {
+    if (!strncmp("[SegmentNames&Hierarchy]", textLine, strlen("[SegmentNames&Hierarchy]")))
       found = true;
   }
-  if (!found){
+  if (!found) {
     ar_log_error() << "arHTR: no [SegmentNames&Hierarchy].\n";
     return false;
   }
 
-  for (int j=0; j<numSegments; j++){
-    if (!parseLine(htrFileHandle,token,textLine,2,"SegmentNames&Hierarchy"))
+  for (int j=0; j<numSegments; j++) {
+    if (!parseLine(htrFileHandle, token, textLine, 2, "SegmentNames&Hierarchy"))
       return false;
 
     htrSegmentHierarchy *newSegmentHierarchy = new htrSegmentHierarchy;
@@ -234,21 +234,21 @@ bool arHTR::parseHierarchy(FILE *htrFileHandle){
 // @param htrFileHandle the HTR file
 // Will read from pointer to end of file until it finds
 // "[BasePosition]"... or doesn't
-bool arHTR::parseBasePosition(FILE *htrFileHandle){
+bool arHTR::parseBasePosition(FILE *htrFileHandle) {
   bool found = false;
   char textLine[MAXLINE];
   char *token[MAXTOKENS];
 
-  while (!found && fgets(textLine, MAXLINE, htrFileHandle)){
-    if (!strncmp("[BasePosition]",textLine,strlen("[BasePosition]")))
+  while (!found && fgets(textLine, MAXLINE, htrFileHandle)) {
+    if (!strncmp("[BasePosition]", textLine, strlen("[BasePosition]")))
       found = true;
   }
-  if (!found){
+  if (!found) {
     ar_log_error() << "arHTR: no [BasePosition].\n";
     return false;
   }
 
-  for (int i=0; i<numSegments; i++){
+  for (int i=0; i<numSegments; i++) {
     if (!parseLine(htrFileHandle, token, textLine, 8, "BasePosition"))
       return false;
 
@@ -268,18 +268,18 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
 }
 
 // Parses the segment data for a .htr file.
-bool arHTR::parseSegmentData1(FILE* htrFileHandle){
+bool arHTR::parseSegmentData1(FILE* htrFileHandle) {
   char* value = NULL;
   char textLine[MAXLINE] = {0};
   char *token[MAXTOKENS] = {0};
   htrSegmentData *newSegmentData = NULL;
   htrFrame *newFrame = NULL;
-  for (int i=0; i<numSegments; ++i){
+  for (int i=0; i<numSegments; ++i) {
     newSegmentData = new htrSegmentData;
     // todo: test for out of memory
     bool found = false;
     value = (char *)1;
-    while (!found && value){
+    while (!found && value) {
       value = fgets(textLine, MAXLINE, htrFileHandle);
       if (textLine[0] == '\n' || textLine[0] == '#')
 	// Skip comment or newline.
@@ -287,17 +287,17 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
       else if (value)
 	found = true;
     }
-    if (!found){
+    if (!found) {
       ar_log_error() << "arHTR: premature end of file.\n";
       return false;
     }
 
     char* genStr = strrchr(textLine, ']');
-    if (genStr){
+    if (genStr) {
       genStr[0] = '\0';
     }
     newSegmentData->segmentName = string(textLine+1);
-    for (int j=0; j<numFrames; j++){
+    for (int j=0; j<numFrames; j++) {
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
         return false;
 
@@ -322,7 +322,7 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
 // differs from the .htr data:
 // it is streamable, instead of placing all
 // of one segment's frames together.
-bool arHTR::parseSegmentData2(FILE* htrFileHandle){
+bool arHTR::parseSegmentData2(FILE* htrFileHandle) {
   char* value = NULL;
   char textLine[MAXLINE] = {0};
   char *token[MAXTOKENS] = {0};
@@ -330,17 +330,17 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   htrFrame *newFrame = NULL;
   // Create storage for each segment's data.
   // Store values for all frames in an htrSegmentData object.
-  for (int j=0; j<numSegments; j++){
+  for (int j=0; j<numSegments; j++) {
     newSegmentData = new htrSegmentData();
     htrSegmentHierarchy* segment = childParent[j];
     newSegmentData->segmentName = string(segment->child);
     segmentData.push_back(newSegmentData);
   }
-  for (int i=0; i<numFrames; i++){
+  for (int i=0; i<numFrames; i++) {
     newSegmentData = new htrSegmentData;
     bool found = false;
     value = (char *)1;
-    while (!found && value){
+    while (!found && value) {
       value = fgets(textLine, MAXLINE, htrFileHandle);
       if (textLine[0] == '\n' || textLine[0] == '#' || textLine[0] == '\r') {
 	// Comment or newline.
@@ -349,7 +349,7 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
       if (value)
 	found = true;
     }
-    if (!found){
+    if (!found) {
       ar_log_error() << "arHTR: premature end of file.\n";
       return false;
     }
@@ -360,8 +360,8 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
       return false;
     }
     // Found marker "Frame n:" for start of frame data.
-  
-    for (int k=0; k<numSegments; k++){
+
+    for (int k=0; k<numSegments; k++) {
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
         return false;
 
@@ -383,11 +383,11 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
 
 // Parse the frame data of .htr file
 // @param htrFileHandle the HTR file
-bool arHTR::parseSegmentData(FILE* htrFileHandle){
-  if (fileVersion == 1){
+bool arHTR::parseSegmentData(FILE* htrFileHandle) {
+  if (fileVersion == 1) {
     return parseSegmentData1(htrFileHandle);
   }
-  if (fileVersion == 2){
+  if (fileVersion == 2) {
     return parseSegmentData2(htrFileHandle);
   }
   ar_log_error() << "arHTR: unhandled HTR file version " << fileVersion << ".\n";
@@ -395,7 +395,7 @@ bool arHTR::parseSegmentData(FILE* htrFileHandle){
 }
 
 // fills in the data structures for easy, efficient access
-bool arHTR::precomputeData(void){
+bool arHTR::precomputeData(void) {
   unsigned int k=0, l=0;
   int i=0, j=0;
 
@@ -404,7 +404,7 @@ bool arHTR::precomputeData(void){
     for (j=0; j<numSegments; j++)
       if (!strcmp(childParent[k]->child, segmentData[j]->segmentName.c_str()))
         for (i=0; i<numSegments; i++)
-          if (!strcmp(childParent[k]->parent, segmentData[i]->segmentName.c_str())){
+          if (!strcmp(childParent[k]->parent, segmentData[i]->segmentName.c_str())) {
             segmentData[j]->parent = segmentData[i];
             segmentData[i]->children.push_back(segmentData[j]);
             break;
@@ -412,13 +412,13 @@ bool arHTR::precomputeData(void){
   // connect segment data and base position
   for (k=0; k<segmentData.size(); k++)
     for (l=0; l<basePosition.size(); l++)
-      if (!strcmp(basePosition[l]->name, segmentData[k]->segmentName.c_str())){
+      if (!strcmp(basePosition[l]->name, segmentData[k]->segmentName.c_str())) {
         basePosition[l]->segment = segmentData[k];
         segmentData[k]->basePosition = basePosition[l];
       }
   // precompute basePosition transform matrices
   htrBasePosition *b;
-  for (k=0; k<basePosition.size(); k++){
+  for (k=0; k<basePosition.size(); k++) {
     b = basePosition[k];
     b->trans = ar_translationMatrix(b->Tx, b->Ty, b->Tz);
     b->rot   = HTRRotation(b->Rx, b->Ry, b->Rz);
@@ -426,7 +426,7 @@ bool arHTR::precomputeData(void){
   // precompute matrices for frames
   htrFrame *h;
   for (k=0; k<segmentData.size(); k++)
-    for (l=0; l<segmentData[k]->frame.size(); l++){
+    for (l=0; l<segmentData[k]->frame.size(); l++) {
       h = segmentData[k]->frame[l];
       h->trans = HTRTransform(segmentData[k]->basePosition, h);
       h->totalScale = segmentData[k]->basePosition->boneLength * h->scale;
@@ -435,10 +435,10 @@ bool arHTR::precomputeData(void){
 }
 
 // writes out current class data to an HTR file
-// @param fileName name of new OBJ file (including extension) to write out 
-bool arHTR::writeToFile(const string& fileName){
+// @param fileName name of new OBJ file (including extension) to write out
+bool arHTR::writeToFile(const string& fileName) {
   FILE *htrFile = fopen(fileName.c_str(), "w");
-  if (!htrFile){
+  if (!htrFile) {
     ar_log_error() << "arHTR failed to write to file '" << fileName << "'.\n";
     return false;
   }
@@ -461,7 +461,7 @@ bool arHTR::writeToFile(const string& fileName){
 
   fprintf(htrFile, "\n[SegmentNames&Hierarchy]\n#CHILD\tPARENT\n");
   unsigned i;
-  for (i=0; i<childParent.size(); i++){
+  for (i=0; i<childParent.size(); i++) {
     fprintf(htrFile, "%s\t%s\n", childParent[i]->child, childParent[i]->parent);
   }
 
@@ -473,10 +473,10 @@ bool arHTR::writeToFile(const string& fileName){
 	    basePosition[i]->boneLength);
 
   fprintf(htrFile, "\n");
-  for (int j=0; j<numSegments; j++){
+  for (int j=0; j<numSegments; j++) {
     fprintf(htrFile, "[%s]\n", segmentData[j]->segmentName.c_str());
     fprintf(htrFile, "#Fr\tTx\tTy\tTz\tRx\tRy\tRz\tSF\n");
-    for (i=0; i<segmentData[j]->frame.size(); i++){
+    for (i=0; i<segmentData[j]->frame.size(); i++) {
       fprintf(htrFile, "%i\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
 	      segmentData[j]->frame[i]->frameNum, segmentData[j]->frame[i]->Tx,
 	      segmentData[j]->frame[i]->Ty, segmentData[j]->frame[i]->Tz,

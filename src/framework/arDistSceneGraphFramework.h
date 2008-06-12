@@ -30,7 +30,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
  public:
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}
-  
+
   // Inherited virtual functions
   bool init(int&, char**);
   bool start();
@@ -38,19 +38,19 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   bool createWindows(bool useWindowing);
   void loopQuantum();
   void exitFunction();
-  
-  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
+
+  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&,
                  int messageID,
 							   const string& messageBody ));
-  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
+  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&,
 							   const string& messageBody ));
   arGraphicsDatabase* getDatabase();
 
   // An external peer might get peer control messages,
   // e.g. the peerBridge that maps a peer into a clustered display.
   void setExternalPeer(arGraphicsPeer* p) { if (p) _externalPeer = p; }
-  
-  void setDataBundlePath(const string& bundlePathName, 
+
+  void setDataBundlePath(const string& bundlePathName,
                          const string& bundleSubDirectory);
   void setAutoBufferSwap(bool);
   void swapBuffers();
@@ -59,13 +59,13 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void loadNavMatrix();
   void setViewer();
   void setPlayer();
-    
+
   // Add entries to the data bundle path (used to locate texture maps by
   // szgrender for scene-graph apps in cluster mode and by SoundRender to
   // locate sounds for both types of apps in cluster mode).
-  virtual void addDataBundlePathMap(const string& bundlePathName, 
+  virtual void addDataBundlePathMap(const string& bundlePathName,
                           const string& bundlePath);
-  
+
  private:
   // Used in both standalone mode and phleet mode.
   arGraphicsServer _graphicsServer;
@@ -80,7 +80,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
       int messageID, const string& messageBody );
   void (*_oldUserMessageCallback)( arDistSceneGraphFramework&,
       const string& messageBody );
-  
+
   arTransformNode* _graphicsNavNode;
   int _soundNavMatrixID;
   int _VRCameraID;
@@ -92,7 +92,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arSignalObject _windowsCreatedSignal;
   // Are we using the automatic buffer swap?
   bool _autoBufferSwap;
-  
+
   // Are we operating a graphics peer? If not, this string will hold the
   // constructor's default value of "NULL".
   string _peerName;

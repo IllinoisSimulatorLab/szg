@@ -64,7 +64,7 @@ bool arPPTDriver::start() {
     return false;
   }
   _resetStatusTimer();
-  return _eventThread.beginThread(ar_PPTDriverEventTask,this);
+  return _eventThread.beginThread(ar_PPTDriverEventTask, this);
 }
 
 bool arPPTDriver::stop() {
@@ -105,13 +105,13 @@ bool arPPTDriver::_processInput() {
   int lastGoodIndex = -1;
   for(int i = 0; i < (int)numRead; ++i) {
     //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet
-    if(packet[i] == 'o' && i+PPT_PACKET_SIZE <= numRead && packet[i+PPT_PACKET_SIZE-1] == _checksum(&(packet[i]),PPT_PACKET_SIZE-1)
+    if (packet[i] == 'o' && i+PPT_PACKET_SIZE <= numRead && packet[i+PPT_PACKET_SIZE-1] == _checksum(&(packet[i]), PPT_PACKET_SIZE-1)
       && (int)packet[i+1] > 0 && (int)packet[i+1] <= PPT_MAX_LIGHTS) {
       lastGoodIndex = i;	
     }
   }
 
-  if(lastGoodIndex != -1) {
+  if (lastGoodIndex != -1) {
     // Found a fresh packet.  Unstuff data and return number of lights.
     const int numlights = (int)packet[1+lastGoodIndex];
     _setDeviceElements( 0, 0, numlights );
@@ -124,7 +124,7 @@ bool arPPTDriver::_processInput() {
 
       // change coordinate systems from PPT's left-handed to OpenGL's
       // right-handed, and from PPT's meters to Syzygy's feet.
-      queueMatrix( i, ar_translationMatrix( x*FEET_PER_METER, y*FEET_PER_METER,-z*FEET_PER_METER ) );
+      queueMatrix( i, ar_translationMatrix( x*FEET_PER_METER, y*FEET_PER_METER, -z*FEET_PER_METER ) );
     }
 
     sendQueue();

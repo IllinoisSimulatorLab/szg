@@ -26,7 +26,7 @@ bool ar_setLogLevel( const string& level, const bool fVerbose ) {
   return ok;
 }
 
-int ar_stringToLogLevel(const string& logLevel){
+int ar_stringToLogLevel(const string& logLevel) {
   // Convert to uppercase, for convenience of typing "-szg log=debug" not DEBUG.
   string s(logLevel);
 #ifndef AR_USE_WIN_32
@@ -39,7 +39,7 @@ int ar_stringToLogLevel(const string& logLevel){
     (s == "WARNING")  ? AR_LOG_WARNING :
     (s == "REMARK")   ? AR_LOG_REMARK :
     (s == "DEBUG")    ? AR_LOG_DEBUG :
-    AR_LOG_NIL; 
+    AR_LOG_NIL;
 }
 
 inline int ar_logLevelNormalize(int& l) {
@@ -57,7 +57,7 @@ inline int ar_logLevelNormalize(int& l) {
   return l;
 }
 
-string ar_logLevelToString(int l){
+string ar_logLevelToString(int l) {
   static const char* s[AR_LOG_NIL+1] = {
     "SILENT",
     "CRITICAL",
@@ -85,14 +85,14 @@ arLogStream::arLogStream():
     cerr << "arLogStream warning: no locks. Expect interleaving.\n";
 }
 
-void arLogStream::setStream(ostream& externalStream){
+void arLogStream::setStream(ostream& externalStream) {
   _lock();
     _flush(true);
     _output = &externalStream;
   _unlock();
 }
 
-void arLogStream::setHeader(const string& header){
+void arLogStream::setHeader(const string& header) {
   _lock();
     _header = header;
   _unlock();
@@ -104,12 +104,12 @@ void arLogStream::setTimestamp(const bool f) {
   _unlock();
 }
 
-bool arLogStream::setLogLevel(int l){
+bool arLogStream::setLogLevel(int l) {
   ar_logLevelNormalize(l);
   if (l == AR_LOG_NIL)
     return false;
   _lock();
-    _threshold = l; 
+    _threshold = l;
   _unlock();
   return true;
 }
@@ -128,7 +128,7 @@ string arLogStream::logLevel() {
   return s;
 }
 
-arLogStream& arLogStream::operator<<(short n){
+arLogStream& arLogStream::operator<<(short n) {
   if (!_preAppend())
     return *this;
   _buffer << n;
@@ -137,7 +137,7 @@ arLogStream& arLogStream::operator<<(short n){
   return *this;
 }
 
-arLogStream& arLogStream::operator<<(int n){
+arLogStream& arLogStream::operator<<(int n) {
   if (!_preAppend())
     return *this;
   _buffer << n;
@@ -146,7 +146,7 @@ arLogStream& arLogStream::operator<<(int n){
   return *this;
 }
 
-arLogStream& arLogStream::operator<<(long n){
+arLogStream& arLogStream::operator<<(long n) {
   if (!_preAppend())
     return *this;
   _buffer << n;
@@ -155,52 +155,52 @@ arLogStream& arLogStream::operator<<(long n){
   return *this;
 }
 
-arLogStream& arLogStream::operator<<(unsigned short n){
-  if (!_preAppend())
-    return *this;
-  _buffer << n;
-  _postAppend(); 
-  _finish();
-  return *this;
-}
-
-arLogStream& arLogStream::operator<<(unsigned int n){
-  if (!_preAppend())
-    return *this;
-  _buffer << n;
-  _postAppend(); 
-  _finish();
-  return *this;
-}
-
-arLogStream& arLogStream::operator<<(unsigned long n){
+arLogStream& arLogStream::operator<<(unsigned short n) {
   if (!_preAppend())
     return *this;
   _buffer << n;
   _postAppend();
   _finish();
-  return *this; 
+  return *this;
 }
 
-arLogStream& arLogStream::operator<<(float f){
+arLogStream& arLogStream::operator<<(unsigned int n) {
   if (!_preAppend())
     return *this;
-  _buffer << f;
-  _postAppend(); 
+  _buffer << n;
+  _postAppend();
   _finish();
   return *this;
 }
 
-arLogStream& arLogStream::operator<<(double f){
+arLogStream& arLogStream::operator<<(unsigned long n) {
+  if (!_preAppend())
+    return *this;
+  _buffer << n;
+  _postAppend();
+  _finish();
+  return *this;
+}
+
+arLogStream& arLogStream::operator<<(float f) {
   if (!_preAppend())
     return *this;
   _buffer << f;
   _postAppend();
   _finish();
-  return *this; 
+  return *this;
 }
 
-arLogStream& arLogStream::operator<<(bool n){
+arLogStream& arLogStream::operator<<(double f) {
+  if (!_preAppend())
+    return *this;
+  _buffer << f;
+  _postAppend();
+  _finish();
+  return *this;
+}
+
+arLogStream& arLogStream::operator<<(bool n) {
   if (!_preAppend())
     return *this;
   _buffer << n;
@@ -209,25 +209,25 @@ arLogStream& arLogStream::operator<<(bool n){
   return *this;
 }
 
-arLogStream& arLogStream::operator<<(const void* p){
+arLogStream& arLogStream::operator<<(const void* p) {
   if (!_preAppend())
     return *this;
   _buffer << p;
-  _postAppend(); 
+  _postAppend();
   _finish();
-  return *this; 
+  return *this;
 }
 
-arLogStream& arLogStream::operator<<(char c){
+arLogStream& arLogStream::operator<<(char c) {
   if (!_preAppend())
     return *this;
   _buffer << c;
-  _postAppend(); 
+  _postAppend();
   _finish();
-  return *this; 
+  return *this;
 }
 
-arLogStream& arLogStream::operator<<(const char* s){
+arLogStream& arLogStream::operator<<(const char* s) {
   if (!_preAppend())
     return *this;
   const char* pch = strchr(s, '\n');
@@ -237,21 +237,21 @@ arLogStream& arLogStream::operator<<(const char* s){
   }
   else {
     const unsigned l = strlen(s);
-    for (unsigned i = 0; i < l; ++i){
-      if (s[i] == '\n'){
-	_postAppend(true); 
+    for (unsigned i = 0; i < l; ++i) {
+      if (s[i] == '\n') {
+	_postAppend(true);
       }
       else{
 	_buffer << s[i];
       }
     }
   }
-  _postAppend(); 
+  _postAppend();
   _finish();
-  return *this; 
+  return *this;
 }
 
-arLogStream& arLogStream::operator<<(const string& s){
+arLogStream& arLogStream::operator<<(const string& s) {
   if (!_preAppend())
     return *this;
 
@@ -269,15 +269,15 @@ arLogStream& arLogStream::operator<<(const string& s){
     current = next + 1;
   }
   _finish();
-  return *this;  
+  return *this;
 }
 
 // For ar_endl and ar_hex.
-arLogStream& arLogStream::operator<<(arLogStream& (*f)(arLogStream&)){
-  return f(*this); 
+arLogStream& arLogStream::operator<<(arLogStream& (*f)(arLogStream&)) {
+  return f(*this);
 }
 
-bool arLogStream::_preAppend(){
+bool arLogStream::_preAppend() {
   // Serialize.
   if (_level <= _threshold) {
     _lock();
@@ -289,7 +289,7 @@ bool arLogStream::_preAppend(){
 }
 
 // Called from inside _lock, e.g., between _preAppend() and _finish().
-void arLogStream::_postAppend(bool flush){
+void arLogStream::_postAppend(bool flush) {
   // It is inefficient to copy a big string each time...
   // BUT we already assume that arLogStream
   // isn't high performance, at most 1000 accesses per second.
@@ -297,11 +297,11 @@ void arLogStream::_postAppend(bool flush){
     _flush();
 }
 
-void arLogStream::_finish(){
-  _unlock(); 
+void arLogStream::_finish() {
+  _unlock();
 }
 
-void arLogStream::_flush(const bool addNewline){
+void arLogStream::_flush(const bool addNewline) {
   if (!_l.locked() && _l.valid())
     cerr << "arLogStream warning: internal lock mismatch.\n";
   if (_buffer.str().empty())
@@ -335,14 +335,14 @@ void arLogStream::_flush(const bool addNewline){
       pos = now.find(" 0");
       if (pos != string::npos) {
 	// now == "Oct 02 08:01:24"
-	now = now.substr(0,pos+1) + now.substr(pos+2);
+	now = now.substr(0, pos+1) + now.substr(pos+2);
 	}
 
       // Strip leading zero of hour.
       pos = now.find(" 0", pos+5);
       if (pos != string::npos) {
 	// now == "Oct 2 08:01:24"
-	now = now.substr(0,pos+1) + now.substr(pos+2);
+	now = now.substr(0, pos+1) + now.substr(pos+2);
 	}
 
       s += " " + now;
@@ -362,7 +362,7 @@ LDone:
   _buffer.str(empty);
 }
 
-inline arLogStream& arLogStream::_setLevel(int l){
+inline arLogStream& arLogStream::_setLevel(int l) {
   _lock();
   if (ar_logLevelNormalize(l) != AR_LOG_NIL)
     _level = l;
@@ -370,35 +370,35 @@ inline arLogStream& arLogStream::_setLevel(int l){
   return *this;
 }
 
-arLogStream& ar_log(){
+arLogStream& ar_log() {
   static arLogStream l;
   return l;
 }
 
-arLogStream& ar_log_critical(){
+arLogStream& ar_log_critical() {
   return ar_log()._setLevel(AR_LOG_CRITICAL);
 }
 
-arLogStream& ar_log_error(){
+arLogStream& ar_log_error() {
   return ar_log()._setLevel(AR_LOG_ERROR);
 }
 
-arLogStream& ar_log_warning(){
+arLogStream& ar_log_warning() {
   return ar_log()._setLevel(AR_LOG_WARNING);
 }
 
-arLogStream& ar_log_remark(){
+arLogStream& ar_log_remark() {
   return ar_log()._setLevel(AR_LOG_REMARK);
 }
 
-arLogStream& ar_log_debug(){
+arLogStream& ar_log_debug() {
   return ar_log()._setLevel(AR_LOG_DEBUG);
 }
 
-arLogStream& ar_endl(arLogStream& s){
+arLogStream& ar_endl(arLogStream& s) {
   s._lock();
   s._flush(false);
-  if (s._level <= s._threshold){
+  if (s._level <= s._threshold) {
     cout << endl;
     if (s._output && (*s._output != cout)) {
       *s._output << endl;
@@ -408,10 +408,10 @@ arLogStream& ar_endl(arLogStream& s){
   return s;
 }
 
-arLogStream& ar_hex(arLogStream& s){
+arLogStream& ar_hex(arLogStream& s) {
   s._preAppend();
   s._buffer << std::hex;
-  s._postAppend(); 
+  s._postAppend();
   s._finish();
   return s;
 }

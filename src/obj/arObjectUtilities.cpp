@@ -8,7 +8,7 @@
 #include "arLogStream.h"
 
 // Deprecated.
-bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where){
+bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where) {
   arGraphicsNode* n = dgGetNode(where);
   return n && ar_mergeOBJandHTR(n, theOBJ, theHTR, "");
 }
@@ -19,15 +19,15 @@ bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where){
  *   same name. A good idea would be an option to do a
  *   "best guess" based on centers of nodes and segments.
  */
-bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, const string& objectName){
+bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, const string& objectName) {
   string name = (objectName == "") ? "object" : objectName;
   arGraphicsNode* n = theOBJ->attachPoints(parent, name+".points");
   theHTR->attachMesh(n, name);
-  for (int i=0; i<theOBJ->numberOfGroups(); i++){
+  for (int i=0; i<theOBJ->numberOfGroups(); i++) {
     const string groupName(theOBJ->nameOfGroup(i));
     const int j = theHTR->numberOfSegment(groupName);
     arTransformNode* inverseTransformNode = theHTR->inverseForSegment(j);
-    if (theOBJ->numberInGroup(i)>0 && inverseTransformNode){
+    if (theOBJ->numberInGroup(i)>0 && inverseTransformNode) {
       inverseTransformNode->setTransform(theHTR->inverseTransformForSegment(j));
       theOBJ->attachGroup(inverseTransformNode, i, name+"."+groupName);
       arBoundingSphere sphere = theOBJ->getGroupBoundingSphere(i);
@@ -40,7 +40,7 @@ bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, con
 
 #ifdef AR_USE_WIN_32
 // todo: move to szg/language
-#define strcasecmp(a,b) _stricmp(a,b)
+#define strcasecmp(a, b) _stricmp(a, b)
 #endif
 
 // Reads a file, determines the type, and returns a pointer to a newly-created arObject.
@@ -58,7 +58,7 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
   }
 
   string fullName(ar_fileFind(fileName, "", path));
-  if (fullName == "NULL"){
+  if (fullName == "NULL") {
     ar_log_error() << "arObjUtil: no file '" << fileName << "'.\n";
   }
   string suffix(fileName.substr(pos, fileName.length()-pos));
@@ -76,7 +76,7 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
     theHTR->readHTR(fullName);
     return theHTR;
   }
-    
+
   // 3D Studio Max
   if (suffix == ".3ds" || suffix == ".3DS") {
     ar3DS* the3DS = new ar3DS;

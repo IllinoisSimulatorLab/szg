@@ -25,13 +25,13 @@ class SZG_CALL arInputEvent {
     arInputEvent( const arInputEvent& e );
     arInputEvent& operator=( const arInputEvent& e );
     operator bool() const { return (_type != AR_EVENT_GARBAGE); }
-    
+
     arInputEventType getType() const { return _type; }
     unsigned getIndex() const { return _index; }
     int getButton() const;
     float getAxis() const;
     arMatrix4 getMatrix() const;
-    
+
     void setIndex( const unsigned i ) { _index = i; }
     bool setButton( const unsigned b );
     bool setAxis( const float a );
@@ -39,7 +39,7 @@ class SZG_CALL arInputEvent {
     bool setMatrix( const arMatrix4& m );
     void trash();
     void zero();
-    
+
   protected:
     arInputEvent( const arInputEventType type,
                   const unsigned index,

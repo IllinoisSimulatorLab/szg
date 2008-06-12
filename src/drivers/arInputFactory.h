@@ -39,7 +39,7 @@ class SZG_CALL arInputFactory {
     bool loadFilters( arInputNode& inputNode, const string& namedPForthProgram="" );
     arInputSource* findInputSource( const string& driverName );
   private:
-    void _printDriverNames( arLogStream& os ); 
+    void _printDriverNames( arLogStream& os );
     void _deleteSources();
     arInputNodeConfig _inputConfig;
     arSZGClient* _szgClientPtr;

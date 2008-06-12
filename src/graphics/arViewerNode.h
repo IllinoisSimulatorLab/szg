@@ -16,14 +16,14 @@
 class SZG_CALL arViewerNode: public arGraphicsNode{
  public:
   arViewerNode();
-  virtual ~arViewerNode(){}
+  virtual ~arViewerNode() {}
 
   void draw(arGraphicsContext*) {}
 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  arHead* getHead(){ return &_head; }
+  arHead* getHead() { return &_head; }
   void setHead(const arHead& head);
 
  protected:

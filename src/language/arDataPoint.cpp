@@ -34,7 +34,7 @@ arDataPoint::arDataPoint(int dataBufferSize) :
   // crashing clients shouldn't mess with us
   // this seems mainly helpful when a remote server terminates
   // during a client's write
-  signal(SIGPIPE,SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
 #endif
 }
 
@@ -46,9 +46,9 @@ arDataPoint::~arDataPoint() {
 // Grow the buffers used to receive data, both
 // the "local binary format buffer" and the "translation buffer",
 // and read data into the local binary format buffer. Don't use
-// built-in buffers (for instance the built-in 
+// built-in buffers (for instance the built-in
 // translation buffer), because objects like the arDataServer have multiple
-// simultaneous connections in seperate threads. 
+// simultaneous connections in seperate threads.
 // @param dest a pointer reference to the "local binary format buffer"
 // @param availableSize the allocated size of the "local ... buffer"
 // @param trans a pointer reference to the "translation buffer"
@@ -58,15 +58,15 @@ arDataPoint::~arDataPoint() {
 // is required
 // @param fd the socket from which we are reading data
 // @param remoteConfig the binary format of the remote peer
-bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize, 
+bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
                               ARchar*& trans, int& transSize,
-                              ARint& theSize, bool& fEndianMode, arSocket* fd, 
-                              const arStreamConfig& remoteConfig){
+                              ARint& theSize, bool& fEndianMode, arSocket* fd,
+                              const arStreamConfig& remoteConfig) {
   char temp[4];
-  if (!fd->ar_safeRead(temp,AR_INT_SIZE))
+  if (!fd->ar_safeRead(temp, AR_INT_SIZE))
     return false;
-  
-  theSize = ar_translateInt(temp,remoteConfig);
+
+  theSize = ar_translateInt(temp, remoteConfig);
   fEndianMode = (remoteConfig.endian == AR_ENDIAN_MODE);
   ARchar* pch = NULL;
   if (fEndianMode) {
@@ -90,9 +90,9 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
 // Simplified getDataCore for the single internal _translationBuffer.
 // Not thread-safe.
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
-                              ARint& theSize, bool& fEndianMode, arSocket* fd, 
-                              const arStreamConfig& remoteConfig){
-  return getDataCore(dest, availableSize, _translationBuffer, 
+                              ARint& theSize, bool& fEndianMode, arSocket* fd,
+                              const arStreamConfig& remoteConfig) {
+  return getDataCore(dest, availableSize, _translationBuffer,
 		     _translationBufferSize, theSize, fEndianMode, fd,
                      remoteConfig);
 }
@@ -101,16 +101,16 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
 // unconcerned about the size of the downloaded data (and also when one
 // is using the single internal _translationBuffer). NOTE: THIS IS NOT
 // THREAD-SAFE!
-bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize, 
-                              bool& fEndianMode, arSocket* fd, 
-                              const arStreamConfig& remoteConfig){
+bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
+                              bool& fEndianMode, arSocket* fd,
+                              const arStreamConfig& remoteConfig) {
   ARint size = -1;
-  return getDataCore(dest, availableSize, 
+  return getDataCore(dest, availableSize,
                      _translationBuffer, _translationBufferSize,
                      size, fEndianMode, fd, remoteConfig);
 }
 
-void arDataPoint::setBufferSize(int numBytes){
+void arDataPoint::setBufferSize(int numBytes) {
   if (numBytes < 256) {
     ar_log_debug() << "arDataPoint rounding buffer size " << numBytes << " up to 300.\n";
     numBytes = 300;
@@ -124,7 +124,7 @@ void arDataPoint::setBufferSize(int numBytes){
 
 bool arDataPoint::setReceiveBufferSize(arSocket* socket) {
   // If we haven't explicitly set the buffer size, use the OS defaults.
-  if (_bufferSize > 0 && 
+  if (_bufferSize > 0 &&
       (!socket->setSendBufferSize(_bufferSize)
        || !socket->setReceiveBufferSize(_bufferSize))) {
     cerr << "syzygy error: failed to set buffer size to " << _bufferSize << ".\n";
@@ -136,7 +136,7 @@ bool arDataPoint::setReceiveBufferSize(arSocket* socket) {
 arStreamConfig& arDataPoint::_handshakeReceive(arStreamConfig& config, arSocket* fd) {
   // Receive stuff from the other side.
   const string keys = _remoteConfigString(fd);
-  if (keys == "NULL"){
+  if (keys == "NULL") {
     config.valid = false;
     config.refused = true; // The connection attempt was refused.
     return config;
@@ -148,7 +148,7 @@ arStreamConfig& arDataPoint::_handshakeReceive(arStreamConfig& config, arSocket*
 }
 
 arStreamConfig arDataPoint::handshakeConnectTo(
-    arSocket* fd, arStreamConfig localConfig){
+    arSocket* fd, arStreamConfig localConfig) {
   // Caller is responsible for printing warnings.
   arStreamConfig config;
 
@@ -159,7 +159,7 @@ arStreamConfig arDataPoint::handshakeConnectTo(
 
   // As the connector-to, send first.
   const string configString = _constructConfigString(localConfig);
-  if (!fd->ar_safeWrite(configString.c_str(), configString.length())){
+  if (!fd->ar_safeWrite(configString.c_str(), configString.length())) {
     config.valid = false;
     return config;
   }
@@ -168,23 +168,23 @@ arStreamConfig arDataPoint::handshakeConnectTo(
 }
 
 arStreamConfig arDataPoint::handshakeReceiveConnection(arSocket* fd,
-						   arStreamConfig localConfig){
+						   arStreamConfig localConfig) {
   arStreamConfig config;
   // Bug: why does config get default values in handshakeConnectTo but not here?
   (void)_handshakeReceive(config, fd);
 
   // As the one receiving the connection, send second.
   string configString = _constructConfigString(localConfig);
-  if (!fd->ar_safeWrite(configString.c_str(),configString.length())){
+  if (!fd->ar_safeWrite(configString.c_str(), configString.length())) {
     config.valid = false;
   }
   return config;
 }
 
-string arDataPoint::_remoteConfigString(arSocket* fd){
+string arDataPoint::_remoteConfigString(arSocket* fd) {
   arTemplateDictionary configDictionary;
   arDataTemplate config("config");
-  config.add("keys",AR_CHAR);
+  config.add("keys", AR_CHAR);
   configDictionary.add(&config);
 
   // Receive stuff from the other side first.
@@ -192,14 +192,14 @@ string arDataPoint::_remoteConfigString(arSocket* fd){
   arSocketTextStream socketStream;
   socketStream.setSource(fd);
   arStructuredData* remoteConfig = parser.parse(&socketStream);
-  if (!remoteConfig){
+  if (!remoteConfig) {
     // This happens mainly when the other connection end rejects
     // our connection attempt outright (for instance when our IP address
     // does not meet the filtering requirements)
 
     // It might also happen if the other end does not speak the szg connection
     // protocol.
-    
+
     // Do not complain here.
     return "NULL";
   }
@@ -208,7 +208,7 @@ string arDataPoint::_remoteConfigString(arSocket* fd){
   return result;
 }
 
-string arDataPoint::_constructConfigString(const arStreamConfig& config){
+string arDataPoint::_constructConfigString(const arStreamConfig& config) {
   // Manually build up the string to send out,
   // instead of relying on the arStructuredData infrastructure.
   // Note the MAGIC version number.
@@ -220,7 +220,7 @@ string arDataPoint::_constructConfigString(const arStreamConfig& config){
 }
 
 map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
-						   const string& text){
+						   const string& text) {
   map<string, string, less<string> > tokens;
   // Tokenize the string.
   stringstream s;
@@ -228,15 +228,15 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
   string myToken;
   while (true) {
     s >> myToken;
-    if (!s.fail()){
+    if (!s.fail()) {
       const unsigned position = myToken.find("=");
-      if (position == string::npos){
+      if (position == string::npos) {
 	cerr << "arDataPoint error: invalid token.\n";
 	continue;
       }
       const string key(myToken.substr(0, position));
       const string value(myToken.substr(position+1, myToken.length()-position-1));
-      tokens.insert(map<string,string,less<string> >::value_type(key, value));
+      tokens.insert(map<string, string, less<string> >::value_type(key, value));
     }
     if (s.eof())
       break;
@@ -244,13 +244,13 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
   return tokens;
 }
 
-void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
+void arDataPoint::_fillConfig(arStreamConfig& config, const string& text) {
   config.refused = false;
   config.valid = false;
 
-  const map<string,string,less<string> > table = _parseKeyValueBlock(text);
-  map<string,string,less<string> >::const_iterator iter = table.find("version");
-  if (iter == table.end()){
+  const map<string, string, less<string> > table = _parseKeyValueBlock(text);
+  map<string, string, less<string> >::const_iterator iter = table.find("version");
+  if (iter == table.end()) {
     // No version key.
     config.version = -2;
     return;
@@ -262,23 +262,23 @@ void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
     return;
   }
 
-  if (config.version != SZG_VERSION_NUMBER){
+  if (config.version != SZG_VERSION_NUMBER) {
     // Version mismatch.
     return;
   }
 
   // Extract the endian-ness of the remote connection.
   iter = table.find("endian");
-  if (iter == table.end()){
+  if (iter == table.end()) {
     // No endian key.
     config.endian = AR_UNDEFINED_ENDIAN;
     return;
   }
 
-  if (iter->second == "little"){
+  if (iter->second == "little") {
     config.endian = AR_LITTLE_ENDIAN;
   }
-  else if (iter->second == "big"){
+  else if (iter->second == "big") {
     config.endian = AR_BIG_ENDIAN;
   }
   else{
@@ -288,7 +288,7 @@ void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
 
   // Extract the ID of the remote connection.
   iter = table.find("ID");
-  if (iter == table.end()){
+  if (iter == table.end()) {
     // No ID tag.
     return;
   }

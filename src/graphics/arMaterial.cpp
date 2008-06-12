@@ -7,17 +7,17 @@
 #include "arMaterial.h"
 #include "arGraphicsHeader.h"
 
-arMaterial::arMaterial(){
+arMaterial::arMaterial() {
   // Default color is white, other defaults are OpenGL's.
-  diffuse = arVector3(1,1,1);
-  ambient = arVector3(0.2,0.2,0.2);
-  specular = arVector3(0,0,0);
-  emissive = arVector3(0,0,0);
+  diffuse = arVector3(1, 1, 1);
+  ambient = arVector3(0.2, 0.2, 0.2);
+  specular = arVector3(0, 0, 0);
+  emissive = arVector3(0, 0, 0);
   exponent = 0;
   alpha = 1;
 }
 
-arMaterial::arMaterial(const arMaterial& rhs){
+arMaterial::arMaterial(const arMaterial& rhs) {
   diffuse = rhs.diffuse;
   ambient = rhs.ambient;
   specular = rhs.specular;
@@ -26,7 +26,7 @@ arMaterial::arMaterial(const arMaterial& rhs){
   alpha = rhs.alpha;
 }
 
-void arMaterial::activateMaterial(){
+void arMaterial::activateMaterial() {
   arVector4 temp(diffuse[0], diffuse[1], diffuse[2], alpha);
   if (glIsEnabled( GL_LIGHTING )) {
     // Fishy. This doesn't support the *full* OpenGL.

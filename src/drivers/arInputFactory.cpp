@@ -280,7 +280,7 @@ bool arInputFactory::loadInputSources( arInputNode& inputNode,
     }
   }
   ar_log_debug() << "SLOT NUMBER: " << slotNumber << ar_endl;
-  if (fNetInput){
+  if (fNetInput) {
     // Add an implicit net input source.
     arNetInputSource* implicitNetInputSource = new arNetInputSource();
     if (!implicitNetInputSource) {

@@ -27,10 +27,10 @@ void arNavInteractable::setMatrix( const arMatrix4& matrix ) {
 }
 
 arNavManager::arNavManager() :
-  _effector(1,0,0,0,0,0,0),
+  _effector(1, 0, 0, 0, 0, 0, 0),
   _navObject(),
-  _transSpeeds(5,5,5),
-  _rotSpeeds(0,0,0) {
+  _transSpeeds(5, 5, 5),
+  _rotSpeeds(0, 0, 0) {
   _effector.setInteractionSelector( arAlwaysInteractionSelector() );
   _navObject.useDefaultDrags( false );
 }
@@ -122,7 +122,7 @@ void arNavManager::setTransSpeed( float speed ) {
       _navObject.setDrag(
         _transConditions[i], arNavTransDrag( (char)(i+'x'), speed ) );
     }
-  }   
+  }
 }
 
 void arNavManager::setRotSpeed( float degPerSec ) {
@@ -132,7 +132,7 @@ void arNavManager::setRotSpeed( float degPerSec ) {
       _navObject.setDrag(
 	_rotConditions[i], arNavRotDrag( (char)(i+'x'), degPerSec ) );
     }
-  }   
+  }
 }
 
 void arNavManager::setEffector( const arEffector& effector ) {

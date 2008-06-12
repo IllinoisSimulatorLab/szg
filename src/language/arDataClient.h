@@ -33,7 +33,7 @@ class SZG_CALL arDataClient : public arDataPoint {
    bool sendData(arStructuredData*);
 
    arStreamConfig getRemoteStreamConfig() const
-     { return _remoteStreamConfig; } 
+     { return _remoteStreamConfig; }
    arSocket* getSocket() const
      { return _socket; }
    int getSocketIDRemote() const
@@ -41,13 +41,13 @@ class SZG_CALL arDataClient : public arDataPoint {
    const string& getLabel() const
      { return _exeName; }
    void setLabel(const string& exeName);
-   
+
  private:
    arTemplateDictionary* _theDictionary;
-   arSocket* _socket; 
+   arSocket* _socket;
    string _exeName; // for diagnostics
 
-   int _socketIDRemote; 
+   int _socketIDRemote;
    arStreamConfig _remoteStreamConfig;
 
    bool _activeConnection;

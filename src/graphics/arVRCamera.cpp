@@ -64,7 +64,7 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
 // without putting it directly on the OpenGL matrix stack. This is useful
 // for authoring applications that use a different engine than OpenGL.
 // Not const: sets _complained.
-arMatrix4 arVRCamera::getModelviewMatrix(){
+arMatrix4 arVRCamera::getModelviewMatrix() {
   arGraphicsScreen* screen = getScreen();
   if ((!_head)||(!screen)) {
     if (!_complained) {
@@ -94,7 +94,7 @@ arMatrix4 arVRCamera::getModelviewMatrix(){
 }
 
 // Puts the viewing matrices on the OpenGL stack.
-void arVRCamera::loadViewMatrices(){
+void arVRCamera::loadViewMatrices() {
 //  GLint drawBuffers = -1;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffers );
 //  cerr << "Eye sign\n" << getEyeSign() << ", drawBuffers = " << drawBuffers << endl;
@@ -130,7 +130,7 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
 
   arMatrix4 demoRotMatrix;
   int j = 0;
-  for (int i=0; i<9; i+=4,j++) {
+  for (int i=0; i<9; i+=4, j++) {
     demoRotMatrix[i  ] = xPrime.v[j];
     demoRotMatrix[i+1] = yPrime.v[j];
     demoRotMatrix[i+2] = zHat.v[j];

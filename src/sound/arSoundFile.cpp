@@ -80,7 +80,7 @@ static FMOD_RESULT F_CALLBACK pcmsetposcallback(FMOD_SOUND *, int, unsigned, FMO
 }
 #endif
 
-bool arSoundFile::dummy(){
+bool arSoundFile::dummy() {
 #ifdef EnableSound
   FMOD_CREATESOUNDEXINFO ex = {0};
   ex.cbsize = sizeof(ex);
@@ -91,7 +91,7 @@ bool arSoundFile::dummy(){
   ex.format = FMOD_SOUND_FORMAT_PCM16;
   ex.pcmreadcallback = pcmreadcallback;
   ex.pcmsetposcallback = pcmsetposcallback;
-  return ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), 
+  return ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(),
       0, FMOD_2D | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &ex, &_psamp)) &&
     _psamp != NULL;
 #else
@@ -99,7 +99,7 @@ bool arSoundFile::dummy(){
 #endif
 }
 
-arSoundFile::~arSoundFile(){
+arSoundFile::~arSoundFile() {
 #ifdef EnableSound
   if (_psamp)
     (void)ar_fmodcheck( FMOD_Sound_Release( _psamp ));

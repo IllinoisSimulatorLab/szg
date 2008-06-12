@@ -21,7 +21,7 @@ typedef HWND                Hwnd;
 #elif defined __LP64__
 
 typedef unsigned char       BYTE;
-typedef unsigned int        DWORD;  
+typedef unsigned int        DWORD;
 typedef int                 LONG;
 typedef int                 Bool;
 typedef unsigned short      WORD;
@@ -30,7 +30,7 @@ typedef int                 Hwnd;
 #else
 
 typedef unsigned char       BYTE;
-typedef unsigned long       DWORD;  
+typedef unsigned long       DWORD;
 typedef long                LONG;
 typedef long                Bool;
 typedef unsigned short      WORD;

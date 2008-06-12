@@ -52,13 +52,13 @@ class SZG_CALL arSoundDatabase: public arDatabase {
   arStructuredData* speechData;
   arStructuredData* streamData;
 
-  arSoundLanguage _langSound;  
+  arSoundLanguage _langSound;
 
  protected:
   int _renderMode;
   mutable arLock _pathLock; // Guard _path.
   list<string>*  _path;
-  map<string,arSoundFile*,less<string> > _filewavNameContainer;
+  map<string, arSoundFile*, less<string> > _filewavNameContainer;
 
   bool _render(arSoundNode*);
   virtual arDatabaseNode* _makeNode(const string& type);

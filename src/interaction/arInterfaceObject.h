@@ -20,7 +20,7 @@ class SZG_CALL arInterfaceObject{
  public:
   arInterfaceObject();
   ~arInterfaceObject();
-  
+
   void setInputDevice(arInputNode*);
   bool start();
   void setNavMatrix(const arMatrix4&);
@@ -29,22 +29,22 @@ class SZG_CALL arInterfaceObject{
   arMatrix4 getObjectMatrix() const;
 
   void setSpeedMultiplier(float);
-  
+
   void setNumMatrices( const int num );
   void setNumButtons( const int num );
   void setNumAxes( const int num );
-  
+
   int getNumMatrices() const;
   int getNumButtons() const;
   int getNumAxes() const;
-  
+
   bool setMatrix( const int num, const arMatrix4& mat );
   bool setButton( const int num, const int but );
   bool setAxis( const int num, const float val );
   void setMatrices( const arMatrix4* matPtr );
   void setButtons( const int* butPtr );
   void setAxes( const float* axisPtr );
-  
+
   arMatrix4 getMatrix( const int num ) const;
   int getButton( const int num ) const;
   float getAxis( const int num ) const;
@@ -58,12 +58,12 @@ class SZG_CALL arInterfaceObject{
 
   bool _grabbed;
   arMatrix4 _mGrab;
-  
+
   mutable arLock _infoLock;
 
   arMatrix4 _mNav;
   arMatrix4 _mObj;
-  
+
   std::vector<arMatrix4> _matrices;
   std::vector<int> _buttons;
   std::vector<float> _axes;

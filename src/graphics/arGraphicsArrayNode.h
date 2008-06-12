@@ -16,9 +16,9 @@ class SZG_CALL arGraphicsArrayNode : public arGraphicsNode {
     _nodeDataType(t),
     _arrayStride(s)
     {}
-  virtual ~arGraphicsArrayNode(){}
+  virtual ~arGraphicsArrayNode() {}
 
-  void draw(arGraphicsContext*){}
+  void draw(arGraphicsContext*) {}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

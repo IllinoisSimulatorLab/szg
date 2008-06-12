@@ -32,7 +32,7 @@ class SZG_CALL arBarrierClient{
   bool init(arSZGClient& client);
   bool start();
   void stop();
-  void setTuningData(int,int,int,int);
+  void setTuningData(int, int, int, int);
   int  getServerSendSize() const
     { return _serverSendSize; }
   bool sync();
@@ -70,12 +70,12 @@ class SZG_CALL arBarrierClient{
   int BONDED_ID;
   int CLIENT_TUNING_DATA;
   int SERVER_TUNING_DATA;
-  
+
   bool _activated;        // has the connection been activated?
 
   bool _connected;
   bool _keepRunningThread;
-  
+
   arThread _connectionThread;
   arThread _dataThread;
   arSignalObject _releaseSignal;

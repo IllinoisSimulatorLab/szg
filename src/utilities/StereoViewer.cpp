@@ -16,7 +16,7 @@ bool twoImages = false;
 
 bool init(arMasterSlaveFramework&, arSZGClient& cli) {
   const string dataPath = cli.getDataPath();
-  if (!leftImage.readPPM( leftFile, dataPath )){
+  if (!leftImage.readPPM( leftFile, dataPath )) {
     cerr << "StereoViewer error: failed to read picture file \"" << leftFile
            << "\" from path " << dataPath << ".\n";
     return false;
@@ -28,7 +28,7 @@ bool init(arMasterSlaveFramework&, arSZGClient& cli) {
   cout << "StereoViewer remark: Image size " << leftImage.getWidth()/2 << " X "
        << leftImage.getHeight() << endl;
   if (twoImages) {
-    if (!rightImage.readPPM( rightFile, dataPath )){
+    if (!rightImage.readPPM( rightFile, dataPath )) {
       cerr << "StereoViewer error: failed to read picture file " << rightFile
            << " from path " << dataPath << ".\n";
       return false;
@@ -40,7 +40,7 @@ bool init(arMasterSlaveFramework&, arSZGClient& cli) {
     }
   }
 
-  glClearColor(0,0,0,0); // OpenGL initialization
+  glClearColor(0, 0, 0, 0); // OpenGL initialization
   return true;
 }
 
@@ -80,12 +80,12 @@ void display( arMasterSlaveFramework&, arGraphicsWindow& graphicsWindow, arViewp
 void reshape(arMasterSlaveFramework&, int width, int height) {
   screenWidth = width;
   screenHeight = height;
-  glViewport(0,0,width,height);
+  glViewport(0, 0, width, height);
 }
 #endif
 
 void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
-  if( !windowInfo )
+  if ( !windowInfo )
     return;
 
   switch( windowInfo->getState() ) {
@@ -100,7 +100,7 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
   }
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   twoImages = false;
   switch (argc) {
   case 3:

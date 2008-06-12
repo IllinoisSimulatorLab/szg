@@ -17,14 +17,14 @@
 #endif
 #ifdef AR_USE_DARWIN
   #define MAXFLOAT ((float)3.40282346638528860e+38)
-  const float BIGGEST_FLOAT = MAXFLOAT; 
+  const float BIGGEST_FLOAT = MAXFLOAT;
 #endif
 #if defined(AR_USE_SGI) || defined(AR_USE_LINUX)
-  #include <values.h> // for MAXFLOAT         
+  #include <values.h> // for MAXFLOAT
   const float BIGGEST_FLOAT = MAXFLOAT;
 #endif
 
-// The main method via which we interact with objects. The effector 
+// The main method via which we interact with objects. The effector
 // represents an interaction device that can touch and grab interactables.
 // If the effector has grabbed something in the list,
 // manipulate that interactable with this effector
@@ -48,7 +48,7 @@ bool ar_pollingInteraction( arEffector& effector,
     if ((*grabbedIter)->enabled()) {
       // If it's grabbed an object in this set, interact only with it.
       return (*grabbedIter)->processInteraction( effector );
-    } 
+    }
   }
   // Figure out the closest interactable to the effector (as determined
   // by their matrices). Touch it, while untouching the
@@ -64,12 +64,12 @@ bool ar_pollingInteraction( arEffector& effector,
         touchedIter = iter;
       }
     }
-  }  
+  }
   arInteractable* touchedPtr = effector.getTouchedObject();
   if (touchedPtr && touchedPtr != *touchedIter) {
     touchedPtr->untouch( effector );
   }
-  if (touchedIter == objects.end()){ 
+  if (touchedIter == objects.end()) {
     // Not touching any objects.
     return false;
   }

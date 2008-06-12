@@ -44,9 +44,9 @@ class SZG_CALL arSyncDataServer{
   bool setDictionary(arTemplateDictionary*);
   void setBondedObject(void*);
   void setConnectionCallback
-    (bool (*connectionCallback)(void*,arQueuedData*,list<arSocket*>*));
+    (bool (*connectionCallback)(void*, arQueuedData*, list<arSocket*>*));
   void setMessageCallback
-    (arDatabaseNode* (*messageCallback)(void*,arStructuredData*));
+    (arDatabaseNode* (*messageCallback)(void*, arStructuredData*));
 
   void setServiceName(const string&);
   void setChannel(const string&);
@@ -87,13 +87,13 @@ class SZG_CALL arSyncDataServer{
   bool _exitProgram;
   bool _sendThreadRunning;
 
-  bool (*_connectionCallback)(void*,arQueuedData*,list<arSocket*>*);
-  arDatabaseNode* (*_messageCallback)(void*,arStructuredData*);
+  bool (*_connectionCallback)(void*, arQueuedData*, list<arSocket*>*);
+  arDatabaseNode* (*_messageCallback)(void*, arStructuredData*);
 
   string _channel;
 
-  // Variables related to the local connection, if we are operating in 
-  // that mode (i.e. one arSyncDataServer and one arSyncDataClient in a 
+  // Variables related to the local connection, if we are operating in
+  // that mode (i.e. one arSyncDataServer and one arSyncDataClient in a
   // single process, when standalone)
   bool           _locallyConnected; // an arSyncDataClient is in our process
   int            _localConsumerReady;

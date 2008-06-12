@@ -15,11 +15,11 @@
 
 class SZG_CALL arTextStream{
  public:
-  arTextStream(){}
-  virtual ~arTextStream(){}
+  arTextStream() {}
+  virtual ~arTextStream() {}
 
   // By convention, ar_getc should return an unsigned char converted to an int.
-  virtual int ar_getc(){ return EOF; }
+  virtual int ar_getc() { return EOF; }
 
   // ar_ungetc is expected to behave as follows:
   //   1. The next call to ar_getc() returns the int pushed via ar_ungetc.
@@ -27,7 +27,7 @@ class SZG_CALL arTextStream{
   //   3. Multiple calls to ar_ungetc() between calls to ar_getc() just
   //      change the int to be returned at the next ar_getc() call.
   //      In other words, the stack is only guaranteed to be one deep.
-  virtual void ar_ungetc(int){}
+  virtual void ar_ungetc(int) {}
 };
 
 #endif

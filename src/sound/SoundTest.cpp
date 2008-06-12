@@ -11,7 +11,7 @@
 #include "arSoundAPI.h"
 
 #ifdef AR_USE_WIN_32
-inline float drand48(){
+inline float drand48() {
   return float(rand()) / float(RAND_MAX);
 }
 #endif
@@ -40,7 +40,7 @@ int speechID = -1;
  *
  */
 
-void initDatabase(){
+void initDatabase() {
   const float xyz[3] = { 1, 2, 3 };
   fooID = dsLoop("foo", "root", "parade.wav", 0, 0.0, xyz);
   barID = dsLoop("bar", "root", "q33move.mp3", 1, 0.3, xyz);
@@ -49,7 +49,7 @@ void initDatabase(){
   (void)dsLoop("unchanging", "root", "q33beep.wav", 1, 0.1, xyz);
 }
 
-void changeDatabase(){
+void changeDatabase() {
   float xyz[3] = { drand48()-.5, drand48()-.5, drand48()-.5 };
   static int trigger = 0;
   ++trigger;
@@ -59,7 +59,7 @@ void changeDatabase(){
   dsSpeak(speechID, "I can talk." );
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -68,18 +68,18 @@ int main(int argc, char** argv){
   arSoundServer soundServer;
   dsSetSoundDatabase(&soundServer);
 
-  if (!soundServer.init(szgClient)){
+  if (!soundServer.init(szgClient)) {
     ar_log_critical() << "SoundTest server failed to init.\n";
     return 1;
   }
-  if (!soundServer.start()){
+  if (!soundServer.start()) {
     ar_log_critical() << "SoundTest server failed to start.\n";
     return 1;
   }
 
   arThread dummy(ar_messageTask, &szgClient);
   initDatabase();
-  while (szgClient.running()){
+  while (szgClient.running()) {
     ar_usleep(5000000);
     changeDatabase();
   }

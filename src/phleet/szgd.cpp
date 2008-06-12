@@ -61,7 +61,7 @@ void warnTwice( ostream& errStream, const string& msg ) {
 
   where SZG_PYTHON/path = python_directory1;python_directory2.
 
-  In this case, if pyfile == python_script_2.py, then 
+  In this case, if pyfile == python_script_2.py, then
   python_directory1/my_app_directory_2 will be returned.
 
   Syzygy 1.1 adds a similar launching strategy for C++ apps.
@@ -135,7 +135,7 @@ bool getBasePaths( const char* const arg ) {
   return true;
 }
 
-string getAppPath( const string& userName, const string& groupName, const string& appFile, 
+string getAppPath( const string& userName, const string& groupName, const string& appFile,
     ostringstream& errStream ) {
   const string appPath = SZGClient->getAttribute( userName, "NULL", groupName, "path", "");
   if (appPath == "NULL") {
@@ -264,7 +264,7 @@ class ExecInfo{
 string argsAsList(const list<string>& args) {
   string s("(");
   for (list<string>::const_iterator iter = args.begin();
-       iter != args.end(); ++iter){
+       iter != args.end(); ++iter) {
     if (iter != args.begin())
       s += ", ";
     s += *iter;
@@ -296,7 +296,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
                        string& execPath,
                        string& symbolicCommand,
                        string& command,
-                       list<string>& args){
+                       list<string>& args) {
   const string userName(execInfo->userName);
   const string argString(execInfo->messageBody);
 
@@ -318,7 +318,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
 
   ostringstream errStream;
   execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
-  if (execPath == "NULL"){
+  if (execPath == "NULL") {
     errStream << "no SZG_EXEC/path.\n";
   }
 
@@ -516,11 +516,11 @@ static void TweakPath(string& path) {
 #endif
 }
 
-void execProcess(void* i){
+void execProcess(void* i) {
   ExecInfo* execInfo = (ExecInfo*)i;
   const string& userName = execInfo->userName;
   const string& messageContext = execInfo->messageContext;
-  const int receivedMessageID = execInfo->receivedMessageID; 
+  const int receivedMessageID = execInfo->receivedMessageID;
 
   // Respond to the message ourselves, if the exe doesn't launch.
   ostringstream info;
@@ -574,7 +574,7 @@ LDone:
   //   4. The native DLL search path (i.e. LD_LIBRARY_PATH or
   //      DYLD_LIBRARY_PATH or LD_LIBRARYN32_PATH or PATH)
   //      as held by the user running szgd.
-  // This path is altered for both "native" AND "python" exes. 
+  // This path is altered for both "native" AND "python" exes.
 
   // The python module search path is modified for each user,
   // for similar reasons. By default, python seems to prepend
@@ -601,8 +601,8 @@ LDone:
     "DYLD_LIBRARY_PATH";
 #endif
 
-  const string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path","");
-  const string nativeLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
+  const string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
+  const string nativeLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB", "path", "");
 
   // Construct the new dynamic library path.
 #ifdef AR_USE_WIN_32
@@ -778,7 +778,7 @@ LDone:
   ar_setenv("SZGCONTEXT", messageContext);
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingStr);
-  
+
   ar_log_remark() << "libpath =\n  " << DLLPath << "\n";
   ar_setenv(envDLLPath, DLLPath);
   if (execInfo->fPython()) {
@@ -839,7 +839,7 @@ LDone:
   *((int*)numberBuffer) = terminalOutput.length();
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, sizeof(int))) {
      ar_log_remark() << "failed to complete pipe-based handshake.\n";
-  }   
+  }
   if (!ar_safePipeWrite( pipeDescriptors[1],
                          terminalOutput.c_str(),
 			 terminalOutput.length())) {
@@ -874,7 +874,7 @@ LDone:
   }
 
   // Set a few env vars for the child process.
-  ar_setenv("SZGUSER",userName);
+  ar_setenv("SZGUSER", userName);
   ar_setenv("SZGCONTEXT", messageContext);
 
   // Although the pipe *communicates* with the child only in unix, still
@@ -918,9 +918,9 @@ LDone:
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
   ar_log_remark() << "cmd = " << command << ", args = " << argsBuffer << "\n";
   // The child might fail after being created, e.g. if a DLL is missing.
-  const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
+  const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL,
 		     NULL, NULL, false,
-		     NORMAL_PRIORITY_CLASS, NULL, NULL, 
+		     NORMAL_PRIORITY_CLASS, NULL, NULL,
 		     &si, &theInfo);
 
   // Restore variables before unlocking.
@@ -1019,14 +1019,14 @@ int main(int argc, char** argv) {
   // Should we test for this?
 
   // Kill zombie processes.
-  signal(SIGCHLD,SIG_IGN);
+  signal(SIGCHLD, SIG_IGN);
 #endif
 
   if (argc < 2) {
     printUsage();
     return 1;
   }
-  
+
   if (!getBasePaths( argv[1] )) {
     printUsage();
     return 1;

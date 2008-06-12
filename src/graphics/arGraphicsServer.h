@@ -15,9 +15,9 @@
 class SZG_CALL arGraphicsServer: public arGraphicsDatabase {
   // Needs assignment operator and copy constructor, for pointer member.
   friend bool
-    ar_graphicsServerConnectionCallback(void*,arQueuedData*,list<arSocket*>*);
+    ar_graphicsServerConnectionCallback(void*, arQueuedData*, list<arSocket*>*);
   friend arDatabaseNode*
-    ar_graphicsServerMessageCallback(void*,arStructuredData*);
+    ar_graphicsServerMessageCallback(void*, arStructuredData*);
  public:
   arGraphicsServer();
   ~arGraphicsServer();
@@ -30,7 +30,7 @@ class SZG_CALL arGraphicsServer: public arGraphicsDatabase {
   // tacked on to the indicated node in the case of node creation).
   arDatabaseNode* alter(arStructuredData*, bool refNode=false);
 
-  arSyncDataServer _syncServer; 
+  arSyncDataServer _syncServer;
 
  protected:
   virtual arDatabaseNode* _makeNode(const string& type);

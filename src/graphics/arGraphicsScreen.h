@@ -38,7 +38,7 @@ class SZG_CALL arGraphicsScreen {
                                              int( tile[ 2 ] ), int( tile[ 3 ] ) ); }
 
   void setTile( int tileX, int numberTilesX, int tileY, int numberTilesY );
-  arVector4 getTile(){ return arVector4(_tileX, _numberTilesX,
+  arVector4 getTile() { return arVector4(_tileX, _numberTilesX,
                                         _tileY, _numberTilesY); }
 
   bool setUseFixedHeadMode( const std::string& usageMode );

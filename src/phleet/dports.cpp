@@ -8,9 +8,9 @@
 
 #include "arPhleetConfig.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arPhleetConfig config;
-  if (argc != 3){
+  if (argc != 3) {
     cout << "usage: dports first size\n";
     return 1;
   }

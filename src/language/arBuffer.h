@@ -30,8 +30,8 @@ template<class T> class arBuffer{
   int _numElements;
 };
 
-template<class T> arBuffer<T>::arBuffer(int numElements){
-  if (numElements < 1){
+template<class T> arBuffer<T>::arBuffer(int numElements) {
+  if (numElements < 1) {
     cerr << "warning: arBuffer initialized with nonpositive size "
          << numElements << endl;
     numElements = 1;
@@ -43,19 +43,19 @@ template<class T> arBuffer<T>::arBuffer(int numElements){
   pushPosition = 0;
 }
 
-template <class T> arBuffer<T>::~arBuffer(){
+template <class T> arBuffer<T>::~arBuffer() {
   delete [] data;
 }
 
-template <class T> void arBuffer<T>::resize(int numElements){
-  if (numElements<1){
+template <class T> void arBuffer<T>::resize(int numElements) {
+  if (numElements<1) {
     cerr << "warning: arBuffer resized with nonpositive size "
          << numElements << endl;
     numElements=1;
   }
   T* newPtr = new T[numElements];
   memset(newPtr, 0,  numElements * sizeof(T));
-  if (numElements < _numElements){
+  if (numElements < _numElements) {
     cerr << "warning: arBuffer shrinking from "
          << _numElements << " to " << numElements << " elements.\n";
     _numElements = numElements; // we're shrinking, not growing!
@@ -69,13 +69,13 @@ template <class T> void arBuffer<T>::resize(int numElements){
   delete [] temp;
 }
 
-template <class T> void arBuffer<T>::grow(int numElements){
+template <class T> void arBuffer<T>::grow(int numElements) {
   if (numElements > size())
     resize(numElements);
 }
 
-template <class T> void arBuffer<T>::push(T element){
-  if (pushPosition >= _numElements){
+template <class T> void arBuffer<T>::push(T element) {
+  if (pushPosition >= _numElements) {
     // This isn't strictly correct...
     grow(2*_numElements + 1);
   }

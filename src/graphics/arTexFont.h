@@ -27,7 +27,7 @@ class SZG_CALL arTextBox {
   // NOTE: The height of the text box is, essentially, calculated
   // from the physical width and the proportions of the font.
   arTextBox( float w=2.0, int cols=80, float spacing=1.2,
-             arVector3 upLeft=arVector3(0,0,0), arVector3 col=arVector3(1,1,1),
+             arVector3 upLeft=arVector3(0, 0, 0), arVector3 col=arVector3(1, 1, 1),
              int tabW=2 ) :
     width( w ),
     columns( cols ),
@@ -36,7 +36,7 @@ class SZG_CALL arTextBox {
     color( col ),
     tabWidth( tabW ) {
     }
-  ~arTextBox(){}
+  ~arTextBox() {}
 
   float width;
   int columns;
@@ -51,7 +51,7 @@ class SZG_CALL arTexFont
   public:
     arTexFont();
     ~arTexFont();
-    
+
     bool load( const string& fontFilePath,
                int transparentColor=0 );
     void setFontTexture( const arTexture& newFont );
@@ -70,10 +70,9 @@ class SZG_CALL arTexFont
     bool renderFile(const string& filename, arTextBox& format);
 
   private:
-    arTexture _fontTexture;   
+    arTexture _fontTexture;
     float _charWidth;
     float _charHeight;
-
 };
 
 #endif

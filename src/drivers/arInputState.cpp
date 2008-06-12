@@ -116,7 +116,7 @@ bool arInputState::setMatrix( const unsigned iMatrix, const arMatrix4& value) {
 void arInputState::setSignature( const unsigned numButtons,
 				 const unsigned numAxes,
 				 const unsigned numMatrices,
-                                 bool printWarnings){
+                                 bool printWarnings) {
   arGuard dummy(_l);
   _setSignature(numButtons, numAxes, numMatrices, printWarnings);
 }
@@ -156,7 +156,7 @@ bool arInputState::_setButton( const unsigned iButton, const int value ) {
   if (iButton >= _buttons.size()) {
     _buttons.insert( _buttons.end(), iButton - _buttons.size() + 1, 0 );
   }
-  if (iButton >= _lastButtons.size()){
+  if (iButton >= _lastButtons.size()) {
     _lastButtons.insert( _lastButtons.end(), iButton - _lastButtons.size() + 1, 0 );
   }
   _lastButtons[iButton] = _buttons[iButton];
@@ -187,7 +187,7 @@ void arInputState::_setSignature( const unsigned numButtons,
   // It's possible to lose pending events if numXXX is decreased.
   bool changed = false;
   if (numButtons < _buttons.size()) {
-    if (printWarnings){
+    if (printWarnings) {
       ar_log_error() << "arInputState buttons reduced to " << numButtons << ".\n";
     }
     _buttons.erase( _buttons.begin()+numButtons, _buttons.end() );
@@ -200,7 +200,7 @@ void arInputState::_setSignature( const unsigned numButtons,
   }
 
   if (numAxes < _axes.size()) {
-    if (printWarnings){
+    if (printWarnings) {
       ar_log_error() << "arInputState axes reduced to " << numAxes << ".\n";
     }
     _axes.erase( _axes.begin()+numAxes, _axes.end() );
@@ -211,7 +211,7 @@ void arInputState::_setSignature( const unsigned numButtons,
   }
 
   if (numMatrices < _matrices.size()) {
-    if (printWarnings){
+    if (printWarnings) {
       ar_log_error() << "arInputState matrices reduced to " << numMatrices << ".\n";
     }
     _matrices.erase( _matrices.begin()+numMatrices, _matrices.end() );
@@ -221,7 +221,7 @@ void arInputState::_setSignature( const unsigned numButtons,
     changed = true;
   }
 
-  if (changed && printWarnings){
+  if (changed && printWarnings) {
     ar_log_remark() << "arInputState signature (" << _buttons.size() << ", " <<
       _axes.size() << ", " << _matrices.size() << ").\n";
   }
@@ -256,7 +256,7 @@ void arInputState::addInputDevice( const unsigned numButtons,
     _buttonInputMap.getNumberDevices()-1 << " (" << numButtons << "," <<
     numAxes << "," << numMatrices << ").\n";
 }
-                         
+
 void arInputState::remapInputDevice( const unsigned iDevice,
                                      const unsigned numButtons,
                                      const unsigned numAxes,

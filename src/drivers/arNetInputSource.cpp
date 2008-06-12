@@ -8,7 +8,7 @@
 #include "arLogStream.h"
 
 // Listen for events.
-void arNetInputSource::_dataTask(){
+void arNetInputSource::_dataTask() {
   while (_dataClient.getData(_dataBuffer, _dataBufferSize)) {
     _data->unpack(_dataBuffer);
     ARint sig[3];
@@ -29,13 +29,13 @@ void arNetInputSource::_dataTask(){
   }
 
   _connected = false;
-  _setDeviceElements(0,0,0);
+  _setDeviceElements(0, 0, 0);
   _sigOK = _reconfig();
   if (!_sigOK)
     ar_log_error() << "failed to deconfigure source.\n";
 }
 
-void ar_netInputSourceConnectionTask(void* p){
+void ar_netInputSourceConnectionTask(void* p) {
   ((arNetInputSource*)p)->_connectionTask();
 }
 
@@ -47,13 +47,13 @@ void arNetInputSource::_connectionTask() {
   const arSlashString networks(_szgClient->getNetworks("input"));
 
   arSleepBackoff a(50, 3000, 1.5);
-  while (true){
+  while (true) {
     string svc = "service '" + serviceName +  "' on network '" + networks + "'.\n";
     ar_log_debug() << "discovering " << svc;
     // Ask szgserver for IP:port of service "SZG_INPUT0".
     // If the service doesn't exist, this call blocks until said server starts.
     const arPhleetAddress netAddress = _szgClient->discoverService(serviceName, networks, true);
-    if (!netAddress.valid){
+    if (!netAddress.valid) {
       if (netAddress.address == "standalone") {
         // arSZGClient::discoverService hardcodes "standalone"
         ar_log_error() << "netinput: no szgserver.\n";
@@ -74,7 +74,7 @@ void arNetInputSource::_connectionTask() {
     svc = serviceName +  ", slot " + ar_intToString(_slot) + ", " + IP + ":" +
           ar_intToString(port) + ".\n";
     ar_log_debug() << "connecting to " << svc;
-    if (!_dataClient.dialUpFallThrough(IP, port)){
+    if (!_dataClient.dialUpFallThrough(IP, port)) {
       ar_log_warning() << "reconnecting to " << svc;
       continue;
     }
@@ -106,24 +106,24 @@ arNetInputSource::arNetInputSource() :
   _dataClient.smallPacketOptimize(true);
 }
 
-// Input devices offer services based on slots. 
+// Input devices offer services based on slots.
 // Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
 
-bool arNetInputSource::setSlot(unsigned slot){
+bool arNetInputSource::setSlot(unsigned slot) {
   _slot = slot;
   ar_log_debug() << "using slot " << _slot << ".\n";
   return true;
 }
 
-bool arNetInputSource::init(arSZGClient& SZGClient){
-  _setDeviceElements(0,0,0); // Nothing's attached yet.
+bool arNetInputSource::init(arSZGClient& SZGClient) {
+  _setDeviceElements(0, 0, 0); // Nothing's attached yet.
   _szgClient = &SZGClient;
   ar_log_debug() << "netinput inited.\n";
   return true;
 }
 
-bool arNetInputSource::start(){
-  if (!_szgClient){
+bool arNetInputSource::start() {
+  if (!_szgClient) {
     ar_log_error() << "netinput ignoring start before init.\n";
     return false;
   }
@@ -133,7 +133,7 @@ bool arNetInputSource::start(){
   return true;
 }
 
-void arNetInputSource::_closeConnection(){
+void arNetInputSource::_closeConnection() {
   // todo: kill threads, close sockets, etc.
   _connected = false;
   _sigOK = false;

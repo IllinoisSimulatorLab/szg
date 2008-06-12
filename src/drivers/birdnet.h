@@ -42,10 +42,10 @@
 
 /* define birdnet header */
 struct BN_HEADER {
-	unsigned short 		sequence; 
-	unsigned short 		milliseconds; 
+	unsigned short 		sequence;
+	unsigned short 		milliseconds;
 	unsigned long  		seconds;
-	unsigned char 			type; 
+	unsigned char 			type;
 	unsigned char 			xtype;
 	unsigned char			protocol;
 	unsigned char 			errorCode;
@@ -60,7 +60,7 @@ struct BN_SYSTEM_STATUS {
 	unsigned char naddrs;
 	unsigned char nservers;
 	unsigned char transmitter;
-	char 			  rate[6];				
+	char 			  rate[6];
 	unsigned char chassisID;
 	unsigned char chassisDevices;
 	unsigned char firstAddress;
@@ -138,7 +138,7 @@ struct BN_BIRD_HEADER {
 /* defines for format */
 #define BN_NODATA 	0
 #define BN_POS	 		1
-#define BN_ANGLES		2 	
+#define BN_ANGLES		2
 #define BN_MATRIX		3
 #define BN_POSANG		4
 #define BN_POSMAT		5
@@ -165,10 +165,10 @@ struct BN_BIRD_STATUS {
 	};
 
 struct BN_DATA {
-	char addr;		 
-	char format;				
-	char data[24];				 
-	char button[2];	      
+	char addr;
+	char format;
+	char data[24];
+	char button[2];
 	};
 
 /* define for data record format*/

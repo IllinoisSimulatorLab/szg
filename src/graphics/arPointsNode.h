@@ -15,7 +15,7 @@ class SZG_CALL arPointsNode:public arGraphicsArrayNode{
 // Set of OpenGL points.
  public:
   arPointsNode();
-  virtual ~arPointsNode(){}
+  virtual ~arPointsNode() {}
 
   virtual void initialize(arDatabase* database);
 

@@ -15,12 +15,12 @@ class SZG_CALL arFileSink : public arInputSink{
  public:
   arFileSink();
   virtual ~arFileSink() {}
- 
+
   bool init(arSZGClient&);
   bool start();
   bool stop();
 
-  void receiveData(int,arStructuredData*) const;
+  void receiveData(int, arStructuredData*) const;
  private:
   string _dataFilePath;
   string _dataFileName;
@@ -29,4 +29,4 @@ class SZG_CALL arFileSink : public arInputSink{
   mutable arLock _logLock;
 };
 
-#endif 
+#endif

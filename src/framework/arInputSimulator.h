@@ -30,7 +30,7 @@ enum arHeadWandSimState{
 
 class SZG_CALL arMatrix4Factored {
  public:
-  arMatrix4Factored(const arVector3& pos = arVector3(0,0,0)) :
+  arMatrix4Factored(const arVector3& pos = arVector3(0, 0, 0)) :
     eulers(AR_YXZ),
     _pos(pos),
     _posReset(pos)
@@ -52,7 +52,7 @@ class SZG_CALL arMatrix4Factored {
 
 class SZG_CALL arAziEle : public arMatrix4Factored {
  public:
-  arAziEle(const arVector3& pos = arVector3(0,0,0)) :
+  arAziEle(const arVector3& pos = arVector3(0, 0, 0)) :
     arMatrix4Factored(pos) {}
 
   void setAziEle(const float azi, const float ele) {
@@ -84,7 +84,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
 
   virtual bool setMouseButtons( vector<unsigned>& mouseButtons );
   vector<unsigned> getMouseButtons() const;
-  void setNumberButtonEvents( unsigned numButtonEvents ); 
+  void setNumberButtonEvents( unsigned numButtonEvents );
   unsigned getNumberButtonEvents() const { return _numButtonEvents; }
 
  protected:

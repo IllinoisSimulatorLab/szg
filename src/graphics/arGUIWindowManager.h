@@ -165,7 +165,7 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindowingConstruct
      * @see arGUIXMLWindowConstruct
      */
-    int createWindows(const arGUIWindowingConstruct* windowingConstruct=NULL,  
+    int createWindows(const arGUIWindowingConstruct* windowingConstruct=NULL,
                       bool useWindowing = true );
 
     //@{

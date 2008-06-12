@@ -24,7 +24,7 @@ arFaroCalFilter::~arFaroCalFilter() {
   _cleanup();
 }
 
-enum { 
+enum {
   HEAD_MATRIX_NUMBER = 0,
   WAND_MATRIX_NUMBER = 1,
   FARO_MATRIX_NUMBER = 3
@@ -70,9 +70,9 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   // not pointing straight ahead.  At some point we'll do this more formally.
   // y_filter_weight determines behavior of an IIR filter (y(i) = (1-w)y(i) + wy(i-1))
   // applied to the head vertical position to remove jitter.
-  if (szgClient->getAttributeFloats("SZG_CALIB","y_rot_angle_deg",&floatBuf,1))
+  if (szgClient->getAttributeFloats("SZG_CALIB", "y_rot_angle_deg", &floatBuf, 1))
     _yRotAngle = ar_convertToRad( floatBuf );
-  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","y_filter_weight",&floatBuf,1)) {
+  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR", "y_filter_weight", &floatBuf, 1)) {
     if (floatBuf < 0 || floatBuf >= 1) {
       ar_log_error() << "SZG_MOTIONSTAR/y_filter_weight value " << floatBuf
            << " out of range [0,1).\n";
@@ -82,7 +82,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   }
   const string& dataPath = szgClient->getDataPath();
   const string& calFileName = szgClient->getAttribute("SZG_CALIB", "calib_file");
-  FILE *fp = ar_fileOpen( calFileName, dataPath, "r", "arFaroCalFilter (SZG_CALIB/calib_file,path)" );
+  FILE *fp = ar_fileOpen( calFileName, dataPath, "r", "arFaroCalFilter (SZG_CALIB/calib_file, path)" );
   if (fp == NULL) {
     return false;
   }
@@ -101,12 +101,12 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     fclose(fp);
     return false;
   }
-  
+
   // Grab a huge block of memory.
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
-  
+
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
     ar_log_error() << "arFaroCalFilter out of memory for lookup tables.\n";
     fclose(fp);

@@ -28,7 +28,7 @@ arDragManager::arDragManager( const arDragManager& getActiveGrabber ) {
 }
 
 arDragManager& arDragManager::operator=
-  ( const arDragManager& getActiveGrabber ){
+  ( const arDragManager& getActiveGrabber ) {
   if (&getActiveGrabber == this)
     return *this;
   _deleteDrags();
@@ -98,7 +98,7 @@ void arDragManager::getActiveDrags( arEffector* eff,
     for (delIter = deletions.begin(); delIter != deletions.end(); delIter++)
       draggers.erase( *delIter );
   }
-   
+
   // We have an internal list of grab-conditions/drag-behaviors.
   // If any of these are newly activated, add them to the passed list.
   if (!_draggers.empty()) {

@@ -15,7 +15,7 @@ gets requested (which lets us build static libraries in Windows).
 
 We only need dllimport/dllexport on Windows.
 If a function *might* be compiled into a dll for dynamic linkage then
-AR_LINKING_DYNAMIC will be defined. 
+AR_LINKING_DYNAMIC will be defined.
 
 For each of Syzygy's code subdirectories
 (language, math, phleet, etc.), a special include file (arLanguageCalling.h,

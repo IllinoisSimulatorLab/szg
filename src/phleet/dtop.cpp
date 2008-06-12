@@ -11,12 +11,12 @@
 #include "arSZGClient.h"
 
 #ifdef AR_USE_WIN_32
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   cerr << "sorry, dtop unavailable under win32.\n";
 }
 #else
 #ifdef AR_USE_SGI
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   cerr << "sorry, dtop unavailable under Irix.\n";
 }
 #else
@@ -149,14 +149,14 @@ LBreak:
       // end of list
       break;
 
-    if (fColor){
+    if (fColor) {
       color_set(7, NULL);
     }
     else{
       standout();
     }
     mvprintw(++y, 1, "%s", hosts[ihost]);
-    if (fColor){
+    if (fColor) {
       color_set(0, NULL);
     }
     else{
@@ -195,7 +195,7 @@ LBreak:
   refresh();
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   // ncurses incorrectly assumes a black background.
   // These unfortunately doesn't correct for that:
   //   setenv("NCURSES_ASSUMED_COLORS", "-1,-1", 0);
@@ -240,8 +240,8 @@ LUsage:
       goto LUsage;
     break;
   }
-  
-  if (msec < 0){
+
+  if (msec < 0) {
     msec = 500;
   }
 
@@ -262,7 +262,7 @@ LUsage:
   }
 
   arThread dummy(messageTask, &szgClient);
-  while (!fDone) { 
+  while (!fDone) {
     if (fVisible) {
       update(szgClient.getProcessList());
       if (getch() == 'q')

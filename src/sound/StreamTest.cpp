@@ -21,7 +21,7 @@ TODO:  change printf's to cout and cerr.
 
 bool fQuit = false;
 
-void messageTask(void* pClient){
+void messageTask(void* pClient) {
   string messageType, messageBody;
   arSZGClient* cli = (arSZGClient*)pClient;
   while (cli->running() && messageType != "quit") {
@@ -99,11 +99,11 @@ FMOD_DSP* Unit = NULL;
 #ifdef EnableSound
 FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
     FMOD_DSP_STATE* /*pState*/,
-    float *  bufSrc, 
-    float *  bufDst, 
-    unsigned int  length, 
-    int  /*inchannels*/, 
-  int  outchannels){
+    float *  bufSrc,
+    float *  bufDst,
+    unsigned int  length,
+    int  /*inchannels*/,
+  int  outchannels) {
 
 #ifdef UNUSED
   const FMOD::DSP* pdsp = (const FMOD::DSP*)(pState->instance);
@@ -242,9 +242,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(), 
+  if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
            int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
-      !ar_fmodcheck( FMOD_System_Init( ar_fmod(), 
+      !ar_fmodcheck( FMOD_System_Init( ar_fmod(),
 	   50/*numVirtualVoices*/, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
     cerr << "Failed to init fmod.\n";
     return 1;
@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
   x.defaultfrequency = mySR;
   x.length = x.defaultfrequency * sizeof(short) * x.numchannels * 5; // What's the 5 for?
   FMOD_SOUND *samp1 = NULL;
-  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), 
+  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(),
     NULL/*bufRec*/,
     FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL,
     // FMOD_OPENUSER | FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,

@@ -11,7 +11,7 @@
 arDrawableNode::arDrawableNode():
   _firstMessageReceived(false),
   _type(DG_POINTS),
-  _number(0){
+  _number(0) {
   _name = "drawable_node";
   // does not compile on RedHat 8 if these statements appear outside the
   // constructor body.
@@ -19,7 +19,7 @@ arDrawableNode::arDrawableNode():
   _typeString = "drawable";
 }
 
-void arDrawableNode::draw(arGraphicsContext* context){
+void arDrawableNode::draw(arGraphicsContext* context) {
   // Bug: the database node is created with a message to
   // the database. Then, a message initializing it is sent.
   // if we try to draw between these messages, bad things can happen.
@@ -44,7 +44,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
   arGraphicsNode* cNode = NULL;
   arGraphicsNode* t2Node = NULL;
   arGraphicsNode* tNode = NULL;
-  if (context){
+  if (context) {
     // Check inside the draw functions to be certain there are an
     // appropriate number of points. To do this, we must pass the SIZE of the
     // points array in.
@@ -60,18 +60,18 @@ void arDrawableNode::draw(arGraphicsContext* context){
       maxNumber = numberPos;
     nNode = (arGraphicsNode*) context->getNode(AR_G_NORMAL3_NODE);
     // If a normals node will be used in drawing, determine amount of data.
-    if (nNode && (maxNumber < 0 || nNode->getBufferSize()/3 < maxNumber)){
+    if (nNode && (maxNumber < 0 || nNode->getBufferSize()/3 < maxNumber)) {
       maxNumber = nNode->getBufferSize()/3;
     }
     cNode = (arGraphicsNode*) context->getNode(AR_G_COLOR4_NODE);
     // If a color node will be used in drawing, determine amount of data..
-    if (cNode && (maxNumber < 0 || cNode->getBufferSize()/4 < howMany)){
+    if (cNode && (maxNumber < 0 || cNode->getBufferSize()/4 < howMany)) {
       maxNumber = cNode->getBufferSize()/4;
     }
     t2Node = (arGraphicsNode*) context->getNode(AR_G_TEX2_NODE);
     // If a tex2 coordinate node will be used in drawing, determine amount of
     // data.
-    if (t2Node && (maxNumber < 0 || t2Node->getBufferSize()/2 < howMany)){
+    if (t2Node && (maxNumber < 0 || t2Node->getBufferSize()/2 < howMany)) {
       maxNumber = t2Node->getBufferSize()/2;
     }
     // The texture node has nothing to say about bounds checking.
@@ -81,7 +81,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
   float blendFactor = 1.0;
   switch (whatKind) {
   case DG_POINTS:
-    if (_0DPreDraw(pNode, context, blendFactor)){
+    if (_0DPreDraw(pNode, context, blendFactor)) {
       // Truncate based on array sizes. A point set draws howMany vertices.
       howMany = howMany <= maxNumber ? howMany : maxNumber;
       ar_drawPoints(howMany,
@@ -92,7 +92,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
     }
     break;
   case DG_LINES:
-    if (_1DPreDraw(pNode, context, blendFactor)){
+    if (_1DPreDraw(pNode, context, blendFactor)) {
       // Truncate based on array sizes. A line set draws 2*howMany vertices.
       // howMany = number of lines.
       howMany = howMany <= maxNumber/2 ? howMany : maxNumber/2;
@@ -104,7 +104,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
     }
     break;
   case DG_LINE_STRIP:
-    if (_1DPreDraw(pNode, context, blendFactor)){
+    if (_1DPreDraw(pNode, context, blendFactor)) {
       // Truncate based on array sizes. A line strip draws 1+howMany vertices.
       // howMany = number of lines.
       howMany = howMany <= maxNumber-1 ? howMany : maxNumber-1;
@@ -112,83 +112,83 @@ void arDrawableNode::draw(arGraphicsContext* context){
 		       (const int*) (iNode ? iNode->getBuffer() : NULL),
                        numberPos,
 		       (const float*) (pNode ? pNode->getBuffer() : NULL),
-		       (const float*) (cNode ? cNode->getBuffer() : NULL), 
+		       (const float*) (cNode ? cNode->getBuffer() : NULL),
                        blendFactor);
     }
     break;
   case DG_TRIANGLES:
-    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)) {
       // Truncate based on array sizes. A triangle set draws 3*howMany
       // vertices. howMany = number of triangles.
       howMany = howMany <= maxNumber/3 ? howMany : maxNumber/3;
       // There used to be CG code in here... but no longer. That turned out
       // to be a failed experiment.
-      ar_drawTriangles(howMany, 
-                       (const int*) (iNode ? iNode->getBuffer() : NULL), 
+      ar_drawTriangles(howMany,
+                       (const int*) (iNode ? iNode->getBuffer() : NULL),
 		       numberPos,
-                       (const float*) (pNode ? pNode->getBuffer() : NULL), 
-                       (const float*) (nNode ? nNode->getBuffer() : NULL), 
-                       (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                       (const float*) (pNode ? pNode->getBuffer() : NULL),
+                       (const float*) (nNode ? nNode->getBuffer() : NULL),
+                       (const float*) (cNode ? cNode->getBuffer() : NULL),
                        (const float*) (tNode && t2Node ? t2Node->getBuffer() : NULL),
                        blendFactor);
     }
     break;
   case DG_TRIANGLE_STRIP:
-    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)) {
       // Truncate based on array sizes. A triangle strip draws 2+howMany
       // vertices. howMany = number of triangles.
       howMany = howMany <= maxNumber-2 ? howMany : maxNumber-2;
-      ar_drawTriangleStrip(howMany, 
-                           (const int*) (iNode ? iNode->getBuffer() : NULL), 
+      ar_drawTriangleStrip(howMany,
+                           (const int*) (iNode ? iNode->getBuffer() : NULL),
 			   numberPos,
-                           (const float*) (pNode ? pNode->getBuffer(): NULL), 
-                           (const float*) (nNode ? nNode->getBuffer() : NULL), 
-                           (const float*) (cNode ? cNode->getBuffer() : NULL), 
-                           (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                           (const float*) (pNode ? pNode->getBuffer(): NULL),
+                           (const float*) (nNode ? nNode->getBuffer() : NULL),
+                           (const float*) (cNode ? cNode->getBuffer() : NULL),
+                           (const float*) (t2Node ? t2Node->getBuffer() : NULL),
                            blendFactor);
     }
     break;
   case DG_QUADS:
-    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)) {
       // Truncate based on array sizes. A quad set draws 4*howMany vertices.
       // howMany = number of quads.
       howMany = howMany <= maxNumber/4 ? howMany : maxNumber/4;
-      ar_drawQuads(howMany, 
-                   (const int*) (iNode ? iNode->getBuffer() : NULL), 
+      ar_drawQuads(howMany,
+                   (const int*) (iNode ? iNode->getBuffer() : NULL),
 		   numberPos,
-                   (const float*) (pNode ? pNode->getBuffer() : NULL), 
-                   (const float*) (nNode ? nNode->getBuffer() : NULL), 
-                   (const float*) (cNode ? cNode->getBuffer() : NULL), 
-                   (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                   (const float*) (pNode ? pNode->getBuffer() : NULL),
+                   (const float*) (nNode ? nNode->getBuffer() : NULL),
+                   (const float*) (cNode ? cNode->getBuffer() : NULL),
+                   (const float*) (t2Node ? t2Node->getBuffer() : NULL),
                    blendFactor);
     }
     break;
   case DG_QUAD_STRIP:
-    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)) {
       // Truncate based on array sizes. A quad set draws 2*howMany+2 vertices.
       // howMany = number of quads.
       howMany = howMany <= maxNumber/2 - 1 ? howMany : maxNumber/2 - 1;
-      ar_drawQuadStrip(howMany, 
-                       (const int*) (iNode ? iNode->getBuffer() : NULL), 
+      ar_drawQuadStrip(howMany,
+                       (const int*) (iNode ? iNode->getBuffer() : NULL),
 		       numberPos,
-                       (const float*) (pNode ? pNode->getBuffer() : NULL), 
-                       (const float*) (nNode ? nNode->getBuffer() : NULL), 
-                       (const float*) (cNode ? cNode->getBuffer() : NULL), 
-                       (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                       (const float*) (pNode ? pNode->getBuffer() : NULL),
+                       (const float*) (nNode ? nNode->getBuffer() : NULL),
+                       (const float*) (cNode ? cNode->getBuffer() : NULL),
+                       (const float*) (t2Node ? t2Node->getBuffer() : NULL),
                        blendFactor);
     }
     break;
   case DG_POLYGON:
-    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)) {
       // Truncate based on array sizes. A polygon draws howMany vertices.
       howMany = howMany <= maxNumber ? howMany : maxNumber;
-      ar_drawPolygon(howMany, 
-                     (const int*) (iNode ? iNode->getBuffer() : NULL), 
+      ar_drawPolygon(howMany,
+                     (const int*) (iNode ? iNode->getBuffer() : NULL),
 		     numberPos,
-                     (const float*) (pNode ? pNode->getBuffer() : NULL), 
-                     (const float*) (nNode ? nNode->getBuffer() : NULL), 
-                     (const float*) (cNode ? cNode->getBuffer() : NULL), 
-                     (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                     (const float*) (pNode ? pNode->getBuffer() : NULL),
+                     (const float*) (nNode ? nNode->getBuffer() : NULL),
+                     (const float*) (cNode ? cNode->getBuffer() : NULL),
+                     (const float*) (t2Node ? t2Node->getBuffer() : NULL),
 		     blendFactor);
     }
     break;
@@ -199,7 +199,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
   }
 }
 
-bool arDrawableNode::receiveData(arStructuredData* inData){
+bool arDrawableNode::receiveData(arStructuredData* inData) {
   // Deals with the problem that the node is created and then initialized
   // in two different messages.
   _firstMessageReceived = true;
@@ -213,22 +213,22 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-int arDrawableNode::getType(){
+int arDrawableNode::getType() {
   arGuard dummy(_nodeLock);
   return _type;
 }
 
-string arDrawableNode::getTypeAsString(){
+string arDrawableNode::getTypeAsString() {
   return _convertTypeToString(getType());
 }
 
-int arDrawableNode::getNumber(){
+int arDrawableNode::getNumber() {
   arGuard dummy(_nodeLock);
   return _number;
 }
 
-void arDrawableNode::setDrawable(arDrawableType type, int number){
-  if (active()){
+void arDrawableNode::setDrawable(arDrawableType type, int number) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(type, number, true);
     _nodeLock.unlock();
@@ -242,16 +242,16 @@ void arDrawableNode::setDrawable(arDrawableType type, int number){
   }
 }
 
-void arDrawableNode::setDrawableViaString(const string& type, int number){
+void arDrawableNode::setDrawableViaString(const string& type, int number) {
   setDrawable(_convertStringToType(type), number);
 }
 
-arStructuredData* arDrawableNode::dumpData(){
+arStructuredData* arDrawableNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(_type, _number, false);
 }
 
-arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned){
+arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_DRAWABLE);
   _dumpGenericNode(r, _g->AR_DRAWABLE_ID);
   if (!r->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1) ||
@@ -264,11 +264,11 @@ arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned){
 
 bool arDrawableNode::_0DPreDraw(arGraphicsNode* pointsNode,
 				arGraphicsContext* context,
-                                float& blendFactor){
-  if (!pointsNode){
+                                float& blendFactor) {
+  if (!pointsNode) {
     return false;
   }
-  if (context){
+  if (context) {
     context->setPointState(blendFactor);
   }
   return true;
@@ -276,11 +276,11 @@ bool arDrawableNode::_0DPreDraw(arGraphicsNode* pointsNode,
 
 bool arDrawableNode::_1DPreDraw(arGraphicsNode* pointsNode,
                                 arGraphicsContext* context,
-                                float& blendFactor){
-  if (!pointsNode){
+                                float& blendFactor) {
+  if (!pointsNode) {
     return false;
   }
-  if (context){
+  if (context) {
     context->setLineState(blendFactor);
   }
   return true;
@@ -289,24 +289,24 @@ bool arDrawableNode::_1DPreDraw(arGraphicsNode* pointsNode,
 bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
                                 arGraphicsNode* normal3Node,
                                 arGraphicsContext* context,
-                                float& blendFactor){
+                                float& blendFactor) {
   // Some data is necessary to draw triangles.
-  if (!pointsNode){
+  if (!pointsNode) {
     cerr << "arDrawableNode error: missing points set for 2D geometry.\n";
     return false;
   }
-  if (!normal3Node){
+  if (!normal3Node) {
     cerr << "arDrawableNode error: missing normals set for 2D geometry.\n";
     return false;
   }
-  if (context){
+  if (context) {
     context->setTriangleState(blendFactor);
   }
   return true;
 }
 
-string arDrawableNode::_convertTypeToString(int type){
-  switch(type){
+string arDrawableNode::_convertTypeToString(int type) {
+  switch(type) {
   case DG_POINTS:
     return "points";
   case DG_LINES:
@@ -328,29 +328,29 @@ string arDrawableNode::_convertTypeToString(int type){
   }
 }
 
-arDrawableType arDrawableNode::_convertStringToType(const string& type){
-  if (type == "points"){
+arDrawableType arDrawableNode::_convertStringToType(const string& type) {
+  if (type == "points") {
     return DG_POINTS;
   }
-  else if (type == "lines"){
+  else if (type == "lines") {
     return DG_LINES;
   }
-  else if (type == "line_strip"){
+  else if (type == "line_strip") {
     return DG_LINE_STRIP;
   }
-  else if (type == "triangles"){
+  else if (type == "triangles") {
     return DG_TRIANGLES;
   }
-  else if (type == "triangle_strip"){
+  else if (type == "triangle_strip") {
     return DG_TRIANGLE_STRIP;
   }
-  else if (type == "quads"){
+  else if (type == "quads") {
     return DG_QUADS;
   }
-  else if (type == "quad_strip"){
+  else if (type == "quad_strip") {
     return DG_QUAD_STRIP;
   }
-  else if (type == "polygon"){
+  else if (type == "polygon") {
     return DG_POLYGON;
   }
   return DG_POINTS;

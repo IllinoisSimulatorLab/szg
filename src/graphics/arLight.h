@@ -17,9 +17,9 @@ class SZG_CALL arLight{
  public:
   arLight();
   arLight(const arLight&);
-  ~arLight(){};
+  ~arLight() {};
 
-  int lightID;      
+  int lightID;
   arVector4 position;
   arVector3 diffuse;
   arVector3 ambient;
@@ -31,7 +31,7 @@ class SZG_CALL arLight{
   float     spotCutoff;
   float     spotExponent;
 
-  void activateLight(){ activateLight(arMatrix4()); }
+  void activateLight() { activateLight(arMatrix4()); }
   void activateLight(arMatrix4 lightPositionTransform);
 };
 

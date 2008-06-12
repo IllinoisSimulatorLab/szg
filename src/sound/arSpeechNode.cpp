@@ -14,7 +14,7 @@ arSpeechNode::arSpeechNode() : arSoundNode() {
   _typeString = "speech";
 }
 
-arSpeechNode::~arSpeechNode(){
+arSpeechNode::~arSpeechNode() {
   _deleteVoice();
 }
 
@@ -33,7 +33,7 @@ void arSpeechNode::_initVoice() {
     }
     const HRESULT hr =
       CoCreateInstance( CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&_voice );
-    if( !SUCCEEDED( hr ) ) {
+    if ( !SUCCEEDED( hr ) ) {
       ar_log_error() <<
 	"arSpeechNode failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
       _voice = NULL;
@@ -58,14 +58,14 @@ void arSpeechNode::_deleteVoice() {
 #endif
 }
 
-arStructuredData* arSpeechNode::dumpData(){
+arStructuredData* arSpeechNode::dumpData() {
   arStructuredData* pdata = _l.makeDataRecord(_l.AR_SPEECH);
-  _dumpGenericNode(pdata,_l.AR_SPEECH_ID);
+  _dumpGenericNode(pdata, _l.AR_SPEECH_ID);
 
   // Stuff pdata's AR_SPEECH_TEXT with _commandBuffer[].
   const int len = _commandBuffer.size();
-  pdata->setDataDimension(_l.AR_SPEECH_TEXT,len);
-  ARchar* text = (ARchar*) pdata->getDataPtr(_l.AR_SPEECH_TEXT,AR_CHAR);
+  pdata->setDataDimension(_l.AR_SPEECH_TEXT, len);
+  ARchar* text = (ARchar*) pdata->getDataPtr(_l.AR_SPEECH_TEXT, AR_CHAR);
   for (int i=0; i<len; i++)
     text[i] = (ARint) _commandBuffer.v[i];
   return pdata;
@@ -75,8 +75,8 @@ arStructuredData* arSpeechNode::dumpData(){
  *  Workaround:  keep triggered sounds short.
  */
 
-bool arSpeechNode::receiveData(arStructuredData* pdata){
-  if (pdata->getID() != _l.AR_SPEECH){
+bool arSpeechNode::receiveData(arStructuredData* pdata) {
+  if (pdata->getID() != _l.AR_SPEECH) {
     cout << "arSpeechNode error: expected "
          << _l.AR_SPEECH
          << " (" << _l._stringFromID(_l.AR_SPEECH) << "), not "

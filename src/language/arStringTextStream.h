@@ -18,15 +18,15 @@ using namespace std;
 
 class arStringTextStream: public arTextStream{
  public:
-  arStringTextStream(){}
-  arStringTextStream(const string& s){ _stream.str(s); }
-  virtual ~arStringTextStream(){}
+  arStringTextStream() {}
+  arStringTextStream(const string& s) { _stream.str(s); }
+  virtual ~arStringTextStream() {}
 
-  virtual int ar_getc(){ return _stream.get(); }
+  virtual int ar_getc() { return _stream.get(); }
   // Stringstream has a perfectly good unget.  Don't get fancy.
-  virtual void ar_ungetc(int){ _stream.unget(); }
+  virtual void ar_ungetc(int) { _stream.unget(); }
 
-  void setString(const string& s){ _stream.str(s); }
+  void setString(const string& s) { _stream.str(s); }
  private:
   stringstream _stream;
 };

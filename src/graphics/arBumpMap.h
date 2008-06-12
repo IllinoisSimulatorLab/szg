@@ -39,7 +39,7 @@ class SZG_CALL arBumpMap : public arTexture {
   void setPIT(int numPts, int numInd, float* points, int* index, float* tex2);
   void setDecalTexture(arTexture* newTexture) { _decalTexture = newTexture; }
 
-  // returns how many packed double3's are in each (T,B,N) array
+  // returns how many packed double3's are in each (T, B, N) array
   const int & numberOfTBN(void) { return _numTBN; }
 
   // TBN float* array or NULL if invalid

@@ -53,13 +53,13 @@ class SZG_CALL arGraphicsContext {
   list<bool>                 _lightingStateStack;
   list<bool>                 _depthTestStateStack;
   list<bool>                 _blendStateStack;
-  list<pair<arGraphicsStateValue,arGraphicsStateValue> > _blendFuncStateStack;
+  list<pair<arGraphicsStateValue, arGraphicsStateValue> > _blendFuncStateStack;
 
   void _pushGraphicsState(arDatabaseNode* node);
   void _popGraphicsState(arDatabaseNode* node);
   GLenum _decodeBlendFunction(arGraphicsStateValue v);
   void _setState(float& blendFactor, bool forceBlend = false);
-  
+
 };
 
 #endif

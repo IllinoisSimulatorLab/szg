@@ -4,7 +4,7 @@
 arInteractableThing::arInteractableThing() :
   arInteractable(),
   _visible(true),
-  _color(1,1,1,1),
+  _color(1, 1, 1, 1),
   _texture(0),
   _highlighted(false) {  
 }
@@ -31,12 +31,12 @@ arInteractableThing& arInteractableThing::operator=( const arInteractableThing& 
 arInteractableThing::~arInteractableThing() {
 }
 
-bool arInteractableThing::_touch( arEffector& /*effector*/ ) {
+bool arInteractableThing::_touch( arEffector& ) {
   setHighlight(true);
   return true;
 }
 
-bool arInteractableThing::_untouch( arEffector& /*effector*/ ) {
+bool arInteractableThing::_untouch( arEffector& ) {
   setHighlight(false);
   return true;
 }

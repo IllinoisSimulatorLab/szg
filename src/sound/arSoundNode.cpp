@@ -8,17 +8,17 @@
 #include "arSoundDatabase.h"
 
 arSoundNode::arSoundNode() :
-  _point(0,0,0),
+  _point(0, 0, 0),
   _amplitude(1.),
   _arSoundFiles(&_localSoundFile),
   _localSoundFile(NULL)
 {
 }
 
-void arSoundNode::initialize(arDatabase* owner){
+void arSoundNode::initialize(arDatabase* owner) {
   _owningDatabase = (arSoundDatabase*) owner;
   arSoundNode* parent = (arSoundNode*)_parent;
-  if (parent && parent->getName() != "root"){
+  if (parent && parent->getName() != "root") {
     _arSoundFiles = parent->_arSoundFiles;
   }
 }

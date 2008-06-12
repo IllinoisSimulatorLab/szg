@@ -75,7 +75,7 @@ class SZG_CALL arSyncDataClient{
 
  protected:
   void _connectionTask();
-  
+
  private:
   arSZGClient* _client;
   string       _serviceName;
@@ -84,9 +84,9 @@ class SZG_CALL arSyncDataClient{
   int _mode; // sync buffer consumption with server, or not.
   int  _dataAvailable;
   bool _bufferSwapReady;
-  list<pair<char*,int> > _receiveStack;
-  list<pair<char*,int> > _storageStack;
-  list<pair<char*,int> > _consumeStack;
+  list<pair<char*, int> > _receiveStack;
+  list<pair<char*, int> > _storageStack;
+  list<pair<char*, int> > _consumeStack;
   arLock                 _stackLock; // For all three of these stacks.
   ARchar* _data[2];
   ARint _dataSize[2];
@@ -96,7 +96,7 @@ class SZG_CALL arSyncDataClient{
   bool _exitProgram;
   bool _readThreadRunning;
   bool _connectionThreadRunning;
-  
+
   void* _bondedObject;
 
   bool (*_connectionCallback)(void*, arTemplateDictionary*);
@@ -130,7 +130,7 @@ class SZG_CALL arSyncDataClient{
 
   // we guarantee that at least one _nullCallback is executed upon
   // disconnection. This is necessary if, say, something needs to
-  // be executed on disconnect in the consume thread (and the most 
+  // be executed on disconnect in the consume thread (and the most
   // convenient way to do this is in the _nullCallback).
   arLock         _nullHandshakeLock; // with _nullHandshakeVar
   arConditionVar _nullHandshakeVar;

@@ -15,7 +15,7 @@ arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary)
   {
   // Each template in the dictionary has a queue lock and a condition variable.
   for (arTemplateType::const_iterator i = _dictionary->begin();
-      i != _dictionary->end(); ++i){
+      i != _dictionary->end(); ++i) {
     _messageQueue.insert(SZGmessageQueue::value_type(
       i->second->getID(), new arMessageQueueByID()));
   }
@@ -39,9 +39,9 @@ void arStructuredDataParser::_recyclelist(const SZGdatalist& p) {
     recycle(*i);
 }
 
-arStructuredDataParser::~arStructuredDataParser(){
+arStructuredDataParser::~arStructuredDataParser() {
   // Delete owned storage.
-  for (SZGrecycler::const_iterator i(recycling.begin()); i != recycling.end(); ++i){
+  for (SZGrecycler::const_iterator i(recycling.begin()); i != recycling.end(); ++i) {
     SZGdatalist* p = i->second;
     if (p) {
       _deletelist(*p);
@@ -51,7 +51,7 @@ arStructuredDataParser::~arStructuredDataParser(){
 
   // Delete messages received but not yet delivered, one queue at a time.
   // (these are the messages queued by ID, not the "tagged" messages.
-  for (iQueue k(_messageQueue.begin()); k != _messageQueue.end(); ++k){
+  for (iQueue k(_messageQueue.begin()); k != _messageQueue.end(); ++k) {
     arMessageQueueByID* p = k->second;
     _deletelist(p->messages);
     // Delete the elements of the map as well.
@@ -59,25 +59,25 @@ arStructuredDataParser::~arStructuredDataParser(){
   }
 
   // Delete tagged messages.
-  for (iTagQueue ii = _taggedMessages.begin(); ii != _taggedMessages.end(); ii++){
+  for (iTagQueue ii = _taggedMessages.begin(); ii != _taggedMessages.end(); ii++) {
     // Unclaimed arStructuredData records.
     _deletelist(ii->second);
   }
 
   // Delete synchronization primitives.
-  for (iSync jj = _messageSync.begin(); jj != _messageSync.end(); jj++){
+  for (iSync jj = _messageSync.begin(); jj != _messageSync.end(); jj++) {
     delete jj->second;
   }
 
   // Delete to-be-used synchronization primitives.
   for (SZGunusedMessageSync::const_iterator kk = _recycledSync.begin();
-       kk != _recycledSync.end(); kk++){
+       kk != _recycledSync.end(); kk++) {
     delete *kk;
   }
 
   // Delete translation buffers.
   for (list<arBuffer<char>*>::const_iterator n = _translationBuffers.begin();
-       n != _translationBuffers.end(); n++){
+       n != _translationBuffers.end(); n++) {
     delete *n;
   }
 }
@@ -85,7 +85,7 @@ arStructuredDataParser::~arStructuredDataParser(){
 // Grab a data record of type ID from SZGrecycler,
 // creating a new one if none such exists.
 
-arStructuredData* arStructuredDataParser::getStorage(int ID){
+arStructuredData* arStructuredDataParser::getStorage(int ID) {
   arStructuredData* result = NULL;
   arDataTemplate* theTemplate = _dictionary->find(ID);
   if (theTemplate) {
@@ -94,7 +94,7 @@ arStructuredData* arStructuredDataParser::getStorage(int ID){
     if (i == recycling.end()) {
       // Create recycling list.
       SZGdatalist* tmp = new SZGdatalist;
-      recycling.insert(SZGrecycler::value_type(ID,tmp));
+      recycling.insert(SZGrecycler::value_type(ID, tmp));
     }
     else {
       SZGdatalist* j = i->second;
@@ -112,10 +112,10 @@ arStructuredData* arStructuredDataParser::getStorage(int ID){
 }
 
 // Get a translation buffer, creating one if needed.
-arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
+arBuffer<char>* arStructuredDataParser::getTranslationBuffer() {
   arBuffer<char>* result = NULL;
   arGuard dummy(_translationBufferListLock);
-  if (_translationBuffers.empty()){
+  if (_translationBuffers.empty()) {
     result = new arBuffer<char>(1024);
   }
   else{
@@ -127,17 +127,17 @@ arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
 
 // Return a translation buffer, and put it at the
 // front of the list so buffers are reused often.
-void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer){
+void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer) {
   arGuard dummy(_translationBufferListLock);
   _translationBuffers.push_front(buffer);
 }
 
 // Parse a binary stream into an arStructuredData record
 // (using internal recycling if possible).
-arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
+arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end) {
   end = ar_rawDataGetSize(buffer);
   arStructuredData* result = getStorage(ar_rawDataGetID(buffer));
-  if (!result){
+  if (!result) {
     ar_log_error() << "arStructuredDataParser failed to parse binary data.\n";
     return NULL;
   }
@@ -159,8 +159,8 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
 // double the storage for buffers in the case of translation.
 arStructuredData* arStructuredDataParser::parse
                                     (ARchar* buffer, int& end,
-				     const arStreamConfig& remoteStreamConfig){
-  if (remoteStreamConfig.endian == AR_ENDIAN_MODE){
+				     const arStreamConfig& remoteStreamConfig) {
+  if (remoteStreamConfig.endian == AR_ENDIAN_MODE) {
     return parse(buffer, end);
   }
 
@@ -168,16 +168,14 @@ arStructuredData* arStructuredDataParser::parse
   arBuffer<char>* transBuffer = getTranslationBuffer();
   // Buffer grows if necessary.
   // Translated data should NOT grow.
-  int size = ar_translateInt(buffer, remoteStreamConfig); 
+  int size = ar_translateInt(buffer, remoteStreamConfig);
   // pass this back
   end = size;
   transBuffer->grow(size);
   int recordID = ar_translateInt(buffer+AR_INT_SIZE, remoteStreamConfig);
   arDataTemplate* theTemplate = _dictionary->find(recordID);
   if (!theTemplate ||
-      theTemplate->translate(transBuffer->data, 
-			     buffer, 
-			     remoteStreamConfig) < 0) {
+      theTemplate->translate(transBuffer->data, buffer, remoteStreamConfig) < 0) {
     cerr << "arStructuredDataParser error: failed to translate data record.\n";
     recycleTranslationBuffer(transBuffer);
     return NULL;
@@ -191,7 +189,7 @@ arStructuredData* arStructuredDataParser::parse
 }
 
 // Parse an XML text stream (using internal recycling if possible).
-arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
+arStructuredData* arStructuredDataParser::parse(arTextStream* textStream) {
   const string recordBegin(ar_getTagText(textStream));
   return (recordBegin == "NULL" || ar_isEndTag(recordBegin)) ?
     NULL : parse(textStream, recordBegin);
@@ -246,20 +244,20 @@ std::istream& operator>>(std::istream& is, ARint64 &i ) {
 // The app reading this stream first reads a tag.
 // If that is control-related, such as <szg_vtk_world>,
 // then the app changes behavior somehow.
-// Otherwise, read in the rest of the record, based on the tag's name. 
+// Otherwise, read in the rest of the record, based on the tag's name.
 arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
-                                                const string& tagText){
+                                                const string& tagText) {
   // Get a resizable buffer for reading in text fields.
   arBuffer<char>* workingBuffer = getTranslationBuffer();
   arDataTemplate* theTemplate = _dictionary->find(tagText);
-  if (!theTemplate){
+  if (!theTemplate) {
     cerr << "arStructuredDataParser error: dictionary has no type '" << tagText << "'.\n";
     return NULL;
   }
   // Get some storage.
   const int ID = theTemplate->getID();
   arStructuredData* theData = getStorage(ID);
-  
+
   // Zero all fields' data dimensions, so unset fields have no data.
   const int cAttribute = theTemplate->getNumberAttributes();
   for (int i = 0; i < cAttribute; i++)
@@ -270,12 +268,12 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
   int iAttribute=0;
   for (iAttribute=0; iAttribute < cAttribute; iAttribute++) {
     fieldBegin = ar_getTagText(textStream, workingBuffer);
-    if (ar_isEndTag(fieldBegin)){
+    if (ar_isEndTag(fieldBegin)) {
       // "premature" end tag - some fields were missing (that's ok).
       foundEndTag = true;
       break;
     }
-    if (fieldBegin == "NULL"){
+    if (fieldBegin == "NULL") {
       cerr << "arStructuredDataParser error: expected start tag at start of field name.\n";
 LAbort:
       delete theData;
@@ -283,7 +281,7 @@ LAbort:
       return NULL;
     }
     arDataType fieldType = theTemplate->getAttributeType(fieldBegin);
-    if (fieldType == AR_GARBAGE){
+    if (fieldType == AR_GARBAGE) {
       cerr << "arStructuredDataParser error: type " << tagText
 	   << " has no field named " << fieldBegin << ".\n";
       goto LAbort;
@@ -295,15 +293,15 @@ LAbort:
     ARlong* longData = NULL;
     ARint64* int64Data = NULL;
     ARdouble* doubleData = NULL;
-    // Get the data from the record. 
-    if (!ar_getTextBeforeTag(textStream, workingBuffer)){
+    // Get the data from the record.
+    if (!ar_getTextBeforeTag(textStream, workingBuffer)) {
       goto LAbort;
     }
     switch (fieldType) {
     case AR_CHAR:
       // Don't skip whitespace.  All other cases should, though.
       size = ar_parseXMLData<ARchar>(workingBuffer, charData, false);
-      if (!charData){
+      if (!charData) {
         cerr << "arStructuredDataParser error: expected XML char.\n";
 	goto LAbort;
       }
@@ -312,7 +310,7 @@ LAbort:
       break;
     case AR_INT:
       size = ar_parseXMLData<ARint>(workingBuffer, intData);
-      if (!intData){
+      if (!intData) {
         cerr << "arStructuredDataParser error: expected XML int.\n";
 	goto LAbort;
       }
@@ -321,7 +319,7 @@ LAbort:
       break;
     case AR_FLOAT:
       size = ar_parseXMLData<ARfloat>(workingBuffer, floatData);
-      if (!floatData){
+      if (!floatData) {
         cerr << "arStructuredDataParser error: expected XML float.\n";
 	goto LAbort;
       }
@@ -330,7 +328,7 @@ LAbort:
       break;
     case AR_LONG:
       size = ar_parseXMLData<ARlong>(workingBuffer, longData);
-      if (!longData){
+      if (!longData) {
         cerr << "arStructuredDataParser error: expected XML long.\n";
 	goto LAbort;
       }
@@ -339,7 +337,7 @@ LAbort:
       break;
     case AR_INT64:
       size = ar_parseXMLData<ARint64>(workingBuffer, int64Data);
-      if (!int64Data){
+      if (!int64Data) {
         cerr << "arStructuredDataParser error: expected XML 64-bit int.\n";
 	goto LAbort;
       }
@@ -348,7 +346,7 @@ LAbort:
       break;
     case AR_DOUBLE:
       size = ar_parseXMLData<ARdouble>(workingBuffer, doubleData);
-      if (!doubleData){
+      if (!doubleData) {
         cerr << "arStructuredDataParser error: expected XML double.\n";
 	goto LAbort;
       }
@@ -361,17 +359,17 @@ LAbort:
     }
     string fieldEnd = ar_getTagText(textStream, workingBuffer);
     if (fieldEnd == "NULL" ||
-        !ar_isEndTag(fieldEnd) || 
-        fieldBegin != ar_getTagType(fieldEnd)){
+        !ar_isEndTag(fieldEnd) ||
+        fieldBegin != ar_getTagType(fieldEnd)) {
       cerr << "arStructuredDataParser error: data field not terminated with "
 	   << "the correct closing tag. Field began with " << fieldBegin
 	   << " and closed with " << ar_getTagType(fieldEnd) << ".\n";
       goto LAbort;
     }
   }
-  if (foundEndTag){
+  if (foundEndTag) {
     // Found an end tag before reading all the fields.
-    if (tagText != ar_getTagType(fieldBegin)){
+    if (tagText != ar_getTagType(fieldBegin)) {
       cerr << "arStructuredDataParser error: expected closing tag for " << tagText <<
         ", not " << ar_getTagType(fieldBegin) << ".\n";
       goto LAbort;
@@ -380,7 +378,7 @@ LAbort:
   else{
     const string recordEnd = ar_getTagText(textStream, workingBuffer);
     if (recordEnd == "NULL" || !ar_isEndTag(recordEnd) ||
-        tagText != ar_getTagType(recordEnd)){
+        tagText != ar_getTagType(recordEnd)) {
       cerr << "arStructuredDataParser error: expected closing tag for " << tagText <<
         ", not " << ar_getTagType(recordEnd) << ".\n";
       goto LAbort;
@@ -391,9 +389,9 @@ LAbort:
   return theData;
 }
 
-arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
+arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile) {
   arBuffer<char>* buffer = getTranslationBuffer();
-  if (fread(buffer->data, AR_INT_SIZE, 1, inputFile) == 0){
+  if (fread(buffer->data, AR_INT_SIZE, 1, inputFile) == 0) {
     // Failed to read file.
     return NULL;
   }
@@ -404,8 +402,8 @@ arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
     buffer->resize(max(recordSize, 2*buffer->size()));
   }
   const int result = fread(buffer->data+AR_INT_SIZE, 1, recordSize-AR_INT_SIZE, inputFile);
-  if (result < recordSize - AR_INT_SIZE){
-    cerr << "arStructuredDataParser error: failed to read record: read only " 
+  if (result < recordSize - AR_INT_SIZE) {
+    cerr << "arStructuredDataParser error: failed to read record: read only "
          << result+AR_INT_SIZE
 	 << " of " << recordSize << " expected bytes.\n";
     recycleTranslationBuffer(buffer);
@@ -420,18 +418,18 @@ arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
 }
 
 // Sometimes it is advantageous to read incoming data in a thread separate
-// from where it is actually used. In addition to holding raw "recycled" 
-// storage, the arStructuredDataParser can hold received message lists. There 
-// is one received message list per record type in the language. New 
+// from where it is actually used. In addition to holding raw "recycled"
+// storage, the arStructuredDataParser can hold received message lists. There
+// is one received message list per record type in the language. New
 // messages, as parsed by "parseIntoInternal", are appended to
 // the list. This allows demultiplexing via message type, for
-// arSZGClient objects etc. This function 
-// parses data from a char buffer and stores it in one of the received 
-// message list. If a getNextInternal() method is waiting on such data, it 
+// arSZGClient objects etc. This function
+// parses data from a char buffer and stores it in one of the received
+// message list. If a getNextInternal() method is waiting on such data, it
 // is woken up.
-bool arStructuredDataParser::parseIntoInternal(ARchar* buffer, int& end){
-  arStructuredData* theData = parse(buffer,end);
-  if (!theData){
+bool arStructuredDataParser::parseIntoInternal(ARchar* buffer, int& end) {
+  arStructuredData* theData = parse(buffer, end);
+  if (!theData) {
     // the parse failed for some reason
     return false;
   }
@@ -440,11 +438,11 @@ bool arStructuredDataParser::parseIntoInternal(ARchar* buffer, int& end){
   return true;
 }
 
-// Same as parseIntoInternal(ARchar*, int) except that here the source is a 
+// Same as parseIntoInternal(ARchar*, int) except that here the source is a
 // text file, with XML structure
-bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream){
+bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream) {
   arStructuredData* theData = parse(textStream);
-  if (!theData){
+  if (!theData) {
     return false;
   }
   _pushOntoQueue(theData);
@@ -461,22 +459,22 @@ bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream){
 // NOTE: multiple records can be stored with a particular tag. This is
 // useful when, for instance, a syzygy message can get several responses.
 bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
-                                                    int tag){
-  if (!data){
+                                                    int tag) {
+  if (!data) {
     return false;
   }
   _pushOntoTaggedQueue(tag, data);
   return true;
 }
 
-// Either returns the top piece of arStructuredData on the appropriate queue 
+// Either returns the top piece of arStructuredData on the appropriate queue
 // or blocks until such is available.
 // NOTE: This can be interrupted, both by the time-out OR by the clearQueues()
 // method, which flushes all queues, releases any outstanding waits inside
 // getNextInternal or getNextTaggedMessage, etc.
-arStructuredData* arStructuredDataParser::getNextInternal(int ID){
+arStructuredData* arStructuredDataParser::getNextInternal(int ID) {
   iQueue i(_messageQueue.find(ID));
-  if (i == _messageQueue.end()){
+  if (i == _messageQueue.end()) {
     ar_log_error() << "arStructuredDataParser: getNextInternal got invalid ID.\n";
     return NULL;
   }
@@ -491,18 +489,18 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   // on this to be GLOBALLY turned on/off, no matter where they live in the
   // threading universe.
   _activationLock.lock();
-    if (!_activated){
+    if (!_activated) {
       _activationLock.unlock();
       p->unlock();
       return NULL;
     }
   _activationLock.unlock();
 
-  while (p->messages.empty() && !p->exitFlag){
+  while (p->messages.empty() && !p->exitFlag) {
     p->wait();
   }
   arStructuredData* result = NULL;
-  if (p->exitFlag){
+  if (p->exitFlag) {
     // clearQueues() woke us.
     p->exitFlag = false;
   }
@@ -524,14 +522,14 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
 int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
                                                  list<int> tags,
                                                  int dataID,
-                                                 int timeout){
+                                                 int timeout) {
   _globalLock.lock();
 
   // As in getNextInternal(), allow falling through this call,
   // to let arSZGClient be effectively STOPPED and RESTARTED
   // arbitrarily from that object's data thread!
   _activationLock.lock();
-  if (!_activated){
+  if (!_activated) {
     _activationLock.unlock();
     _globalLock.unlock();
     return -1;
@@ -543,10 +541,10 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   for (j = tags.begin(); j != tags.end(); ++j) {
     i = _taggedMessages.find(*j);
     if (i == _taggedMessages.end())
-      continue; 
+      continue;
     SZGdatalist& l = i->second;
     arStructuredData* potentialData = l.front();
-    if (dataID >= 0 && potentialData->getID() != dataID){
+    if (dataID >= 0 && potentialData->getID() != dataID) {
       ar_log_error() << "arStructuredDataParser expected id " << dataID <<
 	", not " << potentialData->getID() <<".\n";
       _globalLock.unlock();
@@ -554,7 +552,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     }
     message = potentialData;
     l.pop_front();
-    if (l.empty()){
+    if (l.empty()) {
       // No more data, so ok to erase this entry.
       _taggedMessages.erase(i);
     }
@@ -566,7 +564,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // Associate a synchronizer with the list of tags,
   // the same synchronizer for all these tags.
   arStructuredDataSynchronizer* syn = NULL;
-  if (_recycledSync.empty()){
+  if (_recycledSync.empty()) {
     syn = new arStructuredDataSynchronizer();
   }
   else{
@@ -577,9 +575,9 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 
   // Associate it with the given tags.
   list<int> actualUsedTags;
-  for (j = tags.begin(); j != tags.end(); j++){
+  for (j = tags.begin(); j != tags.end(); j++) {
     // Ignore duplicate and illegel (value<0) tags.
-    if (_messageSync.find(*j) == _messageSync.end() && *j >= 0){
+    if (_messageSync.find(*j) == _messageSync.end() && *j >= 0) {
       // Add the synchronizer to the list.
       actualUsedTags.push_back(*j);
       syn->refCount++;
@@ -589,7 +587,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   _globalLock.unlock();
 
   // Phase 2: wait.
-  // NOTE: there was originally a subtle bug here. Specifically, the 
+  // NOTE: there was originally a subtle bug here. Specifically, the
   // tag on the synchronizer may ALREADY be set. Consequently, a normal
   // exit might never get into the body of the loop. Thus the default for
   // normalExit must be TRUE and NOT false (as it was originally). If
@@ -599,7 +597,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   syn->lock();
 
     // If syn->exitFlag, the tag will be -1, so exit normally from the wait.
-    while (syn->tag < 0 && !syn->exitFlag && normalExit){
+    while (syn->tag < 0 && !syn->exitFlag && normalExit) {
       // Wait returns false on timeout, i.e. no data.
       normalExit = syn->wait(timeout);
     }
@@ -614,7 +612,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // which prevents putting tags on the list twice.
   _cleanupSynchronizers(actualUsedTags);
 
-  if (!normalExit || tag == -1){
+  if (!normalExit || tag == -1) {
     // Either timed-out (!normalExit), or
     // clearQueues() released the wait() above with -1.
     // No data to get, so fail.  Normal, so don't warn.
@@ -624,12 +622,12 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // Phase 3: got the message.
   arGuard dummy(_globalLock);
   i = _taggedMessages.find(tag);
-  if ( i == _taggedMessages.end() ){
+  if ( i == _taggedMessages.end() ) {
     ar_log_error() << "getNextTaggedMessage got no message.\n";
   } else {
     SZGdatalist& l = i->second;
     arStructuredData* potentialData = l.front();
-    if ( dataID >= 0 && potentialData->getID() != dataID ){
+    if ( dataID >= 0 && potentialData->getID() != dataID ) {
       ar_log_error() << "getTaggedMessage expected id " << dataID << ", not " <<
 	potentialData->getID() <<".\n";
       return -1;
@@ -639,7 +637,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     message = potentialData;
     l.pop_front();
     // only erase the entry if the list is empty
-    if (l.empty()){
+    if (l.empty()) {
       _taggedMessages.erase(i);
     }
   }
@@ -647,7 +645,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 }
 
 // Avoid memory leaks: reclaim data storage.
-void arStructuredDataParser::recycle(arStructuredData* trash){
+void arStructuredDataParser::recycle(arStructuredData* trash) {
   const int ID = trash->getID();
   arGuard dummy(_recycleLock);
   const SZGrecycler::const_iterator i = recycling.find(ID);
@@ -663,12 +661,12 @@ void arStructuredDataParser::recycle(arStructuredData* trash){
 }
 
 // "Release" every pending request for getNextTaggedMessage() or getNextInternal().
-// Remove all already parsed messages from the internal queues for 
+// Remove all already parsed messages from the internal queues for
 // particular message IDs AND from all the tagged queues, to let e.g. an
 // an arSZGClient disconnect from an szgserver, let current calls fall through,
 // and later be able to reconnect to a different szgserver.
 
-void arStructuredDataParser::clearQueues(){
+void arStructuredDataParser::clearQueues() {
   arGuard dummy(_globalLock);
 
   // Deactivate: getNextInternal() and getNextTagged() will fail
@@ -698,14 +696,14 @@ void arStructuredDataParser::clearQueues(){
   // released getNextTaggedMessage() functions.
 
   // Recycle all received tagged messages, removing them from their respective queues.
-  for (iTagQueue k(_taggedMessages.begin()); k != _taggedMessages.end(); ++k){
+  for (iTagQueue k(_taggedMessages.begin()); k != _taggedMessages.end(); ++k) {
     _recyclelist(k->second);
   }
   _taggedMessages.clear();
 
   // Release blocked getNextInternal() calls.
   // Incidentally, recycle all messages as waiting by ID.
-  for (iQueue j(_messageQueue.begin()); j != _messageQueue.end(); ++j){
+  for (iQueue j(_messageQueue.begin()); j != _messageQueue.end(); ++j) {
     arMessageQueueByID* p = j->second;
     p->lock();
 
@@ -725,10 +723,10 @@ void arStructuredDataParser::clearQueues(){
 
 // Resume data flowing from getNextInternal() and getNextTagged().
 
-void arStructuredDataParser::activateQueues(){
+void arStructuredDataParser::activateQueues() {
   arGuard dummy(_activationLock);
   _activated = true;
-  for (iQueue i(_messageQueue.begin()); i != _messageQueue.end(); ++i){
+  for (iQueue i(_messageQueue.begin()); i != _messageQueue.end(); ++i) {
     i->second->exitFlag = false;
   }
   // Tagged synchronizers don't need this since they start out already reset.
@@ -737,7 +735,7 @@ void arStructuredDataParser::activateQueues(){
 // Push the received message onto one of the queues.
 // Signal a potentially blocked getNextInternal() that it can proceed.
 
-void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
+void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData) {
   // we assume the next 3 iterators will find something, because theData is valid
   iQueue i(_messageQueue.find(theData->getID()));
   arMessageQueueByID* p = i->second;
@@ -755,10 +753,10 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
 // The only uniqueness is that at most one command at a time
 // may wait on a particular tag.
 
-void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* theData){
+void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* theData) {
   arGuard dummy(_globalLock);
   SZGtaggedMessageQueue::iterator j = _taggedMessages.find(tag);
-  if (j == _taggedMessages.end()){
+  if (j == _taggedMessages.end()) {
     // This tag has no data yet.
     _taggedMessages.insert(
       SZGtaggedMessageQueue::value_type(tag, SZGdatalist(1, theData)));
@@ -785,12 +783,12 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* the
 
 // Clean up the synchronizer associated with a list of tags.
 // All tags in the list associate with the same synchronizer.
-void arStructuredDataParser::_cleanupSynchronizers(list<int> tags){
+void arStructuredDataParser::_cleanupSynchronizers(list<int> tags) {
   arGuard dummy(_globalLock);
-  for (list<int>::const_iterator i(tags.begin()); i != tags.end(); ++i){
+  for (list<int>::const_iterator i(tags.begin()); i != tags.end(); ++i) {
     SZGtaggedMessageSync::iterator j = _messageSync.find(*i);
-    if (j != _messageSync.end()){
-      if (--(j->second->refCount) == 0){
+    if (j != _messageSync.end()) {
+      if (--(j->second->refCount) == 0) {
         _recycledSync.push_front(j->second);
       }
       _messageSync.erase(j);

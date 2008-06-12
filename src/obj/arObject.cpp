@@ -7,7 +7,7 @@
 #include "arObject.h"
 #include "arGraphicsAPI.h"
 
-bool arObject::attachMesh(const string& objectName, const string& parentName){
+bool arObject::attachMesh(const string& objectName, const string& parentName) {
   arGraphicsNode* g = dgGetNode(parentName);
   return g && attachMesh(g, objectName);
 }

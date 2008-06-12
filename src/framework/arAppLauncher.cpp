@@ -7,25 +7,25 @@
 #include "arAppLauncher.h"
 #include "arLogStream.h"
 
-ostream& operator<<(ostream& os, const arLaunchInfo& x){
+ostream& operator<<(ostream& os, const arLaunchInfo& x) {
   os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
      << x.context<<", "<< x.tradingTag<<", "<< x.info<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arLaunchInfo& x){
+arLogStream& operator<<(arLogStream& os, const arLaunchInfo& x) {
   os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
      << x.context<<", "<< x.tradingTag<<", "<< x.info<<" )";
   return os;
 }
 
-ostream& operator<<(ostream& os, const arPipe& x){
+ostream& operator<<(ostream& os, const arPipe& x) {
   os <<"arPipe( "<<x.hostname<<", "<< x.displayname<<", "
      << x.renderer<<" )";
   return os;
 }
 
-arLogStream& operator<<(arLogStream& os, const arPipe& x){
+arLogStream& operator<<(arLogStream& os, const arPipe& x) {
   os <<"arPipe( "<<x.hostname<<", "<< x.displayname<<", "
      << x.renderer<<" )";
   return os;
@@ -95,7 +95,7 @@ bool arAppLauncher::setVircomp(const string& vircomp) {
   if (!_szgClientOK())
     return false;
 
-  if (_szgClient->getAttribute(vircomp,"SZG_CONF","virtual","") != "true") {
+  if (_szgClient->getAttribute(vircomp, "SZG_CONF", "virtual", "") != "true") {
     ar_log_error() << "no virtual computer '" << vircomp <<
       "', expected one of: " << _szgClient->getVirtualComputers() << ".\n";
     return false;
@@ -146,7 +146,7 @@ bool arAppLauncher::setParameters() {
     // maybe handle when the v.c. was already set explicitly.
     return true;
   }
-  
+
   // If the virtual computer was not explicitly set, set its name and "location."
   if (_vircomp == "NULL" && !setVircomp()) {
     ar_log_error() << "no virtual computer '" << _vircomp << "'.\n"; //;;;; unify this emptytest with others
@@ -173,13 +173,13 @@ bool arAppLauncher::setParameters() {
     }
 
     _pipes.resize(num);
-  } 
- 
+  }
+
   int i;
   for (i=0; i<getNumberDisplays(); ++i) {
     // A "pipe" is an ordered pair (hostname, displayname).
     const arSlashString pipe(_getAttribute(_displayName(i), "map", ""));
-    if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY") {
+    if (pipe.size() != 2 || pipe[1].substr(0, 11) != "SZG_DISPLAY") {
       ar_log_error() << "screen " << i << " of " <<
 	_vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
       return false;
@@ -231,7 +231,7 @@ bool arAppLauncher::setParameters() {
     // so it comes FIRST in the <virtual computer>/SZG_INPUT0/map list.
     // After that come slave devices.
     const string iDev(ar_intToString(i/2));
-    
+
 //    device = (device == "inputsimulator" ? "" : "DeviceServer ") + device + " " + iDev;
     if (_isSpecialDeviceName( device )) {
       device += " " + iDev;
@@ -244,14 +244,14 @@ bool arAppLauncher::setParameters() {
   }
 
   // Sound.
-  const string soundLocation(_getAttribute("SZG_SOUND","map",""));
+  const string soundLocation(_getAttribute("SZG_SOUND", "map", ""));
   if (soundLocation != "NULL") {
-    _addService(soundLocation,"SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
+    _addService(soundLocation, "SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
   }
 
   _vircompDefined = true;
   return true;
-}  
+}
 
 // Launch the other components of the app on the virtual computer.
 bool arAppLauncher::launchApp() {
@@ -273,7 +273,7 @@ bool arAppLauncher::launchApp() {
     _unlock();
     return false;
   }
-     
+
   // Kill every graphics program whose name differs from the new graphics program.
   // _demoKill already killed renderers of any master/slave app.
   _graphicsKill(_firstToken(_renderer));
@@ -305,7 +305,7 @@ bool arAppLauncher::launchApp() {
   if (!ok) {
     ar_log_error() << "some components failed to launch.\n";
   }
-  _unlock(); 
+  _unlock();
   return ok;
 }
 
@@ -315,13 +315,13 @@ void arAppLauncher::killApp() {
     _graphicsKill("");
 }
 
-bool arAppLauncher::waitForKill() { 
+bool arAppLauncher::waitForKill() {
   if (!_szgClientOK())
     return false;
 
   while (true) {
     string messageType, messageBody;
-    if (!_szgClient->receiveMessage(&messageType,&messageBody)) {
+    if (!_szgClient->receiveMessage(&messageType, &messageBody)) {
       ar_log_critical() << "no szgserver.\n";
       // Don't killApp(), because szgserver is gone.
       break;
@@ -408,7 +408,7 @@ bool arAppLauncher::screenSaver() {
 
   // Kill any apps which might hold locks which szgrenders will need.
   _graphicsKill("szgrender");
-    
+
   // Start szgrenders.
   list<arLaunchInfo> launchList;
   for (int i=0; i<getNumberDisplays(); i++) {
@@ -491,7 +491,7 @@ bool arAppLauncher::getRenderProgram(const int i, string& computer,
 // display is the only one modified... and only top-level elements
 // with attributes "value" can be modified (currently decorate, fullscreen,
 // title, stereo, zorder, xdisplay).
-void arAppLauncher::updateRenderers(const string& attribute, 
+void arAppLauncher::updateRenderers(const string& attribute,
                                     const string& value) {
   // set up the virtual computer info, if necessary
   if (!setParameters()) {
@@ -501,9 +501,9 @@ void arAppLauncher::updateRenderers(const string& attribute,
   string host, program;
   for (int i=0; i<getNumberDisplays(); i++) {
     // Even if no render program is running, update the database.
-    
+
     // Find the XML.
-    // The empty string is an explicit final parameter, to 
+    // The empty string is an explicit final parameter, to
     // disambiguate the case where "computer" (1st param) is not specified
     // but "valid values" are.
 
@@ -521,7 +521,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
       // Keep going if errors occur.
       (void)_szgClient->sendReload(host, program);
     }
-  } 
+  }
 }
 
 //**************************************************************************
@@ -540,7 +540,7 @@ bool arAppLauncher::_prepareCommand() {
   return setParameters() && _trylock();
 }
 
-void arAppLauncher::_addService(const string& computerName, 
+void arAppLauncher::_addService(const string& computerName,
                                 const string& serviceName,
                                 const string& context,
                                 const string& tradingTag,
@@ -581,7 +581,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
   list<int> sentMessageMatches;
   list<int> initialMessageMatches;
 
-  // When launching an app, add the ID of the launching message to 
+  // When launching an app, add the ID of the launching message to
   // the sentMessageIDs list. It remains there until the launched component
   // has fully responded to the message.
   for (iLaunch iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter) {
@@ -631,13 +631,13 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
     //      has timed out and will quit.
     //   2. Stuff launches, handshakes with szgd, but never responds to us.
     //      (i.e. the executable is malicious, either intentionally or
-    //       unintentionally). OR it does respond, but only with 
+    //       unintentionally). OR it does respond, but only with
     //      "partial responses". In this case, we probably have to cut
     //      things off somewhere, as a defense against programs that
     //      want to drag this out indefinitely.
     const int successCode = _szgClient->getMessageResponse(
       sentMessageMatches, responseBody, match, 10000);
-    // successCode==0 exactly when there is a time-out.  
+    // successCode==0 exactly when there is a time-out.
     if (successCode != 0) {
       // got a response
       if (_szgClient->getLaunchingMessageID()) {
@@ -679,7 +679,7 @@ void arAppLauncher::_blockingKillByID(list<int>* ids) {
 // Kill every render program that does NOT match the specified name. Block.
 void arAppLauncher::_graphicsKill(const string& appKeep) {
   // Determine what graphics program is running on each display.
-  // If it isn't correct, deactivate it. 
+  // If it isn't correct, deactivate it.
   list<int> graphicsKillList;
   for (int i=0; i<getNumberDisplays(); i++) {
     const string displayLock(getDisplayName(i));

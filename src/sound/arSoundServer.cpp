@@ -14,38 +14,38 @@ bool ar_soundServerConnectionCallback(void* server,
                                          list<arSocket*>* socketList) {
   return ((arSoundServer*)server)->_connectionCallback(socketList);
 }
- 
+
 bool arSoundServer::_connectionCallback(list<arSocket*>* socketList) {
-  if (!_connectionQueue){
+  if (!_connectionQueue) {
     return false;
   }
   // If we've set up a "remote" texture path, this needs to be
   // copied over to the szgrender on the other side.
-  if (_bundlePathName != "NULL" && _bundleName != "NULL"){
+  if (_bundlePathName != "NULL" && _bundleName != "NULL") {
     arStructuredData pathData(_langSound.find("sound_admin"));
-    pathData.dataInString("action","remote_path");
-    pathData.dataInString("name",_bundlePathName+"/"+_bundleName);
+    pathData.dataInString("action", "remote_path");
+    pathData.dataInString("name", _bundlePathName+"/"+_bundleName);
     _connectionQueue->forceQueueData(&pathData);
   }
   arStructuredData nodeData(_langSound.find("make node"));
   _recSerialize(&_rootNode, nodeData);
   _connectionQueue->swapBuffers();
- 
+
   bool ok = true;
   arDataServer* dataServer = _syncServer.dataServer();
   for (list<arSocket*>::iterator iSocket = socketList->begin();
        iSocket != socketList->end();
-       ++iSocket){
-    if (!dataServer->sendDataQueue(_connectionQueue,*iSocket)){
+       ++iSocket) {
+    if (!dataServer->sendDataQueue(_connectionQueue, *iSocket)) {
       ar_log_error() << "arSoundServer: connection send failed.\n";
       ok = false;
     }
   }
   return ok;
 }
- 
+
 arDatabaseNode* ar_soundServerMessageCallback(void* server,
-                                              arStructuredData* data){
+                                              arStructuredData* data) {
   return ((arSoundServer*)server)->arSoundDatabase::alter(data);
 }
 
@@ -60,54 +60,54 @@ arSoundServer::arSoundServer() :
   _syncServer.setConnectionCallback(ar_soundServerConnectionCallback);
 }
 
-arSoundServer::~arSoundServer(){
+arSoundServer::~arSoundServer() {
   if (_connectionQueue)
     delete _connectionQueue;
 }
 
-bool arSoundServer::init(arSZGClient& client){
+bool arSoundServer::init(arSZGClient& client) {
   _syncServer.setServiceName("SZG_SOUND");
   _syncServer.setChannel("sound");
   return _syncServer.init(client);
 }
 
-bool arSoundServer::start(){
+bool arSoundServer::start() {
   return _syncServer.start();
 }
 
-void arSoundServer::stop(){
+void arSoundServer::stop() {
   _syncServer.stop();
 }
- 
-arDatabaseNode* arSoundServer::alter(arStructuredData* theData, bool refNode){
+
+arDatabaseNode* arSoundServer::alter(arStructuredData* theData, bool refNode) {
   // Serialize with arDatabase's lock.
   _lock();
     arDatabaseNode* r = _syncServer.receiveMessage(theData);
-    if (r && refNode){
+    if (r && refNode) {
       r->ref();
     }
   _unlock();
   return r;
 }
 
-void arSoundServer::_recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData){
+void arSoundServer::_recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData) {
   // This will fail for the root node
-  if (fillNodeData(&nodeData, pNode)){
+  if (fillNodeData(&nodeData, pNode)) {
     _connectionQueue->forceQueueData(&nodeData);
     arStructuredData* theData = pNode->dumpData();
     _connectionQueue->forceQueueData(theData);
     delete theData;
   }
 
-  // Thread-safety does NOT require using getChildrenRef instead of 
+  // Thread-safety does NOT require using getChildrenRef instead of
   // getChildren. That would deadlock connection attempts.
   // This is called from the connection callback (which is
   // called from within a locked _queueLock in arSyncDataServer).
   // In arSyncDataServer::receiveMessage, _queueLock guards alterations to
   // the local database. Thus, we are OK!
   const list<arDatabaseNode*> children = pNode->getChildren();
-  for (list<arDatabaseNode*>::const_iterator i = children.begin(); 
-       i != children.end(); ++i){
+  for (list<arDatabaseNode*>::const_iterator i = children.begin();
+       i != children.end(); ++i) {
     _recSerialize(*i, nodeData);
   }
 }

@@ -21,12 +21,12 @@ class SZG_CALL arInteractable {
     virtual ~arInteractable();
     arInteractable( const arInteractable& ui );
     arInteractable& operator=( const arInteractable& ui );
-    
+
     virtual bool touch( arEffector& effector );
     virtual bool processInteraction( arEffector& effector );
     virtual bool untouch( arEffector& effector );
     virtual bool untouchAll();
-    
+
     void disable();                // Disallow user interaction
     void enable( bool flag=true ); // Allow user interaction
     bool enabled() const { return _enabled; }
@@ -42,20 +42,20 @@ class SZG_CALL arInteractable {
     virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
     arMatrix4 getMatrix() const { return _matrix; }
     virtual void updateMatrix( const arMatrix4& deltaMatrix );
-    
+
   protected:
-    // Subclass's event (got-focus) handler.    
+    // Subclass's event (got-focus) handler.
     // Called only for the particular instance that satisfies the criteria
     // implemented in the static method processAllTouches() (if any).
     // @param interface An arInterfaceObject pointer, for getting miscellaneous input.
     // @param wandTipMatrix Wand tip position & orientation.
     // @param events A vector of button on/off events.
     virtual bool _processInteraction( arEffector& ) { return true; }
-    
-    // Subclass's gain-of-focus handler.    
+
+    // Subclass's gain-of-focus handler.
     virtual bool _touch( arEffector& ) { return true; }
 
-    // Subclass's loss-of-focus handler.    
+    // Subclass's loss-of-focus handler.
     // Called if _touched is true but this instance didn't get the focus.
     virtual bool _untouch( arEffector& ) { return true; }
 

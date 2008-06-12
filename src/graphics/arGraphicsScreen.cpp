@@ -24,12 +24,12 @@ const float defaultWidth = 13.333;
 const float defaultHeight = 10.;
 
 arGraphicsScreen::arGraphicsScreen():
-  _setCenter( 0,5,-5 ),
+  _setCenter( 0, 5, -5 ),
   _setHeight(10),
   _setWidth(defaultWidth),
-  _center( 0,0,-5 ),
-  _normal( 0,0,-1 ),
-  _up( 0,1,0 ),
+  _center( 0, 0, -5 ),
+  _normal( 0, 0, -1 ),
+  _up( 0, 1, 0 ),
   _height( defaultHeight ),
   _width( 13.333 ),
   _tileX( 0 ),
@@ -39,7 +39,7 @@ arGraphicsScreen::arGraphicsScreen():
   _headMounted(true),
   _ignoreFixedHeadMode(false),
   _alwaysFixedHeadMode(false),
-  _fixedHeadPosition(0,5,0),
+  _fixedHeadPosition(0, 5, 0),
   _fixedHeadUpAngle(0) {
 }
 
@@ -50,10 +50,10 @@ bool arGraphicsScreen::configure(arSZGClient& client) {
 // Return true.  Defaults for all parameters the arSZGClient might query.
 bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) {
   (void)client.initResponse();
-  _headMounted = client.getAttribute( screenName,"head_mounted","|true|false|") == "true";
+  _headMounted = client.getAttribute( screenName, "head_mounted", "|true|false|") == "true";
 
   float floatbuf[2];
-  if (client.getAttributeFloats( screenName,"screen_dim",floatbuf,2)) {
+  if (client.getAttributeFloats( screenName, "screen_dim", floatbuf, 2)) {
     _width = floatbuf[0];
     _height = floatbuf[1];
   } else {
@@ -66,30 +66,30 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
   if (client.getAttributeVector3 ( screenName, "screen_center", _setCenter )) {
     _center = _setCenter;
   } else {
-    _setCenter = arVector3(0,0,-5);
+    _setCenter = arVector3(0, 0, -5);
     _center = _setCenter;
   }
   
   if (!client.getAttributeVector3 ( screenName, "screen_normal", _normal )) {
-    _normal = arVector3(0,0,-1);
+    _normal = arVector3(0, 0, -1);
   }
 
   if (!client.getAttributeVector3 ( screenName, "screen_up", _up )) {
-    _up = arVector3(0,1,0);
+    _up = arVector3(0, 1, 0);
   }
   if (_normal.zero()) {
     ar_log_error() << "arGraphicsScreen overriding zero " << screenName << "/screen_normal.\n";
-    _normal = arVector3(0,0,-1);
+    _normal = arVector3(0, 0, -1);
   }
   _normal = _normal.normalize();
   if (_up.zero()) {
     ar_log_error() << "arGraphicsScreen overriding zero " << screenName << "/screen_up.\n";
-    _up = arVector3(0,1,0);
+    _up = arVector3(0, 1, 0);
   }
   _up = _up.normalize();
 
   int intbuf[4];
-  if (ar_parseIntString(client.getAttribute(screenName,"tile"), intbuf, 4) == 4) {
+  if (ar_parseIntString(client.getAttribute(screenName, "tile"), intbuf, 4) == 4) {
     setTile( intbuf[0], intbuf[1], intbuf[2], intbuf[3] );
   } else {
     setTile( 0, 1, 0, 1 );
@@ -97,10 +97,10 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
 
   // demo-mode parameters
   if (!client.getAttributeVector3( screenName, "fixed_head_position", _fixedHeadPosition )) {
-    _fixedHeadPosition = arVector3(0,5.5,0);
+    _fixedHeadPosition = arVector3(0, 5.5, 0);
   }
 
-  if (client.getAttributeFloats(screenName,"fixed_head_up_angle", &_fixedHeadUpAngle)) {
+  if (client.getAttributeFloats(screenName, "fixed_head_up_angle", &_fixedHeadUpAngle)) {
     _fixedHeadUpAngle *= M_PI/180.;
   } else {
     _fixedHeadUpAngle = 0.;
@@ -133,24 +133,24 @@ bool arGraphicsScreen::setUseFixedHeadMode( const std::string& usageMode ) {
 
 // Manually set the screen center. This can be nice to do if you are
 // using the arGraphicsScreen directly instead of through one of the frameworks.
-void arGraphicsScreen::setCenter(const arVector3& center){
+void arGraphicsScreen::setCenter(const arVector3& center) {
   _setCenter = center;
   _updateTileCenter();
 }
 
 // Manually set the screen normal. By convention, this points away from the
 // viewer.
-void arGraphicsScreen::setNormal(const arVector3& normal){
+void arGraphicsScreen::setNormal(const arVector3& normal) {
   _normal = normal;
 }
 
 // Manually set the screen's up direction.
-void arGraphicsScreen::setUp(const arVector3& up){
+void arGraphicsScreen::setUp(const arVector3& up) {
   _up = up;
 }
 
 // Manually set the screen's dimensions, width followed by height.
-void arGraphicsScreen::setDimensions(float width, float height){
+void arGraphicsScreen::setDimensions(float width, float height) {
   _setWidth = width;
   _setHeight = height;
   _updateTileCenter();
@@ -162,7 +162,7 @@ void arGraphicsScreen::setDimensions(float width, float height){
 // @param tileY The number of the tile in the Y direction, starting with 0.
 // @param numberTilesY The total number of tiles in the Y direction.
 void arGraphicsScreen::setTile(int tileX, int numberTilesX,
-			     int tileY, int numberTilesY){
+			     int tileY, int numberTilesY) {
   _tileX = tileX;
   _numberTilesX = numberTilesX;
   _tileY = tileY;
@@ -176,13 +176,13 @@ void arGraphicsScreen::_updateTileCenter() {
                                                 _width, _height,
                                                 _tileX, _numberTilesX, 
                                                 _tileY, _numberTilesY );
-    if (_numberTilesX != 0){
+    if (_numberTilesX != 0) {
       _width = _setWidth/_numberTilesX;
     }
     else{
       _width = _setWidth;
     }
-    if (_numberTilesY != 0){
+    if (_numberTilesY != 0) {
       _height = _setHeight/_numberTilesY;
     }
     else{

@@ -17,10 +17,10 @@ using namespace std;
 
 class arInterfaceDescription {
  public:
-  arInterfaceDescription(){}
+  arInterfaceDescription() {}
   arInterfaceDescription(const string& a, const string& m) :
     address(a), mask(m) {}
-  ~arInterfaceDescription(){}
+  ~arInterfaceDescription() {}
 
   string address;
   string mask;
@@ -34,7 +34,7 @@ class SZG_CALL arPhleetConfig {
   ~arPhleetConfig() {}
 
   bool determineFileLocations( string& configLocation, string& loginFileLocation );
-  
+
   // Config file I/O.
   bool read();
   bool write();
@@ -75,11 +75,11 @@ class SZG_CALL arPhleetConfig {
     { return _serverIP; }
   int getServerPort() const // port of szgserver
     { return _serverPort; }
-  
+
   // manipulating the global config. using these methods,
   // command-line wrappers can be used to build the config file
   void   setComputerName(const string& name);
-  void   addInterface(const string& networkName, 
+  void   addInterface(const string& networkName,
                       const string& address,
                       const string& netmask);
   bool   deleteInterface(const string& networkName, const string& address);

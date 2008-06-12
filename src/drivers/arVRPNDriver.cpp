@@ -9,7 +9,7 @@
 DriverFactory(arVRPNDriver, "arInputSource")
 
 #ifdef Enable_VRPN
-void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event){
+void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event) {
   arVRPNDriver* vrpn = (arVRPNDriver*) data;
   // Reorder from Syzygy's scalar-last quaternion to VRPN's scalar-first quaternion.
   const arMatrix4 rotMatrix(arQuaternion(
@@ -18,25 +18,25 @@ void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event){
   vrpn->sendMatrix(event.sensor, transMatrix*rotMatrix);
 }
 
-void ar_VRPNHandleButton(void* data, const vrpn_BUTTONCB event){
+void ar_VRPNHandleButton(void* data, const vrpn_BUTTONCB event) {
   arVRPNDriver* vrpn = (arVRPNDriver*) data;
   vrpn->sendButton(event.button, event.state);
 }
 
-void ar_VRPNHandleAnalog(void* data, const vrpn_ANALOGCB event){
+void ar_VRPNHandleAnalog(void* data, const vrpn_ANALOGCB event) {
   arVRPNDriver* vrpn = (arVRPNDriver*) data;
-  for (int i=0; i<event.num_channel; i++){
+  for (int i=0; i<event.num_channel; i++) {
     vrpn->queueAxis(i, event.channel[i]);
   }
-  vrpn->sendQueue(); 
+  vrpn->sendQueue();
 }
 #endif
 
-void ar_VRPNDriverEventTask(void* VRPNDriver){
+void ar_VRPNDriverEventTask(void* VRPNDriver) {
 #ifdef Enable_VRPN
   arVRPNDriver* vrpn = (arVRPNDriver*) VRPNDriver;
-  while (true){
-    if (vrpn->vrpnAnalogRemote){
+  while (true) {
+    if (vrpn->vrpnAnalogRemote) {
       // vrpn works via polling
       vrpn->vrpnAnalogRemote->mainloop();
       vrpn->vrpnButtonRemote->mainloop();
@@ -49,7 +49,7 @@ void ar_VRPNDriverEventTask(void* VRPNDriver){
 #endif
 }
 
-arVRPNDriver::arVRPNDriver(){
+arVRPNDriver::arVRPNDriver() {
 #ifdef Enable_VRPN
   vrpnNumberButtons = 0;
   vrpnNumberAxes = 0;
@@ -62,16 +62,16 @@ arVRPNDriver::arVRPNDriver(){
 #endif
 }
 
-arVRPNDriver::~arVRPNDriver(){
+arVRPNDriver::~arVRPNDriver() {
 }
 
-bool arVRPNDriver::init(arSZGClient& client){
-  vrpnDeviceName = client.getAttribute("SZG_VRPN","name");
+bool arVRPNDriver::init(arSZGClient& client) {
+  vrpnDeviceName = client.getAttribute("SZG_VRPN", "name");
 #ifdef Enable_VRPN
   // it doesn't seem like vrpn propogates signatures forward...
   // so let's just set the ceiling pretty high
-  _setDeviceElements(20,20,20);
-  if (vrpnDeviceName == "NULL"){
+  _setDeviceElements(20, 20, 20);
+  if (vrpnDeviceName == "NULL") {
     ar_log_remark() << "arVRPNDriver error: no SZG_VRPN/name.\n";
     return false;
   }
@@ -79,7 +79,7 @@ bool arVRPNDriver::init(arSZGClient& client){
   vrpnAnalogRemote = new vrpn_Analog_Remote(vrpnDeviceName.c_str());
   vrpnButtonRemote = new vrpn_Button_Remote(vrpnDeviceName.c_str());
   vrpnTrackerRemote = new vrpn_Tracker_Remote(vrpnDeviceName.c_str());
-  if (!vrpnAnalogRemote || !vrpnButtonRemote || !vrpnTrackerRemote){
+  if (!vrpnAnalogRemote || !vrpnButtonRemote || !vrpnTrackerRemote) {
     ar_log_remark() << "arVRPNDriver error: vrpn device failed to initialize.\n";
     return false;
   }
@@ -88,16 +88,16 @@ bool arVRPNDriver::init(arSZGClient& client){
   vrpnTrackerRemote->register_change_handler(this, ar_VRPNHandleTracker);
   return true;
 #else
-  _setDeviceElements(0,0,0);
+  _setDeviceElements(0, 0, 0);
   return true;
 #endif
 }
 
-bool arVRPNDriver::start(){
-  return _eventThread.beginThread(ar_VRPNDriverEventTask,this);
+bool arVRPNDriver::start() {
+  return _eventThread.beginThread(ar_VRPNDriverEventTask, this);
 }
 
-bool arVRPNDriver::stop(){
+bool arVRPNDriver::stop() {
   // not implemented yet!
   return true;
 }

@@ -16,7 +16,7 @@ arIndexNode::arIndexNode() : arGraphicsArrayNode(AR_INT, 1) {
   _commandBuffer.v[0] = 0;
 }
 
-void arIndexNode::initialize(arDatabase* database){
+void arIndexNode::initialize(arDatabase* database) {
   arGraphicsNode::initialize(database);
   arGraphicsArrayNode::initialize(
     _g->AR_INDEX,
@@ -27,26 +27,26 @@ void arIndexNode::initialize(arDatabase* database){
 }
 
 // Speedy accessor.  Not thread-safe, so call while _nodeLock'd.
-const int* arIndexNode::getIndices(int& number){
+const int* arIndexNode::getIndices(int& number) {
   number = _numElements();
   return (int*)_commandBuffer.v;
 }
 
 // Slow, thread-safe, Python-compatible accessor.
-vector<int> arIndexNode::getIndices(){
+vector<int> arIndexNode::getIndices() {
   arGuard dummy(_nodeLock);
   const unsigned num = _numElements();
   vector<int> r(num);
   // Bug: assumes that sizeof(int) == sizeof(float).
   int* p = (int*) _commandBuffer.v;
-  for (unsigned int i = 0; i < num; i++){
+  for (unsigned int i = 0; i < num; i++) {
     r[i] = p[i];
   }
   return r;
 }
 
-void arIndexNode::setIndices(int number, int* indices, int* IDs){
-  if (active()){
+void arIndexNode::setIndices(int number, int* indices, int* IDs) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(number, indices, IDs, true);
     _nodeLock.unlock();
@@ -60,10 +60,10 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
 }
 
 // Slow, Python-compatible.
-void arIndexNode::setIndices(vector<int>& indices){
+void arIndexNode::setIndices(vector<int>& indices) {
   const unsigned num = indices.size();
   int* ptr = new int[num];
-  for (unsigned i = 0; i < num; ++i){
+  for (unsigned i = 0; i < num; ++i) {
     ptr[i] = indices[i];
   }
   setIndices(num, ptr, NULL);
@@ -71,10 +71,10 @@ void arIndexNode::setIndices(vector<int>& indices){
 }
 
 // Slow, Python-compatible.
-void arIndexNode::setIndices(vector<int>& indices, vector<int>& IDs){
+void arIndexNode::setIndices(vector<int>& indices, vector<int>& IDs) {
   const unsigned num = min(IDs.size(), indices.size());
   int* ptr = new int[num*2];
-  for (unsigned int i = 0; i < num; ++i){
+  for (unsigned int i = 0; i < num; ++i) {
     ptr[i] = indices[i];
     ptr[i+num] = IDs[i];
   }

@@ -31,8 +31,8 @@ int main(int, char **) {
   inbuf[numRead] = '\0';
   string inString( inbuf );
   cerr << "String read: " << inString << "\n";
-  string::size_type n1 = inString.find("\n",0);
-  string::size_type n2 = inString.find("\n",n1+2);
+  string::size_type n1 = inString.find("\n", 0);
+  string::size_type n2 = inString.find("\n", n1+2);
   if ((n1==string::npos)||(n2==string::npos)) {
     cerr << "Didn't find expected endl's\n";
     return -1;
@@ -44,14 +44,14 @@ int main(int, char **) {
     return -1;
   }
   cerr << "The string is: " << inString << "\n";
-  
+
   istringstream inStream( inString );
   double nums[14];
   for (int i=0; i<14; i++) {
     inStream >> nums[i];
     cerr << nums[i] << "\n";
   }
-  
+
   const double probeLength = 40.;
   arVector3 probeDims( nums[3], nums[4], probeLength );
   arVector3 customProbeDims( nums[9], nums[10], nums[11] );
@@ -89,6 +89,5 @@ int main(int, char **) {
            << "; Buttons:" << button1 << "," << button2 << "\n";
     }
   }
-  
   return 0;
 }

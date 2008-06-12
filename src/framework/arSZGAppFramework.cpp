@@ -14,7 +14,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _inputDevice(0),
   _inputState(0),
   _label("arSZGAppFramework"),
-  _launcher(_label.c_str()),	// pointless, since derived class sets _label after constructor?
+  _launcher(_label.c_str()), // pointless, since derived class sets _label after constructor?
   _vircompExecution(false),
   _standalone(false),
   _standaloneControlMode("simulator"),
@@ -42,7 +42,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _blockUntilDisplayExit(false),
   _exitProgram(false),
   _displayThreadRunning(false),
-  _stopped(false){
+  _stopped(false) {
   setEventQueueCallback(NULL);
 }
 
@@ -344,7 +344,7 @@ void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& q ) {
 }
 
 void arSZGAppFramework::_installFilters() {
-  setEventFilter( &_defaultUserFilter ); 
+  setEventFilter( &_defaultUserFilter );
   _inputDevice->addFilter( (arIOFilter*)&_callbackFilter, false );
 }
 
@@ -378,7 +378,7 @@ void arSZGAppFramework::_loadNavParameters() {
       temp += ar_intToString(params[i]) + (i==4 ? ".\n" : "/");
     }
     ar_log_remark() << temp;
-    _setNavEffector( 
+    _setNavEffector(
       arEffector( params[0], params[1], params[2], 0, params[3], params[4], 0 ) );
   }
   float speed = 5.;
@@ -404,7 +404,7 @@ void arSZGAppFramework::_loadNavParameters() {
   arInputEventType theType;
   unsigned index = 1;
   float threshold = 0.;
-  
+
   if (___firstNavLoad || _paramNotOwned( "x_translation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "x_translation");
     if (temp != "NULL") {
@@ -412,15 +412,15 @@ void arSZGAppFramework::_loadNavParameters() {
         setNavTransCondition( 'x', theType, index, threshold );
 	ar_log_remark() << "x_translation condition is " << temp << ".\n";
       } else {
-        setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
+        setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );
 	ar_log_error() << "failed to load SZG_NAV/x_translation, defaulting to axis/0/0.2.\n";
       }
     } else {
-      setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
+      setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );
       ar_log_remark() << "SZG_NAV/x_translation defaulting to axis/0/0.2.\n";
     }
   }
-  
+
   if (___firstNavLoad || _paramNotOwned( "z_translation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "z_translation");
     if (temp != "NULL") {
@@ -432,7 +432,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_error() << "failed to load SZG_NAV/z_translation '" << temp << "', defaulting to axis/1/0.2.\n";
       }
     } else {
-      setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );  
+      setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );
       ar_log_remark() << "SZG_NAV/z_translation defaulting to axis/1/0.2.\n";
     }
   }
@@ -527,7 +527,7 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
 
   index = unsigned(ind);
   return true;
-}    
+}
 
 // todo: negate the sense of this, for clarity
 bool arSZGAppFramework::_paramNotOwned( const std::string& theString ) {
@@ -535,11 +535,11 @@ bool arSZGAppFramework::_paramNotOwned( const std::string& theString ) {
 }
 
 bool arSZGAppFramework::_okToInit(const char* exename) {
-  if (_initCalled){
+  if (_initCalled) {
     ar_log_error() << "ignoring duplicate init().\n";
     return false;
   }
-  if (_startCalled){
+  if (_startCalled) {
     ar_log_error() << "ignoring init() after start().\n";
     return false;
   }

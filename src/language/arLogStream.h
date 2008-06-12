@@ -45,15 +45,15 @@ class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_hex (arLogStream& logStream);
  public:
   arLogStream();
-  ~arLogStream(){}
-  
+  ~arLogStream() {}
+
   void setStream(ostream&);
   void setHeader(const string&);
   bool setLogLevel(int);
   void setTimestamp(const bool);
   string logLevel();
   bool logLevelDefault();
-  
+
   arLogStream& operator<<(short n);
   arLogStream& operator<<(int n);
   arLogStream& operator<<(long n);
@@ -68,9 +68,9 @@ class SZG_CALL arLogStream{
   arLogStream& operator<<(const char* s);
   arLogStream& operator<<(const string& s);
   arLogStream& operator<<(arLogStream& (*func)(arLogStream& logStream));
-  
+
  private:
-  ostream* _output;   
+  ostream* _output;
 
   // todo: map thread ID to buffers, for interleaving messages.
   ostringstream _buffer;
@@ -80,7 +80,7 @@ class SZG_CALL arLogStream{
   int _threshold;
   int _level;
   bool _fTimestamp;
-  
+
   bool _preAppend();
   void _postAppend(bool flush=false);
   void _finish();

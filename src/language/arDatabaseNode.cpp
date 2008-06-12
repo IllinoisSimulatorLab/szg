@@ -8,7 +8,7 @@
 #include "arDatabase.h"
 #include "arLogStream.h"
 
-// DO NOT CHANGE THE BELOW DEFAULTS! THE ROOT NODE IS ASSUMED TO BE 
+// DO NOT CHANGE THE BELOW DEFAULTS! THE ROOT NODE IS ASSUMED TO BE
 // INITIALIZED WITH THESE! For instance, sometimes we detect that it
 // is the root node by testing one of them (i.e. the ID or name).)
 arDatabaseNode::arDatabaseNode():
@@ -25,7 +25,7 @@ arDatabaseNode::arDatabaseNode():
   _dLang = NULL;
 }
 
-arDatabaseNode::~arDatabaseNode(){
+arDatabaseNode::~arDatabaseNode() {
   // If we are being deleted AND the conventions for using arDatabaseNodes
   // have been followed, our parent no longer holds us in its child list,
   // so the following call is safe.
@@ -38,15 +38,15 @@ arDatabaseNode::~arDatabaseNode(){
 // is the root node. This call is thread-safe (indeed, it is how we determine
 // whether or not to route our function calls through the arDatabase message
 // stream OR through the local memory).
-bool arDatabaseNode::active(){
+bool arDatabaseNode::active() {
   return getOwner() && (getParent() || isroot());
 }
 
-void arDatabaseNode::ref(){
+void arDatabaseNode::ref() {
   ++_refs;
 }
 
-void arDatabaseNode::unref(){
+void arDatabaseNode::unref() {
   if (--_refs == 0)
     delete this;
 }
@@ -58,21 +58,21 @@ int arDatabaseNode::getRef() const {
 // If this node has an owning database, use that as a node factory.
 arDatabaseNode* arDatabaseNode::newNode(const string& type,
 					const string& name,
-                                        bool refNode){
+                                        bool refNode) {
   return active() ? getOwner()->newNode(this, type, name, refNode) : NULL;
 }
 
 // Wrapper for newNode.  Return a ref'ed node pointer.
 arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
-					   const string& name){
+					   const string& name) {
   return newNode(type, name, true);
 }
 
 
 // Make an existing node a child of this node.
-// Neither node can be owned by an arDatabase. 
+// Neither node can be owned by an arDatabase.
 // Detecting cycles is the caller's responsibility.
-bool arDatabaseNode::addChild(arDatabaseNode* child){
+bool arDatabaseNode::addChild(arDatabaseNode* child) {
   // Bug: should test that the new child has the right type,
   // e.g. arGraphicsNode doesn't match arSoundNode.
   return child && !getOwner() && !child->getOwner() && _addChild(child);
@@ -81,7 +81,7 @@ bool arDatabaseNode::addChild(arDatabaseNode* child){
 // Remove an existing node from the child list of this node.
 // Return false on failure, e.g. if one of the nodes
 // is owned by an arDatabase.
-bool arDatabaseNode::removeChild(arDatabaseNode* child){
+bool arDatabaseNode::removeChild(arDatabaseNode* child) {
   return child && !getOwner() && !child->getOwner() && _removeChild(child);
 }
 
@@ -90,7 +90,7 @@ string arDatabaseNode::getName() {
   return _name;
 }
 
-void arDatabaseNode::setName(const string& name){
+void arDatabaseNode::setName(const string& name) {
   if (!active()) {
     _setName(name);
     return;
@@ -117,13 +117,13 @@ string arDatabaseNode::getInfo() {
   return _info;
 }
 
-void arDatabaseNode::setInfo(const string& info){
+void arDatabaseNode::setInfo(const string& info) {
   if (isroot()) {
     cout << "arDatabaseNode warning: can't set info of root.\n";
     return;
   }
 
-  if (active()){
+  if (active()) {
     arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
@@ -151,35 +151,35 @@ string arDatabaseNode::dumpOneline() {
 // We do not worry about thread-safety if the caller does not request that
 // the returned node ptr be ref'ed. If, on the other hand, the caller does
 // so request, thread safety gets handled by forwarding the request to
-// the owning database (if one exists) which then calls back to us (but from 
+// the owning database (if one exists) which then calls back to us (but from
 // within a _lock()).
-arDatabaseNode* arDatabaseNode::findNode(const string& name, bool refNode){
-  if (refNode && getOwner()){
+arDatabaseNode* arDatabaseNode::findNode(const string& name, bool refNode) {
+  if (refNode && getOwner()) {
     // Will return a ptr with an extra ref.
-    return getOwner()->findNode(this, name, true); 
+    return getOwner()->findNode(this, name, true);
   }
 
   arDatabaseNode* r = NULL;
   bool ok = false;
   _findNode(r, name, ok, NULL, true);
-  if (r && refNode){
+  if (r && refNode) {
     r->ref();
   }
   return r;
 }
 
-arDatabaseNode* arDatabaseNode::findNodeRef(const string& name){
+arDatabaseNode* arDatabaseNode::findNodeRef(const string& name) {
   return findNode(name, true);
 }
 
 // We do not worry about thread-safety if the caller does not request that
 // the returned node ptr be ref'ed. If, on the other hand, the caller does
 // so request, thread safety gets handled by forwarding the request to
-// the owning database (if one exists) which then calls back to us (but from 
+// the owning database (if one exists) which then calls back to us (but from
 // within a _lock()).
 arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType,
-                                               bool refNode){
-  if (refNode && getOwner()){
+                                               bool refNode) {
+  if (refNode && getOwner()) {
     // Will return a ptr with an extra ref.
     return getOwner()->findNodeByType(this, nodeType, true);
   }
@@ -187,13 +187,13 @@ arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType,
   arDatabaseNode* r = NULL;
   bool success = false;
   _findNodeByType(r, nodeType, success, NULL, true);
-  if (r && refNode){
+  if (r && refNode) {
     r->ref();
   }
   return r;
 }
 
-arDatabaseNode* arDatabaseNode::findNodeByTypeRef(const string& nodeType){
+arDatabaseNode* arDatabaseNode::findNodeByTypeRef(const string& nodeType) {
   return findNodeByType(nodeType, true);
 }
 
@@ -201,11 +201,11 @@ void arDatabaseNode::printStructure(int maxLevel, ostream& s) {
   _printStructureOneLine(0, maxLevel, s);
 }
 
-bool arDatabaseNode::receiveData(arStructuredData* data){
-  if (data->getID() != _dLang->AR_NAME){
+bool arDatabaseNode::receiveData(arStructuredData* data) {
+  if (data->getID() != _dLang->AR_NAME) {
     // Called by a subclass, which already printed a diagnostic.
     return false;
-  } 
+  }
   if (isroot()) {
     ar_log_error() << "arDatabaseNode::receiveData cannot rename root node.\n";
   }
@@ -218,9 +218,9 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
   return true;
 }
 
-arStructuredData* arDatabaseNode::dumpData(){
+arStructuredData* arDatabaseNode::dumpData() {
   arStructuredData* result = _dLang->makeDataRecord(_dLang->AR_NAME);
-  _dumpGenericNode(result,_dLang->AR_NAME_ID);
+  _dumpGenericNode(result, _dLang->AR_NAME_ID);
   _lockName.lock();
     result->dataInString(_dLang->AR_NAME_NAME, _name);
   _lockName.unlock();
@@ -230,21 +230,21 @@ arStructuredData* arDatabaseNode::dumpData(){
   return result;
 }
 
-void arDatabaseNode::initialize(arDatabase* d){
+void arDatabaseNode::initialize(arDatabase* d) {
   _setOwner(d);
   _dLang = d->_lang;
 }
 
 // So far only implemented for OWNED nodes.
-void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children){
-  if (active()){
+void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children) {
+  if (active()) {
     getOwner()->permuteChildren(this, children);
   }
 }
 
 // So far only implemented for OWNED nodes.
-void arDatabaseNode::permuteChildren(int number, int* children){
-  if (active()){
+void arDatabaseNode::permuteChildren(int number, int* children) {
+  if (active()) {
     getOwner()->permuteChildren(this, number, children);
   }
 }
@@ -252,28 +252,28 @@ void arDatabaseNode::permuteChildren(int number, int* children){
 // A little bit unusual. To achieve thread-safety with respect to the
 // owning database, we must have the owning database (if such exists)
 // execute the function. If there is no owning database, just ref the
-// parent and return it. 
-arDatabaseNode* arDatabaseNode::getParentRef(){
-  if (getOwner()){
+// parent and return it.
+arDatabaseNode* arDatabaseNode::getParentRef() {
+  if (getOwner()) {
     return getOwner()->getParentRef(this);
   }
 
-  if (_parent){
+  if (_parent) {
     _parent->ref();
   }
   return _parent;
 }
- 
+
 // Warning: copies the whole list!
 list<arDatabaseNode*> arDatabaseNode::getChildren() const {
-  return _children; 
+  return _children;
 }
 
 // For thread-safety with respect to the owning database,
 // the latter should execute the function.
 // If there is no owner, just return the ref'd list.
-list<arDatabaseNode*> arDatabaseNode::getChildrenRef(){
-  if (getOwner()){
+list<arDatabaseNode*> arDatabaseNode::getChildrenRef() {
+  if (getOwner()) {
     return getOwner()->getChildrenRef(this);
   }
 
@@ -298,13 +298,13 @@ void arDatabaseNode::setNodeLevel(arNodeLevel nodeLevel) {
 // are the ONLY functions in arDatabaseNode and arDatabase that should
 // modify _databaseOwner, _ID, _parent, and _children.
 // None of these check _databaseOwner.
-// The caller should check that all nodes in 
+// The caller should check that all nodes in
 // question are owned by the same arDatabase (in which case these are
 // being called from arDatabase methods), or are owned by none (in which
 // case they are being called by arDatabaseNode methods.
 //**********************************************************************
 
-void arDatabaseNode::_setName(const string& name){
+void arDatabaseNode::_setName(const string& name) {
   arGuard dummy(_lockName);
   _name = name;
 }
@@ -314,14 +314,14 @@ void arDatabaseNode::_setName(const string& name){
 // user directly, then it will never be owned by an arDatabase. If it is
 // created by an arDatabase, then this function will be called soon after
 // creation (from inside arDatabaseNode::initialize()).
-void arDatabaseNode::_setOwner(arDatabase* owner){
+void arDatabaseNode::_setOwner(arDatabase* owner) {
   _databaseOwner = owner;
 }
 
 // The node's ID we only be set away from the default (0) if it is part of
-// an arDatabase. If so, it will be set once upon creation and never 
+// an arDatabase. If so, it will be set once upon creation and never
 // subsequently changed.
-void arDatabaseNode::_setID(int ID){
+void arDatabaseNode::_setID(int ID) {
   _ID = ID;
 }
 
@@ -329,7 +329,7 @@ void arDatabaseNode::_setID(int ID){
 // this block of functions). Add a ref to the
 // parent and set the pointer BUT do not add it to the parent's children.
 bool arDatabaseNode::_setParentNotAddingToParentsChildren
-  (arDatabaseNode* parent){
+  (arDatabaseNode* parent) {
   if (_parent)
     return false; // Node already had a parent.
   if (!parent)
@@ -345,8 +345,8 @@ bool arDatabaseNode::_setParentNotAddingToParentsChildren
 // this block of helper functions and the arDatabaseNode destructor).
 // Get rid of the node's parent ref, ignoring that
 // the pointer might still be in the parent's child list.
-void arDatabaseNode::_removeParentLeavingInParentsChildren(){
-  if (_parent){
+void arDatabaseNode::_removeParentLeavingInParentsChildren() {
+  if (_parent) {
     // Each node holds a reference to its parent.
     _parent->unref();
     _parent = NULL;
@@ -354,7 +354,7 @@ void arDatabaseNode::_removeParentLeavingInParentsChildren(){
 }
 
 // Tree bookkeeping.
-bool arDatabaseNode::_addChild(arDatabaseNode* node){
+bool arDatabaseNode::_addChild(arDatabaseNode* node) {
   if (node->_parent)
     return false; // Node already had a parent.
 
@@ -366,10 +366,10 @@ bool arDatabaseNode::_addChild(arDatabaseNode* node){
 }
 
 // Tree bookkeeping.
-bool arDatabaseNode::_removeChild(arDatabaseNode* node){
+bool arDatabaseNode::_removeChild(arDatabaseNode* node) {
   for (list<arDatabaseNode*>::iterator i = _children.begin();
-       i != _children.end(); i++){
-    if (*i == node){
+       i != _children.end(); i++) {
+    if (*i == node) {
       (*i)->unref();
       node->_removeParentLeavingInParentsChildren();
       _children.erase(i);
@@ -380,10 +380,10 @@ bool arDatabaseNode::_removeChild(arDatabaseNode* node){
 }
 
 // Tree bookkeeping.
-void arDatabaseNode::_removeAllChildren(){
+void arDatabaseNode::_removeAllChildren() {
   for (list<arDatabaseNode*>::iterator i = _children.begin();
-       i != _children.end(); i++){
-    // Release the node's reference to the parent. 
+       i != _children.end(); i++) {
+    // Release the node's reference to the parent.
     (*i)->_removeParentLeavingInParentsChildren();
     // Release OUR reference to the node.
     (*i)->unref();
@@ -393,9 +393,9 @@ void arDatabaseNode::_removeAllChildren(){
 }
 
 // Steal all the children from a node.
-void arDatabaseNode::_stealChildren(arDatabaseNode* node){
+void arDatabaseNode::_stealChildren(arDatabaseNode* node) {
   for (list<arDatabaseNode*>::iterator i = node->_children.begin();
-       i != node->_children.end(); ++i){
+       i != node->_children.end(); ++i) {
     _children.push_back(*i);
     // Remove the child node's reference to its old parent.
     // Since the node's child list still contains *i, remove that last.
@@ -413,15 +413,15 @@ void arDatabaseNode::_stealChildren(arDatabaseNode* node){
 // Move the given children (if they are children of the node)
 // to the front of the list, in the order given.
 // Inefficient for large lists.
-void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
+void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList) {
   childList.reverse();
   for (list<arDatabaseNode*>::iterator i = childList.begin();
-       i != childList.end(); i++){
+       i != childList.end(); i++) {
     // Given the current node. Attempt to find it in the list and move it
     // to the front. Note how we need to iterate over this list in reverse.
     for (list<arDatabaseNode*>::iterator j = _children.begin();
-	 j != _children.end(); j++){
-      if (*i == *j){
+	 j != _children.end(); j++) {
+      if (*i == *j) {
         // No ref or unref; just move this node to the front of the list.
 	arDatabaseNode* node = *j;
         _children.erase(j);
@@ -437,7 +437,7 @@ void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
 // Helper functions, mostly for recursion.
 //***************************************************************************
 
-void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField){
+void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField) {
   if (!r)
     return;
   int ID = getID();
@@ -450,10 +450,10 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField){
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
-                               const map<int,int,less<int> >* nodeMap,
+                               const map<int, int, less<int> >* nodeMap,
                                const bool checkTop) {
   // Check self.
-  if (checkTop && _name == name){
+  if (checkTop && _name == name) {
     success = true;
     result = this;
     return;
@@ -465,7 +465,7 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
   list<arDatabaseNode*>::const_iterator i;
   for (i = iFirst; i != iLast; ++i) {
     // If we have a node map, skip already mapped nodes.
-    if ( (*i)->_name == name && 
+    if ( (*i)->_name == name &&
          (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())) {
       success = true;
       result = *i;
@@ -485,10 +485,10 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
-                                     const map<int,int,less<int> >* nodeMap,
-                                     const bool checkTop){
+                                     const map<int, int, less<int> >* nodeMap,
+                                     const bool checkTop) {
   // Check self.
-  if (checkTop && getTypeString() == nodeType){
+  if (checkTop && getTypeString() == nodeType) {
     success = true;
     result = this;
     return;
@@ -520,9 +520,9 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
 // @param maxLevel how far down the tree hierarchy we will go
 void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s) {
 
-  for (int l=0; l<level; l++){
+  for (int l=0; l<level; l++) {
     s << " ";
-    if (l >= maxLevel){
+    if (l >= maxLevel) {
       s << "*****\n";
       return;
     }
@@ -531,34 +531,34 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, ostream& s)
   // Inefficient list-copying.  Oh well.
   // Ref-ing ensures thread safety, but forbids constness.
   list<arDatabaseNode*> childList = getChildrenRef();
- 
-  s << '(' << getID() << ", " 
-    << "\"" << getName() << "\", " 
+
+  s << '(' << getID() << ", "
+    << "\"" << getName() << "\", "
     << "\"" << getTypeString() << "\")\n";
-  
-  for (list<arDatabaseNode*>::const_iterator i(childList.begin()); 
-       i != childList.end(); ++i){
+
+  for (list<arDatabaseNode*>::const_iterator i(childList.begin());
+       i != childList.end(); ++i) {
     (*i)->_printStructureOneLine(level+1, maxLevel, s);
   }
   // Since we ref'ed the list of nodes, unref.
   ar_unrefNodeList(childList);
 }
 
-bool arDatabaseNode::isroot() const { 
+bool arDatabaseNode::isroot() const {
   // Faster than, but otherwise the same as, getName() == "root".
   return _ID == 0;
 }
 
-int arDatabaseNode::getID() const { 
-  return _ID; 
+int arDatabaseNode::getID() const {
+  return _ID;
 }
 
 arDatabase* arDatabaseNode::getOwner() const {
   return _databaseOwner;
 }
 
-arDatabaseNode* arDatabaseNode::getParent() const { 
-  return _parent; 
+arDatabaseNode* arDatabaseNode::getParent() const {
+  return _parent;
 }
 
 arStructuredDataParser* arDatabaseNode::getParser() const {

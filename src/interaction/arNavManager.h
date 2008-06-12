@@ -18,7 +18,7 @@ class SZG_CALL arNavInteractable : public arInteractable {
     arNavInteractable( const arNavInteractable& ni );
     arNavInteractable& operator=( const arNavInteractable& ni );
     ~arNavInteractable() {_cleanup();}
-    virtual void setMatrix( const arMatrix4& matrix );    
+    virtual void setMatrix( const arMatrix4& matrix );
 };
 
 class SZG_CALL arNavManager {
@@ -27,7 +27,7 @@ class SZG_CALL arNavManager {
     arNavManager( const arNavManager& nm );
     arNavManager& operator=( const arNavManager& nm );
     ~arNavManager();
-    
+
     bool setTransCondition( char axis,
                             arInputEventType type,
                             unsigned index,
@@ -44,7 +44,7 @@ class SZG_CALL arNavManager {
     void setEffector( const arEffector& effector );
     void update( arInputState* inputState );
     void update( const arInputEvent& event );
-    
+
   private:
     void _clearCondition( const arGrabCondition& condition );
     arEffector _effector;

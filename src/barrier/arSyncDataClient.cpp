@@ -10,14 +10,14 @@
 
 #include <math.h>
 
-void ar_syncDataClientConnectionTask(void* client){
+void ar_syncDataClientConnectionTask(void* client) {
   ((arSyncDataClient*)client)->_connectionTask();
 }
 
-void arSyncDataClient::_connectionTask(){
+void arSyncDataClient::_connectionTask() {
   // todo: deterministic shutdown.
   _connectionThreadRunning = true;
-  while (!_exitProgram){
+  while (!_exitProgram) {
     // Barrier must connect first.
     arSleepBackoff a(7, 50, 1.2);
     while (!_barrierClient.checkConnection() && !_exitProgram)
@@ -27,7 +27,7 @@ void arSyncDataClient::_connectionTask(){
 
     // connection brokering
 
-    // the following is THE ONLY blocking call in this thread. 
+    // the following is THE ONLY blocking call in this thread.
     // It would be a good idea to figure out a way to get the szgserver to shut this
     // down. Maybe the client could send an "I'm planning on shutting down message?"
     // And the server could terminate all blocking calls???
@@ -44,15 +44,15 @@ void arSyncDataClient::_connectionTask(){
 
     const string IPport =
       result.address + ":" + ar_intToString(result.portIDs[0]) + ".\n";
-    if (!result.valid){
+    if (!result.valid) {
       ar_log_error() << "no valid address on server discovery.\n";
       continue;
     }
-    if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
+    if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])) {
       ar_log_error() << "failed to connect to brokered " << IPport;
       continue;
     }
-    if (!_connectionCallback){
+    if (!_connectionCallback) {
       ar_log_error() << "no connection callback for " << IPport;
       _connectionThreadRunning = false;
       return;
@@ -81,9 +81,9 @@ void arSyncDataClient::_connectionTask(){
     // before a new connection is made, especially for wildcat graphics cards.
     arGuard dummy(_nullHandshakeLock);
     // We might be in stop mode.
-    if (_nullHandshakeState != 2){
+    if (_nullHandshakeState != 2) {
       _nullHandshakeState = 1; // Request that a disconnect callback be issued
-      while (_nullHandshakeState != 2){
+      while (_nullHandshakeState != 2) {
         _nullHandshakeVar.wait(_nullHandshakeLock);
       }
       _nullHandshakeState = 0;
@@ -93,18 +93,18 @@ void arSyncDataClient::_connectionTask(){
   _connectionThreadRunning = false;
 }
 
-void ar_syncDataClientReadTask(void* client){
+void ar_syncDataClientReadTask(void* client) {
   ((arSyncDataClient*)client)->_readTask();
 }
 
 // Avoid race condition: _stackLock happens inside _swapLock.
 // So _swapLock should never happen inside _stackLock.  Indeed it is not.  Phew.
 
-void arSyncDataClient::_readTask(){
+void arSyncDataClient::_readTask() {
   _readThreadRunning = true;
   arSleepBackoff a(25, 40, 1.2);
-  while (!_exitProgram){
-    if (!_stateClientConnected){
+  while (!_exitProgram) {
+    if (!_stateClientConnected) {
       a.sleep();
       continue;
     }
@@ -112,26 +112,26 @@ void arSyncDataClient::_readTask(){
     // Activate our connection to the barrier server.
     if (!_barrierClient.checkActivation())
       _barrierClient.requestActivation();
-    // read data into back buffer 
+    // read data into back buffer
     ar_timeval time1 = ar_time();
 
     _stackLock.lock();
-    if (_storageStack.empty()){
+    if (_storageStack.empty()) {
       // storage for the next network buffer
       const int tempSize = 10000;
       char* temp = new char[tempSize];
-      _storageStack.push_back(pair<char*,int>(temp,tempSize));
+      _storageStack.push_back(pair<char*, int>(temp, tempSize));
     }
-    pair<char*,int> dataStorage = _storageStack.front();
+    pair<char*, int> dataStorage = _storageStack.front();
     _storageStack.pop_front();
     _stackLock.unlock();
 
     const bool ok = _dataClient.getDataQueue(dataStorage.first, dataStorage.second);
     const float temp = ar_difftime(ar_time(), time1);
     _oldRecvTime = temp>0. ? temp : _oldRecvTime;
-    if (ok && _firstConsumption){
+    if (ok && _firstConsumption) {
       // if in sync read mode, request another buffer right away for double-buffering
-      if (syncClient() && !_barrierClient.sync()){
+      if (syncClient() && !_barrierClient.sync()) {
 	ar_log_error() << "_readTask()'s barrier client failed to sync.\n";
       }
       _firstConsumption = false;
@@ -140,13 +140,13 @@ void arSyncDataClient::_readTask(){
       // we got some data! before swapping buffers, wait for
       // the consumer to finish (and do a little performance analysis).
       ARint bufferSize = -1;
-      ar_unpackData(_data[_backBuffer],&bufferSize,AR_INT,1);
+      ar_unpackData(_data[_backBuffer], &bufferSize, AR_INT, 1);
       _oldRecvSize = bufferSize>0 ? float(bufferSize) : 0.; // ignore garbage
 
       // Put the stored data on the receive stack, sync or nosync.
       if (syncClient()) {
         arGuard dummy(_swapLock);
-        while (!_bufferSwapReady){
+        while (!_bufferSwapReady) {
 	  _bufferSwapCondVar.wait(_swapLock);
         }
         // Buffer swap can occur now.
@@ -168,7 +168,7 @@ void arSyncDataClient::_readTask(){
     }
     else {
       // The connection must have closed.
-      
+
       // For double-buffering, we need to be idle on the first
       // consumption of a connection.
       _firstConsumption = true;
@@ -176,7 +176,7 @@ void arSyncDataClient::_readTask(){
       _bufferSwapReady = true;
       // recycle any pending buffers on the receive stack
       _stackLock.lock();
-      for (list<pair<char*,int> >::iterator iter = _receiveStack.begin();
+      for (list<pair<char*, int> >::iterator iter = _receiveStack.begin();
            iter != _receiveStack.end(); iter++) {
         _storageStack.push_back(*iter);
       }
@@ -196,7 +196,7 @@ arSyncDataClient::arSyncDataClient():
   _serviceName("NULL"),
   _serviceNameBarrier("NULL"),
   _networks("NULL"),
-  _syncServer(NULL){
+  _syncServer(NULL) {
 
   // todo: turn these assignments into initializers.
   _mode = AR_SYNC_CLIENT;
@@ -212,7 +212,7 @@ arSyncDataClient::arSyncDataClient():
   _exitProgram = false;
   _readThreadRunning = false;
   _connectionThreadRunning = false;
-  
+
   _bondedObject = NULL;
 
   _connectionCallback = NULL;
@@ -237,69 +237,69 @@ arSyncDataClient::arSyncDataClient():
 
 }
 
-arSyncDataClient::~arSyncDataClient(){
+arSyncDataClient::~arSyncDataClient() {
   // lame, ain't doing anything yet!
 
 }
 
-void arSyncDataClient::registerLocalConnection(arSyncDataServer* server){
+void arSyncDataClient::registerLocalConnection(arSyncDataServer* server) {
   _syncServer = server;
   _syncServer->_locallyConnected = true;
 }
 
-void arSyncDataClient::setBondedObject(void* bondedObject){
+void arSyncDataClient::setBondedObject(void* bondedObject) {
   _bondedObject = bondedObject;
 }
 
-bool arSyncDataClient::setMode(int mode){
-  if (mode != AR_SYNC_CLIENT && mode != AR_NOSYNC_CLIENT){
+bool arSyncDataClient::setMode(int mode) {
+  if (mode != AR_SYNC_CLIENT && mode != AR_NOSYNC_CLIENT) {
     ar_log_error() << "ignoring unrecognized mode " << mode << ".\n";
     return false;
-  } 
+  }
   _mode = mode;
   return true;
 }
 
 void arSyncDataClient::setConnectionCallback
-(bool (*connectionCallback)(void*, arTemplateDictionary*)){
+(bool (*connectionCallback)(void*, arTemplateDictionary*)) {
   _connectionCallback = connectionCallback;
 }
 
 void arSyncDataClient::setDisconnectCallback
-(bool (*disconnectCallback)(void*)){
+(bool (*disconnectCallback)(void*)) {
   _disconnectCallback = disconnectCallback;
 }
 
 void arSyncDataClient::setConsumptionCallback
-(bool (*consumptionCallback)(void*, ARchar*)){
+(bool (*consumptionCallback)(void*, ARchar*)) {
   _consumptionCallback = consumptionCallback;
 }
 
 void arSyncDataClient::setActionCallback
-(bool (*actionCallback)(void*)){
+(bool (*actionCallback)(void*)) {
   _actionCallback = actionCallback;
 }
 
 void arSyncDataClient::setNullCallback
-(bool (*nullCallback)(void*)){
+(bool (*nullCallback)(void*)) {
   _nullCallback = nullCallback;
 }
 
 void arSyncDataClient::setPostSyncCallback
-(bool (*postSyncCallback)(void*)){
+(bool (*postSyncCallback)(void*)) {
   _postSyncCallback = postSyncCallback;
 }
 
-void arSyncDataClient::setServiceName(string serviceName){
+void arSyncDataClient::setServiceName(string serviceName) {
   _serviceName = serviceName;
 }
 
-void arSyncDataClient::setNetworks(string networks){
+void arSyncDataClient::setNetworks(string networks) {
   _networks = networks;
 }
 
-bool arSyncDataClient::init(arSZGClient& client){
-  if (_syncServer){
+bool arSyncDataClient::init(arSZGClient& client) {
+  if (_syncServer) {
     ar_log_error() << "ignoring init() while locally connected.\n";
     return false;
   }
@@ -311,13 +311,13 @@ bool arSyncDataClient::init(arSZGClient& client){
   return true;
 }
 
-bool arSyncDataClient::start(){
-  if (_syncServer){
+bool arSyncDataClient::start() {
+  if (_syncServer) {
     ar_log_error() << "ignoring start() while locally connected.\n";
     return false;
   }
 
-  if (!_client){
+  if (!_client) {
     ar_log_error() << "ignoring start() before init().\n";
     return false;
   }
@@ -325,11 +325,11 @@ bool arSyncDataClient::start(){
   // connection brokering goes here
   _barrierClient.setServiceName(_serviceNameBarrier);
   _barrierClient.setNetworks(_networks);
-  if (!_barrierClient.init(*_client) || !_barrierClient.start()){
+  if (!_barrierClient.init(*_client) || !_barrierClient.start()) {
     ar_log_error() << "failed to start barrier client.\n";
     return false;
   }
-  
+
   // do some configuration of the data client
   _dataClient.smallPacketOptimize(true);
 
@@ -347,8 +347,8 @@ bool arSyncDataClient::start(){
   return true;
 }
 
-void arSyncDataClient::stop(){
-  if (_syncServer){
+void arSyncDataClient::stop() {
+  if (_syncServer) {
     ar_log_error() << "ignoring stop() while locally connected.\n";
     return;
   }
@@ -371,18 +371,18 @@ void arSyncDataClient::stop(){
   _nullHandshakeLock.unlock();
 
   arSleepBackoff a(5, 30, 1.1);
-  while (_readThreadRunning || _connectionThreadRunning){
+  while (_readThreadRunning || _connectionThreadRunning) {
     a.sleep();
   }
 }
 
-void arSyncDataClient::consume(){
-  if (_syncServer){
+void arSyncDataClient::consume() {
+  if (_syncServer) {
     // Locally connected.
     // Tell arSyncDataServer that we're ready for data.
 
     _syncServer->_localConsumerReadyLock.lock();
-      if (_syncServer->_localConsumerReady == 2){
+      if (_syncServer->_localConsumerReady == 2) {
 	// Everything may be stopping.
 	_syncServer->_localConsumerReadyLock.unlock();
 	return;
@@ -393,10 +393,10 @@ void arSyncDataClient::consume(){
 
     // Wait for the data to become ready.
     _syncServer->_localProducerReadyLock.lock();
-      while (!_syncServer->_localProducerReady){
+      while (!_syncServer->_localProducerReady) {
 	_syncServer->_localProducerReadyVar.wait(_syncServer->_localProducerReadyLock);
-      } 
-      if (_syncServer->_localProducerReady == 2){
+      }
+      if (_syncServer->_localProducerReady == 2) {
 	// Everything may be stopping.
 	_syncServer->_localProducerReadyLock.unlock();
 	return;
@@ -416,14 +416,14 @@ void arSyncDataClient::consume(){
   const ar_timeval time1 = ar_time();
   ar_timeval time2, time3, time4;
 
-  if (!_stateClientConnected){
+  if (!_stateClientConnected) {
     _nullCallback(_bondedObject);
     // bug: some copypaste with above
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for
     // wildcat graphics cards.
     arGuard dummy(_nullHandshakeLock);
-    if (_nullHandshakeState == 1){
+    if (_nullHandshakeState == 1) {
       // The connection thread registers disconnected and is waiting for
       // us to say we've cleared, so it can then accept a new connection.
       // We call the disconnect callback HERE, because
@@ -446,10 +446,10 @@ void arSyncDataClient::consume(){
 
     _swapLock.lock();
     // only wait if we are in synchronized read mode
-    while (!_dataAvailable && _mode == AR_SYNC_CLIENT){
+    while (!_dataAvailable && _mode == AR_SYNC_CLIENT) {
       _dataWaitCondVar.wait(_swapLock);
     }
-    if (_dataAvailable != 2){
+    if (_dataAvailable != 2) {
       _dataAvailable = 0;
       _swapLock.unlock();
       if (_exitProgram)
@@ -462,10 +462,10 @@ void arSyncDataClient::consume(){
       if (_exitProgram)
 	return;
       _stackLock.lock();
-      list<pair<char*,int> >::iterator iter;
-      if (_mode == AR_NOSYNC_CLIENT){
+      list<pair<char*, int> >::iterator iter;
+      if (_mode == AR_NOSYNC_CLIENT) {
         // consume everything
-        for (iter = _receiveStack.begin(); iter != _receiveStack.end(); ++iter){
+        for (iter = _receiveStack.begin(); iter != _receiveStack.end(); ++iter) {
           _consumeStack.push_back(*iter);
         }
       //      MINGW crasher!
@@ -477,7 +477,7 @@ void arSyncDataClient::consume(){
 	// But if the arSyncDataServer feeding us was killed by SIGINT
 	// instead of dkill, the connection would be shutting down,
 	// causing _receiveStack.empty().
-        if (!_exitProgram && !_receiveStack.empty()){
+        if (!_exitProgram && !_receiveStack.empty()) {
           _consumeStack.push_back(_receiveStack.front());
           _receiveStack.pop_front();
         }
@@ -487,8 +487,8 @@ void arSyncDataClient::consume(){
       if (_exitProgram)
 	return;
 
-//      list<pair<char*,int> >::const_iterator iter;
-      for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter){
+//      list<pair<char*, int> >::const_iterator iter;
+      for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter) {
         _consumptionCallback(_bondedObject, iter->first);
       }
       if (_exitProgram)
@@ -496,7 +496,7 @@ void arSyncDataClient::consume(){
 
       // move storage from consume stack to storage stack
       _stackLock.lock();
-      for (iter = _consumeStack.begin(); iter != _consumeStack.end(); ++iter){
+      for (iter = _consumeStack.begin(); iter != _consumeStack.end(); ++iter) {
         _storageStack.push_back(*iter);
       }
       //      MINGW crasher!
@@ -514,7 +514,7 @@ void arSyncDataClient::consume(){
 	return;
 
       // eliminate sync if we are not in the right mode
-      if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
+      if (_stateClientConnected && _mode == AR_SYNC_CLIENT) {
         if (!_barrierClient.sync()) {
 	  ar_log_error() << "consume()'s barrier client failed to sync.\n";
 	}
@@ -551,10 +551,10 @@ void arSyncDataClient::consume(){
   _update(_recvSize, _oldRecvSize, usecFilter);
   _update(_drawTime, drawTime, usecFilter);
   _update(_procTime, procTime, usecFilter);
-  _barrierClient.setTuningData(int(_drawTime),int(_recvTime),int(_procTime),0);
+  _barrierClient.setTuningData(int(_drawTime), int(_recvTime), int(_procTime), 0);
 }
 
-inline void arSyncDataClient::_update(float& value, float newValue, float filter){
+inline void arSyncDataClient::_update(float& value, float newValue, float filter) {
   if (newValue <= 0.)
     newValue = value;
   if (newValue == 0.) {
@@ -571,7 +571,7 @@ inline void arSyncDataClient::_update(float& value, float newValue, float filter
 
 // On shutdown, make sure that consume() exits, where otherwise
 // it might be blocked waiting for data from the read data thread
-void arSyncDataClient::skipConsumption(){
+void arSyncDataClient::skipConsumption() {
   arGuard dummy(_swapLock);
   _dataAvailable = 2;
   _dataWaitCondVar.signal();

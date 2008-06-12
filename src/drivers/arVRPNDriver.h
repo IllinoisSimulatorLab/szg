@@ -25,7 +25,7 @@ class SZG_CALL arVRPNDriver: public arInputSource{
   friend void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event);
   friend void ar_VRPNHandleButton(void* data, const vrpn_BUTTONCB event);
   friend void ar_VRPNHandleAnalog(void* data, const vrpn_ANALOGCB event);
-#endif 
+#endif
  public:
   arVRPNDriver();
   ~arVRPNDriver();

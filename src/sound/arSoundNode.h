@@ -34,10 +34,10 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
  protected:
   arSoundDatabase* _owningDatabase;
   arSoundLanguage  _l;
-  
+
   // State.  Ignored by some subclasses.
   arVector3 _point;
-  float _amplitude; // Usually [0,100], default 1.
+  float _amplitude; // Usually [0, 100], default 1.
 
   // Generic array of data, either floats or ints.
   // 'Arguments' to the 'command' _commandID, for some subclasses.

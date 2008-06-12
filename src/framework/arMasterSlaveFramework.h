@@ -57,7 +57,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
  public:
   arMasterSlaveFramework( void );
   virtual ~arMasterSlaveFramework( void );
-  
+
   // Initializes the various objects but does not start the event loop.
   bool init( int&, char** );
 
@@ -75,17 +75,17 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   bool createWindows(bool useWindowing);
   void loopQuantum();
-  void exitFunction();  
+  void exitFunction();
   virtual void preDraw( void );
-  // Different than onDraw (and the corresponding draw callbacks). 
+  // Different than onDraw (and the corresponding draw callbacks).
   // Essentially causes the window manager to draw all the windows.
   void draw( int windowID = -1 );
   virtual void postDraw( void );
   void swap( int windowID = -1 );
 
-  // Another layer of indirection to promote object-orientedness. 
+  // Another layer of indirection to promote object-orientedness.
   // We MUST have callbacks to subclass this object in Python.
-  // At each point the callbacks were formerly invoked, the code instead calls 
+  // At each point the callbacks were formerly invoked, the code instead calls
   // these virtual (hence overrideable) methods, which in turn invoke the callbacks.
   // This allows subclassing instead of callbacks.
   // (If you override these, the corresponding callbacks are of course ignored).
@@ -174,7 +174,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // internal arMasterSlaveDataRouter. An identical set of arFrameworkObjects
   // is created by each of the master and slave instances. The
   // arMasterSlaveDataRouter routes messages between them.
-  bool registerFrameworkObject( arFrameworkObject* object ){
+  bool registerFrameworkObject( arFrameworkObject* object ) {
     return _dataRouter.registerFrameworkObject( object );
   }
 
@@ -207,28 +207,28 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Add entries to the data bundle path (used to locate texture maps by
   // szgrender for scene-graph apps in cluster mode and by SoundRender to
   // locate sounds for both types of apps in cluster mode).
-  virtual void addDataBundlePathMap(const string& bundlePathName, 
+  virtual void addDataBundlePathMap(const string& bundlePathName,
                           const string& bundlePath);
-  
+
  protected:
   // Objects that provide services.
   // Must be pointers, so languages can initialize.  Really?
 
   // Used only by master.
-  arBarrierServer*     _barrierServer;  
-  arDataServer*        _stateServer;    
+  arBarrierServer*     _barrierServer;
+  arDataServer*        _stateServer;
 
   // Used only by slaves.
-  arBarrierClient*     _barrierClient;  
+  arBarrierClient*     _barrierClient;
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
 
   // In standalone mode, we produce sound locally
   arSoundClient* _soundClient;
-  
+
   // Threads launched by the framework.
   arThread _connectionThread;
-  
+
   // Misc. variables follow.
   // Holds the head position for the spatialized sound API.
   arSpeakerObject      _speakerObject;
@@ -316,7 +316,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   float _lastRandVal;
   int   _randSynchError;
   int   _firstTransfer;
-  
+
   // Variable related to the "delay" message. Artificial slowdown.
   // the framerate.
   bool  _framerateThrottle;
@@ -339,7 +339,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // be desirable to have some of the walls that aren't pictured display
   // another color. (in response to the color message)
   arVector3 _noDrawFillColor;
-  
+
   // It turns out that reloading parameters must occur in the main event
   // thread. This is because we allow the window manager to be single
   // threaded... and, in this case, all window manager calls should occur
@@ -361,7 +361,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _pollInputData( void );
   void _packInputData( void );
   void _unpackInputData( void );
-  
+
   // Functions pertaining to initing/starting services.
   bool _determineMaster( void );
   bool _initStandaloneObjects( void );
@@ -382,7 +382,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
-  
+
   // User-message functions
   void _processUserMessages();
 

@@ -18,11 +18,11 @@ class SZG_CALL arSharedMemSinkDriver: public arInputSink {
   public:
     arSharedMemSinkDriver();
     ~arSharedMemSinkDriver();
-    
+
     bool init(arSZGClient& SZGClient);
     bool start();
     bool stop();
-  
+
   private:
     void _dataThread();
     void _detachMemory();

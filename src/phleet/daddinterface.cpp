@@ -8,9 +8,9 @@
 
 #include "arPhleetConfig.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arPhleetConfig config;
-  if (argc != 3 && argc != 4){
+  if (argc != 3 && argc != 4) {
     cerr << "usage: daddinterface name address [netmask]\n";
     return 1;
   }

@@ -16,13 +16,13 @@
 
 #include "arSharedMemSinkDriver.h"
 
-// Methods used by the dynamic library mappers. 
+// Methods used by the dynamic library mappers.
 extern "C"{
-  SZG_CALL void* factory(){
+  SZG_CALL void* factory() {
     return new arSharedMemSinkDriver();
   }
 
-  SZG_CALL void baseType(char* buffer, int size){
+  SZG_CALL void baseType(char* buffer, int size) {
     ar_stringToBuffer("arInputSink", buffer, size);
   }
 }
@@ -42,11 +42,11 @@ arSharedMemSinkDriver::~arSharedMemSinkDriver() {
 
 /// Inverse of arSharedMemDriver::generateButton, Axis, Matrix.
 
-inline void setButton(int ID, void* m, int value){
+inline void setButton(int ID, void* m, int value) {
   *(((int*)m) + ID + 10) = value;
 }
 
-inline void setAxis(int ID, void* m, float value){
+inline void setAxis(int ID, void* m, float value) {
   // Outer bounds.
   if (value > 1.)
     value = 1.;
@@ -62,7 +62,7 @@ inline void setAxis(int ID, void* m, float value){
   // cassatt.beckman.uiuc.edu uses 42, but sometimes 23.  Not sure why.
 }
 
-void setMatrix(const int ID, const void* mRaw, const arMatrix4& value){
+void setMatrix(const int ID, const void* mRaw, const arMatrix4& value) {
   float* m = ((float*)mRaw) + 7 + ID*10;
   const arVector3 t(ar_extractTranslation(value));
   memcpy(m, t.v, 3 * sizeof(float));
@@ -99,22 +99,22 @@ bool arSharedMemSinkDriver::start() {
   // ControllerDaemonKey 4127
   _l.lock();
   const int idFoB = shmget(4136, 0, 0666);
-  if (idFoB < 0){
+  if (idFoB < 0) {
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
     return false;
   }
   const int idWand = shmget(4127, 0, 0666);
-  if (idWand < 0){
+  if (idWand < 0) {
     perror("no shm segment for wand (try ipcs -m;  run a cavelib app first)");
     return false;
   }
   _shmFoB = shmat(idFoB, NULL, 0);
-  if ((int)_shmFoB == -1){
+  if ((int)_shmFoB == -1) {
     perror("shmat failed for Flock of Birds");
     return false;
   }
   _shmWand = shmat(idWand, NULL, 0);
-  if ((int)_shmWand == -1){
+  if ((int)_shmWand == -1) {
     perror("shmat failed for wand");
     return false;
   }
@@ -124,7 +124,7 @@ bool arSharedMemSinkDriver::start() {
     return false;
   }
 
-  return _eventThread.beginThread(ar_ShmSinkDriverDataTask,this);
+  return _eventThread.beginThread(ar_ShmSinkDriverDataTask, this);
 #endif
 }
 
@@ -158,7 +158,7 @@ bool arSharedMemSinkDriver::stop() {
 
 #ifdef AR_USE_WIN_32
 // Test pattern
-static inline float drand48(){
+static inline float drand48() {
   return float(rand()) / float(RAND_MAX);
   }
 #endif
@@ -192,7 +192,7 @@ void arSharedMemSinkDriver::_dataThread() {
         rgbutton[i] = aIS.getButton(i);
         const int button = rgbutton[i];
         // send only state changes
-        if (button != _buttonPrev[i]){
+        if (button != _buttonPrev[i]) {
           setButton(i, _shmWand, button);
           _buttonPrev[i] = button;
         }

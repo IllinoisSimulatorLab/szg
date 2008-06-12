@@ -324,10 +324,10 @@ void arGUIXMLParser::setConfig( const string& config )
   ar_setTextureAllowNotPowOf2( 
     _SZGClient->getAttribute("SZG_RENDER", "allow_texture_not_pow2") == string("true") );
 
-  if( config == _config )
+  if ( config == _config )
     return;
 
-  if( config.empty() || config == "NULL" ) {
+  if ( config.empty() || config == "NULL" ) {
     ar_log_remark() << "arGUIXML using default config.\n";
     _config = _mininumConfig;
   }
@@ -348,14 +348,14 @@ int arGUIXMLParser::numberOfWindows( void )
 {
   int count = 0;
 
-  if( _doc.Error() ) {
+  if ( _doc.Error() ) {
     return count;
   }
 
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
-  if( !szgDisplayNode ) {
+  if ( !szgDisplayNode ) {
     return count;
   }
 
@@ -378,7 +378,7 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const string& nodeTy
   TiXmlDocument* nodeDoc = new TiXmlDocument();
   const string nodeDesc = _SZGClient->getGlobalAttribute( name );
 
-  if( !nodeDesc.length() || nodeDesc == "NULL" ) {
+  if ( !nodeDesc.length() || nodeDesc == "NULL" ) {
     ar_log_error() << "arGUIXMLParser: no 'usenamed' node: " << name << ar_endl;
     return NULL;
   }
@@ -388,7 +388,7 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const string& nodeTy
   if (nodeDoc->Error()) {
     _reportParseError( nodeDoc, nodeDesc );
   }
-  if( !nodeDoc->FirstChild() ) {
+  if ( !nodeDoc->FirstChild() ) {
     ar_log_error() << "arGUIXMLParser: invalid node pointer: " << name << ar_endl;
     return NULL;
   }
@@ -436,7 +436,7 @@ arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
                                                const string& z )
 {
   arVector3 vec;
-  if( !node || !node->ToElement() )
+  if ( !node || !node->ToElement() )
     return vec;
 
   arGUIXMLVector3Validator validator( name, x, y, z );
@@ -455,7 +455,7 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
                                                const string& w )
 {
   arVector4 vec;
-  if( !node || !node->ToElement() )
+  if ( !node || !node->ToElement() )
     return vec;
 
   arGUIXMLVector4Validator validator( name, x, y, z, w );
@@ -470,7 +470,7 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
 bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
                                      const string& value )
 {
-  if( !node || !node->ToElement() )
+  if ( !node || !node->ToElement() )
     return false;
 
   const char* pch = node->ToElement()->Attribute( value.c_str() );
@@ -490,7 +490,7 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
 int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
                                       TiXmlNode* screenNode )
 {
-  if( !screenNode || !screenNode->ToElement() ) {
+  if ( !screenNode || !screenNode->ToElement() ) {
     // not necessarily an error, <szg_screen> could legitimately not exist and
     // in that case let the caller use the screen as it was passed in
     ar_log_remark() << "arGUIXML ignoring missing screen description.\n";
@@ -502,7 +502,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   // check if this is a pointer to another screen
   TiXmlNode* namedNode = _getNamedNode( screenNode->ToElement()->Attribute( "usenamed" ),
                                         "szg_screen" );
-  if( namedNode ) {
+  if ( namedNode ) {
     ar_log_debug() << "arGUIXML using named screen "
                     << screenNode->ToElement()->Attribute( "usenamed" ) << ar_endl;
     screenNode = namedNode;
@@ -511,25 +511,25 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   TiXmlNode* screenElement = NULL;
 
   // <center x="float" y="float" z="float" />
-  if( (screenElement = screenNode->FirstChild( "center" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "center" )) ) {
     arVector3 vec = _attributearVector3( screenElement, "screen 'center'" );
     screen.setCenter( vec );
   }
 
   // <normal x="float" y="float" z="float" />
-  if( (screenElement = screenNode->FirstChild( "normal" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "normal" )) ) {
     arVector3 vec = _attributearVector3( screenElement, "screen 'normal'" );
     screen.setNormal( vec );
   }
 
   // <up x="float" y="float" z="float" />
-  if( (screenElement = screenNode->FirstChild( "up" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "up" )) ) {
     arVector3 vec = _attributearVector3( screenElement, "screen 'up'" );
     screen.setUp( vec );
   }
 
   // <dim width="float" height="float" />
-  if( (screenElement = screenNode->FirstChild( "dim" )) &&
+  if ( (screenElement = screenNode->FirstChild( "dim" )) &&
       screenElement->ToElement() ) {
     float dim[ 2 ] = { 0.0f };
     arGUIXMLVector2Validator dimVal( "screen 'dim'", "width", "height" );
@@ -541,14 +541,14 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   }
 
   // <headmounted value="true|false|yes|no" />
-  if( (screenElement = screenNode->FirstChild( "headmounted" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "headmounted" )) ) {
     arGUIXMLValueValidator hmdValidator( "screen 'headmounted'" );
     hmdValidator( screenElement );
     screen.setHeadMounted( _attributeBool( screenElement ) );
   }
 
   // <tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
-  if( (screenElement = screenNode->FirstChild( "tile" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "tile" )) ) {
     arVector4 vec = _attributearVector4( screenElement, "screen 'tile'",
                                          "tilex", "numtilesx",
                                          "tiley", "numtilesy" );
@@ -556,7 +556,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   }
 
   // <usefixedhead value="allow|always|ignore" />
-  if( (screenElement = screenNode->FirstChild( "usefixedhead" )) &&
+  if ( (screenElement = screenNode->FirstChild( "usefixedhead" )) &&
       screenElement->ToElement()) {
     arGUIXMLValueValidator useFixValidator( "screen 'usefixedhead'" );
     useFixValidator( screenElement );
@@ -569,13 +569,13 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   }
 
   // <fixedheadpos x="float" y="float" z="float" />
-  if( (screenElement = screenNode->FirstChild( "fixedheadpos" )) ) {
+  if ( (screenElement = screenNode->FirstChild( "fixedheadpos" )) ) {
     arVector3 vec = _attributearVector3( screenElement, "screen 'fixedheadpos'" );
     screen.setFixedHeadPosition( vec );
   }
 
   // <fixedheadupangle value="float" />
-  if( (screenElement = screenNode->FirstChild( "fixedheadupangle" )) &&
+  if ( (screenElement = screenNode->FirstChild( "fixedheadupangle" )) &&
       screenElement->ToElement() ) {
     arGUIXMLValueValidator fixAngValidator( "screen 'fixedheadupangle'" );
     fixAngValidator( screenElement );
@@ -590,7 +590,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
     return 0;
   }
   
-  if( namedNode ) {
+  if ( namedNode ) {
     delete namedNode;
   }
 
@@ -602,7 +602,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 {
   // caller owns return value and should delete it
 
-  if( !cameraNode || !cameraNode->ToElement() ) {
+  if ( !cameraNode || !cameraNode->ToElement() ) {
     // not necessarily an error, the camera node could legitimately not exist
     // in which case a default camera should be returned
     ar_log_remark() << "arGUIXML defaulting to arVRCamera for missing cameraNode.\n";
@@ -615,7 +615,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   // check if this is a pointer to another camera
   TiXmlNode* namedNode = _getNamedNode( cameraNode->ToElement()->Attribute( "usenamed" ),
                                         "szg_camera" );
-  if( namedNode ) {
+  if ( namedNode ) {
     string useNamed( cameraNode->ToElement()->Attribute( "usenamed" ) );
     ar_log_debug() << "arGUIXML using named camera " << useNamed << ".\n";
     cameraNode = namedNode;
@@ -624,19 +624,19 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   TiXmlNode* cameraElement = NULL;
   string cameraType( "vr" );
 
-  if( cameraNode->ToElement()->Attribute( "type" ) ) {
+  if ( cameraNode->ToElement()->Attribute( "type" ) ) {
     cameraType = cameraNode->ToElement()->Attribute( "type" );
   }
 
   arGUIXMLAttributeValueValidator camTypeValidator( "camera 'type'", "vr/ortho/perspective" );
   camTypeValidator( cameraType );
 
-  if( _configureScreen( screen, cameraNode->FirstChild( "szg_screen" ) ) < 0 ) {
+  if ( _configureScreen( screen, cameraNode->FirstChild( "szg_screen" ) ) < 0 ) {
     // print warning, return default camera + screen
   }
 
   arCamera* camera = NULL;
-  if( cameraType == "vr" ) {
+  if ( cameraType == "vr" ) {
     camera = new arVRCamera();
 
   } else if (cameraType == "ortho" || cameraType == "perspective") {
@@ -649,7 +649,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     cameraValidator.addChildren( "frustum/lookat/sides/clipping/position/target/up" );
 
     // <frustum left="float" right="float" bottom="float" top="float" near="float" far="float" />
-    if( (cameraElement = cameraNode->FirstChild( "frustum" )) &&
+    if ( (cameraElement = cameraNode->FirstChild( "frustum" )) &&
         cameraElement->ToElement() ) {
       arGUIXMLFrustumCameraValidator frustumValidator;
       validation = frustumValidator( cameraElement );
@@ -667,7 +667,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     }
 
     // <lookat viewx="float" viewy="float" viewz="float" lookatx="float" lookaty="float" lookatz="float" upx="float" upy="float" upz="float" />
-    if( (cameraElement = cameraNode->FirstChild( "lookat" )) &&
+    if ( (cameraElement = cameraNode->FirstChild( "lookat" )) &&
         cameraElement->ToElement() ) {
       arGUIXMLLookatCameraValidator lookatValidator;
       validation = lookatValidator( cameraElement );
@@ -688,12 +688,12 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     }
 
     // <sides left="float" right="float" bottom="float" top="float" />
-    if( (cameraElement = cameraNode->FirstChild( "sides" ))) {
+    if ( (cameraElement = cameraNode->FirstChild( "sides" ))) {
       camF->setSides( _attributearVector4( cameraElement, "sides", "left", "right", "bottom", "top" ) );
     }
 
     // <clipping near="float" far="float" />
-    if( (cameraElement = cameraNode->FirstChild( "clipping" )) &&
+    if ( (cameraElement = cameraNode->FirstChild( "clipping" )) &&
          cameraElement->ToElement() ) {
       arGUIXMLVector2Validator clipValidator( "camera 'clipping'", "near", "far" );
       clipValidator( cameraElement );
@@ -704,17 +704,17 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     }
 
     // <position x="float" y="float" z="float" />
-    if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
+    if ( (cameraElement = cameraNode->FirstChild( "position" )) ) {
       camF->setPosition( _attributearVector3( cameraElement, "camera 'position'" ) );
     }      
 
     // <target x="float" y="float" z="float" />
-    if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
+    if ( (cameraElement = cameraNode->FirstChild( "target" )) ) {
       camF->setTarget( _attributearVector3( cameraElement, "camera 'target'" ) );
     }
 
     // <up x="float" y="float" z="float" />
-    if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
+    if ( (cameraElement = cameraNode->FirstChild( "up" )) ) {
       camF->setUp( _attributearVector3( cameraElement, "camera 'up'" ) );
     }
     
@@ -740,7 +740,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 bool arGUIXMLParser::parse( void )
 {
   //  Should have already complained about any errors.
-//  if( _doc.Error() ) {
+//  if ( _doc.Error() ) {
 //    ar_log_error() << "arGUIXMLParser: failed to parse at line " << _doc.ErrorRow() << ar_endl;
 //    return false;
 //  }
@@ -754,7 +754,7 @@ bool arGUIXMLParser::parse( void )
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
-  if( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
+  if ( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
     ar_log_error() << "arGUIXMLParser: malformed <szg_display> node.\n";
     return false;
   }
@@ -763,12 +763,12 @@ bool arGUIXMLParser::parse( void )
   displayValidator( szgDisplayNode );
 
   // <threaded value="true|false|yes|no" />
-  if( szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
+  if ( szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
     _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "display 'threaded'" ) ? 1 : 0 );
   }
 
   // <framelock value="wildcat" />
-  if( szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
+  if ( szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
     string framelock = szgDisplayNode->ToElement()->Attribute( "framelock" );
     arGUIXMLAttributeValueValidator fLockValidator( "display 'framelock'", "wildcat/none" );
     fLockValidator( framelock );
@@ -789,13 +789,13 @@ bool arGUIXMLParser::parse( void )
     // is this a pointer to another window?
     TiXmlNode* namedWindowNode = _getNamedNode( windowNode->ToElement()->Attribute( "usenamed" ),
                                                 "szg_window" );
-    if( namedWindowNode ) {
+    if ( namedWindowNode ) {
       string namedWindow( windowNode->ToElement()->Attribute( "usenamed" ) );
       ar_log_debug() << "arGUIXML using named window " << namedWindow << ".\n";
       windowNode = namedWindowNode;
     }
 
-    if( !windowNode->ToElement() ) {
+    if ( !windowNode->ToElement() ) {
       ar_log_error() << "arGUIXMLParser: skipping invalid window element.\n";
       continue;
     }
@@ -803,7 +803,7 @@ bool arGUIXMLParser::parse( void )
     arGUIWindowConfig* windowConfig = new arGUIWindowConfig();
 
     // <size width="integer" height="integer" />
-    if( (windowElement = windowNode->FirstChild( "size" )) &&
+    if ( (windowElement = windowNode->FirstChild( "size" )) &&
          windowElement->ToElement() ) {
       arGUIXMLVector2Validator winSizeValidator( "window 'size'", "width", "height" );
       winSizeValidator( windowElement );
@@ -814,7 +814,7 @@ bool arGUIXMLParser::parse( void )
     }
 
     // <position x="integer" y="integer" />
-    if( (windowElement = windowNode->FirstChild( "position" )) &&
+    if ( (windowElement = windowNode->FirstChild( "position" )) &&
          windowElement->ToElement() ) {
       arGUIXMLVector2Validator winPosValidator( "window 'position'" );
       winPosValidator( windowElement );
@@ -825,24 +825,24 @@ bool arGUIXMLParser::parse( void )
     }
 
     // <fullscreen value="true|false|yes|no" />
-    if( (windowElement = windowNode->FirstChild( "fullscreen" )) ) {
+    if ( (windowElement = windowNode->FirstChild( "fullscreen" )) ) {
       windowConfig->setFullscreen( _attributeBool( windowElement ) );
     }
 
     // <decorate value="true|false|yes|no" />
-    if( (windowElement = windowNode->FirstChild( "decorate" )) ) {
+    if ( (windowElement = windowNode->FirstChild( "decorate" )) ) {
       ar_log_debug() << "windowConfig->setDecorate( " << _attributeBool( windowElement )
                      << " ).\n";
       windowConfig->setDecorate( _attributeBool( windowElement ) );
     }
 
     // <stereo value="true|false|yes|no" />
-    if( (windowElement = windowNode->FirstChild( "stereo" )) ) {
+    if ( (windowElement = windowNode->FirstChild( "stereo" )) ) {
       windowConfig->setStereo( _attributeBool( windowElement ) );
     }
 
     // <zorder value="normal|top|topmost" />
-    if( (windowElement = windowNode->FirstChild( "zorder" )) &&
+    if ( (windowElement = windowNode->FirstChild( "zorder" )) &&
          windowElement->ToElement()) {
       arGUIXMLValueValidator zOrdValidator( "zorder" );
       zOrdValidator( windowElement );
@@ -853,14 +853,14 @@ bool arGUIXMLParser::parse( void )
         const arZOrder arzorder =
           (zorder == "normal") ? AR_ZORDER_NORMAL :
           (zorder == "topmost") ? AR_ZORDER_TOPMOST :
-          /* default, if( zorder == "top" ) */ AR_ZORDER_TOP;
+          /* default, if ( zorder == "top" ) */ AR_ZORDER_TOP;
 
         windowConfig->setZOrder( arzorder );
       }
     }
 
     // <bpp value="integer" />
-    if( (windowElement = windowNode->FirstChild( "bpp" )) &&
+    if ( (windowElement = windowNode->FirstChild( "bpp" )) &&
         windowElement->ToElement() ) {
       arGUIXMLValueValidator bppValidator( "bpp" );
       bppValidator( windowElement );
@@ -870,7 +870,7 @@ bool arGUIXMLParser::parse( void )
     }
 
     // <title value="string" />
-    if( (windowElement = windowNode->FirstChild( "title" )) &&
+    if ( (windowElement = windowNode->FirstChild( "title" )) &&
          windowElement->ToElement()) {
       arGUIXMLValueValidator titleValidator( "title" );
       titleValidator( windowElement );
@@ -880,7 +880,7 @@ bool arGUIXMLParser::parse( void )
     }
 
     // <xdisplay value="string" />
-    if( (windowElement = windowNode->FirstChild( "xdisplay" )) &&
+    if ( (windowElement = windowNode->FirstChild( "xdisplay" )) &&
         windowElement->ToElement()) {
       arGUIXMLValueValidator xDispValidator( "xdisplay" );
       xDispValidator( windowElement );
@@ -890,7 +890,7 @@ bool arGUIXMLParser::parse( void )
     }
 
     // <cursor value="arrow|none|help|wait" />
-    if( (windowElement = windowNode->FirstChild( "cursor")) &&
+    if ( (windowElement = windowNode->FirstChild( "cursor")) &&
         windowElement->ToElement()) {
       arGUIXMLValueValidator cursValidator( "cursor" );
       cursValidator( windowElement );
@@ -902,16 +902,16 @@ bool arGUIXMLParser::parse( void )
       cursValValidator( initialCursor );
 
       arCursor cursor;
-      if( initialCursor == "none" ) {
+      if ( initialCursor == "none" ) {
         cursor = AR_CURSOR_NONE;
       }
-      else if( initialCursor == "help" ) {
+      else if ( initialCursor == "help" ) {
         cursor = AR_CURSOR_HELP;
       }
-      else if( initialCursor == "wait" ) {
+      else if ( initialCursor == "wait" ) {
         cursor = AR_CURSOR_WAIT;
       }
-      else if( initialCursor == "arrow" ) {
+      else if ( initialCursor == "arrow" ) {
         cursor = AR_CURSOR_ARROW;
       }
       else {
@@ -937,18 +937,18 @@ bool arGUIXMLParser::parse( void )
 
     // possible not to have a <szg_viewport_list>, so the viewportListNode
     // pointer needs to be checked from here on out
-    if( viewportListNode ) {
+    if ( viewportListNode ) {
       // check if this is a pointer to another viewportlist
       namedViewportListNode =
         _getNamedNode( viewportListNode->ToElement()->Attribute( "usenamed" ), "szg_viewport_list" );
 
-      if( namedViewportListNode ) {
+      if ( namedViewportListNode ) {
         string namedViewportList( namedViewportListNode->ToElement()->Attribute( "usenamed" ) );
         ar_log_debug() << "arGUIXML using named viewportList " << namedViewportList << ".\n";
         viewportListNode = namedViewportListNode;
       }
 
-      if( !viewportListNode->ToElement() ) {
+      if ( !viewportListNode->ToElement() ) {
         ar_log_error() << "arGUIXMLParser: invalid viewportlist element.\n";
         return false;
       }
@@ -956,7 +956,7 @@ bool arGUIXMLParser::parse( void )
       // determine which viewmode was specified, anything other than "custom"
       // doesn't need any viewports to actually be listed
       // <viewmode value="normal|anaglyph|walleyed|crosseyed|overunder|custom" />
-      if( viewportListNode->ToElement()->Attribute( "viewmode" ) ) {
+      if ( viewportListNode->ToElement()->Attribute( "viewmode" ) ) {
         viewMode = viewportListNode->ToElement()->Attribute( "viewmode" );
         arGUIXMLAttributeValueValidator vModeValValidator( "viewmode", 
             "normal/walleyed/crosseyed/anaglyph/overunder/custom" );
@@ -965,7 +965,7 @@ bool arGUIXMLParser::parse( void )
       }
     }
 
-    if( viewMode == "custom" ) {
+    if ( viewMode == "custom" ) {
       vpListValidator.addChild( "szg_viewport" );
 
       TiXmlNode* viewportNode = NULL;
@@ -973,7 +973,7 @@ bool arGUIXMLParser::parse( void )
       // if the user specified a viewmode of 'custom' but then didn't specify
       // any <szg_viewport>'s - that is an error! (the only way we can get here
       // is if viewportListNode /does/ exist, no need to check it again)
-      if( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
+      if ( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
         // malformed!, delete currentwindow, print warning, continue with next window tag
         ar_log_error() << "arGUIXMLParser: viewmode is custom, but no <szg_viewport> tags.\n";
         return false;
@@ -991,13 +991,13 @@ bool arGUIXMLParser::parse( void )
         // check if this is a pointer to another viewport
         TiXmlNode* namedViewportNode = _getNamedNode( viewportNode->ToElement()->Attribute( "usenamed" ),
                                                       "szg_viewport" );
-        if( namedViewportNode ) {
+        if ( namedViewportNode ) {
           ar_log_debug() << "arGUIXML using named viewport " <<
             viewportNode->ToElement()->Attribute( "usenamed" ) << ".\n";
           viewportNode = namedViewportNode;
         }
 
-        if( !viewportNode->ToElement() ) {
+        if ( !viewportNode->ToElement() ) {
           ar_log_error() << "arGUIXML skipping invalid viewport element.\n";
           continue;
         }
@@ -1008,7 +1008,7 @@ bool arGUIXMLParser::parse( void )
         arCamera* camera = NULL;
         arGraphicsScreen screen;
 
-        if( !(camera = _configureCamera( screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
+        if ( !(camera = _configureCamera( screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
           // should never happen, configureCamera should always return at least /something/
           ar_log_error() << "arGUIXML custom configureCamera failed.\n";
         }
@@ -1018,18 +1018,18 @@ bool arGUIXMLParser::parse( void )
         viewport.setScreen( screen );
 
         // <coords left="float" bottom="float" width="float" height="float" />
-        if( (viewportElement = viewportNode->FirstChild( "coords" )) ) {
+        if ( (viewportElement = viewportNode->FirstChild( "coords" )) ) {
           arVector4 vec = _attributearVector4( viewportElement, "viewport 'coords'", "left", "bottom", "width", "height" );
           viewport.setViewport( vec );
         }
 
         // <depthclear value="true|false|yes|no" />
-        if( (viewportElement = viewportNode->FirstChild( "depthclear" )) ) {
+        if ( (viewportElement = viewportNode->FirstChild( "depthclear" )) ) {
           viewport.clearDepthBuffer( _attributeBool( viewportElement ) );
         }
 
         // <colormask R="true|false|yes|no" G="true|false|yes|no" B="true|false|yes|no" A="true|false|yes|no" />
-        if( (viewportElement = viewportNode->FirstChild( "colormask" )) ) {
+        if ( (viewportElement = viewportNode->FirstChild( "colormask" )) ) {
           arGUIXMLVector4Validator cmValidator( "viewport 'colormask'", "R", "G", "B", "A" );
           cmValidator( viewportElement );
           bool colorMask[ 4 ];
@@ -1041,7 +1041,7 @@ bool arGUIXMLParser::parse( void )
         }
 
         // <eyesign value="float" />
-        if( (viewportElement = viewportNode->FirstChild( "eyesign" )) &&
+        if ( (viewportElement = viewportNode->FirstChild( "eyesign" )) &&
             viewportElement->ToElement() ) {
           arGUIXMLValueValidator esignValidator( "viewport 'eyesign'" );
           esignValidator( viewportElement );
@@ -1051,7 +1051,7 @@ bool arGUIXMLParser::parse( void )
         }
 
         // <ogldrawbuf value="GL_NONE|GL_FRONT_LEFT|GL_FRONT_RIGHT|GL_BACK_LEFT|GL_BACK_RIGHT|GL_FRONT|GL_BACK|GL_LEFT|GL_RIGHT|GL_FRONT_AND_BACK" />
-        if( (viewportElement = viewportNode->FirstChild( "ogldrawbuf" )) &&
+        if ( (viewportElement = viewportNode->FirstChild( "ogldrawbuf" )) &&
             viewportElement->ToElement() ) {
           arGUIXMLValueValidator oglBufValidator( "viewport 'ogldrawbuf'" );
           oglBufValidator( viewportElement );
@@ -1061,16 +1061,16 @@ bool arGUIXMLParser::parse( void )
              string("GL_NONE/GL_FRONT_LEFT/GL_FRONT_RIGHT/GL_BACK_LEFT/GL_BACK_RIGHT") +
              string("/GL_FRONT/GL_BACK/GL_LEFT/GL_RIGHT/GL_FRONT_AND_BACK") );
           oglValValidator( buf );
-          if( buf == "GL_NONE" )                ogldrawbuf = GL_NONE;
-          else if( buf == "GL_FRONT_LEFT" )     ogldrawbuf = GL_FRONT_LEFT;
-          else if( buf == "GL_FRONT_RIGHT" )    ogldrawbuf = GL_FRONT_RIGHT;
-          else if( buf == "GL_BACK_LEFT" )      ogldrawbuf = GL_BACK_LEFT;
-          else if( buf == "GL_BACK_RIGHT" )     ogldrawbuf = GL_BACK_RIGHT;
-          else if( buf == "GL_FRONT" )          ogldrawbuf = GL_FRONT;
-          else if( buf == "GL_BACK" )           ogldrawbuf = GL_BACK;
-          else if( buf == "GL_LEFT" )           ogldrawbuf = GL_LEFT;
-          else if( buf == "GL_RIGHT" )          ogldrawbuf = GL_RIGHT;
-          else if( buf == "GL_FRONT_AND_BACK" ) ogldrawbuf = GL_FRONT_AND_BACK;
+          if ( buf == "GL_NONE" )                ogldrawbuf = GL_NONE;
+          else if ( buf == "GL_FRONT_LEFT" )     ogldrawbuf = GL_FRONT_LEFT;
+          else if ( buf == "GL_FRONT_RIGHT" )    ogldrawbuf = GL_FRONT_RIGHT;
+          else if ( buf == "GL_BACK_LEFT" )      ogldrawbuf = GL_BACK_LEFT;
+          else if ( buf == "GL_BACK_RIGHT" )     ogldrawbuf = GL_BACK_RIGHT;
+          else if ( buf == "GL_FRONT" )          ogldrawbuf = GL_FRONT;
+          else if ( buf == "GL_BACK" )           ogldrawbuf = GL_BACK;
+          else if ( buf == "GL_LEFT" )           ogldrawbuf = GL_LEFT;
+          else if ( buf == "GL_RIGHT" )          ogldrawbuf = GL_RIGHT;
+          else if ( buf == "GL_FRONT_AND_BACK" ) ogldrawbuf = GL_FRONT_AND_BACK;
           else {
             ogldrawbuf = GL_NONE;
           }
@@ -1086,10 +1086,10 @@ bool arGUIXMLParser::parse( void )
         // siblings can be traversed properly
         viewportNode = savedViewportNode;
 
-        if( namedViewportNode ) {
+        if ( namedViewportNode ) {
           delete namedViewportNode;
         }
-        if( camera ) {
+        if ( camera ) {
           // setCamera made a copy and now 'owns' the camera, safe to delete
           delete camera;
         }
@@ -1113,11 +1113,11 @@ bool arGUIXMLParser::parse( void )
       _parsedWindowConstructs.back()->getGraphicsWindow()->setScreen( screen );
 
       // set up the appropriate viewports
-      if( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
+      if ( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
         ar_log_error() << "arGUIXML setViewMode failed.\n";
       }
 
-      if( camera ) {
+      if ( camera ) {
         // setCamera copied and now owns the camera, so safe to delete
         delete camera;
       }

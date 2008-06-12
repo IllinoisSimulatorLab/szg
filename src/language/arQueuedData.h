@@ -18,7 +18,7 @@ class SZG_CALL arQueuedData{
  public:
   arQueuedData();
   ~arQueuedData();
-  
+
   void setMinimumSendSize(int theSize);
   ARchar* getFrontBufferRaw();
   ARint getFrontBufferSize();
@@ -29,7 +29,7 @@ class SZG_CALL arQueuedData{
  private:
   arDataTemplate* _bufferTemplate;
   int BUFFER;
-  
+
   int _maxBufferSize;
   int _minSendSize;
 

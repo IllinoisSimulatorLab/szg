@@ -15,17 +15,17 @@ arSpeakerObject::arSpeakerObject() :
 #ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   _demoMode(false),
   _demoHeadUpAngle(0.),
-  _normal( 0,0,-1 ),
-  _up( 0,1,0 ),
+  _normal( 0, 0, -1 ),
+  _up( 0, 1, 0 ),
 #endif
-  _midEyeOffset(-6./(2.54*12),0,0),
+  _midEyeOffset(-6./(2.54*12), 0, 0),
   _fFmodPluginInited(false)
 {
   // Force first loadMatrices() to run.
   memset(&_headPrev, 0, sizeof(_headPrev));
 }
 
-bool arSpeakerObject::configure(arSZGClient& cli){
+bool arSpeakerObject::configure(arSZGClient& cli) {
   (void)cli.initResponse(); // like arGraphicsScreen::configure()
   return true;
 }
@@ -47,7 +47,7 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
   case mode_fmodplugins:
     // Hide listener motion from the FMOD plugins:
     // transform listener and sources so listener is
-    // pos (0,0,0) fwd (0,0,-1) up (0,1,0).
+    // pos (0, 0, 0) fwd (0, 0, -1) up (0, 1, 0).
     __globalSoundListener = head.inverse();
 
     if (!_fFmodPluginInited) {
@@ -62,12 +62,12 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
   LFmod: {
     const arMatrix4 rot(ar_ERM(head));
     // safe to normalize because rot can't be zero
-    const arVector3 up((rot * arVector3(0,1,0)).normalize());
-    const arVector3 forward((rot * arVector3(0,0,-1)).normalize());
+    const arVector3 up((rot * arVector3(0, 1, 0)).normalize());
+    const arVector3 forward((rot * arVector3(0, 0, -1)).normalize());
     const arVector3 pos(_unitConversion * (head * _midEyeOffset));
 
     //cout << "mode_fmod listenerpos:\n\t" << pos << "\n\t" << forward << "\n\t" << up << "\n\n";;
-    const arVector3 velocityNotUsed(0,0,0);
+    const arVector3 velocityNotUsed(0, 0, 0);
 #ifndef EnableSound
     return true;
 #else
@@ -109,10 +109,10 @@ arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*mHead*/ ) {
   const arVector3 yHat(xHat * zHat);
   const arVector3 yPrime(cos( _demoHeadUpAngle )*yHat - sin( _demoHeadUpAngle )*xHat);
   const arVector3 xPrime(zHat * yPrime);
- 
+
   arMatrix4 demoRotMatrix;
   int j = 0;
-  for (int i=0; i<9; i+=4,j++) {
+  for (int i=0; i<9; i+=4, j++) {
     demoRotMatrix[i  ] = xPrime.v[j];
     demoRotMatrix[i+1] = yPrime.v[j];
     demoRotMatrix[i+2] = zHat.v[j];

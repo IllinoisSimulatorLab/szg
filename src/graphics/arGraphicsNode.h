@@ -28,15 +28,15 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode {
 
   // From arDatabaseNode
   virtual void initialize(arDatabase*);
-  virtual bool receiveData(arStructuredData*){ return false; };
-  virtual arStructuredData* dumpData(){ return NULL; };
+  virtual bool receiveData(arStructuredData*) { return false; };
+  virtual arStructuredData* dumpData() { return NULL; };
     // Caller deletes returned value.
     // Subclasses' _dumpData is usually not thread-safe.
 
   // unique to arGraphicsNode
   arMatrix4 accumulateTransform();
-  virtual void draw(arGraphicsContext*){};
-  inline ARfloat* getBuffer(){ return _commandBuffer.v; }
+  virtual void draw(arGraphicsContext*) {};
+  inline ARfloat* getBuffer() { return _commandBuffer.v; }
   inline int getBufferSize() const { return _commandBuffer.size(); }
 
  protected:

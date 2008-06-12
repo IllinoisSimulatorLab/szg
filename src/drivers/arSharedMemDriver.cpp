@@ -26,16 +26,16 @@ arSharedMemDriver::~arSharedMemDriver() {
   _detachMemory(); // paranoid
 }
 
-inline int generateButton(int ID, const void* m){
+inline int generateButton(int ID, const void* m) {
   return *(((int*)m) + ID + 10);
 }
 
-inline float generateAxis(int ID, const void* m){
+inline float generateAxis(int ID, const void* m) {
   return *(((float*)m) + ID + 23);
   // David Zielinski <djzielin@duke.edu> uses 23 not 42
 }
 
-arMatrix4 generateMatrix(const int ID, const void* mRaw){
+arMatrix4 generateMatrix(const int ID, const void* mRaw) {
   float* m = ((float*)mRaw) + 7 + ID*10;
   float mLocal[6];
   if (ID == 1) {
@@ -79,28 +79,28 @@ bool arSharedMemDriver::start() {
 
   _l.lock();
   const int idFoB = shmget(4136, 0, 0666);
-  if (idFoB < 0){
+  if (idFoB < 0) {
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
     return false;
   }
   const int idWand = shmget(4127, 0, 0666);
-  if (idWand < 0){
+  if (idWand < 0) {
     perror("no shm segment for wand (try ipcs -m;  run a cavelib app first)");
     return false;
   }
   _shmFoB = shmat(idFoB, NULL, 0);
-  if ((int)_shmFoB == -1){
+  if ((int)_shmFoB == -1) {
     perror("shmat failed for Flock of Birds");
     return false;
   }
   _shmWand = shmat(idWand, NULL, 0);
-  if ((int)_shmWand == -1){
+  if ((int)_shmWand == -1) {
     perror("shmat failed for wand");
     return false;
   }
   _l.unlock();
 
-  return _eventThread.beginThread(ar_ShmDriverDataTask,this);
+  return _eventThread.beginThread(ar_ShmDriverDataTask, this);
 #endif
 }
 
@@ -148,10 +148,10 @@ void arSharedMemDriver::_dataThread() {
     queueAxis(0, generateAxis(0, _shmWand));
     queueAxis(1, generateAxis(1, _shmWand));
 
-    for (int i=0; i<8; i++){
+    for (int i=0; i<8; i++) {
 	const int button = generateButton(i, _shmWand);
 	// send only state changes
-	if (button != _buttonPrev[i]){
+	if (button != _buttonPrev[i]) {
 	  queueButton(i, button);
 	  _buttonPrev[i] = button;
 	}

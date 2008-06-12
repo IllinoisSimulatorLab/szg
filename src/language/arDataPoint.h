@@ -2,7 +2,7 @@
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
- 
+
 #ifndef AR_DATA_POINT
 #define AR_DATA_POINT
 
@@ -34,8 +34,8 @@ class SZG_CALL arDataPoint {
     { _smallPacketOptimize = flag; } // faster for small packets
   bool getDataCore(ARchar*& dest, int& availableSize, bool& fEndianMode,
     arSocket* fd, const arStreamConfig& remoteConfig);
-  bool getDataCore(ARchar*& dest, int& availableSize, ARint& theSize, 
-                   bool& fEndianMode, arSocket* fd, 
+  bool getDataCore(ARchar*& dest, int& availableSize, ARint& theSize,
+                   bool& fEndianMode, arSocket* fd,
                    const arStreamConfig& remoteConfig);
   bool getDataCore(ARchar*& dest, int& availableSize,
 		   ARchar*& trans, int& transSize,

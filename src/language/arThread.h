@@ -131,7 +131,7 @@ private:
 };
 
 //**************************************
-// simple condition variables 
+// simple condition variables
 //**************************************
 
 class SZG_CALL arConditionVar{
@@ -149,7 +149,7 @@ class SZG_CALL arConditionVar{
   pthread_cond_t _conditionVar;
 #endif
 };
-  
+
 //**************************************
 // event - condition variable with a memory
 //**************************************
@@ -195,10 +195,10 @@ class SZG_CALL arThread {
 
 public:
   arThread() {}
-  arThread(void (*threadFunction)(void*),void* parameter=NULL);
+  arThread(void (*threadFunction)(void*), void* parameter=NULL);
 
   arThreadID getThreadID() const;
-  bool beginThread(void (*threadFunction)(void*),void* parameter=NULL);
+  bool beginThread(void (*threadFunction)(void*), void* parameter=NULL);
 
 private:
   void (*_threadFunction)(void*);

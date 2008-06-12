@@ -52,18 +52,18 @@ class SZG_CALL arMessageQueueByID: public arLockable {
 };
 
 typedef list<arStructuredData*> SZGdatalist;
-typedef map<int,SZGdatalist*,less<int> > SZGrecycler;
-typedef map<int,arMessageQueueByID*,less<int> > SZGmessageQueue;
-typedef map<int,list<arStructuredData*>,less<int> > SZGtaggedMessageQueue;
-typedef map<int,arStructuredDataSynchronizer*,less<int> > SZGtaggedMessageSync;
+typedef map<int, SZGdatalist*, less<int> > SZGrecycler;
+typedef map<int, arMessageQueueByID*, less<int> > SZGmessageQueue;
+typedef map<int, list<arStructuredData*>, less<int> > SZGtaggedMessageQueue;
+typedef map<int, arStructuredDataSynchronizer*, less<int> > SZGtaggedMessageSync;
 typedef list<arStructuredDataSynchronizer*> SZGunusedMessageSync;
 
-// This class converts a byte-stream or text-stream into a sequence of 
+// This class converts a byte-stream or text-stream into a sequence of
 // arStructuredData objects. It encapsulates some commonly used parsing
-// functions. For instance, one can read data from a source in a 
-// dedicated thread, which goes into internal storage. A response handler in 
-// another thread can then block until a record of a certain type is read 
-// (and receive that record). Furthermore, records can be stored internally 
+// functions. For instance, one can read data from a source in a
+// dedicated thread, which goes into internal storage. A response handler in
+// another thread can then block until a record of a certain type is read
+// (and receive that record). Furthermore, records can be stored internally
 // via an application-defined tag (instead of via record type), e.g. for
 // building asynchronous rpc type calls.
 // Memory management lets arStructuredData records be reused.
@@ -83,8 +83,8 @@ class SZG_CALL arStructuredDataParser{
 
   // AARGH! THIS IS ALL A MESS! The parse command needs a better model...
   // To be provided eventually...
-  arStructuredData* parse(ARchar*,int&);
-  arStructuredData* parse(ARchar*,int&,const arStreamConfig&);
+  arStructuredData* parse(ARchar*, int&);
+  arStructuredData* parse(ARchar*, int&, const arStreamConfig&);
   arStructuredData* parse(arTextStream*);
   arStructuredData* parse(arTextStream*, const string&);
   arStructuredData* parseBinary(FILE*);

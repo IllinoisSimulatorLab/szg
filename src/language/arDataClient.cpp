@@ -18,20 +18,20 @@ arDataClient::arDataClient(const string& exeName) :
   setLabel(exeName);
 }
 
-arDataClient::~arDataClient(){
-  if (_theDictionary){
+arDataClient::~arDataClient() {
+  if (_theDictionary) {
     delete _theDictionary;
   }
-  if (_socket){
+  if (_socket) {
     delete _socket;
   }
 }
 
-void arDataClient::setLabel(const string& exeName){
+void arDataClient::setLabel(const string& exeName) {
   _exeName = (exeName.length() > 0) ? exeName : string("Syzygy arDataClient");
 }
 
-arTemplateDictionary* arDataClient::getDictionary(){
+arTemplateDictionary* arDataClient::getDictionary() {
   return _theDictionary; // not a const pointer:  pointee WILL change.
 }
 
@@ -53,11 +53,11 @@ bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
   return recordID >= 0;
 }
 
-bool arDataClient::getData(ARchar*& dest,int& availableSize){
+bool arDataClient::getData(ARchar*& dest, int& availableSize) {
   bool fEndianMode = false;
   ARint size = -1;
-  if (!getDataCore(dest, availableSize, size, fEndianMode, 
-                   _socket, _remoteStreamConfig)){
+  if (!getDataCore(dest, availableSize, size, fEndianMode,
+                   _socket, _remoteStreamConfig)) {
     return false;
   }
 
@@ -70,9 +70,9 @@ bool arDataClient::getData(ARchar*& dest,int& availableSize){
 // number of records) followed by a sequence of serialized data records
 // @param dest Where the data will go, a buffer that grows if needed
 // @param availableSize Size of "dest"
-bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
+bool arDataClient::getDataQueue(ARchar*& dest, int& availableSize) {
   bool fEndianMode = false;
-  if (!getDataCore(dest, availableSize, fEndianMode, 
+  if (!getDataCore(dest, availableSize, fEndianMode,
                    _socket, _remoteStreamConfig)) {
     return false;
   }
@@ -96,12 +96,12 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
     destPos += transSize;
     srcPos += recordSize;
   }
-  return true; 
+  return true;
 }
 
 // When two peers connect, they exchange configuration information,
 // so that each can translate the other's binary data format.
-bool arDataClient::_dialUpActivate(){
+bool arDataClient::_dialUpActivate() {
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
 
@@ -114,15 +114,15 @@ bool arDataClient::_dialUpActivate(){
   //   a. server sends config, waits for remote config.
   //   b. client waits for remote config, sends config.
   // In the future, it might be desirable for the server and client to
-  // simultaneously send configs. And then simultaneously receive. 
+  // simultaneously send configs. And then simultaneously receive.
   // (to minimize connection start-up latency). Fortunately, these future
   // animals will be able to interoperate with the current ones, with their
   // rigid handshakes (at least to the extent that outmoded clients will not
   // hang). This is due to the buffering and async built into TCP sockets.
 
   _remoteStreamConfig = handshakeReceiveConnection(_socket, localConfig);
-  if (!_remoteStreamConfig.valid){
-    if (_remoteStreamConfig.refused){
+  if (!_remoteStreamConfig.valid) {
+    if (_remoteStreamConfig.refused) {
       ar_log_remark() << _exeName << ": connection got closed.\n"
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
@@ -138,13 +138,13 @@ bool arDataClient::_dialUpActivate(){
 
   ARchar sizeBuffer[AR_INT_SIZE];
   // Read in the dictionary from the server.
-  if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
+  if (!_socket->ar_safeRead(sizeBuffer, AR_INT_SIZE)) {
     ar_log_error() << _exeName << ": dialUp failed to read dictionary size.\n";
     return false;
   }
 
-  const ARint totalSize = ar_translateInt(sizeBuffer,_remoteStreamConfig);
-  if (totalSize<AR_INT_SIZE){
+  const ARint totalSize = ar_translateInt(sizeBuffer, _remoteStreamConfig);
+  if (totalSize<AR_INT_SIZE) {
     ar_log_error() << _exeName << ": dialUp failed to translate dictionary "
 	 << "size.\n";
     return false;
@@ -152,7 +152,7 @@ bool arDataClient::_dialUpActivate(){
 
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
-  if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
+  if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)) {
     ar_log_error() << _exeName << ": dialUp failed to get dictionary.\n";
     delete [] dataBuffer;
     return false;
@@ -160,7 +160,7 @@ bool arDataClient::_dialUpActivate(){
 
   // Initialize the dictionary.
   _theDictionary = new arTemplateDictionary;
-  if (!_theDictionary->unpack(dataBuffer,_remoteStreamConfig)){
+  if (!_theDictionary->unpack(dataBuffer, _remoteStreamConfig)) {
     ar_log_error() << _exeName << ": dialUp failed to unpack dictionary.\n";
     delete [] dataBuffer;
     return false;
@@ -171,8 +171,8 @@ bool arDataClient::_dialUpActivate(){
   return true;
 }
 
-bool arDataClient::_dialUpInit(const char* address, int port){
-  if (!strcmp(address, "NULL")){
+bool arDataClient::_dialUpInit(const char* address, int port) {
+  if (!strcmp(address, "NULL")) {
     if (port == 0)
       ar_log_error() << _exeName << ": dialUp: no IP address or port.\n";
     else
@@ -180,19 +180,19 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     return false;
   }
 
-  if (strlen(address) < 7){
+  if (strlen(address) < 7) {
     ar_log_error() << _exeName << ": invalid IP address in dialUp("
       << address << ":" << port << ").\n";
     return false;
   }
 
-  if (port < 1000 || port > 65535){
+  if (port < 1000 || port > 65535) {
     ar_log_error() << _exeName << ": out-of-range port in dialUp(" <<
       address << ":" << port << ").  Try 1000 to 65535.\n";
     return false;
   }
 
-  if (!_socket){
+  if (!_socket) {
     _socket = new arSocket(AR_STANDARD_SOCKET);
   }
   if (_socket->ar_create() < 0) {
@@ -204,7 +204,7 @@ bool arDataClient::_dialUpInit(const char* address, int port){
   if (!setReceiveBufferSize(_socket))
     return false;
 
-  if (!_socket->smallPacketOptimize(_smallPacketOptimize)){
+  if (!_socket->smallPacketOptimize(_smallPacketOptimize)) {
     ar_log_error() << _exeName << ": no smallPacketOptimize for dialUp(" <<
       address << ":" << port << ").\n";
     return false;
@@ -223,7 +223,7 @@ bool arDataClient::_dialUpConnect(const char* address, int port) {
   return false;
 }
 
-bool arDataClient::dialUpFallThrough(const char* address, int port){
+bool arDataClient::dialUpFallThrough(const char* address, int port) {
   // bug? dlogin won't take "-szg log=DEBUG", so dlogin can't print these ar_log_debug()'s.
   if (!_dialUpInit(address, port)) {
     ar_log_debug() << "arDataClient._dialUpInit(" << address << ":" << port << ") failed.\n";
@@ -240,7 +240,7 @@ bool arDataClient::dialUpFallThrough(const char* address, int port){
   return true;
 }
 
-bool arDataClient::dialUp(const char* address, int port){
+bool arDataClient::dialUp(const char* address, int port) {
   arSleepBackoff a(15, 200, 1.4);
   while (true) {
     if (!_dialUpInit(address, port))
@@ -251,15 +251,15 @@ bool arDataClient::dialUp(const char* address, int port){
   }
 }
 
-void arDataClient::closeConnection(){
-  if (_activeConnection){
+void arDataClient::closeConnection() {
+  if (_activeConnection) {
     _socket->ar_close();
     _activeConnection = false;
   }
 }
 
 // Send data to the data server.
-bool arDataClient::sendData(arStructuredData* theData){
+bool arDataClient::sendData(arStructuredData* theData) {
   if (!theData) {
     ar_log_error() << _exeName << " ignoring sendData(NULL)\n";
     return false;

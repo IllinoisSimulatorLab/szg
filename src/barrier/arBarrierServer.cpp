@@ -7,21 +7,21 @@
 #include "arBarrierServer.h"
 
 void ar_barrierDataFunction(arStructuredData* data, void* server,
-                               arSocket* theSocket){
+                               arSocket* theSocket) {
   ((arBarrierServer*)server)->_barrierDataFunction(data, theSocket);
 }
 
 void arBarrierServer::_barrierDataFunction(arStructuredData* data,
-                                           arSocket* theSocket){
+                                           arSocket* theSocket) {
   const int id = data->getID();
   if (id == _handshakeData->getID()) {
     arGuard dummy(_queueActivationLock);
     const int bondedSocketID = data->getDataInt(BONDED_ID);
-    _activationSocketIDs.push_back(pair<int,int>(theSocket->getID(),bondedSocketID));
+    _activationSocketIDs.push_back(pair<int, int>(theSocket->getID(), bondedSocketID));
     // If the signal object has been set and no one is connected yet,
     // send a signal here as well.
-    if (getNumberConnectedActive()==0 && _pumpPrimingFlag){
-      if (_signalObject){
+    if (getNumberConnectedActive()==0 && _pumpPrimingFlag) {
+      if (_signalObject) {
         _signalObject->sendSignal();
       }
       _pumpPrimingFlag = false;
@@ -34,7 +34,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
   }
   else if (id == _clientTuningData->getID()) {
     int theData[4];
-    data->dataOut(CLIENT_TUNING_DATA,theData,AR_INT,4);
+    data->dataOut(CLIENT_TUNING_DATA, theData, AR_INT, 4);
     _drawTime = theData[0];
     _rcvTime = theData[1];
     _procTime = theData[2];
@@ -48,7 +48,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
   }
 }
 
-void ar_connectionFunction(void* barrierServer){
+void ar_connectionFunction(void* barrierServer) {
   arBarrierServer* s = (arBarrierServer*) barrierServer;
   while (s->_runThreads) {
     // Accept a connection.
@@ -60,12 +60,12 @@ void ar_connectionFunction(void* barrierServer){
   }
 }
 
-void ar_releaseFunction(void* server){
+void ar_releaseFunction(void* server) {
   ((arBarrierServer*)server)->_releaseFunction();
 }
-  
-void arBarrierServer::_releaseFunction(){
-  while (_runThreads){
+
+void arBarrierServer::_releaseFunction() {
+  while (_runThreads) {
     _waitingLock.lock();
     while (true) {
       int total = getNumberConnectedActive();
@@ -80,13 +80,13 @@ void arBarrierServer::_releaseFunction(){
     // send release packet
     const int tuningData = _serverSendSize;
     if (!_serverTuningData->dataIn(
-           SERVER_TUNING_DATA, &tuningData,AR_INT,1) ||
+           SERVER_TUNING_DATA, &tuningData, AR_INT, 1) ||
         !_dataServer.sendData(_serverTuningData)) {
       // cerr << "arBarrierServer warning: problem in ar_releaseFunction.\n";
       // Don't complain, probably a client just disconnected from this master.
     }
     _waitingLock.unlock();
-   
+
     // If the _signalObjectRelease is activated, use that to send the
     // external signal that the buffer swap has been activated.
     // Otherwise, use _signalObject.
@@ -103,11 +103,11 @@ void arBarrierServer::_releaseFunction(){
   }
 }
 
-void ar_barrierDisconnectFunction(void* server, arSocket*){
+void ar_barrierDisconnectFunction(void* server, arSocket*) {
   ((arBarrierServer*)server)->_barrierDisconnectFunction();
 }
 
-void arBarrierServer::_barrierDisconnectFunction(){
+void arBarrierServer::_barrierDisconnectFunction() {
   _waitingLock.lock();
   _waitingCondVar.signal();
   _waitingLock.unlock();
@@ -136,7 +136,7 @@ arBarrierServer::arBarrierServer():
   _pumpPrimingFlag(true),
   _localConnection(false),
   _exitProgram(false),
-  _channel("NULL"){
+  _channel("NULL") {
 
   _dataServer.setConsumerFunction(ar_barrierDataFunction);
   _dataServer.setConsumerObject(this);
@@ -145,9 +145,9 @@ arBarrierServer::arBarrierServer():
   _dataServer.smallPacketOptimize(true);
 
   // Set up the language.
-  BONDED_ID = _handshakeTemplate.add("bonded ID",AR_INT);
-  CLIENT_TUNING_DATA = _clientTuningTemplate.add("client tuning data",AR_INT);
-  SERVER_TUNING_DATA = _serverTuningTemplate.add("server tuning data",AR_INT);
+  BONDED_ID = _handshakeTemplate.add("bonded ID", AR_INT);
+  CLIENT_TUNING_DATA = _clientTuningTemplate.add("client tuning data", AR_INT);
+  SERVER_TUNING_DATA = _serverTuningTemplate.add("server tuning data", AR_INT);
 
   _theDictionary.add(&_handshakeTemplate);
   _theDictionary.add(&_responseTemplate);
@@ -160,35 +160,35 @@ arBarrierServer::arBarrierServer():
   _serverTuningData = new arStructuredData(&_serverTuningTemplate);
 }
 
-arBarrierServer::~arBarrierServer(){
+arBarrierServer::~arBarrierServer() {
   _runThreads = false;
   // bug: memory leaks (but we need a shutdown procedure first)
 }
 
-void arBarrierServer::setServiceName(string serviceName){
+void arBarrierServer::setServiceName(string serviceName) {
   _serviceName = serviceName;
 }
 
 // Store a pointer to the arSZGClient.
-bool arBarrierServer::init(const string& serviceName, const string& channel, arSZGClient& client){
+bool arBarrierServer::init(const string& serviceName, const string& channel, arSZGClient& client) {
   _serviceName = serviceName;
   _channel = channel;
   _client = &client;
   return true;
 }
 
-bool arBarrierServer::start(){
-  if (!_client){
+bool arBarrierServer::start() {
+  if (!_client) {
     cerr << "arBarrierServer error: init not called.\n";
     return false;
   }
-  if (_channel == "NULL"){
+  if (_channel == "NULL") {
     cerr << "arBarrierServer error: no channel.\n";
     return false;
   }
   // register the service and get some ports
   int port = -1;
-  if (!_client->registerService(_serviceName,_channel,1,&port)){
+  if (!_client->registerService(_serviceName, _channel, 1, &port)) {
     cerr << "arBarrierServer error: failed to register service \""
          << _serviceName << "\".\n";
     return false;
@@ -204,7 +204,7 @@ bool arBarrierServer::start(){
       break;
     }
     cerr << "arBarrierServer warning: failed to listen on brokered port, retrying.\n";
-    _client->requestNewPorts(_serviceName,_channel,1,&port);
+    _client->requestNewPorts(_serviceName, _channel, 1, &port);
     _dataServer.setPort(port);
   }
   if (!success) {
@@ -212,12 +212,12 @@ bool arBarrierServer::start(){
     cerr << "arBarrierServer error: failed to listen on brokered port.\n";
     return false;
   }
-  if (!_client->confirmPorts(_serviceName,_channel,1,&port)){
+  if (!_client->confirmPorts(_serviceName, _channel, 1, &port)) {
     cerr << "arBarrierServer error: failed to confirm ports.\n";
     return false;
   }
   // end of copy-paste
-  
+
   _dataServer.atomicReceive(false);
   _started = true;
   _runThreads = true;
@@ -239,29 +239,29 @@ LAbort:
 // automatically falls through. It would be a BAD IDEA, at this stage,
 // to make the barrier server stop sending replies to its clients, since
 // those clients rely on receiving messages to stop their data reading
-// threads 
-void arBarrierServer::stop(){
+// threads
+void arBarrierServer::stop() {
   _exitProgram = true;
   _localSignal.sendSignal();
 }
 
 // todo: needs error handling
-bool arBarrierServer::setServerSendSize(int serverSize){
+bool arBarrierServer::setServerSendSize(int serverSize) {
   _serverSendSize = serverSize;
   return true;
 }
 
 // todo: needs error handling
-void arBarrierServer::setSignalObject(arSignalObject* signalObject){
+void arBarrierServer::setSignalObject(arSignalObject* signalObject) {
   _signalObject = signalObject;
 }
 
 // todo: needs error handling
-void arBarrierServer::setSignalObjectRelease(arSignalObject* signalObject){
+void arBarrierServer::setSignalObjectRelease(arSignalObject* signalObject) {
   _signalObjectRelease = signalObject;
 }
 
-bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
+bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer) {
   // Only issue a locking command if this hasn't been issued externally.
   // Locking dance has a subtle deadlock danger:
   // if we held _queueActivationLock
@@ -270,14 +270,14 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   // (which wants _queueActivationLock) but then never be able to
   // get the third handshake round, which also must pass through that
   // API point, thus deadlocking in _activationVar.wait().
-  if (!_activationQueueLockedExternally){
+  if (!_activationQueueLockedExternally) {
     _queueActivationLock.lock();
   }
-  list< pair<int,int> >::iterator iter;
-  list< pair<int,int> > tmp;
+  list< pair<int, int> >::iterator iter;
+  list< pair<int, int> > tmp;
   for (iter = _activationSocketIDs.begin();
        iter != _activationSocketIDs.end();
-       ++iter){
+       ++iter) {
     tmp.push_back(*iter);
   }
   _activationSocketIDs.clear();
@@ -289,8 +289,8 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
   // discard unwanted broadcast release packets.
 
   arGuard dummy(_waitingLock);
-  
-  for (iter = tmp.begin(); iter != tmp.end(); ++iter){
+
+  for (iter = tmp.begin(); iter != tmp.end(); ++iter) {
     arSocket* theSocket = _dataServer.getConnectedSocket(iter->first);
     _activationLock.lock();
       _activationResponse = false;
@@ -300,44 +300,44 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer){
     _dataServer.sendData(_handshakeData, theSocket);
 
     _activationLock.lock();
-    while (!_activationResponse){
+    while (!_activationResponse) {
       _activationVar.wait(_activationLock);
     }
     // Got the response.
     _activationLock.unlock();
 
     _dataServer.activatePassiveSocket(iter->first);
-    if (bondedServer){
+    if (bondedServer) {
       bondedServer->activatePassiveSocket(iter->second);
     }
   }
-  
+
   return true;
 }
 
-bool arBarrierServer::checkWaitingSockets(){
+bool arBarrierServer::checkWaitingSockets() {
   return !_activationSocketIDs.empty();
 }
 
-void arBarrierServer::lockActivationQueue(){
+void arBarrierServer::lockActivationQueue() {
   _queueActivationLock.lock();
   _activationQueueLockedExternally = true;
 }
 
-void arBarrierServer::unlockActivationQueue(){
+void arBarrierServer::unlockActivationQueue() {
   _queueActivationLock.unlock();
   _activationQueueLockedExternally = false;
 }
 
 list<arSocket*>* arBarrierServer::getWaitingBondedSockets
-                                       (arDataServer* bondedServer){
+                                       (arDataServer* bondedServer) {
   list<arSocket*>* result = new list<arSocket*>;
 
   if (!_activationQueueLockedExternally)
     _queueActivationLock.lock();
 
-  for (list< pair<int,int> >::iterator iter = _activationSocketIDs.begin();
-       iter != _activationSocketIDs.end(); ++iter){
+  for (list< pair<int, int> >::iterator iter = _activationSocketIDs.begin();
+       iter != _activationSocketIDs.end(); ++iter) {
     result->push_back(bondedServer->getConnectedSocket(iter->second));
   }
 
@@ -347,11 +347,11 @@ list<arSocket*>* arBarrierServer::getWaitingBondedSockets
   return result;
 }
 
-void arBarrierServer::registerLocal(){
+void arBarrierServer::registerLocal() {
   _localConnection = true;
 }
 
-void arBarrierServer::localSync(){
+void arBarrierServer::localSync() {
   if (_exitProgram)
     return;
 

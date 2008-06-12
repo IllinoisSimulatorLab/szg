@@ -7,7 +7,7 @@
 #include "arPerspectiveCamera.h"
 #include "arGraphicsHeader.h"
 
-arPerspectiveCamera::arPerspectiveCamera(){
+arPerspectiveCamera::arPerspectiveCamera() {
   // Defaults for perspective camera. Frustum values correspond to:
   // left, right, bottom, top, near, far
   frustum[0] = -0.1;
@@ -18,8 +18,8 @@ arPerspectiveCamera::arPerspectiveCamera(){
   frustum[5] = 100;
 }
 
-arPerspectiveCamera::arPerspectiveCamera( const float* const frust, 
-                                          const float* const look, 
+arPerspectiveCamera::arPerspectiveCamera( const float* const frust,
+                                          const float* const look,
                                           int ID ) {
   memcpy( frustum, frust, 6*sizeof(float) );
   memcpy( lookat, look, 9*sizeof(float) );
@@ -33,7 +33,7 @@ arMatrix4 arPerspectiveCamera::getProjectionMatrix() {
   const float& t = frustum[3];
   const float& n = frustum[4];
   const float& f = frustum[5];
-  
+
   // Copied from the OpenGL textbook.
   return arMatrix4( 2*n/(r-l),   0,           (r+l)/(r-l),     0,
                     0,           2*n/(t-b),   (t+b)/(t-b),     0,

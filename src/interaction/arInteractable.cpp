@@ -34,7 +34,7 @@ arInteractable& arInteractable::operator=( const arInteractable& ui ) {
     _ungrab();
   if (touched())
     untouchAll();
-  _matrix = ui._matrix; 
+  _matrix = ui._matrix;
   _enabled = ui._enabled;
   _useDefaultDrags = ui._useDefaultDrags;
   _dragManager = ui._dragManager;
@@ -88,7 +88,7 @@ bool arInteractable::touch( arEffector& effector ) {
     return false;
   std::vector<arEffector*>::iterator effIter =
     std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
-  if (effIter != _touchEffectors.end()){
+  if (effIter != _touchEffectors.end()) {
     // This effector is already touching this interactable. Nothing to do!
     return true;
   }
@@ -110,14 +110,14 @@ bool arInteractable::touch( arEffector& effector ) {
 // callback).
 bool arInteractable::processInteraction( arEffector& effector ) {
   // The interactable cannot be manipulated if it hasn't been enabled.
-  if (!_enabled){
+  if (!_enabled) {
     return false;
   }
 
   // Try to touch the interactable with the effector.
-  if (!touched( effector )){ 
+  if (!touched( effector )) {
     // Not already touching
-    if (!touch( effector )){ 
+    if (!touch( effector )) {
       // failed to touch this object
       return false;
     }
@@ -145,7 +145,7 @@ bool arInteractable::processInteraction( arEffector& effector ) {
     // The drag manager maintains a list of grab-conditions/ drag-behavior
     // pairs. As the grab conditions are met (based on the effector's input
     // state), they get added to the active drag list. As they are no
-    // longer are met, they get removed. 
+    // longer are met, they get removed.
     dm->getActiveDrags( &effector, (const arInteractable*)this, _activeDrags );
     if (_activeDrags.empty()) {
      if (grabbed())
@@ -175,7 +175,7 @@ bool arInteractable::untouch( arEffector& effector ) {
   if (!touched( effector ))
     return true;
   if (grabbed() == &effector)
-    _ungrab();  
+    _ungrab();
   effector.setTouchedObject(0);
   std::vector<arEffector*>::iterator iter =
     std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
@@ -195,7 +195,7 @@ bool arInteractable::untouchAll() {
     _ungrab();
   }
   return ok;
-}    
+}
 
 // Is this effector currently touching this object?
 bool arInteractable::touched( arEffector& effector ) {

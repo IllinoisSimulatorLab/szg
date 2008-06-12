@@ -41,7 +41,7 @@ class arMotionstarDriver: public arInputSource {
   short _sequence;
   // TCP connection port on the Motionstar
   int _TCP_PORT;
-  
+
   // Hardware DC filtering parameters
   // two parameters, alpha and Vm.  Values range from 0-32767
   // alpha = 0 implies infinite filtering, 32767 = none
@@ -65,7 +65,7 @@ class arMotionstarDriver: public arInputSource {
 
   // HACK: remap birds in the absence of the general solution
   int _numberRemaps;
-  
+
   bool _useButton;
   int _lastButtonValue;
 

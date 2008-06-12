@@ -25,32 +25,32 @@ class SZG_CALL arRS232Port {
     virtual ~arRS232Port();
 
     // Port numbers are 1-based on all platforms.
-    // Legal values for other parameters vary across platforms, see the 
+    // Legal values for other parameters vary across platforms, see the
     // .cpp file
-    bool ar_open( const unsigned int portNumber, 
-                  const unsigned long baudRate, 
+    bool ar_open( const unsigned int portNumber,
+                  const unsigned long baudRate,
                   const unsigned int dataBits, const float stopBits,
                   const std::string& parity );
     bool ar_close();
 
-    // These three return a signed int that is the number of bytes 
+    // These three return a signed int that is the number of bytes
     // transferred >= 0, while -1 indicates a system error.
     //
-    // The _optional_ maxBytes argument to ar_read() indicates the maximum 
-    // number of bytes to read in a blocking read (i.e. timeout > 0). 
-    // The behavior is as follows: If fewer than bytesToRead characters are 
+    // The _optional_ maxBytes argument to ar_read() indicates the maximum
+    // number of bytes to read in a blocking read (i.e. timeout > 0).
+    // The behavior is as follows: If fewer than bytesToRead characters are
     // available in the system serial buffer when the read is called,
-    // the routine will block until either the timeout interval passes or it 
-    // receives bytesToRead characters, at which point it returns. If more 
-    // than bytesToRead characters are available when the read is called and 
-    // maxBytes > bytesToRead, then all available characters up to maxBytes 
-    // will be returned immediately. This option is provided to help on the 
-    // off-chance that repeatedly doing a blocking read for the 
-    // minimum amount of data does not allow you to keep up with streaming 
-    // input. You specify the minimum amount you require and the maximum you 
+    // the routine will block until either the timeout interval passes or it
+    // receives bytesToRead characters, at which point it returns. If more
+    // than bytesToRead characters are available when the read is called and
+    // maxBytes > bytesToRead, then all available characters up to maxBytes
+    // will be returned immediately. This option is provided to help on the
+    // off-chance that repeatedly doing a blocking read for the
+    // minimum amount of data does not allow you to keep up with streaming
+    // input. You specify the minimum amount you require and the maximum you
     // can handle.
-    
-    int ar_read( char* buf, const unsigned int bytesToRead, 
+
+    int ar_read( char* buf, const unsigned int bytesToRead,
                  const unsigned int maxBytes=0 );
 
     // Read all characters available, growing buffer if necessary.
@@ -61,9 +61,9 @@ class SZG_CALL arRS232Port {
     // readAll (really same as 2). You are responsible for delete[]ing
     // it when you're done. If there are no bytes waiting to
     // be read, call returns immediately without doing anything
-    // (so if you've passed the address of a NULL pointer, it will still be 
-    // NULL). Caller must remove the contents of 
-    // the buffer between readAll()s, as they will be discarded if the buffer 
+    // (so if you've passed the address of a NULL pointer, it will still be
+    // NULL). Caller must remove the contents of
+    // the buffer between readAll()s, as they will be discarded if the buffer
     // has to be grown.
     int readAll( char**bufAdd, unsigned int& currentBufferSize );
 
@@ -82,7 +82,7 @@ class SZG_CALL arRS232Port {
 
     // Get the number of bytes available to be read (yahoo!).
     unsigned int getNumberBytes();
-      
+
   private:
     bool _isOpen;
     unsigned int _readTimeoutTenths;

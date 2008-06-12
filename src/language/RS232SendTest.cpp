@@ -33,7 +33,7 @@ int main( int /*argc*/, char** /*argv*/ ) {
     if (numWrit != 100)
       cout << "error: ";
     cout << "Wrote " << numWrit << " bytes." << endl;
-  } 
+  }
   cout << (myPort.ar_close() ? "Port closed.\n" : "failed to close port.\n");
   return 0;
 }

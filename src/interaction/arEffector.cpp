@@ -201,9 +201,9 @@ void arEffector::updateState( arInputState* state ) {
   const unsigned buttonMax = state->getNumberButtons();
   const unsigned axisMax = state->getNumberAxes();
   unsigned i=0, j=0;
-  for (i=0,j=_loButton; i<_numButtons && j<buttonMax; ++i, ++j)
+  for (i=0, j=_loButton; i<_numButtons && j<buttonMax; ++i, ++j)
     _inputState.setButton( i, state->getButton(j) );
-  for (i=0,j=_loAxis; i<_numAxes && j<axisMax; ++i, ++j)
+  for (i=0, j=_loAxis; i<_numAxes && j<axisMax; ++i, ++j)
     _inputState.setAxis( i, state->getAxis(j) );
   setMatrix( state->getMatrix( _matrixIndex ) );
 }
@@ -242,19 +242,19 @@ void arEffector::forceUngrab() {
   }
 }
 
-int arEffector::getButton( unsigned int index ){
+int arEffector::getButton( unsigned int index ) {
   return _inputState.getButton( index - _buttonOffset );
 }
 
-float arEffector::getAxis( unsigned int index ){
+float arEffector::getAxis( unsigned int index ) {
   return _inputState.getAxis( index - _axisOffset );
 }
 
-bool arEffector::getOnButton( unsigned int index ){
+bool arEffector::getOnButton( unsigned int index ) {
   return _inputState.getOnButton( index - _buttonOffset );
 }
 
-bool arEffector::getOffButton( unsigned int index ){
+bool arEffector::getOffButton( unsigned int index ) {
   return _inputState.getOffButton( index - _buttonOffset );
 }
 

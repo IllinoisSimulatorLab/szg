@@ -51,7 +51,7 @@ class SZG_CALL arGraphicsClient{
   arGUIWindowManager* getWindowManager() { return _windowManager; }
   arGraphicsWindow* getGraphicsWindow(int ID) { return _windowManager->getGraphicsWindow( ID ); }
   bool configure(arSZGClient*);
-  //arGraphicsWindow* getGraphicsWindow(){ return &_graphicsWindow; }
+  //arGraphicsWindow* getGraphicsWindow() { return &_graphicsWindow; }
 
   // Gets called after the graphics window has been created to do some
   // initialization (so far only used for the wildcats)
@@ -87,15 +87,15 @@ class SZG_CALL arGraphicsClient{
   // interface. I'm a little bit annoyed at how the arGraphicsClient is
   // so greedy to be in charge (though maybe that's necessary given the
   // way the callbacks have been defined).
-  void setSimulator(arFrameworkObject* f){ _simulator = f; }
-  void showSimulator(bool show){ _showSimulator = show; }
-  void toggleFrameworkObjects(){
+  void setSimulator(arFrameworkObject* f) { _simulator = f; }
+  void showSimulator(bool show) { _showSimulator = show; }
+  void toggleFrameworkObjects() {
     _drawFrameworkObjects = !_drawFrameworkObjects;
   }
-  void drawFrameworkObjects(bool fDraw){
+  void drawFrameworkObjects(bool fDraw) {
     _drawFrameworkObjects = fDraw;
   }
-  void addFrameworkObject(arFrameworkObject* f){
+  void addFrameworkObject(arFrameworkObject* f) {
     _frameworkObjects.push_back(f);
   }
   void drawAllWindows() {

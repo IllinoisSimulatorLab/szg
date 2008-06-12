@@ -6,15 +6,15 @@
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h"
 
-arBlendNode::arBlendNode(){
+arBlendNode::arBlendNode() {
   // todo: initializers
   _name = "blend_node"; // default
   _typeCode = AR_G_BLEND_NODE;
-  _typeString = "blend"; 
-  _blendFactor = 1.0; 
+  _typeString = "blend";
+  _blendFactor = 1.0;
 }
 
-bool arBlendNode::receiveData(arStructuredData* inData){
+bool arBlendNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_BLEND, inData->getID(), "arBlendNode"))
     return false;
 
@@ -23,13 +23,13 @@ bool arBlendNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-float arBlendNode::getBlend(){
+float arBlendNode::getBlend() {
   arGuard dummy(_nodeLock);
   return _blendFactor;
 }
 
-void arBlendNode::setBlend(float blendFactor){
-  if (active()){
+void arBlendNode::setBlend(float blendFactor) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(blendFactor, true);
     _nodeLock.unlock();
@@ -42,12 +42,12 @@ void arBlendNode::setBlend(float blendFactor){
   }
 }
 
-arStructuredData* arBlendNode::dumpData(){
+arStructuredData* arBlendNode::dumpData() {
   arGuard dummy(_nodeLock);
-  return _dumpData(_blendFactor, false); 
+  return _dumpData(_blendFactor, false);
 }
 
-arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
+arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_BLEND);
   _dumpGenericNode(r, _g->AR_BLEND_ID);
   if (!r->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1)) {

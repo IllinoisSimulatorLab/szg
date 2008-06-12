@@ -15,23 +15,23 @@ arSerialSwitchDriver::arSerialSwitchDriver() :
   _eventThreadRunning(false),
   _stopped(false),
   _lastState(AR_NO_SWITCH_EVENT),
-  _lastEventTime(0,0)
+  _lastEventTime(0, 0)
 {}
 
 arSerialSwitchDriver::~arSerialSwitchDriver() {
 }
 
-bool arSerialSwitchDriver::init(arSZGClient& SZGClient){
+bool arSerialSwitchDriver::init(arSZGClient& SZGClient) {
   int i = 0;
 
   // Determine the baud rate.
-  const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
+  const int baudRates[] = {2400, 4800, 9600, 19200, 38400, 57600, 115200};
   const int NUM_BAUD_RATES = sizeof(baudRates) / sizeof(int);
   bool fFound = false;
   int baudRate = SZGClient.getAttributeInt("SZG_SERIALSWITCH", "baud_rate");
   if (baudRate == 0)
     goto LDefaultBaudRate;
-  for (i=0; i<NUM_BAUD_RATES; ++i){
+  for (i=0; i<NUM_BAUD_RATES; ++i) {
     if (baudRate == baudRates[i]) {
       fFound = true;
       break;
@@ -55,12 +55,12 @@ LDefaultBaudRate:
     ar_log_error() << "arSerialSwitchDriver: SZG_SERIALSWITCH/com_port defaulting to 1.\n";
     _comPortID = 1;
   }
-  if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
+  if (!_comPort.ar_open(_comPortID, (unsigned long)baudRate, 8, 1, "none" )) {
     ar_log_error() << "arSerialSwitchDriver failed to open serial port " << _comPortID << ".\n";
     return false;
   }
 
-  if (!_comPort.setReadTimeout(_timeoutTenths)){
+  if (!_comPort.setReadTimeout(_timeoutTenths)) {
     ar_log_error() << "arSerialSwitchDriver failed to set timeout for serial port " << _comPortID << ".\n";
     return false;
   }
@@ -90,10 +90,10 @@ LDefaultBaudRate:
 }
 
 bool arSerialSwitchDriver::start() {
-  return _eventThread.beginThread(ar_SerialSwitchDriverEventTask,this);
+  return _eventThread.beginThread(ar_SerialSwitchDriverEventTask, this);
 }
 
-void ar_SerialSwitchDriverEventTask(void* driver){
+void ar_SerialSwitchDriverEventTask(void* driver) {
   ((arSerialSwitchDriver*)driver)->_eventloop();
 }
 

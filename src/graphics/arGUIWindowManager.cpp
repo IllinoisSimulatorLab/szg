@@ -12,7 +12,7 @@
 
 // Default callbacks for window and keyboard events.
 
-void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki){
+void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki) {
   if (!ki)
     return;
   if ( ki->getState() != AR_KEY_DOWN )
@@ -24,14 +24,14 @@ void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki){
   }
 }
 
-void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ){
+void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ) {
   if (!wi)
     return;
   arGUIWindowManager* wm = wi->getWindowManager();
   if (!wm)
     return;
 
-  switch( wi->getState() ){
+  switch( wi->getState() ) {
   case AR_WINDOW_RESIZE:
     wm->setWindowViewport(wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY());
     break;
@@ -60,7 +60,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
 #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
   // seems to be necessary on OS X, not necessarily under linux, but probably
   // doesn't hurt to just always enable it though
-  if( XInitThreads() == 0 ) {
+  if ( XInitThreads() == 0 ) {
     ar_log_error() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
   }
 #endif
@@ -75,28 +75,28 @@ arGUIWindowManager::~arGUIWindowManager( void )
 
 void arGUIWindowManager::_keyboardHandler( arGUIKeyInfo* keyInfo )
 {
-  if( _keyboardCallback ) {
+  if ( _keyboardCallback ) {
     _keyboardCallback( keyInfo );
   }
 }
 
 void arGUIWindowManager::_mouseHandler( arGUIMouseInfo* mouseInfo )
 {
-  if( _mouseCallback ) {
+  if ( _mouseCallback ) {
     _mouseCallback( mouseInfo );
   }
 }
 
 void arGUIWindowManager::_windowHandler( arGUIWindowInfo* windowInfo )
 {
-  if( _windowCallback ) {
+  if ( _windowCallback ) {
     _windowCallback( windowInfo );
   }
 }
 
 void arGUIWindowManager::registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) )
 {
-  if( _windowCallback ) {
+  if ( _windowCallback ) {
     ar_log_debug() << "arGUIWindowManager installing new window callback.\n";
   }
   _windowCallback = windowCallback;
@@ -104,7 +104,7 @@ void arGUIWindowManager::registerWindowCallback( void (*windowCallback) ( arGUIW
 
 void arGUIWindowManager::registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) )
 {
-  if( _keyboardCallback ) {
+  if ( _keyboardCallback ) {
     ar_log_debug() << "arGUIWindowManager installing new keyboard callback.\n";
   }
   _keyboardCallback = keyboardCallback;
@@ -112,7 +112,7 @@ void arGUIWindowManager::registerKeyboardCallback( void (*keyboardCallback) ( ar
 
 void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMouseInfo* ) )
 {
-  if( _mouseCallback ) {
+  if ( _mouseCallback ) {
     ar_log_debug() << "arGUIWindowManager installing new mouse callback.\n";
   }
   _mouseCallback = mouseCallback;
@@ -120,7 +120,7 @@ void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMou
 
 void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) )
 {
-  if( _windowInitGLCallback ) {
+  if ( _windowInitGLCallback ) {
     ar_log_debug() << "arGUIWindowManager installing new window init GL callback.\n";
   }
   _windowInitGLCallback = windowInitGLCallback;
@@ -130,7 +130,7 @@ void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallba
 
 int arGUIWindowManager::startWithSwap( void )
 {
-  while( true ) {
+  while ( true ) {
     drawAllWindows( false );
     swapAllWindowBuffers( true );
     processWindowEvents();
@@ -140,7 +140,7 @@ int arGUIWindowManager::startWithSwap( void )
 
 int arGUIWindowManager::startWithoutSwap( void )
 {
-  while( true ) {
+  while ( true ) {
     drawAllWindows( false );
     processWindowEvents();
   }
@@ -159,10 +159,10 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
   _windows[ _maxID ] = window;
 
   // Make the OS window, if it was requested.
-  if (useWindowing){
-    if( _threaded ) {
+  if (useWindowing) {
+    if ( _threaded ) {
       // This should only return once the window is actually up and running
-      if( window->beginEventThread() < 0 ) {
+      if ( window->beginEventThread() < 0 ) {
         // Already printed warning.
         delete window;
         _windows.erase( _maxID );
@@ -170,7 +170,7 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
       }
     }
     else {
-      if( window->_performWindowCreation() < 0 ) {
+      if ( window->_performWindowCreation() < 0 ) {
         // Already printed warning.
         delete window;
         _windows.erase( _maxID );
@@ -195,7 +195,7 @@ int arGUIWindowManager::processWindowEvents( void )
 {
   // no registered callbacks, user should be handling events with getNextEvent
   // (what about window close events?)
-  if( !_keyboardCallback && !_mouseCallback && !_windowCallback ) {
+  if ( !_keyboardCallback && !_mouseCallback && !_windowCallback ) {
     // could be subclassed, in which case this is actually ok
     // return -1;
   }
@@ -203,17 +203,17 @@ int arGUIWindowManager::processWindowEvents( void )
   // if the WM is in single-threaded mode, first it needs to tell the windows
   // to push any pending gui events onto their stack since they are not doing
   // this in their own thread
-  if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
+  if ( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
     ar_log_error() << "arGUIWindowManager processWindowEvents consumeAllWindowEvents problem.\n";
   }
 
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
     arGUIWindow* currentWindow = it->second;
 
-    while( currentWindow->eventsPending() ) {
+    while ( currentWindow->eventsPending() ) {
       arGUIInfo* GUIInfo = currentWindow->getNextGUIEvent();
 
-      if( !GUIInfo ) {
+      if ( !GUIInfo ) {
         // print a warning? this meant arGUIEventManager threw a NULL event
         // into the window's event queue
         continue;
@@ -226,19 +226,19 @@ int arGUIWindowManager::processWindowEvents( void )
       // the provided accessors off the window manager
       switch( GUIInfo->getEventType() ) {
         case AR_KEY_EVENT:
-          if( _keyboardCallback ) {
+          if ( _keyboardCallback ) {
             _keyboardHandler( (arGUIKeyInfo*) GUIInfo );
           }
         break;
 
         case AR_MOUSE_EVENT:
-          if( _mouseCallback ) {
+          if ( _mouseCallback ) {
             _mouseHandler( (arGUIMouseInfo*) GUIInfo );
           }
         break;
 
         case AR_WINDOW_EVENT:
-          if( _windowCallback ) {
+          if ( _windowCallback ) {
             _windowHandler( (arGUIWindowInfo*) GUIInfo );
           }
           else {
@@ -335,9 +335,9 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
   return eventHandle;
 }
 
-int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ){
+int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ) {
   static bool warn = false;
-  if( !warn && blocking && !_threaded ) {
+  if ( !warn && blocking && !_threaded ) {
     // Bugs in a syzygy framework might cause a deadlock here.
     ar_log_debug() << "arGUIWindowManager: addAllWMEvent blocking while singlethreaded.\n";
     warn = true;
@@ -348,10 +348,10 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ){
   EventVector eventHandles;
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
-    if( eventHandle ) {
+    if ( eventHandle ) {
       eventHandles.push_back( eventHandle );
     }
-    else if( _threaded ) {
+    else if ( _threaded ) {
       // If !_threaded, addWMEvent returns NULL.  Warn?
     }
   }
@@ -366,7 +366,7 @@ int arGUIWindowManager::swapWindowBuffer( const int ID, bool blocking )
 {
   arWMEvent* eventHandle = addWMEvent(
     ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_SWAP ) );
-  if( eventHandle )
+  if ( eventHandle )
     eventHandle->wait( blocking );
   return 0;
 }
@@ -375,7 +375,7 @@ int arGUIWindowManager::drawWindow( const int ID, bool blocking )
 {
   arWMEvent* eventHandle = addWMEvent(
     ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ) );
-  if( eventHandle )
+  if ( eventHandle )
     eventHandle->wait( blocking );
   return 0;
 }
@@ -398,7 +398,7 @@ int arGUIWindowManager::consumeWindowEvents( const int ID, bool /*blocking*/ )
 
 int arGUIWindowManager::consumeAllWindowEvents( bool /*blocking*/ )
 {
-  if( _threaded )
+  if ( _threaded )
     return -1;
 
   bool ok = true;
@@ -417,7 +417,6 @@ int arGUIWindowManager::_doEvent(const int ID, const arGUIWindowInfo& event) {
 
 int arGUIWindowManager::resizeWindow( const int ID, int width, int height )
 {
-  
   // call the user's window callback with a resize event?
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, -1, 0, -1, -1, width, height ));
@@ -470,7 +469,7 @@ std::string arGUIWindowManager::getTitle( const int ID )
   return windowExists(ID) ? _windows[ ID ]->getTitle() : std::string( "" );
 }
 
-std::string arGUIWindowManager::getXDisplay( const int ID ){
+std::string arGUIWindowManager::getXDisplay( const int ID ) {
   return windowExists(ID) ? _windows[ ID ]->getXDisplay() : std::string( "" );
 }
 
@@ -593,7 +592,7 @@ void arGUIWindowManager::setThreaded( bool threaded ) {
 void arGUIWindowManager::_sendDeleteEvent( const int ID )
 {
   arWMEvent* eventHandle = addWMEvent( ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE ) );
-  if( eventHandle ) {
+  if ( eventHandle ) {
     // if _threaded, return only after the window has processed the message.
     eventHandle->wait( true );
   }
@@ -674,7 +673,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     // window managers (like Xandros circa 2005) can't.
     // Since it doesn't hurt to remap the windows, recreate anyways,
     // even on OS's where it isn't necessary.
-    if( isStereo( ID ) != config->getStereo() ||
+    if ( isStereo( ID ) != config->getStereo() ||
         getBpp( ID ) != config->getBpp() ||
         getXDisplay( ID ) != config->getXDisplay() ||
         isDecorated( ID ) != config->getDecorate() ||
@@ -689,7 +688,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       deleteWindow( ID );
 
       // create the new window
-      if ( addWindow( *config, useWindowing ) < 0 ){
+      if ( addWindow( *config, useWindowing ) < 0 ) {
         return -1;
       }
     }
@@ -711,14 +710,14 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
   // Delete any windows beyond what was parsed.
   for( ; wItr != IDs.end(); wItr++ ) {
-    if( deleteWindow( *wItr ) < 0 ) {
+    if ( deleteWindow( *wItr ) < 0 ) {
       ar_log_error() << "arGUIWindowManager failed to delete window: " << *wItr << ar_endl;
     }
   }
 
   // If there are more parsed than created windows, then create them.
   for( ; cItr != windowConstructs->end(); cItr++ ) {
-    if( addWindow( *((*cItr)->getWindowConfig()), useWindowing ) < 0 ) {
+    if ( addWindow( *((*cItr)->getWindowConfig()), useWindowing ) < 0 ) {
       // Do not print a complaint here.
       return -1;
     }
@@ -757,11 +756,11 @@ void arGUIWindowManager::activateFramelock( void )
     return;
   _fActivatedFramelock = true;
 
-  if( _threaded ) {
+  if ( _threaded ) {
     ar_log_error() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
     return;
   }
-  if( _windows.size() > 1 ) {
+  if ( _windows.size() > 1 ) {
     ar_log_error() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
     return;
   }
@@ -776,11 +775,11 @@ void arGUIWindowManager::deactivateFramelock( void )
     return;
   _fActivatedFramelock = false;
 
-  if( _threaded ) {
+  if ( _threaded ) {
     ar_log_error() << "arGUIWindowManager ignoring framelock for rendering threads.\n";
     return;
   }
-  if( _windows.size() > 1 ) {
+  if ( _windows.size() > 1 ) {
     ar_log_error() << "arGUIWindowManager ignoring framelock for multiple windows.\n";
     return;
   }

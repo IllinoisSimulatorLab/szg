@@ -36,9 +36,9 @@ arLargeImage& arLargeImage::operator=( const arLargeImage& x ) {
     originalImage = x.originalImage;
   }
   return *this;
-}  
+}
 
-arLargeImage::~arLargeImage(){
+arLargeImage::~arLargeImage() {
   _tiles.clear();
 }
 
@@ -109,7 +109,7 @@ void arLargeImage::draw() {
   const unsigned int imageHeight = originalImage.getHeight();
   const float xScale = ((float)_tileWidth*_numTilesWide)/imageWidth;
   const float yScale = ((float)_tileHeight*_numTilesHigh)/imageHeight;
-  
+
   glPushMatrix();
   const float xDelta = xScale/((float)_numTilesWide);
   const float yDelta = yScale/((float)_numTilesHigh);

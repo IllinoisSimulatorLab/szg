@@ -6,7 +6,7 @@
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -35,11 +35,11 @@ int main(int argc, char** argv){
 
       // Skip "hostname/szgd/number" lines.
       char* pch = strstr(szProcess, "/szgd/");
-      if (pch && strspn(pch+6,"0123456789") == strlen(pch+6))
+      if (pch && strspn(pch+6, "0123456789") == strlen(pch+6))
 	continue;
       // Skip dkillall, i.e. this program itself.
       pch = strstr(szProcess, "/dkillall/");
-      if (pch && strspn(pch+10,"0123456789") == strlen(pch+10))
+      if (pch && strspn(pch+10, "0123456789") == strlen(pch+10))
 	continue;
 
       // Extract process id.

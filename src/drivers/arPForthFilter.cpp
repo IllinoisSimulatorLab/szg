@@ -7,11 +7,11 @@
 #include "arPForthFilter.h"
 #include "arFileTextStream.h"
 
-arFilteringPForth::arFilteringPForth(){
+arFilteringPForth::arFilteringPForth() {
   _valid &= ar_PForthAddEventVocabulary(this) && ar_PForthAddDatabaseVocabulary(this);
 }
 
-arFilteringPForth::~arFilteringPForth(){
+arFilteringPForth::~arFilteringPForth() {
 }
 
 arPForthFilter::arPForthFilter( const unsigned progNumber ) :
@@ -94,7 +94,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
   stringstream parsingStream(progText);
   string firstToken;
   parsingStream >> firstToken;
-  if (firstToken == ""){
+  if (firstToken == "") {
     // Empty or missing filter program.
     return true;
   }
@@ -108,7 +108,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
     ar_log_error() << "arPForthFilter failed to run program.\n";
     return false;
   }
-  
+
   vector<string> words = _pforth.getVocabulary();
   vector<string>::const_iterator iter;
   arInputEventType eventType;
@@ -116,7 +116,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
   for (iter = words.begin(); iter != words.end(); ++iter) {
 
     std::string word( *iter );
-    if (word.substr(0,7) == "filter_") {
+    if (word.substr(0, 7) == "filter_") {
       if (!_pforth.compileProgram( word )) {
         ar_log_error() << "arPForthFilter failed to compile word " << word << "\n";
         continue;

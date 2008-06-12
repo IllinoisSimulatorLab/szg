@@ -8,13 +8,13 @@
 
 // copypaste restarttracker.cpp
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  if (argc > 2){
+  if (argc > 2) {
     ar_log_critical() << "usage: screensaver [virtual_computer]\n";
     return 1;
   }

@@ -7,14 +7,14 @@
 #include "arGraphicsDatabase.h"
 
 arVisibilityNode::arVisibilityNode():
-  _visibility(false){
+  _visibility(false) {
   _name = "visibility_node";
   // RedHat 8 fails to compile if these are initializers.
   _typeCode = AR_G_VISIBILITY_NODE;
   _typeString = "visibility";
 }
 
-bool arVisibilityNode::receiveData(arStructuredData* inData){
+bool arVisibilityNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_VISIBILITY, inData->getID(), "arVisibilityNode"))
     return false;
 
@@ -24,13 +24,13 @@ bool arVisibilityNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-bool arVisibilityNode::getVisibility(){
+bool arVisibilityNode::getVisibility() {
   arGuard dummy(_nodeLock);
   return _visibility;
 }
 
-void arVisibilityNode::setVisibility(bool visibility){
-  if (active()){
+void arVisibilityNode::setVisibility(bool visibility) {
+  if (active()) {
     _nodeLock.lock();
       arStructuredData* r = _dumpData(visibility, true);
     _nodeLock.unlock();
@@ -43,12 +43,12 @@ void arVisibilityNode::setVisibility(bool visibility){
   }
 }
 
-arStructuredData* arVisibilityNode::dumpData(){
+arStructuredData* arVisibilityNode::dumpData() {
   arGuard dummy(_nodeLock);
   return _dumpData(_visibility, false);
 }
 
-arStructuredData* arVisibilityNode::_dumpData(bool visibility, bool owned){
+arStructuredData* arVisibilityNode::_dumpData(bool visibility, bool owned) {
   arStructuredData* r = _getRecord(owned, _g->AR_VISIBILITY);
   _dumpGenericNode(r, _g->AR_VISIBILITY_ID);
   const int vis = visibility ? 1 : 0;

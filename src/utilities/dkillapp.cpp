@@ -9,7 +9,7 @@
 // strip flags from the command line
 // Use cout not cerr in main(), so we can build RPC scripts.
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
@@ -26,7 +26,7 @@ LPrintUsage:
   string messageBody;
   int componentID = -1;
   const string lockName = string(argv[1])+"/SZG_DEMO/app";
-  if (szgClient.getLock(lockName, componentID)){
+  if (szgClient.getLock(lockName, componentID)) {
     // nobody else was holding the lock
     szgClient.releaseLock(lockName);
     cout << "dmsg error: no trigger running in location '"

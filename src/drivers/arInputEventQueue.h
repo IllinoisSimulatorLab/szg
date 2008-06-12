@@ -26,7 +26,7 @@ class SZG_CALL arInputEventQueue {
     bool empty() const { return _queue.empty(); }
     unsigned size() const { return _queue.size(); }
     arInputEvent popNextEvent();
-    
+
     unsigned getNumberButtons()  const { return _numButtons; }
     unsigned getNumberAxes()     const { return _numAxes; }
     unsigned getNumberMatrices() const { return _numMatrices; }
@@ -37,7 +37,7 @@ class SZG_CALL arInputEventQueue {
     unsigned getButtonSignature() const { return _buttonSignature; }
     unsigned getAxisSignature() const { return _axisSignature; }
     unsigned getMatrixSignature() const { return _matrixSignature; }
-                         
+
     bool setFromBuffers( const int* const typeData,
                          const int* const indexData,
                          const int* const buttonData,
@@ -51,9 +51,9 @@ class SZG_CALL arInputEventQueue {
                         int* const buttonBuf,
                         float* const axisBuf,
                         float* const matrixBuf ) const;
-                        
+
     void clear();
-    
+
   private:
     std::deque<arInputEvent> _queue; // Container of events.
 
@@ -61,7 +61,7 @@ class SZG_CALL arInputEventQueue {
     unsigned _numButtons;
     unsigned _numAxes;
     unsigned _numMatrices;
-    
+
     // These are meant to be set from an arStructuredData,
     // see ar_setInputQueueFromStructuredData() in arEventUtilities.
     // Will be increased if a higher event index comes along.
@@ -75,6 +75,6 @@ class SZG_CALL arInputEventQueue {
 
     // arInputEventQueue doesn't reject events "larger than" the signature.
     // Instead, it grows the signature to accept the events.
-};    
+};
 
 #endif

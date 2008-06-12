@@ -6,14 +6,14 @@
 #include "arPrecompiled.h"
 #include "arInterfaceObject.h"
 
-void ar_interfaceObjectIOPollTask(void* object){
+void ar_interfaceObjectIOPollTask(void* object) {
    ((arInterfaceObject*)object)->_ioPollTask();
 }
 
 static inline float joystickScale(float j) {
-  // Input: [-1,1] joystick deflection.
-  // Output: 0 ("dead zone") when input is in [-.2,.2];
-  //   outside that, expand back to [-1,1], as square of input.
+  // Input: [-1, 1] joystick deflection.
+  // Output: 0 ("dead zone") when input is in [-.2, .2];
+  //   outside that, expand back to [-1, 1], as square of input.
 
   const float dead = 0.07; // Casino Royale premieres in two days
   const float expand = 1. - dead;
@@ -26,7 +26,7 @@ static inline float joystickScale(float j) {
 // As joystick is moved, translate _mNav (POV) in plane of gamepad.
 // Also, if button 1 is held, rotate _mObj with wand.
 
-void arInterfaceObject::_ioPollTask(){
+void arInterfaceObject::_ioPollTask() {
   while (true) {
     ar_usleep(10000);
     const float speedLateral = -joystickScale(_inputDevice->getAxis(0));
@@ -38,8 +38,8 @@ void arInterfaceObject::_ioPollTask(){
     // when the bird's rotation is the identity matrix.
 
     const arMatrix4 m(!ar_extractRotationMatrix(_mNav) * mWandRot);
-    const arVector3 vWandForward(m * arVector3(0,0,-1) * speedForward);
-    const arVector3 vWandLateral(m * arVector3(1,0,0)  * speedLateral);
+    const arVector3 vWandForward(m * arVector3(0, 0, -1) * speedForward);
+    const arVector3 vWandLateral(m * arVector3(1, 0, 0)  * speedLateral);
 
     arGuard dummy(_infoLock);
 
@@ -52,26 +52,26 @@ void arInterfaceObject::_ioPollTask(){
     // Grabbing.
 
     const int b1 = _inputDevice->getButton(0);
-    if (b1 && !_grabbed){
+    if (b1 && !_grabbed) {
       // Begin grabbing.
       _grabbed = true;
       _mGrab = !mWandRot * _mObj;
     }
-    else if (b1 && _grabbed){
+    else if (b1 && _grabbed) {
       // Continue grabbing.
       _mObj = mWandRot * _mGrab;
     }
-    else if (!b1 && _grabbed){
+    else if (!b1 && _grabbed) {
       // End grabbing.
       _grabbed = false;
     }
   }
 }
-      
+
 arInterfaceObject::arInterfaceObject() :
   _inputDevice(NULL),
   _speedMultiplier(1.),
-  _vMovePrev(0,0,0),
+  _vMovePrev(0, 0, 0),
   _grabbed(false)
 {
   _matrices.clear();
@@ -84,15 +84,15 @@ arInterfaceObject::~arInterfaceObject() {
   _buttons.clear();
   _axes.clear();
 }
-  
-void arInterfaceObject::setInputDevice(arInputNode* device){
+
+void arInterfaceObject::setInputDevice(arInputNode* device) {
   _inputDevice = device;
 }
 
-bool arInterfaceObject::start(){
+bool arInterfaceObject::start() {
   ar_log_warning() << "arInterfaceObject is deprecated.  Consider alternatives.\n";
 
-  if (!_inputDevice){
+  if (!_inputDevice) {
     ar_log_error() << "arInterfaceObject: no input device.\n";
     return false;
   }
@@ -105,7 +105,7 @@ bool arInterfaceObject::start(){
   return true;
 }
 
-void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
+void arInterfaceObject::setNavMatrix(const arMatrix4& arg) {
   arGuard dummy(_infoLock);
   _mNav = arg;
 }
@@ -115,7 +115,7 @@ arMatrix4 arInterfaceObject::getNavMatrix() const {
   return _mNav;
 }
 
-void arInterfaceObject::setObjectMatrix(const arMatrix4& arg){
+void arInterfaceObject::setObjectMatrix(const arMatrix4& arg) {
   arGuard dummy(_infoLock);
   _mObj = arg;
 }
@@ -125,7 +125,7 @@ arMatrix4 arInterfaceObject::getObjectMatrix() const {
   return _mObj;
 }
 
-void arInterfaceObject::setSpeedMultiplier(float multiplier){
+void arInterfaceObject::setSpeedMultiplier(float multiplier) {
   _speedMultiplier = multiplier;
 }
 

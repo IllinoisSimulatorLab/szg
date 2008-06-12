@@ -10,7 +10,7 @@
 ar3DS::ar3DS() :
   _normalize(false),
   _file(NULL),
-  _uniqueName(0){
+  _uniqueName(0) {
 }
 
 ar3DS::~ar3DS() {
@@ -31,7 +31,7 @@ bool ar3DS::read3DS(const string& fileName) {
   char* name = new char[fileName.length()+1];
   strcpy(name, fileName.c_str());
   _file = lib3ds_file_load(name);
-  if (!_file){
+  if (!_file) {
     _invalidFile = true;
   }
   delete [] name;
@@ -42,9 +42,9 @@ bool ar3DS::read3DS(const string& fileName) {
 // Attaches mesh geometry to scenegraph
 // \param baseName The name of the object
 // \param where The name of the node to attach to in scenegraph
-bool ar3DS::attachMesh(const string& baseName, const string& where){
+bool ar3DS::attachMesh(const string& baseName, const string& where) {
   arGraphicsNode* parent = dgGetNode(where);
-  if (parent){
+  if (parent) {
     return attachMesh(parent, baseName);
   }
   return false;
@@ -60,12 +60,12 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
   (void)baseName; // avoid compiler warning
   return false;
 #else
-  if (_invalidFile){
+  if (_invalidFile) {
     cerr<<"cannot attach mesh: No valid file!\n";
     return false;
   }
   _numMaterials = 0;
-  for (Lib3dsMaterial* p=_file->materials; p!=0; p=p->next){
+  for (Lib3dsMaterial* p=_file->materials; p!=0; p=p->next) {
     ++_numMaterials;
   }
   // make at least two material containers
@@ -79,8 +79,8 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
   // NOTE HOW KLUGEY THIS CODE SEEMS. IT WOULD BE BETTER TO HAVE THE
   // NODES BE IN CHARGE OF THE NEW NODE CREATION.
   arDatabase* database = parent->getOwner();
-  arTransformNode* transformNode 
-    = (arTransformNode*) database->newNode(parent, "transform", baseName);
+  arTransformNode* transformNode =
+    (arTransformNode*) database->newNode(parent, "transform", baseName);
   transformNode->setTransform(topMatrix);
   //dgTransform(baseName, where, topMatrix);
   Lib3dsNode* ptr = _file->nodes;
@@ -102,9 +102,9 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
  *  @param baseName Prefix for this node
  *  @param node The lib3ds node to attach
  */
-void ar3DS::attachChildNode(const string &baseName, 
+void ar3DS::attachChildNode(const string &baseName,
                             arGraphicsNode* parent,
-                            Lib3dsNode* node){
+                            Lib3dsNode* node) {
   // Disambiguate 3DS nodes which share names.
   const string newName(
     baseName + "." + node->name + ":" + ar_intToString(++_uniqueName));
@@ -114,33 +114,33 @@ void ar3DS::attachChildNode(const string &baseName,
   // not the value relative to the branch on which it resides.
   // Syzygy's scene graph does things differently.
   const arMatrix4 nodeTransform(
-    node->matrix[0][0],node->matrix[0][1],
-    node->matrix[0][2],node->matrix[0][3],
-    node->matrix[1][0],node->matrix[1][1],
-    node->matrix[1][2],node->matrix[1][3],
-    node->matrix[2][0],node->matrix[2][1],
-    node->matrix[2][2],node->matrix[2][3],
-    node->matrix[3][0],node->matrix[3][1],
-    node->matrix[3][2],node->matrix[3][3]);
+    node->matrix[0][0], node->matrix[0][1],
+    node->matrix[0][2], node->matrix[0][3],
+    node->matrix[1][0], node->matrix[1][1],
+    node->matrix[1][2], node->matrix[1][3],
+    node->matrix[2][0], node->matrix[2][1],
+    node->matrix[2][2], node->matrix[2][3],
+    node->matrix[3][0], node->matrix[3][1],
+    node->matrix[3][2], node->matrix[3][3]);
   //dgTransform(newName, baseName, nodeTransform);
   arDatabase* database = parent->getOwner();
   arTransformNode* newParent =
     (arTransformNode*) database->newNode(parent, "transform", newName);
   newParent->setTransform(nodeTransform);
-  
+
   // Recurse on children.
-  for (Lib3dsNode* p=node->childs; p; p=p->next){
+  for (Lib3dsNode* p=node->childs; p; p=p->next) {
     attachChildNode(newName, newParent, p);
   }
 
-  if (node->type!=LIB3DS_OBJECT_NODE || !strcmp(node->name,"$$$DUMMY"))
+  if (node->type!=LIB3DS_OBJECT_NODE || !strcmp(node->name, "$$$DUMMY"))
     return;
 
   Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
   ASSERT(mesh);
   if (!mesh)
     return;
- 
+
   const string transformModifier(".transform");
   const string pointsModifier   (".points");
   const string indexModifier    (".index.");
@@ -150,7 +150,7 @@ void ar3DS::attachChildNode(const string &baseName,
 
   unsigned int j=0, i=0;
   // Faces with indexed material.  +1 is for the default material.
-  vector<int>*	materialFaces = new vector<int>[_numMaterials+1]; 	
+  vector<int>*	materialFaces = new vector<int>[_numMaterials+1];
   // names of the materials
   Lib3dsMatrix invMeshMatrix;		// matrix for the mesh from Lib3DS
   lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
@@ -165,9 +165,9 @@ void ar3DS::attachChildNode(const string &baseName,
   materials.back()->specular[0] = 0.0; materials.back()->specular[1] = 0.0;
   materials.back()->specular[2] = 0.0; materials.back()->specular[3] = 1.0;
   materials.back()->shininess = 0.0;
-  string* materialNames = new string[_numMaterials+1]; 	
+  string* materialNames = new string[_numMaterials+1];
   materialNames[0] = "(default)";	// no name on default material
-  
+
   // Calculate normals
   Lib3dsVector *normalL = new Lib3dsVector[3*mesh->faces];
   lib3ds_mesh_calculate_normals(mesh, normalL);
@@ -189,7 +189,7 @@ void ar3DS::attachChildNode(const string &baseName,
 	}
       }
       	// if no matching material found, create a new one
-      if (i == materials.size()) {  
+      if (i == materials.size()) {
         materials.push_back(lib3ds_file_material_by_name(_file, f.material));
 	materialNames[i] = string(f.material);
         materialFaces[materials.size()-1].push_back(j);
@@ -197,8 +197,8 @@ void ar3DS::attachChildNode(const string &baseName,
     }
     else	// no material specified, so add it to the default list
       materialFaces[0].push_back(j);
-     
-    // Add the point and normals to respective temp. storage 
+
+    // Add the point and normals to respective temp. storage
     for (i=0; i<3; ++i) {
       lib3ds_vector_transform(
 	vPoint, invMeshMatrix, mesh->pointL[f.points[i]].pos);
@@ -207,7 +207,7 @@ void ar3DS::attachChildNode(const string &baseName,
     }
   }
   delete [] normalL;
-  
+
   // Point Positions
   //_vertexNodeID =
   // dgPoints(newName + pointsModifier,
@@ -219,7 +219,7 @@ void ar3DS::attachChildNode(const string &baseName,
   // pass the node ID to superclass
   _vertexNodeID = pointsNode->getID();
   delete [] points;
-  
+
   // (per-face) Normals into array
   //dgNormal3(newName + normalsModifier,
   //          newName + pointsModifier,
@@ -237,7 +237,7 @@ void ar3DS::attachChildNode(const string &baseName,
 #if 1
   // Put all triangles with same material into one group
   //   and attach to single material
-  const arVector3 emmissive(0,0,0);
+  const arVector3 emmissive(0, 0, 0);
   for (i=0; i<materials.size(); i++) {
     if (materialFaces[i].empty())
       continue;
@@ -255,7 +255,7 @@ void ar3DS::attachChildNode(const string &baseName,
     //dgIndex(newName + indexModifier + materialNames[i],
     //	      newName + normalsModifier,
     //	      materialFaces[i].size()*3, drawIndices);
-    arIndexNode* indexNode 
+    arIndexNode* indexNode
       = (arIndexNode*) database->newNode(normalNode, "index",
 			 newName+indexModifier+materialNames[i]);
     indexNode->setIndices(materialFaces[i].size()*3, drawIndices);
@@ -271,13 +271,13 @@ void ar3DS::attachChildNode(const string &baseName,
     material.emissive = emmissive;
     material.exponent = 11.-0.1*materials[i]->shininess;
     arMaterialNode* materialNode
-      = (arMaterialNode*) database->newNode(indexNode, "material", 
+      = (arMaterialNode*) database->newNode(indexNode, "material",
 			    newName + materialsModifier + materialNames[i]);
     materialNode->setMaterial(material);
     //dgDrawable(newName + geometryModifier  + materialNames[i],
     //           newName + materialsModifier + materialNames[i],
     //           DG_TRIANGLES, materialFaces[i].size());
-    arDrawableNode* drawableNode 
+    arDrawableNode* drawableNode
       = (arDrawableNode*) database->newNode(materialNode, "drawable",
 			    newName + geometryModifier + materialNames[i]);
     drawableNode->setDrawable(DG_TRIANGLES, materialFaces[i].size());
@@ -301,8 +301,8 @@ bool ar3DS::normalizationMatrix(arMatrix4 &m) {
     return false;
   }
 
-  _minVec = arVector3( 10000, 10000, 10000);
-  _maxVec = arVector3(-10000,-10000,-10000);
+  _minVec = arVector3( 10000,  10000,  10000);
+  _maxVec = arVector3(-10000, -10000, -10000);
 
   // collect min/max data
   for (Lib3dsNode* p=_file->nodes; p!=NULL; p=p->next)
@@ -318,14 +318,14 @@ bool ar3DS::normalizationMatrix(arMatrix4 &m) {
 #ifdef Enable3DS
 // helper function for normalizationMatrix() recursion
 // @param node Lib3dsNode to start from
-// @param _minVec smallest (x,y,z) position of all points in entire file
-// @param _maxVec largest (x,y,z) position of all points in entire file
+// @param _minVec smallest (x, y, z) position of all points in entire file
+// @param _maxVec largest (x, y, z) position of all points in entire file
 void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
                                    arVector3 &_minVec, arVector3 &_maxVec) {
   // recurse through children
   for (Lib3dsNode* p=node->childs; p!=NULL; p=p->next)
     subNormalizationMatrix(p, _minVec, _maxVec);
-  if (node->type != LIB3DS_OBJECT_NODE || !strcmp(node->name,"$$$DUMMY"))
+  if (node->type != LIB3DS_OBJECT_NODE || !strcmp(node->name, "$$$DUMMY"))
     return;
 
   Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
@@ -364,24 +364,23 @@ void ar3DS::normalizeModelSize() {
 // Set the current frame of animation
 // @param newFrame The frame to jump to in the animation
 // todo: check bounds on newFrame
-bool ar3DS::setFrame(int newFrame){
+bool ar3DS::setFrame(int newFrame) {
 /*  if (newFrame >= numFrames || newFrame < 0) return false;
 
-  for(unsigned int i=0; i<segmentData.size(); i++){
+  for(unsigned int i=0; i<segmentData.size(); i++) {
     dgTransform(segmentData[i]->transformID, segmentData[i]->frame[newFrame]->trans);
   }
 */
   _currentFrame = newFrame;
   return true;
-  
 }
 
 // Goes to next frame in animation; returns false if already at the end
-bool ar3DS::nextFrame(){
+bool ar3DS::nextFrame() {
   return setFrame(_currentFrame+1);
 }
 
 // Goes to previous frame in animation; returns false if already at the beginning
-bool ar3DS::prevFrame(){
+bool ar3DS::prevFrame() {
   return setFrame(_currentFrame-1);
 }

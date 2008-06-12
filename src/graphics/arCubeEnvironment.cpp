@@ -17,20 +17,20 @@ arCubeEnvironment::arCubeEnvironment() :
   setNumberWalls(4);
 }
 
-arCubeEnvironment::~arCubeEnvironment(){
+arCubeEnvironment::~arCubeEnvironment() {
   delete [] _cornerX;
   delete [] _cornerZ;
   delete [] _texFileName;
 }
 
-void arCubeEnvironment::setHeight(float height){
+void arCubeEnvironment::setHeight(float height) {
   if (height < 0)
     height = -height;
   _vertBound = height/2;
 }
 
-void arCubeEnvironment::setRadius(float radius){
-  if (radius<0){
+void arCubeEnvironment::setRadius(float radius) {
+  if (radius<0) {
     ar_log_error() << "arCubeEnviroment ignoring negative radius " << radius << ".\n";
     radius = 0;
   }
@@ -45,8 +45,8 @@ void arCubeEnvironment::setOrigin(float x, float z, float height)
 }
 
 
-void arCubeEnvironment::setNumberWalls(int howMany){
-  if (howMany < 3){
+void arCubeEnvironment::setNumberWalls(int howMany) {
+  if (howMany < 3) {
     ar_log_warning() << "arCubeEnviroment increasing number of walls from " <<
       howMany << " to 3.\n";
     howMany = 3;
@@ -67,15 +67,15 @@ void arCubeEnvironment::setNumberWalls(int howMany){
   _cosWall = new float[_numWalls];
   _sinWall = new float[_numWalls];
   _texFileName = new string[_numWalls+2];
-  for (int i=0; i<_numWalls; ++i){
+  for (int i=0; i<_numWalls; ++i) {
     _cosWall[i] = cos((2*M_PI*i)/_numWalls);
     _sinWall[i] = sin((2*M_PI*i)/_numWalls);
   }
   _computeSideWalls();
 }
 
-void arCubeEnvironment::setCorner(int which, float x, float z){
-  if (which<0 || which>_numWalls){
+void arCubeEnvironment::setCorner(int which, float x, float z) {
+  if (which<0 || which>_numWalls) {
     ar_log_error() << "arCubeEnviroment ignoring out-of-range wall " << which << ".\n";
     return;
   }
@@ -83,20 +83,20 @@ void arCubeEnvironment::setCorner(int which, float x, float z){
   _cornerZ[which] = z;
 }
 
-void arCubeEnvironment::setWallTexture(int which, const string& fileName){
+void arCubeEnvironment::setWallTexture(int which, const string& fileName) {
   // +2 is for textures of ceiling and floor
-  if (which<0 || which>=_numWalls+2){
+  if (which<0 || which>=_numWalls+2) {
     ar_log_error() << "arCubeEnviroment ignoring out-of-range wall " << which << ".\n";
     return;
   }
   _texFileName[which] = fileName;
 }
 
-void arCubeEnvironment::attachMesh(const string& name, const string& parentName){
+void arCubeEnvironment::attachMesh(const string& name, const string& parentName) {
   int i;
 
   // Side walls.
-  for (i=0; i<_numWalls; ++i){
+  for (i=0; i<_numWalls; ++i) {
     const int j = (i+1 == _numWalls) ? 0 : i+1;
     float pointPositions[12] = {
       _cornerX[i],  _vertBound + _origin[2], _cornerZ[i],
@@ -113,10 +113,10 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
       (arVector3(pointPositions+3) - arVector3(pointPositions)));
     if (normalDir.zero()) {
       ar_log_error() << "arCubeEnvironment overriding zero normal\n";
-      normalDir = arVector3(1,0,0);
+      normalDir = arVector3(1, 0, 0);
     }
     normalDir.normalize();
-    for (int k=0; k<6; ++k){
+    for (int k=0; k<6; ++k) {
       normalDir.get(normals + 3*k);
     }
     const char index = '0' + i;
@@ -128,7 +128,7 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
     dgDrawable(name+index+" triangles", name+index+" tex2",  DG_TRIANGLES,  2);
   }
 
-  const arVector3 n(0,-1,0);
+  const arVector3 n(0, -1, 0);
   const float r = 0.5;
 
   // Ceiling.
@@ -140,7 +140,7 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
   int* ptri = triangleVertices;
   float* ptex = texCoords;
 
-  for (i=0; i<_numWalls; ++i){
+  for (i=0; i<_numWalls; ++i) {
     arVector3(_cornerX[i], _vertBound + _origin[2], _cornerZ[i]).get(pointPositions + 3*i);
     n.get(normals + 9*i  );
     n.get(normals + 9*i+3);
@@ -163,18 +163,18 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
   arVector3(_origin[0], _vertBound + _origin[2], _origin[1]).
     get(pointPositions + _numWalls*3);
 
-  dgTexture(name+" ceil tex",parentName,_texFileName[_numWalls]);
-  dgPoints(name+" ceil points",name+" ceil tex", _numWalls+1,pointPositions);
-  dgIndex(name+" ceil index",name+" ceil points", 3*_numWalls, triangleVertices);
-  dgNormal3(name+" ceil normals",name+" ceil index", 3*_numWalls, normals);
-  dgTex2(name+" ceil tex2",name+" ceil normals", 3*_numWalls, texCoords);
-  dgDrawable(name+" ceil triangles",name+" ceil tex2", DG_TRIANGLES, _numWalls);
+  dgTexture(name+" ceil tex", parentName, _texFileName[_numWalls]);
+  dgPoints(name+" ceil points", name+" ceil tex", _numWalls+1, pointPositions);
+  dgIndex(name+" ceil index", name+" ceil points", 3*_numWalls, triangleVertices);
+  dgNormal3(name+" ceil normals", name+" ceil index", 3*_numWalls, normals);
+  dgTex2(name+" ceil tex2", name+" ceil normals", 3*_numWalls, texCoords);
+  dgDrawable(name+" ceil triangles", name+" ceil tex2", DG_TRIANGLES, _numWalls);
 
   // Floor.
   ptri = triangleVertices;
   ptex = texCoords;
 
-  for (i=0; i<_numWalls; ++i){
+  for (i=0; i<_numWalls; ++i) {
     arVector3(_cornerX[i], -_vertBound + _origin[2], _cornerZ[i]).get(pointPositions + 3*i);
     n.get(normals + 9*i  );
     n.get(normals + 9*i+3);
@@ -194,12 +194,12 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
   arVector3(_origin[0], -_vertBound + _origin[2], _origin[1]).
     get(pointPositions + _numWalls*3);
 
-  dgTexture(name+" floor tex",parentName,_texFileName[_numWalls+1]);
-  dgPoints(name+" floor points",name+" floor tex", _numWalls+1,pointPositions);
-  dgIndex(name+" floor index",name+" floor points", 3*_numWalls, triangleVertices);
-  dgNormal3(name+" floor normals",name+" floor index", 3*_numWalls, normals);
-  dgTex2(name+" floor tex2",name+" floor normals", 3*_numWalls, texCoords);
-  dgDrawable(name+" floor triangles",name+" floor tex2", DG_TRIANGLES, _numWalls);
+  dgTexture(name+" floor tex", parentName, _texFileName[_numWalls+1]);
+  dgPoints(name+" floor points", name+" floor tex", _numWalls+1, pointPositions);
+  dgIndex(name+" floor index", name+" floor points", 3*_numWalls, triangleVertices);
+  dgNormal3(name+" floor normals", name+" floor index", 3*_numWalls, normals);
+  dgTex2(name+" floor tex2", name+" floor normals", 3*_numWalls, texCoords);
+  dgDrawable(name+" floor triangles", name+" floor tex2", DG_TRIANGLES, _numWalls);
 
   delete [] pointPositions;
   delete [] triangleVertices;
@@ -207,8 +207,8 @@ void arCubeEnvironment::attachMesh(const string& name, const string& parentName)
   delete [] texCoords;
 }
 
-void arCubeEnvironment::_computeSideWalls(){
-  for (int i=0; i<_numWalls; ++i){
+void arCubeEnvironment::_computeSideWalls() {
+  for (int i=0; i<_numWalls; ++i) {
     _cornerX[i] = _origin[0] + _radius * _cosWall[i];
     _cornerZ[i] = _origin[1] + _radius * _sinWall[i];
   }

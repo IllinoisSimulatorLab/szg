@@ -24,7 +24,6 @@ class SZG_CALL arPForthFilter: public arIOFilter {
   public:
     arPForthFilter(const unsigned int progNumber = 0);
     ~arPForthFilter();
-  
     bool loadProgram(const string& progText);
   protected:
     bool _processEvent(arInputEvent&);

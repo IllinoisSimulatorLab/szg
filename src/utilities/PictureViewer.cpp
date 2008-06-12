@@ -38,10 +38,10 @@ class PictureApp: public arMasterSlaveFramework {
 
     void drawSyncTest();
     void showCenteredImage();
-    
+
     int doSyncTest;
     string pictureFilename;
-    
+
   private:
     arTexture _texture;
     arLargeImage _largeImage;
@@ -124,10 +124,10 @@ void PictureApp::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glClear(GL_COLOR_BUFFER_BIT);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0,_screenWidth,0,_screenHeight,-1,1);
+  glOrtho(0, _screenWidth, 0, _screenHeight, -1, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   if (doSyncTest) {
     drawSyncTest();
   }
@@ -137,7 +137,7 @@ void PictureApp::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
 void PictureApp::showCenteredImage() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-0.5,0.5,-0.5,0.5,0,10);
+  glOrtho(-0.5, 0.5, -0.5, 0.5, 0, 10);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,0,2, 0,0,0, 0,1,0);
@@ -160,7 +160,7 @@ void PictureApp::drawSyncTest() {
     glVertex2f( _screenWidth, 2*STRIP_HEIGHT );
     glVertex2f( 0, 2*STRIP_HEIGHT );
   glEnd();
-  glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );  
+  glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 }
 
 int main(int argc, char** argv) {

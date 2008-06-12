@@ -24,7 +24,7 @@ string __getGloveType(void) {
 	int glovetype = FD_GLOVENONE;
 	glovetype = fdGetGloveType( __pGlove );
 	switch (glovetype) {
-	case FD_GLOVENONE: 
+	case FD_GLOVENONE:
     return "None";
 	case FD_GLOVE7:
     return "Glove7";
@@ -60,7 +60,7 @@ string __getGloveHandedNess(void) {
 }
 
 
-void ar_5dtGloveDriverEventTask(void* gloveDriver){
+void ar_5dtGloveDriverEventTask(void* gloveDriver) {
   ar5DTGloveDriver* g = (ar5DTGloveDriver*) gloveDriver;
 
   if (__pGlove == NULL) {
@@ -76,7 +76,7 @@ void ar_5dtGloveDriverEventTask(void* gloveDriver){
   }
 
   // Poll dataglove.
-  while (true){
+  while (true) {
     ar_usleep(20000); // 50 Hz, about
 
     fdGetSensorScaledAll( __pGlove, sensorValues );
@@ -102,7 +102,7 @@ void ar_5dtGloveDriverEventTask(void* gloveDriver){
 }
 #endif
 
-bool ar5DTGloveDriver::init(arSZGClient& szgClient){
+bool ar5DTGloveDriver::init(arSZGClient& szgClient) {
 #ifndef Enable5DT
   ar_log_error() << "5DT dataglove support not compiled.\n";
   return false;
@@ -128,7 +128,7 @@ bool ar5DTGloveDriver::init(arSZGClient& szgClient){
 
   ar_log_remark() << "DataGlove has " << _numSensors << " sensors and " <<
     _numGestures << " gestures.\n";
-  
+
   int sig[3] = { _numGestures, _numSensors, 0 };
   _setDeviceElements(sig);
   _lastGesture = -1;
@@ -136,16 +136,16 @@ bool ar5DTGloveDriver::init(arSZGClient& szgClient){
 #endif
 }
 
-bool ar5DTGloveDriver::start(){
+bool ar5DTGloveDriver::start() {
 #ifndef Enable5DT
   ar_log_error() << "5DT dataglove support not compiled.\n";
   return false;
 #else
-  return _eventThread.beginThread(ar_5dtGloveDriverEventTask,this);
+  return _eventThread.beginThread(ar_5dtGloveDriverEventTask, this);
 #endif
 }
 
-bool ar5DTGloveDriver::stop(){
+bool ar5DTGloveDriver::stop() {
 #ifndef Enable5DT
   ar_log_error() << "5DT dataglove support not compiled.\n";
   return false;

@@ -18,12 +18,12 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   ~arPhleetOSLanguage();
 
   // The following field and record IDs are public in order to allow
-  // programmers to use 
+  // programmers to use
 
   // Constants corresponding to the common fields for each Syzygy record.
   // The Syzygy user name.
   int AR_PHLEET_USER;
-  // The context in which the communication has been issued. In general, 
+  // The context in which the communication has been issued. In general,
   // this field gives a list of key/value pairs.
   int AR_PHLEET_CONTEXT;
   // Included to provide password or other authentication material.
@@ -33,7 +33,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // Responses are routed to their appropriate destinations on the client side
   // via this field. This is necessary in order to allow multiple threads on
   // the client to communicate with the szgserver simultaneously.
-  int AR_PHLEET_MATCH; 
+  int AR_PHLEET_MATCH;
 
   // A description of the various records in the Syzygy protocol follows
   // CONNECTION_ACK: After an arSZGClient connects to the szgserver,
@@ -63,7 +63,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // PROCESS_INFO: This one is used to get ID and/or label information from
   // one of the Syzygy components. By varying the "type" field, we can
   // get the label of a process with a given ID, the ID of a process with a
-  // given label, or the ID of ourselves. 
+  // given label, or the ID of ourselves.
   int AR_PROCESS_INFO;
   int AR_PROCESS_INFO_TYPE;
   int AR_PROCESS_INFO_ID;
@@ -91,7 +91,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // ATTR_SET: Set an attribute's value.
   // The arSZGClient function formats the ATTR field as
   // computer/group/attribute. This is equivalent to storing
-  // named records with key/value pairs on a per-host basis 
+  // named records with key/value pairs on a per-host basis
   // (the group corresponds to the record name). The type field lets us
   // do either a set or an atomic test-and-set.
   int AR_ATTR_SET;
@@ -105,8 +105,8 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // message is sent (i.e. the virtual computer). DEST is the Syzygy ID of
   // the component to which the message is to be sent. TYPE and BODY give
   // the content of the message.
-  // NOTE: the szgserver gets the message, fills in various fields (like 
-  // the ID) and forwards it to the destination. 
+  // NOTE: the szgserver gets the message, fills in various fields (like
+  // the ID) and forwards it to the destination.
   int AR_SZG_MESSAGE;
   int AR_SZG_MESSAGE_ID;
   int AR_SZG_MESSAGE_RESPONSE;
@@ -126,7 +126,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // AR_SZG_MESSAGE_ACK: A catch-all for acknowledgements from the szgserver
   // of communications regarding messaging. For instance, this is sent
   // to the client in response to a message send (though it is not a message
-  // response). 
+  // response).
   int AR_SZG_MESSAGE_ACK;
   int AR_SZG_MESSAGE_ACK_ID;
   int AR_SZG_MESSAGE_ACK_STATUS;

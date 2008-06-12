@@ -132,7 +132,7 @@ LAbort:
   const string execPath = (path == "NULL") ? "" : path;
 
   // Attempt to load the shared library.
-  if (!arSharedLib::open(sharedLibName,execPath)) {
+  if (!arSharedLib::open(sharedLibName, execPath)) {
     error = "arSharedLib failed to load '" + sharedLibName + "' on path '" + execPath + "'.\n";
     goto LAbort;
   }

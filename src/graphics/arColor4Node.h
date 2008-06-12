@@ -14,7 +14,7 @@
 class SZG_CALL arColor4Node:public arGraphicsArrayNode{
  public:
   arColor4Node();
-  ~arColor4Node(){}
+  ~arColor4Node() {}
 
   virtual void initialize(arDatabase* database);
 

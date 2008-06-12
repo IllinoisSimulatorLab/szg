@@ -26,7 +26,7 @@ class SZG_CALL arButtonClickEvent {
     arButtonClickEvent( const arButtonClickEvent& b ) :
       _number(b._number), _type(b._type) {}
 };
-    
+
 /*
 An abstract class, subclassed by render objects that need to be
 interacted with. It's a 'unique' interactor in that it's assumed that
@@ -56,7 +56,7 @@ class SZG_CALL arUniqueInteractor {
     virtual ~arUniqueInteractor();
     arUniqueInteractor( const arUniqueInteractor& ui );
     arUniqueInteractor& operator=( const arUniqueInteractor& ui );
-    
+
     // Static method, called by app to handle interaction with any subclass instances.
     static bool processAllTouches(  arInputState* inputState,
                                     const arMatrix4& wandTipMatrix,
@@ -70,18 +70,18 @@ class SZG_CALL arUniqueInteractor {
 
     void disable(); // Disallow user interaction
     void enable();  // Allow user interaction
-    
+
     bool enabled() const { return _enabled; }
     bool active() const { return _interactionGroup == _activeInteractionGroup; }
-    
+
     static void activateInteractionGroup( const unsigned int group );
-    
+
     arMatrix4 _matrix; // Position and orientation of object.
-    
+
     // todo: decopypaste this and arInteractable.h
 
   protected:
-    // Sub-class' event (got-focus) handler.    
+    // Sub-class' event (got-focus) handler.
     // Called only for the particular instance that satisfies the criteria
     // implemented in the static method processAllTouches() (if any).
     // @param interface An arInterfaceObject pointer, for getting
@@ -91,19 +91,19 @@ class SZG_CALL arUniqueInteractor {
     virtual bool processTouch( const arInputState* const inputState,
                                const arMatrix4& wandTipMatrix,
                                const std::vector<arButtonClickEvent>& events ) = 0;
-    
+
     virtual float priorityScore( const arMatrix4& wandTipMatrix );
-                               
-    // Sub-class' loss-of-focus handler.    
+
+    // Sub-class' loss-of-focus handler.
     // Called if _touched is true but this instance didn't get the focus.
     virtual void unTouch() = 0;
     bool lockMe(); // Lock focus.
     bool unlockMe(); // Unlock focus.
-    
+
     bool _touched; // Do I currently have the focus?
     bool _enabled; // accepting interaction?
     unsigned int _interactionGroup; // priority group
-    
+
   private:
     static arUniqueInteractor* _lockedPtr;
     static std::list<arUniqueInteractor*> _listUs;

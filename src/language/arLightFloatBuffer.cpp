@@ -9,8 +9,8 @@
 #include <iostream>
 using namespace std;
 
-arLightFloatBuffer::arLightFloatBuffer(int numFloats){
-  if (numFloats<1){
+arLightFloatBuffer::arLightFloatBuffer(int numFloats) {
+  if (numFloats<1) {
     cerr << "warning: arLightFloatBuffer initialized with nonpositive size "
          << numFloats << endl;
     numFloats = 1;
@@ -20,12 +20,12 @@ arLightFloatBuffer::arLightFloatBuffer(int numFloats){
   _type = -1;
 }
 
-arLightFloatBuffer::~arLightFloatBuffer(){
+arLightFloatBuffer::~arLightFloatBuffer() {
   delete [] v;
 }
 
-void arLightFloatBuffer::resize(int numFloats){
-  if (numFloats<1){
+void arLightFloatBuffer::resize(int numFloats) {
+  if (numFloats<1) {
     cerr << "warning: arLightFloatBuffer resized with nonpositive size "
          << numFloats << endl;
     numFloats=1;
@@ -45,11 +45,11 @@ void arLightFloatBuffer::resize(int numFloats){
   _numFloats = numFloats;
 }
 
-void arLightFloatBuffer::grow(int numFloats){
+void arLightFloatBuffer::grow(int numFloats) {
   if (numFloats > size())
     resize(numFloats);
 }
 
-void arLightFloatBuffer::setType(int theType){
+void arLightFloatBuffer::setType(int theType) {
   _type = theType;
 }

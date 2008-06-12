@@ -18,11 +18,11 @@ bool arBirdWinDriver::init(arSZGClient&) {
   return false;
 }
 
-bool arBirdWinDriver::start(){
+bool arBirdWinDriver::start() {
   return false;
 }
 
-bool arBirdWinDriver::stop(){
+bool arBirdWinDriver::stop() {
   return true;
 }
 
@@ -36,18 +36,18 @@ arBirdWinDriver::arBirdWinDriver() :
   _writeTimeout( 2000 )
 {}
 
-bool arBirdWinDriver::start(){
-  return _eventThread.beginThread(ar_WinBirdDriverEventTask,this);
+bool arBirdWinDriver::start() {
+  return _eventThread.beginThread(ar_WinBirdDriverEventTask, this);
 }
 
-bool arBirdWinDriver::stop(){
+bool arBirdWinDriver::stop() {
   if (_flockWoken) {
     if (_streamingStarted) {
         birdStopFrameStream(_groupID);
         // ar_log_debug() << "arBirdWinDriver stopped data stream.\n";
     }
     birdShutDown(_groupID);
-    // ar_log_debug() << "arBirdWinDriver shut down Flock.\n";    
+    // ar_log_debug() << "arBirdWinDriver shut down Flock.\n";
   }
   return true;
 }
@@ -80,7 +80,7 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
     BIRDREADING* preading = NULL;
     if (fobDriver->_standAlone) {
       posScale = fobDriver->_devConfig[0].wScaling;
-      preading = &frame.reading[0]; 
+      preading = &frame.reading[0];
       // convert position and angle data
       pos[0] = _INCHES_TO_FEET * preading->position.nX * posScale / 32767.;
       pos[1] = _INCHES_TO_FEET * preading->position.nY * posScale / 32767.;
@@ -89,17 +89,17 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
       quat[1] = preading->quaternion.nQ1 / 32767.;
       quat[2] = preading->quaternion.nQ2 / 32767.;
       quat[3] = preading->quaternion.nQ3 / 32767.;
-      
+
       // Note: we've been reporting the inverse of the correct orientation
       // component. The two lines below correct this.
-      arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]).inverse() );
+      arMatrix4 quatMatrix( arQuaternion(quat[0], quat[1], quat[2], quat[3]).inverse() );
       arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
 
       fobDriver->queueMatrix( 0, fobMatrix );
     } else {
       for (int i=1; i<=fobDriver->_numDevices; i++) {
         posScale = fobDriver->_devConfig[i].wScaling;
-        preading = &frame.reading[i]; 
+        preading = &frame.reading[i];
         // convert position and angle data
         pos[0] = _INCHES_TO_FEET * preading->position.nX * posScale / 32767.;
         pos[1] = _INCHES_TO_FEET * preading->position.nY * posScale / 32767.;
@@ -108,10 +108,10 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
         quat[1] = preading->quaternion.nQ1 / 32767.;
         quat[2] = preading->quaternion.nQ2 / 32767.;
         quat[3] = preading->quaternion.nQ3 / 32767.;
-        
+
         // Note: we've been reporting the inverse of the correct orientation
         // component. The two lines below correct this.
-        arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]).inverse() );
+        arMatrix4 quatMatrix( arQuaternion(quat[0], quat[1], quat[2], quat[3]).inverse() );
         arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
 
         fobDriver->queueMatrix( i-1, fobMatrix );
@@ -127,9 +127,9 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   return false;
 #else
   // do lots of complicated stuff to wake up the flock.
-  const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
-  const BYTE hemiNums[] = {BHC_FRONT,BHC_REAR,BHC_UPPER,BHC_LOWER,BHC_LEFT,BHC_RIGHT};
-  const string hemispheres[] = {"front","rear","upper","lower","left","right"};
+  const int baudRates[] = {2400, 4800, 9600, 19200, 38400, 57600, 115200};
+  const BYTE hemiNums[] = {BHC_FRONT, BHC_REAR, BHC_UPPER, BHC_LOWER, BHC_LEFT, BHC_RIGHT};
+  const string hemispheres[] = {"front", "rear", "upper", "lower", "left", "right"};
   string received = SZGClient.getAttribute("SZG_FOB", "com_ports");
   char receivedBuffer[512];
   int intComPorts[_FOB_MAX_DEVICES];
@@ -188,28 +188,28 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     hemiFound = 0;
   }
   _hemisphereNum = hemiNums[hemiFound];
-  
-  if (!birdRS232WakeUp(_groupID,_standAlone,_numDevices,_comPorts,
-                       _baudRate,_readTimeout,_writeTimeout)) {
+
+  if (!birdRS232WakeUp(_groupID, _standAlone, _numDevices, _comPorts,
+                       _baudRate, _readTimeout, _writeTimeout)) {
     ar_log_error() << "failed to wake up the flock.\n";
     return false;
   }
 
   ar_log_remark() << "woke flock with " << _numDevices << " devices.\n";
   _flockWoken = true;
-  if (!birdGetSystemConfig(_groupID,&_sysConfig)) {
+  if (!birdGetSystemConfig(_groupID, &_sysConfig)) {
     ar_log_error() << "failed to get flock's system config.\n";
     return false;
   }
 
   if (_standAlone) {
-    if (!birdGetDeviceConfig(_groupID,0,_devConfig)) {
+    if (!birdGetDeviceConfig(_groupID, 0, _devConfig)) {
       ar_log_error() << "failed to get bird config.\n";
       return false;
     }
     _devConfig->byDataFormat = BDF_POSITIONQUATERNION;
     _devConfig->byHemisphere = _hemisphereNum;
-    if (!birdSetDeviceConfig(_groupID,0,_devConfig)) {
+    if (!birdSetDeviceConfig(_groupID, 0, _devConfig)) {
       ar_log_error() << "failed to set bird's position/quaternion mode + hemisphere\n";
       return false;
     }
@@ -226,7 +226,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     }
 
     for (i=1; i<=_numDevices; i++) {
-      if (!birdGetDeviceConfig(_groupID,i,&_devConfig[i])) {
+      if (!birdGetDeviceConfig(_groupID, i, &_devConfig[i])) {
         ar_log_error() << "failed to get config for device " << i << "\n";
         return false;
       }
@@ -234,7 +234,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     for (i=1; i<=_numDevices; i++) {
       _devConfig[i].byDataFormat = BDF_POSITIONQUATERNION;
       _devConfig[i].byHemisphere = _hemisphereNum;
-      if (!birdSetDeviceConfig(_groupID,i,&_devConfig[i])) {
+      if (!birdSetDeviceConfig(_groupID, i, &_devConfig[i])) {
         ar_log_error() <<
 	  "failed to set position/quaternion mode + hemisphere for device " << i << "\n";
         return false;

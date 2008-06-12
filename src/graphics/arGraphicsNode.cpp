@@ -13,10 +13,10 @@ arGraphicsNode::arGraphicsNode() :
 {
 }
 
-arGraphicsNode::~arGraphicsNode(){
+arGraphicsNode::~arGraphicsNode() {
 }
 
-void arGraphicsNode::initialize(arDatabase* owner){
+void arGraphicsNode::initialize(arDatabase* owner) {
   arDatabaseNode::initialize(owner);
   // Aliased pointer, to avoid casts.
   _owningDatabase = (arGraphicsDatabase*) owner;
@@ -29,7 +29,7 @@ void arGraphicsNode::initialize(arDatabase* owner){
 // Not thread-safe w.r.t. _owningDatabase (not using the global arDatabase lock),
 // because e.g. arGraphicsDatabase::activateLights() needs that unlocked.
 // For thread safety, use arGraphicsDatabase::accumulateTransform().
-arMatrix4 arGraphicsNode::accumulateTransform(){
+arMatrix4 arGraphicsNode::accumulateTransform() {
   arMatrix4 r;
   arGraphicsNode* g = (arGraphicsNode*) getParent();
   if (g) {
@@ -38,8 +38,8 @@ arMatrix4 arGraphicsNode::accumulateTransform(){
   return r;
 }
 
-void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m){
-  if (g->getTypeCode() == AR_G_TRANSFORM_NODE){
+void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m) {
+  if (g->getTypeCode() == AR_G_TRANSFORM_NODE) {
     arTransformNode* t = (arTransformNode*) g;
     m = t->getTransform() * m;
   }

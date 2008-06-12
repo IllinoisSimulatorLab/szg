@@ -10,7 +10,6 @@
 
 #include <map>
 
-
 // Definition of our drawable object.
 class arPythonGraphicsPlugin: public arGraphicsPlugin {
   public:
@@ -21,7 +20,7 @@ class arPythonGraphicsPlugin: public arGraphicsPlugin {
     // Draw the object. Currently, the object is responsible for restoring any
     // OpenGL state that it messes with.
     virtual void draw( arGraphicsWindow& win, arViewport& view );
-    
+
     // Update the object's state based on changes to the database made
     // by the controller program.
     virtual bool setState( std::vector<int>& intData,
@@ -47,9 +46,8 @@ class arPythonGraphicsPlugin: public arGraphicsPlugin {
     bool _triedToMake;
 };
 
-
 // These are the only two functions that the plugin exposes.
-// The plugin interface (in arGraphicsPluginNode.cpp) calls the 
+// The plugin interface (in arGraphicsPluginNode.cpp) calls the
 // baseType() function to determine that yes, this shared library
 // is in fact a graphics plugin. It then calls the factory() function
 // to get an instance of the object that this plugin defines, and
@@ -59,11 +57,10 @@ extern "C" {
   SZG_CALL void baseType(char* buffer, int size) {
     ar_stringToBuffer("arGraphicsPlugin", buffer, size);
   }
-  SZG_CALL void* factory(){
+  SZG_CALL void* factory() {
     return (void*) new arPythonGraphicsPlugin();
   }
 }
-
 
 arPythonGraphicsPlugin::arPythonGraphicsPlugin() :
   _object(NULL),
@@ -76,7 +73,6 @@ arPythonGraphicsPlugin::arPythonGraphicsPlugin() :
 arPythonGraphicsPlugin::~arPythonGraphicsPlugin() {
   _deleteObject();
 }
-
 
 void arPythonGraphicsPlugin::draw( arGraphicsWindow& win, arViewport& view ) {
   ar_log_debug() << "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.\n";
@@ -96,7 +92,7 @@ void arPythonGraphicsPlugin::draw( arGraphicsWindow& win, arViewport& view ) {
   PyEval_AcquireThread( threadState );
 //  PyGILState_STATE pState = PyGILState_Ensure();
   ar_log_debug() << "draw() has GIL.\n";
-  
+
   PyObject* result;
   PyObject* pArgs = NULL;
   PyObject* pDraw = PyObject_GetAttrString( _object, "draw" );
@@ -114,7 +110,7 @@ void arPythonGraphicsPlugin::draw( arGraphicsWindow& win, arViewport& view ) {
   if (!pArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate argument tuple.\n";
     goto LFailPy;
-  }  
+  }
 //  PyTuple_SET_ITEM( pArgs, 0, pIntArgs );
 //  PyTuple_SET_ITEM( pArgs, 1, pFloatArgs );
   result = PyEval_CallObject( pDraw, pArgs );
@@ -143,7 +139,6 @@ LFail:
 //  PyGILState_Release( pState );
   ar_log_debug() << "draw() released GIL.\n";
 }
-
 
 bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
                                        std::vector<long>& longData,
@@ -183,7 +178,7 @@ bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
   stringData.pop_back();
   std::string moduleName = stringData.back();
   stringData.pop_back();
-  ar_log_debug() << "Module: " << moduleName << ", Factory: " << factoryName 
+  ar_log_debug() << "Module: " << moduleName << ", Factory: " << factoryName
                  << ", reload=" << reloadModule << ar_endl;
 
 //  PyGILState_STATE pState = PyGILState_Ensure();
@@ -204,7 +199,7 @@ bool arPythonGraphicsPlugin::setState( std::vector<int>& intData,
     }
   }
   if (!_callPythonSetState( intData, longData, floatData, doubleData, stringData )) {
-    ar_log_error() << "arPythonGraphicsPlugin failed to setState() for object from " 
+    ar_log_error() << "arPythonGraphicsPlugin failed to setState() for object from "
                    << _moduleName << "." << _factoryName << ar_endl;
     _deleteObject();
     goto finish;
@@ -222,7 +217,6 @@ finish:
   ar_log_debug() << "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss.\n";
   return true;
 }
-
 
 bool arPythonGraphicsPlugin::_callPythonSetState( std::vector<int>& intData,
                                        std::vector<long>& longData,
@@ -251,18 +245,18 @@ bool arPythonGraphicsPlugin::_callPythonSetState( std::vector<int>& intData,
   if (!pArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate argument tuple.\n";
     goto LFailPy;
-  }  
+  }
   pIntArgs = PyTuple_New( intData.size()+longData.size() );
   if (!pIntArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate int tuple.\n";
     goto LFailPy;
-  }  
+  }
   PyTuple_SET_ITEM( pArgs, 0, pIntArgs );
   pFloatArgs = PyTuple_New( floatData.size()+doubleData.size() );
   if (!pFloatArgs) {
     ar_log_error() << "arPythonGraphicsPlugin failed to allocate float tuple.\n";
     goto LFailPy;
-  } 
+  }
   PyTuple_SET_ITEM( pArgs, 1, pFloatArgs );
   count = 0;
   std::vector<int>::iterator intIter;
@@ -302,7 +296,6 @@ LFail:
   return true;
 }
 
-
 bool arPythonGraphicsPlugin::_makeObject( bool reloadModule ) {
   ar_log_debug() << "_makeObject()\n";
   _triedToMake = true;
@@ -311,6 +304,7 @@ bool arPythonGraphicsPlugin::_makeObject( bool reloadModule ) {
   if (!pModule) {
     return false;
   }
+
   ar_log_debug() << "__getModule() succeeded\n";
   // Get a borrowed ref. to the module's dictionary.
   PyObject* pDict = PyModule_GetDict( pModule );
@@ -319,38 +313,36 @@ bool arPythonGraphicsPlugin::_makeObject( bool reloadModule ) {
   if (!pFunc) {
     ar_log_error() << "arPythonGraphicsPlugin couldn't get object factory " << _moduleName
                    << "." << _factoryName << ar_endl;
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    return false;
+    goto abort;
   }
+
   if (!PyCallable_Check( pFunc )) {
-    ar_log_error() << "arPythonGraphicsPlugin " << _moduleName << "." << _factoryName
-                   << " isn't callable.\n";
+    ar_log_error() << "uncallable arPythonGraphicsPlugin " << _moduleName << "." << _factoryName
+                   << ".\n";
     return false;
   }
+
   PyObject* pArgs = PyTuple_New(0);
   if (!pArgs) {
     ar_log_error() << "arPythonGraphicsPlugin couldn't create empty argument tuple.\n";
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
-    return false;
+    goto abort;
   }
+
   PyObject* pObject = PyObject_CallObject(pFunc, pArgs);
   Py_DECREF(pArgs);
   if (!pObject) {
     ar_log_error() << "arPythonGraphicsPlugin call to " << _moduleName << "." << _factoryName
                    << "() failed.\n";
+abort:
     if (PyErr_Occurred()) {
       PyErr_Print();
     }
     return false;
   }
+
   _object = pObject;
   return true;
-} 
-
+}
 
 void arPythonGraphicsPlugin::_deleteObject() {
   ar_log_debug() << "_deleteObject()\n";
@@ -362,18 +354,18 @@ void arPythonGraphicsPlugin::_deleteObject() {
   _object = NULL;
 }
 
-
 std::map< std::string, PyObject* > arPythonGraphicsPlugin::__importedModules;
 PyObject* arPythonGraphicsPlugin::__getModule( const std::string& moduleName, bool reload ) {
   ar_log_debug() << "__getModule()\n";
   std::map< std::string, PyObject* >::iterator iter;
   PyObject* pModule;
   iter = arPythonGraphicsPlugin::__importedModules.find( moduleName );
-  // If we found it and user hasn't specified a reload...
   if (iter != arPythonGraphicsPlugin::__importedModules.end() && !reload) {
+    // We found it and user hasn't specified a reload.
     return iter->second;
   }
-  // If we didn't find it...
+
+  // We didn't find it.
   if (iter == arPythonGraphicsPlugin::__importedModules.end()) {
     PyObject* pName = PyString_FromString( moduleName.c_str() );
     if (!pName) {
@@ -381,29 +373,30 @@ PyObject* arPythonGraphicsPlugin::__getModule( const std::string& moduleName, bo
                      << moduleName << ar_endl;
       return NULL;
     }
+
     pModule = PyImport_Import(pName);
     Py_DECREF(pName);
     if (!pModule) {
       ar_log_error() << "arPythonGraphicsPlugin failed to import module " << moduleName << ar_endl;
-      if (PyErr_Occurred()) {
-        PyErr_Print();
-      }
-      return NULL;
+      goto abort;
     }
     arPythonGraphicsPlugin::__importedModules[moduleName] = pModule;
     return pModule;
   }
+
   // We found it, but user specified that we should reload it...
   pModule = PyImport_ReloadModule( iter->second );
   Py_DECREF( iter->second );
-  // insert it in map even if NULL.
+  // Insert it in map even if NULL.
   arPythonGraphicsPlugin::__importedModules[moduleName] = pModule;
   if (!pModule) {
     ar_log_error() << "arPythonGraphicsPlugin failed to reload module " << moduleName << ar_endl;
+abort:
     if (PyErr_Occurred()) {
       PyErr_Print();
     }
     return NULL;
   }
+
   return pModule;
 }

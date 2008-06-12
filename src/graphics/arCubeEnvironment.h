@@ -21,7 +21,7 @@ class SZG_CALL arCubeEnvironment{
   void setRadius(float);
   void setOrigin(float x, float z, float height);
   void setNumberWalls(int);
-  void setCorner(int,float,float);
+  void setCorner(int, float, float);
   void setWallTexture(int, const string&);
   void attachMesh(const string&, const string&);
 

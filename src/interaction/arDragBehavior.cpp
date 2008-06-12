@@ -117,7 +117,7 @@ void arWandRotationDrag::init( const arEffector* const effector,
 void arWandRotationDrag::update( const arEffector* const effector,
                          arInteractable* const object,
                          const arGrabCondition* const /*grabCondition*/ ) {
-  object->setMatrix( _positionMatrix * 
+  object->setMatrix( _positionMatrix *
       ar_extractRotationMatrix(effector->getMatrix()) * _orientDiffMatrix );
 }
 
@@ -140,12 +140,12 @@ arNavTransDrag::arNavTransDrag( const arVector3& direction, const float speed ) 
 arNavTransDrag::arNavTransDrag( const char axis, const float speed ) :
   _speed( speed ) {
   switch (axis) {
-    case 'x': _direction = arVector3(1,0,0); break;
-    case 'y': _direction = arVector3(0,1,0); break;
+    case 'x': _direction = arVector3(1, 0, 0); break;
+    case 'y': _direction = arVector3(0, 1, 0); break;
     // sign reversal, it's just more useful that way. OpenGL is brain-dead.
-    case 'z': _direction = arVector3(0,0,-1); break;
+    case 'z': _direction = arVector3(0, 0, -1); break;
     default:
-      _direction = arVector3(0,0,0);
+      _direction = arVector3(0, 0, 0);
       cerr << "arNavTransDrag error: " << axis << " does not represent an axis.\n";
       break;
   }
@@ -211,11 +211,11 @@ arNavRotDrag::arNavRotDrag( const arVector3& axis, const float degreesPerSec ) :
 arNavRotDrag::arNavRotDrag( const char axis, const float degreesPerSec ) :
   _angleSpeed( ar_convertToRad( degreesPerSec ) ) {
   switch (axis) {
-    case 'x': _axis = arVector3(1,0,0); break;
-    case 'y': _axis = arVector3(0,1,0); break;
-    case 'z': _axis = arVector3(0,0,1); break;
+    case 'x': _axis = arVector3(1, 0, 0); break;
+    case 'y': _axis = arVector3(0, 1, 0); break;
+    case 'z': _axis = arVector3(0, 0, 1); break;
     default:
-      _axis = arVector3(0,0,1);
+      _axis = arVector3(0, 0, 1);
       cerr << "arNavTransDrag error: unknown axis '" << axis << "' defaulting to 'z'.\n";
       break;
   }
@@ -240,7 +240,7 @@ void arNavRotDrag::update( const arEffector* const /*effector*/,
     cerr << "arNavRotDrag error: NULL grabCondition pointer.\n";
     return;
   }
-  // get sign of [button,axis] event value
+  // get sign of [button, axis] event value
   float axisValue = grabCondition->value();
   if (axisValue > 1.)
     axisValue = 1.;
@@ -280,7 +280,7 @@ arDragBehavior* arNavRotDrag::copy() const {
 //  const arMatrix4 effMatrix = effector->getInputMatrix();
 //  navigator->setMatrix( ar_extractRotationMatrix( effMatrix ).inverse() * _effMatrix * _navMatrix  ); // first drag fine, let go of button & drag again messes up axes
 //}
-//   
+//
 //arDragBehavior* arNavWorldRotDrag::copy() const {
 //  return (arDragBehavior*)new arNavWorldRotDrag( *this );
 //}

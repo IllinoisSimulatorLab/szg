@@ -11,11 +11,11 @@
 
 class SZG_CALL arNameNode: public arDatabaseNode{
  public:
-  arNameNode(){
+  arNameNode() {
     _typeCode = AR_D_NAME_NODE;
     _typeString = "name";
   }
-  virtual ~arNameNode(){}
+  virtual ~arNameNode() {}
 
   // just use the default virtual functions... this is really the generic
   // node!

@@ -185,16 +185,16 @@ void arLock::unlock() {
 #endif
 }
 
-arConditionVar::arConditionVar(){
+arConditionVar::arConditionVar() {
 #ifdef AR_USE_WIN_32
   _numberWaiting = 0;
-  _event = CreateEvent(NULL,FALSE,FALSE,NULL);
+  _event = CreateEvent(NULL, FALSE, FALSE, NULL);
 #else
-  pthread_cond_init(&_conditionVar,NULL);
+  pthread_cond_init(&_conditionVar, NULL);
 #endif
 }
 
-arConditionVar::~arConditionVar(){
+arConditionVar::~arConditionVar() {
 #ifdef AR_USE_WIN_32
   CloseHandle(_event);
 #else
@@ -204,7 +204,7 @@ arConditionVar::~arConditionVar(){
 
 // Wait for the condition variable to be signaled.
 // Return true if signaled, false if timed out.
-bool arConditionVar::wait(arLock& l, const int msecTimeout){
+bool arConditionVar::wait(arLock& l, const int msecTimeout) {
 #ifdef AR_USE_WIN_32
 
   _lCount.lock();
@@ -212,7 +212,7 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout){
   _lCount.unlock();
   l.unlock();
   bool ok = true;
-  if (msecTimeout >= 0){
+  if (msecTimeout >= 0) {
     ok = WaitForSingleObject(_event, msecTimeout) != WAIT_TIMEOUT;
   }
   else{
@@ -233,7 +233,7 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout){
 
 #else
 
-  if (msecTimeout < 0){
+  if (msecTimeout < 0) {
     pthread_cond_wait(&_conditionVar, &l._mutex);
     return true;
   }
@@ -243,7 +243,7 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout){
   // todo: define a function to add a pure msec to an ar_timeval.  At least 3 places would use it.  Grep for 1000000 and usec.
   time1.sec += msecTimeout/1000;
   time1.usec += (msecTimeout%1000)*1000;
-  if (time1.usec >= 1000000){
+  if (time1.usec >= 1000000) {
     time1.usec -= 1000000;
     time1.sec++;
   }
@@ -255,10 +255,10 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout){
 #endif
 }
 
-void arConditionVar::signal(){
+void arConditionVar::signal() {
 #ifdef AR_USE_WIN_32
   _lCount.lock();
-  if (_numberWaiting > 0){
+  if (_numberWaiting > 0) {
     SetEvent(_event);
   }
   _lCount.unlock();
@@ -266,7 +266,7 @@ void arConditionVar::signal(){
   pthread_cond_signal(&_conditionVar);
 #endif
 }
-  
+
 // From Walmsley, "Multi-threaded Programming in C++", class EVENT.
 
 arThreadEvent::arThreadEvent( bool automatic ) {
@@ -357,7 +357,7 @@ arWrapperType ar_threadWrapperFunction(void* threadObject)
 #endif
 }
 
-arThread::arThread(void (*threadFunction)(void*),void* parameter){
+arThread::arThread(void (*threadFunction)(void*), void* parameter) {
   // This usage is dangerous because if beginThread fails,
   // the caller cannot know about it.
   // It may be acceptable in main(), but avoid it in the deep guts of syzygy.
@@ -369,10 +369,10 @@ arThreadID arThread::getThreadID() const
   return _threadID;
 }
 
-bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
+bool arThread::beginThread(void (*threadFunction)(void*), void* parameter) {
 #ifdef AR_USE_WIN_32
 
-  _threadID = _beginthread(threadFunction,0,parameter);
+  _threadID = _beginthread(threadFunction, 0, parameter);
   // Weird. On error, _beginthread returns an unsigned minus one.
   if (_threadID == arThreadID(-1L))
     {
@@ -388,10 +388,10 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
 
   _threadFunction = threadFunction;
   _parameter = parameter;
-  const int error = pthread_create(&_threadID,NULL,ar_threadWrapperFunction, this);
+  const int error = pthread_create(&_threadID, NULL, ar_threadWrapperFunction, this);
   //*************************************************************************
   // the windows threads are formed automatically in a detached stated
-  // so let's do the same thing on this side 
+  // so let's do the same thing on this side
   //*************************************************************************
   pthread_detach(_threadID);
   _signal.receiveSignal();
@@ -407,23 +407,23 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
   return true;
 }
 
-arSignalObject::arSignalObject(){
+arSignalObject::arSignalObject() {
 #ifdef AR_USE_WIN_32
   // Create an auto-reset event object, which resets to
   // unsignaled after a single thread is awakened,
   // with initial state unsignaled.
   _event = CreateEvent(NULL, false, false, NULL);
 #else
-  pthread_mutex_init(&_mutex,NULL);
-  pthread_cond_init(&_conditionVar,NULL);
+  pthread_mutex_init(&_mutex, NULL);
+  pthread_cond_init(&_conditionVar, NULL);
   _fSync = false;
 #endif
 }
 
-void arSignalObject::sendSignal(){
-#ifdef AR_USE_WIN_32 
+void arSignalObject::sendSignal() {
+#ifdef AR_USE_WIN_32
   // Which is more appropriate here? SetEvent or PulseEvent?
-  // For an auto-reset event, SetEvent leaves the event 
+  // For an auto-reset event, SetEvent leaves the event
   // signaled until someone waits on it, at which time it is reset
   // for an auto-reset event. PulseEvent releases a single thread and
   // then unsignals the event. Or immediately unsignals the event
@@ -440,20 +440,20 @@ void arSignalObject::sendSignal(){
 #endif
 }
 
-void arSignalObject::receiveSignal(){
+void arSignalObject::receiveSignal() {
 #ifdef AR_USE_WIN_32
-   WaitForSingleObject(_event,INFINITE);
+   WaitForSingleObject(_event, INFINITE);
 #else
    pthread_mutex_lock(&_mutex);
    while (!_fSync) {
-     pthread_cond_wait(&_conditionVar,&_mutex);
+     pthread_cond_wait(&_conditionVar, &_mutex);
    }
    _fSync = false;
    pthread_mutex_unlock(&_mutex);
 #endif
 }
 
-void arSignalObject::reset(){
+void arSignalObject::reset() {
 #ifdef AR_USE_WIN_32
   ResetEvent(_event);
 #else

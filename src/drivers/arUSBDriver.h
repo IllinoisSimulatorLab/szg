@@ -18,11 +18,11 @@ class SZG_CALL arUSBDriver: public arInputSource {
   public:
     arUSBDriver();
     ~arUSBDriver();
-    
+
     bool init(arSZGClient& SZGClient);
     bool start();
     bool stop();
-  
+
   private:
     void _dataThread();
     bool _inited;

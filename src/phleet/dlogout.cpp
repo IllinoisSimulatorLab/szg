@@ -8,12 +8,12 @@
 
 #include "arPhleetConfig.h"
 
-int main(int argc, char** argv){
-  if (argc != 1){
+int main(int argc, char** argv) {
+  if (argc != 1) {
     cerr << "usage: " << argv[0] << "\n";
     return 1;
   }
-  
+
   // Reset the login file's contents.
   arPhleetConfig config;
   config.setUserName("NULL");

@@ -8,14 +8,14 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   // todo: add -q "quiet" option
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  if (argc < 2 || argc > 4){
+  if (argc < 2 || argc > 4) {
 LUsage:
     ar_log_critical() << "usage: " << argv[0] << " [-9] [hostname] executable_label\n";
     return 1;
@@ -48,10 +48,10 @@ LUsage:
     }
 
   if (hostName != hostLocal &&
-      szgClient.getAttribute(hostName,"SZG_CONF","virtual", "") == "true"){
+      szgClient.getAttribute(hostName, "SZG_CONF", "virtual", "") == "true") {
     // hostName is a virtual computer.
-    const string trigger(szgClient.getAttribute(hostName,"SZG_TRIGGER","map", ""));
-    if (trigger == "NULL"){
+    const string trigger(szgClient.getAttribute(hostName, "SZG_TRIGGER", "map", ""));
+    if (trigger == "NULL") {
       ar_log_critical() << "no SZG_TRIGGER/map for virtual computer '" <<
 	hostName << "'.\n";
       return 1;
@@ -70,14 +70,14 @@ LNotFound:
     }
 
   const int progID = szgClient.getProcessID(hostName, exeName);
-  if (progID == -1){
+  if (progID == -1) {
     goto LNotFound;
   }
 
   szgClient.sendMessage("quit", "0", progID);
   const int tag = szgClient.requestKillNotification(progID);
   const int msecTimeout = 5000;
-  if (szgClient.getKillNotification(list<int>(1,tag), msecTimeout) < 0){
+  if (szgClient.getKillNotification(list<int>(1, tag), msecTimeout) < 0) {
     ar_log_error() << "timed out after " << msecTimeout << " msec.\n";
   }
   return 0;

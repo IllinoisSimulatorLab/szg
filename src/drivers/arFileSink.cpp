@@ -17,13 +17,13 @@ arFileSink::arFileSink() :
 
 // todo: add set and get functions for _dataFileName
 
-bool arFileSink::init(arSZGClient& SZGClient){
+bool arFileSink::init(arSZGClient& SZGClient) {
   _dataFilePath = SZGClient.getDataPath();
   return true;
 }
 
-bool arFileSink::start(){
-  if (_logging){
+bool arFileSink::start() {
+  if (_logging) {
     ar_log_warning() << "arFileSink already logging to '" << _dataFilePath <<
       "/" << _dataFileName << "'.\n";
     return true;
@@ -35,8 +35,8 @@ bool arFileSink::start(){
     return false;
   }
 
-  _dataFile = ar_fileOpen(_dataFileName,_dataFilePath,"w");
-  if (!_dataFile){
+  _dataFile = ar_fileOpen(_dataFileName, _dataFilePath, "w");
+  if (!_dataFile) {
     ar_log_error() << "arFileSink failed to log to '" << _dataFilePath <<
       "/" << _dataFileName << "'.\n";
     return false;
@@ -46,8 +46,8 @@ bool arFileSink::start(){
   return true;
 }
 
-bool arFileSink::stop(){
-  if (!_logging){
+bool arFileSink::stop() {
+  if (!_logging) {
     ar_log_remark() << "arFileSink already stopped logging.\n";
     return true;
   }

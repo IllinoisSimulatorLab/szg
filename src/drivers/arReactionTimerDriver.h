@@ -18,11 +18,10 @@ class SZG_CALL arReactionTimerDriver: public arInputSource {
   public:
     arReactionTimerDriver();
     ~arReactionTimerDriver();
-    
     bool init(arSZGClient& SZGClient);
     bool start();
     bool stop();
-  
+
   private:
     bool _processInput();
     void _resetStatusTimer();

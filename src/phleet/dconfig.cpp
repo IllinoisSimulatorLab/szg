@@ -8,13 +8,13 @@
 
 #include "arPhleetConfig.h"
 
-int main(int argc, char** /*argv*/){
-  if (argc != 1){
+int main(int argc, char** /*argv*/) {
+  if (argc != 1) {
     cout << "szg:ERROR:usage: dconfig\n";
     return 1;
   }
   arPhleetConfig config;
-  if (!config.read()){
+  if (!config.read()) {
     cout << "szg:ERROR:failed to parse Syzygy configuration file.\n"
          << "szg:ERROR:  see szg/doc/DistributedOS.html for instructions.\n";
     return 1;

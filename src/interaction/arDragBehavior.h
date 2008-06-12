@@ -117,7 +117,7 @@ class SZG_CALL arWandRotationDrag : public arDragBehavior {
 
 class SZG_CALL arNavTransDrag : public arDragBehavior {
   public:
-    arNavTransDrag() : _direction(0,0,-1), _speed(0) {}
+    arNavTransDrag() : _direction(0, 0, -1), _speed(0) {}
     arNavTransDrag( const arVector3& displacement );
     arNavTransDrag( const arVector3& direction, const float speed );
     arNavTransDrag( const char axis, const float speed );

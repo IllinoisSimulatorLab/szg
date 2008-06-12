@@ -37,7 +37,7 @@ class SZG_CALL arCallbackInteractable : public arInteractable {
     int getGraphicsTransformID() const { return _graphicsTransformID; }
     void setSoundTransformID( int ID ) { _soundTransformID = ID; }
     int getSoundTransformID() const { return _soundTransformID; }
-    
+
     // For backwards compatibility...
     void setID( int ID ) { _graphicsTransformID = ID; }
     int getID() const { return _graphicsTransformID; }

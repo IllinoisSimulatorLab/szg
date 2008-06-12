@@ -8,7 +8,7 @@
 
 #include "arSZGClient.h"
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
     // Skip "hostname/dps/number" lines (i.e., this program itself).
     const char* pch = strstr(buffer, "/dps/");
-    if (pch && strspn(pch+5,"0123456789") == strlen(pch+5))
+    if (pch && strspn(pch+5, "0123456789") == strlen(pch+5))
       continue;
 
     // Print a line.

@@ -17,13 +17,13 @@ int main(int argc, char** argv) {
     return szgClient.failStandalone(fInit);
 
   if (argc != 2 && argc != 3) {
-Usage:    
+Usage:
     ar_log_critical() << "usage: setstereo [virtual_computer] true|false\n";
     return 1;
   }
 
   arAppLauncher launcher("setstereo", &szgClient);
-  if (argc == 3){
+  if (argc == 3) {
     if (!launcher.setVircomp(argv[1])) {
       return 1;
     }
@@ -35,9 +35,9 @@ Usage:
 
   const string paramVal(argv[argc-1]);
   if (paramVal != "true" && paramVal != "false")
-    goto Usage; 
+    goto Usage;
   // end copypaste
 
   launcher.updateRenderers("stereo", paramVal);
-  return 0; 
+  return 0;
 }

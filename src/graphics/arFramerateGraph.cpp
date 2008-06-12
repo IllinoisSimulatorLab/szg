@@ -15,21 +15,21 @@ arPerformanceElement::arPerformanceElement(
   setNumberEntries(n);
 }
 
-arPerformanceElement::~arPerformanceElement(){
-  if (_data){
+arPerformanceElement::~arPerformanceElement() {
+  if (_data) {
     delete [] _data;
   }
 }
 
-void arPerformanceElement::setNumberEntries(const int number){
-  if (_data){
+void arPerformanceElement::setNumberEntries(const int number) {
+  if (_data) {
     delete [] _data;
   }
   _data = new float[number];
   _numberEntries = number;
 }
 
-void arPerformanceElement::pushNewValue(float value){
+void arPerformanceElement::pushNewValue(float value) {
   if (!_fInit) {
     _fInit = true;
     for (int i=0; i<_numberEntries; ++i)
@@ -51,7 +51,7 @@ void arPerformanceElement::draw() {
   glBegin(GL_LINE_STRIP);
   float x = -1.;
   const float dx = 2. / (_numberEntries-1);
-  for (int i=0; i<_numberEntries; ++i){
+  for (int i=0; i<_numberEntries; ++i) {
     x += dx;
     const float y = _data[i]/scale * 2. - 1.;
     glVertex3f(x, y<.99 ? y : .99, 0.02);
@@ -68,11 +68,11 @@ void arPerformanceElement::draw() {
     glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
 }
 
-arFramerateGraph::arFramerateGraph(){
+arFramerateGraph::arFramerateGraph() {
   _valueContainer.clear(); // for windows compiler
 }
 
-arFramerateGraph::~arFramerateGraph(){
+arFramerateGraph::~arFramerateGraph() {
   arPerfElts::iterator i;
   for (i = _valueContainer.begin(); i != _valueContainer.end(); ++i)
     delete i->second;
@@ -81,14 +81,14 @@ arFramerateGraph::~arFramerateGraph(){
 // Not const, because some sibling classes' draw() can't be const.
 void arFramerateGraph::draw() {
   glMatrixMode(GL_PROJECTION);
-  glOrtho(-1,1,-1,1,0,100);
+  glOrtho(-1, 1, -1, 1, 0, 100);
   glMatrixMode(GL_MODELVIEW);
   gluLookAt(0,0,1, 0,0,0, 0,1,0);
 
   // Draw the magenta graph ruler.
   // The rule halfway up is white, for readability.
   glBegin(GL_LINES);
-  for (int j=0; j<11; j++){
+  for (int j=0; j<11; j++) {
     glColor3f(1, j==5 ? 1 : 0, 1);
     const float z = 42.; // Force ruler behind data.
     const float y = j*.2 - 1.;
@@ -98,14 +98,14 @@ void arFramerateGraph::draw() {
   glEnd();
 
   arPerfElts::const_iterator i;
-  for (i = _valueContainer.begin(); i != _valueContainer.end(); ++i){
+  for (i = _valueContainer.begin(); i != _valueContainer.end(); ++i) {
     i->second->draw();
   }
 }
 
 // Not const, because pre- and postComposition can't be const.
 void arFramerateGraph::drawWithComposition() {
-  preComposition(0,0,0.3333,0.3333);
+  preComposition(0, 0, 0.3333, 0.3333);
   draw();
   postComposition();
 }
@@ -113,7 +113,7 @@ void arFramerateGraph::drawWithComposition() {
 void arFramerateGraph::drawPlaced(const float startX,
 				  const float startY,
 				  const float widthX,
-				  const float widthY){
+				  const float widthY) {
   preComposition(startX, startY, widthX, widthY);
   draw();
   postComposition();
@@ -122,9 +122,9 @@ void arFramerateGraph::drawPlaced(const float startX,
 void arFramerateGraph::addElement(const string& name,
                                   int numberEntries,
                                   const float scale,
-                                  const arVector3& color){
+                                  const arVector3& color) {
   arPerfElts::const_iterator i(_valueContainer.find(name));
-  if (i != _valueContainer.end()){
+  if (i != _valueContainer.end()) {
     ar_log_error() << "arFramerateGraph ignoring duplicate type '" << name << "'.\n";
     return;
   }

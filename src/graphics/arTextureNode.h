@@ -16,16 +16,16 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   arTextureNode();
   virtual ~arTextureNode();
 
-  void draw(arGraphicsContext*){}
+  void draw(arGraphicsContext*) {}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  string getFileName(){ return _fileName; }
+  string getFileName() { return _fileName; }
   void setFileName(const string& fileName, int alpha = -1);
   void setPixels(int width, int height, char* pixels, bool alpha);
 
   // For database draw.
-  arTexture* getTexture(){ return _texture; }
+  arTexture* getTexture() { return _texture; }
 
  protected:
   string _fileName; // Empty means bitmap is locally created.
@@ -33,7 +33,7 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   int    _width;
   int    _height;
 
-  arTexture* _texture; 
+  arTexture* _texture;
   bool _locallyHeldTexture; // _texture is owned by us, not the arGraphicsDatabase store.
 
   arStructuredData* _dumpData(const string& fileName, int alpha,

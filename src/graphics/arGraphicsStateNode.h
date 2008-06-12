@@ -47,7 +47,7 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
 
   // Setters corresponding to above.
   bool setGraphicsStateInt(const string& stateName,
-                           arGraphicsStateValue value1, 
+                           arGraphicsStateValue value1,
                            arGraphicsStateValue value2 = AR_G_FALSE);
   bool setGraphicsStateString(const string& stateName,
                               const string& value1,
@@ -57,7 +57,7 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
 
  protected:
   // Each graphics state node embodies only a single change to graphics
-  // state. The idea is that it won't be *too* often that people want to 
+  // state. The idea is that it won't be *too* often that people want to
   // change away from the default state... so it's OK if there is a little
   // inefficiency.
 

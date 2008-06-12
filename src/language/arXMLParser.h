@@ -171,7 +171,7 @@ public:
 
 	/** Return the position, in the original source file, of this node or attribute.
 		The row and column are 1-based. (That is the first row and first column is
-		1,1). If the returns values are 0 or less, then the parser does not have
+		1, 1). If the returns values are 0 or less, then the parser does not have
 		a row and column value.
 
 		Generally, the row and column value will be set when the TiXmlDocument::Load(),
@@ -488,7 +488,7 @@ public:
 		IterateChildren does the same thing with the syntax:
 		@verbatim
 			child = 0;
-			while( child = parent->IterateChildren( child ) )
+			while ( child = parent->IterateChildren( child ) )
 		@endverbatim
 
 		IterateChildren takes the previous child as input and finds

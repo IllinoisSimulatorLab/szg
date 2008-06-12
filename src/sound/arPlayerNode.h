@@ -14,7 +14,7 @@
 class SZG_CALL arPlayerNode:public arSoundNode{
  public:
   arPlayerNode();
-  ~arPlayerNode(){}
+  ~arPlayerNode() {}
 
   bool render() { return true; }
 

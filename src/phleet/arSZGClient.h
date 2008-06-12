@@ -38,9 +38,9 @@ class SZG_CALL arSZGClient{
   bool init(int&, char** const argv, string forcedName = string("NULL"));
        // Call init() before parsing argv, so "-szg foo=..." works.
   int failStandalone(bool fInited) const;
-  stringstream& initResponse(){ return _initResponseStream; }
+  stringstream& initResponse() { return _initResponseStream; }
   bool sendInitResponse(bool ok);
-  stringstream& startResponse(){ return _startResponseStream; }
+  stringstream& startResponse() { return _startResponseStream; }
   bool sendStartResponse(bool ok);
 
   bool launchDiscoveryThreads();
@@ -121,7 +121,7 @@ class SZG_CALL arSZGClient{
 			 const arSlashString& pathList,
 			 const string& attributeValue);
   string getSetGlobalXML(const arSlashString& pathList,
-                         const string& attributeValue = "NULL"){
+                         const string& attributeValue = "NULL") {
     return getSetGlobalXML(_userName, pathList, attributeValue);
   }
 
@@ -172,7 +172,7 @@ class SZG_CALL arSZGClient{
   // If a Syzygy component is launched via dex, it is our responsibility
   // to respond in some fashion to the launching message. We can do so
   // by getting the ID of the launching message like so.
-  int getLaunchingMessageID(){ return _launchingMessageID; }
+  int getLaunchingMessageID() { return _launchingMessageID; }
 
   // Be notified when a component exits.
   int requestKillNotification(int componentID);
@@ -295,7 +295,7 @@ class SZG_CALL arSZGClient{
 
   arStructuredDataParser* _dataParser;
   arThread                _clientDataThread;
-  
+
   // Verbosity of printed remarks.
   int _logLevel;
 

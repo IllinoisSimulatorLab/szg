@@ -17,7 +17,7 @@ class arStructuredData;
 
 class SZG_CALL arLanguage{
  public:
-  virtual ~arLanguage(){}
+  virtual ~arLanguage() {}
 
   arTemplateDictionary* getDictionary();
   arStructuredData* makeDataRecord(int);

@@ -21,13 +21,13 @@
 //
 // Further Note: the foregoing is based on the stored dimensions for the two probes supplied by
 // Faro with an application of common sense. To wit, the dimensions for both are on the order of
-// (.25,-2,5.1).  The length of the probe + the probe holder (part A1) is about 5 inches.  The length
+// (.25, -2, 5.1).  The length of the probe + the probe holder (part A1) is about 5 inches.  The length
 // of part A2 + part B1 is 2 inches.  Seems obvious, right?  However, experience teaches us that
 // "Faro" and "common sense" never belong in the same sentence. We are using a 57-inch
 // probe (that includes the length of the probe holder).  Based on the foregoing,
-// the expected probe dimensions would be roughly (.25,-2,57).  The values that _work_
+// the expected probe dimensions would be roughly (.25, -2, 57).  The values that _work_
 // (i.e. give us roughly constant tip position independent of orientation when we keep
-// the tip fixed & move the rest of the arm around) are in fact (4,-2,57).
+// the tip fixed & move the rest of the arm around) are in fact (4, -2, 57).
 
 #include "arPrecompiled.h"
 #include "arFaroDriver.h"
@@ -38,12 +38,12 @@ DriverFactory(arFaroDriver, "arInputSource")
 const float INCHES_TO_FEET = 1./12.;
 const float DEGREES_TO_RADIANS = M_PI/180.;
 
-void ar_FaroDriverEventTask(void* theDriver){
+void ar_FaroDriverEventTask(void* theDriver) {
   arFaroDriver* faroDriver = (arFaroDriver*) theDriver;
   faroDriver->_stopped = false;
   faroDriver->_eventThreadRunning = true;
   while (faroDriver->_eventThreadRunning && !faroDriver->_stopped) {
-    faroDriver->_eventThreadRunning = faroDriver->_getSendData(); 
+    faroDriver->_eventThreadRunning = faroDriver->_getSendData();
   }
   faroDriver->_eventThreadRunning = false;
 }
@@ -60,13 +60,13 @@ arFaroDriver::~arFaroDriver() {
 
 bool arFaroDriver::init(arSZGClient& SZGClient) {
   float floatBuf[3];
-  if (!SZGClient.getAttributeFloats("SZG_FARO","probe_dimensions",floatBuf,3)) {
+  if (!SZGClient.getAttributeFloats("SZG_FARO", "probe_dimensions", floatBuf, 3)) {
     ar_log_error() << "no SZG_FARO/probe_dimensions (in inches).\n";
     return false;
   }
   _probeDimensions = arVector3( floatBuf );
   ar_log_remark() << "arFaroDriver: probe dimensions = " << _probeDimensions << " inches.\n";
-  if ((_probeDimensions[2] < 0.)||(_probeDimensions[2] > 120)) { 
+  if ((_probeDimensions[2] < 0.)||(_probeDimensions[2] > 120)) {
     ar_log_error() << "preposterous probe length (SZG_FARO/probe_dimensions[2] = " <<
       _probeDimensions[2] << " in.)" << "\n";
   }
@@ -87,8 +87,8 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
   }
   _inbuf[numRead] = '\0';
   string inString( _inbuf );
-  string::size_type n1 = inString.find("\n",0);
-  string::size_type n2 = inString.find("\n",n1+2);
+  string::size_type n1 = inString.find("\n", 0);
+  string::size_type n2 = inString.find("\n", n1+2);
   if ((n1==string::npos)||(n2==string::npos)) {
     ar_log_error() << "FaroArm returned malformed status string.\n";
     return false;
@@ -123,7 +123,7 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
   return true;
 }
 
-bool arFaroDriver::start(){
+bool arFaroDriver::start() {
   if (!_inited) {
     ar_log_error() << "arFaroDriver can't start before init.\n";
     return false;
@@ -133,15 +133,15 @@ bool arFaroDriver::start(){
 //    ar_log_error() << "arFaroDriver error: write() failed in _getSendData().\n";
 //    return false;
 //  }
-  
-  if (!_eventThread.beginThread(ar_FaroDriverEventTask,this)) {
+
+  if (!_eventThread.beginThread(ar_FaroDriverEventTask, this)) {
     ar_log_error() << "arFaroDriver failed to start.\n";
     return false;
   }
   return true;
 }
 
-bool arFaroDriver::stop(){
+bool arFaroDriver::stop() {
   _stopped = true;
   while (_eventThreadRunning) {
     ar_usleep(10000);
@@ -176,7 +176,7 @@ bool arFaroDriver::_getSendData() {
   // Had to make this change because one of the buttons on our arm died
   // (the other is functionally inverted, too, i.e. it reports "on" when
   // off & vice versa. If you have a working FaroArm, also change the
-  // call to _setDeviceElements() appropriately. 
+  // call to _setDeviceElements() appropriately.
   int button0 = !(0x1 & switches);
 //    int button0 = 0x1 & switches;
 //    int button1 = (0x2 & switches) >> 1;
@@ -186,25 +186,25 @@ bool arFaroDriver::_getSendData() {
   // Note also that this is the matrix you need to multiply the probe offset
   // by to get the tip position, but the probe orientation comes out in a
   // different coordinate system from that of its position...
-  arMatrix4 rotMatrix( ar_rotationMatrix('z',angles[0]) 
-		     * ar_rotationMatrix('x',angles[1])
-		     * ar_rotationMatrix('z',angles[2]) );
-//    arMatrix4 rotMatrix( ar_rotationMatrix('z',-angles[2]) 
-//                       * ar_rotationMatrix('x',-angles[1])
-//                       * ar_rotationMatrix('z',-angles[0]) );
+  arMatrix4 rotMatrix( ar_rotationMatrix('z', angles[0])
+		     * ar_rotationMatrix('x', angles[1])
+		     * ar_rotationMatrix('z', angles[2]) );
+//    arMatrix4 rotMatrix( ar_rotationMatrix('z', -angles[2])
+//                       * ar_rotationMatrix('x', -angles[1])
+//                       * ar_rotationMatrix('z', -angles[0]) );
   arVector3 position = initialPosition + rotMatrix * _probeDimDiffs;
-  
+
 //    float iDir(sin(angles[0])*sin(angles[1]));
 //    float jDir(-sin(angles[1])*cos(angles[0]));
 //    float kDir(cos(angles[0]));
 
 //    ar_log_error() << "Direction cosines: " << iDir << ", " << jDir << ", " << kDir << "\n";
   // ...so we'll tweak the orientation here after getting the position...
-//    rotMatrix = rotMatrix*ar_rotationMatrix('z',ar_convertToRad(-90));
-//    rotMatrix = ar_rotationMatrix('y',ar_convertToRad(180))*rotMatrix;
-//    rotMatrix = ar_rotationMatrix('z',-angles[0]) 
-//                         * ar_rotationMatrix('x',-angles[1])
-//                          * ar_rotationMatrix('z',-angles[2]);
+//    rotMatrix = rotMatrix*ar_rotationMatrix('z', ar_convertToRad(-90));
+//    rotMatrix = ar_rotationMatrix('y', ar_convertToRad(180))*rotMatrix;
+//    rotMatrix = ar_rotationMatrix('z', -angles[0])
+//                         * ar_rotationMatrix('x', -angles[1])
+//                          * ar_rotationMatrix('z', -angles[2]);
   queueMatrix( 0, ar_translationMatrix(position)*rotMatrix );
   queueButton( 0, button0 );
 //    queueButton( 1, button1 );

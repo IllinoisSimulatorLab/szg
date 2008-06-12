@@ -50,7 +50,7 @@ class SZG_CALL arJoystickDriver: public arInputSource{
 #ifdef AR_USE_LINUX
   int _fd;
 #endif
-  
+
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
   void _printMMError( const string funcName, int errCode );

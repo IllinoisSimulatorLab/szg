@@ -6,16 +6,16 @@
 #include "arPrecompiled.h"
 #include "arRay.h"
 
-arBoundingSphere::arBoundingSphere(const arBoundingSphere& rhs){
+arBoundingSphere::arBoundingSphere(const arBoundingSphere& rhs) {
   radius = rhs.radius;
   visibility = rhs.visibility;
   position = rhs.position;
 }
 
-void arBoundingSphere::transform(const arMatrix4& m){
+void arBoundingSphere::transform(const arMatrix4& m) {
   position = m * position;
   // Assume that scaling is uniform!
-  const float factor = ++(m*arVector3(1,0,0) - m*arVector3(0,0,0));
+  const float factor = ++(m*arVector3(1, 0, 0) - m*arVector3(0, 0, 0));
   radius *= factor;
 }
 
@@ -33,48 +33,48 @@ bool arBoundingSphere::intersectViewFrustum(const arMatrix4& mArg) const {
   const arVector3 n3(m[2], m[6], m[10]);
   const arVector3 n4(m[3], m[7], m[11]);
   arVector3 temp = n1 - n4;
-  // Check the frustum planes in turn. 
-  if (temp%position + m[12] - m[15] > radius*temp.magnitude()){
+  // Check the frustum planes in turn.
+  if (temp%position + m[12] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   temp = -n1 - n4;
-  if (temp%position - m[12] - m[15] > radius*temp.magnitude()){
+  if (temp%position - m[12] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   // Next 2.
   temp = n2 - n4;
-  if (temp%position + m[13] - m[15] > radius*temp.magnitude()){
+  if (temp%position + m[13] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   temp = -n2 - n4;
-  if (temp%position - m[13] - m[15] > radius*temp.magnitude()){
+  if (temp%position - m[13] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   // Next 2.
   temp = n3 - n4;
-  if (temp%position + m[14] - m[15] > radius*temp.magnitude()){
+  if (temp%position + m[14] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   temp = -n3 - n4;
-  if (temp%position - m[14] - m[15] > radius*temp.magnitude()){
+  if (temp%position - m[14] - m[15] > radius*temp.magnitude()) {
     return false;
   }
   return true;
 }
 
-arRay::arRay(const arRay& rhs){
+arRay::arRay(const arRay& rhs) {
   origin = rhs.origin;
   direction = rhs.direction;
 }
 
-void arRay::transform(const arMatrix4& matrix){
+void arRay::transform(const arMatrix4& matrix) {
   origin = matrix*origin;
   // Directions transform differently than positions.
-  direction = matrix*direction - matrix*arVector3(0,0,0);
+  direction = matrix*direction - matrix*arVector3(0, 0, 0);
 }
 
 // Does the ray intersect a particular bounding sphere?
-float arRay::intersect(float radius, const arVector3& position){
+float arRay::intersect(float radius, const arVector3& position) {
   const float a = direction%direction;
   const float b = 2. * (origin%direction - direction%position);
   const float c = origin%origin + position%position - 2*(origin%position)
@@ -83,7 +83,6 @@ float arRay::intersect(float radius, const arVector3& position){
   if (discriminant <= 0)
     return -1.;
 
-  // possible intersection
   const float t1 = (-b + sqrt(discriminant))/(2.*a);
   const float t2 = (-b - sqrt(discriminant))/(2.*a);
   if (t1<0. && t2<0.) {

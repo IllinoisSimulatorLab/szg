@@ -32,28 +32,28 @@ void ar_masterSlaveFrameworkConnectionTask( void* p ) {
 }
 
 void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && windowInfo->getUserData() ) {
+  if ( windowInfo && windowInfo->getUserData() ) {
     ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowEvent( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && windowInfo->getUserData() ) {
+  if ( windowInfo && windowInfo->getUserData() ) {
     ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowStartGL( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
-  if( !keyInfo || !keyInfo->getUserData() )
+  if ( !keyInfo || !keyInfo->getUserData() )
     return;
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->getUserData();
-  if( fw->stopping() ) {
+  if ( fw->stopping() ) {
     // Shutting down.  Ignore keystrokes.
     return;
   }
 
-  if( keyInfo->getState() == AR_KEY_DOWN ) {
+  if ( keyInfo->getState() == AR_KEY_DOWN ) {
     switch( keyInfo->getKey() ) {
       case AR_VK_ESC:
 	// Don't block until the display thread is done.
@@ -79,27 +79,27 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 	break;
     }
 
-    if( fw->_standalone &&
+    if ( fw->_standalone &&
         fw->_standaloneControlMode == "simulator" ) {
       // Forward keyboard events to the interface too.
       fw->_simPtr->keyboard( keyInfo->getKey(), 1, 0, 0 );
     }
   }
 
-  if( fw->getMaster() ) {
+  if ( fw->getMaster() ) {
     // Forward keyboard events to the keyboard callback, if it's defined.
     fw->onKey( keyInfo );
   }
 }
 
 void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
-  if( !mouseInfo || !mouseInfo->getUserData() )
+  if ( !mouseInfo || !mouseInfo->getUserData() )
     return;
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->getUserData();
-  if( fw->_standalone &&
+  if ( fw->_standalone &&
       fw->_standaloneControlMode == "simulator" ) {
-    if( mouseInfo->getState() == AR_MOUSE_DOWN || mouseInfo->getState() == AR_MOUSE_UP ) {
+    if ( mouseInfo->getState() == AR_MOUSE_DOWN || mouseInfo->getState() == AR_MOUSE_UP ) {
       const int whichButton =
         ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
         ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
@@ -114,7 +114,7 @@ void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
     }
   }
 
-  if( fw->getMaster() ) {
+  if ( fw->getMaster() ) {
     fw->onMouse( mouseInfo );
   }
 }
@@ -133,7 +133,7 @@ class arMasterSlaveWindowInitCallback : public arWindowInitCallback {
 };
 
 void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
-  if( _framework ) {
+  if ( _framework ) {
     _framework->onWindowInit();
   }
 }
@@ -196,14 +196,14 @@ class arMasterSlaveRenderCallback : public arGUIRenderCallback {
 };
 
 void arMasterSlaveRenderCallback::operator()( arGraphicsWindow& win, arViewport& vp ) {
-  if( _framework ) {
+  if ( _framework ) {
     _framework->onDraw( win, vp );
   }
 }
 
 void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
                                               arGraphicsWindow* graphicsWindow ) {
-  if(_framework) {
+  if (_framework) {
     _framework->_drawWindow( windowInfo, graphicsWindow );
   }
 }
@@ -321,9 +321,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _masterPort[ 0 ] = -1;
 
   // Performance graphs.
-  const arVector3 white  (1,1,1);
-  const arVector3 yellow (1,1,0);
-  const arVector3 cyan   (0,1,1);
+  const arVector3 white  (1, 1, 1);
+  const arVector3 yellow (1, 1, 0);
+  const arVector3 cyan   (0, 1, 1);
   _framerateGraph.addElement( "      fps", 250,   100, white  );
   _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
   _framerateGraph.addElement( "sync usec", 250, 10000, cyan   );
@@ -350,14 +350,14 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   arTransferFieldData::iterator iter;
   for( iter = _internalTransferFieldData.begin();
        iter != _internalTransferFieldData.end(); ++iter) {
-    if( iter->second.data ) {
+    if ( iter->second.data ) {
       ar_deallocateBuffer( iter->second.data );
     }
   }
 
   _internalTransferFieldData.clear();
 
-  if( !_master && _inputState ) {
+  if ( !_master && _inputState ) {
     delete _inputState;
   }
 
@@ -370,29 +370,29 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   if (!_okToInit(argv[0]))
     return false;
-  
+
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
-  if (!_SZGClient.init( argc, argv )){
+  if (!_SZGClient.init( argc, argv )) {
     return false;
   }
-  
+
   if ( !_SZGClient ) {
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
-    
+
     // copypaste
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
-    
+
     // Before _loadParameters, so the internal sound client,
     // created in _initStandaloneObjects, can be configured for standalone.
-    if( !_initStandaloneObjects() ) {
+    if ( !_initStandaloneObjects() ) {
       // Maybe a missing joystick driver or a pforth syntax error.
       return false;
     }
 
-    if( !_loadParameters() ) {
+    if ( !_loadParameters() ) {
       ar_log_error() << "failed to load parameters while standalone.\n";
     }
     _initCalled = true;
@@ -404,14 +404,14 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   }
 
   // Connected to szgserver.  Not standalone.
-  
+
   // Initialize a few things.
   dgSetGraphicsDatabase( &_graphicsDatabase );
   dsSetSoundDatabase( &_soundServer );
 
   // Load the parameters before executing any user callbacks,
   // because this determines if we're master or slave).
-  if( !_loadParameters() ) {
+  if ( !_loadParameters() ) {
     goto fail;
   }
 
@@ -422,10 +422,10 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
 
   // Tell _launcher about the virtual computer.
   (void)_launcher.setSZGClient( &_SZGClient );
-  
+
   if (_SZGClient.getMode("default") == "trigger") {
     // We are the trigger node.
-    
+
     // launch components as part of a virtual computer
     _vircompExecution = true;
 
@@ -456,22 +456,22 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
       *argv = exeSave;
       delete exeBuf;
     }
-    
+
     // Reorganize the virtual computer.
-    if( !_launcher.launchApp() ) {
+    if ( !_launcher.launchApp() ) {
       ar_log_error() << "failed to launch on virtual computer " << vircomp << ".\n";
       goto fail;
     }
-    
+
     // Wait for the message (render nodes do this in the message task).
-    if( !_SZGClient.sendInitResponse( true ) ) {
+    if ( !_SZGClient.sendInitResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
-    
+
     // This application instance, the trigger, only launches other instances.
     ar_log_debug() << "trigger launched components.\n";
-    
-    if( !_SZGClient.sendStartResponse( true ) ) {
+
+    if ( !_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
 
@@ -479,48 +479,48 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     (void)_launcher.waitForKill();
     exit(0);
   }
-  
+
   // We're not the trigger node.
-  
-  // So apps can query the virtual computer's attributes, 
+
+  // So apps can query the virtual computer's attributes,
   // those attributes are not restricted to the master.
-  // So setParameters() is called. 
+  // So setParameters() is called.
   // But we allow setting a bogus virtual computer via "-szg".
   // So it's not fatal if setParamters() fails, i.e. this should launch:
   //   my_program -szg virtual=bogus
-  if( _SZGClient.getVirtualComputer() != "NULL" && !_launcher.setParameters() ) {
+  if ( _SZGClient.getVirtualComputer() != "NULL" && !_launcher.setParameters() ) {
     ar_log_error() << "invalid virtual computer definition.\n";
   }
-  
+
   // Launch the message thread, so dkill works even if init() or start() fail.
   // But launch after the trigger code above, lest we catch messages in both
   // waitForKill() AND _messageThread.
-  if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
+  if (!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )) {
     ar_log_error() << "failed to start message thread.\n";
     goto fail;
   }
-  
-  if( !_determineMaster() ) {
+
+  if ( !_determineMaster() ) {
     goto fail;
   }
-  
+
   // Init the objects.
-  if( getMaster() ) {
-    if( !_initMasterObjects() ) {
+  if ( getMaster() ) {
+    if ( !_initMasterObjects() ) {
       goto fail;
     }
   }
   else {
-    if( !_initSlaveObjects() ) {
+    if ( !_initSlaveObjects() ) {
 fail:
-      if( !_SZGClient.sendInitResponse( false ) ) {
+      if ( !_SZGClient.sendInitResponse( false ) ) {
         cerr << _label << ": maybe szgserver died.\n";
       }
       return false;
     }
   }
   _initCalled = true;
-  if( !_SZGClient.sendInitResponse( true ) ) {
+  if ( !_SZGClient.sendInitResponse( true ) ) {
     cerr << _label << ": maybe szgserver died.\n";
   }
   return true;
@@ -538,7 +538,7 @@ fail:
 // STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
 void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   _blockUntilDisplayExit = blockUntilDisplayExit;
-  if( _vircompExecution)  {
+  if ( _vircompExecution)  {
     // arAppLauncher object piggy-backing on a renderer execution
     _launcher.killApp();
   }
@@ -549,10 +549,10 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
     _pauseFlag   = false;
     _pauseVar.signal();
   _pauseLock.unlock();
-  
+
   // We can be a master with no distribution.
-  if( getMaster() ) {
-    if( !_standalone ) {
+  if ( getMaster() ) {
+    if ( !_standalone ) {
       _barrierServer->stop();
       _soundServer.stop();
     }
@@ -560,14 +560,14 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   else {
     _barrierClient->stop();
   }
-  
-  arSleepBackoff a(50,100, 1.1);
-  while( _connectionThreadRunning ||
+
+  arSleepBackoff a(50, 100, 1.1);
+  while ( _connectionThreadRunning ||
          ( _useWindowing && _displayThreadRunning && blockUntilDisplayExit ) ||
          ( _useExternalThread && _externalThreadRunning ) ) {
     a.sleep();
   }
-  
+
   ar_log_remark() << "stopped.\n";
   _stopped = true;
 }
@@ -575,12 +575,12 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
 bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
-  
-  if( !windowConstructs ) {
+
+  if ( !windowConstructs ) {
     // print error?
     return false;
   }
-  
+
   // Populate callbacks for the gui and graphics windows,
   // and the head for any vr cameras.
   std::vector< arGUIXMLWindowConstruct*>::iterator itr;
@@ -588,30 +588,30 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
     (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
     (*itr)->getGraphicsWindow()->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
     (*itr)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
-    
+
     std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
     std::vector<arViewport>::iterator vItr;
     for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
-      if( vItr->getCamera()->type() == "arVRCamera" ) {
+      if ( vItr->getCamera()->type() == "arVRCamera" ) {
         ((arVRCamera*) vItr->getCamera())->setHead( &_head );
       }
     }
   }
-  
+
   // Create the windows if "using windowing", else just create placeholders.
-  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(), useWindowing ) < 0 ) {
+  if ( _wm->createWindows( _guiXMLParser->getWindowingConstruct(), useWindowing ) < 0 ) {
     ar_log_error() << "failed to create windows.\n";
 #ifdef AR_USE_DARWIN
     ar_log_error() << "  (Check that X11 is running.)\n";
-#endif	
+#endif
     return false;
   }
-  
+
   _wm->setAllTitles( _label, false );
   return true;
 }
 
-void arMasterSlaveFramework::loopQuantum(){
+void arMasterSlaveFramework::loopQuantum() {
   // Exchange data. Connect slaves to master and activate framelock.
   preDraw();
   draw();
@@ -624,7 +624,7 @@ void arMasterSlaveFramework::loopQuantum(){
   _wm->processWindowEvents();
 }
 
-void arMasterSlaveFramework::exitFunction(){
+void arMasterSlaveFramework::exitFunction() {
   // Wildcat framelock is only deactivated if this makes sense;
   // and if so, do so in the display thread and before exiting.
   _wm->deactivateFramelock();
@@ -649,37 +649,37 @@ void arMasterSlaveFramework::exitFunction(){
 void arMasterSlaveFramework::preDraw( void ) {
   if (stopping())
     return;
-  
+
   // Reload parameters in this thread,
   // since the arGUIWindowManager might be single threaded,
   // in which case all calls to it must be in that single thread.
-  
-  if (_requestReload){
+
+  if (_requestReload) {
     (void) _loadParameters();
     // Assume reasonably that the windows will be recreated.
     (void) createWindows(_useWindowing);
     _requestReload = false;
   }
-  
+
   const ar_timeval preDrawStart = ar_time();
-  
+
   // Catch pause/ un-pause requests.
   _pauseLock.lock();
-  while( _pauseFlag ) {
+  while ( _pauseFlag ) {
     _pauseVar.wait( _pauseLock );
   }
   _pauseLock.unlock();
-  
+
   // the pause might have been triggered by shutdown
   if (stopping())
     return;
-  
+
   _processUserMessages();
-  
+
   // Do this before the pre-exchange callback.
   // The user might want to use current input data via
   // arMasterSlaveFramework::getButton() or some other method in that callback.
-  if( getMaster() ) {
+  if ( getMaster() ) {
     if (_harmonyInUse && !_harmonyReady) {
       _harmonyReady = allSlavesReady();
       if (_harmonyReady) {
@@ -690,9 +690,9 @@ void arMasterSlaveFramework::preDraw( void ) {
         }
       }
     }
-    
+
     _pollInputData();
-    
+
     _inputEventQueue = _callbackFilter.getEventQueue();
     arInputEventQueue myQueue( _inputEventQueue );
     onProcessEventQueue( myQueue );
@@ -701,17 +701,17 @@ void arMasterSlaveFramework::preDraw( void ) {
       onPreExchange();
     }
   }
-  
-  if( !_standalone ) {
-    if( !( getMaster() ? _sendData() : _getData() ) ) {
+
+  if ( !_standalone ) {
+    if ( !( getMaster() ? _sendData() : _getData() ) ) {
       _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
       return;
     }
   }
-  
+
   onPlay();
-  
-  if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
+
+  if ( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
     if (_harmonyInUse && !getMaster()) {
       // In pre-determined harmony mode, slaves get to process event queue.
       arInputEventQueue myQueue2( _inputEventQueue );
@@ -719,45 +719,45 @@ void arMasterSlaveFramework::preDraw( void ) {
     }
     onPostExchange();
   }
-  
-  if( _standalone && !_soundClient->silent()) {
+
+  if ( _standalone && !_soundClient->silent()) {
     // Play the sounds locally.
     _soundClient->_cliSync.consume();
   }
-  
+
   // Frame rate bug: computed in _pollInputData, useless for slaves.
   _framerateGraph.getElement( "      fps" )->pushNewValue(1000. / _lastFrameTime);
   _framerateGraph.getElement( " cpu usec" )->pushNewValue(_lastComputeTime);
   _framerateGraph.getElement( "sync usec" )->pushNewValue(_lastSyncTime);
-  
+
   // Get performance metrics.
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
 // Public, so apps can make custom event loops.
-void arMasterSlaveFramework::draw( int windowID ){
-  if( stopping() || !_wm )
+void arMasterSlaveFramework::draw( int windowID ) {
+  if ( stopping() || !_wm )
     return;
 
-  if( windowID < 0 )
+  if ( windowID < 0 )
     _wm->drawAllWindows( true );
   else
     _wm->drawWindow( windowID, true );
 }
 
 // What happens after the window is drawn, but before synchronizing.
-void arMasterSlaveFramework::postDraw( void ){
+void arMasterSlaveFramework::postDraw( void ) {
   if (stopping())
     return;
-  
+
   const ar_timeval postDrawStart = ar_time();
 
   // For testing sync.
-  if( _framerateThrottle ) {
+  if ( _framerateThrottle ) {
     ar_usleep( 200000 );
   }
 
-  if( !_standalone && !_sync() ) {
+  if ( !_standalone && !_sync() ) {
     ar_log_error() << "sync failed in postDraw().\n";
   }
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
@@ -767,15 +767,15 @@ void arMasterSlaveFramework::postDraw( void ){
 void arMasterSlaveFramework::swap( int windowID ) {
   if (stopping() || !_wm)
     return;
-  
-  if( windowID >= 0 )
+
+  if ( windowID >= 0 )
     _wm->swapWindowBuffer( windowID, true );
   else
     _wm->swapAllWindowBuffers(true);
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
-  if( _startCallback && !_startCallback( *this, SZGClient ) ) {
+  if ( _startCallback && !_startCallback( *this, SZGClient ) ) {
     ar_log_error() << "user-defined start callback failed.\n";
     return false;
   }
@@ -801,7 +801,7 @@ void arMasterSlaveFramework::onPreExchange( void ) {
 }
 
 void arMasterSlaveFramework::onPostExchange( void ) {
-  if( _postExchange ) {
+  if ( _postExchange ) {
     try {
       _postExchange( *this );
     } catch (arCallbackException exc) {
@@ -811,7 +811,7 @@ void arMasterSlaveFramework::onPostExchange( void ) {
 }
 
 void arMasterSlaveFramework::onWindowInit( void ) {
-  if( _windowInitCallback ) {
+  if ( _windowInitCallback ) {
     try {
       _windowInitCallback( *this );
     } catch (arCallbackException exc) {
@@ -826,7 +826,7 @@ void arMasterSlaveFramework::onWindowInit( void ) {
 // Only events that are actually generated by the GUI itself actually reach
 // here, not for instance events that we post to the window manager ourselves.
 void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
-  if( wI ) {
+  if ( wI ) {
     if (_windowEventCallback ) {
       try {
         _windowEventCallback( *this, wI );
@@ -838,7 +838,7 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
       // (should we be handling window close events as well?)
       arMasterSlaveFramework* fw = (arMasterSlaveFramework*) wI->getUserData();
 
-      if( !fw ) {
+      if ( !fw ) {
         return;
       }
 
@@ -863,7 +863,7 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
 }
 
 void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && _windowStartGLCallback ) {
+  if ( windowInfo && _windowStartGLCallback ) {
     try {
       _windowStartGLCallback( *this, windowInfo );
     } catch (arCallbackException exc) {
@@ -876,7 +876,7 @@ void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
 // called once per viewport of each arGraphicsWindow (arGUIWindow).
 // It is a virtual method that issues the user-defined draw callback.
 void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
-  if( (!_oldDrawCallback) && (!_drawCallback) ) {
+  if ( (!_oldDrawCallback) && (!_drawCallback) ) {
     ar_log_error() << "forgot to setDrawCallback().\n";
     return;
   }
@@ -898,7 +898,7 @@ void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
 }
 
 void arMasterSlaveFramework::onDisconnectDraw( void ) {
-  if( _disconnectDrawCallback ) {
+  if ( _disconnectDrawCallback ) {
     try {
       _disconnectDrawCallback( *this );
     } catch (arCallbackException exc) {
@@ -926,7 +926,7 @@ void arMasterSlaveFramework::onDisconnectDraw( void ) {
 
 void arMasterSlaveFramework::onPlay( void ) {
   setPlayTransform();
-  if( _playCallback ) {
+  if ( _playCallback ) {
     try {
       _playCallback( *this );
     } catch (arCallbackException exc) {
@@ -936,7 +936,7 @@ void arMasterSlaveFramework::onPlay( void ) {
 }
 
 void arMasterSlaveFramework::onCleanup( void ) {
-  if( _cleanup ) {
+  if ( _cleanup ) {
     try {
       _cleanup( *this );
     } catch (arCallbackException exc) {
@@ -962,7 +962,7 @@ void arMasterSlaveFramework::onUserMessage( const int messageID, const string& m
 }
 
 void arMasterSlaveFramework::onOverlay( void ) {
-  if( _overlay ) {
+  if ( _overlay ) {
     try {
       _overlay( *this );
     } catch (arCallbackException exc) {
@@ -972,25 +972,25 @@ void arMasterSlaveFramework::onOverlay( void ) {
 }
 
 void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
-  if( !keyInfo ) {
+  if ( !keyInfo ) {
     return;
   }
 
   // Prefer newer to legacy type of keyboard callback.
-  if( _arGUIKeyboardCallback ) {
+  if ( _arGUIKeyboardCallback ) {
     try {
       _arGUIKeyboardCallback( *this, keyInfo );
     } catch (arCallbackException exc) {
       _stop("keyboard", exc);
     }
-  } else if( keyInfo->getState() == AR_KEY_DOWN ) {
+  } else if ( keyInfo->getState() == AR_KEY_DOWN ) {
     // Legacy behavior: expect only key presses, not releases.
     onKey( keyInfo->getKey(), 0, 0 );
   }
 }
 
 void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
-  if( _keyboardCallback ) {
+  if ( _keyboardCallback ) {
     try {
       _keyboardCallback( *this, key, x, y );
     } catch (arCallbackException exc) {
@@ -1000,7 +1000,7 @@ void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
 }
 
 void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
-  if( mouseInfo && _mouseCallback ) {
+  if ( mouseInfo && _mouseCallback ) {
     try {
       _mouseCallback( *this, mouseInfo );
     } catch (arCallbackException exc) {
@@ -1079,13 +1079,13 @@ void arMasterSlaveFramework::setExitCallback
 void arMasterSlaveFramework::setUserMessageCallback
   ( void (*userMessageCallback)(arMasterSlaveFramework&,
                                 const int messageID,
-                                const string& messageBody )){
+                                const string& messageBody )) {
   _userMessageCallback = userMessageCallback;
   _oldUserMessageCallback = NULL;
 }
 void arMasterSlaveFramework::setUserMessageCallback
   ( void (*userMessageCallback)(arMasterSlaveFramework&,
-                                const string& messageBody )){
+                                const string& messageBody )) {
   _oldUserMessageCallback = userMessageCallback;
   _userMessageCallback = NULL;
 }
@@ -1128,7 +1128,7 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
-  if( _soundClient ) {
+  if ( _soundClient ) {
     // Standalone, so set up the internal sound client.
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
@@ -1138,14 +1138,14 @@ void arMasterSlaveFramework::loadNavMatrix(void ) {
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   glMultMatrixf( navMatrix.v );
   if (getMaster()) {
-    if (_soundNavMatrixID != -1){
+    if (_soundNavMatrixID != -1) {
       dsTransform( _soundNavMatrixID, navMatrix );
     }
   }
 }
 
 void arMasterSlaveFramework::setPlayTransform( void ) {
-  if( soundActive() ) {
+  if ( soundActive() ) {
     if (getStandalone()) {
       (void) _speakerObject.loadMatrices( _inputState->getMatrix(0), _soundServer.getMode() );
     } else {
@@ -1154,7 +1154,7 @@ void arMasterSlaveFramework::setPlayTransform( void ) {
   }
 }
 
-void arMasterSlaveFramework::drawGraphicsDatabase( void ){
+void arMasterSlaveFramework::drawGraphicsDatabase( void ) {
   _graphicsDatabase.draw();
 }
 
@@ -1191,11 +1191,11 @@ bool arMasterSlaveFramework::allSlavesReady() {
 }
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
-  if( !getMaster() ) {
+  if ( !getMaster() ) {
     ar_log_error() << "slave ignoring getNumberSlavesConnected().\n";
     return -1;
   }
-  
+
   return _numSlavesConnected;
 }
 
@@ -1224,23 +1224,23 @@ bool arMasterSlaveFramework::_addTransferField( const string& fieldName,
 						const arDataType dataType,
 						const int size,
 						arTransferFieldData& fields) {
-  if( _startCalled ) {
+  if ( _startCalled ) {
     ar_log_error() << "ignoring addTransferField() after start().\n";
     return false;
   }
 
-  if( size <= 0 ) {
+  if ( size <= 0 ) {
     ar_log_error() << "ignoring addTransferField() with negative size " << size << ".\n";
     return false;
   }
 
-  if( !data ) {
+  if ( !data ) {
     ar_log_error() << "addTransferField() ignoring NULL data.\n";
     return false;
   }
 
   const string realName("USER_" + fieldName);
-  if( _transferTemplate.getAttributeID( realName ) >= 0 ) {
+  if ( _transferTemplate.getAttributeID( realName ) >= 0 ) {
     ar_log_error() << "ignoring duplicate-name addTransferField().\n";
     return false;
   }
@@ -1261,7 +1261,7 @@ bool arMasterSlaveFramework::addTransferField( const string& fieldName,
 bool arMasterSlaveFramework::addInternalTransferField( const string& fieldName,
                                                        const arDataType dataType,
 						       const unsigned size ) {
-  
+
   return _addTransferField(fieldName, ar_allocateBuffer(dataType, size), dataType,
     size, _internalTransferFieldData);
 }
@@ -1281,7 +1281,7 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( const string& fieldNa
   }
 
   arTransferFieldDescriptor& p = iter->second;
-  if( dataType != p.type ) {
+  if ( dataType != p.type ) {
     ar_log_error() << "type '" << arDataTypeName( dataType ) <<
       "' for internal transfer field '" << fieldName << "' should be '" <<
       arDataTypeName( p.type ) << "'.\n";
@@ -1293,7 +1293,7 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( const string& fieldNa
 
   ar_deallocateBuffer( p.data );
   p.data = ar_allocateBuffer(  p.type, newSize );
-  if( !p.data ) {
+  if ( !p.data ) {
     ar_log_error() << "failed to resize field '" << fieldName << "'.\n";
     return false;
   }
@@ -1306,16 +1306,16 @@ void* arMasterSlaveFramework::getTransferField( const string& fieldName,
                                                 arDataType dataType, int& size ) {
   const string realName("USER_" + fieldName);
   arTransferFieldData::iterator iter = _internalTransferFieldData.find( realName );
-  if( iter == _internalTransferFieldData.end() ) {
+  if ( iter == _internalTransferFieldData.end() ) {
     iter = _transferFieldData.find( realName );
-    if( iter == _transferFieldData.end() ) {
+    if ( iter == _transferFieldData.end() ) {
       ar_log_error() << "no transfer field '" << fieldName << "'.\n";
       return NULL;
     }
   }
 
   arTransferFieldDescriptor& p = iter->second;
-  if( dataType != p.type ) {
+  if ( dataType != p.type ) {
     ar_log_error() << "type '"
                    << arDataTypeName( dataType ) << "' for transfer field '"
                    << fieldName << "' should be '" << arDataTypeName( p.type ) << "'.\n";
@@ -1371,17 +1371,17 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
 // utility functions
 //************************************************************************
 
-void arMasterSlaveFramework::_setMaster( bool master ){
+void arMasterSlaveFramework::_setMaster( bool master ) {
   _master = master;
 }
 
-bool arMasterSlaveFramework::_sync( void ){
-  if( _master ) {
+bool arMasterSlaveFramework::_sync( void ) {
+  if ( _master ) {
     // localSync() has a cpu-throttle in case no one is connected.
     // So don't call it if nobody's connected: this would throttle
     // the common case of only one application instance.
 
-    if( _stateServer->getNumberConnectedActive() > 0 )
+    if ( _stateServer->getNumberConnectedActive() > 0 )
       _barrierServer->localSync();
     return true;
   }
@@ -1412,7 +1412,7 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
   arTexture texture;
   texture.setPixels( buf, _screenshotWidth, _screenshotHeight );
   delete [] buf;
-  if( !texture.writeJPEG( screenshotName.c_str(),_dataPath ) ) {
+  if ( !texture.writeJPEG( screenshotName.c_str(), _dataPath ) ) {
     ar_log_error() << "failed to write screenshot.\n";
   }
 }
@@ -1422,7 +1422,7 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
 //************************************************************************
 
 bool arMasterSlaveFramework::_sendData( void ) {
-  if( !_master ) {
+  if ( !_master ) {
     ar_log_error() << "slave ignoring _sendData.\n";
     return false;
   }
@@ -1431,12 +1431,12 @@ bool arMasterSlaveFramework::_sendData( void ) {
   arTransferFieldData::iterator i;
   for( i = _transferFieldData.begin(); i != _transferFieldData.end(); ++i ) {
     const void* pdata = i->second.data;
-    if( !pdata ) {
+    if ( !pdata ) {
       ar_log_error() << "aborting _sendData with NULL data.\n";
       return false;
     }
 
-    if( !_transferData->dataIn( i->first, pdata, i->second.type, i->second.size ) ) {
+    if ( !_transferData->dataIn( i->first, pdata, i->second.type, i->second.size ) ) {
       ar_log_error() << "problem in _sendData.\n";
     }
   }
@@ -1445,12 +1445,12 @@ bool arMasterSlaveFramework::_sendData( void ) {
   for( i = _internalTransferFieldData.begin();
        i != _internalTransferFieldData.end(); ++i ) {
     const void* pdata = i->second.data;
-    if( !pdata ) {
+    if ( !pdata ) {
       ar_log_error() << "aborting _sendData with NULL data #2.\n";
       return false;
     }
 
-    if( !_transferData->dataIn( i->first, pdata,
+    if ( !_transferData->dataIn( i->first, pdata,
                                 i->second.type, i->second.size ) ) {
       ar_log_error() << "problem in _sendData #2.\n";
     }
@@ -1469,7 +1469,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
   _wm->activateFramelock();
 
   // Activate pending connections in orderly fashion. Queue all connection attempts.
-  if( _barrierServer->checkWaitingSockets() ) {
+  if ( _barrierServer->checkWaitingSockets() ) {
     // The barrierServer (the synchronization engine) will now mark
     // the corresponding connections to the stateServer (the data engine)
     // as ready to receive. ("passive sockets" correspond to
@@ -1488,8 +1488,8 @@ bool arMasterSlaveFramework::_sendData( void ) {
   }
 
   // Send data to any receivers.
-  if( _stateServer->getNumberConnectedActive() > 0 &&
-      !_stateServer->sendData( _transferData ) ){
+  if ( _stateServer->getNumberConnectedActive() > 0 &&
+      !_stateServer->sendData( _transferData ) ) {
     ar_log_remark() << "state server failed to send data.\n";
     return false;
   }
@@ -1498,26 +1498,26 @@ bool arMasterSlaveFramework::_sendData( void ) {
 }
 
 bool arMasterSlaveFramework::_getData( void ) {
-  if( _master ) {
+  if ( _master ) {
     ar_log_error() << "master ignoring _getData.\n";
     return false;
   }
 
-  if( !_stateClientConnected ){
+  if ( !_stateClientConnected ) {
     // Not connected to master, so there's no data to get.
     return true;
   }
 
   // Connected, so request activation from the master.
   // Block until activated.
-  if( !_barrierClient->checkActivation() ) {
+  if ( !_barrierClient->checkActivation() ) {
     _barrierClient->requestActivation();
   }
 
   _wm->activateFramelock();
 
   // Read data, since we will be receiving data from the master.
-  if( !_stateClient.getData( _inBuffer,_inBufferSize ) ) {
+  if ( !_stateClient.getData( _inBuffer, _inBufferSize ) ) {
     ar_log_error() << "state client got no data.\n";
     _stateClientConnected = false;
 
@@ -1534,7 +1534,7 @@ bool arMasterSlaveFramework::_getData( void ) {
   // unpack the user data
   for( i = _transferFieldData.begin(); i != _transferFieldData.end(); ++i ) {
     void* pdata = i->second.data;
-    if( pdata ) {
+    if ( pdata ) {
       _transferData->dataOut( i->first, pdata, i->second.type, i->second.size );
     }
   }
@@ -1543,12 +1543,12 @@ bool arMasterSlaveFramework::_getData( void ) {
        i != _internalTransferFieldData.end(); ++i ) {
     int currSize = i->second.size;
     int numItems = _transferData->getDataDimension( i->first );
-    if( numItems == 0 ) {
+    if ( numItems == 0 ) {
       ar_deallocateBuffer( i->second.data );
       i->second.data = NULL;
     }
 
-    if( numItems != currSize ) {
+    if ( numItems != currSize ) {
       ar_deallocateBuffer( i->second.data );
       i->second.data = ar_allocateBuffer( i->second.type, numItems );
       if ( !i->second.data ) {
@@ -1559,7 +1559,7 @@ bool arMasterSlaveFramework::_getData( void ) {
       i->second.size = numItems;
     }
 
-    if( i->second.data ){
+    if ( i->second.data ) {
       _transferData->dataOut( i->first, i->second.data,
                               i->second.type, i->second.size );
     }
@@ -1576,20 +1576,20 @@ bool arMasterSlaveFramework::_getData( void ) {
 }
 
 void arMasterSlaveFramework::_pollInputData( void ) {
-  if( !_startCalled ) {
+  if ( !_startCalled ) {
     ar_log_error() << "ignoring _pollInputData() before start().\n";
     return;
   }
 
-  if( !_master ) {
+  if ( !_master ) {
     ar_log_error() << "slave ignoring _pollInputData.\n";
     return;
   }
 
-  if( !_inputActive )
+  if ( !_inputActive )
     return;
 
-  if( _firstTimePoll ) {
+  if ( _firstTimePoll ) {
     _firstTimePoll = false;
     _startTime = ar_time();
     _time = 0;
@@ -1599,7 +1599,7 @@ void arMasterSlaveFramework::_pollInputData( void ) {
     _lastFrameTime = temp - _time; // in milliseconds
     // Set a 5 microsecond lower bound for low-resolution system clocks,
     // to avoid division by zero.
-    if( _lastFrameTime < 0.005 ) {
+    if ( _lastFrameTime < 0.005 ) {
       _lastFrameTime = 0.005;
     }
     _time = temp;
@@ -1607,7 +1607,7 @@ void arMasterSlaveFramework::_pollInputData( void ) {
 
   // If standalone, get the input events now.
   // AARGH!!!! This could be done more generally...
-  if( _standalone && _standaloneControlMode == "simulator" ) {
+  if ( _standalone && _standaloneControlMode == "simulator" ) {
     _simPtr->advance();
   }
 
@@ -1617,8 +1617,8 @@ void arMasterSlaveFramework::_pollInputData( void ) {
   _head.setMatrix( getMatrix( AR_VR_HEAD_MATRIX_ID, false ) );
 }
 
-void arMasterSlaveFramework::_packInputData( void ){
-  if( _randSeedSet ) {
+void arMasterSlaveFramework::_packInputData( void ) {
+  if ( _randSeedSet ) {
     _randomSeed = -labs( _newSeed );
   }
 
@@ -1641,7 +1641,7 @@ void arMasterSlaveFramework::_packInputData( void ){
       !_transferData->dataIn( "fixed_head_mode", &_head._fixedHeadMode,  AR_INT,    1 ) ) {
     ar_log_error() << "problem in _packInputData.\n";
   }
-  if( !ar_saveEventQueueToStructuredData( &_inputEventQueue, _transferData ) ) {
+  if ( !ar_saveEventQueueToStructuredData( &_inputEventQueue, _transferData ) ) {
     ar_log_error() << "failed to pack input event queue.\n";
   }
   _numRandCalls = 0;
@@ -1649,7 +1649,7 @@ void arMasterSlaveFramework::_packInputData( void ){
   _firstTransfer = 0;
 }
 
-void arMasterSlaveFramework::_unpackInputData( void ){
+void arMasterSlaveFramework::_unpackInputData( void ) {
   _transferData->dataOut( "time",            &_time,                 AR_DOUBLE, 1 );
   _transferData->dataOut( "lastFrameTime",   &_lastFrameTime,        AR_DOUBLE, 1 );
   _transferData->dataOut( "harmony_ready",   &_harmonyReady,         AR_INT,    1 );
@@ -1688,16 +1688,16 @@ void arMasterSlaveFramework::_unpackInputData( void ){
   _transferData->dataOut( "randVal", &tempRandVal, AR_FLOAT, 1 );
   _randSynchError = 0;
 
-  if( !_firstTransfer ) {
-    if( lastNumCalls != _numRandCalls ) {
+  if ( !_firstTransfer ) {
+    if ( lastNumCalls != _numRandCalls ) {
       _randSynchError |= 1;
     }
 
-    if( ( lastSeed != _randomSeed ) && !_randSeedSet ) {
+    if ( ( lastSeed != _randomSeed ) && !_randSeedSet ) {
       _randSynchError |= 2;
     }
 
-    if( tempRandVal != _lastRandVal ) {
+    if ( tempRandVal != _lastRandVal ) {
       _randSynchError |= 4;
     }
   }
@@ -1738,12 +1738,12 @@ bool arMasterSlaveFramework::_determineMaster() {
   // who the master is. NOTE: we allow the virtual computer to not define
   // a master... in which case it is more or less random who gets to be the
   // master.
-  if( _SZGClient.getVirtualComputer() != "NULL" &&
+  if ( _SZGClient.getVirtualComputer() != "NULL" &&
       _launcher.getMasterName() != "NULL" ) {
-    if( _launcher.isMaster() || _SZGClient.getMode( "default" ) == "master" ) {
+    if ( _launcher.isMaster() || _SZGClient.getMode( "default" ) == "master" ) {
       _setMaster( true );
 
-      if( !_SZGClient.registerService( _serviceName, "graphics", 1, _masterPort ) ) {
+      if ( !_SZGClient.registerService( _serviceName, "graphics", 1, _masterPort ) ) {
         ar_log_error() << "component failed to be master.\n";
         return false;
       }
@@ -1798,7 +1798,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   _soundActive = false;
 
   if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",arMatrix4());
+    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", arMatrix4());
   }
   return true;
 }
@@ -1812,12 +1812,12 @@ bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
 
 bool arMasterSlaveFramework::_initMasterObjects() {
   _barrierServer = new arBarrierServer();
-  if( !_barrierServer ) {
+  if ( !_barrierServer ) {
     ar_log_error() << "master failed to construct barrier server.\n";
     return false;
   }
 
-  if(!_barrierServer->init(_serviceNameBarrier, "graphics", _SZGClient)) {
+  if (!_barrierServer->init(_serviceNameBarrier, "graphics", _SZGClient)) {
     ar_log_error() << "master failed to init barrier server.\n";
   }
 
@@ -1828,7 +1828,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _inputActive = false;
   _inputDevice = new arInputNode( true );
 
-  if( !_inputDevice ) {
+  if ( !_inputDevice ) {
     ar_log_error() << "master failed to construct input device.\n";
     return false;
   }
@@ -1843,13 +1843,13 @@ LAbort:
     return false;
   }
 
-  if( !_inputDevice->init( _SZGClient ) ) {
+  if ( !_inputDevice->init( _SZGClient ) ) {
     ar_log_error() << "master failed to init input device.\n";
     goto LAbort;
   }
 
   _soundActive = false;
-  if( !_soundServer.init( _SZGClient ) ) {
+  if ( !_soundServer.init( _SZGClient ) ) {
     ar_log_error() << "master failed to init audio.\n";
     return false;
   }
@@ -1862,7 +1862,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   // Start the master's service.
   _stateServer = new arDataServer( 1000 );
 
-  if( !_stateServer ) {
+  if ( !_stateServer ) {
     ar_log_error() << "master failed to construct state server.\n";
     return false;
   }
@@ -1879,24 +1879,24 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   // TODO TODO: copy this cleaned-up version (no "success" variable, no if/then)
   // TODO TODO: to the other ones
   int tries = 0;
-  while( tries++ < 10 && !_stateServer->beginListening( &_transferLanguage ) ) {
+  while ( tries++ < 10 && !_stateServer->beginListening( &_transferLanguage ) ) {
     ar_log_error() << "master failed to listen on port " << _masterPort[ 0 ] << ".\n";
 
-    _SZGClient.requestNewPorts( _serviceName, "graphics", 1 ,_masterPort );
+    _SZGClient.requestNewPorts( _serviceName, "graphics", 1 , _masterPort );
     _stateServer->setPort( _masterPort[ 0 ] );
   }
 
-  if( tries >= 10 ) {
+  if ( tries >= 10 ) {
     // failed to bind to the ports
     return false;
   }
 
-  if( !_SZGClient.confirmPorts( _serviceName, "graphics", 1, _masterPort ) ) {
+  if ( !_SZGClient.confirmPorts( _serviceName, "graphics", 1, _masterPort ) ) {
     ar_log_error() << "master failed to confirm brokered port.\n";
     return false;
   }
 
-  if( !_barrierServer->start() ) {
+  if ( !_barrierServer->start() ) {
     ar_log_error() << "master failed to start barrier server.\n";
     return false;
   }
@@ -1907,18 +1907,18 @@ bool arMasterSlaveFramework::_startMasterObjects() {
       return false;
     }
   }
-  
+
   _installFilters();
 
-  if( !_soundServer.start() ) {
+  if ( !_soundServer.start() ) {
     ar_log_error() << "master failed to start audio.\n";
     return false;
   }
 
   if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(),"root",arMatrix4());
+    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", arMatrix4());
   }
-    
+
   _soundActive = true;
 
   ar_log_debug() << "master's objects started.\n";
@@ -1957,13 +1957,13 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
 
   _barrierClient->setNetworks( _networks );
   _barrierClient->setServiceName( _serviceNameBarrier );
-  if( !_barrierClient->init( _SZGClient ) ) {
+  if ( !_barrierClient->init( _SZGClient ) ) {
     ar_log_error() << "slave failed to init barrier client.\n";
     return false;
   }
 
   _inputState = new arInputState();
-  if( !_inputState ) {
+  if ( !_inputState ) {
     ar_log_error() << "slave failed to construct input state.\n";
     return false;
   }
@@ -1976,7 +1976,7 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
 }
 
 bool arMasterSlaveFramework::_startSlaveObjects() {
-  if( !_barrierClient->start() ) {
+  if ( !_barrierClient->start() ) {
     ar_log_error() << "slave failed to start barrier client.\n";
     return false;
   }
@@ -1985,14 +1985,14 @@ bool arMasterSlaveFramework::_startSlaveObjects() {
   return true;
 }
 
-bool arMasterSlaveFramework::_startObjects( void ){
+bool arMasterSlaveFramework::_startObjects( void ) {
   // User-defined init is complete.
   // (Both this and that are called from start().)
 
   // Create the language.
   _transferLanguage.add( &_transferTemplate );
   _transferData = new arStructuredData( &_transferTemplate );
-  if( !_transferData ) {
+  if ( !_transferData ) {
     ar_log_error() << "failed to construct _transferData.\n";
     return false;
   }
@@ -2002,18 +2002,18 @@ bool arMasterSlaveFramework::_startObjects( void ){
   // arFrameworkObjects). Always succeeds.
   (void) _dataRouter.start();
 
-  if( _master ) {
-    if( !_startMasterObjects() ) {
+  if ( _master ) {
+    if ( !_startMasterObjects() ) {
       return false;
     }
   }
   else {
-    if( !_startSlaveObjects() ) {
+    if ( !_startSlaveObjects() ) {
       return false;
     }
   }
 
-  if(!_connectionThread.beginThread(ar_masterSlaveFrameworkConnectionTask, this)) {
+  if (!_connectionThread.beginThread(ar_masterSlaveFrameworkConnectionTask, this)) {
     ar_log_error() << "failed to start connection thread.\n";
     return false;
   }
@@ -2032,14 +2032,14 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
     return false;
 
   _useWindowing = useWindowing;
-  if( !_standalone ) {
+  if ( !_standalone ) {
     // Get this lock only after an app launches;
     // not in init() which is called even on the trigger instance,
     // but here, which only render instances reach.
     const string screenLock =
       _SZGClient.getComputerName() + "/" + _SZGClient.getMode( "graphics" );
     int graphicsID = -1;
-    if( !_SZGClient.getLock( screenLock, graphicsID ) ) {
+    if ( !_SZGClient.getLock( screenLock, graphicsID ) ) {
       return _startrespond( "failed to get screen resource held by component " +
 	ar_intToString(graphicsID) + ".\n(dkill that component to proceed.)" );
     }
@@ -2047,27 +2047,27 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
 
   // User-defined init.  After _startDetermineMaster(),
   // so _startCallback knows if this instance is master or slave.
-  if( !onStart( _SZGClient ) ) {
+  if ( !onStart( _SZGClient ) ) {
     return _SZGClient &&
       _startrespond( "arMasterSlaveFramework start callback failed." );
   }
 
-  if (!createWindows(_useWindowing)){
-    return false; 
+  if (!createWindows(_useWindowing)) {
+    return false;
   }
 
-  if( _standalone ) {
+  if ( _standalone ) {
     // copypaste from _startObjects
     _graphicsDatabase.loadAlphabet( _textPath );
     _graphicsDatabase.setTexturePath( _texturePath );
     _startStandaloneObjects();
   }
-  else if( !_startObjects() ) {
+  else if ( !_startObjects() ) {
     return _startrespond( "Objects failed to start." );
   }
 
   _startCalled = true;
-  if(_SZGClient) {
+  if (_SZGClient) {
     if (!_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
@@ -2075,20 +2075,20 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
     cout << _SZGClient.startResponse().str() << endl;
   }
 
-  if( !_standalone ) {
+  if ( !_standalone ) {
     _wm->findFramelock();
   }
-  
-  if (useEventLoop || _useWindowing){
+
+  if (useEventLoop || _useWindowing) {
     // _displayThreadRunning coordinates shutdown with
     // program stop via ESC-press (arGUI keyboard callback)
     // or kill message (received in the message thread).
     _displayThreadRunning = true;
   }
 
-  if( useEventLoop ) {
+  if ( useEventLoop ) {
     // Internal event loop.
-    while( !stopping() ){
+    while ( !stopping() ) {
       loopQuantum();
     }
     // A kill point ("quit" message, click on window close button, hit ESC) called stop().
@@ -2102,11 +2102,11 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
 
 bool arMasterSlaveFramework::_startrespond( const string& s ) {
   ar_log_error() << "" << s << ar_endl;
-  
-  if( !_SZGClient.sendStartResponse( false ) ) {
+
+  if ( !_SZGClient.sendStartResponse( false ) ) {
     cerr << _label << ": maybe szgserver died.\n";
   }
-  
+
   return false;
 }
 
@@ -2117,8 +2117,8 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
 bool arMasterSlaveFramework::_loadParameters( void ) {
   ar_log_debug() << "reloading parameters.\n";
 
-  _texturePath = _SZGClient.getAttribute( "SZG_RENDER","texture_path" );
-  string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
+  _texturePath = _SZGClient.getAttribute( "SZG_RENDER", "texture_path" );
+  string received( _SZGClient.getAttribute( "SZG_RENDER", "text_path" ) );
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
 
   // Set window-wide attributes based on the display name, like
@@ -2143,9 +2143,9 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   _loadNavParameters();
 
-  const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC","path"); // for dll's
+  const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC", "path"); // for dll's
   arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
-  
+
   // Ensure everybody gets the right bundle map, standalone or not.
   _dataPath = _SZGClient.getDataPath();
   addDataBundlePathMap( "SZG_DATA", _dataPath );
@@ -2157,7 +2157,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
 
 void arMasterSlaveFramework::addDataBundlePathMap(
-    const string& bundlePathName, 
+    const string& bundlePathName,
     const string& bundlePath) {
   _soundServer.addDataBundlePathMap( bundlePathName, bundlePath );
   if (_soundClient)
@@ -2169,7 +2169,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
   // todo: cleanly shutdown both this and arSZGClient.
   string messageType, messageBody;
 
-  while( !stopping() ) {
+  while ( !stopping() ) {
     const int messageID = _SZGClient.receiveMessage( &messageType, &messageBody );
     if (!messageID) {
       // szgserver has *hard-shutdown* _SZGClient.
@@ -2177,7 +2177,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       // 5-line copypaste from case "quit" below.
       // Block until the display thread finishes.
       stop( true );
-      if( !_useExternalThread ) {
+      if ( !_useExternalThread ) {
         exit(0);
       }
 
@@ -2185,14 +2185,14 @@ void arMasterSlaveFramework::_messageTask( void ) {
       return;
     }
 
-    if( messageType == "quit" ) {
+    if ( messageType == "quit" ) {
       _SZGClient.messageResponse( messageID, getLabel()+" quitting" );
       // Halt everything gracefully, lest crashing windows apps
       // show a dialog box that must be clicked.
 
       // Block until the display thread finishes.
       stop( true );
-      if( !_useExternalThread ) {
+      if ( !_useExternalThread ) {
         exit( 0 );
       }
       // External thread will exit().
@@ -2236,7 +2236,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         memcpy( _noDrawFillColor.v, tmp, 3 * sizeof( AR_FLOAT ) );
       }
     }
-    else if( messageType == "screenshot" ) {
+    else if ( messageType == "screenshot" ) {
       // copypaste with graphics/szgrender.cpp
       if ( _dataPath == "NULL" ) {
         ar_log_error() << "screenshot failed: no SZG_DATA/path.\n";
@@ -2244,7 +2244,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
             " screenshot failed: undefined SZG_DATA/path." );
       } else {
         _screenshotFlag = true;
-        if( messageBody != "NULL" ) {
+        if ( messageBody != "NULL" ) {
           int tmp[ 4 ];
           ar_parseIntString( messageBody, tmp, 4 );
 	  // todo: error checking
@@ -2271,7 +2271,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
     // messages accepted by szgrender and here... how can we
     // reuse messaging functionality?????
     //*********************************************************
-    if( messageType == "delay" ) {
+    if ( messageType == "delay" ) {
       _framerateThrottle = messageBody == "on";
       if (_framerateThrottle) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled frame-rate throttle." );
@@ -2286,7 +2286,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         if ( !stopping() )
           _pauseFlag = true;
       }
-      else if( messageBody == "off" ) {
+      else if ( messageBody == "off" ) {
         _SZGClient.messageResponse( messageID, getLabel()+" continueing." );
         arGuard dummy(_pauseLock);
         _pauseFlag = false;
@@ -2305,7 +2305,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
             " enabling navigation from input matrix" );
         setUseNavInputMatrix( true );
       }
-      else if( messageBody == "off" ) {
+      else if ( messageBody == "off" ) {
         _SZGClient.messageResponse( messageID, getLabel()+
             " disabling navigation from input matrix." );
         setUseNavInputMatrix( false );
@@ -2323,7 +2323,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
             " enabling unit-conversion of navigation input matrix" );
         setUnitConvertNavInputMatrix( true );
       }
-      else if( messageBody == "off" ) {
+      else if ( messageBody == "off" ) {
         _SZGClient.messageResponse( messageID, getLabel()+
             " disabling unit-conversion of navigation input matrix" );
         setUnitConvertNavInputMatrix( false );
@@ -2340,9 +2340,9 @@ void arMasterSlaveFramework::_messageTask( void ) {
 // Handle connections.
 void arMasterSlaveFramework::_connectionTask( void ) {
   _connectionThreadRunning = true;
-  if( _master ) {
+  if ( _master ) {
 
-    while( !stopping() ) {
+    while ( !stopping() ) {
       // todo: nonblocking connection accept.
       // Workaround: pretend connection thread isn't running.
       _connectionThreadRunning = false;
@@ -2352,7 +2352,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       if (stopping())
         break;
 
-      if( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
+      if ( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
         // Something bad happened.  Don't retry infinitely.
         _exitProgram = true;
         break;
@@ -2367,9 +2367,9 @@ void arMasterSlaveFramework::_connectionTask( void ) {
   else {
     // slave
 
-    while( !stopping() ) {
+    while ( !stopping() ) {
       arSleepBackoff a(40, 100, 1.1);
-      while( !_barrierClient->checkConnection() && !stopping() ) {
+      while ( !_barrierClient->checkConnection() && !stopping() ) {
         a.sleep();
       }
       a.reset();
@@ -2391,7 +2391,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       ar_log_remark() << "slave connecting to "
 	              << result.address << ":" << result.portIDs[0] << ".\n";
 
-      if( !result.valid ||
+      if ( !result.valid ||
           !_stateClient.dialUpFallThrough( result.address, result.portIDs[ 0 ] ) ) {
         ar_log_warning() << "failed to broker; retrying.\n";
         continue;
@@ -2402,7 +2402,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _stateClientConnected = true;
 
       ar_log_remark() << "slave connected.\n";
-      while( _stateClientConnected && !stopping() ) {
+      while ( _stateClientConnected && !stopping() ) {
         ar_usleep( 200000 );
       }
 
@@ -2431,30 +2431,30 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   }
 
   int currentWinID = windowInfo->getWindowID();
-  if( !_wm->windowExists( currentWinID ) ) {
+  if ( !_wm->windowExists( currentWinID ) ) {
     ar_log_error() << "_drawWindow: no arGraphicsWindow with ID " << currentWinID << ".\n";
     return;
   }
 
   // draw the window
-  if(!stopping() ) {
-    if( _noDrawFillColor[ 0 ] == -1 ) {
-      if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
+  if (!stopping() ) {
+    if ( _noDrawFillColor[ 0 ] == -1 ) {
+      if ( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
         graphicsWindow->draw();
 
         if ( _wm->isFirstWindow( currentWinID ) ) {
-          if( _standalone && _standaloneControlMode == "simulator" 
+          if ( _standalone && _standaloneControlMode == "simulator"
               && _showSimulator) {
             _simPtr->drawWithComposition();
           }
 
-          if( _showPerformance ){
+          if ( _showPerformance ) {
             _framerateGraph.drawWithComposition();
           }
 
           // we draw the application's overlay last, if such exists. This is only
           // done on the master instance.
-          if( getMaster() ) {
+          if ( getMaster() ) {
             onOverlay();
           }
         }

@@ -14,7 +14,7 @@
 class SZG_CALL arNormal3Node: public arGraphicsArrayNode{
  public:
   arNormal3Node();
-  virtual ~arNormal3Node(){}
+  virtual ~arNormal3Node() {}
 
   virtual void initialize(arDatabase* database);
 

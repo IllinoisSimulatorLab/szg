@@ -13,13 +13,13 @@
 class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
  public:
   arPerspectiveCameraNode();
-  virtual ~arPerspectiveCameraNode(){}
+  virtual ~arPerspectiveCameraNode() {}
 
-  void draw(arGraphicsContext*){}
+  void draw(arGraphicsContext*) {}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
   void deactivate();
-  
+
   arPerspectiveCamera getCamera();
   void setCamera(const arPerspectiveCamera& camera);
 
