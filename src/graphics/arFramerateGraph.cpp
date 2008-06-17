@@ -10,9 +10,12 @@
 
 arPerformanceElement::arPerformanceElement(
   const int n, const float s, const arVector3& c, const int i, const string& name) :
-    scale(s), color(c), _data(NULL), _fInit(false), _i(i), _name(name)
+    _scale(s>0. ? 2./s : 1.0), _color(c), _data(NULL), _fInit(false), _i(i), _name(name)
 {
   setNumberEntries(n);
+  if (s < 0) {
+    ar_log_error() << "arPerformanceElement ignoring nonpositive scale " << s << ".\n";
+  }
 }
 
 arPerformanceElement::~arPerformanceElement() {
@@ -22,6 +25,9 @@ arPerformanceElement::~arPerformanceElement() {
 }
 
 void arPerformanceElement::setNumberEntries(const int number) {
+  if (number == _numberEntries)
+    return;
+
   if (_data) {
     delete [] _data;
   }
@@ -40,32 +46,55 @@ void arPerformanceElement::pushNewValue(float value) {
   memmove(_data, _data+1, (_numberEntries-1) * sizeof(_data[0]));
 
   // Smooth noise due to redrawing locked to graphics card's vertical retrace.
-  // todo: sinc filter instead of moving-average filter.
-  value = (value + _data[_numberEntries-2] + _data[_numberEntries-3] + _data[_numberEntries-4]) * .25;
-
+  // Moving-average filter.
+  value = (value +
+          _data[_numberEntries-2] +
+	  _data[_numberEntries-3] +
+	  _data[_numberEntries-4]) * .25;
   _data[_numberEntries-1] = value;
 }
 
+// In [0, 1).
+inline float arPerformanceElement::_dataValue(const int i) const {
+  const float y = _data[i] * _scale - 1.;
+  return y < .99 ? y : .99;
+}
+
+// Z-order: ruler behind constrast behind squiggle.
+const float zRuler = 42.;
+const float zBorder = 30.;
+const float zSquiggle = 0.02;
+
 void arPerformanceElement::draw() {
-  glColor3fv(color.v);
-  glBegin(GL_LINE_STRIP);
-  float x = -1.;
+  int i;
+  float x;
   const float dx = 2. / (_numberEntries-1);
-  for (int i=0; i<_numberEntries; ++i) {
-    x += dx;
-    const float y = _data[i]/scale * 2. - 1.;
-    glVertex3f(x, y<.99 ? y : .99, 0.02);
-    // 0 <= y < 1.
+
+  // Black border around squiggle, for contrast.
+  glLineWidth(9.);
+  glColor3f(0,0,0);
+  glBegin(GL_LINE_STRIP);
+  for (i=0, x=-1.; i<_numberEntries; ++i) {
+    glVertex3f(x += dx, _dataValue(i), zBorder);
   }
   glEnd();
 
-  // Labels.
-  const float y = _data[_numberEntries-1];
+  // Squiggle.
+  glLineWidth(3.);
+  glColor3fv(_color.v);
+  glBegin(GL_LINE_STRIP);
+  for (i=0, x=-1.; i<_numberEntries; ++i) {
+    glVertex3f(x += dx, _dataValue(i), zSquiggle);
+  }
+  glEnd();
+
+  // Labels.  Drawn last, for readability.
   char buf[80];
-  sprintf(buf, "%s %5d", _name.c_str(), int(y));
+  sprintf(buf, "%s %5d", _name.c_str(), int(_data[_numberEntries-1]));
   glRasterPos2f(-.8, .3 - _i * .17);
   for (const char* c = buf; *c; ++c)
     glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
+  glLineWidth(1.);
 }
 
 arFramerateGraph::arFramerateGraph() {
@@ -73,8 +102,7 @@ arFramerateGraph::arFramerateGraph() {
 }
 
 arFramerateGraph::~arFramerateGraph() {
-  arPerfElts::iterator i;
-  for (i = _valueContainer.begin(); i != _valueContainer.end(); ++i)
+  for (arPerfElts::iterator i = _valueContainer.begin(); i != _valueContainer.end(); ++i)
     delete i->second;
 }
 
@@ -90,10 +118,9 @@ void arFramerateGraph::draw() {
   glBegin(GL_LINES);
   for (int j=0; j<11; j++) {
     glColor3f(1, j==5 ? 1 : 0, 1);
-    const float z = 42.; // Force ruler behind data.
     const float y = j*.2 - 1.;
-    glVertex3f(-1, y, z);
-    glVertex3f( 1, y, z);
+    glVertex3f(-1, y, zRuler);
+    glVertex3f( 1, y, zRuler);
   }
   glEnd();
 

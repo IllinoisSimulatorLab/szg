@@ -21,9 +21,11 @@ class SZG_CALL arPerformanceElement{
   void pushNewValue(float);
   void draw();
 
-  const float     scale;
-  const arVector3 color;
+  const float     _scale;
+  const arVector3 _color;
  private:
+  inline float _dataValue(const int i) const;
+
   float* _data;
   int  _numberEntries;
   bool _fInit;
