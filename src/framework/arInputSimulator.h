@@ -36,10 +36,12 @@ class SZG_CALL arMatrix4Factored {
     _posReset(pos)
   {}
 
-  void resetPos() { _pos = _posReset; }
+  void resetPosition() { _pos = _posReset; }
+  void setPosition(const arVector3& v) { _pos = v; }
   void translate(const arVector3& v) { _pos += v; }
   void rotate(const float y, const float x, const float z)
     { eulers.addAngles(y, x, z); }
+  void extractRotation( const arMatrix4& mat ) { eulers.extract(mat); }
   operator arMatrix4() const { return ar_TM(_pos) * eulers.toMatrix(); }
 
  protected:

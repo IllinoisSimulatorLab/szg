@@ -173,6 +173,7 @@ class SZG_CALL arOBJRenderer {
     arBoundingSphere getBoundingSphere();
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
     float getIntersection( const arRay& theRay );
+    void mipmapTextures( bool onoff ) { _mipmapTextures = onoff; }
   protected:
     string _name;
     string _subdirectory;
@@ -182,6 +183,7 @@ class SZG_CALL arOBJRenderer {
     vector<arTexture*> _textures;
     vector<bool> _fOpacityMap;
     vector<arOBJGroupRenderer*> _renderGroups;
+    bool _mipmapTextures;
 };
 
 #endif

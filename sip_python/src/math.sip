@@ -791,7 +791,7 @@ arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
 
 //********** user interface, for mouse->3D
 
-arMatrix4 ar_planeToRotation(float,float) /TransferBack/;
+//UNUSED arMatrix4 ar_planeToRotation(float,float) /TransferBack/;
 
 //********** screen
 

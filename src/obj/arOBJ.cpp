@@ -822,7 +822,9 @@ float arOBJGroupRenderer::getIntersection( const arRay& theRay ) {
 arOBJRenderer::arOBJRenderer() :
   _name(""),
   _subdirectory(""),
-  _searchPath("") {
+  _searchPath(""),
+  _mipmapTextures(true)
+{
 }
 
 arOBJRenderer::~arOBJRenderer() {
@@ -941,6 +943,12 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
       _fOpacityMap[matID] = true;
       ar_log_remark() << "arOBJRenderer::readOBJ() read opacity map "
                       << thisMaterial.map_Opacity << ar_endl;
+    }
+    if (_mipmapTextures) {
+      arTexture* tex = _textures[matID];
+      if (tex) {
+        tex->mipmap(true);
+      }
     }
     ar_log_debug() << "arOBJRenderer::readOBJ() done preparing material #" << matID << ar_endl;
   }

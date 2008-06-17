@@ -267,6 +267,7 @@ class arOBJRenderer {
     arBoundingSphere getBoundingSphere() /TransferBack/;
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox() /TransferBack/;
     float getIntersection( const arRay& theRay );
+    void mipmapTextures( bool onoff );
   private:
     arOBJRenderer( const arOBJRenderer& );
 };

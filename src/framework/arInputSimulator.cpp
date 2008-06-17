@@ -246,11 +246,11 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
       break;
 
     case AR_SIM_HEAD_TRANSLATE:
-      _head.resetPos();
+      _head.resetPosition();
       break;
     case AR_SIM_WAND_TRANSLATE_HORIZONTAL:
     case AR_SIM_WAND_TRANSLATE_VERTICAL:
-      _wand.resetPos();
+      _wand.resetPosition();
       break;
 
     case AR_SIM_HEAD_ROTATE:

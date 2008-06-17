@@ -1237,7 +1237,7 @@ arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
                                const arVector3& planePoint,
                                const arVector3& planeNormal );
 
-arMatrix4 ar_planeToRotation(float,float);
+//UNUSED arMatrix4 ar_planeToRotation(float,float);
 
 arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
                 const arVector3& screenNormal,
