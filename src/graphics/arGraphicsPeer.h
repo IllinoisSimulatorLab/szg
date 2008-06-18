@@ -22,7 +22,7 @@ class SZG_CALL arGraphicsPeerCullObject{
   void frame();
   void insert(int ID, int state);
 
-  map<int, int, less<int> > cullOnOff;
+  arNodeMap cullOnOff;
   list<int> cullChangeOn;
   list<int> cullChangeOff;
 };
@@ -56,7 +56,7 @@ class SZG_CALL arGraphicsPeerConnection{
   // filter. This allows IDs of the incoming records to be *mapped*
   // to the appropriate IDs locally. This must happen *before*
   // the records hit the inFilter, since that operates on *local* ID.
-  map<int, int, less<int> > inMap;
+  arNodeMap inMap;
   // The in map starts somewhere, by default at the root node, but it
   // could be elsewhere.
   arDatabaseNode* rootMapNode;
@@ -70,7 +70,7 @@ class SZG_CALL arGraphicsPeerConnection{
 
   // Each connection includes information about how stuff on it should
   // be filtered going out.
-  map<int, int, less<int> > outFilter;
+  arNodeMap outFilter;
 
   // Need to hold info on when a node is updated (for filtering messages
   // to transient nodes).
@@ -187,7 +187,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
 
   // It is possible to lock a node (preventing futher changes to said
   // node). (map of nodes to connection IDs)
-  map<int, int, less<int> > _lockContainer;
+  arNodeMap _lockContainer;
   // Need to keep a list of connections with their properties.
   // (map of connectionIDs to nodes is contained herein)
   map<int, arGraphicsPeerConnection*, less<int> > _connectionContainer;
@@ -224,7 +224,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // for instance, be an arGraphicsServer embedded in an
   // arDistSceneGraphFramework.
   arGraphicsDatabase* _bridgeDatabase;
-  map<int, int, less<int> > _bridgeInMap;
+  arNodeMap _bridgeInMap;
   arDatabaseNode*           _bridgeRootMapNode;
 
   // To prevent loops, we keep track of the component ID (this is the Phleet
@@ -258,14 +258,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                         arSocket* socket,
                         arNodeLevel level);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
-                     arSocket* socket, map<int, int, less<int> >& outFilter,
+                     arSocket* socket, arNodeMap& outFilter,
                      arNodeLevel localSendLevel,
                      arNodeLevel sendLevel,
                      int& dataSent,
                      bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,
-                     map<int, int, less<int> >& filterMap); // Call only when _lock()'ed.
+                     arNodeMap& filterMap); // Call only when _lock()'ed.
   void _sendDataToBridge(arStructuredData*);
   bool _updateTransientMap(int nodeID,
 		  map<int, arGraphicsPeerUpdateInfo, less<int> >& transientMap,

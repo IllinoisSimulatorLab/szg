@@ -118,15 +118,16 @@ class SZG_CALL arDatabase{
                               const string& fileName,
                               const string& path="");
 
-  bool createNodeMap(int externalNodeID, arDatabase* externalDatabase,
-		     map<int, int, less<int> >& nodeMap);
+  bool createNodeMap(int externalNodeID,
+		     arDatabase* externalDatabase,
+		     arNodeMap& nodeMap);
   bool filterData(arStructuredData* record,
-		  map<int, int, less<int> >& nodeMap);
+		  arNodeMap& nodeMap);
   int  filterIncoming(arDatabaseNode* mappingRoot,
                       arStructuredData* record,
-	              map<int, int, less<int> >& nodeMap,
+	              arNodeMap& nodeMap,
 		      int* mappedIDs,
-		      map<int, int, less<int> >* outFilter,
+		      arNodeMap* outFilter,
 		      arNodeLevel outFilterLevel,
                       bool allNew);
 
@@ -207,33 +208,33 @@ class SZG_CALL arDatabase{
                          FILE* destFile);
   void _createNodeMap(arDatabaseNode* localNode, int externalNodeID,
 		      arDatabase* externalDatabase,
-		      map<int, int, less<int> >& nodeMap,
+		      arNodeMap& nodeMap,
 		      bool& failure);
-  void _insertOutFilter(map<int, int, less<int> >& outFilter,
+  void _insertOutFilter(arNodeMap& outFilter,
 			int nodeID,
 			arNodeLevel outFilterLevel); // Call only while lock()'d.
   arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
 				const string& nodeType,
 				const string& nodeName,
-				map<int, int, less<int> >& nodeMap);
+				arNodeMap& nodeMap);
   int _filterIncomingMakeNode(arDatabaseNode* mappingRoot,
                       arStructuredData* record,
-	              map<int, int, less<int> >& nodeMap,
+	              arNodeMap& nodeMap,
 		      int* mappedIDs,
-		      map<int, int, less<int> >* outFilter,
+		      arNodeMap* outFilter,
 		      arNodeLevel outFilterLevel,
                       bool allNew);
   int _filterIncomingInsert(arDatabaseNode* mappingRoot,
                       arStructuredData* data,
-	              map<int, int, less<int> >& nodeMap,
+	              arNodeMap& nodeMap,
 		      int* mappedIDs);
   int _filterIncomingErase(arDatabaseNode* mappingRoot,
                            arStructuredData* data,
-			   map<int, int, less<int> >& nodeMap);
+			   arNodeMap& nodeMap);
   int _filterIncomingCut(arStructuredData* data,
-			 map<int, int, less<int> >& nodeMap);
+			 arNodeMap& nodeMap);
   int _filterIncomingPermute(arStructuredData* data,
-			     map<int, int, less<int> >& nodeMap);
+			     arNodeMap& nodeMap);
 
   // The factory function that is redefined by subclasses.
   virtual arDatabaseNode* _makeNode(const string& type);

@@ -3122,7 +3122,7 @@ bool arSZGClient::writeLogin(const string& userName) {
   // userName may differ from _userName.
   // The internal storage refers to the effective user name of this
   // component, which the environment variable SZGUSER can override.
-  // userName is the Syzygy login name in the config file
+  // userName is the Syzygy login name in the config file.
   _config.setUserName(userName);
   _config.setServerName(_serverName);
   _config.setServerIP(_IPaddress);
@@ -3162,7 +3162,7 @@ void arSZGClient::messageTask() {
   exit(0);
 }
 
-// Since this kills via ID, it is better suited to killing the graphics programs.
+// This kills by ID, so it's better suited to killing the graphics programs.
 void arSZGClient::killIDs(list<int>* IDList) {
   if (IDList->empty())
     return;
@@ -3172,11 +3172,13 @@ void arSZGClient::killIDs(list<int>* IDList) {
   // Since remote components need not respond to the kill message, ask szgserver.
   // Ugly. Maybe a data structure with the request*Notifications?
   list<int> tags;
-  map<int, int, less<int> > tagToID;
+  // arNodeMap copied from arDatabase.h - tag to id, not node to node
+  typedef map< int, int, less<int> > arNodeMap;
+  arNodeMap tagToID;
   for (list<int>::iterator iter = kill.begin(); iter != kill.end(); ++iter) {
     const int tag = requestKillNotification(*iter);
     tags.push_back(tag);
-    tagToID.insert(map<int, int, less<int> >::value_type(tag, *iter));
+    tagToID.insert(arNodeMap::value_type(tag, *iter));
     sendMessage("quit", "", *iter);
   }
 
@@ -3188,9 +3190,9 @@ void arSZGClient::killIDs(list<int>* IDList) {
       for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n) {
 	// These components are unhealthy, if not already dead.
 	// So just remove them from szgserver's process table.
-	map<int, int, less<int> >::const_iterator iter = tagToID.find(*n);
+	arNodeMap::const_iterator iter = tagToID.find(*n);
         if (iter == tagToID.end()) {
-	  ar_log_critical() << "internal error: missing kill ID.\n";
+	  ar_log_critical() << "internal error: no component to kill with ID " << iter->second << ".\n";
 	}
 	else {
 	  ar_log_remark() << iter->second << " ";
@@ -3200,9 +3202,9 @@ void arSZGClient::killIDs(list<int>* IDList) {
       ar_log_remark() << "\nThese components have been removed from szgserver's process table.\n";
       return;
     }
-    map<int, int, less<int> >::const_iterator iter = tagToID.find(killedID);
+    arNodeMap::const_iterator iter = tagToID.find(killedID);
     if (iter == tagToID.end()) {
-      ar_log_critical() << "internal error: missing kill ID.\n";
+      ar_log_critical() << "internal error 2: no component to kill with ID " << iter->second << ".\n";
     }
     else {
       ar_log_remark() << "killed component with ID " << iter->second << ".\n";

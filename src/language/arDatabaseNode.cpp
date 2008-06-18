@@ -450,7 +450,7 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* r, int IDField) {
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
-                               const map<int, int, less<int> >* nodeMap,
+                               const arNodeMap* nodeMap,
                                const bool checkTop) {
   // Check self.
   if (checkTop && _name == name) {
@@ -485,7 +485,7 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
-                                     const map<int, int, less<int> >* nodeMap,
+                                     const arNodeMap* nodeMap,
                                      const bool checkTop) {
   // Check self.
   if (checkTop && getTypeString() == nodeType) {

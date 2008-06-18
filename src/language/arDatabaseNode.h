@@ -13,11 +13,14 @@
 #include "arLanguageCalling.h"
 using namespace std;
 
-// Forward declaration, since an arDatabaseNode can be owned by an arDatabase.
+// Forward declaration, since an arDatabase can own an arDatabaseNode.
 class arDatabase;
 
-// The nodes are of various types.
+// Common way to manage nodes.
+typedef map< int, int, less<int> > arNodeMap;
+SZG_CALL inline arNodeMap::value_type arNodePair(const int a, const int b) { return arNodeMap::value_type(a, b); }
 
+// Types of nodes.
 enum arNodeLevel{
   AR_IGNORE_NODE = -1,
   AR_STRUCTURE_NODE,
@@ -160,10 +163,9 @@ class SZG_CALL arDatabaseNode{
   void _dumpGenericNode(arStructuredData*, int);
   // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
-		 const map<int, int, less<int> >* nodeMap, const bool checkTop);
+		 const arNodeMap* nodeMap, const bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
-                       bool& success, const map<int, int, less<int> >* nodeMap,
-                       const bool checkTop);
+                       bool& success, const arNodeMap* nodeMap, const bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);
 };
 
