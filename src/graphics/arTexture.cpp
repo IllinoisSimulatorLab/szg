@@ -396,11 +396,12 @@ bool arTexture::readPPM(const string& fileName,
 
   fscanf(fd, "%d %d", &_width, &_height);
 
-  // todo: validate image dimensions (powers of two),
+  // todo: validate image dimensions (powers of two), with ar_isPowerOfTwo().
   // todo: if invalid, resize.
 
   int maxGrey = -1;
   fscanf(fd, "%d", &maxGrey);
+
   _alpha = (alpha != -1);
   if (!_reallocPixels()) {
     ar_log_error() << "arTexture readPPM _reallocPixels out of memory.\n";
@@ -524,7 +525,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
     return false;
   }
 
-  // todo: validate image dimensions (powers of two),
+  // todo: validate image dimensions (powers of two), with ar_isPowerOfTwo().
   // todo: if invalid, resize.
 
   int maxGrey = -1;
