@@ -410,11 +410,10 @@ bool arDistSceneGraphFramework::start() {
   return ok;
 }
 
-// Does the best it can to shut components down. Don't actually do anything
-// with the parameter (blockUntilDisplayExit) because we only run a
-// local display in standalone mode and hence do not need to worry about
-// getting a stop message from the message thread (which isn't connected
-// to anything in this case).
+// Shut components down.  Ignore blockUntilDisplayExit because 
+// standalone mode runs only a local display and hence needs no
+// stop message from the message thread (which isn't connected
+// to anything).
 void arDistSceneGraphFramework::stop(bool) {
   // Tell the app we're stopping.
   _exitProgram = true;
@@ -432,9 +431,8 @@ void arDistSceneGraphFramework::stop(bool) {
   _stopped = true;
 }
 
-// Used in standalone mode only. our application will display its
-// own window instead of using szgrender. The "useWindowing" parameter is ignored
-// by this framework.
+// Standalone.  Display own window instead of using szgrender.
+// This framework ignores parameter "useWindowing."
 bool arDistSceneGraphFramework::createWindows(bool) {
   if (!_standalone)
     return false;
@@ -467,14 +465,13 @@ void arDistSceneGraphFramework::loopQuantum() {
 
   // Events like closing the window and hitting the ESC key that cause the
   // window to close occur inside processWindowEvents(). Once they happen,
-  // stopped() will return true and this loop will exit.
+  // stopped() will return true, ending the loop containing this loopQuantum.
   _wm->processWindowEvents();
-  arPerformanceElement* el = _framerateGraph.getElement("framerate");
+  arPerformanceElement* el = _framerateGraph.getElement("fps");
   el->pushNewValue(1000000.0/ar_difftimeSafe(ar_time(), time1));
 }
 
-// Used in standalone mode only. In that case, our application will display its
-// own window instead of using szgrender.
+// Standalone (own window, not szgrender).
 void arDistSceneGraphFramework::exitFunction() {
   if (_standalone) {
     _wm->deleteAllWindows();
@@ -523,7 +520,7 @@ void arDistSceneGraphFramework::_initDatabases() {
   dsSetSoundDatabase(&_soundServer);
 
   if (_standalone) {
-    // Start up local connections before any alterations occur to the
+    // Start local connections before any alterations occur to the
     // local graphics server, since no connections occur.
 
     // With manual buffer swapping, use "nosync" mode so
@@ -535,7 +532,7 @@ void arDistSceneGraphFramework::_initDatabases() {
       ar_log_error() << "silent.\n";
   }
   else if (_peerName == "NULL") {
-    // In phleet mode (but not peer mode), the _syncServer *always* syncs with its client.
+    // In phleet mode (but not peer mode), _syncServer always syncs with its client.
     _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_SYNC_MANUAL_SERVER);
   }
 
@@ -693,7 +690,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode() {
     _simPtr->configure(_SZGClient);
     _graphicsClient.setSimulator(_simPtr);
   }
-  _framerateGraph.addElement("framerate", 300, 100, arVector3(1, 1, 1));
+  _framerateGraph.addElement("fps", 300, 100, arVector3(1, 1, 1));
   _graphicsClient.addFrameworkObject(&_framerateGraph);
   arSpeakerObject* speakerObject = new arSpeakerObject();
   if (!_soundClient.silent()) {
