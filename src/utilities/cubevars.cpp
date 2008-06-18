@@ -63,7 +63,7 @@ void glutEyeglasses(float x, float y, float z, const int i,
   const float xPupil = xNose + r;
   const float xEar = xNose + 2*r;
 
-  glLineWidth(2);
+  glLineWidth(2.);
   glPushMatrix();
     glTranslatef(x, y, z);
     glRotatef(rotY, 0, -1, 0);
@@ -114,7 +114,7 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
       glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
 #else
     // Thick huge font for dim projectors.
-    glLineWidth(3);
+    glLineWidth(3.);
     glTranslatef(x, y, z);
     glScalef(.004, .004, .004);
     glRotatef(rotY, 0, -1, 0);
@@ -286,9 +286,9 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   static arVector3 tipPosPrev(0, 5, -5);
   const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0, 0, -wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
-  clamp(vSaber, 0., .8);
+  clamp(vSaber, 0., 1.3);
   tipPosPrev = tipPos;
-  doSounds(iPing, fPing, fPong, vSaber>.8 ? .8 : vSaber);
+  doSounds(iPing, fPing, fPong, vSaber);
 }
 
 void bluesquare() {
@@ -350,7 +350,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   const int iEye = 1 + int(gw.getCurrentEyeSign());
   glColor3f(.2, .8, 0);
-  glLineWidth(3);
+  glLineWidth(3.);
 
   glutEyeglasses( .7, 0.5+.5,  -5, iEye, 0, 0);
   glutEyeglasses( -5, 3.5+.5, -.7, iEye, -90, 0);
@@ -408,7 +408,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   if (cm > 0) {
     // Reticle to show head orientation.
-    glLineWidth(2);
+    glLineWidth(2.);
     glPushMatrix();
       glMultMatrixf(rgm[0].v);
       glTranslatef(0, 0, -3); // in front of your eyes
@@ -468,12 +468,12 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPopMatrix();
   }
 
-  glLineWidth(3);
+  glLineWidth(3.);
   unsigned i;
   for (i=1; i<cm; ++i)
     drawWand(rgm[i]);
 
-  glLineWidth(1);
+  glLineWidth(1.);
 
   // Axes and buttons near first wand.
   if (cm > 1)
@@ -512,7 +512,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     if (ca >= 2) {
       // Box for the wand's joystick, in a square.
       const float joy=0.28;
-      glLineWidth(3);
+      glLineWidth(3.);
       glTranslatef(0.0 , joy, 0.0);
       glScalef(joy, joy, joy);
       glColor3f(.8, .4, .3);
@@ -537,7 +537,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
     // Slider for each axis.
     glTranslatef(1.5, 0, 0);
-    glLineWidth(2);
+    glLineWidth(2.);
     for (i=0; i<ca; ++i) {
       if (rgfjoy32k[i]) {
 	glColor3f(1, .7, 0);
@@ -546,7 +546,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 	glColor3f(.8, .4, .3);
       }
       glTranslatef(.5, 0, 0);
-      glLineWidth(2); // paranoid
+      glLineWidth(2.); // paranoid
       glBegin(GL_LINES);
 	glVertex3f( 0, -1, 0);
 	glVertex3f( 0,  1, 0);
