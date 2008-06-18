@@ -79,8 +79,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 	break;
     }
 
-    if ( fw->_standalone &&
-        fw->_standaloneControlMode == "simulator" ) {
+    if ( fw->_standalone && fw->_standaloneControlMode == "simulator" ) {
       // Forward keyboard events to the interface too.
       fw->_simPtr->keyboard( keyInfo->getKey(), 1, 0, 0 );
     }
@@ -97,8 +96,7 @@ void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
     return;
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->getUserData();
-  if ( fw->_standalone &&
-      fw->_standaloneControlMode == "simulator" ) {
+  if ( fw->_standalone && fw->_standaloneControlMode == "simulator" ) {
     if ( mouseInfo->getState() == AR_MOUSE_DOWN || mouseInfo->getState() == AR_MOUSE_UP ) {
       const int whichButton =
         ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
@@ -291,7 +289,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // Where input events are buffered for transfer to slaves.
   _callbackFilter.saveEventQueue( true );
 
-  // also need to add fields for our default-shared data
+  // Fields for default-shared data
   _transferTemplate.addAttribute( "harmony_ready",   AR_INT );
   _transferTemplate.addAttribute( "time",            AR_DOUBLE );
   _transferTemplate.addAttribute( "lastFrameTime",   AR_DOUBLE );
@@ -320,13 +318,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // instead of a default color
   _masterPort[ 0 ] = -1;
 
-  // Performance graphs.
-  const arVector3 white  (1, 1, 1);
-  const arVector3 yellow (1, 1, 0);
-  const arVector3 cyan   (0, 1, 1);
-  _framerateGraph.addElement( "      fps", 250,   100, white  );
-  _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
-  _framerateGraph.addElement( "sync usec", 250, 10000, cyan   );
   _showPerformance = false;
 
   // _defaultCamera.setHead( &_head );
@@ -377,6 +368,13 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     return false;
   }
 
+  // Performance graphs.
+  const arVector3 white  (1, 1, 1);
+  const arVector3 yellow (1, 1, 0);
+  const arVector3 cyan   (0, 1, 1);
+  _framerateGraph.addElement( "      fps", 250,   100, white  );
+  _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
+
   if ( !_SZGClient ) {
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
@@ -404,6 +402,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   }
 
   // Connected to szgserver.  Not standalone.
+  _framerateGraph.addElement( "sync usec", 250, 10000, cyan   );
 
   // Initialize a few things.
   dgSetGraphicsDatabase( &_graphicsDatabase );
@@ -694,8 +693,8 @@ void arMasterSlaveFramework::preDraw( void ) {
     _pollInputData();
 
     _inputEventQueue = _callbackFilter.getEventQueue();
-    arInputEventQueue myQueue( _inputEventQueue );
-    onProcessEventQueue( myQueue );
+    arInputEventQueue q( _inputEventQueue );
+    onProcessEventQueue( q );
 
     if (!(_harmonyInUse && !_harmonyReady)) {
       onPreExchange();
@@ -714,8 +713,8 @@ void arMasterSlaveFramework::preDraw( void ) {
   if ( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
     if (_harmonyInUse && !getMaster()) {
       // In pre-determined harmony mode, slaves get to process event queue.
-      arInputEventQueue myQueue2( _inputEventQueue );
-      onProcessEventQueue( myQueue2 );
+      arInputEventQueue q( _inputEventQueue );
+      onProcessEventQueue( q );
     }
     onPostExchange();
   }
@@ -728,7 +727,8 @@ void arMasterSlaveFramework::preDraw( void ) {
   // Frame rate bug: computed in _pollInputData, useless for slaves.
   _framerateGraph.getElement( "      fps" )->pushNewValue(1000. / _lastFrameTime);
   _framerateGraph.getElement( " cpu usec" )->pushNewValue(_lastComputeTime);
-  _framerateGraph.getElement( "sync usec" )->pushNewValue(_lastSyncTime);
+  if (!_standalone)
+    _framerateGraph.getElement( "sync usec" )->pushNewValue(_lastSyncTime);
 
   // Get performance metrics.
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
@@ -745,19 +745,18 @@ void arMasterSlaveFramework::draw( int windowID ) {
     _wm->drawWindow( windowID, true );
 }
 
-// What happens after the window is drawn, but before synchronizing.
+// After the window is drawn, and before synchronizing.
 void arMasterSlaveFramework::postDraw( void ) {
-  if (stopping())
+  if ( stopping() || _standalone )
     return;
 
   const ar_timeval postDrawStart = ar_time();
-
-  // For testing sync.
   if ( _framerateThrottle ) {
+    // Test sync.
     ar_usleep( 200000 );
   }
 
-  if ( !_standalone && !_sync() ) {
+  if ( !_sync() ) {
     ar_log_error() << "sync failed in postDraw().\n";
   }
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
