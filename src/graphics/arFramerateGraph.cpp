@@ -10,7 +10,12 @@
 
 arPerformanceElement::arPerformanceElement(
   const int n, const float s, const arVector3& c, const int i, const string& name) :
-    _scale(s>0. ? 2./s : 1.0), _color(c), _data(NULL), _fInit(false), _i(i), _name(name)
+    _scale(s>0. ? 2./s : 1.0),
+    _color(c),
+    _data(NULL),
+    _fInit(false),
+    _i(i),
+    _name(name)
 {
   setNumberEntries(n);
   if (s < 0) {
@@ -47,10 +52,10 @@ void arPerformanceElement::pushNewValue(float value) {
 
   // Smooth noise due to redrawing locked to graphics card's vertical retrace.
   // Moving-average filter.
-  value = (value +
-          _data[_numberEntries-2] +
-	  _data[_numberEntries-3] +
-	  _data[_numberEntries-4]) * .25;
+  value = .4 * value +
+          .3 * _data[_numberEntries-2] +
+	  .2 * _data[_numberEntries-3] +
+	  .1 * _data[_numberEntries-4];
   _data[_numberEntries-1] = value;
 }
 
