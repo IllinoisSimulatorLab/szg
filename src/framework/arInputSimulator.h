@@ -16,17 +16,19 @@
 #include <map>
 
 // Modes.
-enum arHeadWandSimState{
-  AR_SIM_HEAD_TRANSLATE = 0,
+enum arHeadWandSimState {
+  AR_SIM_BOX_ROTATE = 0,
+  AR_SIM_HEAD_TRANSLATE_HORIZONTAL,
+  AR_SIM_HEAD_TRANSLATE_VERTICAL,
   AR_SIM_HEAD_ROTATE,
   AR_SIM_WAND_TRANSLATE_HORIZONTAL,
   AR_SIM_WAND_TRANSLATE_VERTICAL,
   AR_SIM_WAND_ROTATE,
   AR_SIM_USE_JOYSTICK,
-  AR_SIM_BOX_ROTATE,
   AR_SIM_HEAD_ROLL,
-  AR_SIM_WAND_ROLL
+  AR_SIM_WAND_ROLL,
 };
+// AR_SIM_BOX_ROLL deliberately unimplemented.
 
 class SZG_CALL arMatrix4Factored {
  public:
@@ -115,10 +117,14 @@ class SZG_CALL arInputSimulator: public arFrameworkObject {
   void _drawGamepad() const;
   void _drawHead() const;
   void _drawWand() const;
-  void _drawTextState() const;
+  void _drawHint() const;
 
  private:
   arAziEle _box;
+  bool _fDragNeedsButton;
+  unsigned _numRows;
+  unsigned _rowLength() const { return _mouseButtons.size(); }
+  bool _updateButtonGrid();
 };
 
 #endif
