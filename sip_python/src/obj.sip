@@ -16,7 +16,6 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path);
 class arObject /Abstract/ {
 %TypeHeaderCode
 #include "arObject.h"
-string arObject::type() const { return "Invalid"; } // avoid warning
 %End
  public:
   arObject();
@@ -267,6 +266,7 @@ class arOBJRenderer {
     arBoundingSphere getBoundingSphere() /TransferBack/;
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox() /TransferBack/;
     float getIntersection( const arRay& theRay );
+    void activateTextures();
     void mipmapTextures( bool onoff );
   private:
     arOBJRenderer( const arOBJRenderer& );

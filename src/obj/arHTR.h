@@ -122,7 +122,7 @@ class SZG_CALL arHTR : public arObject {
     bool attachMesh(const string& baseName, const string& where, bool withLines);
     bool attachMesh(arGraphicsNode* parent, const string& objectName, bool withLines);
 
-    inline string type(void) const { return "HTR"; }
+    string type(void) const { return "HTR"; }
 
     void normalizeModelSize(void);
     void basicDataSmoothing();

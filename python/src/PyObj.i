@@ -166,6 +166,7 @@ class arOBJRenderer {
     arBoundingSphere getBoundingSphere();
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
     float getIntersection( const arRay& theRay );
+    void activateTextures();
     void mipmapTextures( bool onoff );
 };
 

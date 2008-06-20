@@ -50,7 +50,7 @@ class SZG_CALL arObject {
   virtual bool attachMesh(arGraphicsNode* parent, const string& objectName="") = 0;
 
   // kind of Object
-  virtual inline string type(void) const = 0;
+  virtual string type(void) const = 0;
 
   // supports basic animation commands?
   virtual bool supportsAnimation(void) const = 0;

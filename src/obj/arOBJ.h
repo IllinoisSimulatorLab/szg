@@ -69,7 +69,7 @@ class SZG_CALL arOBJ : public arObject {
     bool readOBJ(FILE* inputFile);
     int readMaterialsFromFile(arOBJMaterial* materialArray, char* theFilename);
 
-    inline string type() const {return "OBJ";}
+    string type() const {return "OBJ";}
 
     int numberOfTriangles()	{return _triangle.size();}
     int numberOfNormals()		{return _normal.size();}
@@ -173,6 +173,7 @@ class SZG_CALL arOBJRenderer {
     arBoundingSphere getBoundingSphere();
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
     float getIntersection( const arRay& theRay );
+    void activateTextures();
     void mipmapTextures( bool onoff ) { _mipmapTextures = onoff; }
   protected:
     string _name;

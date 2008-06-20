@@ -52,7 +52,7 @@ class SZG_CALL ar3DS : public arObject{
     bool prevFrame();
 
     // stats
-    inline string type() const { return "3DS"; } // arObject type
+    string type() const { return "3DS"; } // arObject type
 #ifdef Enable3DS
     int    numberOfFrames() const { return _file?_file->frames:-1; }
 #else

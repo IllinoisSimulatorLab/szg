@@ -987,6 +987,15 @@ arOBJGroupRenderer* arOBJRenderer::getGroup( const string& name ) {
   return NULL;
 }
 
+void arOBJRenderer::activateTextures() {
+  vector<arTexture*>::iterator titer;
+  for (titer = _textures.begin(); titer != _textures.end(); ++titer) {
+    if (*titer) {
+      (*titer)->activate();
+    }
+  }
+}
+
 void arOBJRenderer::draw() {
   vector<arOBJGroupRenderer*>::iterator iter;
   for (iter = _renderGroups.begin(); iter != _renderGroups.end(); ++iter) {

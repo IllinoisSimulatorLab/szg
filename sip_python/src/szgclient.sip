@@ -47,7 +47,7 @@ class arPhleetAddress {
     PyErr_SetString(PyExc_RuntimeError, "unable to allocate list for arPhleetAddress.portIDs");
   } else {
     for (int i=0; i<sipCpp->numberPorts; ++i) {
-      PyList_SET_ITEM(sipPy, i++, PyInt_FromLong( static_cast<long>(sipCpp->portIDs[i]) ) );
+      PyList_SET_ITEM(sipPy, i, PyInt_FromLong( static_cast<long>(sipCpp->portIDs[i]) ) );
     }
   }
 %End
