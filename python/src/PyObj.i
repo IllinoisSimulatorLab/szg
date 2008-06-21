@@ -160,6 +160,10 @@ class arOBJRenderer {
     int getNumberGroups() const;
     arOBJGroupRenderer* getGroup( unsigned int i );
     arOBJGroupRenderer* getGroup( const string& name );
+    int getNumberMaterials() const;
+    arMaterial* getMaterial( unsigned int i );
+    int getNumberTextures() const;
+    arTexture* getTexture( unsigned int i );
     void draw();
     void clear();
     void normalizeModelSize();

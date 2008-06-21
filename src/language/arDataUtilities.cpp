@@ -29,20 +29,6 @@ using namespace std;
 #include <sstream>
 
 
-static string __version("");
-
-string ar_versionString() {
-  if (__version == "") {
-    ostringstream os;
-    os << SZG_MAJOR_VERSION << "."
-       << SZG_MINOR_VERSION << "."
-       << SZG_PATCH_VERSION;
-    __version = os.str();
-  }
-  return __version;
-}
-
-
 string ar_getLastWin32ErrorString() {
   const DWORD errCode = GetLastError();
   LPTSTR s;
@@ -92,6 +78,22 @@ bool ar_winSockInit() {
 #include <unistd.h>
 
 #endif
+
+
+static string __version("");
+
+string ar_versionString() {
+  if (__version == "") {
+    ostringstream os;
+    os << SZG_MAJOR_VERSION << "."
+       << SZG_MINOR_VERSION << "."
+       << SZG_PATCH_VERSION;
+    __version = os.str();
+  }
+  return __version;
+}
+
+
 
 // Cross-platform clock.
 #ifdef AR_USE_WIN_32

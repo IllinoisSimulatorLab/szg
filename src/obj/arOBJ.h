@@ -167,6 +167,10 @@ class SZG_CALL arOBJRenderer {
     int getNumberGroups() const	{ return _renderGroups.size(); }
     arOBJGroupRenderer* getGroup( unsigned int i );
     arOBJGroupRenderer* getGroup( const string& name );
+    int getNumberMaterials() const { return _materials.size(); }
+    arMaterial* getMaterial( unsigned int i );
+    int getNumberTextures() const { return _textures.size(); }
+    arTexture* getTexture( unsigned int i );
     void draw();
     void clear();
     void normalizeModelSize();

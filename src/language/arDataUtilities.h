@@ -25,13 +25,13 @@
 using namespace std;
 
 #ifdef AR_USE_WIN_32
-bool SZG_CALL ar_winSockInit();
-string SZG_CALL ar_getLastWin32ErrorString();
+SZG_CALL bool ar_winSockInit();
+SZG_CALL string ar_getLastWin32ErrorString();
 #endif
 
 // Version
 
-string SZG_CALL ar_versionString();
+SZG_CALL string ar_versionString();
 
 // Small utility classes.
 

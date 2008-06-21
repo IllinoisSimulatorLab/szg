@@ -13,7 +13,7 @@
 // Should eventually manage full surface coloration: multi-texturing, pixel shaders, etc.
 // Placeholder for now.
 
-class SZG_CALL arMaterial{
+class SZG_CALL arMaterial {
  public:
   arMaterial();
   arMaterial(const arMaterial&);
