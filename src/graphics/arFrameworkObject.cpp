@@ -42,6 +42,7 @@ void arFrameworkObject::preComposition(float lowerX, float lowerY,
   // the application's render is faded (after depth buffer is cleared).
   // So... the visual effect should be something like a faded square of the
   // application with a 3D overlay.
+  // Be nice if there were some easier way to "disable everything..."
   glPushAttrib( GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDisable( GL_TEXTURE_1D );
   glDisable( GL_TEXTURE_2D );
