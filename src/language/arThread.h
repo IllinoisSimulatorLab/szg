@@ -72,10 +72,10 @@ class SZG_CALL arGuard {
 class SZG_CALL arBoolAtom {
  public:
   arBoolAtom(bool x=false) : _x(x) {}
+  arBoolAtom& operator=(const bool x)
+    { _l.lock(); _x = x; _l.unlock(); return *this; }
   operator bool() const
     { _l.lock(); const bool x = _x; _l.unlock(); return x; }
-  void operator=(const bool x)
-    { _l.lock(); _x = x; _l.unlock(); }
   bool set(bool x)
     { _l.lock(); _x = x; _l.unlock(); return x; }
  private:
@@ -86,10 +86,10 @@ class SZG_CALL arBoolAtom {
 class SZG_CALL arIntAtom {
  public:
   arIntAtom(int x=0) : _x(x) {}
+  arIntAtom& operator=(const int x)
+    { _l.lock(); _x = x; _l.unlock(); return *this; }
   operator int() const
     { _l.lock(); const int x = _x; _l.unlock(); return x; }
-  void operator=(const int x)
-    { _l.lock(); _x = x; _l.unlock(); }
   int set(int x)
     { _l.lock(); _x = x; _l.unlock(); return x; }
   friend int operator++(arIntAtom& a) // prefix operator only
