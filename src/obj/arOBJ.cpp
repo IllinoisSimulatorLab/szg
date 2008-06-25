@@ -314,22 +314,22 @@ arAxisAlignedBoundingBox arOBJ::getAxisAlignedBoundingBox(int groupID) {
     for (int j=0; j<3; j++) {
       arVector3 vertex = _vertex[_triangle[_group[groupID][i]].vertices[j]];
       if (vertex[0] < xMin) {
-	xMin = vertex[0];
+        xMin = vertex[0];
       }
       if (vertex[0] > xMax) {
-	xMax = vertex[0];
+        xMax = vertex[0];
       }
       if (vertex[1] < yMin) {
-	yMin = vertex[1];
+        yMin = vertex[1];
       }
       if (vertex[1] > yMax) {
-	yMax = vertex[1];
+        yMax = vertex[1];
       }
       if (vertex[2] < zMin) {
-	zMin = vertex[2];
+        zMin = vertex[2];
       }
       if (vertex[2] > zMax) {
-	zMax = vertex[2];
+        zMax = vertex[2];
       }
     }
   }
@@ -759,6 +759,18 @@ arAxisAlignedBoundingBox arOBJGroupRenderer::getAxisAlignedBoundingBox() {
     return arAxisAlignedBoundingBox();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
+  if (vertices.size() == 0) {
+    ar_log_warning() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() ignoring zero-vertex group.\n";
+    return arAxisAlignedBoundingBox();
+  }
+  if (_vertexIndices.size() == 0) {
+    ar_log_warning() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() found no vertex indices.\n";
+    return arAxisAlignedBoundingBox();
+  }
+  if ((_vertexIndices[0] < 0) || ((unsigned)_vertexIndices[0] >= vertices.size())) {
+    ar_log_error() << "arOBJGroupRenderer::getAxisAlignedBoundingBox() ignoring invalid vertex index.\n";
+    return arAxisAlignedBoundingBox();
+  }
   arVector3& firstCoord = vertices[_vertexIndices[0]];
   float xMin = firstCoord[0];
   float xMax = firstCoord[0];
