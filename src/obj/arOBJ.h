@@ -174,6 +174,7 @@ class SZG_CALL arOBJRenderer {
     void draw();
     void clear();
     void normalizeModelSize();
+    void transformVertices( const arMatrix4& matrix );
     arBoundingSphere getBoundingSphere();
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
     float getIntersection( const arRay& theRay );

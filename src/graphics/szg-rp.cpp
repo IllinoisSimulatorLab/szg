@@ -380,7 +380,7 @@ void display() {
   glLoadIdentity();
   gluLookAt(0,5,20, 0,5,0, 0,1,0);*/
   globalCamera.loadViewMatrices();
-  arMatrix4 projectionCullMatrix(globalCamera.getProjectionMatrix());
+  arMatrix4 projectionMatrix(globalCamera.getProjectionMatrix());
   PeerContainer::iterator i;
   peerLock.lock();
   // first pass to draw the peers
@@ -394,7 +394,7 @@ void display() {
     glPushMatrix();
       glMultMatrixf(i->second.transform.v);
       i->second.peer->activateLights();
-      i->second.peer->draw(&projectionCullMatrix);
+      i->second.peer->draw(&projectionMatrix);
     glPopMatrix();
   }
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG

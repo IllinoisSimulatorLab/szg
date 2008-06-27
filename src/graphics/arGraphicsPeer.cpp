@@ -1329,7 +1329,7 @@ int arGraphicsPeer::_getWorkingFieldID(int dataID) {
 void arGraphicsPeer::_motionCull(arGraphicsNode* node,
 			         stack<arMatrix4>& transformStack,
 				 arGraphicsPeerCullObject* cull,
-			         arMatrix4& projectionCullMatrix) {
+			         arMatrix4& projectionMatrix) {
   arMatrix4 tempMatrix;
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
     // Push current onto the matrix stack.
@@ -1341,7 +1341,7 @@ void arGraphicsPeer::_motionCull(arGraphicsNode* node,
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
     const arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
     cull->insert(node->getID(),
-      b.intersectViewFrustum(projectionCullMatrix*transformStack.top()) ? 1 : 0);
+      b.intersectViewFrustum(projectionMatrix*transformStack.top()) ? 1 : 0);
     // DO NOT DRAW CHILDREN EITHER WAY! THIS IS DEFINITELY A HACK!
     // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
     return;
@@ -1351,7 +1351,7 @@ void arGraphicsPeer::_motionCull(arGraphicsNode* node,
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++) {
     _motionCull((arGraphicsNode*)(*i), transformStack,
-		cull, projectionCullMatrix);
+		cull, projectionMatrix);
   }
   // Must unref to prevent memory leaks.
   ar_unrefNodeList(children);

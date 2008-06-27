@@ -205,7 +205,7 @@ class arBoundingSphere {
     sipRes = new arVector3(sipCpp->position);
 %End
 
-  float getRadiu();
+  float getRadius();
 %MethodCode
     sipRes = sipCpp->radius;
 %End
@@ -266,6 +266,7 @@ class arOBJRenderer {
     arTexture* getTexture( unsigned int i );
     void draw();
     void clear();
+    void transformVertices( const arMatrix4& matrix );
     void normalizeModelSize();
     arBoundingSphere getBoundingSphere() /TransferBack/;
     arAxisAlignedBoundingBox getAxisAlignedBoundingBox() /TransferBack/;

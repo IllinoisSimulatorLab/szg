@@ -399,26 +399,26 @@ void arGraphicsDatabase::draw( arGraphicsWindow& win, arViewport& view ) {
   // Replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   arGraphicsContext context( &win, &view );
-  arMatrix4 projectionCullMatrix(view.getCamera()->getProjectionMatrix());
+  arMatrix4 projectionMatrix(view.getCamera()->getProjectionMatrix());
   // Note how we use a "graphics context" for rendering.
   _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
-        &projectionCullMatrix);
+        &projectionMatrix);
 }
 
 
-void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix) {
+void arGraphicsDatabase::draw(arMatrix4* projectionMatrix) {
   // Replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   arGraphicsContext context;
   // Note how we use a "graphics context" for rendering.
   _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
-        projectionCullMatrix);
+        projectionMatrix);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node,
                                stack<arMatrix4>& transformStack,
                                arGraphicsContext* context,
-                               arMatrix4* projectionCullMatrix) {
+                               arMatrix4* projectionMatrix) {
 
   // Word of warning: lock/unlock is DEFINITELY costly when done per-node.
   // To make the API really thread-safe, some kind of node-level locking
@@ -431,11 +431,11 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   if (context) {
     context->pushNode(node);
   }
-  arMatrix4 tempMatrix;
+  arMatrix4 modelViewMatrix;
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
     // Push current onto the matrix stack.
-    glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
-    transformStack.push(tempMatrix);
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix.v);
+    transformStack.push(modelViewMatrix);
   }
 
   // Draw the node and its children except:
@@ -450,11 +450,11 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 
   // View frustum culling.
-  if (projectionCullMatrix && node->getTypeCode()
+  if (projectionMatrix && node->getTypeCode()
       == AR_G_BOUNDING_SPHERE_NODE) {
-    glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix.v);
     arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
-    arMatrix4 view = (*projectionCullMatrix)*tempMatrix;
+    arMatrix4 view = (*projectionMatrix)*modelViewMatrix;
     if (!b.intersectViewFrustum(view)) {
       // It is safe to return here... but don't forget to pop the node stack!
       if (context) {
@@ -471,13 +471,13 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     // Use _children, not getChildren(), to avoid copying the whole list.
     const list<arDatabaseNode*>& children = node->_children;
     for (list<arDatabaseNode*>::const_iterator i = children.begin(); i != children.end(); ++i) {
-      _draw((arGraphicsNode*)(*i), transformStack, context, projectionCullMatrix);
+      _draw((arGraphicsNode*)(*i), transformStack, context, projectionMatrix);
     }
   }
 
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
     // Pop from stack.
-    tempMatrix = transformStack.top();
+    arMatrix4 tempMatrix = transformStack.top();
     transformStack.pop();
     // Restore the matrix state.
     glLoadMatrixf(tempMatrix.v);

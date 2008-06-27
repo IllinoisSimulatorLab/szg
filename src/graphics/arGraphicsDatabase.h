@@ -66,7 +66,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   void setVRCameraID(int cameraID);
 
   void draw( arGraphicsWindow& win, arViewport& view );
-  void draw(arMatrix4* projectionCullMatrix = NULL);
+  void draw(arMatrix4* projectionMatrix = NULL);
   int intersect(const arRay&);
   list<arDatabaseNode*> intersect(const arBoundingSphere& b, bool addRef=false);
   list<arDatabaseNode*> intersectRef(const arBoundingSphere& b);

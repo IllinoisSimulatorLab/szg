@@ -734,6 +734,14 @@ arBoundingSphere arOBJGroupRenderer::getBoundingSphere() {
     return arBoundingSphere();
   }
   vector<arVector3>& vertices = _renderer->_vertices;
+  if (vertices.size() == 0) {
+    ar_log_warning() << "arOBJGroupRenderer::getBoundingSphere() ignoring zero-vertex group.\n";
+    return arBoundingSphere();
+  }
+  if (_vertexIndices.size() == 0) {
+    ar_log_warning() << "arOBJGroupRenderer::getBoundingSphere() found no vertex indices.\n";
+    return arBoundingSphere();
+  }
   // first, walk through the triangle list and accumulate the average position
   arVector3 center(0, 0, 0);
   vector<int>::iterator iter;
@@ -1068,6 +1076,15 @@ void arOBJRenderer::normalizeModelSize() {
   const float maxDist = (maxVec-minVec).magnitude()/2.;
   for (iter = _vertices.begin(); iter != _vertices.end(); ++iter) {
     *iter = (*iter - center)/maxDist;
+  }
+}
+
+
+// Transform vertices in-place.
+void arOBJRenderer::transformVertices( const arMatrix4& matrix ) {
+  vector<arVector3>::iterator iter;
+  for (iter = _vertices.begin(); iter != _vertices.end(); ++iter) {
+    *iter = matrix * (*iter);
   }
 }
 
