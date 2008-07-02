@@ -32,31 +32,36 @@ bool arBoundingSphere::intersectViewFrustum(const arMatrix4& mArg) const {
   const arVector3 n2(m[1], m[5], m[9]);
   const arVector3 n3(m[2], m[6], m[10]);
   const arVector3 n4(m[3], m[7], m[11]);
+  const float m14( m[12] );
+  const float m24( m[13] );
+  const float m34( m[14] );
+  const float m44( m[15] );
+  // Check the frustum planes in turn.
   arVector3 temp = n1 - n4;
   // Check the frustum planes in turn.
-  if (temp%position + m[12] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) + m14 - m44 > radius*temp.magnitude()) {
     return false;
   }
   temp = -n1 - n4;
-  if (temp%position - m[12] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) - m14 - m44 > radius*temp.magnitude()) {
     return false;
   }
   // Next 2.
   temp = n2 - n4;
-  if (temp%position + m[13] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) + m24 - m44 > radius*temp.magnitude()) {
     return false;
   }
   temp = -n2 - n4;
-  if (temp%position - m[13] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) - m24 - m44 > radius*temp.magnitude()) {
     return false;
   }
   // Next 2.
   temp = n3 - n4;
-  if (temp%position + m[14] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) + m34 - m44 > radius*temp.magnitude()) {
     return false;
   }
   temp = -n3 - n4;
-  if (temp%position - m[14] - m[15] > radius*temp.magnitude()) {
+  if (temp.dot(position) - m34 - m44 > radius*temp.magnitude()) {
     return false;
   }
   return true;

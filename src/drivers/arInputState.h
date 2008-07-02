@@ -13,6 +13,8 @@
 #include <ostream>
 #include "arSTLalgo.h"
 
+using namespace std;
+
 template <class eventDataType> class arInputDeviceMap {
   public:
     friend class arInputState;
@@ -37,6 +39,10 @@ template <class eventDataType> class arInputDeviceMap {
     vector<unsigned> _deviceNumEvents;
     vector<unsigned> _deviceEventOffsets;
 };
+
+typedef arInputDeviceMap<int> arIntInputDeviceMap;
+typedef arInputDeviceMap<float> arFloatInputDeviceMap;
+typedef arInputDeviceMap<arMatrix4> arMatrixInputDeviceMap;
 
 // A snapshot of input-device values,
 // in particular button values.
@@ -98,6 +104,10 @@ class SZG_CALL arInputState {
     void updateLastButtons();
     void updateLastButton( const unsigned index );
 
+    arIntInputDeviceMap getButtonDeviceMap() const { return _buttonInputMap; }
+    arFloatInputDeviceMap getAxisDeviceMap() const { return _axisInputMap; }
+    arMatrixInputDeviceMap getMatrixDeviceMap() const { return _matrixInputMap; }
+
   private:
     void _init();
 
@@ -124,9 +134,9 @@ class SZG_CALL arInputState {
     vector<int> _lastButtons;
 
     // Map multiple inputs to a single event index space.
-    arInputDeviceMap<int> _buttonInputMap;
-    arInputDeviceMap<float> _axisInputMap;
-    arInputDeviceMap<arMatrix4> _matrixInputMap;
+    arIntInputDeviceMap _buttonInputMap;
+    arFloatInputDeviceMap _axisInputMap;
+    arMatrixInputDeviceMap _matrixInputMap;
 
     mutable arLock _l;
 };

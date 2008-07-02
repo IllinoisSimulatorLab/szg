@@ -199,8 +199,6 @@ void arInputSimulator::drawWithComposition() {
 // device to newly connected arInputNodes.
 void arInputSimulator::advance() {
   // We should send only data that changed,
-  // but with an exception to send everything every few seconds for
-  // clients who join late.
   //
   // TODO: Handle this at a lower level.
   // When a remote client connects to the input device,
@@ -337,8 +335,8 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y) {
       }
       const unsigned eventIndex = _mouseButtons.size() * _buttonSelector + buttonOffset;
       if (eventIndex >= _newButtonEvents.size()) {
-        ar_log_error() << "arInputSimulator ignoring out-of-range button-event index " <<
-	  eventIndex << ".\n";
+        ar_log_error() << "arInputSimulator ignoring out-of-range button-event index "
+                       << eventIndex << ".\n";
         return;
       }
       _newButtonEvents[eventIndex] = state;

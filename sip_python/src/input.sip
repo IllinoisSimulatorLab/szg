@@ -101,6 +101,68 @@ class arGarbageEvent : arInputEvent {
 
 
 
+class arIntInputDeviceMap {
+%TypeHeaderCode
+#include "arInputState.h"
+%End
+  public:
+    arIntInputDeviceMap();
+    ~arIntInputDeviceMap();
+    unsigned getNumberDevices() const;
+    unsigned getNumberEvents() const;
+    unsigned getNumberDeviceEvents( const unsigned iDevice ) const;
+    bool getEventOffset( const unsigned iDevice, unsigned& offset ) const;
+//    void addInputDevice( const unsigned numEvents,
+//                         vector<eventDataType>& dataSpace );
+//    bool remapInputEvents( const unsigned iDevice,
+//                           const unsigned newNumEvents,
+//                           vector<eventDataType>& dataSpace );
+  private:
+   arIntInputDeviceMap( const arIntInputDeviceMap& rhs );
+};
+
+class arFloatInputDeviceMap {
+%TypeHeaderCode
+#include "arInputState.h"
+%End
+  public:
+    arFloatInputDeviceMap();
+    ~arFloatInputDeviceMap();
+    unsigned getNumberDevices() const;
+    unsigned getNumberEvents() const;
+    unsigned getNumberDeviceEvents( const unsigned iDevice ) const;
+    bool getEventOffset( const unsigned iDevice, unsigned& offset ) const;
+//    void addInputDevice( const unsigned numEvents,
+//                         vector<eventDataType>& dataSpace );
+//    bool remapInputEvents( const unsigned iDevice,
+//                           const unsigned newNumEvents,
+//                           vector<eventDataType>& dataSpace );
+  private:
+   arFloatInputDeviceMap( const arFloatInputDeviceMap& rhs );
+};
+
+class arMatrixInputDeviceMap {
+%TypeHeaderCode
+#include "arInputState.h"
+%End
+  public:
+    arMatrixInputDeviceMap();
+    ~arMatrixInputDeviceMap();
+    unsigned getNumberDevices() const;
+    unsigned getNumberEvents() const;
+    unsigned getNumberDeviceEvents( const unsigned iDevice ) const;
+    bool getEventOffset( const unsigned iDevice, unsigned& offset ) const;
+//    void addInputDevice( const unsigned numEvents,
+//                         vector<eventDataType>& dataSpace );
+//    bool remapInputEvents( const unsigned iDevice,
+//                           const unsigned newNumEvents,
+//                           vector<eventDataType>& dataSpace );
+  private:
+   arMatrixInputDeviceMap( const arMatrixInputDeviceMap& rhs );
+};
+
+
+
 class arInputState {
 %TypeHeaderCode
 #include "arInputState.h"
@@ -158,6 +220,11 @@ class arInputState {
                         
     void updateLastButtons();
     void updateLastButton( const unsigned index );
+
+    arIntInputDeviceMap getButtonDeviceMap() const /TransferBack/;
+    arFloatInputDeviceMap getAxisDeviceMap() const /TransferBack/;
+    arMatrixInputDeviceMap getMatrixDeviceMap() const /TransferBack/;
+
 };  
 
 

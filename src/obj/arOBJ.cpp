@@ -1091,6 +1091,10 @@ void arOBJRenderer::transformVertices( const arMatrix4& matrix ) {
 // Return a sphere centered at the average of all the triangles in the group,
 // with a radius that includes all the points.
 arBoundingSphere arOBJRenderer::getBoundingSphere() {
+  if (_vertices.size() == 0) {
+    ar_log_warning() << "arOBJRenderer::getBoundingSphere() ignoring zero-vertex OBJ.\n";
+    return arBoundingSphere();
+  }
   // copypaste -- look for radius2 in this source file
   // first, walk through the triangle list and accumulate the average position
   arVector3 center(0, 0, 0);
