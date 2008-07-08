@@ -69,7 +69,7 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
     ++_numMaterials;
   }
   // make at least two material containers
-  _numMaterials = _numMaterials>2?_numMaterials:2;
+  _numMaterials = (_numMaterials>2)?(_numMaterials):(2);
 
   arMatrix4 topMatrix;
   if (_normalize) {
@@ -184,14 +184,14 @@ void ar3DS::attachChildNode(const string &baseName,
       // see if the material exists already
       for (i=1; i<materials.size(); ++i) {
       	if (materialNames[i] == string(f.material)) {
-	  materialFaces[i].push_back(j);
+          materialFaces[i].push_back(j);
           break;
-	}
+        }
       }
       	// if no matching material found, create a new one
       if (i == materials.size()) {
         materials.push_back(lib3ds_file_material_by_name(_file, f.material));
-	materialNames[i] = string(f.material);
+        materialNames[i] = string(f.material);
         materialFaces[materials.size()-1].push_back(j);
       }
     }
@@ -200,8 +200,7 @@ void ar3DS::attachChildNode(const string &baseName,
 
     // Add the point and normals to respective temp. storage
     for (i=0; i<3; ++i) {
-      lib3ds_vector_transform(
-	vPoint, invMeshMatrix, mesh->pointL[f.points[i]].pos);
+      lib3ds_vector_transform( vPoint, invMeshMatrix, mesh->pointL[f.points[i]].pos);
       memcpy(points + 9*j+3*i, &vPoint[0], 3*sizeof(float));
       memcpy(norms  + 9*j+3*i, &normalL[3*j+i][0], 3*sizeof(float));
     }
@@ -342,10 +341,10 @@ void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
     for (unsigned i=0; i<3; ++i) {
       lib3ds_vector_transform(v, invMeshMatrix, mesh->pointL[f.points[i]].pos);
       for (unsigned k=0; k<3; k++) {
-	if (v[k] > _maxVec[k])
-	  _maxVec[k] = v[k];
-	if (v[k] < _minVec[k])
-	  _minVec[k] = v[k];
+        if (v[k] > _maxVec[k])
+          _maxVec[k] = v[k];
+        if (v[k] < _minVec[k])
+          _minVec[k] = v[k];
       }
     }
   }
