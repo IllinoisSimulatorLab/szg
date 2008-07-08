@@ -197,3 +197,107 @@ public:
   arTexture originalImage;
 };
 
+
+// Ray, for intersection testing.
+class arRay {
+%TypeHeaderCode
+#include "arRay.h"
+%End
+ public:
+  arRay();
+  arRay(const arVector3& origin, const arVector3& direction);
+  arRay(const arRay&);
+  ~arRay();
+
+  void transform(const arMatrix4&);
+  // Compute intersection with sphere.
+  // Return -1 if no intersection, otherwise return distance
+  float intersect(float radius, const arVector3& position);
+  float intersect(const arBoundingSphere& b);
+  const arVector3& getOrigin() const;
+  const arVector3& getDirection() const;
+  arVector3 origin;
+  arVector3 direction;
+
+  string __str__();
+%MethodCode
+    ostringstream s;
+    s << "arRay( ";
+    s << sipCpp->origin << " -> ";
+    s << sipCpp->direction << " )";
+    sipRes = new string(s.str());
+%End
+};
+
+
+class arFrustumPlanes {
+%TypeHeaderCode
+#include "arRay.h"
+%End
+ public:
+  arFrustumPlanes();
+  arFrustumPlanes( const arMatrix4& matrix );
+  arFrustumPlanes( const arFrustumPlanes& rhs );
+  ~arFrustumPlanes();
+  arVector3 getNormal( unsigned int i ) /TransferBack/;
+%MethodCode
+    sipRes = new arVector3(sipCpp->normals[a0]);
+%End
+
+  float getDistance( unsigned int i );
+%MethodCode
+    sipRes = sipCpp->D[a0];
+%End
+};
+
+// Bounding sphere.
+class arBoundingSphere {
+%TypeHeaderCode
+#include "arRay.h"
+%End
+ public:
+  arBoundingSphere();
+  arBoundingSphere(const arVector3& position, float radius);
+  arBoundingSphere(const arBoundingSphere&);
+  ~arBoundingSphere();
+
+  // Somewhat inaccurate. Only works if the matrix maps spheres to spheres.
+  void transform(const arMatrix4& m);
+  // There are three possibilities when trying to intersect two spheres.
+  // 1. They do not intersect.
+  // 2. They intersect but do not contain one another.
+  // 3. One sphere contains the other.
+  // The return value are correspondingly:
+  // -1: do not intersect, do not contain one another.
+  // >= 0: intersect or one sphere contains the other. Distance between centers.
+  float intersect(const arBoundingSphere&) const;
+  bool intersectViewFrustum(const arFrustumPlanes&) const;
+  bool intersectViewFrustum(const arMatrix4&) const;
+
+  arVector3 position;
+  float     radius;
+  bool      visibility;
+
+  arVector3 getPosition() /TransferBack/;
+%MethodCode
+    sipRes = new arVector3(sipCpp->position);
+%End
+
+  float getRadius();
+%MethodCode
+    sipRes = sipCpp->radius;
+%End
+
+  string __str__();
+%MethodCode
+    ostringstream s;
+    s << "arBoundingSphere\n";
+    s << "  position: arVector3" << sipCpp->position << "\n";
+    s << "  radius: " << sipCpp->radius << "\n";
+    s << "  visibility: " << sipCpp->visibility << "\n";
+    sipRes = new string( s.str() );
+%End
+};
+
+
+

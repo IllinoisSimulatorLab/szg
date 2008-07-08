@@ -5,6 +5,7 @@ VPATH = ../../../src/graphics
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
+  arRay$(OBJ_SUFFIX) \
   arGraphicsPluginNode$(OBJ_SUFFIX) \
   arGraphicsClient$(OBJ_SUFFIX) \
   arGraphicsContext$(OBJ_SUFFIX) \
@@ -50,7 +51,6 @@ OBJS = \
   arPerspectiveCamera$(OBJ_SUFFIX) \
   arPerspectiveCameraNode$(OBJ_SUFFIX) \
   arPointsNode$(OBJ_SUFFIX) \
-  arRay$(OBJ_SUFFIX) \
   arTex2Node$(OBJ_SUFFIX) \
   arTexFont$(OBJ_SUFFIX) \
   arTexture$(OBJ_SUFFIX) \

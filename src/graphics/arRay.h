@@ -11,8 +11,35 @@
 
 // The classes in this file are related to geometric processing.
 
+
+class arBoundingSphere;
+
+class SZG_CALL arFrustumPlanes {
+ public:
+  arFrustumPlanes();
+  arFrustumPlanes( const arMatrix4& matrix );
+  arFrustumPlanes( const arFrustumPlanes& rhs );
+  ~arFrustumPlanes() {}
+  arVector3 normals[6];
+  float D[6];
+
+ private:
+	enum PLANE_INDEX {
+		TOP = 0,
+		BOTTOM,
+		LEFT,
+		RIGHT,
+		NEARP,
+		FARP
+	};
+  void _setFromMatrix( const arMatrix4& matrix );
+  void _setCoefficients( PLANE_INDEX i, const float a, const float b, const float c, const float d );
+};
+  
+  
+
 // Bounding sphere.
-class SZG_CALL arBoundingSphere{
+class SZG_CALL arBoundingSphere {
  public:
   arBoundingSphere(): radius(0), visibility(false) {}
   arBoundingSphere(const arVector3& pos, float rad) : radius(rad), position(pos) {}
@@ -28,6 +55,7 @@ class SZG_CALL arBoundingSphere{
   float intersect(const arBoundingSphere&) const;
 
   bool intersectViewFrustum(const arMatrix4&) const;
+  bool intersectViewFrustum(const arFrustumPlanes&) const;
 
   float     radius;
   bool      visibility;
@@ -36,7 +64,7 @@ class SZG_CALL arBoundingSphere{
 
 // Ray, for intersection testing.
 
-class SZG_CALL arRay{
+class SZG_CALL arRay {
  public:
   arRay() {}
   arRay(const arVector3& o, const arVector3& d): origin(o), direction(d) {}
@@ -62,6 +90,5 @@ class SZG_CALL arRay{
 inline float ar_intersectRayTriangle(
   const arRay& r, const arVector3& v1, const arVector3& v2, const arVector3& v3)
   { return ar_intersectRayTriangle(r.getOrigin(), r.getDirection(), v1, v2, v3); }
-
 
 #endif
