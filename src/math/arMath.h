@@ -9,6 +9,10 @@
 #include "arLogStream.h"
 #include "arMathCalling.h"
 
+#ifdef AR_USE_LINUX
+#include <string.h> // for memcpy etc, newer g++.
+#endif
+
 #include <iostream>
 #include <math.h>
 #include <string>

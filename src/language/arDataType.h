@@ -6,6 +6,10 @@
 #ifndef AR_DATA_TYPE
 #define AR_DATA_TYPE
 
+#ifdef AR_USE_LINUX
+#include <string.h> // for memset, memcpy, newer g++
+#endif
+
 #include "arLanguageCalling.h"
 
 ////////// Platform-DEPENDENT ///////////////////////

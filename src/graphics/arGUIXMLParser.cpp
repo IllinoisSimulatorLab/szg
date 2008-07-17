@@ -17,6 +17,8 @@
 #include "arTexture.h"
 #include "arVRCamera.h"
 #include "arViewport.h"
+#include "arSTLalgo.h"
+
 
 class arGUIXMLValidator {
   public:
