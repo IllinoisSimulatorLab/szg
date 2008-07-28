@@ -413,9 +413,8 @@ class arSZGAppFramework {
     //bool setEventFilter( arFrameworkEventFilter* filter );
     //void setEventCallback( arFrameworkEventCallback callback );
     //virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
-    //virtual void onInputEvent( 
     void processEventQueue();
-    virtual void onProcessEventQueue( arInputEventQueue& theQueue );
+    virtual void onProcessEventQueue( arInputEventQueue& theQueue ) /PyName=onInputEventQueue/;
 
     // This now gets called by default...
     virtual bool onInputEvent( arInputEvent& event, arFrameworkEventFilter& filter );
@@ -904,5 +903,45 @@ class arInteractableThing : arInteractable {
     virtual void deactivateTexture();
     virtual void draw();
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& );
+};
+
+
+class arDistSceneGraphFramework : arSZGAppFramework {
+%TypeHeaderCode
+#include "arDistSceneGraphFramework.h"
+
+
+%End
+ public:
+  arDistSceneGraphFramework();
+  ~arDistSceneGraphFramework();
+                                       
+  // Initializes the various objects but does not start the event loop.
+  // bool init( int&, char** );
+  bool init( vector<string> a0 );
+  // a0 and a1 in MethoCode are _pointers_ to the respective arguments!!!
+%MethodCode
+    sipRes = _framework_init( sipCpp, *a0 );
+%End
+
+  bool start();
+  void stop(bool);
+  bool createWindows(bool useWindowing);
+  void loopQuantum();
+  void exitFunction();
+  
+//  arGraphicsDatabase* getDatabase();
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
+  void setAutoBufferSwap(bool);
+  void swapBuffers();
+  const string getNavNodeName() const;
+  arDatabaseNode* getNavNode();
+  
+  void loadNavMatrix();
+  void setViewer();
+  void setPlayer();
 };
 

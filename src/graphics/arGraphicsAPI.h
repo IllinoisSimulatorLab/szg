@@ -44,8 +44,8 @@ SZG_CALL bool dgViewer( int ID, const arHead& head );
 SZG_CALL int dgTransform(const string&, const string&, const arMatrix4&);
 SZG_CALL bool dgTransform(int, const arMatrix4&);
 
-SZG_CALL int dgPoints(const string&, const string&, int, int*, float*);
-SZG_CALL bool dgPoints(int, int, int*, float*);
+SZG_CALL int dgPoints(const string& name, const string& parent, int numPoints, int* IDs, float* positions);
+SZG_CALL bool dgPoints(int ID, int numPoints, int* IDs, float* positions);
 SZG_CALL int dgPoints(const string& name, const string& parent, int numPoints,
                       float* positions);
 SZG_CALL bool dgPoints(int ID, int numPoints, float* positions);
@@ -245,5 +245,33 @@ bool SZG_CALL dgPython( int ID, const string& moduleName,
                std::vector<long>& longData,
                std::vector<double>& doubleData,
                std::vector< std::string >& stringData );
+
+
+// Higher-leve versions to simplify SIP Python bindings.
+//
+SZG_CALL int dgPoints(const string& name, const string& parent, vector<int>& ids, vector<arVector3>& positions);
+SZG_CALL bool dgPoints(int ID, vector<int>& IDs, vector<arVector3>& positions);
+SZG_CALL int dgPoints(const string& name, const string& parent, vector<arVector3>&);
+SZG_CALL bool dgPoints(int ID, vector<arVector3>&);
+
+SZG_CALL int dgNormal3(const string& name, const string& parent, vector<int>& IDs, vector<arVector3>& normals);
+SZG_CALL bool dgNormal3(int ID, vector<int>& IDs, vector<arVector3>& normals);
+SZG_CALL int dgNormal3(const string& name, const string& parent, vector<arVector3>& normals);
+SZG_CALL bool dgNormal3(int ID, vector<arVector3>& normals);
+
+SZG_CALL int dgColor4(const string& name, const string& parent, vector<int>& IDs, vector<arVector4>& colors);
+SZG_CALL bool dgColor4(int ID, vector<int>& IDs, vector<arVector4>& colors);
+SZG_CALL int dgColor4(const string& name, const string& parent, vector<arVector4>& colors);
+SZG_CALL bool dgColor4(int ID, vector<arVector4>& colors);
+
+SZG_CALL int dgTex2(const string& name, const string& parent, vector<int>& IDs, vector<arVector2>& coords);
+SZG_CALL bool dgTex2(int ID, vector<int>& IDs, vector<arVector2>& coords);
+SZG_CALL int dgTex2(const string& name, const string& parent, vector<arVector2>& coords);
+SZG_CALL bool dgTex2(int ID, vector<arVector2>& coords);
+
+SZG_CALL int dgIndex(const string& name, const string& parent, vector<int>& IDs, vector<int>& indices);
+SZG_CALL bool dgIndex(int ID, vector<int>& IDs, vector<int>& indices);
+SZG_CALL int dgIndex(const string& name, const string& parent, vector<int>& indices);
+SZG_CALL bool dgIndex(int ID, vector<int>& indices);
 
 #endif

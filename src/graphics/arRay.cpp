@@ -92,13 +92,14 @@ float arBoundingSphere::intersect(const arBoundingSphere& b) const {
 // Given a set of frustum planes, does this bounding sphere intersect?
 bool arBoundingSphere::intersectViewFrustum(const arFrustumPlanes& planes) const {
   // Check the frustum planes in turn.
+  arVector3* N = const_cast<arVector3*>(planes.normals);
+  float *D = const_cast<float*>(planes.D);
   for (unsigned i=0; i<6; ++i) {
-    arVector3 N = planes.normals[i];
-    float D = planes.D[i];
-    float distance = D + N.dot( position );
+    float distance = *D++ + N->dot( position );
     if (distance < -radius) {
       return false;
     }
+    ++N;
   }
   return true;
 }

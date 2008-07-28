@@ -913,3 +913,368 @@ bool dgPython( int ID, const string& moduleName,
   return dgPlugin( ID, "arPythonGraphicsPlugin",
     intData, floatData, longData, doubleData, stringData );
 }
+
+
+// Higher-leve versions to simplify SIP Python bindings.
+//
+
+bool _unpackInts( vector<int>& vec, int** p ) {
+  *p = new int[vec.size()];
+  if (!p) {
+    ar_log_error() << "graphics _unpackInts failed to allocate buffer.\n";
+    return false;
+  }
+  std::copy( vec.begin(), vec.end(), *p );
+  return true;
+}
+
+bool _unpackVector3( vector<arVector3>& vec, float** p ) {
+  *p = new float[3*vec.size()];
+  if (!p) {
+    ar_log_error() << "graphics _unpackVector3 failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector3>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 3*sizeof(float) );
+    pp += 3;
+  }
+  return true;
+}
+
+bool _unpackVector2( vector<arVector2>& vec, float** p ) {
+  *p = new float[2*vec.size()];
+  if (!p) {
+    ar_log_error() << "graphics _unpackVector2 failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector2>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 2*sizeof(float) );
+    pp += 2;
+  }
+  return true;
+}
+
+bool _unpackVector4( vector<arVector4>& vec, float** p ) {
+  *p = new float[4*vec.size()];
+  if (!p) {
+    ar_log_error() << "graphics _unpackVector4 failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector4>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 4*sizeof(float) );
+    pp += 4;
+  }
+  return true;
+}
+
+
+int dgPoints(const string& name, const string& parent, vector<int>& IDs, vector<arVector3>& positions) {
+  if (IDs.size() != positions.size()) {
+    ar_log_error() << "dgPoints() different numbers of IDs and positions.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector3( positions, &fp )) {
+    ar_log_error() << "dgPoints() failed.\n";
+    return -1;
+  }
+  int res = dgPoints( name, parent, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+bool dgPoints(int ID, vector<int>& IDs, vector<arVector3>& positions) {
+  if (IDs.size() != positions.size()) {
+    ar_log_error() << "dgPoints() different numbers of IDs and positions.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector3( positions, &fp )) {
+    ar_log_error() << "dgPoints() failed.\n";
+    return -1;
+  }
+  int res = dgPoints( ID, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+int dgPoints(const string& name, const string& parent, vector<arVector3>& positions) {
+  float *fp;
+  if (!_unpackVector3( positions, &fp )) {
+    ar_log_error() << "dgPoints() failed.\n";
+    return -1;
+  }
+  int res = dgPoints( name, parent, positions.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+bool dgPoints(int ID, vector<arVector3>& positions) {
+  float *fp;
+  if (!_unpackVector3( positions, &fp )) {
+    ar_log_error() << "dgPoints() failed.\n";
+    return -1;
+  }
+  int res = dgPoints( ID, positions.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+
+int dgNormal3(const string& name, const string& parent, vector<int>& IDs, vector<arVector3>& normals) {
+  if (IDs.size() != normals.size()) {
+    ar_log_error() << "dgNormal3() different numbers of IDs and normals.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector3( normals, &fp )) {
+    ar_log_error() << "dgNormal3() failed.\n";
+    return -1;
+  }
+  int res = dgNormal3( name, parent, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+bool dgNormal3(int ID, vector<int>& IDs, vector<arVector3>& normals) {
+  if (IDs.size() != normals.size()) {
+    ar_log_error() << "dgNormal3() different numbers of IDs and normals.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector3( normals, &fp )) {
+    ar_log_error() << "dgNormal3() failed.\n";
+    return -1;
+  }
+  int res = dgNormal3( ID, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+int dgNormal3(const string& name, const string& parent, vector<arVector3>& normals) {
+  float *fp;
+  if (!_unpackVector3( normals, &fp )) {
+    ar_log_error() << "dgNormal3() failed.\n";
+    return -1;
+  }
+  int res = dgNormal3( name, parent, normals.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+bool dgNormal3(int ID, vector<arVector3>& normals) {
+  float *fp;
+  if (!_unpackVector3( normals, &fp )) {
+    ar_log_error() << "dgNormal3() failed.\n";
+    return -1;
+  }
+  int res = dgNormal3( ID, normals.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+
+int dgColor4(const string& name, const string& parent, vector<int>& IDs, vector<arVector4>& colors) {
+  if (IDs.size() != colors.size()) {
+    ar_log_error() << "dgColor4() different numbers of IDs and colors.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector4( colors, &fp )) {
+    ar_log_error() << "dgColor4() failed.\n";
+    return -1;
+  }
+  int res = dgColor4( name, parent, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+bool dgColor4(int ID, vector<int>& IDs, vector<arVector4>& colors) {
+  if (IDs.size() != colors.size()) {
+    ar_log_error() << "dgColor4() different numbers of IDs and colors.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector4( colors, &fp )) {
+    ar_log_error() << "dgColor4() failed.\n";
+    return -1;
+  }
+  int res = dgColor4( ID, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+int dgColor4(const string& name, const string& parent, vector<arVector4>& colors) {
+  float *fp;
+  if (!_unpackVector4( colors, &fp )) {
+    ar_log_error() << "dgColor4() failed.\n";
+    return -1;
+  }
+  int res = dgColor4( name, parent, colors.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+bool dgColor4(int ID, vector<arVector4>& colors) {
+  float *fp;
+  if (!_unpackVector4( colors, &fp )) {
+    ar_log_error() << "dgColor4() failed.\n";
+    return -1;
+  }
+  int res = dgColor4( ID, colors.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+
+int dgTex2(const string& name, const string& parent, vector<int>& IDs, vector<arVector2>& texCoords) {
+  if (IDs.size() != texCoords.size()) {
+    ar_log_error() << "dgTex2() different numbers of IDs and texCoords.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector2( texCoords, &fp )) {
+    ar_log_error() << "dgTex2() failed.\n";
+    return -1;
+  }
+  int res = dgTex2( name, parent, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+bool dgTex2(int ID, vector<int>& IDs, vector<arVector2>& texCoords) {
+  if (IDs.size() != texCoords.size()) {
+    ar_log_error() << "dgTex2() different numbers of IDs and texCoords.\n";
+    return -1;
+  }
+  int* ip;
+  float *fp;
+  if (!_unpackInts( IDs, &ip ) || !_unpackVector2( texCoords, &fp )) {
+    ar_log_error() << "dgTex2() failed.\n";
+    return -1;
+  }
+  int res = dgTex2( ID, IDs.size(), ip, fp );
+  delete[] ip;
+  delete[] fp;
+  return res;
+}
+
+
+int dgTex2(const string& name, const string& parent, vector<arVector2>& texCoords) {
+  float *fp;
+  if (!_unpackVector2( texCoords, &fp )) {
+    ar_log_error() << "dgTex2() failed.\n";
+    return -1;
+  }
+  int res = dgTex2( name, parent, texCoords.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+bool dgTex2(int ID, vector<arVector2>& texCoords) {
+  float *fp;
+  if (!_unpackVector2( texCoords, &fp )) {
+    ar_log_error() << "dgTex2() failed.\n";
+    return -1;
+  }
+  int res = dgTex2( ID, texCoords.size(), fp );
+  delete[] fp;
+  return res;
+}
+
+
+
+int dgIndex(const string& name, const string& parent, vector<int>& IDs, vector<int>& indices) {
+  if (IDs.size() != indices.size()) {
+    ar_log_error() << "dgIndex() different numbers of IDs and indices.\n";
+    return -1;
+  }
+  int* ip;
+  int* ip2;
+  if (!_unpackInts( IDs, &ip ) || !_unpackInts( indices, &ip2 )) {
+    ar_log_error() << "dgIndex() failed.\n";
+    return -1;
+  }
+  int res = dgIndex( name, parent, IDs.size(), ip, ip2 );
+  delete[] ip;
+  delete[] ip2;
+  return res;
+}
+
+
+bool dgIndex(int ID, vector<int>& IDs, vector<int>& indices) {
+  if (IDs.size() != indices.size()) {
+    ar_log_error() << "dgIndex() different numbers of IDs and indices.\n";
+    return -1;
+  }
+  int* ip;
+  int* ip2;
+  if (!_unpackInts( IDs, &ip ) || !_unpackInts( indices, &ip2 )) {
+    ar_log_error() << "dgIndex() failed.\n";
+    return -1;
+  }
+  int res = dgIndex( ID, IDs.size(), ip, ip2 );
+  delete[] ip;
+  delete[] ip2;
+  return res;
+}
+
+
+int dgIndex(const string& name, const string& parent, vector<int>& indices) {
+  int* ip2;
+  if (!_unpackInts( indices, &ip2 )) {
+    ar_log_error() << "dgIndex() failed.\n";
+    return -1;
+  }
+  int res = dgIndex( name, parent, indices.size(), ip2 );
+  delete[] ip2;
+  return res;
+}
+
+
+bool dgIndex(int ID, vector<int>& indices) {
+  int* ip2;
+  if (!_unpackInts( indices, &ip2 )) {
+    ar_log_error() << "dgIndex() failed.\n";
+    return -1;
+  }
+  int res = dgIndex( ID, indices.size(), ip2 );
+  delete[] ip2;
+  return res;
+}
+
+

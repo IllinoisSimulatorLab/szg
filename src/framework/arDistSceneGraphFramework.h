@@ -39,6 +39,8 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void loopQuantum();
   void exitFunction();
 
+  virtual void onUserMessage( int messageID, const string& messageBody );
+
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&,
                  int messageID,
 							   const string& messageBody ));

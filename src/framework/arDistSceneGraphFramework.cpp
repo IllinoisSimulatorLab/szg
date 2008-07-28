@@ -45,13 +45,7 @@ LDie:
       (void)f->_loadParameters();
     }
     else if (messageType== "user") {
-      if (f->_userMessageCallback) {
-        f->_userMessageCallback(*f, messageID, messageBody);
-      } else if (f->_oldUserMessageCallback) {
-        f->_oldUserMessageCallback(*f, messageBody);
-      } else {
-        f->onUserMessage( messageID, messageBody );
-      }
+      f->onUserMessage( messageID, messageBody );
       // Don't return.
       continue;
     }
@@ -259,6 +253,15 @@ void arDistSceneGraphFramework::setUserMessageCallback
   (void (*userMessageCallback)(arDistSceneGraphFramework&, const string&)) {
   _oldUserMessageCallback = userMessageCallback;
   _userMessageCallback = NULL;
+}
+
+
+void arDistSceneGraphFramework::onUserMessage( int messageID, const string& messageBody ) {
+  if (_userMessageCallback) {
+    _userMessageCallback( *this, messageID, messageBody );
+  } else if (_oldUserMessageCallback) {
+    _oldUserMessageCallback( *this, messageBody );
+  }
 }
 
 // Control additional locations where the databases (both sound and graphics)

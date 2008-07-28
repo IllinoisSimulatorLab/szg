@@ -341,3 +341,40 @@ class arInteractable {
 };
 
 
+// This is here ONLY until I figure out how to re-write blobbyman to not use it.
+class arInterfaceObject {
+%TypeHeaderCode
+#include "arInterfaceObject.h"
+%End
+ public:
+  arInterfaceObject();
+  ~arInterfaceObject();
+
+  void setInputDevice(arInputNode*);
+  bool start();
+  void setNavMatrix(const arMatrix4&);
+  arMatrix4 getNavMatrix() const /TransferBack/;
+  void setObjectMatrix(const arMatrix4&);
+  arMatrix4 getObjectMatrix() const /TransferBack/;
+
+  void setSpeedMultiplier(float);
+
+  void setNumMatrices( const int num );
+  void setNumButtons( const int num );
+  void setNumAxes( const int num );
+
+  int getNumMatrices() const;
+  int getNumButtons() const;
+  int getNumAxes() const;
+
+  bool setMatrix( const int num, const arMatrix4& mat );
+  bool setButton( const int num, const int but );
+  bool setAxis( const int num, const float val );
+//  void setMatrices( const arMatrix4* matPtr );
+//  void setButtons( const int* butPtr );
+//  void setAxes( const float* axisPtr );
+
+  arMatrix4 getMatrix( const int num ) const /TransferBack/;
+  int getButton( const int num ) const;
+  float getAxis( const int num ) const;
+};

@@ -460,6 +460,8 @@ template<class T> class _NumberArray {
 
 typedef _NumberArray<float> arFloatArray;
 typedef _NumberArray<int> arIntArray;
+typedef _NumberArray<long> arLongArray;
+typedef _NumberArray<double> arDoubleArray;
 %End
 
 // arFloatArray is implemented as a Python list.
@@ -500,6 +502,44 @@ typedef _NumberArray<int> arIntArray;
 %End
 };
 
+// arDoubleArray is implemented as a Python list.
+%MappedType arDoubleArray
+{
+%ConvertFromTypeCode
+  // Create the list.
+  PyObject *l;
+  if ((l = PyList_New(sipCpp->size)) == NULL)
+    return NULL;
+  // Set the list elements.
+  double* ptr = sipCpp->data;
+  for (int i=0; i<sipCpp->size; ++i) {
+    PyList_SET_ITEM(l, i, PyFloat_FromDouble( ptr[i] ) );
+  }
+  return l;
+%End
+
+%ConvertToTypeCode
+  // Check the type if that is all that is required.
+  int size(0);
+  if (sipIsErr == NULL) {
+    if (!PyList_Check(sipPy))
+      return 0;
+    size = PyList_GET_SIZE(sipPy);
+    for (int i = 0; i < size; ++i)
+      if (!PyFloat_Check( PyList_GET_ITEM(sipPy, i) ))
+        return 0;
+    return 1;
+  }
+  arDoubleArray* a = new arDoubleArray(size);
+  double* ptr = a->data;
+  for (int i = 0; i < size; ++i) {
+    ptr[i] = PyFloat_AsDouble(PyList_GET_ITEM(sipPy, i));
+  }
+  *sipCppPtr = a;
+  return sipGetState(sipTransferObj);
+%End
+};
+
 // arIntArray is implemented as a Python list.
 %MappedType arIntArray
 {
@@ -532,6 +572,45 @@ typedef _NumberArray<int> arIntArray;
   int* ptr = a->data;
   for (int i = 0; i < size; ++i) {
     ptr[i] = static_cast<int>( PyInt_AsLong(PyList_GET_ITEM(sipPy, i)) );
+  }
+  *sipCppPtr = a;
+  return sipGetState(sipTransferObj);
+%End
+};
+
+
+// arLongArray is implemented as a Python list.
+%MappedType arLongArray
+{
+%ConvertFromTypeCode
+  // Create the list.
+  PyObject *l;
+  if ((l = PyList_New(sipCpp->size)) == NULL)
+    return NULL;
+  // Set the list elements.
+  long* ptr = sipCpp->data;
+  for (int i=0; i<sipCpp->size; ++i) {
+    PyList_SET_ITEM(l, i, PyInt_FromLong( ptr[i] ) );
+  }
+  return l;
+%End
+
+%ConvertToTypeCode
+  // Check the type if that is all that is required.
+  int size(0);
+  if (sipIsErr == NULL) {
+    if (!PyList_Check(sipPy))
+      return 0;
+    size = PyList_GET_SIZE(sipPy);
+    for (int i = 0; i < size; ++i)
+      if (!PyInt_Check( PyList_GET_ITEM(sipPy, i) ))
+        return 0;
+    return 1;
+  }
+  arLongArray* a = new arLongArray(size);
+  long* ptr = a->data;
+  for (int i = 0; i < size; ++i) {
+    ptr[i] = PyInt_AsLong(PyList_GET_ITEM(sipPy, i));
   }
   *sipCppPtr = a;
   return sipGetState(sipTransferObj);

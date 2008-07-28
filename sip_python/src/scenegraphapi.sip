@@ -97,42 +97,6 @@ bool dgViewer( int ID, const arHead& head );
 int dgTransform(const string&, const string&, const arMatrix4&);
 bool dgTransform(int, const arMatrix4&);
 
-//int  dgPoints(const string& name, const string& parent, 
-//              int num, int* IDs, float* coords){
-int  dgPoints(const string& name, const string& parent, 
-              arIntArray, arFloatArray );
-%MethodCode
-  if (3*(a2->size) != a3->size) {
-    PyErr_SetString( PyExc_ValueError, "dgPoints() coords list must have 3 items for each item in IDs" );
-    sipIsErr = 1;
-  } else {
-    sipRes = dgPoints( *a0, *a1, a2->size, a2->data, a3->data );
-  }
-%End
-
-//bool dgPoints(int, int, int*, float*);
-int  dgPoints( int nodeID, arIntArray, arFloatArray );
-%MethodCode
-  if (3*(a1->size) != a2->size) {
-    PyErr_SetString( PyExc_ValueError, "dgPoints() coords list must have 3 items for each item in IDs" );
-    sipIsErr = 1;
-  } else {
-    sipRes = dgPoints( a0, a1->size, a1->data, a2->data );
-  }
-%End
-
-//int dgPoints(const string& name, const string& parent, int numPoints, float* positions);
-int dgPoints(const string& name, const string& parent, arFloatArray positions );
-%MethodCode
-  sipRes = dgPoints( *a0, *a1, (a2->size)/3, a2->data );
-%End
-
-//bool dgPoints(int ID, int numPoints, float* positions);
-bool dgPoints(int ID, arFloatArray positions);
-%MethodCode
-  sipRes = dgPoints( a0, (a1->size)/3, a1->data );
-%End
-
 int dgTexture(const string& name, const string& parent,
                        const string& filename, int alphaValue=-1);
 bool dgTexture(int, const string& filename, int alphaValue=-1);
@@ -167,81 +131,51 @@ int dgStateFloat(const string& nodeName, const string& parentName,
                           const string& stateName, float value );
 bool dgStateFloat(int nodeID, const string& stateName, float value);
 
-//int dgNormal3(const string& name, const string& parent, 
-//                       int numNormals, int* IDs, float* normals);
-int dgNormal3(const string& name, const string& parent, 
-                       arIntArray IDs, arFloatArray coords );
-%MethodCode
-  if (3*(a2->size) != a3->size) {
-    PyErr_SetString( PyExc_ValueError, "dgNormal3() coords list must have 3 items for each item in IDs" );
-    sipIsErr = 1;
-  } else {
-    sipRes = dgNormal3( *a0, *a1, a2->size, a2->data, a3->data );
-  }
-%End
+int dgPoints(const string& name, const string& parent, vector<int>& ids, vector<arVector3>& positions);
+bool dgPoints(int ID, vector<int>& IDs, vector<arVector3>& positions);
+int dgPoints(const string& name, const string& parent, vector<arVector3>&);
+bool dgPoints(int ID, vector<arVector3>&);
 
-//bool dgNormal3(int ID, int numNormals, int* IDs, float* normals);
-bool dgNormal3(int ID, arIntArray IDs, arFloatArray coords);
-%MethodCode
-  if (3*(a1->size) != a2->size) {
-    PyErr_SetString( PyExc_ValueError, "dgNormal3() coords list must have 3 items for each item in IDs" );
-    sipIsErr = 1;
-  } else {
-    sipRes = dgNormal3( a0, a1->size, a1->data, a2->data );
-  }
-%End
+int dgNormal3(const string& name, const string& parent, vector<int>& IDs, vector<arVector3>& normals);
+bool dgNormal3(int ID, vector<int>& IDs, vector<arVector3>& normals);
+int dgNormal3(const string& name, const string& parent, vector<arVector3>& normals);
+bool dgNormal3(int ID, vector<arVector3>& normals);
 
+int dgColor4(const string& name, const string& parent, vector<int>& IDs, vector<arVector4>& colors);
+bool dgColor4(int ID, vector<int>& IDs, vector<arVector4>& colors);
+int dgColor4(const string& name, const string& parent, vector<arVector4>& colors);
+bool dgColor4(int ID, vector<arVector4>& colors);
 
-//int dgNormal3(const string& name, const string& parent, int numNormals, float* normals);
-int dgNormal3(const string& name, const string& parent, arFloatArray normals);
-%MethodCode
-  sipRes = dgNormal3( *a0, *a1, (a2->size)/3, a2->data );
-%End
+int dgTex2(const string& name, const string& parent, vector<int>& IDs, vector<arVector2>& coords);
+bool dgTex2(int ID, vector<int>& IDs, vector<arVector2>& coords);
+int dgTex2(const string& name, const string& parent, vector<arVector2>& coords);
+bool dgTex2(int ID, vector<arVector2>& coords);
 
-//bool dgNormal3(int ID, int numNormals, float* normals);
-bool dgNormal3(int ID, arFloatArray normals);
-%MethodCode
-  sipRes = dgNormal3( a0, (a1->size)/3, a1->data );
-%End
+int dgIndex(const string& name, const string& parent, vector<int>& IDs, vector<int>& indices);
+bool dgIndex(int ID, vector<int>& IDs, vector<int>& indices);
+int dgIndex(const string& name, const string& parent, vector<int>& indices);
+bool dgIndex(int ID, vector<int>& indices);
 
-int dgColor4(const string& name, const string& parent, int numColors,
-	              int* IDs, float* colors);
-bool dgColor4(int ID, int numColors, int* IDs, float* colors);
-int dgColor4(const string& name, const string& parent, int numColors,
-	              float* colors);
-bool dgColor4(int ID, int numColors, float* colors);
-
-int dgTex2(const string& name, const string& parent, int numTexcoords,
-	            int* IDs, float* coords);
-bool dgTex2(int ID, int numTexcoords, int* IDs, float* coords);
-int dgTex2(const string& name, const string& parent, int numTexcoords,
-	            float* coords);
-bool dgTex2(int ID, int numTexcoords, float* coords);
-
-int dgIndex(const string& name, const string& parent, int numIndices,
-	             int* IDs, int* indices);
-bool dgIndex(int ID, int numIndices, int* IDs, int* indices);
-int dgIndex(const string& name, const string& parent, int numIndices,
-	             int* indices);
-bool dgIndex(int ID, int numIndices, int* indices);
 
 int dgDrawable(const string& name, const string& parent,
 	                int drawableType, int numPrimitives);
 bool dgDrawable(int ID, int drawableType, int numPrimitives);
 
+
 int dgMaterial(const string& name, const string& parent, 
-                        const arVector3& diffuse,
+                  const arVector3& diffuse,
 	                const arVector3& ambient = arVector3(0.2,0.2,0.2), 
-                        const arVector3& specular = arVector3(0,0,0), 
-                        const arVector3& emissive = arVector3(0,0,0),
+                  const arVector3& specular = arVector3(0,0,0), 
+                  const arVector3& emissive = arVector3(0,0,0),
 	                float exponent = 0., 
-                        float alpha = 1.);
+                  float alpha = 1.);
 bool dgMaterial(int ID, const arVector3& diffuse,
 	                 const arVector3& ambient = arVector3(0.2,0.2,0.2), 
-                         const arVector3& specular = arVector3(0,0,0), 
-                         const arVector3& emissive = arVector3(0,0,0),
+                   const arVector3& specular = arVector3(0,0,0), 
+                   const arVector3& emissive = arVector3(0,0,0),
 	                 float exponent = 0., 
-                         float alpha = 1.);
+                   float alpha = 1.);
+
 
 int dgLight(const string& name, const string& parent,
 	             int lightID, arVector4 position,
@@ -249,7 +183,7 @@ int dgLight(const string& name, const string& parent,
 	             const arVector3& ambient = arVector3(0,0,0),
 	             const arVector3& specular = arVector3(1,1,1),
 	             const arVector3& attenuate = arVector3(1,0,0),
-                     const arVector3& spotDiection = arVector3(0,0,-1),
+               const arVector3& spotDiection = arVector3(0,0,-1),
 	             float spotCutoff = 180.,
 	             float spotExponent = 0.);
 
@@ -259,104 +193,33 @@ bool dgLight(int ID,
 	              const arVector3& ambient = arVector3(0,0,0),
 	              const arVector3& specular = arVector3(1,1,1),
 	              const arVector3& attenuate = arVector3(1,0,0),
-                      const arVector3& spotDiection = arVector3(0,0,-1),
+                const arVector3& spotDiection = arVector3(0,0,-1),
 	              float spotCutoff = 180.,
 	              float spotExponent = 0.);
+
 
 // Attach a perspective camera to the scene graph.
 int dgCamera(const string& name, const string& parent,
 	              int cameraID, float leftClip, float rightClip, 
 	              float bottomClip, float topClip, 
-                      float nearClip, float farClip,
-                      const arVector3& eyePosition = arVector3(0,0,0),
-                      const arVector3& centerPosition = arVector3(0,0,-1),
-                      const arVector3& upDirection = arVector3(0,1,0));
+                float nearClip, float farClip,
+                const arVector3& eyePosition = arVector3(0,0,0),
+                const arVector3& centerPosition = arVector3(0,0,-1),
+                const arVector3& upDirection = arVector3(0,1,0));
 
 bool dgCamera(int ID,
 	               int cameraID, float leftClip, float rightClip, 
 	               float bottomClip, float topClip, 
-                       float nearClip, float farClip,
-                       const arVector3& eyePosition = arVector3(0,0,0),
-                       const arVector3& centerPosition = arVector3(0,0,-1),
-                       const arVector3& upDirection = arVector3(0,1,0));
+                 float nearClip, float farClip,
+                 const arVector3& eyePosition = arVector3(0,0,0),
+                 const arVector3& centerPosition = arVector3(0,0,-1),
+                 const arVector3& upDirection = arVector3(0,1,0));
+
 
 // Attach a bump map node to the scene graph
 int dgBumpMap(const string& name, const string& parent,
 	               const string& filename, float height=1.);
 
 bool dgBumpMap(int ID, const string& filename, float height=1.);
-
-
-int dgPlugin(const string& name, const string& parent, const string& fileName,
-               int* intData, int numInts,
-               float* floatData, int numFloats,
-               long* longData, int numLongs,
-               double* doubleData, int numDoubles,
-               std::vector< std::string >* stringData );
-    
-
-bool dgPlugin(int ID, const string& fileName,
-               int* intData, int numInts,
-               float* floatData, int numFloats,
-               long* longData, int numLongs,
-               double* doubleData, int numDoubles,
-               std::vector< std::string >* stringData );
-
-int dgPlugin(const string& name,
-              const string& parent,
-              const string& fileName,
-               std::vector<int>& intData,
-               std::vector<float>& floatData,
-               std::vector<long>& longData,
-               std::vector<double>& doubleData,
-               std::vector< std::string >& stringData );
-
-bool dgPlugin( int ID, const string& fileName, 
-               std::vector<int>& intData,
-               std::vector<float>& floatData,
-               std::vector<long>& longData,
-               std::vector<double>& doubleData,
-               std::vector< std::string >& stringData );
-
-
-int dgPython(const string& name,
-              const string& parent,
-              const string& moduleName,
-              const string& factoryName,
-              bool reloadModule,
-               int* intData, int numInts,
-               float* floatData, int numFloats,
-               long* longData, int numLongs,
-               double* doubleData, int numDoubles,
-               std::vector< std::string >* stringData );
-
-bool dgPython( int ID, const string& moduleName,
-               const string& factoryName,
-               bool reloadModule,
-               int* intData, int numInts,
-               float* floatData, int numFloats,
-               long* longData, int numLongs,
-               double* doubleData, int numDoubles,
-               std::vector< std::string >* stringData );
-
-int dgPython(const string& name,
-              const string& parent,
-              const string& moduleName,
-              const string& factoryName,
-              bool reloadModule,
-               std::vector<int>& intData,
-               std::vector<float>& floatData,
-               std::vector<long>& longData,
-               std::vector<double>& doubleData,
-               std::vector< std::string >& stringData );
-
-bool dgPython( int ID, const string& moduleName, 
-               const string& factoryName,
-               bool reloadModule,
-               std::vector<int>& intData,
-               std::vector<float>& floatData,
-               std::vector<long>& longData,
-               std::vector<double>& doubleData,
-               std::vector< std::string >& stringData );
 
 

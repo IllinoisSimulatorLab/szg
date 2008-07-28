@@ -10,6 +10,8 @@
 %Include szgclient.sip
 %Include input.sip
 %Include graphics.sip
+%Include mesh.sip
+%Include scenegraphapi.sip
 %Include view.sip
 %Include gui.sip
 %Include obj.sip
