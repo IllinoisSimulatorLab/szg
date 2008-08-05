@@ -10,20 +10,20 @@ This section assumes you have installed the szg software (including the
 sample applications contained in that package), either by unpacking a
 precompiled SDK or by compiling (both "make" and "make demo"). You will
 understand the instructions better if you read the
-[Distributed OS DistributedOS.html] chapter first, but, actually,
+[Cluster Mode ClusterMode.html] chapter first, but, actually,
 these two sections can be studied in parallel. This section introduces you to
 the fault tolerance and flexibility of a Syzygy set-up. Components can appear,
 disappear, connect, disconnect, and reconnect in any order, which helps
 during the experimentation and debugging phases of application development.
 
 This tutorial specifically avoids
-[virtual computers DistributedOS.html#VirtualComputer] in order
+[virtual computers ClusterMode.html#VirtualComputer] in order
 to encourage freeform experimentation. However, please consider using them
 in your production environment.
 
 If you run into problems running the tests that cannot be solved by the
 diagnostics listed, please see
-[Troubleshooting the Distributed Operating System DistributedOS.html#Troubleshooting].
+[Troubleshooting the Distributed Operating System ClusterMode.html#Troubleshooting].
 
 %%toc
 
@@ -35,7 +35,7 @@ configuration at all (beyond szg.conf). A distributed scene graph application,
 in its simplest form, consists of 3 seperate executable
 components: the application itself, a renderer, and an input program.
 These can can be run in arbitrary locations in the cluster you prepared in
-the [Distributed OS DistributedOS.html] chapter. Concretely, on any computer in
+the [Cluster Mode ClusterMode.html] chapter. Concretely, on any computer in
 the distributed system, type:
 ```
   cosmos
@@ -46,7 +46,7 @@ if all goes well (to exit you can ctrl-c). If this is not the case,
 the only possibility is that the servers embedded in cosmos could not bind to
 their ports, as determined by the szgserver. Try changing
 the ports block on this computer using ``dports``, as explained
-in [Distributed OS DistributedOS.html].
+in [Cluster Mode ClusterMode.html].
 
 Next, on any computer in the system, type:
 ```
@@ -182,7 +182,7 @@ coordinates.
 - The machine running the main program is named "control", while two machines
 running szgrender are named "slave1" and "slave2". These will need to be
 replaced with the names of your computers, as determined when you set up the
-computers in your cluster (see [Distributed OS DistributedOS.html]).
+computers in your cluster (see [Cluster Mode ClusterMode.html]).
 
 
 For an explanation of how to get the configuration information into the
@@ -337,7 +337,7 @@ by changing the XML of the global parameters left_side and right_side.
 
 These are the basic steps:
 
-- Configure your system as described in [Distributed OS DistributedOS.html].
+- Configure your system as described in [Cluster Mode ClusterMode.html].
 - Set the database parameters, either one at at time using dset or
 altogether using dbatch, as in the previous section.
 - Run the main application and the rendering programs as follows (we assume

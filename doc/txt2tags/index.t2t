@@ -41,10 +41,10 @@ Header2 %%mtime(%m/%d/%Y)
 - [CompileCPP.html CompileCPP.html]: Compiling and linking C++ programs.
 - If you're planning on modifying the libraries, see also
   [Compiler Idiosyncrasies CompilerIdiosyncrasies.html]
-- [PySZG.html PySZG.html]: Writing Python programs.
+- [PythonBindings.html PythonBindings.html] and [PySZGold.html PySZGold.html]: Writing Python programs.
 - [SceneGraph.html SceneGraph.html]: The distributed scene graph API.
 - [Sound.html Sound.html]: The spatial sound system.
-- [Objects.html Objects.html]: External meshes (.obj or .3ds) and animations in.
+- [3DObjectFiles.html 3DObjectFiles.html]: External meshes (.obj or .3ds) and animations in.
 - [Navigation.html Navigation.html]: Navigating a 3D world in an application.
 - [Interaction.html Interaction.html]: Classes and functions for picking,
   grabbing, and interacting with objects in a 3D world.
@@ -60,7 +60,7 @@ Header2 %%mtime(%m/%d/%Y)
 
 =Setting Up, Testing, and Managing a Syzygy Cluster=[ClusterSetup]
 
-- [DistributedOS.html DistributedOS.html]: Setting up
+- [ClusterMode.html ClusterMode.html]: Setting up
   PC clusters and running programs on them (see also
   [Configuring Virtual Computers VirtCompConfiguration.html].)
 - [ClusterTest.html ClusterTest.html]: Basic testing of a cluster.

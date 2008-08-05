@@ -186,7 +186,7 @@ functions each will perform. You run a program on a virtual computer by issuing 
 separate instances of the program and any supporting services are then launched automatically.
 
 See [Virtual Computer Configuration VirtCompConfiguration.html] and
-[Using a Virtual Computer DistributedOS.html#VirtualComputer] for more information.
+[Using a Virtual Computer ClusterMode.html#VirtualComputer] for more information.
 
 
 =Parameter File Format=[ComplexFormat]

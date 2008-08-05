@@ -67,7 +67,7 @@ to find out.
 previously.
 
 
-=Configuration/Distributed OS=[Configuration]
+=Configuration/Cluster Mode=[Configuration]
 
 - Phleet needs new methods! Specifically, we must be able to release
 services. Also, need to be able to get service info from the command line!

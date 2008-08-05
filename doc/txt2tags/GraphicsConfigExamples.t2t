@@ -394,7 +394,7 @@ each
 window supporting one wall of an immersive virtual environment. The following
 text shows screen definitions (plus a virtual computer employing them) for
 a six-walled virtual environment. See
-[Distributed OS DistributedOS.html#VirtualComputer] for a discussion of
+[Cluster Mode ClusterMode.html#VirtualComputer] for a discussion of
 virtual computers.
 
 ```

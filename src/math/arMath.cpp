@@ -870,3 +870,62 @@ float ar_randUniformFloat(long* idum)
 int ar_randUniformInt(long* idum, int lo, int hi) {
   return int(floor( ar_randUniformFloat(idum) * (hi-lo+1) ) + lo);
 }
+
+
+bool ar_unpackIntVector( vector<int>& vec, int** p ) {
+  *p = new int[vec.size()];
+  if (!p) {
+    ar_log_error() << "ar_unpackIntVector failed to allocate buffer.\n";
+    return false;
+  }
+  std::copy( vec.begin(), vec.end(), *p );
+  return true;
+}
+
+bool ar_unpackVector3Vector( vector<arVector3>& vec, float** p ) {
+  *p = new float[3*vec.size()];
+  if (!p) {
+    ar_log_error() << "ar_unpackVector3Vector failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector3>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 3*sizeof(float) );
+    pp += 3;
+  }
+  return true;
+}
+
+bool ar_unpackVector2Vector( vector<arVector2>& vec, float** p ) {
+  *p = new float[2*vec.size()];
+  if (!p) {
+    ar_log_error() << "ar_unpackVector2Vector failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector2>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 2*sizeof(float) );
+    pp += 2;
+  }
+  return true;
+}
+
+bool ar_unpackVector4Vector( vector<arVector4>& vec, float** p ) {
+  *p = new float[4*vec.size()];
+  if (!p) {
+    ar_log_error() << "ar_unpackVector4Vector failed to allocate buffer.\n";
+    return false;
+  }
+  vector<arVector4>::const_iterator iter;
+  float *pp = *p;
+  for (iter = vec.begin(); iter != vec.end(); ++iter) {
+    memcpy( pp, iter->v, 4*sizeof(float) );
+    pp += 4;
+  }
+  return true;
+}
+
+
+

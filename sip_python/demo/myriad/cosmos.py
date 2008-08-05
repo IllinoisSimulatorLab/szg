@@ -21,7 +21,7 @@
 #############################################################################################
 
 # Import the Syzygy stub Python module.
-from PySZG import *
+from szg import *
 # Need sys so we can parse command line arguments.
 import sys
 # Must measure wall clock time to get framerate independent animation.
@@ -344,25 +344,23 @@ def worldAlter(elapsedTime):
 			percentage = 1
 		lineChange(percentage)
 
-# The event processing callback. All it does is grab the events that have queued
-# since last call and send them to the items on the widget list. A very generic function.
-# NOTE: callbacks of this type must return 0/1 (i.e. bool on the C++ side).
-def eventProcessing(framework, eventQueue):
-	while not eventQueue.empty():
-		e = eventQueue.popNextEvent()
-		for w in widgetList:
-			w.update(framework, e)
-	return 1
-	
 ##########################################################
 #                     Main Program                       #
 ##########################################################
 
+class CosmosApp( arDistSceneGraphFramework ):
+# The event processing callback. All it does is grab the events that have queued
+# since last call and send them to the items on the widget list. A very generic function.
+# NOTE: callbacks of this type must return 0/1 (i.e. bool on the C++ side).
+  def onInputEventQueue(self, eventQueue):
+    while not eventQueue.empty():
+      e = eventQueue.popNextEvent()
+      for w in widgetList:
+        w.update(self, e)
+    return 1
+	
 # This is a distributed scene graph program. We need a framework object to do the management.
-f = arDistSceneGraphFramework()
-
-# We want to do event-based interaction for the manipulator. See eventProcessing(...) function above.
-f.setEventQueueCallback(eventProcessing)
+f = CosmosApp()
 
 # Distributed scene graph programs can run in one of two modes:
 #  Automatic graphics buffer swap: In this case, the library

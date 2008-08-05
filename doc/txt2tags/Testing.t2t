@@ -137,7 +137,7 @@ on each supported platform.
 supported platforms. Slaves run on each of the supported platforms.
 
 - The following is the "stress test" currently used to validate the
-system (here the Syzygy distributed OS and its application launching and
+system (here the Syzygy [Cluster Mode ClusterMode.html] and its application launching and
 management features are stressed). Given a 3x2 video wall
 with some Windows and some Linux
 components. All of the computers have dual processors and two

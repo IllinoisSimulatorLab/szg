@@ -16,6 +16,7 @@
 #include <iostream>
 #include <math.h>
 #include <string>
+#include <vector>
 using namespace std;
 
 #ifndef M_PI
@@ -727,5 +728,13 @@ inline arVector3 operator*(const arQuaternion& q , const arVector3& x) {
 
 float SZG_CALL ar_randUniformFloat(long* idum);
 int SZG_CALL ar_randUniformInt(long* idum, int lo, int hi);
+
+
+bool SZG_CALL ar_unpackIntVector( vector<int>& vec, int** p );
+bool SZG_CALL ar_unpackVector3Vector( vector<arVector3>& vec, float** p );
+bool SZG_CALL ar_unpackVector2Vector( vector<arVector2>& vec, float** p );
+bool SZG_CALL ar_unpackVector4Vector( vector<arVector4>& vec, float** p );
+
+
 
 #endif

@@ -7,7 +7,7 @@ Header3
 
 This file tells you how to define virtual computers.
 To //use// them, see the relevant section in the
-[Distributed OS DistributedOS.html#VirtualComputer] chapter.
+[Cluster Mode ClusterMode.html#VirtualComputer] chapter.
 
 
 %%toc
@@ -187,7 +187,7 @@ running application. Again, consider the command:
 
 + When the application is being used as a launcher, it first makes
   sure that a previous application isn't already running, by checking, in this
-  case, if the named lock (see [Locks DistributedOS.html#Locks])
+  case, if the named lock (see [Locks ClusterMode.html#Locks])
   "my_room/SZG_DEMO/app" is held. Here, the "my_room"
   appearing in the lock name is the virtual computer location. If the
   lock is held, the trigger sends a kill message to the lock's owner and waits

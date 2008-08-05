@@ -32,18 +32,18 @@ ifeq ($(strip $(MACHINE)), WIN32)
 	else
 		SZG_OPT_LIBS_FULL += $(SZG_PYLIB)
 	endif
+  PYSHAREDLIB_SUFFIX = .pyd
 endif
 ifeq ($(strip $(MACHINE)), LINUX)
-	COMPILE_FLAGS_SHARED += -I$(SZGEXTERNAL)/linux/sip-4.7.3/include 
-	PRE_LIB_SEARCH_FLAGS += -L$(dir $(SZG_PYLIB))
-	SZG_OPT_LIBS_FULL += -lPython24
+	SZG_OPT_LIBS_FULL += -l$(SZG_PYLIB)
+  PYSHAREDLIB_SUFFIX = .so
 endif
 
-SIP_ALL=_szg.pyd $(INTERFACE_DIR)/szg.py szgopengl.pyd
+SIP_ALL=_szg$(PYSHAREDLIB_SUFFIX) $(INTERFACE_DIR)/szg.py szgopengl$(PYSHAREDLIB_SUFFIX)
 
 ifeq ($(strip $(SWIG_SZGEXPT)),TRUE)
 	include $(SZGEXPT)/build/make/Makefile.szgexpt
-	SIP_ALL+= _szgexpt.pyd $(INTERFACE_DIR)/szgexpt.py
+	SIP_ALL+= _szgexpt$(PYSHAREDLIB_SUFFIX) $(INTERFACE_DIR)/szgexpt.py
 endif
 
 sip_all: $(SIP_ALL)
@@ -54,9 +54,9 @@ SZG_INCLUDE += -I$(SZG_PYINCLUDE)
 # OBJS = rencode2$(OBJ_SUFFIX)
 
 
-_szg.pyd: sip_szgpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+_szg$(PYSHAREDLIB_SUFFIX): sip_szgpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
-        $(LINK_PREFIX)_szg.pyd \
+        $(LINK_PREFIX)_szg$(PYSHAREDLIB_SUFFIX) \
 	sip_szgpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
 
 sip_szgpart0$(OBJ_SUFFIX): sip_szgpart0.cpp
@@ -65,9 +65,9 @@ sip_szgpart0$(OBJ_SUFFIX): sip_szgpart0.cpp
 sip_szgpart0.cpp: $(INTERFACE_DIR)/szg.sip $(SIPFILES)
 	sip -c . -j 1 $(INTERFACE_DIR)/szg.sip
 
-szgopengl.pyd: sipszgopenglpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+szgopengl$(PYSHAREDLIB_SUFFIX): sipszgopenglpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
-        $(LINK_PREFIX)szgopengl.pyd \
+        $(LINK_PREFIX)szgopengl$(PYSHAREDLIB_SUFFIX) \
 	sipszgopenglpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
 
 sipszgopenglpart0$(OBJ_SUFFIX): sipszgopenglpart0.cpp
@@ -76,9 +76,9 @@ sipszgopenglpart0$(OBJ_SUFFIX): sipszgopenglpart0.cpp
 sipszgopenglpart0.cpp: $(INTERFACE_DIR)/szgopengl.sip
 	sip -c . -j 1 $(INTERFACE_DIR)/szgopengl.sip
 
-_szgexpt.pyd: sip_szgexptpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+_szgexpt$(PYSHAREDLIB_SUFFIX): sip_szgexptpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
-        $(LINK_PREFIX)_szgexpt.pyd \
+        $(LINK_PREFIX)_szgexpt$(PYSHAREDLIB_SUFFIX) \
 	sip_szgexptpart0$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
 
 sip_szgexptpart0$(OBJ_SUFFIX): sip_szgexptpart0.cpp
@@ -103,7 +103,7 @@ install-shared: sip_all
 	$(CP) $(SIP_ALL) $(SZG_BINDIR)
 
 clean:
-	rm -f *.pyd
+	rm -f *$(PYSHAREDLIB_SUFFIX)
 	rm -f *.dll *.so
 	rm -f *.obj *.o
 	rm -f *.exp

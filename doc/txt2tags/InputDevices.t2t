@@ -134,7 +134,7 @@ From another shell, type:
 ```
 DeviceClient prints the raw joystick events.  Mashing buttons
 and twiddling the joystick should make the numbers change.
-If not, see [Troubleshooting DistributedOS.html#Troubleshooting].
+If not, see [Troubleshooting ClusterMode.html#Troubleshooting].
 
 You can run extra copies of ``DeviceClient 0`` on other computers where you're dlogin'd, too.
 

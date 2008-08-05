@@ -55,9 +55,15 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   void loadAlphabet(const string& path);
   arTexFont* getTexFont();
   void setTexturePath(const string& thePath);
-  arTexture* addTexture(const string&, int*);
+  arTexture* addTexture(const string& name, int* theAlpha);
   arBumpMap* addBumpMap(const string& name, int numPts, int numInd,
                         float* points, int* indices, float* tex2,
+                        float height, arTexture* decalTexture);
+  // Higher-level version added to simplify python bindings
+  arBumpMap* addBumpMap(const string& name, 
+                        vector<arVector3>& points,
+                        vector<int>& indices,
+                        vector<arVector2>& texCoords,
                         float height, arTexture* decalTexture);
 
   arMatrix4 accumulateTransform(int nodeID);

@@ -25,7 +25,7 @@ list of absolute directory paths; and directory paths listed in
 SZG_EXEC/path, SZG_PYTHON/executable, SZG_PYTHON/path, and
 SZG_PYTHON/lib_path must fall inside/below one of the directories
 listed in the 'base paths' argument. See
-[Creating a Cluster: The Remote Execution Daemon DistributedOS.html#szgd].
+[Creating a Cluster: The Remote Execution Daemon ClusterMode.html#szgd].
 
 + Executables:
 ```

@@ -416,7 +416,7 @@ LNolaunch:
         fileName = command;
         command = ar_fileFind( fileName, "", execPath );
         if (command == "NULL") {
-          errStream << "no python exe '" << fileName
+          errStream << "no python executable '" << fileName
                     << "' on SZG_EXEC/path " << execPath << ".\n";
           goto LAbort;
         }

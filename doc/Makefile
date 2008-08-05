@@ -4,12 +4,12 @@ ALL = \
   arSZGClient.html \
   Bugs.html \
   ChangeLog.html \
+  ClusterMode.html \
   ClusterTest.html \
   CommLayer.html \
   CommunicationDetails.html \
   CompileCPP.html \
 	CompilerIdiosyncrasies.html \
-  DistributedOS.html \
   ExampleCode.html \
   GettingSoftware.html \
   Goals.html \
@@ -22,12 +22,13 @@ ALL = \
   InputFilters.html \
   Interaction.html \
   Navigation.html \
-  Objects.html \
+  3DObjectFiles.html \
   PathConfiguration.html \
   PForth.html \
   PortabilityLayer.html \
   Programming.html \
-  PySZG.html \
+  PythonBindings.html \
+  PySZGold.html \
   QuickPort.html \
   RandomNumbers.html \
   SceneGraph.html \

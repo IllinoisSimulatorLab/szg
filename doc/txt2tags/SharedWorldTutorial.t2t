@@ -5,6 +5,8 @@ Header2 %%mtime(%m/%d/%Y)
 
 Header3
 
+//NOTE: This functionality is only in the older SWIG-based Python bindings, see the [Python Bindings PythonBindings.html] chapter)//.
+
 This tutorial will intreoduce you to the concept of peer-to-peer
 reality. To work along with the examples, you'll need to either have
 compiled the [szg library GettingSoftware.html] and the Syzygy
@@ -12,7 +14,7 @@ compiled the [szg library GettingSoftware.html] and the Syzygy
 appropriate for your system.
 
 First, note that you must be running in Cluster Mode
-(see the [Distributed OS DistributedOS.html] chapter).
+(see the [Cluster Mode ClusterMode.html] chapter).
 
 You will open three fresh terminal windows on your desktop.
 
@@ -62,7 +64,7 @@ information in some other way. In window 2, type the following:
   export SZGCONTEXT="virtual=foo"
 ```
 
-Now, run the example [peer python/peer.py] program:
+Now, run the example [peer ../python/demo/myriad/peer.py] program:
 
 ```
   python peer.py world0

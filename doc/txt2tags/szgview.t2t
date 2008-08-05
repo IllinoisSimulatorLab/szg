@@ -7,7 +7,7 @@ Header3
 
 Thanks to Mark Flider for creating the Syzygy object viewing modules.
 
-**szgview** lets you view [supported Objects.html] 3D objects.
+**szgview** lets you view [supported 3DObjectFiles.html] 3D objects.
 To view a file, run:
 
 ``` szgview myfile.ext

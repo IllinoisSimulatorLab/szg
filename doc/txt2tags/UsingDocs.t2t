@@ -35,7 +35,7 @@ applications are built and how their data files are installed. This will
 make it easier for you to write your own portable cluster applications.
 
 When you're comfortable with the introductory material, learn how to write
-Syzygy programs in [C++ CompileCPP.html] or [Python PySZG.html], and
+Syzygy programs in [C++ CompileCPP.html] or [Python PythonBindings.html], and
 read descriptions of some of the APIs in [Syzygy Programming Programming.html].
 
 =What Does "ar" Mean?=

@@ -21,12 +21,12 @@ is integrated with Myriad's, so their combined operation is
 thread-safe (e.g. when a remote peer in a shared scene graph deletes nodes).
 Several scene graph examples are written in Python.
 
-- [particle-shape python/particle-shape.py]: A particle system
+- [particle-shape ../python/demo/myriad/particle-shape.py]: A particle system
 using the built-in shapes.
-- [lorenz python/lorenz.py]: A visualization of the Lorenz attractor.
-- [cosmos python/cosmos.py]: Python port of the C++ demo "cosmos."
-- [simpleviz python/simpleviz.py]: A minimal **Hello World** program.
-- [interact python/interact.py]: A custom standalone-mode simulator that manipulates 
+- [lorenz ../python/demo/myriad/lorenz.py]: A visualization of the Lorenz attractor.
+- [cosmos ../python/demo/myriad/cosmos.py]: Python port of the C++ demo "cosmos."
+- [simpleviz ../python/demo/myriad/simpleviz.py]: A minimal **Hello World** program.
+- [interact ../python/demo/myriad/interact.py]: A custom standalone-mode simulator that manipulates 
 objects with a grasping tool.
 
 
@@ -42,7 +42,9 @@ objects.  That lets you get something running quickly.
 
 The easiest way to use Myriad in your programs is via Syzygy's scene graph
 application framework (arDistSceneGraphFramework), which is supported in both
-C++ and Python. You will want direct access to the underlying arGraphicsDatabase, which
+C++ and Python
+//NOTE: Some functionality is only in the older SWIG-based Python bindings, see the [Python Bindings PythonBindings.html] chapter)//.
+You will want direct access to the underlying arGraphicsDatabase, which
 is provided by the framework's getDatabase() method.
 
 It is also possible to use arGraphicsDatabase objects directly in your programs,
@@ -358,7 +360,7 @@ arRay
 =Using Built-In Objects=[BuiltIn]
 
 [images/BuiltInShapes.jpg]
-The [particle-shape python/particle-shape.py] example application.
+The [particle-shape ../python/demo/myriad/particle-shape.py] example application.
 
 Mention attachMesh. Mention setTransform.
 

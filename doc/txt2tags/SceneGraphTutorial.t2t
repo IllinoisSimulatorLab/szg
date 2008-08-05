@@ -10,6 +10,8 @@ Header3
 
 =Introduction=
 
+//NOTE: This functionality is only in the older SWIG-based Python bindings, see the [Python Bindings PythonBindings.html] chapter)//.
+
 This tutorial will walk you through working with the Syzygy scene graph
 from the Python prompt and introduce you to the concept of peer-to-peer
 reality. To follow this tutorial, you'll need to either have
@@ -23,12 +25,12 @@ describing the C++ scene graph API.
 There are several scene graph
 examples written in Python.
 
-- [particle-shape python/particle-shape.py]: A particle system
+- [particle-shape ../python/demo/myriad/particle-shape.py]: A particle system
 using some of the built-in shapes.
-- [lorenz python/lorenz.py]: A visualization of the lorenz attractor.
-- [cosmos python/cosmos.py]: Translation of the cosmos C++ demo into
+- [lorenz ../python/demo/myriad/lorenz.py]: A visualization of the lorenz attractor.
+- [cosmos ../python/demo/myriad/cosmos.py]: Translation of the cosmos C++ demo into
 Python.
-- [simpleviz python/simpleviz.py]: Shows how to manipulate a collection
+- [simpleviz ../python/demo/myriad/simpleviz.py]: Shows how to manipulate a collection
 of objects using a grasping tool. Also demonstrates a custom standalone mode
 simulator.
 

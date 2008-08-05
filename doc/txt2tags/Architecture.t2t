@@ -60,7 +60,7 @@ The general input device framework lets distinct physical
 devices aggregate into larger virtual ones. The data streams flowing
 through these devices can be filtered arbitrarily.
 
-=Distributed Operating System=[DistributedOS]
+=Distributed Operating System=[ClusterMode]
 
 One program, szgserver, manages basic services of a distributed operating
 system. One instance of this program runs per Syzygy installation. All
@@ -79,7 +79,7 @@ the text configuration files that might otherwise be scattered across many compu
 
 The distributed operating system supports multiple users.
 
-Details are in the [Distributed OS DistributedOS.html] chapter.
+Details are in the [Cluster Mode ClusterMode.html] chapter.
 
 
 =Media Objects=[MediaObjects]

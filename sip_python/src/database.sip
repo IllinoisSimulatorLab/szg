@@ -1,7 +1,54 @@
 // Defines mapping from python to C++ strings.
 %Include typemaps.sip
 
-enum{ 
+%ModuleHeaderCode
+#include "arDataUtilities.h"
+#include "arDatabaseNode.h"
+#include <list>
+using namespace std;
+class arDatabaseNodeList {
+ public:
+  arDatabaseNodeList(list<arDatabaseNode*> nodeList) {
+    _list = nodeList;
+    _iter = _list.begin();
+  }
+  ~arDatabaseNodeList() {}
+  arDatabaseNode* get() {
+    if (_iter == _list.end()) {
+      return NULL;
+    }
+    // MUST ref here for compatibility with the python memory management.
+    (*_iter)->ref();
+    return *_iter;
+  }
+  void next() { ++_iter; }
+  arDatabaseNode* iterate() {
+    if (_iter == _list.end()) {
+      return NULL;
+    }
+    // MUST ref here for compatibility with the python memory management.
+    (*_iter)->ref();
+    return *_iter++;
+  }
+ private:
+  list<arDatabaseNode*> _list;
+  list<arDatabaseNode*>::iterator _iter;
+};
+%End
+
+class arDatabaseNodeList {
+ public:
+//  arDatabaseNodeList(list<arDatabaseNode*>);
+  ~arDatabaseNodeList();
+  arDatabaseNode* get();
+  void next();
+  arDatabaseNode* iterate();
+ private:
+  arDatabaseNodeList();
+};
+
+
+enum { 
   AR_GENERIC_DATABASE = 0,
   AR_GRAPHICS_DATABASE = 1,
   AR_SOUND_DATABASE = 2
@@ -72,7 +119,7 @@ class arDatabaseNode {
 
   bool isroot() const;
   int getID() const;
-  //arDatabase* getOwner() const;
+  arDatabase* getOwner() const;
   arDatabaseNode* getParent() const;
   //arStructuredDataParser* getParser() const;
   //arStructuredData* getStorage(int) const;
@@ -87,7 +134,12 @@ class arDatabaseNode {
   // manipulations. Each arDatabaseNode ptr returned has am extra reference
   // added.
   //list<arDatabaseNode*> getChildrenRef();
-  // bool hasChildren() const;
+   arDatabaseNodeList* children();
+%MethodCode
+    sipRes = new arDatabaseNodeList( sipCpp->getChildrenRef() );
+%End
+
+   bool empty() const /PyName=hasChildren/;
 
   arNodeLevel getNodeLevel() const;
   void setNodeLevel(arNodeLevel nodeLevel);

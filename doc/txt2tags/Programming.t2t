@@ -101,7 +101,7 @@ code, do it //after// the framework's init(), because otherwise it will be
 overridden by the value from the database.
 
 
-==Accessing data in Cluster Mode==
+==Accessing data in Cluster Mode==[ClusterData]
 
 Previously, program data
 had to be located in a subdirectory of a directory on the
@@ -272,7 +272,7 @@ Return the position of the midpoint of the two eyes.
 arAppLauncher* arSZGAppFramework::getAppLauncher();
 ```
 Get a pointer to the arAppLauncher, which contains information about
-the [virtual computer DistributedOS.html#VirtualComputer] the application is running on.
+the [virtual computer ClusterMode.html#VirtualComputer] the application is running on.
 
 ```
 arGUIWindowManager* arSZGAppFramework::getWindowManager( void );
@@ -288,7 +288,7 @@ arSZGClient* arSZGClient::getSZGClient() { return &_SZGClient; }
 Get a pointer to the arSZGClient, which allows you to get and
 set parameters in the Syzygy database and to send messages to
 other Syzygy components. There are several sections devoted to
-the arSZGClient in the [Distributed Operating System DistributedOS.html]
+the arSZGClient in the [Distributed Operating System ClusterMode.html]
 chapter.
 
 
@@ -482,7 +482,7 @@ virtual void arMasterSlaveFramework::onUserMessage(
                                           const string& messageBody );
 ```
 Called whenever the application receives a user message (sent from e.g. the dmsg commandline
-program--see the [Distributed Operating System DistributedOS.html] chapter. The ``message_type`` should
+program--see the [Distributed Operating System ClusterMode.html] chapter. The ``message_type`` should
 be the string 'user').
 
 ```

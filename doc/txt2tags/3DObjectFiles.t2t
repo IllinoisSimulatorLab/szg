@@ -8,10 +8,9 @@ Header3
 %%toc
 
 
-=Objects?=
+=Supported 3D File Formats=
 
-The term Objects describes external graphics files
-that contain structural information. These formats are supported:
+These formats are supported by the [Syzygy Scene Graph SceneGraph.html]:
 - OBJ - Wavefront .obj
 - 3DS - 3D Studio .3ds (versions 3 and 4)
 - HTR - Motion Analysis' .htr
@@ -39,7 +38,7 @@ been liberated.
 
 ==arOBJRenderer==
 
-The arOBJRenderer allows you to easily read and render an OBJ file in a
+The [arOBJRenderer ../src/obj/arOBJ.h] allows you to easily read and render an OBJ file in a
 master/slave program. See the [Wavefront OBJ #OBJ] section for information
 about the format. Simply:
 
@@ -61,6 +60,23 @@ if (!myObj.readOBJ( const string& fileName,
 ```
 myObj.draw();
 ```
+  //New 07/08//: arOBJRenderers render much more quickly now, because texture maps are
+  mip-mapped by default. Also, if you want to load
+  one into an OpenGL display list, you should call the new ``activateTextures()`` method first:
+```
+myObj.activateTextures();
+int dl = glGenLists(1);
+if (dl == 0) {
+  oops;
+}
+glNewList( dl, GL_COMPILE );
+myObj.draw();
+glEndList();
+```
+  This causes any texture maps to be downloaded to the graphics card, which you
+  want to do //before// compiling a display list; otherwise, the action of loading the
+  texture to the card will be compiled into the display list, resulting in //slower//
+  performance than if you hadn't used a display list at all.
 
 
 Other optional methods:
@@ -75,6 +91,27 @@ arAxisAlignedBoundingBox arOBJRenderer::getAxisAlignedBoundingBox();
 arOBJGroupRenderer*      arOBJRenderer::getGroup( unsigned int i );
 arOBJGroupRenderer*      arOBJRenderer::getGroup( const string& name );
 ```
+
+Of particular interest are the ``getGroup()`` and ``getBoundingSphere()`` methods.
+The former returns an [arOBJGroupRenderer ../src/obj/arOBJ.h] that can be rendered
+separately from the parent object (i.e. if an obj file contains named groups of faces,
+you can render the groups indvidually). The arOBJGroupRenderer object also has a
+``getBoundingSphere()`` method. These allow you to do
+[frustum culling http://www.lighthouse3d.com/opengl/viewfrustum/]:
+```
+// draw callback
+float modView[16];
+float proj[16];
+glGetFloatv( GL_MODELVIEW_MATRIX, modView );
+glGetFloatv( GL_PROJECTION_MATRIX, proj );
+arMatrix4 frustumMatrix = arMatrix4( projectionMatrix ) * arMatrix4( modelViewMatrix );
+if (myObj.getBoundingSphere().intersectViewFrustum( frustumMatrix )) {
+  myObj.draw();
+}
+```
+Note that getBoundingSphere() is an expensive operation, so normally you would compute the
+[arBoundingSphere ../src/graphics/arRay.h] once,
+cache it, and use its ``transform()`` method to apply any constant transformations.
 
 
 =Scene Graph arObjects=
@@ -174,7 +211,7 @@ line segments as its "bones":
 
 ==3D Studio format==
 
-We use lib3ds to read in 3ds files, so we can only use versions 3 and 4. If your .3ds
+We use [lib3ds lib3ds.sourceforge.net] to read in 3ds files, so we can only use versions 3 and 4. If your .3ds
 file doesn't display or you see an error message when trying to read in the file, this
 is probably the reason. Simply convert it to version 3 or 4 (there are several free
 utilities out there), and the new .3ds should load into Syzygy. Basic materials and

@@ -110,7 +110,7 @@ arguments to this executable by delimiting them with bars, e.g. ``c:\Python24\py
 ===Master/Slave===
 
 - Previously M/S programs could only load .obj 3D models using the scene graph. Added new
-  ``arOBJRenderer`` class that does this much more easily, see [Objects Objects.html].
+  ``arOBJRenderer`` class that does this much more easily, see [Objects 3DObjectFiles.html].
 
 - We're gradually removing the GLUT dependency. arMasterSlaveFramework.h no longer includes
   the GLUT headers, so if you use any of the GLUT drawing functions (e.g. glutSolidCube() etc.)
@@ -184,7 +184,7 @@ to create custom input simulators.
 and szg components will refuse to communicate with one another if it does not
 match. This is intended to keep components with incompatible communication
 protocols from intergering with one another.
-- IMPORTANT: It is now possible to set Distributed OS parameter values using
+- IMPORTANT: It is now possible to set Cluster Mode parameter values using
 environment variables and to set the identity of the standalone parameter
 file using the environment variable SZG_PARAM.
 - Added "predetermined harmony" mode to the arMasterSlaveFramework.
@@ -227,7 +227,7 @@ compatible with existing Python code.
 =Changes in szg-0.7=
 
 - Changed the mechanism by which alternative config file and login file
-locations are determined for Distributed OS. There is no longer a -t option for
+locations are determined for Cluster Mode. There is no longer a -t option for
 dname, dports, daddinterface, or ddelinterface. Instead, the SZG_CONF
 environment variable, if set, gives the nonstandard config file location.
 Similarly, SZG_LOGIN, if set, controls the location of the login files.
@@ -321,7 +321,7 @@ frequency of port scanning.
     reorganize your data directory for the new method.
 - IMPORTANT: Please re-read the basic documentation! The method of setting-up the
 distributed system has changed!
-- IMPORTANT: Distributed OS now uses connection brokering, via the szgserver, to determine
+- IMPORTANT: Cluster Mode now uses connection brokering, via the szgserver, to determine
 how components will connect to one another. This has many advantages, espcially in
 making initial set-up easier. However, YOUR OLD CONFIG FILES AND YOUR OLD
 INFRASTRUCTURE EXECUTABLES ARE INCOMPATIBLE WITH THE NEW STUFF! Furthermore, the new
@@ -379,10 +379,10 @@ Bug Fixed.
 - Previously, host names beginning with a numeral confused
 the sszgserver name resolution process on Windows.
 Bug Fixed.
-- The Distributed OS protocol has changed greatly, mostly to allow greater
+- The Cluster Mode protocol has changed greatly, mostly to allow greater
 handshaking (and thus determinism) between components during
 application launch on a cluster. It is not compatible with previous
-versions. See [Distributed OS DistributedOS.html] for details.
+versions. See [Cluster Mode ClusterMode.html] for details.
 - The graphics database has changed, adding more primitive types
 and now correctly supporting OpenGL lights and materials. The new
 API is incompatible with that found in version szg-0.4.
@@ -413,12 +413,12 @@ details.
 
 =Changes in szg-0.4=
 
-- Executable names have been changed. This is true of many Distributed OS commands,
+- Executable names have been changed. This is true of many Cluster Mode commands,
 in an attempt to make them more keyboard friendly (for instance, changing
 szgConnect to dconnect). Also, some service programs have seen name
 changes, like SZGRender being changed to szgrender. See the rest of the
 documentation, in particular
-[Distributed OS DistributedOS.html], for details.
+[Cluster Mode ClusterMode.html], for details.
 - Instead of many server executables for input device drivers,
 a single one, DeviceServer, runs them all.
 - Endian conversion works. We can communicate again between the
@@ -485,7 +485,7 @@ IMPORTANT NOTE: Endian-conversion is currently broken! The
 ```
 
    Note that this is a relatively uncommon case, only relevant to those
-   doing systems programming with Distributed OS.
+   doing systems programming with Cluster Mode.
 - szgServer set-up is now vastly different. Broadcast communications using
    ports 4620 and 4621 allow for automatic set-up on a LAN. See
    SyzygyServer.txt for details. Also, the communication protocol between

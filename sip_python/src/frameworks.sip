@@ -909,8 +909,6 @@ class arInteractableThing : arInteractable {
 class arDistSceneGraphFramework : arSZGAppFramework {
 %TypeHeaderCode
 #include "arDistSceneGraphFramework.h"
-
-
 %End
  public:
   arDistSceneGraphFramework();
@@ -930,7 +928,7 @@ class arDistSceneGraphFramework : arSZGAppFramework {
   void loopQuantum();
   void exitFunction();
   
-//  arGraphicsDatabase* getDatabase();
+  arGraphicsDatabase* getDatabase();
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
   void addDataBundlePathMap(const string& bundlePathName, 

@@ -198,6 +198,44 @@ public:
 };
 
 
+// TODO: Mostly not implemented yet.
+class arBumpMap : arTexture {
+%TypeHeaderCode
+#include "arBumpMap.h"
+%End
+ public:
+  arBumpMap();
+  virtual ~arBumpMap();
+  arBumpMap( const arBumpMap& rhs );
+//  arBumpMap& operator=( const arBumpMap& rhs );
+//  bool operator!();
+  void activate();	// initializes bump map in OpenGL (called once at start)
+  void reactivate();	// enables in OpenGL -- NOTE: Unused; deprecated???
+  void deactivate();	// disables in OpenGL
+
+  void generateFrames(int numTBN);	// force-generates TBNs
+
+  // sets how deep the bump map should be (default is 1)
+  void setHeight(float newHeight);
+  // these should be sorted by (possibly indexed) vertex number
+//  const float* tangents() { return _tangents; }
+//  void setTangents(int number, float *tangents);
+//  const float* binormals() { return _binormals; }
+//  void setBinormals(int number, float *binorms);
+//  const float* normals() { return _normals; }
+//  void setNormals(int number, float *norms);
+//  void setTBN(int number, float *tangents, float *binorms, float *norms);
+//  void setPIT(int numPts, int numInd, float* points, int* index, float* tex2);
+  void setDecalTexture(arTexture* newTexture);
+
+  // returns how many packed double3's are in each (T, B, N) array
+  int numberOfTBN();
+
+  // TBN float* array or NULL if invalid
+//  float** TBN();
+};
+
+
 // Ray, for intersection testing.
 class arRay {
 %TypeHeaderCode
@@ -300,4 +338,25 @@ class arBoundingSphere {
 };
 
 
+class arLight {
+ public:
+  arLight();
+  arLight(const arLight&);
+  ~arLight();
+
+  int lightID;
+  arVector4 position;
+  arVector3 diffuse;
+  arVector3 ambient;
+  arVector3 specular;
+  float     constantAttenuation;
+  float     linearAttenuation;
+  float     quadraticAttenuation;
+  arVector3 spotDirection;
+  float     spotCutoff;
+  float     spotExponent;
+
+  void activateLight();
+  void activateLight(arMatrix4 lightPositionTransform);
+};
 

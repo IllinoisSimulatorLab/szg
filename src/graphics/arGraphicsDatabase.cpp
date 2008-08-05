@@ -246,7 +246,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
     map<string, string, less<string> >::const_iterator iter =
         _bundlePathMap.find(_bundlePathName);
     if (_bundlePathName != "NULL" && _bundleName != "NULL"
-	&& iter != _bundlePathMap.end()) {
+                            && iter != _bundlePathMap.end()) {
       arSemicolonString bundlePath(iter->second);
       for (int n=0; n<bundlePath.size() && !fDone; n++) {
         s = bundlePath[n];
@@ -257,14 +257,14 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
         ar_scrubPath(s);
         triedPaths.push_back( s );
         fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
-	theTexture->mipmap(true);
+        theTexture->mipmap(true);
       }
     }
 
     _texturePathLock.lock();
     // Try the texture path.
     for (list<string>::iterator i = _texturePath->begin();
-	 !fDone && i != _texturePath->end(); ++i) {
+                   !fDone && i != _texturePath->end(); ++i) {
       s = *i + name;
       ar_scrubPath(s);
       triedPaths.push_back( s );
@@ -274,9 +274,9 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
     if (!fDone) {
       theTexture->dummy();
       if (!_fComplainedImage) {
-	_fComplainedImage = true;
-	ar_log_error() << "arGraphicsDatabase: no image file '"
-		       << name << "'. Tried ";
+        _fComplainedImage = true;
+        ar_log_error() << "arGraphicsDatabase: no image file '"
+                       << name << "'. Tried ";
         std::vector<std::string>::iterator iter;
         for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
           ar_log_error() << *iter << " ";
@@ -348,6 +348,31 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
  */
   return theBumpMap;
 }
+
+
+arBumpMap* arGraphicsDatabase::addBumpMap(const string& name, 
+                        vector<arVector3>& points,
+                        vector<int>& indices,
+                        vector<arVector2>& texCoords,
+                        float height, arTexture* decalTexture) {
+  if (indices.size() != texCoords.size()) {
+    ar_log_error() << "addBumpMap() indices and texCoords must contain same number of entries.\n";
+    return NULL;
+  }
+  int* ip;
+  float* pp;
+  float* tp;
+  if (!ar_unpackIntVector( indices, &ip ) || !ar_unpackVector3Vector( points, &pp ) 
+      || ! ar_unpackVector2Vector( texCoords, &tp )) {
+    ar_log_error() << "addBumpMap() failed to allocate buffer.\n";
+    return NULL;
+  }
+  int numPts = static_cast<int>(points.size()); 
+  int numInd = static_cast<int>(indices.size()); 
+  // MEMORY LEAK! Buffers can't be deleted and aren't owned by the arBumpMap.
+  return addBumpMap( name, numPts, numInd, pp, ip, tp, height, decalTexture );
+}
+
 
 // Figure out the total transformation matrix from ABOVE the current node
 // to the database's root. This call is thread-safe with respect to

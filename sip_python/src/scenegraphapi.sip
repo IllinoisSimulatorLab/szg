@@ -57,6 +57,58 @@ enum arGraphicsStateValue {
 };
 
 
+
+class arGraphicsDatabase: arDatabase {
+ // Needs assignment operator and copy constructor, for pointer members.
+ public:
+  arGraphicsDatabase();
+  virtual ~arGraphicsDatabase();
+
+  // Default should be false (i.e. we do not need an extra reference
+  // tacked on to the indicated node in the case of node creation).
+//  virtual arDatabaseNode* alter(arStructuredData*, bool refNode=false);
+  virtual void reset();
+
+  void loadAlphabet(const string& path);
+  arTexFont* getTexFont();
+  void setTexturePath(const string& thePath);
+  arTexture* addTexture(const string& name, int* theAlpha /Out/);
+  arBumpMap* addBumpMap(const string& name, 
+                        vector<arVector3>& points,
+                        vector<int>& indices,
+                        vector<arVector2>& texCoords,
+                        float height, arTexture* decalTexture /TransferBack/);
+
+  arMatrix4 accumulateTransform(int nodeID);
+  arMatrix4 accumulateTransform(int startNodeID, int endNodeID);
+
+  void setVRCameraID(int cameraID);
+
+  void draw( arGraphicsWindow& win, arViewport& view );
+  void draw(arMatrix4* projectionMatrix = NULL);
+  int intersect(const arRay&);
+  arDatabaseNodeList intersect(const arBoundingSphere& b, bool addRef=false);
+  arDatabaseNodeList intersectRef(const arBoundingSphere& b);
+//  list<int> intersectList(const arRay&);
+  arGraphicsNode* intersectGeometry(const arRay& theRay, int excludeBelow = -1);
+%MethodCode
+    sipRes = sipCpp->intersectGeometry( *a0, a1 );
+    sipRes->ref();  // ??
+%End
+
+  bool registerLight(arGraphicsNode* node, arLight* theLight);
+  bool removeLight(arGraphicsNode* node);
+  void activateLights();
+
+  arHead* getHead();
+  bool registerCamera(arGraphicsNode* node, arPerspectiveCamera* theCamera);
+  bool removeCamera(arGraphicsNode* node);
+  // Normally we use the default "VR camera"... however, the database can
+  // also be drawn from the perspective of one of the attached camera
+  arPerspectiveCamera* getCamera( unsigned int cameraID );
+};
+
+
 class arGraphicsNode: arDatabaseNode {
 %TypeHeaderCode
 #include "arGraphicsNode.h"
@@ -222,4 +274,75 @@ int dgBumpMap(const string& name, const string& parent,
 
 bool dgBumpMap(int ID, const string& filename, float height=1.);
 
+
+//SZG_CALL int dgPlugin(const string& name, const string& parent, const string& fileName,
+//               int* intData, int numInts,
+//               float* floatData, int numFloats,
+//               long* longData, int numLongs,
+//               double* doubleData, int numDoubles,
+//               std::vector< std::string >* stringData );
+
+//SZG_CALL bool dgPlugin(int ID, const string& fileName,
+//               int* intData, int numInts,
+//               float* floatData, int numFloats,
+//               long* longData, int numLongs,
+//               double* doubleData, int numDoubles,
+//               std::vector< std::string >* stringData );
+
+//SZG_CALL int dgPlugin(const string& name,
+//              const string& parent,
+//              const string& fileName,
+//               std::vector<int>& intData,
+//               std::vector<float>& floatData,
+//               std::vector<long>& longData,
+//               std::vector<double>& doubleData,
+//               std::vector< std::string >& stringData );
+
+//SZG_CALL bool dgPlugin( int ID, const string& fileName,
+//               std::vector<int>& intData,
+//               std::vector<float>& floatData,
+//               std::vector<long>& longData,
+//               std::vector<double>& doubleData,
+//               std::vector< std::string >& stringData );
+
+
+//int SZG_CALL dgPython(const string& name,
+//              const string& parent,
+//              const string& moduleName,
+//              const string& factoryName,
+//              bool reloadModule,
+//               int* intData, int numInts,
+//               float* floatData, int numFloats,
+//               long* longData, int numLongs,
+//               double* doubleData, int numDoubles,
+//               std::vector< std::string >* stringData );
+
+//bool SZG_CALL dgPython( int ID, const string& moduleName,
+//               const string& factoryName,
+//               bool reloadModule,
+//               int* intData, int numInts,
+//               float* floatData, int numFloats,
+//               long* longData, int numLongs,
+//               double* doubleData, int numDoubles,
+//               std::vector< std::string >* stringData );
+
+//int SZG_CALL dgPython(const string& name,
+//              const string& parent,
+//              const string& moduleName,
+//              const string& factoryName,
+//              bool reloadModule,
+//               std::vector<int>& intData,
+//               std::vector<float>& floatData,
+//               std::vector<long>& longData,
+//               std::vector<double>& doubleData,
+//               std::vector< std::string >& stringData );
+
+//bool SZG_CALL dgPython( int ID, const string& moduleName,
+//               const string& factoryName,
+//               bool reloadModule,
+//               std::vector<int>& intData,
+//               std::vector<float>& floatData,
+//               std::vector<long>& longData,
+//               std::vector<double>& doubleData,
+//               std::vector< std::string >& stringData );
 

@@ -436,7 +436,7 @@ scene graph application runs on the trigger computer. These programs will
 share the head information with relevant other programs running on the cluster.
 When running in [Standalone Mode Standalone.html],
 the current computer is both master and trigger for the purposes of this section. Please see the chapter on
-the [Distributed OS DistributedOS.html#VirtualComputer] for a
+the [Cluster Mode ClusterMode.html#VirtualComputer] for a
 definition of these terms.
 
 A head has the following parameters:
