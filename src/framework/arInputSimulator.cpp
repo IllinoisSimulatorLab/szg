@@ -24,7 +24,7 @@ arInputSimulator::arInputSimulator() :
   _fInit(false),
   _xMouse(0),
   _yMouse(0),
-  _numButtonEvents(0),
+  _numButtonEvents(2),
   _buttonSelector(0),
   _interfaceState(AR_SIM_USE_JOYSTICK),
   _head(arVector3(0, 5, 0)),
