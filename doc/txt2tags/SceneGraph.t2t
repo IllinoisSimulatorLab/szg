@@ -21,12 +21,12 @@ is integrated with Myriad's, so their combined operation is
 thread-safe (e.g. when a remote peer in a shared scene graph deletes nodes).
 Several scene graph examples are written in Python.
 
-- [particle-shape ../python/demo/myriad/particle-shape.py]: A particle system
+- [particle-shape ../python_swig/demo/myriad/particle-shape.py]: A particle system
 using the built-in shapes.
-- [lorenz ../python/demo/myriad/lorenz.py]: A visualization of the Lorenz attractor.
-- [cosmos ../python/demo/myriad/cosmos.py]: Python port of the C++ demo "cosmos."
-- [simpleviz ../python/demo/myriad/simpleviz.py]: A minimal **Hello World** program.
-- [interact ../python/demo/myriad/interact.py]: A custom standalone-mode simulator that manipulates 
+- [lorenz ../python_swig/demo/myriad/lorenz.py]: A visualization of the Lorenz attractor.
+- [cosmos ../python_swig/demo/myriad/cosmos.py]: Python port of the C++ demo "cosmos."
+- [simpleviz ../python_swig/demo/myriad/simpleviz.py]: A minimal **Hello World** program.
+- [interact ../python_swig/demo/myriad/interact.py]: A custom standalone-mode simulator that manipulates 
 objects with a grasping tool.
 
 
@@ -360,7 +360,7 @@ arRay
 =Using Built-In Objects=[BuiltIn]
 
 [images/BuiltInShapes.jpg]
-The [particle-shape ../python/demo/myriad/particle-shape.py] example application.
+The [particle-shape ../python_swig/demo/myriad/particle-shape.py] example application.
 
 Mention attachMesh. Mention setTransform.
 

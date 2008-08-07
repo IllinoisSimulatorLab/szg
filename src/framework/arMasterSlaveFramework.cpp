@@ -368,6 +368,9 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     return false;
   }
 
+  // Put it here so that the app label will have been set.
+  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
+
   // Performance graphs.
   const arVector3 white  (1, 1, 1);
   const arVector3 yellow (1, 1, 0);
@@ -399,6 +402,13 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     // way yet to operate in a distributed fashion).
     // Don't initialize the master's objects, since they'll be unused.
     return true;
+  }
+
+  string currDir;
+  if (!ar_getWorkingDirectory( currDir )) {
+    ar_log_critical() << "Failed to get working directory.\n";
+  } else {
+    ar_log_critical() << "Directory: " << currDir << ar_endl;
   }
 
   // Connected to szgserver.  Not standalone.

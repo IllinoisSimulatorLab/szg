@@ -381,11 +381,21 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     return false;
   }
 
+  // Put it here so that the app label will have been set.
+  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
+
   if (!_SZGClient) {
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
+  }
+
+  string currDir;
+  if (!ar_getWorkingDirectory( currDir )) {
+    ar_log_critical() << "Failed to get working directory.\n";
+  } else {
+    ar_log_critical() << "Directory: " << currDir << ar_endl;
   }
 
   // Connected to an szgserver.

@@ -21,7 +21,7 @@ using namespace std;
 // REMARK:   Everything else.
 // DEBUG:    For ISL developers.
 
-enum{
+enum {
   AR_LOG_SILENT=0,
   AR_LOG_CRITICAL,
   AR_LOG_ERROR,
@@ -35,7 +35,7 @@ SZG_CALL int ar_stringToLogLevel(const string&);
 SZG_CALL string ar_logLevelToString(int);
 SZG_CALL bool ar_setLogLevel( const string& level, const bool fVerbose = true );
 
-class SZG_CALL arLogStream{
+class SZG_CALL arLogStream {
   friend SZG_CALL arLogStream& ar_log_critical();
   friend SZG_CALL arLogStream& ar_log_error();
   friend SZG_CALL arLogStream& ar_log_warning();

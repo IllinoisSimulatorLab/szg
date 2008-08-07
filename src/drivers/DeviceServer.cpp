@@ -95,6 +95,15 @@ bool arStandardDeviceServerFramework::_normalConfig( arInputNodeConfig& inputCon
 }
 
 int main(int argc, char** argv) {
+  ar_log_critical() << "DeviceServer Syzygy version: " << ar_versionString() << ar_endl;
+
+  string currDir;
+  if (!ar_getWorkingDirectory( currDir )) {
+    ar_log_critical() << "Failed to get working directory.\n";
+  } else {
+    ar_log_critical() << "Directory: " << currDir << ar_endl;
+  }
+
   arStandardDeviceServerFramework fw;
   if (!fw.init( argc, argv, "DeviceServer" )) {
     ar_log_error() << "DeviceServer init failed.\n";

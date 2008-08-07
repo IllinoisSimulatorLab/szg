@@ -66,7 +66,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
 
   const int n = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (n == 0) {
-    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events defaulting to " <<
+    ar_log_remark() << "arInputSimulator: SZG_INPUTSIM/number_button_events defaulting to " <<
       numberButtonEventsDefault << ".\n";
     return false;
   }

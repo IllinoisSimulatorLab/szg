@@ -254,7 +254,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
         s += _bundleName;
         ar_pathAddSlash(s);
         s += name;
-        ar_scrubPath(s);
+        ar_fixPathDelimiter(s);
         triedPaths.push_back( s );
         fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
         theTexture->mipmap(true);
@@ -266,7 +266,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
     for (list<string>::iterator i = _texturePath->begin();
                    !fDone && i != _texturePath->end(); ++i) {
       s = *i + name;
-      ar_scrubPath(s);
+      ar_fixPathDelimiter(s);
       triedPaths.push_back( s );
       fDone = theTexture->readImage(s.c_str(), *theAlpha, false);
       theTexture->mipmap(true);

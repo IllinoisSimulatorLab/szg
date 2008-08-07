@@ -71,6 +71,16 @@ int main(int argc, char** argv) {
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
+  // Put it here so that the app label will have been set.
+  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
+
+  string currDir;
+  if (!ar_getWorkingDirectory( currDir )) {
+    ar_log_critical() << "Failed to get working directory.\n";
+  } else {
+    ar_log_critical() << "Directory: " << currDir << ar_endl;
+  }
+
   // Only one SoundRender per host.
   // copypasted (more or less) from szgd.cpp
   int ownerID = -1;

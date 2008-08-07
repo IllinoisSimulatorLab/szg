@@ -186,6 +186,7 @@ SZG_CALL string ar_pathToken(const string& theString, int& start);
 // Deal with the idiosyncracies of paths across Unix and Win32
 SZG_CALL char ar_pathDelimiter();
 SZG_CALL char ar_oppositePathDelimiter();
+SZG_CALL string& ar_fixPathDelimiter(string& s);
 SZG_CALL string& ar_scrubPath(string& s);
 SZG_CALL string& ar_pathAddSlash(string& s); // append a / or a \ if necessary
 

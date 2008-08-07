@@ -64,7 +64,7 @@ information in some other way. In window 2, type the following:
   export SZGCONTEXT="virtual=foo"
 ```
 
-Now, run the example [peer ../python/demo/myriad/peer.py] program:
+Now, run the example [peer ../python_swig/demo/myriad/peer.py] program:
 
 ```
   python peer.py world0

@@ -27,6 +27,8 @@ std::vector< std::string > basePathsGlobal;
 
 arIntAtom fConnect(0);
 
+/*****************************************************************************/
+
 // Print warnings to console AND return them to dex.
 void warnTwice( ostream& errStream, const string& msg ) {
   // to console
@@ -43,6 +45,7 @@ void warnTwice( ostream& errStream, const string& msg ) {
   }
 }
 
+/*****************************************************************************/
 /*
   By convention, we assume that python apps are installed as
   "bundles" in sub-directories on a directory on SZG_PYTHON/path.
@@ -71,6 +74,11 @@ void warnTwice( ostream& errStream, const string& msg ) {
   apps read data files using paths relative to the application's
   directory), szgd does the same for C++ apps.
 */
+
+/*****************************************************************************/
+// All SZG_<foo>/path variables must begin with one of the items
+// passed to szg in the base_paths command-line argument. This
+// function checks a path for this condition.
 bool comparePathToBases( const std::string& path,
                          const std::string& groupNameString,
                          ostringstream& errStream ) {
@@ -97,7 +105,12 @@ bool comparePathToBases( const std::string& path,
   warnTwice( errStream, errMsg );
   return false;
 }
+/*****************************************************************************/
 
+
+/*****************************************************************************/
+// Un-pack the base paths commandline argument and verify that each
+// element of it actually exists.
 bool getBasePaths( const char* const arg ) {
   arSemicolonString pathsString( arg );
   for (int i=0; i<pathsString.size(); ++i) {
@@ -134,7 +147,12 @@ bool getBasePaths( const char* const arg ) {
   }
   return true;
 }
+/*****************************************************************************/
 
+
+/*****************************************************************************/
+// Find the 'program', i.e. the executable name passed to dex. This could be either
+// an executable or a .py file. The absolute path is returned.
 string getAppPath( const string& userName, const string& groupName, const string& appFile,
     ostringstream& errStream ) {
   const string appPath = SZGClient->getAttribute( userName, "NULL", groupName, "path", "");
@@ -223,13 +241,20 @@ string getAppPath( const string& userName, const string& groupName, const string
   }
   return actualDirectory;
 }
+/*****************************************************************************/
 
 
+
+/*****************************************************************************/
 // Helper class to pass data to exec threads.
 
-enum { formatNative=0, formatPython, formatInvalid };
+enum {
+  formatNative=0,
+  formatPython,
+  formatInvalid
+};
 
-class ExecInfo{
+class ExecInfo {
  public:
   ExecInfo(const string& u, const string& mB, const string& mC, int rMID, int tM) :
     receivedMessageID(rMID),
@@ -261,6 +286,13 @@ class ExecInfo{
   static const char* const _formatnames[formatInvalid+1];
 };
 
+const char* const ExecInfo::_formatnames[formatInvalid+1] =
+    { "native", "python", "invalid" };
+
+/*****************************************************************************/
+
+
+/*****************************************************************************/
 string argsAsList(const list<string>& args) {
   string s("(");
   for (list<string>::const_iterator iter = args.begin();
@@ -271,10 +303,10 @@ string argsAsList(const list<string>& args) {
   }
   return s + ")\n";
 }
+/*****************************************************************************/
 
-const char* const ExecInfo::_formatnames[formatInvalid+1] =
-    { "native", "python", "invalid" };
 
+/*****************************************************************************/
 // 1. Given the user and arg string, from szgserver get the user's exe path.
 // 2. From the arg string and the exe path, find the file to execute.
 // 3. Determine "symbolicCommand", "command" and "args", returned by reference.
@@ -457,6 +489,7 @@ LNolaunch:
        << "  args = " << argsAsList(args);
   return string("OK");
 }
+/*****************************************************************************/
 
 void bufFromString(char*& buf, const string& s) {
   const int cch = s.length() + 1;
@@ -505,7 +538,7 @@ void randomDelay() {
 
 static void TweakPath(string& path) {
   // Point slashes in the right direction.
-  ar_scrubPath(path);
+  ar_fixPathDelimiter(path);
 
 #ifndef AR_USE_WIN_32
   // Change windows szg path's ';' delimiter to unix's ':'.
@@ -516,6 +549,8 @@ static void TweakPath(string& path) {
 #endif
 }
 
+
+/*****************************************************************************/
 void execProcess(void* i) {
   ExecInfo* execInfo = (ExecInfo*)i;
   const string& userName = execInfo->userName;
@@ -538,13 +573,6 @@ void execProcess(void* i) {
     SZGClient->messageResponse(receivedMessageID, info.str());
 LDone:
     delete execInfo;
-//    if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-//      ar_log_remark() << "post-launch dir is '"
-//           << originalWorkingDirectory << "'.\n";
-//    } else {
-//      ar_log_error() << "post-launch failed to cd to '"
-//           << originalWorkingDirectory << "'.\n";
-//    }
     return;
   }
 
@@ -954,6 +982,7 @@ LDone:
 
   goto LDone;
 }
+/*****************************************************************************/
 
 
 void messageLoop( void* /*d*/ ) {

@@ -134,7 +134,7 @@ bool arStreamNode::receiveData(arStructuredData* data) {
   _fileNamePrev = _fileName;
 
   _fileName = data->getDataString(_l.AR_STREAM_FILE);
-  ar_scrubPath(_fileName);
+  ar_fixPathDelimiter(_fileName);
   return data->dataOut(_l.AR_STREAM_PAUSED, &_paused, AR_INT, 1) &&
     data->dataOut(_l.AR_STREAM_AMPLITUDE, &_amplitude, AR_FLOAT, 1) &&
     data->dataOut(_l.AR_STREAM_TIME, &_msecRequested, AR_INT, 1);

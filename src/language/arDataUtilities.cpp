@@ -247,10 +247,11 @@ bool arTimer::running() const {
 // @param pipeID Pipe's file descriptor
 // @param theData Buffer into which the data gets packed
 // @param numBytes Number of data bytes requested
-bool ar_safePipeRead(int pipeID, char* theData, int numBytes) {
 #ifdef AR_USE_WIN_32
+bool ar_safePipeRead(int, char*, int) {
   return false;
 #else
+bool ar_safePipeRead(int pipeID, char* theData, int numBytes) {
   while (numBytes>0) {
     const int n = read(pipeID, theData, numBytes);
     if (n<0) {
@@ -269,11 +270,12 @@ bool ar_safePipeRead(int pipeID, char* theData, int numBytes) {
 // @param numBytes Number of data bytes requested
 // @param timeout Maximum number of milliseconds we will block
 // Returns number of bytes read.
-int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
-		            int timeout) {
 #ifdef AR_USE_WIN_32
+int ar_safePipeReadNonBlock(int, char*, int, int) {
   return 0;
 #else
+int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
+		            int timeout) {
   fd_set rset;
   fd_set wset;
   FD_ZERO(&rset);
@@ -315,10 +317,11 @@ void stupid_compiler_placeholder() {
 // @param pipeID Pipe's file descriptor
 // @param theData Buffer from which data is read
 // @param numBytes number of data bytes written
-bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes) {
 #ifdef AR_USE_WIN_32
+bool ar_safePipeWrite(int, const char*, int) {
   return false;
 #else
+bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes) {
   while (numBytes>0) {
     const int n = write(pipeID, theData, numBytes);
     if (n<0) {
@@ -814,13 +817,18 @@ char ar_oppositePathDelimiter() {
 
 // Makes sure a given path string has the right delimiter character for
 // our OS (i.e / or \)
-string& ar_scrubPath(string& s) {
+string& ar_fixPathDelimiter(string& s) {
   for (unsigned int i=0; i<s.length(); i++) {
     if (s[i] == ar_oppositePathDelimiter()) {
       s[i] = ar_pathDelimiter();
     }
   }
   return s;
+}
+
+string& ar_scrubPath(string& s) {
+  ar_log_warning() << "ar_scrubPath() is deprecated, please change to ar_fixPathDelimiter() (same syntax).\n";
+  return ar_fixPathDelimiter( s );
 }
 
 // Append a path-separator to arg; return arg.
@@ -1118,7 +1126,7 @@ string ar_fileFind(const string& name,
     // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
     // as required by platform. This is necessary to allow the subdirectory
     // to have multiple levels in a cross-platform sort of way.
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     result = fopen(possiblePath.c_str(), "r");
     if (result && ar_isDirectory(possiblePath.c_str())) {
       // Reject this directory.
@@ -1131,7 +1139,7 @@ string ar_fileFind(const string& name,
   if (!result) {
     possiblePath = name;
     // Do not forget to "scrub" the path.
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     result = fopen(possiblePath.c_str(), "r");
     if (result && ar_isDirectory(possiblePath.c_str())) {
       // Reject this directory.
@@ -1167,7 +1175,7 @@ string ar_directoryFind(const string& name,
     if (subdirectory != "")
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
     possiblePath = ar_pathAddSlash(possiblePath)+name;
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
         isDirectory) {
       result = true;
@@ -1177,7 +1185,7 @@ string ar_directoryFind(const string& name,
   // Next, try to find the file locally
   if (!result) {
     possiblePath = name;
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
         isDirectory) {
       result = true;
@@ -1206,7 +1214,7 @@ FILE* ar_fileOpen(const string& name,
     possiblePath = ar_pathAddSlash(possiblePath)+name;
     // "Scrub" the path (i.e. replace '/' by '\' or vice versa),
     // for OS-independent subsubdirectories.
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())) {
       fclose(result);
@@ -1220,7 +1228,7 @@ FILE* ar_fileOpen(const string& name,
   // Find the file locally
   if (!result) {
     possiblePath = name;
-    ar_scrubPath(possiblePath);
+    ar_fixPathDelimiter(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())) {
       fclose(result);
@@ -1252,7 +1260,7 @@ list<string> ar_listDirectory(const string& name) {
   // We will return a full path to the included file.
   string directoryPrefix = name;
   string fileNameString;
-  ar_scrubPath(directoryPrefix);
+  ar_fixPathDelimiter(directoryPrefix);
   ar_pathAddSlash(directoryPrefix);
   list<string> result;
   struct stat statbuf;
@@ -1286,7 +1294,7 @@ list<string> ar_listDirectory(const string& name) {
 
   // Browse a list of files that match a name (including wildcards).
   string fileSpecification(name);
-  ar_scrubPath(fileSpecification);
+  ar_fixPathDelimiter(fileSpecification);
   ar_pathAddSlash(fileSpecification);
   // Add a wildcard character, for everything in the directory.
   fileSpecification += "*";

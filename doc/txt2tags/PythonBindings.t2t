@@ -24,7 +24,7 @@ and SIP 4.7.6, g++ 4.1.3, and Python 2.5 on Ubuntu.
 They're also not complete. The more 
 [advanced interface to the Distributed Scene Graph SceneGraphTutorial.html] isn't
 supported yet, although the older, undocumented [functional API ../src/graphics/arGraphicsAPI.h] is
-(see [Blobby Man ../sip_python/demo/blobby/blobby.py] for an example).
+(see [Blobby Man ../python_sip/demo/blobby/blobby.py] for an example).
 Supporting the newer interface requires figuring out some object ownership issues
 (that are undocumented and written by Ben Schaeffer, who is no longer with the
 Integrated Systems Lab).
@@ -70,14 +70,14 @@ added here).
   - On Linux, it's the value for the -l linker argument. For example, to link against
     /usr/lib/libpython2.5.so, this should be set to ``python2.5``
 
-+ ``cd`` to szg/sip_python and type ``make``. ``make clean`` cleans (deletes) things up.
++ ``cd`` to szg/python_sip and type ``make``. ``make clean`` cleans (deletes) things up.
   A number of files are generated/moved.
 
-  + SIP creates the file sip_python/build/<platform>/sip_szgpart0.cpp containing the C++
+  + SIP creates the file python_sip/build/<platform>/sip_szgpart0.cpp containing the C++
     source for the bindings.
 
   + This gets compiled to _szg.pyd (Windows) or _szg.so (Unix). This file and
-    sip_python/src/szg.py are copied to ``$SZGBIN``.
+    python_sip/src/szg.py are copied to ``$SZGBIN``.
 
 
 =Before Using the Bindings=
@@ -92,21 +92,21 @@ link on the SourceForge download page).
 
 Um. Sorry, no Python API reference yet. Working on it.
 
-There are a few demos in szg/sip_python/demos. Please ignore the 'myriad' folder for now.
+There are a few demos in szg/python_sip/demos. Please ignore the 'myriad' folder for now.
 
 You can look at a webpage on
 [Syzygy Python Programming https://netfiles.uiuc.edu/jimc/www/SyzygyPythonProgramming/].
 It's a bit out of date, e.g. referring to the old PySZG module instead szg, but mostly
 still accurate; eventually it'll be integrated with the Syzygy documentation.
-Refer to the corresponding programs in sip_python/demos/ to see how the new module works.
+Refer to the corresponding programs in python_sip/demos/ to see how the new module works.
 
 The only way to figure out what objects and methods exist is to look at the .sip source files
-in szg/sip_python/src. They're very similar to C++ header files, with some additional
+in szg/python_sip/src. They're very similar to C++ header files, with some additional
 annotations. One thing to note, if a method parameter has the /Out/ annotation, it will
 actually be //returned// by the Python wrapper method. For example, the ``arSZGClient``
 object has a method called ``getAttributeVector3()`` that returns a Syzygy database
 parameter as a 3-element vector. The entry in the file
-szg/sip_python/src/szgclient.sip looks like this:
+szg/python_sip/src/szgclient.sip looks like this:
 ```
   bool getAttributeVector3( const string& groupName,
                             const string& parameterName,

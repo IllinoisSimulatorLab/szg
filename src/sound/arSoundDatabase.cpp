@@ -136,7 +136,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop) {
       s += _bundleName;
       ar_pathAddSlash(s);
       s += name;
-      ar_scrubPath(s);
+      ar_fixPathDelimiter(s);
       triedPaths.push_back( s );
       fDone = theFile->read(s.c_str(), fLoop, _renderMode);
     }
@@ -146,7 +146,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop) {
   _pathLock.lock();
   for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i) {
     s = *i + name;
-    ar_scrubPath(s);
+    ar_fixPathDelimiter(s);
     triedPaths.push_back( s );
     fDone = theFile->read(s.c_str(), fLoop, _renderMode);
   }

@@ -395,7 +395,7 @@ bool arPhleetConfig::_findDir(const char* envvar, const char* fallback, const ch
   }
 
   ar_pathAddSlash(sz);
-  ar_scrubPath(sz);
+  ar_fixPathDelimiter(sz);
   result = sz + suffix;
   return true;
 }

@@ -7,6 +7,138 @@ Header3
 
 %%toc
 
+
+=Changes in version 1.3=
+
+
+Added support for Python input devices. This required changes to the arAppLauncher to allow
+Python input devices in virtual computer definitions, so all programs will need to be
+recompiled for any setup where you want to use a Python input driver. Hence the bump to
+1.3.
+
+Renamed 'python' and 'sip_python' directories to 'python_swig' and 'python_sip', respectively.
+
+
+=Changes in version 1.2=
+
+Syzygy 1.2 happened internally.
+
+Previously, application launch on a virtual computer would fail if even one of
+the constituent computers didn't have an szgd running on it. Now the application
+will launch on the remaining computers (unless of course the missing szgd was on
+the computer that the application's trigger instance was supposed to run on).
+
+
+==Bugfixes==
+
+Fixed a bug in szgd that could lead to the current working directory not
+being set properly if an renderer and one or more services were all launched
+on the same computer.
+
+Fixed a crash bug for daisy-chained input devices (arInputFactory netinput slot #).
+
+utilities/PictureViewer now runs properly on multi-display computers.
+
+Fixed a bug that caused certain path variables to grow over time.
+
+Fixed the documentation stylesheet so that the docs can now be printed legibly.
+
+We've found some bugs in the handling of multiple networks. A bug that occurred when
+multiple networks were used in a virtual computer, but some computers were only
+attached to one of them has been fixed.
+
+Previously, if a connection between an szgserver and szgd were broken due to e.g.
+network unlreliability, the szgserver would notice and remove the szgd from the
+process table but the szgd would not notice (and hence would not attempt to reconnect).
+This has been fixed.
+
+Extraction of Euler angles from matrices was incorrect & has been fixed.
+
+
+==Diagnostics==
+
+ar_log_error() and company now print a process ID and timestamp.
+
+
+==Compiling==
+
+Got things compiling with Visual Studio 8.
+
+Ditto for g++ 4.3.1 (on Sidux).
+
+Added support for joysticks/gamepads when compiling with MinGW.
+Ditto for speech synthesis.
+Ditto for .3ds model files.
+
+Windows builds have been speeded up with all compilers.
+
+
+==Input Devices==
+
+Added ar5DTGloveDriver (5th dimension technologies dataglove).
+
+arFOBDriver attempts to query the flock about its configuration instead of using
+the SZG_FOB/config database parameter.
+
+Added a prototype wiimote driver on Linux using wiiuse-0.9 (1.0 and later //won't//
+work without a re-write).
+
+Added some more PForth words.
+
+
+==Standalone Mode==
+
+Programs in standalone mode can now load input device drivers, but only if they were built
+with dynamic linking.
+
+
+==Programming==
+
+The biggest change is much improved .obj support.
+- obj texture maps are mip-mapped by default, resulting in much faster rendering.
+- Added support for the ``map_opacity`` field (transparent texture maps).
+- Added the ``activateTextures()`` method. Call this to download textures to the
+  graphics card before compiling an arOBJRenderer into an OpenGL display list.
+- Added some diagnostics, methods, bugfixes for doing things with bounding
+  spheres (view frustum culling).
+
+Added the ability to set the framework's navigation matrix from a matrix
+of specified index in the input event stream. This behavior is toggled either
+by a database parameter or a 'use_nav_input_matrix' message sent by dmsg.
+Since input matrix events can be generated either in PForth or, now, in a
+Python input device, this means navigation is now scriptable for applications
+that use the framework-mediated navigation.
+
+Changed default arEffector signature to allow for more than two axes.
+
+Master/slave framework sends a response to messages sent with dmsg -r, including
+user messages. Scene graph framework sends a response to user messages.
+
+Copied some methods from arVector3 to arVector2.
+
+
+==Python==
+
+Began the switch from SWIG to SIP. Currently two sets of bindings available, in
+szg/python and szg/sip_python. The new bindings are easier to read and maintain
+and sometimes faster, but don't yet include support for the more object-oriented
+version of the scene graph API.
+
+Moved the scene graph demos out of the 'doc/python folder to python/demos/myriad
+and sip_python/demos/myriad. As mentioned above, the latter don't work yet,
+although sip_python/demos/blobby/blobby.py is a working scene-graph program.
+
+
+==Commands==
+
+The ouput of ``dex`` has been changed a bit, and the ``-v`` and ``-q`` (verbose
+and quiet) options have been added. Also, some of the application output during
+startup that was just being lost before is now returned to dex.
+
+Added ``dkillall -a <virtual_computer>`` option, which kills all non-szgd processes
+associated with a virtual computer.
+
+
 =Changes in version 1.1=
 
 Syzygy 1.1. is __primarily__ a bug-fix release (too many to list here).
