@@ -29,6 +29,40 @@ For examples with parameters, replace <computer>
 with the name of the computer running DeviceServer.
 
 
+==Wiimote (experimental)==
+
+- Loadable module: arWiimoteDriver
+- Platform: Linux
+- Service: none
+
+Uses the open-source [Wiiuse http://www.wiiuse.net/] library (version 0.9 //only//).@@
+This driver has a number of different modes: Pointer, Head Tracker, and
+"Minority-Report-style Finger Tracker", the latter two from 
+[ideas by Johnny Lee Chung http://www.cs.cmu.edu/~johnny/projects/wii/].@@
+In Pointer mode for the wiimote it returns 11 button events, 3 axis events corresponding
+to estimated Euler angles as well as the corresponding rotation (orientation) matrix. If you have
+the nunchuk plugged in it will return 2 additional buttons, 2 axes for the joystick,
+3 axes for the nunchuk Euler angles, and a rotation matrix.@@
+Exploring the other two modes is left as an exercise for the reader.
+
+
+==5DT Data Glove (new)==
+
+- Loadable module: ar5DTGloveDriver
+- Platform: Windows
+- Service: none
+
+Uses the [5th Dimension Technologies http://www.5dt.com/] library.@@
+Returns an axis event corresponding to the scaled value for each joint
+This is a float between 0 and 1 corresponding to the scaled angle between
+0--unbent--and 1--the greatest degree of bending since the driver
+was started. Would probably be better to use the raw values and
+calibrate the angles manually. Also returns a set of button values
+based on the built-in gesture or (more accurately, hand pose) recognition;
+each button event indicates the presence or absence of the corresponding
+gesture, with only one being true at any given instant.
+
+
 ==Joystick==
 
 - Loadable module: arJoystickDriver

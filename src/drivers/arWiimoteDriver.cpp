@@ -34,9 +34,6 @@ void ar_wiimoteDriverEventTask( void* wiimoteDriver ) {
 }
 
 arMatrix4 wiiAnglesToRotMatrix( const float yaw, const float pitch, const float roll ) {
-//  return ar_rotationMatrix( 'y', -yaw ) *
-//         ar_rotationMatrix( 'z', -roll ) *
-//         ar_rotationMatrix( 'x', pitch );
   return ar_rotationMatrix( 'y', -yaw ) *
          ar_rotationMatrix( 'x', pitch ) *
          ar_rotationMatrix( 'z', -roll );
