@@ -166,11 +166,14 @@ bool arSocketAddress::checkMask(list<string>& criteria) {
     return true;
   }
 
-  for (list<string>::iterator i = criteria.begin(); i != criteria.end(); i++) {
+  for (list<string>::iterator i = criteria.begin(); i != criteria.end(); ++i) {
     unsigned position = i->find("/");
     if (position == string::npos) {
       // Single IP address.
-      return getRepresentation() == *i;
+      if (getRepresentation() == *i) {
+        return true;
+      }
+      continue;
     }
 
     if (position == i->length() - 1) {
