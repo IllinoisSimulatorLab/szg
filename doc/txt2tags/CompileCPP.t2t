@@ -29,10 +29,6 @@ Windows users need to take some extra care in compiling their programs.
   MinGW shell in order to access the new values there. The proper values for the
   environment variables are outlined in the
   [Visual Studio Environment Variables VisualStudioBuildVars.html] section.
-- If you are using the precompiled SDK for Windows, you must
-  use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
-  Visual Studio .NET). If you mix versions, your executables either will
-  not link or will crash on startup. **No longer supported**
 - If you are compiling using cygwin on Windows then there can
   be a problem. The Visual Studio linker is called "link" and some installs of
   cygwin may also install a "link" program. If, during your build, you see
@@ -89,9 +85,6 @@ A number of environment variables control the build process.
   6, you must set this to TRUE (and have the STLPort headers in your
   SZGEXTERNAL directory). If you are using Visual Studio 7 (.NET), then
   you must set this to FALSE.
-- SZG_DEVELOPER_STYLE: By default, the system assumes you are using
-  software compiled by you from a szg source distribution. To use a precompiled
-  SDK, this must be set to EASY. **Not currently supported**
 
 
 =Using the Build Template=[Template]

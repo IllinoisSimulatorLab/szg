@@ -24,37 +24,14 @@ programs in Python, then you will also need to read about compiling the
 The following software (and data) packages are part of the
 Syzygy distribution:
 
-
-==Source Package==
-
-  - szg-1.3.[zip/tar.gz]: Everything necessary to build and test the
-library. Includes some [example programs ExampleCode.html].
-Also includes everything needed for writing Syzygy programs in Python.
-
-
-==Data Packages==
-
-  - szgdata-1.3.[zip/tar.gz]: Data necessary for the sample
-applications, as outlined in the [example programs page ExampleCode.html],
-but excluding some particularly large files, which are available by
-request.
-
-
-==External Library Packages==
-
-(Note that one of these is required by each of the precompiled packages above).
-
-  - external-1.3-linux.tar.gz: External libraries and headers
-used to produce the executables on Linux.
-
-  - external-1.3-win32.tar.gz: External libraries and headers
-used to produce the executables on Win32.
-
-  - external-1.3-darwin.tar.gz: External libraries and headers
-used to produce the executables on Mac OS X.
-
-  - external-1.3-sgi.tar.gz: External libraries and headers
-used to produce the executables on Irix.
+- szg-1.3.zip: Everything necessary to build and test the
+  libraries. Includes some [example programs ExampleCode.html].
+  Also includes everything needed for writing Syzygy programs in Python.
+- szgdata-1.3.zip: Data necessary for the sample
+  applications, as outlined in the [example programs page ExampleCode.html],
+  but excluding some particularly large files, which are available by
+  request.
+- external-1.3.zip: External libraries and headers for all platforms
 
 
 =A Note about GLUT=
@@ -256,14 +233,6 @@ systems:
   directly into the DeviceServer executable instead of each comprising its
   own shared library. Building the Python bindings with static linking enabled
   appears to work with the MinGW g++ compiler, but scene graph plugins don't.
-
-- SZG_DEVELOPER_STYLE: (optional, and no longer supported) If set to "EASY", the build
-  assumes that the Syzygy headers and libraries are arranged as in one of
-  the precompiled binary distributions, such as szg-0.8-linux.tar.gz. See
-  [this Programming.html] chapter for
-  further information. Please note, by default the code assumes that the
-  Syzygy headers and libraries are arranged as in the "developer" version
-  (szg-0.8.tar.gz) you compile yourself.
 
 
 The following environment variables only have meaning on

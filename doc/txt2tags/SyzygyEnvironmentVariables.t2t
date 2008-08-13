@@ -55,10 +55,6 @@ and links to fuller explanations.
   produced by a variety of compiler patch levels. Consequently, setting this
   to FALSE negates the use of precompiled headers.
 
-- SZG_DEVELOPER_STYLE: By default, the build process assumes you are
- compiling the software yourself (DEVELOPER). However, if you are using a
- precompiled library (not currently supported), then you MUST set this variable to EASY.
-
 - SZG_MULTITEX: On some platforms, this must be set to false to allow
 the q33 demo to build. Consider running cubecake instead of q33 (another
 Quake3 level builder).

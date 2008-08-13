@@ -487,7 +487,7 @@ class arIOFilter {
     int getID() const;
     
   protected:
-    virtual bool _processEvent( arInputEvent& inputEvent );
+    virtual bool _processEvent( arInputEvent& inputEvent ) /PyName=onInputEvent/;
     
   private:
     arIOFilter( const arIOFilter& );

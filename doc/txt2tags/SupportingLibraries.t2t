@@ -40,9 +40,6 @@ shared libraries with the Syzygy executables will let the runtime linker
 find them. If you are on a Windows system, the runtime linker automatically
 searches the directory in which the executable it runs resides.
 
-If you are using a precompiled SDK on a Unix-like system, you will need
-to add the $SZGBIN to the dynamic linker's path.
-
 A note about GLUT. Syzygy compilation requires it (although
 hopefully it won't in version 1.2). Some
 systems will have in installed by default (Mac OS X). Some systems might

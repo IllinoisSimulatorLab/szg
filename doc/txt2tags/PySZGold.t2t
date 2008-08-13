@@ -23,16 +23,12 @@ cygwin's Python and Syzygy use incompatible object-file formats (gcc vs. Visual
 Studio). Install the native Windows version of Python from
 [python.org www.python.org].
 
-If you will be compiling the bindings, as opposed to using a precompiled SDK,
-you must set the SZGHOME, SZGBIN, SZGEXTERNAL, etc.
-environment variables as described in
-[Getting the Software GettingSoftware.html].
+In order to compile the bindings you must set the SZGHOME, SZGBIN, SZGEXTERNAL, etc.
+environment variables as described in [Getting the Software GettingSoftware.html].
 
 This section will show you how to start writing Syzygy programs using
 Python. You should start by understanding how to [ get the Syzygy software GettingSoftware.html] and set up
-your Python environment. If you are using a precompiled Syzygy SDK, the Python
-bindings are included; you do not need
-to compile them. Otherwise, read the section on
+your Python environment. Read the section on
 [compiling the Python bindings #CompilePythonBindings].
 After completing these steps,
 [test your installation #FirstPythonTest]. If you will be running
@@ -44,14 +40,12 @@ programming models, both in szg/python/demo and in szg/doc/python.
 
 =Compiling the Syzygy Python Bindings=[CompilePythonBindings]
 
-The precompiled Syzygy SDK includes the Python bindings. If you have
-the precompiled SDK, please skip this section.
 
 + Install [SWIG http://www.swig.org].
 
-We can only certify that the bindings work with Version 1.3.21
-(and we know for certain that 1.3.24 does not work on Linux).
-The installation procedure depends on your platform.
+  We can only certify that the bindings work with Version 1.3.21
+  (and we know for certain that 1.3.24 does not work on Linux).
+  The installation procedure depends on your platform.
 
   - On Linux or OS X, download a tar.gz from
   [the SWIG web site www.swig.org]. Install this in the
@@ -96,8 +90,7 @@ that makes calls to a shared library (_PySZG.dll on Windows, _PySZG.so on other
 platforms); the shared library makes calls to the Syzygy shared libraries.
 These files are normally kept with the rest of your executables and shared
 libraries, as they are platform-specific.
-In the precompiled SDK, these are in the "bin" subdirectory. If you compiled the
-libraries yourself, they should have been automatically copied to your SZGBIN
+These should have been automatically copied to your SZGBIN
 directory.
 
 Python has an internal search path for loadable modules. If the environment

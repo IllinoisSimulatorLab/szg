@@ -233,7 +233,7 @@ see the SAPI documentation.
 ```
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim );
 ```
-Installs your own version of the [Tracking Simulator TrackingSim.html].
+Installs your own version of the [Input Simulator InputSimulator.html].
 
 ```
 string arSZGAppFramework::getLabel();

@@ -7,8 +7,8 @@ Header3
 
 
 This section assumes you have installed the szg software (including the
-sample applications contained in that package), either by unpacking a
-precompiled SDK or by compiling (both "make" and "make demo"). You will
+sample applications contained in that package) by compiling (both "make"
+and "make demo"). You will
 understand the instructions better if you read the
 [Cluster Mode ClusterMode.html] chapter first, but, actually,
 these two sections can be studied in parallel. This section introduces you to
@@ -71,7 +71,7 @@ Next, on any computer in the system, type:
 ```
 
 On that computer, a window will appear with some geometrical objects, the
-meaning of which is described in [Tracking Simulator TrackingSim.html].
+meaning of which is described in [Input Simulator InputSimulator.html].
 Move the mouse in that window with the left button down. The wireframe sphere
 should move and, furthermore, the torii in the szgrender window should move as
 well. The inputsimulator program has a server (for input device information)
@@ -362,7 +362,7 @@ If you get an error "szgd found no file foo in the SZG_EXEC path",
 The various demo programs, including cosmos, want to connect to
    a networked input device. See the [Input Devices InputDevices.html] documentation page for an enumeration of the supported
    devices. For simplicity's sake, here we assume you'll control the demo
-   using the [Tracking Simulator TrackingSim.html], which translates
+   using the [Input Simulator InputSimulator.html], which translates
    mouse movements and keyboard presses into tracker-style events.
 ```
   dex control inputsimulator

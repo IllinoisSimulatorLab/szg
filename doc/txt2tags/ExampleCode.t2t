@@ -87,7 +87,7 @@ server. The following demos use this method:
 
 There are two basic ways to interact with the demos: in Cluster Mode using
 a [6DOF-tracked input device InputDevices.html] with buttons and joysticks, or in
-[Standalone Mode Standalone.html] using the [tracking simulator TrackingSim.html].
+[Standalone Mode Standalone.html] using the [Input Simulator InputSimulator.html].
 
 cosmos, parade, timetunnel, cubes:
 Push forward on the joystick to move in the direction pointed

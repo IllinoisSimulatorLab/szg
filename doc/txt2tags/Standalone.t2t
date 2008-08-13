@@ -59,7 +59,7 @@ different styles of Syzygy programs, please consult the
 When running "hspace" in standalone mode, something looking like a
 green spiderweb should fill the window. There will also be a small overlay
 window in the lower right corner showing the tracker simulator interface, whose
-operation is described in this [chapter TrackingSim.html]. When
+operation is described in this [chapter InputSimulator.html]. When
 running "parade", you will see a collection of collection of virtual humans
 marching across the screen, again with the tracker simulator in the lower left
 corner. More information about these and other sample applications is
@@ -114,13 +114,13 @@ named SZG_DATA_path containing the value.
 
 Prior to Syzygy 1.2, applications running in standalone mode could not use
 input devices; instead, they loaded and displayed the
-[tracking simulator TrackingSim.html], which allows the user to simulate
+[Input Simulator InputSimulator.html], which allows the user to simulate
 a tracked head and wand using the mouse and keyboard.
 
 Now, however, standalone applications can load input device drivers
 //provided they are linked against dynamic-link versions of the Syzygy libraries//
 (i.e. SZG_LINKING=DYNAMIC). The choice
-between the tracking simulator and a device driver is made using the
+between the Input Simulator and a device driver is made using the
 database parameter SZG_STANDALONE/input_config, which defaults to
 "simulator". If given any other value, this is assumed to be the name
 of a [global input device configuration parameter InputDeviceConfiguration.html#GlobalParameters]

@@ -328,11 +328,6 @@ class arFrameworkEventFilter : arIOFilter {
     void queueEvent( const arInputEvent& event );
     arInputEventQueue getEventQueue();
     void flushEventQueue();
-  protected:
-    // To buffer events & process them once per frame,
-    // override this and call queueEvent(). The master/slave
-    // framework will call processEventQueue() for you.
-    virtual bool _processEvent( arInputEvent& inputEvent );
   private:
     arFrameworkEventFilter( const arFrameworkEventFilter& );
 };

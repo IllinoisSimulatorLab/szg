@@ -21,7 +21,7 @@ Header2 %%mtime(%m/%d/%Y)
 - [Standalone.html Standalone.html]: Running on a single, unclustered, PC.
 - [ExampleCode.html ExampleCode.html]: Running the included examples, where to put their
   data files, etc.
-- [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension,
+- [InputSimulator.html InputSimulator.html]: Emulating a tracked input device (Intersense, Ascension,
   etc.) with Syzygy's //inputsimulator//, e.g. in standalone mode.
 - [SystemConfiguration.html SystemConfiguration.html]:
   Specifying parameters of a VR system with the Syzygy Database, in both Standalone and Cluster modes.

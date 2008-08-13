@@ -104,7 +104,7 @@ describes the parameters that must be configured to operate any particular devic
 When you want to load an input device in [Standalone Mode Standalone.html],
 you must set the variable SZG_STANDALONE/input_config in the parameter file
 to the name of a global input device definition record. Note that currently
-if you specify an input device the [tracking simulator TrackingSim.html]
+if you specify an input device the [Input Simulator InputSimulator.html]
 is deactivated.
 
 

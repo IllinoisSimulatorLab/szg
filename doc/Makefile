@@ -15,11 +15,13 @@ ALL = \
   Goals.html \
   GraphicsConfigExamples.html \
   GraphicsConfiguration.html \
+  index.html \
   InputClasses.html \
   InputDeviceConfiguration.html \
   InputDevices-Drivers.html \
   InputDevices.html \
   InputFilters.html \
+  InputSimulator.html \
   Interaction.html \
   Navigation.html \
   3DObjectFiles.html \
@@ -35,6 +37,8 @@ ALL = \
   SceneGraphTutorial.html \
   SharedWorldTutorial.html \
   Sound.html \
+  Standalone.html \
+  SupportingLibraries.html \
   SystemConfiguration.html \
   SyzygyEnvironmentVariables.html \
   szgview.html \
@@ -42,11 +46,7 @@ ALL = \
 	TrackerCoordConversion.html \
   VirtCompConfiguration.html \
   VisualStudioBuildVars.html \
-  Standalone.html \
-  SupportingLibraries.html \
-  TrackingSim.html \
-  UsingDocs.html \
-  index.html
+  UsingDocs.html
 
 all: $(ALL)
 
