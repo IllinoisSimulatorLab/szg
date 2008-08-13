@@ -136,6 +136,8 @@ else
 endif
 
 
+
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
   OBJS += $(OBJS_DRIVER)
@@ -160,7 +162,7 @@ ifeq ($(strip $(SZG_LINKING)), STATIC)
     $(POST_LINK_GAMEPAD) \
     $(POST_LINK_EVART) \
     $(POST_LINK_VRPN)
-
+endif
 endif
 
 
@@ -176,6 +178,13 @@ ALL = \
 
 ifneq ($(strip $(SZG_LINKING)), STATIC) 
   ALL += $(LIBS_DRIVER)
+endif
+
+# do the same if MINGW and STATIC
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += $(LIBS_DRIVER)
+endif
 endif
 
 include $(SZGHOME)/build/make/Makefile.rules
