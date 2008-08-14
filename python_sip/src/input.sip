@@ -323,6 +323,36 @@ class arGenericDriver: arInputSource {
 };
 
 
+
+class arSharedLibInputDriver : arSharedLib {
+%TypeHeaderCode
+#include "arSharedLib.h"
+#include "arGenericDriver.h"
+class arSharedLibInputDriver : public arSharedLib {
+ public:
+  bool createFactory(const string& sharedLibName,
+                     const string& path,
+                     string& error) {
+    return arSharedLib::createFactory( sharedLibName, path, "arInputSource", error );
+  }
+  arGenericDriver* createObject() {
+    return (arGenericDriver*) arSharedLib::createObject();
+  }
+};
+%End
+  public:
+    bool createFactory(const string& sharedLibName,
+                       const string& path,
+                       string& error /Out/);
+    arGenericDriver* createObject();
+  private:
+    bool createFactory(const string& sharedLibName,
+                       const string& path,
+                       const string& type,
+                       string& error);
+};
+
+
 class arNetInputSource: arInputSource {
 %TypeHeaderCode
 #include "arNetInputSource.h"
@@ -570,7 +600,7 @@ class arPyDeviceServerFramework : public arDeviceServerFramework {
     virtual bool _handleArgs( vector<string>& argVec ) /PyName=handleArgs/;
     virtual void _printUsage() /PyName=printUsage/;
     virtual bool _configureInputNode() /PyName=configureInputNode/;
-    virtual bool _handleMessage( const string& messageType, const string& messageBody ) /PyName=handleMessage/;
+    virtual bool _handleMessage( const string& messageType, const string& messageBody ) /PyName=onMessage/;
     bool _addNetInput() /PyName=addNetInput/;
   private:
     arPyDeviceServerFramework( const arPyDeviceServerFramework& );

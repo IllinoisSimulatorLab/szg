@@ -50,7 +50,7 @@ typedef void (*arSharedLibObjectType)(char*, int);
 class SZG_CALL arSharedLib {
  public:
   arSharedLib();
-  ~arSharedLib();
+  virtual ~arSharedLib();
 
   bool open(const string& sharedLibName, const string& path);
   bool close();
@@ -61,7 +61,7 @@ class SZG_CALL arSharedLib {
                      const string& path,
                      const string& type,
                      string& error);
-  void* createObject();
+  virtual void* createObject();
 
  private:
   LibHandle _h;

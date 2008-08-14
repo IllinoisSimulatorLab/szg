@@ -152,7 +152,7 @@ bool arDeviceServerFramework::_addNetInput() {
   if (_fNetInput) {
     arNetInputSource* implicitNetInputSource = new arNetInputSource();
     if (!implicitNetInputSource) {
-      ar_log_error() << "arDeviceServerFramework::loadInputSources out of memory.\n";
+      ar_log_error() << "arDeviceServerFramework::_addNetInput() out of memory.\n";
       return false;
     }
     if (!implicitNetInputSource->setSlot( _nextNetInputSlot )) {
