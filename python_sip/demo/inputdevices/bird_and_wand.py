@@ -161,6 +161,8 @@ class MyFilter( szg.arIOFilter ):
       event.setIndex( self.buttonMap[event.getIndex()] )
     elif event.getType() == szg.AR_EVENT_AXIS:
       self.axisFilter( event )
+    else:
+      self.matrixFilter( event )
     return True
   def axisFilter( self, event ):
     value = event.getAxis() * .000031
