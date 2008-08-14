@@ -1,7 +1,12 @@
-# A Python input device. You would use it by:
-# 1) placing it in a directory on your SZG_PYTHON/path (or one level down), and
-# 2) adding it to a virtual computer input map, e.g.:
-#        vcpyin  SZG_INPUT0  map  this_computer/randombuttons.py
+# A Windows-only Python input device that loads C++ dlls to talk to an Ascension Flock of Birds
+#    tracker with Extended Range Controller and a gamepad or joystick. You would use it by:
+# 1) Make sure you have defined SZG_PYTHON/executable for the computer it's on.
+# 2) Place it in a directory on your SZG_PYTHON/path (or one level down).
+# 3) Add it to a virtual computer input map, e.g.:
+#        vcpyin  SZG_INPUT0  map  this_computer/bird_and_wand.py
+# 4) To use the Flock of birds, the Bird.dll must be in the same directory as the Python
+#      executable. If it isn't, nothing will complain, you'll just get a stream of input
+#      events with the default or zero values (that's Ascension's fault, not ours).
 #
 # It's not a very _useful_ input device, it sets a fixed head and wand position
 # and presses and releases a random button every second. You could, however,
@@ -134,6 +139,7 @@ class MyFilter( szg.arIOFilter ):
   buttonMap = (3,0,1,4,8,9,6,7,2,5,10,11,10,11)
   def __init__( self ):
     szg.arIOFilter.__init__( self )
+
     axisSwap = szg.arMatrix4( 
           1, 0, 0, 0, \
           0, 0,-1, 0, \
@@ -144,10 +150,12 @@ class MyFilter( szg.arIOFilter ):
           0, 0, 1, 0, \
           0,-1, 0, 0, \
           0, 0, 0, 1 )
+
     headRotMatrix = szg.ar_rotationMatrix( 'z', math.radians(-80.) ) * \
         szg.ar_rotationMatrix( 'y', math.radians( 20. ) )
     wandRotMatrix = szg.ar_rotationMatrix( 'y', math.radians(-90.) ) * \
-        szg.ar_rotationMatrix( 'z', math.radians( 180. ) )
+        szg.ar_rotationMatrix( 'x', math.radians( 180. ) )
+
     originOffset = szg.ar_translationMatrix( .6, 9.2, -4.5 )
 
     self.headPreMatrix = originOffset * axisSwap
@@ -155,25 +163,30 @@ class MyFilter( szg.arIOFilter ):
 
     self.wandPreMatrix = originOffset * axisSwap
     self.wandPostMatrix = inverseAxisSwap * wandRotMatrix
+
   def onInputEvent( self, event ):
     # Values are AR_EVENT_BUTTON, AR_EVENT_AXIS, AR_EVENT_MATRIX
     if event.getType() == szg.AR_EVENT_BUTTON:
-      event.setIndex( self.buttonMap[event.getIndex()] )
+      try:
+        event.setIndex( self.buttonMap[event.getIndex()] )
+      except IndexError:
+        print 'WARNING: button index (',event.getIndex(),') out of range.'
     elif event.getType() == szg.AR_EVENT_AXIS:
       self.axisFilter( event )
     else:
       self.matrixFilter( event )
     return True
+
   def axisFilter( self, event ):
-    value = event.getAxis() * .000031
     index = event.getIndex()
-    if index == 1:
-      event.setAxis( -1.*value )
-    elif index == 2:
-      event.setAxis( -1.*value )
-      event.setIndex( 1 )
-    elif index == 3:
-      event.setIndex( 0 )
+    if index == 2 or index == 3:
+      index = 3-index
+      event.setIndex( index )
+    value = event.getAxis() * .000031
+    if index == 1 or index == 2:
+      value = -value
+    event.setAxis( value )
+
   def matrixFilter( self, event ):
     index = event.getIndex()
     if index == 0:
@@ -199,7 +212,7 @@ class MyDriverFramework( szg.arPyDeviceServerFramework ):
     # Note that they will be configured from the Syzygy database
     # inside the arPyDeviceServerFramework.init() after this method
     # returns.
-    sharedLib = arSharedLibInputDriver()
+    sharedLib = szg.arSharedLibInputDriver()
     status, errMsg = sharedLib.createFactory( 'arBirdWinDriver', execPath )
     if not status:
       raise RuntimeError, errMsg
@@ -208,7 +221,7 @@ class MyDriverFramework( szg.arPyDeviceServerFramework ):
     # else should try to delete it.
     self.getInputNode().addInputSourceMine( self.birdWinDriver )
 
-    sharedLib = arSharedLibInputDriver()
+    sharedLib = szg.arSharedLibInputDriver()
     status, errMsg = sharedLib.createFactory( 'arJoystickDriver', execPath )
     if not status:
       raise RuntimeError, errMsg
@@ -229,5 +242,4 @@ if __name__=='__main__':
     print sys.argv[0], "failed to init framework."
     app.getSZGClient().failStandalone(False)
     sys.exit(1)
-  app.start()
   app.messageLoop()

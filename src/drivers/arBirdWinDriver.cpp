@@ -195,7 +195,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     return false;
   }
 
-  ar_log_remark() << "woke flock with " << _numDevices << " devices.\n";
+  ar_log_critical() << "woke Flock of Birds with " << _numDevices << " devices.\n";
   _flockWoken = true;
   if (!birdGetSystemConfig(_groupID, &_sysConfig)) {
     ar_log_error() << "failed to get flock's system config.\n";
