@@ -179,13 +179,13 @@ class MyFilter( szg.arIOFilter ):
 
   def axisFilter( self, event ):
     index = event.getIndex()
-    if index == 2 or index == 3:
-      index = 3-index
-      event.setIndex( index )
     value = event.getAxis() * .000031
     if index == 1 or index == 2:
       value = -value
     event.setAxis( value )
+    if index == 2 or index == 3:
+      index = 3-index
+      event.setIndex( index )
 
   def matrixFilter( self, event ):
     index = event.getIndex()
