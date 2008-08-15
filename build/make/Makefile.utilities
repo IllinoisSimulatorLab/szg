@@ -5,7 +5,6 @@ include $(SZGHOME)/build/make/Makefile.vars
 
 ALL = \
   calibrationdemo$(EXE) \
-  cubevars$(EXE) \
   DeskCalibrator$(EXE) \
   dmsg$(EXE) \
   dkillall$(EXE) \
@@ -15,7 +14,8 @@ ALL = \
   screensaver$(EXE) \
   setdemomode$(EXE) \
   setstereo$(EXE) \
-  StereoViewer$(EXE)
+  StereoViewer$(EXE) \
+  vrtest$(EXE)
 
 SZG_INCLUDE += $(SZG_INCLUDE_GLUT)
 
@@ -23,10 +23,6 @@ include $(SZGHOME)/build/make/Makefile.rules
 
 calibrationdemo$(EXE): calibrationdemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) calibrationdemo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
-	$(COPY)
-
-cubevars$(EXE): cubevars$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
-	$(SZG_USR_FIRST) cubevars$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
 
 DeskCalibrator$(EXE): DeskCalibrator$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
@@ -67,4 +63,8 @@ setstereo$(EXE): setstereo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 
 StereoViewer$(EXE): StereoViewer$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) StereoViewer$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+vrtest$(EXE): vrtest$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) vrtest$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
