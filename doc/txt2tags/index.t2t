@@ -69,10 +69,11 @@ Header2 %%mtime(%m/%d/%Y)
 - [InputDeviceConfiguration.html InputDeviceConfiguration.html]: Configuring input
   devices.
 - [PForth.html PForth.html]: The PForth ("Pseudo-FORTH") input-filtering language.
-  It's a stack-based language for applying
-  transformations to streams of input events (e.g., re-mapping input device button indices).
-- [TrackerCoordConversion.html TrackerCoordConversion.html]: A HowTo for mapping the
+  A stack-based language for 
+  transforming streams of input events (e.g., re-mapping input device button indices).
+- [TrackerCoordConversion.html TrackerCoordConversion.html]: How to map the
   coordinates reported by your tracking device into the Syzygy coordinate system.
+- [Vrtest.html Vrtest.html]: A "sanity check" application for narrowing down misbehaviors.
 - [AppFeatures.html AppFeatures.html]: Tricks for managing cluster applications
   using the 'dmsg' command.
 

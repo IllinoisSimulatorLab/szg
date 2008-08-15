@@ -1,0 +1,90 @@
+Header1 vrtest, a "sanity check" application
+Header2 %%mtime(%m/%d/%Y)
+
+%!options: --headers
+
+Header3
+
+The utility ``vrtest'' helps you verify that all the parts of a Syzygy installation
+are operating correctly -- an end-to-end test, from the user's actions all the
+way through to what they hear and see.  When diagnosing misbehavior in a
+Syzygy application, a few seconds running vrtest will greatly narrow down the fault.
+
+History
+
+This application was called ``cubevars'' for several years.
+That name alluded to its inspiration, the early 1990's IRIX CaveLib program ``cavevars.''
+Cubevars departed from cavevars in abandoning numerical displays for purely graphical ones.
+
+[images/vrtest1.jpg]
+
+Some of the graphics in vrtest deliberately hearken to
+those of the [Input Simulator InputSimulator.html].
+
+Fixed Graphics
+
+The large white wireframe cube indicates a cave-sized space, ten feet on a side.
+The origin is in the middle of the floor, in the usual cave coordinate frame.
+
+On each wall of this cube, you'll see some text and a stylized pair of eyeglasses.
+The text label indicates which wall it is (front, right, ceiling, etc.).
+The eyeglasses indicate monoscopic or stereoscopic vision.  If both lenses
+are visible, the display is monoscopic.  If the display is stereo, when you close
+one of your eyes, the corresponding lens of the eyeglasses should vanish.
+(If it doesn't, that indicates a problem with your LCD shutter glasses, the
+shutter-glasses sync pulse, or (in a passive-stereo display) the polarizers.
+
+Head
+
+The user's head appears as a yellow ball with cyan eyes and red pupils.
+
+An indigo wireframe box is attached to the user's gaze vector
+(stuck in front of your nose).  If you aren't always looking directly into the
+end of the box, head tracking is malfunctioning.
+
+Wand
+
+The wand is a long wireframe cone, magenta in color.
+The cone's point indicates the wand's ``forward'' direction.
+The wand's position is where the cone meets a cyan crosshairs.
+One of the crosshairs is longer and ends in a white wireframe ball;
+this indicates the wand's ``up'' vector.
+
+Multiple wands will be drawn, if the virtual computer's definition includes them.
+Any 6DOF-tracked item (``matrix'') other than the first, which is the head,
+is considered to be a wand.
+
+Buttons and Joysticks
+
+Near the wand, all of its buttons and ``axes'' (joysticks and sliders) are drawn.
+
+The buttons are dark red cubes.  When you push a button, its corresponding
+cube becomes larger and turns pale green.
+
+The axes are green cubes on brown vertical sliders.
+The first two axes are redundantly drawn as a single cube in a square,
+since these axes usually correspond to a single x-y joystick on the wand.
+
+[images/vrtest2.jpg]
+[images/vrtest3.jpg]
+
+Wall Displays
+
+[images/vrtest4.jpg]
+[images/vrtest5.jpg]
+
+On the front wall, three dark blue squares show views of the white wireframe cube
+from above, from the left, and from behind.  This is as if you tilted your head down
+to look at the floor, or turned left to face the left wall, or simply stayed put and looked
+at the front wall.
+
+These projected views help you visualize where the head and wand really are in the cube,
+particularly when tracking is malfunctioning and, e.g., the head is near the floor as shown
+here, or even several feet underground.
+
+Sounds
+
+If the virtual computer's SoundRender program is running and the audio hardware is working,
+you hear a short sound whenever you depress or release a button.
+Also, as you wave the wand around, you hear a quiet rumbling whose loudness varies with
+the speed of the tip of the purple cone.
