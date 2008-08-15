@@ -26,7 +26,7 @@ class MyFilter( szg.arIOFilter ):
   def onInputEvent( self, event ):
     # Values are AR_EVENT_BUTTON, AR_EVENT_AXIS, AR_EVENT_MATRIX
     if event.getType() == szg.AR_EVENT_BUTTON:
-      print 'Before filter:',event
+      szg.ar_log_warning().write( 'Before filter: ' + str(event) + '\n' )
       # Other get...() methods: getAxis(), getMatrix().
       if event.getButton() == 1:
         self.lastIndex = random.choice( range(8) )
@@ -37,8 +37,8 @@ class MyFilter( szg.arIOFilter ):
         event.setIndex( self.lastIndex )
       else:
         event.setIndex( self.lastIndex )
-      print 'After  filter:',event
-      print '------------------------------------------'
+      szg.ar_log_warning().write( 'After  filter: ' + str(event) + '\n' )
+      szg.ar_log_warning().write( '------------------------------------------\n' )
     return True
 
 
