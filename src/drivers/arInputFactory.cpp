@@ -14,7 +14,7 @@
 
 using std::string;
 
-#ifndef AR_LINKING_STATIC
+#if defined( AR_LINKING_DYNAMIC ) || defined( AR_USE_MINGW )
 
 #include "arSharedLib.h"
 

@@ -4,6 +4,8 @@
 %Include typemaps.sip
 %Include sockets.sip
 %Include datautilities.sip
+%Include logstream.sip
+%Include sharedlib.sip
 %Include database.sip
 %Include math.sip
 %Include navigation.sip
