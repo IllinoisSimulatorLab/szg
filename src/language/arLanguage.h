@@ -15,8 +15,9 @@ class arStructuredData;
 
 // Generic language.
 
-class SZG_CALL arLanguage{
+class SZG_CALL arLanguage {
  public:
+  arLanguage();
   virtual ~arLanguage() {}
 
   arTemplateDictionary* getDictionary();

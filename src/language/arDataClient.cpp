@@ -13,7 +13,8 @@ arDataClient::arDataClient(const string& exeName) :
   arDataPoint(256),
   _theDictionary(NULL),
   _socket(NULL),
-  _activeConnection(false) // disable closeConnection if there is no active connection
+  _activeConnection(false), // disable closeConnection if there is no active connection
+  _lockSend("DCLIENT_SEND")
 {
   setLabel(exeName);
 }

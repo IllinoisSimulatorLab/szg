@@ -46,6 +46,7 @@ ALL = \
 	TrackerCoordConversion.html \
   VirtCompConfiguration.html \
   VisualStudioBuildVars.html \
+	Vrtest.html \
   UsingDocs.html
 
 all: $(ALL)

@@ -152,13 +152,13 @@ class SZG_CALL arDatabase{
   arDatabaseLanguage* _lang;
 
  private:
-  arLock _l;
+  arLock _dbLock;
   arDatabaseNode* _ref(arDatabaseNode*, const bool);
 
  protected:
   // Used by arGraphicsPeer, arGraphicsDatabase, etc.
-  void _lock() { _l.lock(); }
-  void _unlock() { _l.unlock(); }
+  void _lock() { _dbLock.lock(); }
+  void _unlock() { _dbLock.unlock(); }
 
   bool _check(arDatabaseNode* n) const
     { return n && n->active() && n->getOwner()==this; }

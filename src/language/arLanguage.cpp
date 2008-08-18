@@ -7,6 +7,10 @@
 #include "arLanguage.h"
 #include "arLogStream.h"
 
+arLanguage::arLanguage() :
+  _l("LANGUAGE") {
+}
+
 arTemplateDictionary* arLanguage::getDictionary() {
   return &_dictionary;
 }

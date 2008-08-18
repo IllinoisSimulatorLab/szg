@@ -8,6 +8,7 @@
 #include "arLogStream.h"
 
 arPhleetConnectionBroker::arPhleetConnectionBroker() :
+  _l("PHLEET_CONNECT"),
   _releaseNotificationCallback(NULL) {}
 
 // Requests allocation of a block of ports on a given computer for use

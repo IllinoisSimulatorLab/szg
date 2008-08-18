@@ -10,6 +10,7 @@
 
 arDatabase::arDatabase() :
   _lang(NULL),
+  _dbLock("DATABASE"),
   _typeCode(AR_GENERIC_DATABASE),
   _typeString("generic"),
   _server(false),
@@ -100,7 +101,7 @@ arDatabaseNode* arDatabase::_ref(arDatabaseNode* node, const bool fRef) {
 // don't call it from arDatabase (or subclass) code for message processing,
 // to avoid deadlocks.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode) {
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   return _ref(_getNodeNoLock(ID, fWarn), refNode);
 }
 
@@ -116,7 +117,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn,
   // Search breadth-first for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   _rootNode._findNode(result, name, success, NULL, true);
   if (!success && fWarn) {
     cerr << "arDatabase warning: no node '" << name << "'.\n";
@@ -144,7 +145,7 @@ arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
     return NULL;
   }
 
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   // Even if the caller has requested the ptr be ref'd,
   // don't request this of the arDatabaseNode, since that again
   // calls arDatabase::findNode, infinitely.
@@ -163,7 +164,7 @@ arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node,
     return NULL;
   }
 
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   // Even if the caller has requested the ptr be ref'd,
   // don't request this of the arDatabaseNode, since that again
   // calls arDatabase::findNodeByType, infinitely.
@@ -179,7 +180,7 @@ arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node,
 // (within which all database operations occur) will be locked.
 // Called when an owned node's getParentRef() is invoked.
 arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node) {
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
 
   // Ensure this node is active, owned by this database,
   // and has a parent (or is the root node).
@@ -193,7 +194,7 @@ arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node) {
 
 list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node) {
   list<arDatabaseNode*> l;
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   // Ensure this node is active, owned by this database,
   // and has a parent (or is the root node).
   if (!_check(node))
@@ -843,7 +844,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
 }
 
 bool arDatabase::empty() {
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   return _rootNode.empty();
 }
 
@@ -933,7 +934,7 @@ arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn) {
 }
 
 string arDatabase::_getDefaultName() {
-  arGuard dummy(_l);
+  arGuard dummy(_dbLock);
   return "szg_default_" + ar_intToString(_nextAssignedID);
 }
 

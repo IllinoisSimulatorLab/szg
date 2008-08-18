@@ -10,7 +10,10 @@
 
 arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary) :
   _dictionary(dictionary),
+  _globalLock("DataParserGlobal"),
   _recycleLock("DataParserRecycle"),
+  _translationBufferListLock("DataParserTranslate"),
+  _activationLock("DataParserActive"),
   _activated(true)
   {
   // Each template in the dictionary has a queue lock and a condition variable.

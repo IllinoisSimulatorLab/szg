@@ -10,7 +10,8 @@ are operating correctly -- an end-to-end test, from the user's actions all the
 way through to what they hear and see.  When diagnosing misbehavior in a
 Syzygy application, a few seconds running vrtest will greatly narrow down the fault.
 
-History
+
+=History=
 
 This application was called ``cubevars'' for several years.
 That name alluded to its inspiration, the early 1990's IRIX CaveLib program ``cavevars.''
@@ -21,7 +22,8 @@ Cubevars departed from cavevars in abandoning numerical displays for purely grap
 Some of the graphics in vrtest deliberately hearken to
 those of the [Input Simulator InputSimulator.html].
 
-Fixed Graphics
+
+=Fixed Graphics=
 
 The large white wireframe cube indicates a cave-sized space, ten feet on a side.
 The origin is in the middle of the floor, in the usual cave coordinate frame.
@@ -34,7 +36,8 @@ one of your eyes, the corresponding lens of the eyeglasses should vanish.
 (If it doesn't, that indicates a problem with your LCD shutter glasses, the
 shutter-glasses sync pulse, or (in a passive-stereo display) the polarizers.
 
-Head
+
+=Head=
 
 The user's head appears as a yellow ball with cyan eyes and red pupils.
 
@@ -42,7 +45,8 @@ An indigo wireframe box is attached to the user's gaze vector
 (stuck in front of your nose).  If you aren't always looking directly into the
 end of the box, head tracking is malfunctioning.
 
-Wand
+
+=Wand=
 
 The wand is a long wireframe cone, magenta in color.
 The cone's point indicates the wand's ``forward'' direction.
@@ -54,7 +58,8 @@ Multiple wands will be drawn, if the virtual computer's definition includes them
 Any 6DOF-tracked item (``matrix'') other than the first, which is the head,
 is considered to be a wand.
 
-Buttons and Joysticks
+
+=Buttons and Joysticks=
 
 Near the wand, all of its buttons and ``axes'' (joysticks and sliders) are drawn.
 
@@ -68,7 +73,8 @@ since these axes usually correspond to a single x-y joystick on the wand.
 [images/vrtest2.jpg]
 [images/vrtest3.jpg]
 
-Wall Displays
+
+=Wall Displays=
 
 [images/vrtest4.jpg]
 [images/vrtest5.jpg]
@@ -82,7 +88,8 @@ These projected views help you visualize where the head and wand really are in t
 particularly when tracking is malfunctioning and, e.g., the head is near the floor as shown
 here, or even several feet underground.
 
-Sounds
+
+=Sounds=
 
 If the virtual computer's SoundRender program is running and the audio hardware is working,
 you hear a short sound whenever you depress or release a button.

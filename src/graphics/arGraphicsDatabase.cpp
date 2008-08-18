@@ -8,6 +8,7 @@
 #include "arLogStream.h"
 
 arGraphicsDatabase::arGraphicsDatabase() :
+  _texturePathLock("TEXTURE_PATH"),
   _texturePath(new list<string>(1, "") /* local dir */),
   _pathTexFont(""),
   _fFirstTexFont(true),

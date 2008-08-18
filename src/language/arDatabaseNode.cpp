@@ -13,6 +13,8 @@
 // is the root node by testing one of them (i.e. the ID or name).)
 arDatabaseNode::arDatabaseNode():
   _info(""),
+  _lockInfo("DBASENODE_INFO"),
+  _lockName("DBASENODE_NAME"),
   _ID(0),
   _name("root"),
   _typeCode(-1),

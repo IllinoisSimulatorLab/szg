@@ -196,6 +196,9 @@ arSyncDataClient::arSyncDataClient():
   _serviceName("NULL"),
   _serviceNameBarrier("NULL"),
   _networks("NULL"),
+  _stackLock("SYNCCLIENT_STACK"),
+  _swapLock("SYNCCLIENT_SWAP"),
+  _nullHandshakeLock("SYNCCLIENT_SHAKE"),
   _syncServer(NULL) {
 
   // todo: turn these assignments into initializers.

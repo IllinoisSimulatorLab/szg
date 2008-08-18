@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arDataUtilities.h"
+#include "arLogStream.h"
 
 #include <errno.h>
 #ifdef AR_USE_WIN_32
@@ -127,7 +128,7 @@ void arLock::lock() {
       cerr << "arLock warning: acquired abandoned lock.\n";
       return;
     case WAIT_TIMEOUT:
-      cerr << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
+      ar_log_error() << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
       break;
     case WAIT_FAILED:
       const DWORD e = GetLastError();

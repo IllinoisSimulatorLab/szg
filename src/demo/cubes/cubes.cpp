@@ -49,7 +49,7 @@ const float WAND_LENGTH = 2.;
 arMatrix4 cube0Matrix;
 long randomSeed = 0;
 
-arLock databaseLock; // Guards all dgXXX() and dsXXX() alterations to the scene graph?
+arLock databaseLock("CUBES"); // Guards all dgXXX() and dsXXX() alterations to the scene graph?
 
 inline float randDistance(){
   return (float(rand() % 1001) / 1000. - 0.5) * .03;
@@ -138,13 +138,13 @@ void worldAlter(void* f) {
       interactionArray[iObject].setMatrix(
         interactionArray[iObject].getMatrix() *
         ar_translationMatrix(randDistance(), randDistance(), randDistance()) *
-	ar_rotationMatrix("xyz"[rand()%3], 0.02));
+        ar_rotationMatrix("xyz"[rand()%3], 0.02));
 
       if (count%20 == 0){
         char buffer[32];
         sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
         const string whichTexture(buffer);
-	arGuard dummy(databaseLock);
+        arGuard dummy(databaseLock);
         dgTexture(objectTextureID[iObject], whichTexture);
       }
     }
@@ -246,22 +246,22 @@ recalcpos:
     if (whichShape < 0.2){
       theSphere.setTransform(ar_scaleMatrix(radius));
       if (!theSphere.attachMesh(objectName, objectTexture))
-	return false;
+        return false;
     }
     else if (whichShape < 0.4){
       theCylinder.setTransform(ar_scaleMatrix(radius));
       if (!theCylinder.attachMesh(objectName, objectTexture))
-	return false;
+        return false;
     }
     else if (whichShape < 0.6){
       thePyramid.setTransform(ar_scaleMatrix(radius));
       if (!thePyramid.attachMesh(objectName, objectTexture))
-	return false;
+        return false;
     }
     else{
       theCube.setTransform(ar_scaleMatrix(radius));
       if (!theCube.attachMesh(objectName, objectTexture))
-	return false;
+        return false;
     }
   }
 

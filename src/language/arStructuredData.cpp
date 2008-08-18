@@ -121,7 +121,7 @@ int arDataTypeSize(arDataType theType) {
   return sizes[t];
 }
 
-arLock arStructuredData::_dumpLock;
+arLock arStructuredData::_dumpLock("DATA_DUMP");
 
 #ifdef AR_USE_WIN_64
 
