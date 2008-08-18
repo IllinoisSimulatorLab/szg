@@ -135,10 +135,10 @@ import szg
 #            11 setCurrentEventIndex
 #          enddef
 
-class MyFilter( szg.arIOFilter ):
+class MyFilter( szg.arPyIOFilter ):
   buttonMap = (3,0,1,4,8,9,6,7,2,5,10,11,10,11)
   def __init__( self ):
-    szg.arIOFilter.__init__( self )
+    szg.arPyIOFilter.__init__( self )
 
     axisSwap = szg.arMatrix4( 
           1, 0, 0, 0, \
@@ -164,21 +164,13 @@ class MyFilter( szg.arIOFilter ):
     self.wandPreMatrix = originOffset * axisSwap
     self.wandPostMatrix = inverseAxisSwap * wandRotMatrix
 
-  def onInputEvent( self, event ):
-    # Values are AR_EVENT_BUTTON, AR_EVENT_AXIS, AR_EVENT_MATRIX
-    if event.getType() == szg.AR_EVENT_BUTTON:
-      try:
-        event.setIndex( self.buttonMap[event.getIndex()] )
-      except IndexError:
-        print 'WARNING: button index (',event.getIndex(),') out of range.'
-    elif event.getType() == szg.AR_EVENT_AXIS:
-      self.axisFilter( event )
-    else:
-      self.matrixFilter( event )
-    return True
+  def onButtonEvent( self, event, index ):
+    try:
+      event.setIndex( self.buttonMap[index] )
+    except IndexError:
+      print 'WARNING: button index (',index,') out of range.'
 
-  def axisFilter( self, event ):
-    index = event.getIndex()
+  def onAxisEvent( self, event, index ):
     value = event.getAxis() * .000031
     if index == 1 or index == 2:
       value = -value
@@ -186,13 +178,11 @@ class MyFilter( szg.arIOFilter ):
     if index == 2 or index == 3:
       index = 3-index
       event.setIndex( index )
-
-  def matrixFilter( self, event ):
-    index = event.getIndex()
+ 
+  def onMatrixEvent( self, event, index ):
     if index == 0:
       event.trash()
-      return
-    if index == 1:
+    elif index == 1:
       event.setMatrix( self.headPreMatrix * event.getMatrix() * self.headPostMatrix )
       event.setIndex( 0 )
     elif index == 2:

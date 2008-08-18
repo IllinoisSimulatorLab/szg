@@ -1,4 +1,4 @@
-// Defines mapping from python to C++ strings.
+// Defines mapping from python to C++ strings.onButtonEvent( arInputEvent& event, 
 %Include typemaps.sip
 
 %ModuleHeaderCode
@@ -522,6 +522,40 @@ class arIOFilter {
   private:
     arIOFilter( const arIOFilter& );
 };
+
+
+class arPyIOFilter : arIOFilter {
+%TypeHeaderCode
+class arPyIOFilter : public arIOFilter {
+  public:
+    virtual void onButtonEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
+    virtual void onAxisEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
+    virtual void onMatrixEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
+  protected:
+    virtual bool _processEvent( arInputEvent& inputEvent ) {
+      arInputEventType typ( inputEvent.getType() );
+      if (typ == AR_EVENT_BUTTON) {
+        onButtonEvent( inputEvent, inputEvent.getIndex() );
+        return true;
+      }
+      if (typ == AR_EVENT_AXIS) {
+        onAxisEvent( inputEvent, inputEvent.getIndex() );
+        return true;
+      }
+      if (typ == AR_EVENT_MATRIX) {
+        onMatrixEvent( inputEvent, inputEvent.getIndex() );
+        return true;
+      }
+      return true;  
+    }
+};
+%End
+  public:
+    virtual void onButtonEvent( arInputEvent& event, unsigned index );
+    virtual void onAxisEvent( arInputEvent& event, unsigned index );
+    virtual void onMatrixEvent( arInputEvent& event, unsigned index );
+};
+
 
 class arInputNodeConfig {
 %TypeHeaderCode
