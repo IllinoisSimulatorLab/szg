@@ -81,8 +81,8 @@ void arLock::_setName( const char* name ) {
     _name = new char[strlen(name)+1];
     memcpy( _name, name, strlen(name)+1 );
   } else {
-    _name = new char[5];
-    memcpy( _name, "NULL", 5 );
+    _name = new char[7];
+    memcpy( _name, "NONAME", 7 );
   }
 }
 
