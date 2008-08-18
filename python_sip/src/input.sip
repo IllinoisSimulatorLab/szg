@@ -288,10 +288,10 @@ class arInputSource {
   int getNumberMatrices() const;
 
   // Send a single item.
-  void sendButton(int index, int value);
-  void sendAxis(int index, float value);
-  void sendMatrix(int index, const arMatrix4& value);
-  void sendMatrix(const arMatrix4& value);
+  void sendButton(int index, int value) /ReleaseGIL/;
+  void sendAxis(int index, float value) /ReleaseGIL/;
+  void sendMatrix(int index, const arMatrix4& value) /ReleaseGIL/;
+  void sendMatrix(const arMatrix4& value) /ReleaseGIL/;
 
   // Send several items as a single packet.
 //  void sendButtonsAxesMatrices(
@@ -304,7 +304,7 @@ class arInputSource {
   void queueAxis(int index, float value);
   void queueMatrix(int index, const arMatrix4& value);
   void queueMatrix(const arMatrix4& value);
-  void sendQueue();
+  void sendQueue() /ReleaseGIL/;
 
   virtual void handleMessage( const string& messageType, const string& messageBody );
  private:

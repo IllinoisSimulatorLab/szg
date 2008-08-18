@@ -10,6 +10,7 @@
 
 arInputNode::arInputNode( bool bufferEvents ) :
   _eventCallback(NULL),
+  _dataSerializationLock("DATA_SERIALIZE"),
   _currentChannel(0),
   _bufferInputEvents(bufferEvents),
   _complained(false),

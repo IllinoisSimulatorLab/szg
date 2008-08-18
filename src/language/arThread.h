@@ -50,6 +50,8 @@ class SZG_CALL arLock {
   pthread_mutex_t _mutex;
 #endif
  private:
+  void _setName( const char* name );
+  char* _name;
   bool _fLocked;
 };
 

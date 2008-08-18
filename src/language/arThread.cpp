@@ -17,6 +17,7 @@ using namespace std;
 // In Vista that fails because users don't login as "Session 0", which is required.
 #ifdef AR_USE_WIN_32
 arLock::arLock(const char* name) : _fOwned(true) {
+  _setName( name );
   _mutex = CreateMutex(NULL, FALSE, name);
   const DWORD e = GetLastError();
   if (e == ERROR_ALREADY_EXISTS && _mutex) {
@@ -62,7 +63,8 @@ LBackoff:
   }
 }
 #else
-arLock::arLock(const char*) {
+arLock::arLock(const char* name) {
+  _setName( name );
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -72,6 +74,18 @@ arLock::arLock(const char*) {
   pthread_mutexattr_destroy(&attr);
 }
 #endif
+
+
+void arLock::_setName( const char* name ) {
+  if (name != NULL) {
+    _name = new char[strlen(name)+1];
+    memcpy( _name, name, strlen(name)+1 );
+  } else {
+    _name = new char[5];
+    memcpy( _name, "NULL", 5 );
+  }
+}
+
 
 bool arLock::valid() const {
 #ifdef AR_USE_WIN_32
@@ -90,6 +104,7 @@ arLock::~arLock() {
 #else
   pthread_mutex_destroy( &_mutex );
 #endif
+  delete[] _name;
 }
 
 void arLock::lock() {
@@ -112,7 +127,7 @@ void arLock::lock() {
       cerr << "arLock warning: acquired abandoned lock.\n";
       return;
     case WAIT_TIMEOUT:
-      cerr << "arLock warning: retrying timed-out lock().\n";
+      cerr << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
       break;
     case WAIT_FAILED:
       const DWORD e = GetLastError();
@@ -143,7 +158,7 @@ void arLock::lock() {
     case EBUSY:
       a.sleep();
       if (a.msecElapsed() > 3000.) {
-	cerr << "arLock warning: retrying timed-out lock().\n";
+	cerr << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
 	a.resetElapsed();
       }
       break;

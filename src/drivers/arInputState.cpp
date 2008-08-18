@@ -15,7 +15,8 @@ void arInputState::_init() {
   _lastButtons.reserve(32);
 }
 
-arInputState::arInputState() {
+arInputState::arInputState() :
+  _l("INPUT_STATE") {
   _init();
 }
 
