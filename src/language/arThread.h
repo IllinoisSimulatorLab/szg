@@ -33,7 +33,7 @@ class SZG_CALL arLock {
   friend class arConditionVar;
  public:
   arLock(const char* name = NULL);
-  ~arLock();
+  virtual ~arLock();
   void lock();
   void unlock();
   bool valid() const;
@@ -49,10 +49,15 @@ class SZG_CALL arLock {
 #else
   pthread_mutex_t _mutex;
 #endif
- private:
   void _setName( const char* name );
+ private:
   char* _name;
   bool _fLocked;
+};
+
+class arGlobalLock : public arLock {
+ public:
+  arGlobalLock( const char* name );
 };
 
 // Lock that implicitly unlocks when out of scope.

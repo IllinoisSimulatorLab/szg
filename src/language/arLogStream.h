@@ -89,9 +89,9 @@ class SZG_CALL arLogStream {
 
   // Guards _header, _threshold, _flush(), _buffer interleaving.
   // Guards _level *only* when altering, to avoid deadlocks.
-  arLock _l;
-  void _lock() { _l.lock(); }
-  void _unlock() { _l.unlock(); }
+  arGlobalLock _streamLock;
+  void _lock() { _streamLock.lock(); }
+  void _unlock() { _streamLock.unlock(); }
 };
 
 // Accessors (singleton).

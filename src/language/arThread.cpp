@@ -19,7 +19,7 @@ using namespace std;
 #ifdef AR_USE_WIN_32
 arLock::arLock(const char* name) : _fOwned(true) {
   _setName( name );
-  _mutex = CreateMutex(NULL, FALSE, name);
+  _mutex = CreateMutex(NULL, FALSE, NULL);
   const DWORD e = GetLastError();
   if (e == ERROR_ALREADY_EXISTS && _mutex) {
     // Another app has this.  (Only do this with global things like arLogStream.)
@@ -75,6 +75,60 @@ arLock::arLock(const char* name) {
   pthread_mutexattr_destroy(&attr);
 }
 #endif
+
+#ifdef AR_USE_WIN_32
+arGlobalLock::arGlobalLock(const char* name) {
+  _fOwned = true;
+  _setName( name );
+  _mutex = CreateMutex(NULL, FALSE, name);
+  const DWORD e = GetLastError();
+  if (e == ERROR_ALREADY_EXISTS && _mutex) {
+    // Another app has this.  (Only do this with global things like arLogStream.)
+    _fOwned = false;
+  }
+
+  if (!_mutex) {
+    if (!name) {
+      cerr << "arGlobalLock error: CreateMutex failed, GetLastError() == " << e << ".\n";
+      // valid() now fails.
+      return;
+    }
+
+    // name != NULL.
+
+    if (e == ERROR_ALREADY_EXISTS) {
+      cerr << "arGlobalLock warning: CreateMutex('" << name <<
+        "') failed (already exists).\n";
+      return;
+    }
+    if (e == ERROR_ACCESS_DENIED) {
+      cerr << "arGlobalLock warning: CreateMutex('" << name <<
+        "') failed (access denied); backing off.\n";
+LBackoff:
+      // _mutex = OpenMutex(SYNCHRONIZE, FALSE, name);
+      // Fall back to a mutex of scope "app" not "the entire PC".
+      _mutex = CreateMutex(NULL, FALSE, NULL);
+      if (!_mutex) {
+	cerr << "arGlobalLock warning: failed to create mutex.\n";
+      }
+    }
+    else if (e == ERROR_PATH_NOT_FOUND) {
+      cerr << "arGlobalLock warning: CreateMutex('" << name <<
+        "') failed (backslash?); backing off.\n";
+      goto LBackoff;
+    }
+    else {
+      cerr << "arGlobalLock warning: CreateMutex('" << name <<
+        "') failed; backing off.\n";
+      goto LBackoff;
+    }
+  }
+}
+#else
+arGlobalLock::arGlobalLock(const char* name) : arLock(name) {}
+#endif
+
+
 
 
 void arLock::_setName( const char* name ) {
