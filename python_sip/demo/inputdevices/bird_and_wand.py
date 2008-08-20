@@ -1,18 +1,18 @@
 # A Windows-only Python input device that loads C++ dlls to talk to an Ascension Flock of Birds
-#    tracker with Extended Range Controller and a gamepad or joystick. You would use it by:
+#    tracker with Extended Range Controller and a gamepad or joystick.
+# You would use it by:
 # 1) Make sure you have defined SZG_PYTHON/executable for the computer it's on.
 # 2) Place it in a directory on your SZG_PYTHON/path (or one level down).
 # 3) Add it to a virtual computer input map, e.g.:
-#        vcpyin  SZG_INPUT0  map  this_computer/bird_and_wand.py
+#        vcpyin  SZG_INPUT0  map  this_computer/treadmill.py
 # 4) To use the Flock of birds, the Bird.dll must be in the same directory as the Python
-#      executable. If it isn't, nothing will complain, you'll just get a stream of input
+#      executable or on your $PATH or in the current working directory.
+#      Note that if you install the ascension diagnostic program
+#      winbird.exe, it may install an incompatible dll in the Windows/System32 directory.
+#      If this happens the incompatible dll will be found before any compatible Bird.dll
+#      except for one in the python.exe directory. If an incompatible dll is loaded,
+#      nothing will complain, you'll just get a stream of input
 #      events with the default or zero values (that's Ascension's fault, not ours).
-#
-# It's not a very _useful_ input device, it sets a fixed head and wand position
-# and presses and releases a random button every second. You could, however,
-# use this framework to generate input by e.g. talking to a hardware device
-# through a serial port. Or you could write your own input simulator using
-# PyOpenGL or wxPython.
 #
 
 import sys
