@@ -44,7 +44,7 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode {
   arGraphicsLanguage* _g;
   arLightFloatBuffer _commandBuffer;
 
-  void _accumulateTransform(arGraphicsNode* g, arMatrix4& m);
+  void _accumulateTransform(const arGraphicsNode* g, arMatrix4& m);
   arStructuredData* _getRecord(const bool owned, const int id);
 };
 

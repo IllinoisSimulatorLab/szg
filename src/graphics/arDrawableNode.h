@@ -37,8 +37,7 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
   void setDrawableViaString(const string& type, int number);
 
  protected:
-  // DO NOT DRAW UNTIL WE HAVE BEEN INITIALIZED BY A MESSAGE.
-  bool _firstMessageReceived;
+  bool _firstMessageReceived; // Don't draw until initialized.
   int _type;
   int _number;
 

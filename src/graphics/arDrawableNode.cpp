@@ -20,9 +20,9 @@ arDrawableNode::arDrawableNode():
 }
 
 void arDrawableNode::draw(arGraphicsContext* context) {
-  // Bug: the database node is created with a message to
-  // the database. Then, a message initializing it is sent.
-  // if we try to draw between these messages, bad things can happen.
+  // One message to the database creates the database node.
+  // the database. A later message initializes the node.
+  // If both messages haven't arrived, there's nothing to draw.
   if (!_firstMessageReceived)
     return;
 
@@ -32,10 +32,9 @@ void arDrawableNode::draw(arGraphicsContext* context) {
   _nodeLock.unlock();
 
   int numberPos = 0;
-  // Compute maxNumber. Each vertex sent down the geometry pipeline
-  // has various pieces of information associated with it. maxNumber
-  // measures the maximum number of vertices that can be drawn (as determined
-  // by the sizes of the other arrays (like normals and tex coords, etc.)).
+  // Each vertex sent down the geometry pipeline has info associated with it.
+  // Compute maxNumber, the max # of drawn vertices as determined
+  // by the sizes of arrays like normals and tex coords.
   int maxNumber = -1;
   // Get the context.
   arGraphicsNode* pNode = NULL;
@@ -45,15 +44,14 @@ void arDrawableNode::draw(arGraphicsContext* context) {
   arGraphicsNode* t2Node = NULL;
   arGraphicsNode* tNode = NULL;
   if (context) {
-    // Check inside the draw functions to be certain there are an
-    // appropriate number of points. To do this, we must pass the SIZE of the
-    // points array in.
+    // In the draw functions, ensure there are an appropriate number of points.
+    // To do this, pass in the SIZE of the points array.
     pNode = (arGraphicsNode*) context->getNode(AR_G_POINTS_NODE);
     if (pNode)
       numberPos = pNode->getBufferSize()/3;
     iNode = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
-    // If an index node will be used in drawing, determine amount of data..
     if (iNode)
+      // An index node will be used in drawing; determine amount of data.
       maxNumber = iNode->getBufferSize();
     else
       // No index node exists. We will be using the points one after another.
@@ -64,17 +62,16 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       maxNumber = nNode->getBufferSize()/3;
     }
     cNode = (arGraphicsNode*) context->getNode(AR_G_COLOR4_NODE);
-    // If a color node will be used in drawing, determine amount of data..
+    // If a color node will be used in drawing, determine amount of data.
     if (cNode && (maxNumber < 0 || cNode->getBufferSize()/4 < howMany)) {
       maxNumber = cNode->getBufferSize()/4;
     }
     t2Node = (arGraphicsNode*) context->getNode(AR_G_TEX2_NODE);
-    // If a tex2 coordinate node will be used in drawing, determine amount of
-    // data.
+    // If a tex2 coordinate node will be used in drawing, determine amount of data.
     if (t2Node && (maxNumber < 0 || t2Node->getBufferSize()/2 < howMany)) {
       maxNumber = t2Node->getBufferSize()/2;
     }
-    // The texture node has nothing to say about bounds checking.
+    // The texture node doesn't affect bounds checking.
     tNode = (arGraphicsNode*) context->getNode(AR_G_TEXTURE_NODE);
   }
 
@@ -121,8 +118,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       // Truncate based on array sizes. A triangle set draws 3*howMany
       // vertices. howMany = number of triangles.
       howMany = howMany <= maxNumber/3 ? howMany : maxNumber/3;
-      // There used to be CG code in here... but no longer. That turned out
-      // to be a failed experiment.
+      // A failed experiment with CG code once was here.
       ar_drawTriangles(howMany,
                        (const int*) (iNode ? iNode->getBuffer() : NULL),
 		       numberPos,
@@ -200,8 +196,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
 }
 
 bool arDrawableNode::receiveData(arStructuredData* inData) {
-  // Deals with the problem that the node is created and then initialized
-  // in two different messages.
+  // Got second node-init message (after node-create message).
   _firstMessageReceived = true;
 
   if (!_g->checkNodeID(_g->AR_DRAWABLE, inData->getID(), "arDrawableNode"))
@@ -332,25 +327,25 @@ arDrawableType arDrawableNode::_convertStringToType(const string& type) {
   if (type == "points") {
     return DG_POINTS;
   }
-  else if (type == "lines") {
+  if (type == "lines") {
     return DG_LINES;
   }
-  else if (type == "line_strip") {
+  if (type == "line_strip") {
     return DG_LINE_STRIP;
   }
-  else if (type == "triangles") {
+  if (type == "triangles") {
     return DG_TRIANGLES;
   }
-  else if (type == "triangle_strip") {
+  if (type == "triangle_strip") {
     return DG_TRIANGLE_STRIP;
   }
-  else if (type == "quads") {
+  if (type == "quads") {
     return DG_QUADS;
   }
-  else if (type == "quad_strip") {
+  if (type == "quad_strip") {
     return DG_QUAD_STRIP;
   }
-  else if (type == "polygon") {
+  if (type == "polygon") {
     return DG_POLYGON;
   }
   return DG_POINTS;

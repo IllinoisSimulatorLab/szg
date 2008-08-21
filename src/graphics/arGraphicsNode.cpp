@@ -31,19 +31,18 @@ void arGraphicsNode::initialize(arDatabase* owner) {
 // For thread safety, use arGraphicsDatabase::accumulateTransform().
 arMatrix4 arGraphicsNode::accumulateTransform() {
   arMatrix4 r;
-  arGraphicsNode* g = (arGraphicsNode*) getParent();
-  if (g) {
-    _accumulateTransform(g, r);
+  const arGraphicsNode* n = (const arGraphicsNode*) getParent();
+  if (n) {
+    _accumulateTransform(n, r);
   }
   return r;
 }
 
-void arGraphicsNode::_accumulateTransform(arGraphicsNode* g, arMatrix4& m) {
-  if (g->getTypeCode() == AR_G_TRANSFORM_NODE) {
-    arTransformNode* t = (arTransformNode*) g;
-    m = t->getTransform() * m;
+void arGraphicsNode::_accumulateTransform(const arGraphicsNode* n, arMatrix4& m) {
+  if (n->getTypeCode() == AR_G_TRANSFORM_NODE) {
+    m = ((arTransformNode*)n)->getTransform() * m;
   }
-  arGraphicsNode* p = (arGraphicsNode*) g->getParent();
+  const arGraphicsNode* p = (const arGraphicsNode*) n->getParent();
   if (p) {
     _accumulateTransform(p, m);
   }
