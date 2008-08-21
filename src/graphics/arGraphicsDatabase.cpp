@@ -422,68 +422,63 @@ void arGraphicsDatabase::setVRCameraID(int cameraID) {
 }
 
 void arGraphicsDatabase::draw( arGraphicsWindow& win, arViewport& view ) {
-  // Replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   arGraphicsContext context( &win, &view );
-  arMatrix4 projectionMatrix(view.getCamera()->getProjectionMatrix());
-  // Note how we use a "graphics context" for rendering.
-  _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
-        &projectionMatrix);
+  const arMatrix4 projectionMatrix(view.getCamera()->getProjectionMatrix());
+  _draw((arGraphicsNode*)&_rootNode, transformStack, &context, &projectionMatrix);
 }
 
 
-void arGraphicsDatabase::draw(arMatrix4* projectionMatrix) {
-  // Replaces gl matrix stack... we want to support VERY deep trees
+void arGraphicsDatabase::draw(const arMatrix4* projectionMatrix) {
   stack<arMatrix4> transformStack;
   arGraphicsContext context;
-  // Note how we use a "graphics context" for rendering.
-  _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
-        projectionMatrix);
+  _draw((arGraphicsNode*)&_rootNode, transformStack, &context, projectionMatrix);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node,
                                stack<arMatrix4>& transformStack,
                                arGraphicsContext* context,
-                               arMatrix4* projectionMatrix) {
+                               const arMatrix4* projectionMatrix) {
 
-  // Word of warning: lock/unlock is DEFINITELY costly when done per-node.
-  // To make the API really thread-safe, some kind of node-level locking
-  // is necessary... but it clearly should be a bit constrained (10 node
-  // locks/unlocks per node per draw is a 25% performance hit over no locks
-  // at all (when drawing a scene graph with a high nodes/geometry ratio...
-  // i.e. where scene graph traversal is significant).
+  // Lock/unlock is costly per-node.
+  // To make the API thread-safe, node-level locking is needed,
+  // but should be constrained. 10 node locks/unlocks per node per draw
+  // drops performance 25% w.r.t. no locks, when drawing a scene graph
+  // with a high nodes/geometry ratio, i.e. when scene-graph traversal
+  // is significant.
 
-  // Store the node on the arGraphicsContext's stack.
-  if (context) {
-    context->pushNode(node);
-  }
+  // Dangerous optimization: don't NULL-test node or context.
+  // projectionMatrix may be NULL, draw()'s default.
+
+  // Push node on the arGraphicsContext's stack.
+  context->pushNode(node);
+
+  const int code = node->getTypeCode();
   arMatrix4 modelViewMatrix;
-  if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
-    // Push current onto the matrix stack.
+  if (code == AR_G_TRANSFORM_NODE) {
+    // Our own stack of transforms is deeper than glPushMatrix()'s.
     glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix.v);
     transformStack.push(modelViewMatrix);
   }
 
   // Draw the node and its children except:
   //   Don't draw root node (no draw method).
-  //   If this is a visibility node in invisible state,
-  //      draw neither node nor children.
-  if (node->getTypeCode() != -1 && node->getTypeCode() != AR_D_NAME_NODE) {
+  //   If this is an invisible visibility node, draw neither node nor children.
+  if (code != -1 && code != AR_D_NAME_NODE) {
     // These nodes are just arDatabaseNodes, not arGraphicsNodes.
     node->draw(context);
   }
 
-  // Cull view frustum.
-  if (projectionMatrix && node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
+  // Cull view-frustum.
+  if (projectionMatrix && code == AR_G_BOUNDING_SPHERE_NODE) {
     glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix.v);
     arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
-    const arMatrix4 view((*projectionMatrix)*modelViewMatrix);
-    if (!b.intersectViewFrustum(view)) {
+    if (!b.intersectViewFrustum(*projectionMatrix * modelViewMatrix)) {
       goto done;
     }
   }
 
-  if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE &&
+  if ( !(code == AR_G_VISIBILITY_NODE &&
        !((arVisibilityNode*)node)->getVisibility() ) ) {
     // Not an invisible visibility node.  Draw children.
     // Use _children, not getChildren(), to avoid copying the whole list.
@@ -493,18 +488,13 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     }
   }
 
-  if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
-    // Restore the matrix state.
-    const arMatrix4 tempMatrix(transformStack.top());
+  if (code == AR_G_TRANSFORM_NODE) {
+    glLoadMatrixf(transformStack.top().v);
     transformStack.pop();
-    glLoadMatrixf(tempMatrix.v);
   }
 
 done:
-  // Pop the node stack.
-  if (context) {
-    context->popNode(node);
-  }
+  context->popNode(node);
 }
 
 // Return the ID of the bounding-sphere node with the closest point of
