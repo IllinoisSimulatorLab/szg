@@ -68,9 +68,8 @@ int main(int argc, char** argv) {
   szgClient.simpleHandshaking(false);
   // Force the component's name, because win98 can't provide it.
   const bool fInit = szgClient.init(argc, argv, "SoundRender");
-
-  // Put it here so that the app label will have been set.
-  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   string currDir;
   if (!ar_getWorkingDirectory( currDir )) {
@@ -78,9 +77,6 @@ int main(int argc, char** argv) {
   } else {
     ar_log_critical() << "Directory: " << currDir << ar_endl;
   }
-
-  if (!szgClient)
-    return szgClient.failStandalone(fInit);
 
   // Only one SoundRender per host.
   // copypasted (more or less) from szgd.cpp
@@ -98,7 +94,6 @@ LDie:
     goto LDie;
   }
 
-  // init succeeded
   if (!szgClient.sendInitResponse(true)) {
     cerr << "SoundRender error: maybe szgserver died.\n";
   }

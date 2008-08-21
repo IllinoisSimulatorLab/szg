@@ -368,9 +368,6 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     return false;
   }
 
-  // Put it here so that the app label will have been set.
-  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
-
   // Performance graphs.
   const arVector3 white  (1, 1, 1);
   const arVector3 yellow (1, 1, 0);

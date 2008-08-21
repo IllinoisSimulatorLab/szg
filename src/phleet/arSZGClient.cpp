@@ -104,8 +104,7 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 // but Win98 gives at best a name in all caps.  (Warn if those two mismatch.)
 
 bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
-  // Set the component's name from argv[0],
-  // since some component management uses names.
+  // Set the component's name from argv[0], for some component management.
   _exeName = ar_stripExeName(string(argv[0]));
   ar_setLogLabel( _exeName );
 
@@ -203,7 +202,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     // No dex, so redirect pending and future output to cout.
     cout << _initResponseStream.str();
     ar_log().setStream(cout);
-    ar_log_critical() << "running standalone.\n";
+    ar_log_critical() << "standalone.\n";
     _connected = false;
 
     const bool gotParams =
@@ -217,16 +216,19 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
         parseParameterFile(s, false);
       }
     }
+    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
     return true;
   }
 
   // szgserver, username, etc ("context") are all set.  Connect to that szgserver.
   if (!_dialUpFallThrough()) {
     _connected = false;
+    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
     return false;
   }
   ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
   ar_log_debug() << "connected to szgserver.\n";
+  ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
 
   _connected = true;
   const string configfile_serverName(_serverName);

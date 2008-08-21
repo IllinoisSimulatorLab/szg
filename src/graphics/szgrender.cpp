@@ -167,16 +167,11 @@ void ar_guiWindowKeyboard(arGUIKeyInfo* ki) {
 }
 
 int main(int argc, char** argv) {
-  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
-
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
     return szgClient.failStandalone(fInit);
-
-  // Put it here so that the app label will have been set.
-  ar_log_critical() << "Syzygy version: " << ar_versionString() << ar_endl;
 
   string currDir;
   if (!ar_getWorkingDirectory( currDir )) {
