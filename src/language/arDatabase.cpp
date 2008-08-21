@@ -97,9 +97,8 @@ arDatabaseNode* arDatabase::_ref(arDatabaseNode* node, const bool fRef) {
   return node;
 }
 
-// Because this is thread-safe using the global arDatabase lock _l,
-// don't call it from arDatabase (or subclass) code for message processing,
-// to avoid deadlocks.
+// Don't call while _lock()'d,
+// e.g. from message processing code in arDatabase or subclasses.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode) {
   arGuard dummy(_dbLock);
   return _ref(_getNodeNoLock(ID, fWarn), refNode);
@@ -391,7 +390,7 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode) {
   arDatabaseNode* pNode = NULL;
   if (_databaseReceive[dataID]) {
     // Call one of _handleQueuedData _eraseNode _makeDatabaseNode.
-    // If it fails, it prints its own diagnostic.
+    // If that fails, it prints its own diagnostic.
     pNode = (this->*(_databaseReceive[dataID]))(inData);
     if (!pNode) {
       ar_log_remark() << "arDatabase::alter() failed.\n";
@@ -403,9 +402,9 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode) {
   }
 
   // Use _getNodeNoLock instead of getNode, since
-  // subclasses may call this within _lock()/_unlock().
+  // subclasses may call this while _lock()'ed.
   // pNode needs no extra ref(), unlike the make node
-  // or insert cases, where new nodes can be created.
+  // or insert cases, which can create new nodes.
 
   const int id = inData->getDataInt(_routingField[dataID]);
   pNode = _getNodeNoLock(id);
@@ -914,7 +913,7 @@ bool arDatabase::_initDatabaseLanguage() {
   return true;
 }
 
-// Convert an ID into a node pointer while already _lock()'d.
+// Convert an ID into a node pointer while _lock()'d.
 arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn) {
   const arNodeIDIterator i(_nodeIDContainer.find(ID));
   if (i != _nodeIDContainer.end())
@@ -1175,7 +1174,7 @@ void arDatabase::_eraseNode(arDatabaseNode* node) {
   // but hides the guts of the arDatabaseNode.
 
   // Don't use getChildrenRef, since this function is called while
-  // already _lock()'d (from arGraphicsPeer and arGraphicsServer).
+  // _lock()'d (from arGraphicsPeer and arGraphicsServer).
   const list<arDatabaseNode*> childList = node->getChildren();
   for (list<arDatabaseNode*>::const_iterator i = childList.begin();
        i != childList.end(); i++) {

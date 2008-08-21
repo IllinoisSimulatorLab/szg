@@ -465,34 +465,26 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 
   // Draw the node and its children except:
-  //   a. If this is the root node, do not draw (no draw method)
-  //   b. If this is a visibility node in invisible state, do not
-  //      draw either node or children.
+  //   Don't draw root node (no draw method).
+  //   If this is a visibility node in invisible state,
+  //      draw neither node nor children.
   if (node->getTypeCode() != -1 && node->getTypeCode() != AR_D_NAME_NODE) {
-    // We are not the root node or a name node, so it is OK to draw.
-    // These nodes are actually just arDatabaseNodes instead of
-    // arGraphicsNodes.
+    // These nodes are just arDatabaseNodes, not arGraphicsNodes.
     node->draw(context);
   }
 
-  // View frustum culling.
-  if (projectionMatrix && node->getTypeCode()
-      == AR_G_BOUNDING_SPHERE_NODE) {
+  // Cull view frustum.
+  if (projectionMatrix && node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE) {
     glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrix.v);
     arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
-    arMatrix4 view = (*projectionMatrix)*modelViewMatrix;
+    const arMatrix4 view((*projectionMatrix)*modelViewMatrix);
     if (!b.intersectViewFrustum(view)) {
-      // It is safe to return here... but don't forget to pop the node stack!
-      if (context) {
-        context->popNode(node);
-      }
-      return;
+      goto done;
     }
   }
 
-  // Visibility nodes.
-  if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE
-         && !((arVisibilityNode*)node)->getVisibility() ) ) {
+  if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE &&
+       !((arVisibilityNode*)node)->getVisibility() ) ) {
     // Not an invisible visibility node.  Draw children.
     // Use _children, not getChildren(), to avoid copying the whole list.
     const list<arDatabaseNode*>& children = node->_children;
@@ -502,25 +494,26 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE) {
-    // Pop from stack.
-    arMatrix4 tempMatrix = transformStack.top();
-    transformStack.pop();
     // Restore the matrix state.
+    const arMatrix4 tempMatrix(transformStack.top());
+    transformStack.pop();
     glLoadMatrixf(tempMatrix.v);
   }
+
+done:
   // Pop the node stack.
   if (context) {
     context->popNode(node);
   }
 }
 
-// Finds the bounding sphere node (if any) with the closest point of
-// intersection to the given ray and returns its ID. If no bounding sphere
-// intersects, return -1 (which is the ID of no node). This method is
-// thread-safe.
+// Return the ID of the bounding-sphere node with the closest point of
+// intersection to a ray.
+// If no bounding sphere intersects, return the "not a node" ID.
+// Thread-safe.
 int arGraphicsDatabase::intersect(const arRay& theRay) {
   float bestDistance = -1;
-  int bestNodeID = -1;
+  int bestNodeID = -1; // "not a node"
   stack<arRay> rayStack;
   rayStack.push(theRay);
   _intersect((arGraphicsNode*)&_rootNode, bestDistance, bestNodeID, rayStack);

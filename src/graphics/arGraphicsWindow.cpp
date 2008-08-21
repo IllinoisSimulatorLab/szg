@@ -26,7 +26,9 @@ void arDefaultRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
 arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _useOGLStereo(false),
   _useColorFilter(false),
-  _defaultCamera(0),
+  _initCallback(new arDefaultWindowInitCallback),
+  _drawCallback(new arDefaultRenderCallback),
+  _defaultCamera(NULL),
   _currentEyeSign(0.),
   _posX(-1),
   _posY(-1),
@@ -39,8 +41,6 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
 
   _setCameraNoLock( cam );
 
-  _initCallback = new arDefaultWindowInitCallback;
-  _drawCallback = new arDefaultRenderCallback;
 
   // by default, we'll be using screen objects for our automatically
   // created configurations (i.e. from configure(...)). It is still
@@ -140,7 +140,6 @@ arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
   if (cam) {
     if (_defaultCamera) {
       delete _defaultCamera;
-      _defaultCamera = 0;
     }
     _defaultCamera = cam->clone();
   }
@@ -164,15 +163,10 @@ void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
 }
 
 void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {
-  if (_drawCallback != 0) {
+  if (_drawCallback) {
     delete _drawCallback;
   }
-
-  if (callback != 0) {
-    _drawCallback = callback;
-  } else {
-    _drawCallback = new arDefaultRenderCallback;
-  }
+  _drawCallback = callback ? callback : new arDefaultRenderCallback;
 }
 
 bool arGraphicsWindow::setViewMode( const std::string& viewModeString ) {
@@ -333,14 +327,6 @@ arViewport* arGraphicsWindow::getViewport( unsigned int vpindex ) {
   return &_viewportVector[vpindex];
 }
 
-// Not const because _renderPass can't be.
-bool arGraphicsWindow::draw() {
-  _renderPass( GL_BACK_LEFT );
-  if (_useOGLStereo)
-    _renderPass( GL_BACK_RIGHT );
-  return true;
-}
-
 void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int sizeY ) {
   _posX = posX;
   _posY = posY;
@@ -352,21 +338,27 @@ void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int
   posX = _posX; posY = _posY; sizeX = _sizeX; sizeY = _sizeY;
 }
 
+// Not const because _renderPass can't be.
+bool arGraphicsWindow::draw() {
+  _renderPass( GL_BACK_LEFT );
+  if (_useOGLStereo)
+    _renderPass( GL_BACK_RIGHT );
+  return true;
+}
+
 void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
-  // NOTE: We must assume that configure(...) can be called in a different
-  // thread from draw(...). Hence the below lock is needed.
+  // Lock, because another thread might call configure().
   lockViewports();
 
-  // do whatever it takes to initialize the window.
-  // by default, the depth buffer and color buffer are clear and depth test
-  // is enabled.
+  // Initialize the window.  By default, the depth buffer and color buffer are clear
+  // and depth test is enabled.
   glDrawBuffer( oglDrawBuffer );
 //  GLint drawBuffer;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
 //  cerr << "_renderPass start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
   (*_initCallback)( *this );
 
-  // Save viewport's extent, since it will change.
+  // Save viewport's extent.
   int viewportExtent[4];
   glGetIntegerv(GL_VIEWPORT, (GLint*)viewportExtent);
 
@@ -379,7 +371,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
     (*_drawCallback)(*this, *i);
     if (_useColorFilter)
       _applyColorFilter();
-    // Restore the viewport's extent, lest the viewports shrink
+    // Restore viewport's extent, lest the viewports shrink
     // and disappear in modes like walleyed.
     glViewport( (GLint)viewportExtent[0], (GLint)viewportExtent[1],
                 (GLsizei)viewportExtent[2], (GLsizei)viewportExtent[3] );
