@@ -34,7 +34,7 @@ const int* arIndexNode::getIndices(int& number) {
 
 // Slow, thread-safe, Python-compatible accessor.
 vector<int> arIndexNode::getIndices() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arIndexNode::getIndices");
   const unsigned num = _numElements();
   vector<int> r(num);
   // Bug: assumes that sizeof(int) == sizeof(float).
@@ -47,14 +47,14 @@ vector<int> arIndexNode::getIndices() {
 
 void arIndexNode::setIndices(int number, int* indices, int* IDs) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arIndexNode::setIndices active");
       arStructuredData* r = _dumpData(number, indices, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arIndexNode::setIndices inactive");
     _mergeElements(number, indices, IDs);
   }
 }

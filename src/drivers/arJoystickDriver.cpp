@@ -181,7 +181,7 @@ void arJoystickDriver::_eventTask() {
 #endif
 
   // Thread ends.  Signal stop.
-  arGuard dummy(_shutdownLock);
+  arGuard _(_shutdownLock, "arJoystickDriver::_eventTask");
   _pollingDone = true;
   _shutdownVar.signal();
 }
@@ -376,11 +376,12 @@ bool arJoystickDriver::start() {
 bool arJoystickDriver::stop() {
   // Windows probably needs a clean shutdown
   _shutdown = true;
-  arGuard dummy(_shutdownLock);
+  _shutdownLock.lock("arJoystickDriver::stop");
   // Wait for thread to end
   while (!_pollingDone) {
     _shutdownVar.wait(_shutdownLock);
   }
+  _shutdownLock.unlock();
   ar_log_debug() << "arJoystickDriver polling thread done.\n";
   return true;
 }

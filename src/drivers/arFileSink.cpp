@@ -52,7 +52,7 @@ bool arFileSink::stop() {
     return true;
   }
 
-  arGuard dummy(_logLock);
+  arGuard _(_logLock, "arFileSink::stop");
   _logging = false;
   if (_dataFile)
     fclose(_dataFile);
@@ -60,7 +60,7 @@ bool arFileSink::stop() {
 }
 
 void arFileSink::receiveData(int /*ID*/, arStructuredData* data) const {
-  arGuard dummy(_logLock);
+  arGuard _(_logLock, "arFileSink::receiveData");
   if (_logging && data)
     data->print(_dataFile);
 }

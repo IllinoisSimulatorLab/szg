@@ -19,32 +19,32 @@ bool arVisibilityNode::receiveData(arStructuredData* inData) {
     return false;
 
   const bool vis = inData->getDataInt(_g->AR_VISIBILITY_VISIBILITY) ? true : false;
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arVisibilityNode::receiveData");
   _visibility = vis;
   return true;
 }
 
 bool arVisibilityNode::getVisibility() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arVisibilityNode::getVisibility");
   return _visibility;
 }
 
 void arVisibilityNode::setVisibility(bool visibility) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arVisibilityNode::setVisibility active");
       arStructuredData* r = _dumpData(visibility, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arVisibilityNode::setVisibility inactive");
     _visibility = visibility;
   }
 }
 
 arStructuredData* arVisibilityNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arVisibilityNode::dumpData");
   return _dumpData(_visibility, false);
 }
 
@@ -56,6 +56,5 @@ arStructuredData* arVisibilityNode::_dumpData(bool visibility, bool owned) {
     delete r;
     return NULL;
   }
-
   return r;
 }

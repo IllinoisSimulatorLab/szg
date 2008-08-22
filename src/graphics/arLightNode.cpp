@@ -20,7 +20,7 @@ bool arLightNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_LIGHT, inData->getID(), "arLightNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arLightNode::receiveData");
   inData->dataOut(_g->AR_LIGHT_LIGHT_ID, &_nodeLight.lightID, AR_INT, 1);
   inData->dataOut(_g->AR_LIGHT_POSITION, _nodeLight.position.v, AR_FLOAT, 4);
   inData->dataOut(_g->AR_LIGHT_DIFFUSE, _nodeLight.diffuse.v, AR_FLOAT, 3);
@@ -47,26 +47,26 @@ void arLightNode::deactivate() {
 }
 
 arLight arLightNode::getLight() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arLightNode::getLight");
   return _nodeLight;
 }
 
 void arLightNode::setLight(arLight& light) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arLightNode::setLight active");
       arStructuredData* r = _dumpData(light, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arLightNode::setLight inactive");
     _nodeLight = light;
   }
 }
 
 arStructuredData* arLightNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arLightNode::dumpData");
   return _dumpData(_nodeLight, false);
 }
 

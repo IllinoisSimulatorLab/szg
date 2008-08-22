@@ -14,7 +14,7 @@ arBoundingSphereNode::arBoundingSphereNode() {
 }
 
 void arBoundingSphereNode::draw(arGraphicsContext*) {
-  _nodeLock.lock();
+  _nodeLock.lock("arBoundingSphereNode::draw");
     const bool vis = _boundingSphere.visibility;
     arVector3 p(_boundingSphere.position);
     const float r = _boundingSphere.radius;
@@ -36,7 +36,7 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData) {
     return false;
 
   const bool vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY) ? true : false;
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBoundingSphereNode::receiveData");
   _boundingSphere.visibility = vis;
   inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
 		  &_boundingSphere.radius, AR_FLOAT, 1);
@@ -46,26 +46,26 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData) {
 }
 
 arBoundingSphere arBoundingSphereNode::getBoundingSphere() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBoundingSphereNode::getBoundingSphere");
   return _boundingSphere;
 }
 
 void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arBoundingSphereNode::setBoundingSphere active");
       arStructuredData* r = _dumpData(b, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arBoundingSphereNode::setBoundingSphere inactive");
     _boundingSphere = b;
   }
 }
 
 arStructuredData* arBoundingSphereNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBoundingSphereNode::dumpData");
   return _dumpData(_boundingSphere, false);
 }
 

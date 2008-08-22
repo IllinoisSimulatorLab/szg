@@ -260,6 +260,7 @@ void arDataClient::closeConnection() {
 }
 
 // Send data to the data server.
+// Thread-safe.
 bool arDataClient::sendData(arStructuredData* theData) {
   if (!theData) {
     ar_log_error() << _exeName << " ignoring sendData(NULL)\n";
@@ -267,10 +268,7 @@ bool arDataClient::sendData(arStructuredData* theData) {
   }
 
   const int theSize = theData->size();
-
-  // Thread-safe.
-  arGuard dummy(_lockSend);
-
+  arGuard _(_lockSend, "arDataClient::sendData");
   return ar_growBuffer(_dataBuffer, _dataBufferSize, theSize) &&
     theData->pack(_dataBuffer) &&
     _socket->ar_safeWrite(_dataBuffer, theSize);

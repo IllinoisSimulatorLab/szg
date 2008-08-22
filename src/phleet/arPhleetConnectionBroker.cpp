@@ -40,7 +40,7 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
                                                      int firstPort,
                                                      int blockSize) {
   arPhleetService result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::requestPorts");
   if (_temporaryServices.find(serviceName) != _temporaryServices.end()) {
     // Service already exists.  Not abnormal.
     // master/slave applications might see if they can get the master
@@ -124,7 +124,7 @@ LAbort:
 // @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
     int componentID, const string& serviceName) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::retryPorts");
   // the service should exist in the temporary service list (i.e. where
   // services go that have been temporarily registered, but have not had
   // there ports confirmed) and must be owned by the requesting component.
@@ -202,7 +202,7 @@ LAbort:
 // @param serviceName the name of the offered service
 bool arPhleetConnectionBroker::confirmPorts(int componentID,
                                             const string& serviceName) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::confirmPorts");
   // find the service on the temporary list. if it does not exist, or is
   // owned by a different component
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
@@ -258,7 +258,7 @@ LAbort:
 // @param serviceName The full name of the service.
 string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const {
   string info("");
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getServiceInfo");
   SZGServiceData::const_iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()) {
     info = i->second.info;
@@ -284,7 +284,7 @@ string arPhleetConnectionBroker::getServiceInfo(const string& serviceName) const
 bool arPhleetConnectionBroker::setServiceInfo(const int componentID,
                                               const string& serviceName,
                                               const string& info) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::setServiceInfo");
   SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i != _temporaryServices.end()) {
     if (i->second.componentID != componentID) {
@@ -310,7 +310,7 @@ LDone:
 // temporary list or the used list. If so, return true. Otherwise, false.
 // @param serviceName Name of the service to be checked
 bool arPhleetConnectionBroker::checkService(const string& serviceName) const {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::checkService");
   return _temporaryServices.find(serviceName) != _temporaryServices.end() ||
          _usedServices.find(serviceName) != _usedServices.end();
 }
@@ -342,7 +342,7 @@ arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
                                                  const arSlashString& networks,
                                                  bool   async) {
   arPhleetAddress result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::requestService");
   // see if the service already exists on the active list
   // if not, insert the service request into the notification
   // queue. return arPhleetAddress with valid field set to false
@@ -408,7 +408,7 @@ LFound:
 SZGRequestList arPhleetConnectionBroker::getPendingRequests
                                            (const string& serviceName) {
   SZGRequestList result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getPendingRequests servicename");
   // push service requests that match the service name onto the queue to
   // be returned
   SZGRequestList::iterator i = _requestedServices.begin();
@@ -429,7 +429,7 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
   SZGRequestList result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getPendingRequests");
   std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
   return result;
 }
@@ -439,7 +439,7 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
 // In other words, arSlashString's can't nest!
 string arPhleetConnectionBroker::getServiceNames() const {
   arSemicolonString result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getServiceNames");
   for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++) {
       result /= i->first;
@@ -452,7 +452,7 @@ string arPhleetConnectionBroker::getServiceNames() const {
 // getServiceNames(...)
 arSlashString arPhleetConnectionBroker::getServiceComputers() const {
   arSlashString result;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getServiceComputers");
   for (SZGServiceData::const_iterator i = _usedServices.begin();
        i != _usedServices.end(); i++) {
     result /= i->second.computer;
@@ -466,7 +466,7 @@ arSlashString arPhleetConnectionBroker::getServiceComputers() const {
 // arranged in the same order as getServiceNames().
 // Caller's responsible for delete[]'ing IDs.
 int arPhleetConnectionBroker::getServiceComponents(int*& IDs) const {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getServiceComponents");
   const int numServices = _usedServices.size();
   IDs = new int[numServices];
   SZGServiceData::const_iterator iter = _usedServices.begin();
@@ -480,7 +480,7 @@ int arPhleetConnectionBroker::getServiceComponents(int*& IDs) const {
 // if such exists, and otherwise -1
 // @param serviceName the name of the service in which we are interested
 int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName) const {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::getServiceComponentID");
   SZGServiceData::const_iterator i = _usedServices.find(serviceName);
   return (i == _usedServices.end()) ? -1 : i->second.componentID;
 }
@@ -492,7 +492,7 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 						   int match,
                                                    const string& computer,
 						   const string& serviceName) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::registerReleaseNotification");
   SZGServiceData::iterator k = _usedServices.find(serviceName);
   if (k == _usedServices.end()) {
     return;
@@ -569,7 +569,7 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName) {
 // for instance, that component might have been offering a service, which
 // now needs to be removed from the internal table of active services.
 void arPhleetConnectionBroker::removeComponent(int componentID) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::removeComponent");
   // remove any service requests with this component ID
   SZGRequestList::iterator ii = _requestedServices.begin();
   while ( ii != _requestedServices.end() ) {
@@ -656,7 +656,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID) {
 void arPhleetConnectionBroker::print() const {
   list<int>::const_iterator nn;
   list<string>::const_iterator mm;
-  arGuard dummy(_l);
+  arGuard _(_l, "arPhleetConnectionBroker::print");
   cout << "***************************************************\n";
   for (SZGComputerData::const_iterator i = _computerData.begin();
        i != _computerData.end(); ++i) {

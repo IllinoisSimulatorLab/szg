@@ -79,7 +79,7 @@ void arSyncDataClient::_connectionTask() {
     // bug: some copypaste with below
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for wildcat graphics cards.
-    arGuard dummy(_nullHandshakeLock);
+    _nullHandshakeLock.lock("arSyncDataClient::_connectionTask");
     // We might be in stop mode.
     if (_nullHandshakeState != 2) {
       _nullHandshakeState = 1; // Request that a disconnect callback be issued
@@ -87,6 +87,7 @@ void arSyncDataClient::_connectionTask() {
         _nullHandshakeVar.wait(_nullHandshakeLock);
       }
       _nullHandshakeState = 0;
+      _nullHandshakeLock.unlock();
     }
     ar_log_remark() << "disconnected.\n";
   }
@@ -115,7 +116,7 @@ void arSyncDataClient::_readTask() {
     // read data into back buffer
     ar_timeval time1 = ar_time();
 
-    _stackLock.lock();
+    _stackLock.lock("arSyncDataClient::_readTask stack A");
     if (_storageStack.empty()) {
       // storage for the next network buffer
       const int tempSize = 10000;
@@ -145,23 +146,24 @@ void arSyncDataClient::_readTask() {
 
       // Put the stored data on the receive stack, sync or nosync.
       if (syncClient()) {
-        arGuard dummy(_swapLock);
+        _swapLock.lock("arSyncDataClient::_readTask sync");
         while (!_bufferSwapReady) {
 	  _bufferSwapCondVar.wait(_swapLock);
         }
         // Buffer swap can occur now.
         _bufferSwapReady = false;
 
-        _stackLock.lock();
+	_stackLock.lock("arSyncDataClient::_readTask stack B");
 	  _receiveStack.push_back(dataStorage);
         _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
 
         _dataAvailable = 1;
         _dataWaitCondVar.signal();
+        _swapLock.unlock();
       }
       else{
-        arGuard dummy(_stackLock);
+        arGuard _(_stackLock, "arSyncDataClient::_readTask nosync");
         _receiveStack.push_back(dataStorage);
         //_backBuffer = 1 - _backBuffer;
       }
@@ -175,7 +177,7 @@ void arSyncDataClient::_readTask() {
       // Reset the rest of the state, to avoid deadlocks.
       _bufferSwapReady = true;
       // recycle any pending buffers on the receive stack
-      _stackLock.lock();
+      _stackLock.lock("arSyncDataClient::_readTask stack C");
       for (list<pair<char*, int> >::iterator iter = _receiveStack.begin();
            iter != _receiveStack.end(); iter++) {
         _storageStack.push_back(*iter);
@@ -362,13 +364,13 @@ void arSyncDataClient::stop() {
   // Stop the barrier client: don't block in requestActivation().
   _barrierClient.stop();
   // make sure the read thread is not hung waiting to swap buffers
-  _swapLock.lock();
+  _swapLock.lock("arSyncDataClient::stop swap");
   _bufferSwapReady = true;
   _bufferSwapCondVar.signal();
   _swapLock.unlock();
 
   // Ensure we're not blocked at the end of the connection thread
-  _nullHandshakeLock.lock();
+  _nullHandshakeLock.lock("arSyncDataClient::stop handshake");
     _nullHandshakeState = 2;
     _nullHandshakeVar.signal();
   _nullHandshakeLock.unlock();
@@ -384,7 +386,7 @@ void arSyncDataClient::consume() {
     // Locally connected.
     // Tell arSyncDataServer that we're ready for data.
 
-    _syncServer->_localConsumerReadyLock.lock();
+    _syncServer->_localConsumerReadyLock.lock("arSyncDataClient::consume A");
       if (_syncServer->_localConsumerReady == 2) {
 	// Everything may be stopping.
 	_syncServer->_localConsumerReadyLock.unlock();
@@ -395,7 +397,7 @@ void arSyncDataClient::consume() {
     _syncServer->_localConsumerReadyLock.unlock();
 
     // Wait for the data to become ready.
-    _syncServer->_localProducerReadyLock.lock();
+    _syncServer->_localProducerReadyLock.lock("arSyncDataClient::consume B");
       while (!_syncServer->_localProducerReady) {
 	_syncServer->_localProducerReadyVar.wait(_syncServer->_localProducerReadyLock);
       }
@@ -425,7 +427,7 @@ void arSyncDataClient::consume() {
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for
     // wildcat graphics cards.
-    arGuard dummy(_nullHandshakeLock);
+    arGuard _(_nullHandshakeLock, "arSyncDataClient::consume disconnected");
     if (_nullHandshakeState == 1) {
       // The connection thread registers disconnected and is waiting for
       // us to say we've cleared, so it can then accept a new connection.
@@ -447,7 +449,7 @@ void arSyncDataClient::consume() {
     if (_exitProgram)
       return;
 
-    _swapLock.lock();
+    _swapLock.lock("arSyncDataClient::consume C");
     // only wait if we are in synchronized read mode
     while (!_dataAvailable && _mode == AR_SYNC_CLIENT) {
       _dataWaitCondVar.wait(_swapLock);
@@ -464,7 +466,7 @@ void arSyncDataClient::consume() {
       _consumeStack.clear();
       if (_exitProgram)
 	return;
-      _stackLock.lock();
+      _stackLock.lock("arSyncDataClient::consume D");
       list<pair<char*, int> >::iterator iter;
       if (_mode == AR_NOSYNC_CLIENT) {
         // consume everything
@@ -498,7 +500,7 @@ void arSyncDataClient::consume() {
 	return;
 
       // move storage from consume stack to storage stack
-      _stackLock.lock();
+      _stackLock.lock("arSyncDataClient::consume E");
       for (iter = _consumeStack.begin(); iter != _consumeStack.end(); ++iter) {
         _storageStack.push_back(*iter);
       }
@@ -529,7 +531,7 @@ void arSyncDataClient::consume() {
       if (_exitProgram)
 	return;
 
-      arGuard dummy(_swapLock);
+      arGuard _(_swapLock, "arSyncDataClient::consume connected");
       _bufferSwapReady = true;
       _bufferSwapCondVar.signal();
     }
@@ -575,7 +577,7 @@ inline void arSyncDataClient::_update(float& value, float newValue, float filter
 // On shutdown, make sure that consume() exits, where otherwise
 // it might be blocked waiting for data from the read data thread
 void arSyncDataClient::skipConsumption() {
-  arGuard dummy(_swapLock);
+  arGuard _(_swapLock, "arSyncDataClient::skipConsumption");
   _dataAvailable = 2;
   _dataWaitCondVar.signal();
 }

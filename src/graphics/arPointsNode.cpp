@@ -32,7 +32,7 @@ const float* arPointsNode::getPoints(int& number) {
 
 // Slow, thread-safe, Python-compatible accessor.
 vector<arVector3> arPointsNode::getPoints() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arPointsNode::getPoints");
   const unsigned num = _numElements();
   vector<arVector3> r(num);
   for (unsigned i = 0; i < num; ++i) {
@@ -43,14 +43,14 @@ vector<arVector3> arPointsNode::getPoints() {
 
 void arPointsNode::setPoints(int number, float* points, int* IDs) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arPointsNode::setPoints active");
       arStructuredData* r = _dumpData(number, points, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arPointsNode::setPoints inactive");
     _mergeElements(number, points, IDs);
   }
 }

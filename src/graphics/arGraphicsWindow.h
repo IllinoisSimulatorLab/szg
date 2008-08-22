@@ -92,7 +92,7 @@ class SZG_CALL arGraphicsWindow {
     // returned by getCamera() or setCamera(), will still be valid).
     bool setViewMode( const std::string& viewModeString );
     void clearViewportList();
-    void lockViewports() { _viewportLock.lock(); }
+    void lockViewports() { _viewportLock.lock("arGraphicsWindow::lockViewports"); }
     void unlockViewports() { _viewportLock.unlock(); }
 
     std::vector<arViewport>* getViewports();

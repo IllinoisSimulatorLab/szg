@@ -90,7 +90,7 @@ void arBarrierClient::_dataTask() {
     }
     if (ar_rawDataGetID(_dataBuffer) == _handshakeData->getID()) {
       // Round 2 of the handshake.
-      arGuard dummy(_activationLock);
+      arGuard _(_activationLock, "arBarrierClient::_dataTask");
       _activationResponse = true;
       _activationVar.signal();
     }
@@ -186,7 +186,7 @@ bool arBarrierClient::requestActivation() {
   // send a response
   if (!_exitProgram) {
     // send 3-way handshake completion
-    arGuard dummy(_sendLock);
+    arGuard _(_sendLock, "arBarrierClient::requestActivation");
     _dataClient.sendData(_responseData);
   }
   // even if we got here because of stop()... we must pretend we are
@@ -240,14 +240,14 @@ bool arBarrierClient::start() {
 void arBarrierClient::stop() {
   // make sure we are not blocking on any calls (like requestActivation())
   // this really is somewhat cheesy SO FAR
-  _activationLock.lock();
+  _activationLock.lock("arBarrierClient::stop _activationLock");
 
   // Set _exitProgram both within the _activationLock and the _sendLock.
   // In the case of _sendLock,
   // after _exitProgram is set, there must be exactly one final sync send
   // so that readDataThread will not block.
   // _sendLock here avoids a race condition in sync().
-  _sendLock.lock();
+  _sendLock.lock("arBarrierClient::stop _sendLock");
   _exitProgram = true;
   _sendLock.unlock();
 
@@ -256,7 +256,7 @@ void arBarrierClient::stop() {
   _activationLock.unlock();
   // Ping the server to avoid getting stuck in arDataClient's readData call.
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
-  _sendLock.lock();
+  _sendLock.lock("arBarrierClient::stop _sendLock tuning");
   // If we have never connected,
   // _clientTuningData is uninitialized and doesn't need to be sent anyway.
   if (_clientTuningData) {
@@ -301,7 +301,7 @@ bool arBarrierClient::sync() {
   // there are definitely race conditions here...
 
   // Pack the buffer with the tuning data.
-  _sendLock.lock();
+  _sendLock.lock("arBarrierClient::sync");
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
   _clientTuningData->dataIn(CLIENT_TUNING_DATA, tuningData, AR_INT, 4);
   bool ok = false;

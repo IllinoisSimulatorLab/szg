@@ -13,7 +13,7 @@ arTransformNode::arTransformNode() {
 }
 
 void arTransformNode::draw(arGraphicsContext*) {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTransformNode::draw");
   glMultMatrixf(_transform.v);
 }
 
@@ -24,32 +24,32 @@ bool arTransformNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_TRANSFORM, inData->getID(), "arTransformNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTransformNode::receiveData");
   inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
   return true;
 }
 
 arMatrix4 arTransformNode::getTransform() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTransformNode::getTransform");
   return _transform;
 }
 
 void arTransformNode::setTransform(const arMatrix4& transform) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arTransformNode::setTransform active");
       arStructuredData* r = _dumpData(transform, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arTransformNode::setTransform inactive");
     _transform = transform;
   }
 }
 
 arStructuredData* arTransformNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTransformNode::dumpData");
   return _dumpData(_transform, false);
 }
 

@@ -32,7 +32,7 @@ const float* arNormal3Node::getNormal3(int& number) {
 
 // Slow, thread-safe, Python-compatible accessor.
 vector<arVector3> arNormal3Node::getNormal3() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arNormal3Node::getNormal3");
   const unsigned num = _numElements();
   vector<arVector3> r(num);
   for (unsigned i = 0; i < num; ++i) {
@@ -43,14 +43,14 @@ vector<arVector3> arNormal3Node::getNormal3() {
 
 void arNormal3Node::setNormal3(int number, float* normal3, int* IDs) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arNormal3Node::setNormal3 active");
       arStructuredData* r = _dumpData(number, normal3, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arNormal3Node::setNormal3 inactive");
     _mergeElements(number, normal3, IDs);
   }
 }

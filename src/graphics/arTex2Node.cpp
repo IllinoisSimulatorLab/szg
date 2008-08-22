@@ -33,7 +33,7 @@ const float* arTex2Node::getTex2(int& number) {
 
 // Slow, thread-safe, Python-compatible accessor.
 vector<arVector2> arTex2Node::getTex2() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTex2Node::getTex2");
   const unsigned num = _numElements();
   vector<arVector2> r(num);
   for (unsigned i = 0; i < num; ++i) {
@@ -44,14 +44,14 @@ vector<arVector2> arTex2Node::getTex2() {
 
 void arTex2Node::setTex2(int number, float* tex2, int* IDs) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arTex2Node::setTex2 active");
       arStructuredData* r = _dumpData(number, tex2, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arTex2Node::setTex2 inactive");
     _mergeElements(number, tex2, IDs);
   }
 }

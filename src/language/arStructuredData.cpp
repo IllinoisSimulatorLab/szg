@@ -137,7 +137,7 @@ std::ostream& operator<<(std::ostream& os, __int64 i ) {
 void arStructuredData::dump(bool verbosity)
 {
   // Don't interleave threads' output.
-  _dumpLock.lock();
+  arGuard _(_dumpLock, "arStructuredData::dump");
 
   cout << "----arStructuredData----------------------------\n"
        << "dataID = " << _dataID << endl
@@ -185,7 +185,6 @@ void arStructuredData::dump(bool verbosity)
   }
 
   cout << "----\n";
-  _dumpLock.unlock();
 }
 
 void arStructuredData::copy(arStructuredData const& rhs) {
@@ -872,7 +871,7 @@ bool arStructuredData::parse(ARchar* source) {
 
 void arStructuredData::print(ostream& s) const {
   const int numbersInRow = 8;
-  _dumpLock.lock();
+  arGuard _(_dumpLock, "arStructuredData::print ostream");
   s << "<" << _name << ">\n";
   for (int i=0; i<_numberDataItems; i++) {
     s << "  <" << _dataName[i] << ">";
@@ -917,7 +916,6 @@ void arStructuredData::print(ostream& s) const {
     s << "</" << _dataName[i] << ">\n";
   }
   s << "</" << _name << ">\n";
-  _dumpLock.unlock();
 }
 
 void arStructuredData::print(FILE* theFile) const {
@@ -925,7 +923,7 @@ void arStructuredData::print(FILE* theFile) const {
     ar_log_error() << "arStructuredData: no file to print to.\n";
     return;
   }
-  _dumpLock.lock();
+  arGuard _(_dumpLock, "arStructuredData::print file");
   const int numbersInRow = 8;
   fprintf(theFile, "<%s>\n", _name.c_str());
   for (int i=0; i<_numberDataItems; i++) {
@@ -972,7 +970,6 @@ void arStructuredData::print(FILE* theFile) const {
     fprintf(theFile, "</%s>\n", _dataName[i].c_str());
   }
   fprintf(theFile, "</%s>\n\n", _name.c_str());
-  _dumpLock.unlock();
 }
 
 bool ar_getStructuredDataStringField(

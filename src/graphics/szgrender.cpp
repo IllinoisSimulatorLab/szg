@@ -89,15 +89,13 @@ void messageTask(void* pClient) {
 
     else if (messageType=="pause") {
       if (messageBody == "on") {
-        pauseLock.lock();
-	  fPause = true;
-        pauseLock.unlock();
+        arGuard _(pauseLock, "szgrender messageTask pause on");
+	fPause = true;
       }
       else if (messageBody == "off") {
-        pauseLock.lock();
-	  fPause = false;
-	  pauseVar.signal();
-        pauseLock.unlock();
+        arGuard(pauseLock, "szgrender messageTask pause off");
+	fPause = false;
+	pauseVar.signal();
       }
       else
         ar_log_error() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
@@ -224,7 +222,7 @@ int main(int argc, char** argv) {
   }
 
   while (!fExiting) {
-    pauseLock.lock();
+    pauseLock.lock("szgrender main loop");
       while (fPause) {
 	pauseVar.wait(pauseLock);
       }

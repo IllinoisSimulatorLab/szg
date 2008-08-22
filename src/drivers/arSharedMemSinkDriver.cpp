@@ -97,7 +97,7 @@ bool arSharedMemSinkDriver::start() {
 
   // TrackerDaemonKey 4136
   // ControllerDaemonKey 4127
-  _l.lock();
+  _l.lock("arSharedMemSinkDriver::start");
   const int idFoB = shmget(4136, 0, 0666);
   if (idFoB < 0) {
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
@@ -130,7 +130,7 @@ bool arSharedMemSinkDriver::start() {
 
 void arSharedMemSinkDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  arGuard dummy(_l);
+  arGuard _(_l, "arSharedMemSinkDriver::_detachMemory");
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       ar_log_error() << "arSharedMemSinkDriver ignoring bogus shm pointer.\n";
@@ -186,7 +186,7 @@ void arSharedMemSinkDriver::_dataThread() {
     int rgbutton[256] = {0};
 
     // Send data to shm
-    _l.lock();
+    _l.lock("arSharedMemSinkDriver::_dataThread");
 
     for (i=0; i<cb; ++i) {
         rgbutton[i] = aIS.getButton(i);

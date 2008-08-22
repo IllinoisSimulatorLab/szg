@@ -174,9 +174,7 @@ void arTexture::unref(bool fDebug) {
 
 bool arTexture::activate(bool forceReload) {
   glEnable(GL_TEXTURE_2D);
-#ifdef AR_USE_WIN_32
-#endif
-  _lock.lock();
+  _lock.lock("arTexture::activate");
   const ARint64 threadID =
 #ifdef AR_USE_WIN_32
     GetCurrentThreadId();

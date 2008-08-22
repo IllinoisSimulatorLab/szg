@@ -20,7 +20,7 @@ namespace arWildcatNamespace {
 };
 
 void ar_useWildcatFramelock( bool f ) {
-  arGuard dummy(arWildcatNamespace::lock);
+  arGuard _(arWildcatNamespace::lock, "ar_useWildcatFramelock");
   arWildcatNamespace::fUseFramelock = f;
 }
 
@@ -29,7 +29,7 @@ void ar_useWildcatFramelock( bool f ) {
 // Wildcat-specific code.
 
 void ar_findWildcatFramelock() {
-  arGuard dummy(arWildcatNamespace::lock);
+  arGuard _(arWildcatNamespace::lock, "ar_findWildcatFramelock");
   if (!arWildcatNamespace::fUseFramelock)
     return;
 
@@ -46,7 +46,7 @@ void ar_findWildcatFramelock() {
 }
 
 void ar_activateWildcatFramelock() {
-  arGuard dummy(arWildcatNamespace::lock);
+  arGuard _(arWildcatNamespace::lock, "ar_activateWildcatFramelock");
   if (arWildcatNamespace::fActive) {
     ar_log_error() << "Ignoring duplicate ar_activateWildcatFramelock.\n";
     return;
@@ -65,7 +65,7 @@ void ar_activateWildcatFramelock() {
 }
 
 void ar_deactivateWildcatFramelock() {
-  arGuard dummy(arWildcatNamespace::lock);
+  arGuard _(arWildcatNamespace::lock, "ar_deactivateWildcatFramelock");
   if (!arWildcatNamespace::fActive) {
     ar_log_error() << "Ignoring duplicate ar_deactivateWildcatFramelock.\n";
     return;

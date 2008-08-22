@@ -81,7 +81,7 @@ void arSoundServer::stop() {
 
 arDatabaseNode* arSoundServer::alter(arStructuredData* theData, bool refNode) {
   // Serialize with arDatabase's lock.
-  _lock();
+  _lock("arSoundServer::alter");
     arDatabaseNode* r = _syncServer.receiveMessage(theData);
     if (r && refNode) {
       r->ref();

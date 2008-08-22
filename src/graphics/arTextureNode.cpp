@@ -33,7 +33,7 @@ bool arTextureNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_TEXTURE, inData->getID(), "arTextureNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTextureNode::receiveData");
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
   // NOTE: Here is the flag via which we determine if the texture is
   // based on a resource handle or is based on a bitmap.
@@ -62,14 +62,14 @@ bool arTextureNode::receiveData(arStructuredData* inData) {
 // as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
 void arTextureNode::setFileName(const string& fileName, int alpha) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arTextureNode::setFileName active");
       arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arTextureNode::setFileName inactive");
     _fileName = fileName;
     _alpha = alpha;
     if (_texture) {
@@ -83,7 +83,7 @@ void arTextureNode::setFileName(const string& fileName, int alpha) {
 
 void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arTextureNode::setPixels active");
     arStructuredData* r =
       _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
     _nodeLock.unlock();
@@ -91,14 +91,14 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha) {
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arTextureNode::setPixels inactive");
     // No other object will use this.
     _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
   }
 }
 
 arStructuredData* arTextureNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arTextureNode::dumpData");
   return _dumpData(
       _fileName, _alpha, _width, _height,
       _texture ? _texture->getPixels() : NULL,

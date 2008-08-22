@@ -77,7 +77,11 @@ bool arSharedMemDriver::start() {
     return false;
   }
 
-  _l.lock();
+  // Does the .h file explain why isn't this an arGuard _(_l) ?
+  // Unlock before _eventThread starts?
+  // Should it unlock before each "return false" as well?
+  // Ditto for arSharedMemSinkDriver::start().
+  _l.lock("arSharedMemDriver::start");
   const int idFoB = shmget(4136, 0, 0666);
   if (idFoB < 0) {
     perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
@@ -106,7 +110,7 @@ bool arSharedMemDriver::start() {
 
 void arSharedMemDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
-  arGuard dummy(_l);
+  arGuard _(_l, "arSharedMemDriver::_detachMemory");
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
@@ -141,7 +145,7 @@ void arSharedMemDriver::_dataThread() {
   _eventThreadRunning = true;
   memset(_buttonPrev, 0, sizeof(_buttonPrev));
   while (!_stopped && _eventThreadRunning) {
-    _l.lock();
+    _l.lock("arSharedMemDriver::_dataThread");
     queueMatrix(0, generateMatrix(0, _shmFoB));
     queueMatrix(1, generateMatrix(1, _shmFoB));
     queueMatrix(2, generateMatrix(2, _shmFoB));

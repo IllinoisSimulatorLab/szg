@@ -39,18 +39,18 @@ inline void arNavigationSpace::_set(const arMatrix4& m) {
 }
 
 void ar_setNavMatrix( const arMatrix4& matrix ) {
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_setNavMatrix");
   arNavigationSpace::_set(matrix);
 }
 
 void ar_navTranslate( const arVector3& vec ) {
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_navTranslate");
   arNavigationSpace::_set(
     arNavigationSpace::_navMatrix * ar_translationMatrix(vec));
 }
 
 void ar_navRotate( const arVector3& axis, float degrees ) {
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_navRotate");
   arNavigationSpace::_navMatrix = arNavigationSpace::_navMatrix *
     ar_rotationMatrix(axis, M_PI/180.*degrees);
   arNavigationSpace::_navInverseDirty = true;
@@ -58,7 +58,7 @@ void ar_navRotate( const arVector3& axis, float degrees ) {
 
 void ar_navBoundingbox( const arVector3& v1, const arVector3& v2 ) {
   // v1 and v2 can be *anything* -- _bound() behaves sensibly.
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_navBoundingbox");
   arNavigationSpace::_fBbox = true;
   for (int i=0; i<3; ++i) {
     arNavigationSpace::_vBboxMin[i] = min(v1.v[i], v2.v[i]);
@@ -67,12 +67,12 @@ void ar_navBoundingbox( const arVector3& v1, const arVector3& v2 ) {
 }
 
 arMatrix4 ar_getNavMatrix() {
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_getNavMatrix");
   return arNavigationSpace::_navMatrix;
 }
 
 arMatrix4 ar_getNavInvMatrix() {
-  arGuard dummy(arNavigationSpace::_l);
+  arGuard _(arNavigationSpace::_l, "ar_getNavInvMatrix");
   if (arNavigationSpace::_navInverseDirty) {
     // lazy evaluation
     arNavigationSpace::_navInverseDirty = false;

@@ -141,7 +141,7 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
     return;
   }
 
-  arGuard dummy(_dataSerializationLock);
+  arGuard _(_dataSerializationLock, "arInputNode::receiveData");
   _remapData( unsigned(channelNumber), data );
 
   _eventQueue.clear();
@@ -172,7 +172,7 @@ LAbort:
 }
 
 void arInputNode::processBufferedEvents() {
-  arGuard dummy(_dataSerializationLock);
+  arGuard _(_dataSerializationLock, "arInputNode::processBufferedEvents");
   _filterEventQueue( _eventBuffer );
   // Update node's arInputState (empties queue)
   _updateState( _eventBuffer );
@@ -182,7 +182,7 @@ void arInputNode::processBufferedEvents() {
 // Bug: called too many times, resetting the signature n times instead of just once.
 
 bool arInputNode::sourceReconfig(int whichChannel) {
-  arGuard dummy(_dataSerializationLock);
+  arGuard _(_dataSerializationLock, "arInputNode::sourceReconfig");
   if (whichChannel < 0 || whichChannel >= (int)_sources.size()) {
     ar_log_error() << _label << " arInputNode ignoring out-of-range channel "
                    << whichChannel << ".\n";
@@ -232,7 +232,7 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ) {
 }
 
 bool arInputNode::removeFilter( int ID ) {
-  arGuard dummy(_dataSerializationLock);
+  arGuard _(_dataSerializationLock, "arInputNode::removeFilter");
   unsigned filterNumber = 0;
   for (iterFlt f = _filters.begin(); f != _filters.end(); ++f, ++filterNumber) {
     if ((*f)->getID() != ID)
@@ -251,7 +251,7 @@ bool arInputNode::removeFilter( int ID ) {
 
 
 bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
-  arGuard dummy(_dataSerializationLock);
+  arGuard _(_dataSerializationLock, "arInputNode::replaceFilter");
   unsigned filterNumber = 0;
   for (iterFlt f = _filters.begin(); f != _filters.end(); ++f, ++filterNumber) {
     if ((*f)->getID() != ID)

@@ -22,7 +22,7 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData) {
     return true;
   }
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arGraphicsArrayNode::receiveData");
   if (theIDs[0] == -1) {
     // Pack array elements in order.
     _mergeElements(len, theData);
@@ -66,7 +66,7 @@ void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs) {
 
 arStructuredData* arGraphicsArrayNode::dumpData() {
   // Guard because _commandBuffer.v may change if _commandBuffer resizes.
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arGraphicsArrayNode::dumpData");
   return _dumpData(_numElements(), _commandBuffer.v, NULL, false);
 }
 

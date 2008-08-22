@@ -205,7 +205,7 @@ void arGraphicsDatabase::_loadAlphabet(const string& path) {
 
 void arGraphicsDatabase::setTexturePath(const string& thePath) {
   // might be in a different thread from the data handling
-  arGuard dummy(_texturePathLock);
+  arGuard _(_texturePathLock, "arGraphicsDatabase::setTexturePath");
 
   delete _texturePath;
   _texturePath = new list<string>(1, ""); // local directory
@@ -262,7 +262,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
       }
     }
 
-    _texturePathLock.lock();
+    arGuard _(_texturePathLock, "arGraphicsDatabase::addTexture");
     // Try the texture path.
     for (list<string>::iterator i = _texturePath->begin();
                    !fDone && i != _texturePath->end(); ++i) {
@@ -285,7 +285,6 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
         ar_log_error() << ".\n";
       }
     }
-    _texturePathLock.unlock();
   }
   triedPaths.clear();
   _textureNameContainer.insert(
@@ -324,7 +323,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
     // Try everything in the path.
     char fileNameBuffer[512];
     bool fDone = false;
-    _texturePathLock.lock();
+    arGuard _(_texturePathLock, "arGraphicsDatabase::addBumpMap");
     for (list<string>::iterator i = _texturePath->begin();
 	 !fDone && i != _texturePath->end(); ++i) {
       const string tmp(*i + buffer);
@@ -342,14 +341,12 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 	ar_log_error() << "bump path." << ar_endl;
       }
     }
-    _texturePathLock.unlock();
   }
  /* _textureNameContainer.insert(
     map<string, arTexture*, less<string> >::value_type(name, theBumpMap));
  */
   return theBumpMap;
 }
-
 
 arBumpMap* arGraphicsDatabase::addBumpMap(const string& name, 
                         vector<arVector3>& points,
@@ -877,7 +874,7 @@ bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
 }
 
 void arGraphicsDatabase::activateLights() {
-  _lock(); // Thread-safe for light deletion.
+  _lock("arGraphicsDatabase::activateLights"); // Thread-safe for light deletion.
   for (int i=0; i<8; ++i) {
     if (_lightContainer[i].first) {
       // A light has been registered for this ID.

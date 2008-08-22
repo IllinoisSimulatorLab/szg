@@ -15,7 +15,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
                                            arSocket* theSocket) {
   const int id = data->getID();
   if (id == _handshakeData->getID()) {
-    arGuard dummy(_queueActivationLock);
+    arGuard _(_queueActivationLock, "arBarrierServer::_barrierDataFunction _handshakeData");
     const int bondedSocketID = data->getDataInt(BONDED_ID);
     _activationSocketIDs.push_back(pair<int, int>(theSocket->getID(), bondedSocketID));
     // If the signal object has been set and no one is connected yet,
@@ -28,7 +28,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
     }
   }
   else if (id == _responseData->getID()) {
-    arGuard dummy(_activationLock);
+    arGuard _(_activationLock, "arBarrierServer::_barrierDataFunction _responseData");
     _activationResponse = true;
     _activationVar.signal();
   }
@@ -39,7 +39,7 @@ void arBarrierServer::_barrierDataFunction(arStructuredData* data,
     _rcvTime = theData[1];
     _procTime = theData[2];
     _frameNum = theData[3];
-    arGuard dummy(_waitingLock);
+    arGuard _(_waitingLock, "arBarrierServer::_barrierDataFunction _clientTuningData");
     _totalWaiting++;
     _waitingCondVar.signal();
   }
@@ -66,7 +66,7 @@ void ar_releaseFunction(void* server) {
 
 void arBarrierServer::_releaseFunction() {
   while (_runThreads) {
-    _waitingLock.lock();
+    _waitingLock.lock("arBarrierServer::_releaseFunction");
     while (true) {
       int total = getNumberConnectedActive();
       if (_localConnection)
@@ -108,12 +108,12 @@ void ar_barrierDisconnectFunction(void* server, arSocket*) {
 }
 
 void arBarrierServer::_barrierDisconnectFunction() {
-  _waitingLock.lock();
+  _waitingLock.lock("arBarrierServer::_barrierDisconnectFunction wait");
   _waitingCondVar.signal();
   _waitingLock.unlock();
 
   // Race condition?
-  arGuard dummy(_queueActivationLock);
+  arGuard _(_queueActivationLock, "arBarrierServer::_barrierDisconnectFunction queueActivate");
   if (getNumberConnected() <= 0)
     _pumpPrimingFlag = true;
 }
@@ -271,13 +271,11 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer) {
   // get the third handshake round, which also must pass through that
   // API point, thus deadlocking in _activationVar.wait().
   if (!_activationQueueLockedExternally) {
-    _queueActivationLock.lock();
+    _queueActivationLock.lock("arBarrierServer::activatePassiveSockets A");
   }
   list< pair<int, int> >::iterator iter;
   list< pair<int, int> > tmp;
-  for (iter = _activationSocketIDs.begin();
-       iter != _activationSocketIDs.end();
-       ++iter) {
+  for (iter = _activationSocketIDs.begin(); iter != _activationSocketIDs.end(); ++iter) {
     tmp.push_back(*iter);
   }
   _activationSocketIDs.clear();
@@ -288,18 +286,18 @@ bool arBarrierServer::activatePassiveSockets(arDataServer* bondedServer) {
   // Also atomically update global "heartbeat", which lets remote arBarrierClients
   // discard unwanted broadcast release packets.
 
-  arGuard dummy(_waitingLock);
+  arGuard _(_waitingLock, "arBarrierServer::activatePassiveSockets B");
 
   for (iter = tmp.begin(); iter != tmp.end(); ++iter) {
     arSocket* theSocket = _dataServer.getConnectedSocket(iter->first);
-    _activationLock.lock();
+    _activationLock.lock("arBarrierServer::activatePassiveSockets C");
       _activationResponse = false;
     _activationLock.unlock();
 
     // Send 2nd round of handshake to the client.
     _dataServer.sendData(_handshakeData, theSocket);
 
-    _activationLock.lock();
+    _activationLock.lock("arBarrierServer::activatePassiveSockets D");
     while (!_activationResponse) {
       _activationVar.wait(_activationLock);
     }
@@ -320,7 +318,7 @@ bool arBarrierServer::checkWaitingSockets() {
 }
 
 void arBarrierServer::lockActivationQueue() {
-  _queueActivationLock.lock();
+  _queueActivationLock.lock("arBarrierServer::lockActivationQueue");
   _activationQueueLockedExternally = true;
 }
 
@@ -334,7 +332,7 @@ list<arSocket*>* arBarrierServer::getWaitingBondedSockets
   list<arSocket*>* result = new list<arSocket*>;
 
   if (!_activationQueueLockedExternally)
-    _queueActivationLock.lock();
+    _queueActivationLock.lock("arBarrierServer::getWaitingBondedSockets");
 
   for (list< pair<int, int> >::iterator iter = _activationSocketIDs.begin();
        iter != _activationSocketIDs.end(); ++iter) {
@@ -357,7 +355,7 @@ void arBarrierServer::localSync() {
 
   if (getNumberConnectedActive() == 0)
     ar_usleep(10000);
-  _waitingLock.lock();
+  _waitingLock.lock("arBarrierServer::localSync");
     _totalWaiting++;
     _waitingCondVar.signal();
   _waitingLock.unlock();

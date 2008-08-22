@@ -91,7 +91,7 @@ arDatabaseNode* arGraphicsServer::alter(arStructuredData* theData,
                                         bool refNode) {
   // Serialization must occur at this level AND must use the thread-safety lock
   // for the arDatabase.
-  _lock();
+  _lock("arGraphicsServer::alter");
   arDatabaseNode* result = _syncServer.receiveMessage(theData);
   if (result && refNode) {
     result->ref();

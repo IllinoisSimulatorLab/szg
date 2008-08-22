@@ -33,7 +33,7 @@ arGraphicsPluginNode::~arGraphicsPluginNode() {
 }
 
 void arGraphicsPluginNode::draw(arGraphicsContext* context) {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arGraphicsPluginNode::draw");
   if (!_object) {
     ar_log_debug() << "arGraphicsPluginNode draw(): invalid plugin object.\n";
     return;
@@ -60,7 +60,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
     return false;
   }
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arGraphicsPluginNode::receiveData");
   std::string newFileName = data->getDataString( _g->AR_GRAPHICS_PLUGIN_NAME );
   if (!_object && (newFileName == "")) {
     ar_log_error() << "arGraphicsPluginNode ignoring empty file name.\n";
@@ -130,7 +130,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
 }
 
 arStructuredData* arGraphicsPluginNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arGraphicsPluginNode::dumpData");
   return _dumpData(
     _fileName, _intData, _longData, _floatData, _doubleData, _stringData, false );
 }

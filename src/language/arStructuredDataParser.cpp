@@ -92,7 +92,7 @@ arStructuredData* arStructuredDataParser::getStorage(int ID) {
   arStructuredData* result = NULL;
   arDataTemplate* theTemplate = _dictionary->find(ID);
   if (theTemplate) {
-    _recycleLock.lock();
+    _recycleLock.lock("arStructuredDataParser::getStorage");
     const SZGrecycler::const_iterator i = recycling.find(ID);
     if (i == recycling.end()) {
       // Create recycling list.
@@ -117,7 +117,7 @@ arStructuredData* arStructuredDataParser::getStorage(int ID) {
 // Get a translation buffer, creating one if needed.
 arBuffer<char>* arStructuredDataParser::getTranslationBuffer() {
   arBuffer<char>* result = NULL;
-  arGuard dummy(_translationBufferListLock);
+  arGuard _(_translationBufferListLock, "arStructuredDataParser::getTranslationBuffer");
   if (_translationBuffers.empty()) {
     result = new arBuffer<char>(1024);
   }
@@ -131,7 +131,7 @@ arBuffer<char>* arStructuredDataParser::getTranslationBuffer() {
 // Return a translation buffer, and put it at the
 // front of the list so buffers are reused often.
 void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer) {
-  arGuard dummy(_translationBufferListLock);
+  arGuard _(_translationBufferListLock, "arStructuredDataParser::recycleTranslationBuffer");
   _translationBuffers.push_front(buffer);
 }
 
@@ -483,7 +483,7 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID) {
   }
 
   arMessageQueueByID* p = i->second;
-  p->lock();
+  p->lock("arStructuredDataParser::getNextInternal A");
 
   // NOTE: after calling clearQueues(), we should ALWAYS fall through here
   // with an error UNTIL activateQueues() has been called.
@@ -491,7 +491,7 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID) {
   // original clearQueues() was issued. This allows classes that depend
   // on this to be GLOBALLY turned on/off, no matter where they live in the
   // threading universe.
-  _activationLock.lock();
+  _activationLock.lock("arStructuredDataParser::getNextInternal B");
     if (!_activated) {
       _activationLock.unlock();
       p->unlock();
@@ -526,12 +526,12 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
                                                  list<int> tags,
                                                  int dataID,
                                                  int timeout) {
-  _globalLock.lock();
+  _globalLock.lock("arStructuredDataParser::getNextTaggedMessage phase 1A");
 
   // As in getNextInternal(), allow falling through this call,
   // to let arSZGClient be effectively STOPPED and RESTARTED
   // arbitrarily from that object's data thread!
-  _activationLock.lock();
+  _activationLock.lock("arStructuredDataParser::getNextTaggedMessage phase 1B");
   if (!_activated) {
     _activationLock.unlock();
     _globalLock.unlock();
@@ -597,7 +597,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // we do, in fact, make it into the body of the loop, then the final value
   // of normalExit is determined by the wait.
   bool normalExit = true;
-  syn->lock();
+  syn->lock("arStructuredDataParser::getNextTaggedMessage phase 2");
 
     // If syn->exitFlag, the tag will be -1, so exit normally from the wait.
     while (syn->tag < 0 && !syn->exitFlag && normalExit) {
@@ -623,7 +623,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   }
 
   // Phase 3: got the message.
-  arGuard dummy(_globalLock);
+  arGuard _(_globalLock, "arStructuredDataParser::getNextTaggedMessage phase 3");
   i = _taggedMessages.find(tag);
   if ( i == _taggedMessages.end() ) {
     ar_log_error() << "getNextTaggedMessage got no message.\n";
@@ -650,7 +650,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 // Avoid memory leaks: reclaim data storage.
 void arStructuredDataParser::recycle(arStructuredData* trash) {
   const int ID = trash->getID();
-  arGuard dummy(_recycleLock);
+  arGuard _(_recycleLock, "arStructuredDataParser::recycle");
   const SZGrecycler::const_iterator i = recycling.find(ID);
   if (i != recycling.end()) {
     // Found recycling for this ID.
@@ -670,11 +670,11 @@ void arStructuredDataParser::recycle(arStructuredData* trash) {
 // and later be able to reconnect to a different szgserver.
 
 void arStructuredDataParser::clearQueues() {
-  arGuard dummy(_globalLock);
+  arGuard _(_globalLock, "arStructuredDataParser::clearQueues A");
 
   // Deactivate: getNextInternal() and getNextTagged() will fail
   // until ativateQueues() is called.
-  _activationLock.lock();
+  _activationLock.lock("arStructuredDataParser::clearQueues B");
     _activated = false;
   _activationLock.unlock();
 
@@ -684,7 +684,7 @@ void arStructuredDataParser::clearQueues() {
   // we may send the release multiple times as well.
   for (iSync i(_messageSync.begin()); i != _messageSync.end(); ++i) {
     arStructuredDataSynchronizer* p = i->second;
-    p->lock();
+    p->lock("arStructuredDataParser::clearQueues C");
 
       // No tag to pass.
       p->tag = -1;
@@ -708,7 +708,7 @@ void arStructuredDataParser::clearQueues() {
   // Incidentally, recycle all messages as waiting by ID.
   for (iQueue j(_messageQueue.begin()); j != _messageQueue.end(); ++j) {
     arMessageQueueByID* p = j->second;
-    p->lock();
+    p->lock("arStructuredDataParser::clearQueues D");
 
       // Recycle everything on the message list and then signal.
       // Set the variable indicating that data has been cleared.
@@ -727,7 +727,7 @@ void arStructuredDataParser::clearQueues() {
 // Resume data flowing from getNextInternal() and getNextTagged().
 
 void arStructuredDataParser::activateQueues() {
-  arGuard dummy(_activationLock);
+  arGuard _(_activationLock, "arStructuredDataParser::activateQueues");
   _activated = true;
   for (iQueue i(_messageQueue.begin()); i != _messageQueue.end(); ++i) {
     i->second->exitFlag = false;
@@ -742,7 +742,7 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData) {
   // we assume the next 3 iterators will find something, because theData is valid
   iQueue i(_messageQueue.find(theData->getID()));
   arMessageQueueByID* p = i->second;
-  p->lock();
+  p->lock("arStructuredDataParser::_pushOntoQueue");
     p->messages.push_back(theData);
     p->signal();
   p->unlock();
@@ -757,7 +757,7 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData) {
 // may wait on a particular tag.
 
 void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* theData) {
-  arGuard dummy(_globalLock);
+  arGuard _(_globalLock, "arStructuredDataParser::_pushOntoTaggedQueue A");
   SZGtaggedMessageQueue::iterator j = _taggedMessages.find(tag);
   if (j == _taggedMessages.end()) {
     // This tag has no data yet.
@@ -777,7 +777,7 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* the
     // is the one responsible for the firing!
     // NOTE: MULTIPLE tags can correspond to ONE synchronizer!
     arStructuredDataSynchronizer* p = i->second;
-    p->lock();
+    p->lock("arStructuredDataParser::_pushOntoTaggedQueue B");
       p->tag = tag;
       p->signal();
     p->unlock();
@@ -787,7 +787,7 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag, arStructuredData* the
 // Clean up the synchronizer associated with a list of tags.
 // All tags in the list associate with the same synchronizer.
 void arStructuredDataParser::_cleanupSynchronizers(list<int> tags) {
-  arGuard dummy(_globalLock);
+  arGuard _(_globalLock, "arStructuredDataParser::_cleanupSynchronizers");
   for (list<int>::const_iterator i(tags.begin()); i != tags.end(); ++i) {
     SZGtaggedMessageSync::iterator j = _messageSync.find(*i);
     if (j != _messageSync.end()) {

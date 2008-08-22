@@ -125,7 +125,7 @@ FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
 
   // On the playback side, inject bytes into the playback buffers.
 
-  arGuard dummy(lockPlay);
+  arGuard _(lockPlay, "DSP_ExampleCallback");
   if (ibPlay < cb) {
     // bufPlay needs more bytes than bufDst has, so pad it with zeros.
     memset((char*)bufPlay+cb, 0, cb-ibPlay);
@@ -163,7 +163,7 @@ int cbPlayed = 0;
 void consumerTask(void*) {
   while (!fQuit) {
     ar_usleep(10000 * (1 + rand()%4)); // 10 to 40 msec, simulated entropy
-    arGuard dummy(lockPlay);
+    arGuard _(lockPlay, "consumerTask");
     cbPlayed = getBytes(bufPlay+ibPlay, cbPlayMax-ibPlay);
     ibPlay += cbPlayed;
     if (ibPlay > cbPlayMax)

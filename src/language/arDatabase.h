@@ -157,7 +157,7 @@ class SZG_CALL arDatabase{
 
  protected:
   // Used by arGraphicsPeer, arGraphicsDatabase, etc.
-  void _lock() { _dbLock.lock(); }
+  void _lock(const char* name = NULL) { _dbLock.lock(name); }
   void _unlock() { _dbLock.unlock(); }
 
   bool _check(arDatabaseNode* n) const

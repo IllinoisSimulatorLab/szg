@@ -21,8 +21,8 @@ class SZG_CALL arLockable {
   arLock l;
   arConditionVar var;
  public:
-  void lock()
-    { l.lock(); }
+  void lock(const char* name)
+    { l.lock(name); }
   void unlock()
     { l.unlock(); }
   bool wait(int msecTimeout = -1)

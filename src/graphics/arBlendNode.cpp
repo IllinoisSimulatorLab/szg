@@ -18,32 +18,32 @@ bool arBlendNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_BLEND, inData->getID(), "arBlendNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBlendNode::receiveData");
   _blendFactor = inData->getDataFloat(_g->AR_BLEND_FACTOR);
   return true;
 }
 
 float arBlendNode::getBlend() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBlendNode::getBlend");
   return _blendFactor;
 }
 
 void arBlendNode::setBlend(float blendFactor) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arBlendNode::setBlend active");
       arStructuredData* r = _dumpData(blendFactor, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arBlendNode::setBlend inactive");
     _blendFactor = blendFactor;
   }
 }
 
 arStructuredData* arBlendNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBlendNode::dumpData");
   return _dumpData(_blendFactor, false);
 }
 

@@ -71,7 +71,7 @@ void arSoundDatabase::reset() {
 }
 
 string arSoundDatabase::getPath() const {
-  arGuard dummy(_pathLock);
+  arGuard _(_pathLock, "arSoundDatabase::getPath");
   if (_path->empty()) {
     return string("NULL");
   }
@@ -92,7 +92,9 @@ void arSoundDatabase::setPath(const string& thePath) {
   string dir; // always search local directory
   int cdir = 0;
 
-  arGuard dummy(_pathLock); // probably called in a thread other than the data handling
+  // probably called in a thread other than the data handling
+  arGuard _(_pathLock, "arSoundDatabase::setPath");
+
   delete _path;
   _path = new list<string>(1, dir);
   for (int nextChar=0; nextChar < length; ) {
@@ -143,7 +145,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop) {
   }
 
   // Sound path.
-  _pathLock.lock();
+  _pathLock.lock("arSoundDatabase::addFile");
   for (list<string>::const_iterator i = _path->begin(); i != _path->end() && !fDone; ++i) {
     s = *i + name;
     ar_fixPathDelimiter(s);
@@ -196,14 +198,14 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s) {
   (void)s->loadMatrices(mHead, _renderMode);
 }
 
-// Copy of OpenGL's matrix stack, for sound rendering.
+// Copy of OpenGL's stack of transformation matrices, for sound rendering.
 stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 
 bool arSoundDatabase::render() {
   ar_transformStack.push(arMatrix4());
-    //ar_mutex_lock(&_eraseLock);
-    const bool ok = _render((arSoundNode*)&_rootNode);
-    //ar_mutex_unlock(&_eraseLock);
+  //_eraseLock.lock("arSoundDatabase::render");
+  const bool ok = _render((arSoundNode*)&_rootNode);
+  //_eraseLock.unlock();
   ar_transformStack.pop();
   return ok;
 }

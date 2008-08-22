@@ -16,7 +16,7 @@ bool arMaterialNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_MATERIAL, inData->getID(), "arMaterialNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arMaterialNode::receiveData");
   inData->dataOut(_g->AR_MATERIAL_DIFFUSE, _lMaterial.diffuse.v, AR_FLOAT, 3);
   inData->dataOut(_g->AR_MATERIAL_AMBIENT, _lMaterial.ambient.v, AR_FLOAT, 3);
   inData->dataOut(_g->AR_MATERIAL_SPECULAR, _lMaterial.specular.v, AR_FLOAT, 3);
@@ -27,25 +27,25 @@ bool arMaterialNode::receiveData(arStructuredData* inData) {
 }
 
 arMaterial arMaterialNode::getMaterial() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arMaterialNode::getMaterial");
   return _lMaterial;
 }
 
 void arMaterialNode::setMaterial(const arMaterial& material) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arMaterialNode::setMaterial active");
       arStructuredData* r = _dumpData(material, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   } else {
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arMaterialNode::setMaterial inactive");
     _lMaterial = material;
   }
 }
 
 arStructuredData* arMaterialNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arMaterialNode::dumpData");
   return _dumpData(_lMaterial, false);
 }
 

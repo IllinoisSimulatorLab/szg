@@ -18,9 +18,9 @@ using namespace std;
 // Helper class, singleton pattern for winsock init.
 class arWinSockHelper{
  public:
-  arWinSockHelper(): _fInit(false), _lock("WINSOCK") {}
+  arWinSockHelper(): _fInit(false), _l("WINSOCK") {}
   bool init() {
-    _lock.lock();
+    arGuard _(_l, "arWinSockHelper");
     // If we do not need to initialize, return true.
     bool ok = true;
     if (!_fInit) {
@@ -30,13 +30,12 @@ class arWinSockHelper{
       }
       _fInit = true;
     }
-    _lock.unlock();
     return ok;
   }
 
  private:
   bool _fInit;
-  arLock _lock;
+  arLock _l;
 };
 
 bool ar_winSockHelper() {

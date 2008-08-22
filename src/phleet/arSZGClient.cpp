@@ -2928,7 +2928,7 @@ void arSZGClient::_serverResponseThread() {
 
     // Got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
-    arGuard dummy(_lock);
+    arGuard _(_lock, "arSZGClient::_serverResponseThread");
     if (_dataRequested) {
       // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
@@ -2966,7 +2966,7 @@ void arSZGClient::_serverResponseThread() {
 
 void arSZGClient::_timerThread() {
   while (_keepRunning) {
-    _lock.lock();
+    _lock.lock("arSZGClient::_timerThread wait");
     while (!_beginTimer) {
       _timerCondVar.wait(_lock);
     }
@@ -2975,7 +2975,7 @@ void arSZGClient::_timerThread() {
 
     ar_usleep(1500000); // Long, for slow or flaky networks.
 
-    arGuard dummy(_lock);
+    arGuard _(_lock, "arSZGClient::_timerThread signal");
     _dataCondVar.signal();
   }
 }
@@ -3040,7 +3040,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  arGuard dummy(_lock);
+  _lock.lock("arSZGClient::discoverSZGServer");
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = name;
@@ -3058,6 +3058,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
   _serverName = string(_responseBuffer+5);
   _IPaddress = string(_responseBuffer+132);
   _port = atoi(_responseBuffer+164);
+  _lock.unlock();
   return true;
 }
 
@@ -3070,7 +3071,7 @@ void arSZGClient::printSZGServers(const string& broadcast) {
   _bufferResponse = true;
   _justPrinting = true; // Hack. Copypaste of findSZGServers().
 
-  _lock.lock();
+  _lock.lock("arSZGClient::printSZGServers");
     _foundServers.clear();
     _dataRequested = true;
     _beginTimer = true;
@@ -3095,16 +3096,16 @@ vector<string> arSZGClient::findSZGServers(const string& broadcast) {
   }
 
   _bufferResponse = true;
-  _lock.lock();
-  _foundServers.clear();
-  _dataRequested = true;
-  _beginTimer = true;
-  _requestedName = "";
-  _sendDiscoveryPacket("*", broadcast);
-  _timerCondVar.signal();
-  while (_beginTimer) {
-    _dataCondVar.wait(_lock);
-  }
+  _lock.lock("arSZGClient::findSZGServers");
+    _foundServers.clear();
+    _dataRequested = true;
+    _beginTimer = true;
+    _requestedName = "";
+    _sendDiscoveryPacket("*", broadcast);
+    _timerCondVar.signal();
+    while (_beginTimer) {
+      _dataCondVar.wait(_lock);
+    }
   _lock.unlock();
   _dataRequested = false;
   _bufferResponse = false;

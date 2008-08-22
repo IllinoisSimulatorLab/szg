@@ -291,7 +291,7 @@ arConditionVar::~arConditionVar() {
 bool arConditionVar::wait(arLock& l, const int msecTimeout) {
 #ifdef AR_USE_WIN_32
 
-  _lCount.lock();
+  _lCount.lock("arConditionVar::wait A"); // todo: pass a const char* name into here, like into lock().
     ++_numberWaiting;
   _lCount.unlock();
   l.unlock();
@@ -308,11 +308,11 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout) {
   // Might not matter for condition variable semantics:
   // POSIX suggests that condition vars can be spuriously woken.
 
-  _lCount.lock();
+  _lCount.lock("arConditionVar::wait B");
     --_numberWaiting;
   _lCount.unlock();
 
-  l.lock();
+  l.lock("arConditionVar::wait C");
   return ok;
 
 #else
@@ -341,7 +341,7 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout) {
 
 void arConditionVar::signal() {
 #ifdef AR_USE_WIN_32
-  _lCount.lock();
+  _lCount.lock("arConditionVar::signal"); // todo: pass a const char* name into here, like into lock().
   if (_numberWaiting > 0) {
     SetEvent(_event);
   }

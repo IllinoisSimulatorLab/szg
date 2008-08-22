@@ -36,7 +36,7 @@ const float* arColor4Node::getColor4(int& number) {
 
 // Slow, thread-safe, Python-compatible accessor.
 vector<arVector4> arColor4Node::getColor4() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arColor4Node::getColor4");
   const unsigned num = _numElements();
   vector<arVector4> r(num);
   for (unsigned i = 0; i < num; i++) {
@@ -47,14 +47,14 @@ vector<arVector4> arColor4Node::getColor4() {
 
 void arColor4Node::setColor4(int number, float* color4, int* IDs) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arColor4Node::setColor4 active");
       arStructuredData* r = _dumpData(number, color4, IDs, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arColor4Node::setColor4 inactive");
     _mergeElements(number, color4, IDs);
   }
 }

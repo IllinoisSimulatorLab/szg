@@ -16,7 +16,7 @@ arTemplateDictionary* arLanguage::getDictionary() {
 }
 
 arStructuredData* arLanguage::makeDataRecord(int id) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arLanguage::makeDataRecord");
   arDataTemplate* t = _dictionary.find(id);
   if (!t) {
     ar_log_error() << "arLanguage failed to make record: no id " << id << ".\n";
@@ -26,7 +26,7 @@ arStructuredData* arLanguage::makeDataRecord(int id) {
 }
 
 arDataTemplate* arLanguage::find(const char* name) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arLanguage::find char*");
   arDataTemplate* t = _dictionary.find(name);
   if (!t) {
     ar_log_error() << "arLanguage: no name '" << name << "'.\n";
@@ -35,7 +35,7 @@ arDataTemplate* arLanguage::find(const char* name) {
 }
 
 arDataTemplate* arLanguage::find(const string& name) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arLanguage::find string&");
   arDataTemplate* t = _dictionary.find(name);
   if (!t) {
     ar_log_error() << "arLanguage: no name '" << name << "'.\n";
@@ -44,7 +44,7 @@ arDataTemplate* arLanguage::find(const string& name) {
 }
 
 arDataTemplate* arLanguage::find(int id) {
-  arGuard dummy(_l);
+  arGuard _(_l, "arLanguage::find id");
   arDataTemplate* t = _dictionary.find(id);
   if (!t) {
     ar_log_error() << "arLanguage: no id " << id << ".\n";

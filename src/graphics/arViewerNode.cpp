@@ -16,7 +16,7 @@ bool arViewerNode::receiveData(arStructuredData* inData) {
   if (!_g->checkNodeID(_g->AR_VIEWER, inData->getID(), "arViewerNode"))
     return false;
 
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arViewerNode::receiveData");
   inData->dataOut(_g->AR_VIEWER_MATRIX, _head._matrix.v, AR_FLOAT, 16);
   inData->dataOut(_g->AR_VIEWER_MID_EYE_OFFSET, _head._midEyeOffset.v, AR_FLOAT, 3);
   inData->dataOut(_g->AR_VIEWER_EYE_DIRECTION, _head._eyeDirection.v, AR_FLOAT, 3);
@@ -30,20 +30,20 @@ bool arViewerNode::receiveData(arStructuredData* inData) {
 
 void arViewerNode::setHead(const arHead& head) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arViewerNode::setHead active");
       arStructuredData* r = _dumpData(head, true);
     _nodeLock.unlock();
     _owningDatabase->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arViewerNode::setHead inactive");
     _head = head;
   }
 }
 
 arStructuredData* arViewerNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arViewerNode::dumpData");
   return _dumpData(_head, false);
 }
 

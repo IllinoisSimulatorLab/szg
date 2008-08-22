@@ -88,7 +88,7 @@ bool arDatabaseNode::removeChild(arDatabaseNode* child) {
 }
 
 string arDatabaseNode::getName() {
-  arGuard dummy(_lockName);
+  arGuard _(_lockName, "arDatabaseNode::getName");
   return _name;
 }
 
@@ -99,10 +99,10 @@ void arDatabaseNode::setName(const string& name) {
   }
 
   arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
-  int ID = getID();
+  const int ID = getID();
   r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
   r->dataInString(_dLang->AR_NAME_NAME, name);
-  _lockInfo.lock();
+  _lockInfo.lock("arDatabaseNode::setName");
     r->dataInString(_dLang->AR_NAME_INFO, _info);
   _lockInfo.unlock();
   getOwner()->alter(r);
@@ -110,12 +110,12 @@ void arDatabaseNode::setName(const string& name) {
 }
 
 bool arDatabaseNode::hasInfo() {
-  arGuard dummy(_lockInfo);
+  arGuard _(_lockInfo, "arDatabaseNode::hasInfo");
   return !_info.empty();
 }
 
 string arDatabaseNode::getInfo() {
-  arGuard dummy(_lockInfo);
+  arGuard _(_lockInfo, "arDatabaseNode::getInfo");
   return _info;
 }
 
@@ -129,7 +129,7 @@ void arDatabaseNode::setInfo(const string& info) {
     arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
-    _lockName.lock();
+    _lockName.lock("arDatabaseNode::setInfo active");
       r->dataInString(_dLang->AR_NAME_NAME, _name);
     _lockName.unlock();
     r->dataInString(_dLang->AR_NAME_INFO, info);
@@ -137,7 +137,7 @@ void arDatabaseNode::setInfo(const string& info) {
     recycle(r);
   }
   else{
-    arGuard dummy(_lockInfo);
+    arGuard _(_lockInfo, "arDatabaseNode::setInfo inactive");
     _info = info;
   }
 }
@@ -212,10 +212,10 @@ bool arDatabaseNode::receiveData(arStructuredData* data) {
     ar_log_error() << "arDatabaseNode::receiveData cannot rename root node.\n";
   }
   else{
-    arGuard dummy(_lockName);
+    arGuard _(_lockName, "arDatabaseNode::receiveData name");
     _name = data->getDataString(_dLang->AR_NAME_NAME);
   }
-  arGuard dummy(_lockInfo);
+  arGuard _(_lockInfo, "arDatabaseNode::receiveData info");
   _info = data->getDataString(_dLang->AR_NAME_INFO);
   return true;
 }
@@ -223,10 +223,10 @@ bool arDatabaseNode::receiveData(arStructuredData* data) {
 arStructuredData* arDatabaseNode::dumpData() {
   arStructuredData* result = _dLang->makeDataRecord(_dLang->AR_NAME);
   _dumpGenericNode(result, _dLang->AR_NAME_ID);
-  _lockName.lock();
+  _lockName.lock("arDatabaseNode::dumpData name");
     result->dataInString(_dLang->AR_NAME_NAME, _name);
   _lockName.unlock();
-  _lockInfo.lock();
+  _lockInfo.lock("arDatabaseNode::dumpData info");
     result->dataInString(_dLang->AR_NAME_INFO, _info);
   _lockInfo.unlock();
   return result;
@@ -251,15 +251,14 @@ void arDatabaseNode::permuteChildren(int number, int* children) {
   }
 }
 
-// A little bit unusual. To achieve thread-safety with respect to the
-// owning database, we must have the owning database (if such exists)
-// execute the function. If there is no owning database, just ref the
-// parent and return it.
+// Thread-safe w.r.t. the owning database.
 arDatabaseNode* arDatabaseNode::getParentRef() {
   if (getOwner()) {
+    // Owning database exists.  It executes the function.
     return getOwner()->getParentRef(this);
   }
 
+  // Just ref and return the parent.
   if (_parent) {
     _parent->ref();
   }
@@ -307,7 +306,7 @@ void arDatabaseNode::setNodeLevel(arNodeLevel nodeLevel) {
 //**********************************************************************
 
 void arDatabaseNode::_setName(const string& name) {
-  arGuard dummy(_lockName);
+  arGuard _(_lockName, "arDatabaseNode::_setName");
   _name = name;
 }
 

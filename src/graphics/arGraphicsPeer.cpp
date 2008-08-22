@@ -104,7 +104,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     else if (action == "node_map") {
       int* mapPtr = (int*) data->getDataPtr(l->AR_GRAPHICS_ADMIN_NODE_ID, AR_INT);
       int mapDim = data->getDataDimension(l->AR_GRAPHICS_ADMIN_NODE_ID);
-      gp->_lock();
+      gp->_lock("ar_graphicsPeerConsumptionFunction node_map");
       // Remember which sockets are receiving info.
       // When we get this message, the remote peer says that
       // it will send scene graph updates.
@@ -124,7 +124,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
 
     else if (action == "frame_time") {
       // These locks must be CONSISTENTLY nested everywhere!
-      gp->_lock();
+      gp->_lock("ar_graphicsPeerConsumptionFunction frame_time");
       int frameTime = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i =
         gp->_connectionContainer.find(socket->getID());
@@ -158,10 +158,9 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     }
 
     else if (action == "dump-done") {
-      gp->_dumpLock.lock();
-	gp->_dumped = true;
-	gp->_dumpVar.signal();
-      gp->_dumpLock.unlock();
+      arGuard _(gp->_dumpLock, "ar_graphicsPeerConsumptionFunction dump-done");
+      gp->_dumped = true;
+      gp->_dumpVar.signal();
     }
 
     else if (action == "ping") {
@@ -175,23 +174,21 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
         // Unfortunately, there can be only ONE of these active at a time
 	// (our portable condition vars do not support broadcast).
 	// Hence the "uniqueness lock".
-        gp->_queueQueryUniquenessLock.lock();
-	gp->_queueConsumeLock.lock();
+        arGuard _(gp->_queueQueryUniquenessLock, "ar_graphicsPeerConsumptionFunction ping A");
+	gp->_queueConsumeLock.lock("ar_graphicsPeerConsumptionFunction ping B");
 	  gp->_queueConsumeQuery = true;
 	  while (gp->_queueConsumeQuery) {
 	    gp->_queueConsumeVar.wait(gp->_queueConsumeLock);
 	  }
 	gp->_queueConsumeLock.unlock();
-	gp->_queueQueryUniquenessLock.unlock();
       }
       gp->_dataServer->sendData(&adminData, socket);
     }
 
     else if (action == "ping_reply") {
-      gp->_pingLock.lock();
-	gp->_pinged = true;
-	gp->_pingVar.signal();
-      gp->_pingLock.unlock();
+      arGuard _(gp->_pingLock, "ar_graphicsPeerConsumptionFunction ping_reply");
+      gp->_pinged = true;
+      gp->_pingVar.signal();
     }
 
     else if (action == "close") {
@@ -237,7 +234,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       int mappedNodeID = -1;
       int dataFilterInfo[2];
       data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
-      gp->_lock();
+      gp->_lock("ar_graphicsPeerConsumptionFunction mapped_filter_data");
       map<int, arGraphicsPeerConnection*, less<int> >::const_iterator i =
         gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()) {
@@ -260,7 +257,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       const string socketLabel(data->getDataString(l->AR_GRAPHICS_ADMIN_NAME));
       gp->_dataServer->setSocketLabel(socket, socketLabel);
       // Set the name for this connection in the container.
-      gp->_lock();
+      gp->_lock("ar_graphicsPeerConsumptionFunction set-name");
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i =
                                   gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()) {
@@ -283,10 +280,9 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     else if (action == "ID-response") {
       // Cheesy. Only allowing a single round trip at a time.
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
-      gp->_IDResponseLock.lock();
-	gp->_requestedNodeID = nodeID;
-	gp->_IDResponseVar.signal();
-      gp->_IDResponseLock.unlock();
+      arGuard _(gp->_IDResponseLock, "ar_graphicsPeerConsumptionFunction ID-response");
+      gp->_requestedNodeID = nodeID;
+      gp->_IDResponseVar.signal();
     }
 
     else if (action == "camera_node") {
@@ -344,9 +340,8 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       // Process the message as appropriate for our application's style
       // (either queued or not).
       if (gp->_queueingData) {
-        gp->_queueLock.lock();
+        arGuard _(gp->_queueLock, "ar_graphicsPeerConsumptionFunction !cycleFound");
         gp->_incomingQueue->forceQueueData(data);
-        gp->_queueLock.unlock();
       }
       else{
         if (!gp->alter(data)) {
@@ -372,7 +367,7 @@ void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo) {
     (arGraphicsPeerConnectionDeletionInfo*) deletionInfo;
   arGraphicsPeer* gp = d->peer;
   arSocket* socket = d->socket;
-  gp->_lock();
+  gp->_lock("ar_graphicsPeerConnectionDeletionFunction");
   // The arGraphicsPeer maintains a list of connections. The affected
   // connection must be removed from the list and any nodes it is currently
   // locking must be unlocked.
@@ -423,10 +418,9 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer) {
     // must insert new connection object into the table
     // NOTE: we are guaranteed that this key is unique since
     // IDs are not reused.
-    gp->_lock();
+    gp->_lock("ar_graphicsPeerConnectionTask");
     arGraphicsPeerConnection* newConnection = new arGraphicsPeerConnection();
-    // we do not know the remote name yet. That will be forwarded to
-    // us.
+    // we do not know the remote name yet. That will be forwarded to us.
     newConnection->connectionID = socket->getID();
     newConnection->socket = socket;
     newConnection->rootMapNode = &gp->_rootNode;
@@ -589,7 +583,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   ar_timeval currentTime;
   // Do this so we don't mistakenly send a map record.
   filterIDs[0] = -1;
-  _lock();
+  _lock("arGraphicsPeer::alter");
   // NOTE: we exploit the fact that the ID field of the record is an ARRAY
   // of ints. As data comes in, classify it as follows:
   //  1. Does the ID have data dimension 1? If so, this record was LOCALLY
@@ -891,11 +885,11 @@ int arGraphicsPeer::consume() {
   // Release a pending ping reply. _queueConsumeLock goes
   // first, to ensure that pings register atomically with buffer swap
   // and buffer consumption.
-  _queueConsumeLock.lock();
-  _queueLock.lock();
+  _queueConsumeLock.lock("arGraphicsPeer::consume A");
+  _queueLock.lock("arGraphicsPeer::consume B");
   _incomingQueue->swapBuffers();
   _queueLock.unlock();
-  int bufferSize = _incomingQueue->getFrontBufferSize();
+  const int bufferSize = _incomingQueue->getFrontBufferSize();
   handleDataQueue(_incomingQueue->getFrontBufferRaw());
   if (_queueConsumeQuery) {
     _queueConsumeQuery = false;
@@ -940,7 +934,7 @@ int arGraphicsPeer::connectToPeer(const string& name) {
   // must insert new connection object into the table
   // NOTE: we are guaranteed that this key is unique since
   // IDs are not reused.
-  _lock();
+  _lock("arGraphicsPeer::connectToPeer");
   // Bug: race condition. a new connection that
   // disappeared *immediately* might not be correctly handled.
   // ANOTHER REASON TO HANDLE DISCONNECT EVENTS DIFFERENTLY
@@ -1002,7 +996,7 @@ bool arGraphicsPeer::pullSerial(const string& name,
   }
 
   // We have to wait for the serialization to be completed
-  _dumpLock.lock();
+  _dumpLock.lock("arGraphicsPeer::pullSerial");
   _dumped = false;
   _dataServer->sendData(&adminData, socket);
   // Block until we are done receiving data (the remote peer signals us that
@@ -1063,7 +1057,7 @@ bool arGraphicsPeer::pingPeer(const string& name) {
   if (!socket) {
     return false;
   }
-  _pingLock.lock();
+  _pingLock.lock("arGraphicsPeer::pingPeer");
   _pinged = false;
   _dataServer->sendData(&adminData, socket);
   while (!_pinged) {
@@ -1234,7 +1228,7 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
   if (!socket) {
     return -1;
   }
-  _IDResponseLock.lock();
+  _IDResponseLock.lock("arGraphicsPeer::remoteNodeID");
     _requestedNodeID = -2;
     _dataServer->sendData(&adminData, socket);
     // On error, we'll get back -1, and otherwise nonnegative.
@@ -1248,7 +1242,7 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
 
 string arGraphicsPeer::printConnections() {
   stringstream s;
-  _lock();
+  _lock("arGraphicsPeer::printConnections");
   // todo: can't STL accumulate do this without a loop?
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
   for (i = _connectionContainer.begin();
@@ -1445,7 +1439,7 @@ void arGraphicsPeer::_closeConnection(arSocket* socket) {
 
 void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
                                          arNodeLevel sendLevel) {
-  _lock();
+  _lock("arGraphicsPeer::_resetConnectionMap");
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(connectionID);
   if ( i == _connectionContainer.end()) {
@@ -1474,7 +1468,7 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
 void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket) {
   // This is a little bit cheesy. We let whoever requests the lock
   // have the lock. Maybe not too bad assuming a cooperative model.
-  _lock();
+  _lock("arGraphicsPeer::_lockNode");
   arNodeMap::iterator i = _lockContainer.find(nodeID);
   if (i != _lockContainer.end()) {
     _lockContainer.erase(i);
@@ -1525,7 +1519,7 @@ void arGraphicsPeer::_lockNodeBelow(int nodeID, arSocket* socket) {
 
 // Use this when someone else is unlocking the node.
 void arGraphicsPeer::_unlockNode(int nodeID) {
-  _lock();
+  _lock("arGraphicsPeer::_unlockNode");
   int socketID = _unlockNodeNoNotification(nodeID);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socketID);
@@ -1577,7 +1571,7 @@ void arGraphicsPeer::_filterDataBelow(int nodeID,
   if (!pNode)
     return;
 
-  _lock();
+  _lock("arGraphicsPeer::_filterDataBelow");
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socket->getID());
   if (i == _connectionContainer.end()) {
@@ -1617,7 +1611,7 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
       delete theData;
     }
   }
-  _lock();
+  _lock("arGraphicsPeer::_recSerialize");
   _insertOutFilter(outFilter, pNode->getID(), localSendLevel);
   _unlock();
 

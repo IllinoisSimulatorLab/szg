@@ -550,7 +550,7 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   }
 
   // To avoid a race condition, set _exitProgram within this lock.
-  _pauseLock.lock();
+  _pauseLock.lock("arMasterSlaveFramework::stop");
     _exitProgram = true;
     _pauseFlag   = false;
     _pauseVar.signal();
@@ -670,7 +670,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   const ar_timeval preDrawStart = ar_time();
 
   // Catch pause/ un-pause requests.
-  _pauseLock.lock();
+  _pauseLock.lock("arMasterSlaveFramework::preDraw");
   while ( _pauseFlag ) {
     _pauseVar.wait( _pauseLock );
   }
@@ -1719,7 +1719,7 @@ void arMasterSlaveFramework::_unpackInputData( void ) {
 // functions pertaining to user messages
 //************************************************************************
 void arMasterSlaveFramework::_processUserMessages() {
-  arGuard guard( _userMessageLock );
+  arGuard _( _userMessageLock, "arMasterSlaveFramework::_processUserMessages" );
   std::deque< arUserMessageInfo >::const_iterator iter;
   for (iter = _userMessageQueue.begin(); iter != _userMessageQueue.end(); ++iter) {
     onUserMessage( iter->messageID, iter->messageBody );
@@ -2288,13 +2288,13 @@ void arMasterSlaveFramework::_messageTask( void ) {
     else if ( messageType == "pause" ) {
       if ( messageBody == "on" ) {
         _SZGClient.messageResponse( messageID, getLabel()+" pausing." );
-        arGuard dummy(_pauseLock);
+        arGuard _(_pauseLock, "arMasterSlaveFramework::_messageTask pause on");
         if ( !stopping() )
           _pauseFlag = true;
       }
       else if ( messageBody == "off" ) {
-        _SZGClient.messageResponse( messageID, getLabel()+" continueing." );
-        arGuard dummy(_pauseLock);
+        _SZGClient.messageResponse( messageID, getLabel()+" unpausing." );
+        arGuard _(_pauseLock, "arMasterSlaveFramework::_messageTask pause off");
         _pauseFlag = false;
         _pauseVar.signal();
       }

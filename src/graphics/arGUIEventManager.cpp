@@ -68,13 +68,13 @@ arGUIEventManager::~arGUIEventManager( void )
 
 bool arGUIEventManager::eventsPending( void )
 {
-  arGuard dummy(_eventsMutex);
+  arGuard _(_eventsMutex, "arGUIEventManager::eventsPending");
   return !_events.empty();
 }
 
 arGUIInfo* arGUIEventManager::getNextEvent( void )
 {
-  _eventsMutex.lock();
+  _eventsMutex.lock("arGUIEventManager::getNextEvent");
   if ( _events.empty() ) {
     _eventsMutex.unlock();
     return NULL;
@@ -456,9 +456,8 @@ int arGUIEventManager::addEvent( arStructuredData& event ) {
     return -1;
   }
 
-  _eventsMutex.lock();
-    _events.push( event );
-  _eventsMutex.unlock();
+  arGuard _(_eventsMutex, "arGUIEventManager::addEvent");
+  _events.push( event );
   return 0;
 }
 
@@ -921,9 +920,8 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
 
 void arGUIEventManager::setActive( const bool active )
 {
-  _eventsMutex.lock(); // paranoid
-    _active = active;
-  _eventsMutex.unlock();
+  arGuard _(_eventsMutex, "arGUIEventManager::setActive"); // paranoid
+  _active = active;
 }
 
 arGUIKeyInfo arGUIEventManager::getKeyState( const arGUIKey key )

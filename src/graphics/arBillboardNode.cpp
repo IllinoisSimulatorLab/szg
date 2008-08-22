@@ -19,7 +19,7 @@ arBillboardNode::arBillboardNode():
 
 void arBillboardNode::draw(arGraphicsContext*) {
   // Local copies.
-  _nodeLock.lock();
+  _nodeLock.lock("arBillboardNode::draw");
     const string text = _text;
     const bool visibility = _visibility;
   _nodeLock.unlock();
@@ -74,33 +74,33 @@ bool arBillboardNode::receiveData(arStructuredData* inData) {
     return false;
 
   const bool vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY) ? true : false;
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBillboardNode::receiveData");
   _visibility = vis;
   _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
   return true;
 }
 
 string arBillboardNode::getText() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBillboardNode::getText");
   return _text;
 }
 
 void arBillboardNode::setText(const string& text) {
   if (active()) {
-    _nodeLock.lock();
+    _nodeLock.lock("arBillboardNode::setText active");
     arStructuredData* r = _dumpData(text, _visibility, true);
     _nodeLock.unlock();
     getOwner()->alter(r);
     recycle(r);
   }
   else{
-    arGuard dummy(_nodeLock);
+    arGuard _(_nodeLock, "arBillboardNode::setText inactive");
     _text = text;
   }
 }
 
 arStructuredData* arBillboardNode::dumpData() {
-  arGuard dummy(_nodeLock);
+  arGuard _(_nodeLock, "arBillboardNode::dumpData");
   return _dumpData(_text, _visibility, false);
 }
 

@@ -41,7 +41,7 @@ void arInterfaceObject::_ioPollTask() {
     const arVector3 vWandForward(m * arVector3(0, 0, -1) * speedForward);
     const arVector3 vWandLateral(m * arVector3(1, 0, 0)  * speedLateral);
 
-    arGuard dummy(_infoLock);
+    arGuard _(_infoLock, "arInterfaceObject::_ioPollTask");
 
     const float inertia = 0.98; // Between 0.01 and 0.99.  Should be database parameter.
     arVector3 vMove((vWandLateral + vWandForward) * _speedMultiplier * .2);
@@ -106,22 +106,22 @@ bool arInterfaceObject::start() {
 }
 
 void arInterfaceObject::setNavMatrix(const arMatrix4& arg) {
-  arGuard dummy(_infoLock);
+  arGuard _(_infoLock, "arInterfaceObject::setNavMatrix");
   _mNav = arg;
 }
 
 arMatrix4 arInterfaceObject::getNavMatrix() const {
-  arGuard dummy(_infoLock);
+  arGuard _(_infoLock, "arInterfaceObject::getNavMatrix");
   return _mNav;
 }
 
 void arInterfaceObject::setObjectMatrix(const arMatrix4& arg) {
-  arGuard dummy(_infoLock);
+  arGuard _(_infoLock, "arInterfaceObject::setObjectMatrix");
   _mObj = arg;
 }
 
 arMatrix4 arInterfaceObject::getObjectMatrix() const {
-  arGuard dummy(_infoLock);
+  arGuard _(_infoLock, "arInterfaceObject::getObjectMatrix");
   return _mObj;
 }
 

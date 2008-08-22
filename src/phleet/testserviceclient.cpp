@@ -22,14 +22,14 @@ void readDataTask(void* num) {
   int number = *((int*) num);
   int trial = 0;
   while (true) {
-    printLock.lock();
+    printLock.lock("readDataTask A");
     cout << "&&&&&& Component ID of service " << serviceName[number]
 	 << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
     printLock.unlock();
     trial++;
     const int whichNetwork = rand()% networks.size();
     const string testNetwork = networks[whichNetwork];
-    printLock.lock();
+    printLock.lock("readDataTask B");
     cout << "***** Thread number = " << number << "\n"
          << "  trial = " << trial << "\n"
          << "  Discovering service on network " << testNetwork << "\n";
@@ -39,7 +39,7 @@ void readDataTask(void* num) {
     // block until an appropriate service is registered
     arPhleetAddress result =
       szgClient.discoverService(serviceName[number], testNetwork, true);
-    printLock.lock();
+    printLock.lock("readDataTask C");
     cout << "***** Thread number = " << number << "\n"
          << "  trial = "<< trial << "\n"
          << "  Service = " << serviceName[number] << "\n"
@@ -54,7 +54,7 @@ void readDataTask(void* num) {
 
     if (!dataClient[number].dialUpFallThrough(result.address.c_str(),
                                               result.portIDs[0])) {
-      arGuard dummy(printLock);
+      arGuard _(printLock, "readDataTask 1");
       cout << "***** Thread number = " << number << "\n"
            << "  trial = " << trial << "\n"
            << "  error: failed to connect to supposedly registered server.\n";
@@ -66,7 +66,7 @@ void readDataTask(void* num) {
     arStructuredData* data = new arStructuredData(dictionary->find("test"));
     for (int k=0; k<10; k++) {
       if (!dataClient[number].getData(buffer, bufferSize)) {
-	arGuard dummy(printLock);
+	arGuard _(printLock, "readDataTask 2");
         cout << "***** Thread number = " << number << "\n"
              << "  trial = " << trial << "\n"
              << "  error: szgClient failed to get data.\n";
@@ -74,7 +74,7 @@ void readDataTask(void* num) {
         break;
       }
       data->unpack(buffer);
-      arGuard dummy(printLock);
+      arGuard _(printLock, "readDataTask 3");
       cout << "##### Thread number = " << number << "\n";
       data->print();
     }

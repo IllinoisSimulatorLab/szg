@@ -45,7 +45,7 @@ void arSyncDataServer::_sendTaskLocal() {
 
   while (!_exitProgram) {
     // Don't swap buffers until the consumer is ready.
-    _localConsumerReadyLock.lock();
+    _localConsumerReadyLock.lock("arSyncDataServer::_sendTaskLocal A");
     // _localConsumerReady takes one of 3 values:
     // 0: not ready for new data
     // 1: ready for new data
@@ -67,14 +67,14 @@ void arSyncDataServer::_sendTaskLocal() {
 
     // Lock the queue and swap it. Release receiveMessage() if it's locked.
     // Copypasted from below.
-    _queueLock.lock();
+    _queueLock.lock("arSyncDataServer::_sendTaskLocal B");
       _dataQueue->swapBuffers();
       _messageBufferFull = false;
       _messageBufferVar.signal();
     _queueLock.unlock();
 
     // Tell the locally connected arSyncDataClient.
-    _localProducerReadyLock.lock();
+    _localProducerReadyLock.lock("arSyncDataServer::_sendTaskLocal C");
     // _localProducerReady is one of:
     //   0: not ready for consumer to take new data
     //   1: ready for consumer to take new data
@@ -94,7 +94,7 @@ void arSyncDataServer::_sendTaskLocal() {
   }
 
   // Lock, so consumer won't deadlock on exit.
-  arGuard dummy(_localProducerReadyLock);
+  arGuard _(_localProducerReadyLock, "arSyncDataServer::_sendTaskLocal");
   _localProducerReady = 2;
   _localProducerReadyVar.signal();
   ar_log_debug() << "arSyncDataServer: send thread done.\n";
@@ -113,7 +113,7 @@ void arSyncDataServer::_sendTaskRemote() {
       break;
 
     // Lock and swap the queue, releasing receiveMessage() if blocked
-    _queueLock.lock();
+    _queueLock.lock("arSyncDataServer::_sendTaskRemote");
     _dataQueue->swapBuffers(); // This can crash if app is dkill'ed.
     _messageBufferFull = false;
     _messageBufferVar.signal();
@@ -350,12 +350,12 @@ void arSyncDataServer::stop() {
   if (_locallyConnected) {
     // Set the queue variables to "finished."
 
-    _localConsumerReadyLock.lock();
+    _localConsumerReadyLock.lock("arSyncDataServer::stop A");
       _localConsumerReady = 2;
       _localConsumerReadyVar.signal();
     _localConsumerReadyLock.unlock();
 
-    _localProducerReadyLock.lock();
+    _localProducerReadyLock.lock("arSyncDataServer::stop B");
       _localProducerReady = 2;
       _localProducerReadyVar.signal();
     _localProducerReadyLock.unlock();
@@ -382,7 +382,7 @@ void arSyncDataServer::swapBuffers() {
 
 arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data) {
   // Caller ensures atomicity.
-  arGuard dummy(_queueLock);
+  _queueLock.lock("arSyncDataServer::receiveMessage");
   if (_dataQueue->getBackBufferSize() > _sendLimit &&
       _barrierServer.getNumberConnectedActive() > 0 &&
       _mode == AR_SYNC_AUTO_SERVER) {
@@ -410,5 +410,6 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data) {
     _dataQueue->forceQueueData(data);
   }
 
+  _queueLock.unlock();
   return node;
 }

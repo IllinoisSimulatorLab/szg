@@ -74,7 +74,7 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
 }
 
 void arSZGAppFramework::_appendUserMessage( int messageID, const std::string& messageBody ) {
-  arGuard guard( _userMessageLock );
+  arGuard _( _userMessageLock, "arSZGAppFramework::_appendUserMessage" );
   _userMessageQueue.push_back( arUserMessageInfo( messageID, messageBody ) );
 }
 

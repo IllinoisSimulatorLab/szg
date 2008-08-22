@@ -90,21 +90,19 @@ void arWMEvent::reset( const arGUIWindowInfo& event )
 {
   _event = event;
   _done = 0;
-  _eventMutex.lock();
-    _conditionFlag = false;
-  _eventMutex.unlock();
+  arGuard _(_eventMutex, "arWMEvent::reset");
+  _conditionFlag = false;
 }
 
 void arWMEvent::wait( const bool blocking )
 {
   if ( blocking ) {
-    _eventMutex.lock();
+    arGuard _(_eventMutex, "arWMEvent::wait");
     while ( !_conditionFlag ) {
       if ( !_eventCond.wait( _eventMutex ) ) {
         // print error?
       }
     }
-    _eventMutex.unlock();
   }
 
   // Let this event be reused.
@@ -113,7 +111,7 @@ void arWMEvent::wait( const bool blocking )
 
 void arWMEvent::signal( void )
 {
-  _eventMutex.lock();
+  _eventMutex.lock("arWMEvent::signal");
     _conditionFlag = true;
     _eventCond.signal();
   _eventMutex.unlock();
@@ -212,62 +210,61 @@ arGUIWindow::~arGUIWindow( void )
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
-  _creationMutex.lock();
+  arGuard _(_creationMutex, "arGUIWindow::registerDrawCallback");
   if ( _drawCallback ) {
-    // print warning that previous callback is being overwritten?
+    // warn that previous callback is being overwritten?
     delete _drawCallback;
+    _drawCallback = NULL; // Don't let it be reused.
   }
 
   if ( !drawCallback ) {
-    // print warning that there is now no draw callback?
+    // warn that there is now no draw callback?
   }
   else {
     _drawCallback = drawCallback;
   }
-  _creationMutex.unlock();
 }
 
 void arGUIWindow::_drawHandler( void )
 {
-  _creationMutex.lock();
-  if ( _running && _drawCallback ) {
+  arGuard _(_creationMutex, "arGUIWindow::_drawHandler");
+  if ( !_running || !_drawCallback )
+    return;
 
-    // ensure (in non-threaded mode) that this window's opengl context is current
-    if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-      ar_log_error() << "_drawHandler failed to make context current.\n";
-    }
-
-    // locking the display here brings up some issues in single threaded mode,
-    // the user could call something like wm->swapall at the end of the display
-    // callback and then we'd be deadlocked as the swap call needs to lock
-    // the display as well...
-    // NOTE: in fact we won't lock here, we can't control what the user will
-    // call and there may well be a valid need to call something like swap or
-    // resize in the draw callback, just make sure everything else that touches
-    // the display properly locks and unlocks
-
-#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-    XLockDisplay( _windowHandle._dpy );
-#endif
-
-    arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
-    windowInfo->setWindowID( _ID );
-
-    // always try to pass through the graphicswindow, if the user has
-    // registered a callback that does not take it, the callback class will
-    // handle letting that fall through
-    if (_graphicsWindow) {
-      _graphicsWindow->setPixelDimensions( getPosX(), getPosY(), getWidth(), getHeight() );
-    }
-    (*_drawCallback)( windowInfo, _graphicsWindow );
-
-    delete windowInfo;
-
-#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-    XUnlockDisplay( _windowHandle._dpy );
-#endif
+  // ensure (in non-threaded mode) that this window's opengl context is current
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+    ar_log_error() << "_drawHandler failed to make context current.\n";
   }
-  _creationMutex.unlock();
+
+  // locking the display here brings up some issues in single threaded mode,
+  // the user could call something like wm->swapall at the end of the display
+  // callback and then we'd be deadlocked as the swap call needs to lock
+  // the display as well...
+  // NOTE: in fact we won't lock here, we can't control what the user will
+  // call and there may well be a valid need to call something like swap or
+  // resize in the draw callback, just make sure everything else that touches
+  // the display properly locks and unlocks
+
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+  XLockDisplay( _windowHandle._dpy );
+#endif
+
+  arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
+  windowInfo->setWindowID( _ID );
+
+  // always try to pass through the graphicswindow, if the user has
+  // registered a callback that does not take it, the callback class will
+  // handle letting that fall through
+  if (_graphicsWindow) {
+    _graphicsWindow->setPixelDimensions( getPosX(), getPosY(), getWidth(), getHeight() );
+  }
+  (*_drawCallback)( windowInfo, _graphicsWindow );
+
+  delete windowInfo;
+
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+  XUnlockDisplay( _windowHandle._dpy );
+#endif
 }
 
 // the most vanilla opengl setup possible
@@ -303,7 +300,7 @@ int arGUIWindow::beginEventThread( void )
   // wait for the window to actually be created, to avoid
   // race conditions from window manager trying to modify a
   // half-baked window.  Time out after 5 seconds.
-  _creationMutex.lock();
+  _creationMutex.lock("arGUIWindow::beginEventThread"); // lock with unlock AND with wait
     while ( !_creationFlag ) {
       if ( !_creationCond.wait( _creationMutex, 5000 ) )
 	return -1;
@@ -342,7 +339,7 @@ int arGUIWindow::_consumeWindowEvents( void )
     return -1;
 
   // Spin only a "little bit" (time out).
-  _WMEventsMutex.lock();
+  _WMEventsMutex.lock("arGUIWindow::_consumeWindowEvents");
     if (_threaded && _WMEvents.empty())
       _WMEventsVar.wait(_WMEventsMutex, 100);
   _WMEventsMutex.unlock();
@@ -370,7 +367,7 @@ bool arGUIWindow::eventsPending( void ) const
 
 arGraphicsWindow* arGUIWindow::getGraphicsWindow( void )
 {
-  _graphicsWindowMutex.lock();
+  _graphicsWindowMutex.lock("arGUIWindow::getGraphicsWindow");
   return _graphicsWindow;
 }
 
@@ -381,14 +378,12 @@ void arGUIWindow::returnGraphicsWindow( void )
 
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
-  _creationMutex.lock();
-  _graphicsWindowMutex.lock();
-    if ( _graphicsWindow ) {
-      delete _graphicsWindow; // do we really own this?
-    }
-    _graphicsWindow = graphicsWindow;
-  _graphicsWindowMutex.unlock();
-  _creationMutex.unlock();
+  arGuard _(_creationMutex, "arGUIWindow::setGraphicsWindow creation");
+  arGuard __(_graphicsWindowMutex, "arGUIWindow::setGraphicsWindow graphicsWindow");
+  if ( _graphicsWindow ) {
+    delete _graphicsWindow; // do we really own this?
+  }
+  _graphicsWindow = graphicsWindow;
 }
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
@@ -402,7 +397,7 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
   if ( !wmEvent.getUserData() )
     wmEvent.setUserData( _userData );
 
-  _usableEventsMutex.lock();
+  _usableEventsMutex.lock("arGUIWindow::addWMEvent usableEvents");
     // find an 'empty' event and recycle it
     for (EventIterator eitr = _usableEvents.begin();
          eitr != _usableEvents.end(); eitr++ ) {
@@ -419,21 +414,20 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
     }
   _usableEventsMutex.unlock();
 
-  _WMEventsMutex.lock();
-    _WMEvents.push( event );
-    // If we are waiting in _consumeWindowEvents, release.
-    _WMEventsVar.signal();
-  _WMEventsMutex.unlock();
+  arGuard _(_WMEventsMutex, "arGUIWindow::addWMEvent WMEvents");
+  _WMEvents.push( event );
+  // If we are waiting in _consumeWindowEvents, release.
+  _WMEventsVar.signal();
   return event;
 }
 
 int arGUIWindow::_processWMEvents( void )
 {
-  if ( !_running ) {
-     // print warning / return?
-  }
+//  if ( !_running ) {
+//     // print warning / return?
+//  }
 
-  _WMEventsMutex.lock();
+  arGuard _(_WMEventsMutex, "arGUIWindow::_processWMEvents");
 
   // process every wm event received in the last iteration
   while ( !_WMEvents.empty() ) {
@@ -543,7 +537,6 @@ int arGUIWindow::_processWMEvents( void )
     _WMEvents.pop();
   }
 
-  _WMEventsMutex.unlock();
   return 0;
 }
 
@@ -555,7 +548,7 @@ int arGUIWindow::_performWindowCreation( void )
   }
 
   if ( _windowCreation() < 0 ) {
-    // Already printed warning.
+    // Already warned.
     return -1;
   }
 
@@ -568,11 +561,9 @@ int arGUIWindow::_performWindowCreation( void )
   // InitGL( getWidth(), getHeight() );
 
   // Announce that the window has been created and initialized.
-  _creationMutex.lock();
-    _creationFlag = true;
-    _creationCond.signal();
-  _creationMutex.unlock();
-
+  arGuard _(_creationMutex, "arGUIWindow::_performWindowCreation");
+  _creationFlag = true;
+  _creationCond.signal();
   return 0;
 }
 
@@ -585,7 +576,7 @@ int arGUIWindow::_windowCreation( void )
     ar_log_debug() << "Creating a stereo arGUIWindow.\n";
     dwFlags |= PFD_STEREO;
   } else {
-    ar_log_debug() << "Creating a non-stereo arGUIWindow.\n";
+    ar_log_debug() << "Creating a mono arGUIWindow.\n";
   }
 
   PIXELFORMATDESCRIPTOR pfd = {
@@ -1897,10 +1888,9 @@ int arGUIWindow::_killWindow( void )
   _running = false;
 
   // Report that the window thread is exiting.
-  _destructionMutex.lock();
+  arGuard _(_destructionMutex, "arGUIWindow::_killWindow");
   _destructionFlag = true;
   _destructionCond.signal();
-  _destructionMutex.unlock();
   return 0;
 }
 

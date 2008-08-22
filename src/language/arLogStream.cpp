@@ -86,20 +86,20 @@ arLogStream::arLogStream():
 }
 
 void arLogStream::setStream(ostream& externalStream) {
-  _lock();
+  _lock("arLogStream::setStream");
     _flush(true);
     _output = &externalStream;
   _unlock();
 }
 
 void arLogStream::setHeader(const string& header) {
-  _lock();
+  _lock("arLogStream::setHeader");
     _header = header;
   _unlock();
 }
 
 void arLogStream::setTimestamp(const bool f) {
-  _lock();
+  _lock("arLogStream::setTimestamp");
     _fTimestamp = f;
   _unlock();
 }
@@ -108,21 +108,21 @@ bool arLogStream::setLogLevel(int l) {
   ar_logLevelNormalize(l);
   if (l == AR_LOG_NIL)
     return false;
-  _lock();
+  _lock("arLogStream::setLogLevel");
     _threshold = l;
   _unlock();
   return true;
 }
 
 bool arLogStream::logLevelDefault() {
-  _lock();
+  _lock("arLogStream::logLevelDefault");
     const bool f = _threshold == AR_LOG_DEFAULT;
   _unlock();
   return f;
 }
 
 string arLogStream::logLevel() {
-  _lock();
+  _lock("arLogStream::logLevel");
     const string s(ar_logLevelToString(_threshold));
   _unlock();
   return s;
@@ -280,7 +280,7 @@ arLogStream& arLogStream::operator<<(arLogStream& (*f)(arLogStream&)) {
 bool arLogStream::_preAppend() {
   // Serialize.
   if (_level <= _threshold) {
-    _lock();
+    _lock("arLogStream::_preAppend");
     return true;
   }
 
@@ -363,7 +363,7 @@ LDone:
 }
 
 inline arLogStream& arLogStream::_setLevel(int l) {
-  _lock();
+  _lock("arLogStream::_setLevel");
   if (ar_logLevelNormalize(l) != AR_LOG_NIL)
     _level = l;
   _unlock();
@@ -396,7 +396,7 @@ arLogStream& ar_log_debug() {
 }
 
 arLogStream& ar_endl(arLogStream& s) {
-  s._lock();
+  s._lock("ar_endl");
   s._flush(false);
   if (s._level <= s._threshold) {
     cout << endl;
@@ -420,13 +420,13 @@ static string __processLabel("szg");
 static arLock __processLabelLock; // guard __processLabel
 
 void ar_setLogLabel( const string& label ) {
-  __processLabelLock.lock();
+  __processLabelLock.lock("ar_setLogLabel");
   __processLabel = label;
   __processLabelLock.unlock();
 }
 
 string ar_getLogLabel() {
-  __processLabelLock.lock();
+  __processLabelLock.lock("ar_getLogLabel");
   const string label(__processLabel);
   __processLabelLock.unlock();
   return label;

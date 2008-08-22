@@ -133,10 +133,9 @@ string handleCreate(const string& messageBody) {
 
   PeerDescription temp;
   temp.peer = peer;
-  peerLock.lock();
-    // Lock, since another thread draws and uses this iterator.
-    peers.insert(PeerContainer::value_type(messageBody, temp));
-  peerLock.unlock();
+  arGuard _(peerLock, "peerLock handleCreate");
+  // Lock, since another thread draws and uses this iterator.
+  peers.insert(PeerContainer::value_type(messageBody, temp));
   return "szg-rp success: inserted peer " + messageBody + ".\n";
 }
 
@@ -149,9 +148,8 @@ string handleDelete(const string& messageBody) {
   arGraphicsPeer* peer = i->second.peer;
   peer->closeAllAndReset();
   // Lock, since another thread draws and uses this iterator.
-  peerLock.lock();
-    peers.erase(i);
-  peerLock.unlock();
+  arGuard _(peerLock, "peerLock handleDelete");
+  peers.erase(i);
   // delete peer; // Memory leak: delete may be unsafe.
   return "szg-rp success: deleted peer.\n";
 }
@@ -310,7 +308,7 @@ void messageTask(void* pClient) {
     }
     // This ends the messages specifically sent to the szg-rp.
     else{
-      peerLock.lock();
+      peerLock.lock("peerLock messageTask");
       // By convention, the messageBody will be peer_name/stuff (though /stuff
       // is optional). The following call seperates out the peer name and
       // strips messageBody in place.
@@ -382,7 +380,7 @@ void display() {
   globalCamera.loadViewMatrices();
   arMatrix4 projectionMatrix(globalCamera.getProjectionMatrix());
   PeerContainer::iterator i;
-  peerLock.lock();
+  peerLock.lock("peerLock display A");
   // first pass to draw the peers
   // Track how long it takes to read in the data, and draw that as well.
   double dataTime = 0;
@@ -466,7 +464,7 @@ void display() {
     frametime = int(ar_difftimeSafe(time1, temp));
   }
 
-  peerLock.lock();
+  peerLock.lock("peerLock display B");
   for (i=peers.begin(); i!=peers.end(); i++) {
     i->second.peer->broadcastFrameTime(averageFrameTime(frametime));
   }

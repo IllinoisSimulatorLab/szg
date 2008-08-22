@@ -637,7 +637,7 @@ LDone:
   // guard around ar_getenv/ar_setenv/ar_setenv(DLLPathPrev),
   // lest, when spawning several things at once,
   // one spawn thread get another's already-ar_setenv'd path.
-  lockSpawn.lock();
+  lockSpawn.lock("szgd execProcess");
 #endif
   const string DLLPathPrev = ar_getenv(envDLLPath.c_str());
   const string appPath = ar_exePath(newCommand);
