@@ -201,7 +201,7 @@ int main(int argc, char** argv){
   }
 
   // Move from center of floor (traditional cave coords) to center of Cube.
-  ar_navTranslate(arVector3(0, -5, 0));
+  ar_navTranslate(arVector3(0, -5, 1.5));
 
   worldInit(fw);
 
