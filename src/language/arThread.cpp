@@ -17,7 +17,7 @@ using namespace std;
 // In Windows, a (non-NULL) name starting with Global\ makes the lock system-wide.
 // In Vista that fails because users don't login as "Session 0", which is required.
 #ifdef AR_USE_WIN_32
-arLock::arLock(const char* name) : _fOwned(true) {
+arLock::arLock(const char* name) : _fOwned(true), _locker("freshly constructed") {
   _setName( name );
   _mutex = CreateMutex(NULL, FALSE, NULL);
   const DWORD e = GetLastError();
@@ -64,7 +64,7 @@ LBackoff:
   }
 }
 #else
-arLock::arLock(const char* name) {
+arLock::arLock(const char* name) : _locker("freshly constructed") {
   _setName( name );
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
@@ -162,7 +162,7 @@ arLock::~arLock() {
   delete[] _name;
 }
 
-void arLock::lock() {
+void arLock::lock(const char* locker) {
 #ifdef AR_USE_WIN_32
   if (!valid()) {
     cerr << "arLock warning: internal error.\n";
@@ -175,29 +175,31 @@ void arLock::lock() {
     switch (r) {
     case WAIT_OBJECT_0:
       _fLocked = true;
+      _locker = locker;
       return;
     default:
     case WAIT_ABANDONED:
       // Another thread terminated without releasing _mutex.
-      cerr << "arLock warning: acquired abandoned lock.\n";
+      ar_log_error() << "arLock acquired abandoned lock.\n";
+      _locker = locker;
       return;
     case WAIT_TIMEOUT:
-      ar_log_error() << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
+      _logretry(locker);
       break;
     case WAIT_FAILED:
       const DWORD e = GetLastError();
       if (e == ERROR_INVALID_HANDLE) {
-	cerr << "arLock warning: invalid handle.\n";
+	ar_log_error() << "arLock warning: invalid handle.\n";
 	// _mutex is bad, so stop using it.
 	_mutex = NULL;
 	// Desperate fallback: create a fresh (unnamed) mutex.
 	_mutex = CreateMutex(NULL, FALSE, NULL);
 	if (_mutex)
 	  continue;
-	cerr << "arLock warning: failed to recreate handle.  Unrecoverable.\n";
+	ar_log_error() << "arLock unrecoverably failed to recreate handle.\n";
       }
       else {
-	cerr << "arLock warning: internal error, GetLastError() == " << e << ".\n";
+	ar_log_error() << "arLock internal error: GetLastError()==" << e << ".\n";
       }
       return;
     }
@@ -209,24 +211,35 @@ void arLock::lock() {
     case 0:
     default:
       _fLocked = true;
+      _locker = locker;
       return;
     case EBUSY:
       a.sleep();
       if (a.msecElapsed() > 3000.) {
-	cerr << "arLock(" << _name << ") warning: retrying timed-out lock().\n";
+	_logretry(locker);
 	a.resetElapsed();
       }
       break;
     case EINVAL:
-      cerr << "arLock warning: uninitialized.\n";
+      ar_log_error() << "arLock uninitialized.\n";
       return;
     case EFAULT:
-      cerr << "arLock warning: invalid pointer.\n";
+      ar_log_error() << "arLock: invalid pointer.\n";
       return;
     }
   }
 
 #endif
+}
+
+void arLock::_logretry(const char* locker) {
+  ostringstream s;
+  s << "arLock(" << _name << ") retrying timed-out lock";
+  if (locker)
+    s << ", wanted by thread " << locker;
+  if (_locker)
+    s << ", held by thread " << _locker;
+  ar_log_error() << s.str() << ".\n";
 }
 
 #ifdef UNUSED
@@ -249,6 +262,7 @@ void arLock::unlock() {
     cerr << "arLock warning: failed to unlock.\n";
     CloseHandle(_mutex);
     _mutex = NULL;
+    _locker = "unowned";
   };
 #else
   pthread_mutex_unlock( &_mutex );

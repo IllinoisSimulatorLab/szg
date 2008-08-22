@@ -34,7 +34,7 @@ class SZG_CALL arLock {
  public:
   arLock(const char* name = NULL);
   virtual ~arLock();
-  void lock();
+  void lock(const char* locker = NULL);
   void unlock();
   bool valid() const;
   bool locked() const { return _fLocked; }
@@ -45,14 +45,16 @@ class SZG_CALL arLock {
  protected:
 #ifdef AR_USE_WIN_32
   HANDLE _mutex;
-  bool _fOwned;
+  bool _fOwned; // Owned by this app.  Does NOT mean "locked."
 #else
   pthread_mutex_t _mutex;
 #endif
-  void _setName( const char* name );
+  void _setName( const char* );
  private:
   char* _name;
+  const char* _locker; // name of thread that has the lock
   bool _fLocked;
+  void _logretry( const char* );
 };
 
 class arGlobalLock : public arLock {
@@ -63,8 +65,8 @@ class arGlobalLock : public arLock {
 // Lock that implicitly unlocks when out of scope.
 class SZG_CALL arGuard {
  public:
-  arGuard(arLock& l): _l(l)
-    { _l.lock(); }
+  arGuard(arLock& l, const char* name = "anonymous arGuard"): _l(l)
+    { _l.lock(name); }
   ~arGuard()
     { _l.unlock(); }
  private:
@@ -78,13 +80,13 @@ class SZG_CALL arGuard {
 
 class SZG_CALL arBoolAtom {
  public:
-  arBoolAtom(bool x=false) : _x(x) {}
+  arBoolAtom(bool x=false) : _x(x), _l("arBoolAtom") {}
   arBoolAtom& operator=(const bool x)
-    { _l.lock(); _x = x; _l.unlock(); return *this; }
+    { arGuard _(_l, "operator="); _x = x; return *this; }
   operator bool() const
-    { _l.lock(); const bool x = _x; _l.unlock(); return x; }
+    { arGuard _(_l, "bool()"); const bool x = _x; return x; }
   bool set(bool x)
-    { _l.lock(); _x = x; _l.unlock(); return x; }
+    { arGuard _(_l, "set"); _x = x; return x; }
  private:
   bool _x;
   mutable arLock _l;
@@ -92,17 +94,17 @@ class SZG_CALL arBoolAtom {
 
 class SZG_CALL arIntAtom {
  public:
-  arIntAtom(int x=0) : _x(x) {}
+  arIntAtom(int x=0) : _x(x), _l("arIntAtom") {}
   arIntAtom& operator=(const int x)
-    { _l.lock(); _x = x; _l.unlock(); return *this; }
+    { arGuard _(_l, "operator="); _x = x; return *this; }
   operator int() const
-    { _l.lock(); const int x = _x; _l.unlock(); return x; }
+    { arGuard _(_l, "int()"); const int x = _x; return x; }
   int set(int x)
-    { _l.lock(); _x = x; _l.unlock(); return x; }
+    { arGuard _(_l, "set"); _x = x; return x; }
   friend int operator++(arIntAtom& a) // prefix operator only
-    { a._l.lock(); const int x = ++(a._x); a._l.unlock(); return x; }
+    { arGuard _(a._l, "++"); const int x = ++(a._x); return x; }
   friend int operator--(arIntAtom& a) // prefix operator only
-    { a._l.lock(); const int x = --(a._x); a._l.unlock(); return x; }
+    { arGuard _(a._l, "--"); const int x = --(a._x); return x; }
  private:
   int _x;
   mutable arLock _l;
