@@ -62,7 +62,7 @@ void drawWand( const arEffector* effector ) {
 }
 
 bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
-  arGuard dummy(databaseLock);
+  arGuard dummy(databaseLock, "cubes_input");
   while (!eventQueue.empty()) {
     const arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
@@ -94,7 +94,7 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
 }
 
 void setMatrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
-  arGuard dummy(databaseLock);
+  arGuard dummy(databaseLock, "cubes_setmatrix");
   const int gid = object->getGraphicsTransformID();
   if (gid != -1) {
     dgTransform( gid, matrix );
@@ -109,7 +109,7 @@ bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
   if (effector && effector == &headEffector && object && object->grabbed()) {
     const int iObject = object - interactionArray;
     if (iObject >= 0 && iObject < NUMBER_OBJECTS) {
-      arGuard dummy(databaseLock);
+      arGuard dummy(databaseLock, "cubes_process");
       dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
     }
   }
@@ -144,7 +144,7 @@ void worldAlter(void* f) {
         char buffer[32];
         sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
         const string whichTexture(buffer);
-        arGuard dummy(databaseLock);
+        arGuard dummy(databaseLock, "cubes_alter");
         dgTexture(objectTextureID[iObject], whichTexture);
       }
     }
@@ -342,7 +342,7 @@ int main(int argc, char** argv) {
 
   while (true) {
     ar_usleep(1000000/200); // 200 fps cpu throttle
-    arGuard dummy(databaseLock);
+    arGuard dummy(databaseLock, "cubes_main");
     fw.setViewer();
     fw.setPlayer();
   }

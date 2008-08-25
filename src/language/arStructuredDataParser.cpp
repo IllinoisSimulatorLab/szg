@@ -631,8 +631,8 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     SZGdatalist& l = i->second;
     arStructuredData* potentialData = l.front();
     if ( dataID >= 0 && potentialData->getID() != dataID ) {
-      ar_log_error() << "getTaggedMessage expected id " << dataID << ", not " <<
-	potentialData->getID() <<".\n";
+      ar_log_error() << "getTaggedMessage expected id " << dataID << ", not "
+                     << potentialData->getID() <<".\n";
       return -1;
     }
     // Either we don't care about the data type, or we've got the proper

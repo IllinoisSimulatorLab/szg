@@ -234,12 +234,12 @@ void arLock::lock(const char* locker) {
 
 void arLock::_logretry(const char* locker) {
   ostringstream s;
-  s << "arLock(" << _name << ") retrying timed-out lock";
-  if (locker)
-    s << ", wanted by thread " << locker;
-  if (_locker)
-    s << ", held by thread " << _locker;
-  ar_log_error() << s.str() << ".\n";
+  static const string tryLabel("tryer=");
+  static const string ownLabel("owner=");
+  const string tryer = locker ? locker : "NONAME";
+  const string owner = _locker ? _locker : "NONAME";
+  s << "retrying lock( " << _name << ", " << tryLabel << tryer << ", "
+    << ownLabel << owner << " )\n";
 }
 
 #ifdef UNUSED
