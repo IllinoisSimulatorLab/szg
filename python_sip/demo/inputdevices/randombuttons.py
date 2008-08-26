@@ -1,6 +1,7 @@
 # A Python input device. You would use it by:
-# 1) placing it in a directory on your SZG_PYTHON/path (or one level down), and
-# 2) adding it to a virtual computer input map, e.g.:
+# 1) Make sure you have defined SZG_PYTHON/executable for the computer it's on.
+# 2) Place it in a directory on your SZG_PYTHON/path (or one level down).
+# 3) Add it to a virtual computer input map, e.g.:
 #        vcpyin  SZG_INPUT0  map  this_computer/randombuttons.py
 #
 # It's not a very _useful_ input device, it sets a fixed head and wand position

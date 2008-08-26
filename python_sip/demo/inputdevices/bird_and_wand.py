@@ -4,7 +4,7 @@
 # 1) Make sure you have defined SZG_PYTHON/executable for the computer it's on.
 # 2) Place it in a directory on your SZG_PYTHON/path (or one level down).
 # 3) Add it to a virtual computer input map, e.g.:
-#        vcpyin  SZG_INPUT0  map  this_computer/treadmill.py
+#        vcpyin  SZG_INPUT0  map  this_computer/bird_and_wand.py
 # 4) To use the Flock of birds, the Bird.dll must be in the same directory as the Python
 #      executable or on your $PATH or in the current working directory.
 #      Note that if you install the ascension diagnostic program

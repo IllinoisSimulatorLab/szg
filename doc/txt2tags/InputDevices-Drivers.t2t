@@ -38,7 +38,7 @@ with the name of the computer running DeviceServer.
 Uses the open-source [Wiiuse http://www.wiiuse.net/] library (version 0.9 //only//).@@
 This driver has a number of different modes: Pointer, Head Tracker, and
 "Minority-Report-style Finger Tracker", the latter two from 
-[ideas by Johnny Lee Chung http://www.cs.cmu.edu/~johnny/projects/wii/].@@
+[ideas by Johnny Chung Lee http://www.cs.cmu.edu/~johnny/projects/wii/].@@
 In Pointer mode for the wiimote it returns 11 button events, 3 axis events corresponding
 to estimated Euler angles as well as the corresponding rotation (orientation) matrix. If you have
 the nunchuk plugged in it will return 2 additional buttons, 2 axes for the joystick,
