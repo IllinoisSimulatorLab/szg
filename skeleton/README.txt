@@ -29,3 +29,6 @@ oopskel.cpp is an object-oriented version of the same, in which the
 arMasterSlaveFramework is subclassed and callback methods (those
 starting with on...()) are overridden instead of installing
 callback functions.
+
+arTeapotGraphicsPlugin.cpp is a scene-graph (szgrender) plugin, to show
+how to use the skeleton to build a shared library.

@@ -13,12 +13,32 @@ VPATH=../../src
 # Don't change this line.
 include $(SZGHOME)/build/make/Makefile.vars
 
+
+# Just leave this here until we figure out a nicer way to do this (sigh). Needed for
+# linking arTeapotGraphicsPlugin.
+POST_LINK_LINE = $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+
 # ALL is the default target that gets built when you just type
 # 'make'.
 # Every executable file should be listed below, seperated by spaces.
 # NOTE: you must use the $(EXE) suffix for compatibility between Unix
 # and Win32.
 ALL := skeleton$(EXE) oopskel$(EXE)
+
+# Add a graphics plugin to all (shows how to build a dll).
+ifneq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+endif
+
+# do the same if MINGW and STATIC
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+endif
+endif
 
 # Makefile.rules defines standard target rules like "clean"
 # or "create-install".  This file is seperated from Makefile.vars
@@ -91,5 +111,9 @@ skeleton$(EXE): skeleton$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 
 oopskel$(EXE): oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
+
+arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE)
 	$(COPY)
 
