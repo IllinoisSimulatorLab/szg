@@ -168,7 +168,7 @@ void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID) {
     // the component owns no messages currently
     componentMessageOwnershipDB.insert
       (SZGcomponentMessageOwnershipDB::value_type(componentID,
-						  list<int>(1, messageID)));
+              list<int>(1, messageID)));
   } else {
     i->second.push_back(messageID);
   }
@@ -199,7 +199,7 @@ void SZGinsertKeyIntoComponentsList(int componentID, const string& key) {
     // the component has posted no trades as of yet
     componentTradingOwnershipDB.insert
       (SZGcomponentTradingOwnershipDB::value_type(componentID,
-						  list<string>(1, key)));
+              list<string>(1, key)));
   } else {
     i->second.push_back(key);
   }
@@ -230,7 +230,7 @@ void SZGaddMessageToDB(const int messageID,
                        const int match) {
   arPhleetMsg message(messageID, componentOwnerID, componentOriginatorID, match);
   messageOwnershipDB.insert(SZGmsgOwnershipDB::value_type
-				  (messageID, message));
+          (messageID, message));
   // Add to the component's list of owned messages.
   SZGinsertMessageIDIntoComponentsList(componentOwnerID, messageID);
 }
@@ -287,7 +287,7 @@ bool SZGremoveMessageFromDB(const int messageID) {
 bool SZGaddMessageTradeToDB(const string& key,
                             const int messageID,
                             const int requestingComponentID,
-			    const int tradingMatch) {
+          const int tradingMatch) {
   SZGmsgOwnershipDB::iterator i(messageOwnershipDB.find(messageID));
   if (i == messageOwnershipDB.end()) {
     ar_log_error() << "ignoring trade on messageless ID.\n";
@@ -483,7 +483,7 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
     arStructuredData* data = dataParser->getStorage(lang.AR_SZG_LOCK_NOTIFICATION);
     data->dataInString(lang.AR_SZG_LOCK_NOTIFICATION_NAME, lockName);
     for (list<arPhleetNotification>::iterator j = i->second.begin();
-	 j != i->second.end(); j++) {
+   j != i->second.end(); j++) {
       // Set the match.
       data->dataIn(lang.AR_PHLEET_MATCH, &j->match, AR_INT, 1);
       arSocket* theSocket = NULL;
@@ -493,35 +493,33 @@ void SZGsendLockNotification(string lockName, bool serverLock) {
         dataServer->getConnectedSocketNoLock(j->componentID) :
         dataServer->getConnectedSocket(j->componentID);
       if (!theSocket) {
-	ar_log_error() << "failed to send lock notification for missing component.\n";
+        ar_log_error() << "failed to send lock notification for missing component.\n";
       }
       else {
-	// we use too different calls, sendData and sendDataNoLock,
-	// depending upon the context in which we were called.
-	if (serverLock) {
+        // we use too different calls, sendData and sendDataNoLock,
+        // depending upon the context in which we were called.
+        if (serverLock) {
           if (!dataServer->sendDataNoLock(data, theSocket)) {
-	    ar_log_error() << "failed to send no-lock notification.\n";
-	  }
-	}
-	else {
+            ar_log_error() << "failed to send no-lock notification.\n";
+          }
+        } else {
           if (!dataServer->sendData(data, theSocket)) {
-	    ar_log_error() << "failed to send lock notification.\n";
-	  }
-	}
+            ar_log_error() << "failed to send lock notification.\n";
+          }
+        }
       }
       // Clean up.
       // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
       SZGlockNotificationOwnershipDB::iterator k
-	= lockNotificationOwnershipDB.find(j->componentID);
+              = lockNotificationOwnershipDB.find(j->componentID);
       if (k != lockNotificationOwnershipDB.end()) {
         k->second.remove(lockName);
         if (k->second.empty()) {
-	  // Remove empty list.
+          // Remove empty list.
           lockNotificationOwnershipDB.erase(k);
-	}
-      }
-      else {
-	ar_log_error() << "found no expected lock notification owner.\n";
+        }
+      } else {
+        ar_log_error() << "found no expected lock notification owner.\n";
       }
     }
     dataParser->recycle(data);
@@ -538,29 +536,27 @@ void SZGremoveComponentLockNotifications(int componentID) {
   if (i != lockNotificationOwnershipDB.end()) {
     // this component has some notifications
     for (list<string>::iterator j = i->second.begin();
-	 j != i->second.end(); j++) {
+   j != i->second.end(); j++) {
       // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
-      SZGlockNotificationDB::iterator k
-	= lockNotificationDB.find(*j);
+      SZGlockNotificationDB::iterator k = lockNotificationDB.find(*j);
       if (k != lockNotificationDB.end()) {
-	// AARGH! Binding the component ID and the match together makes
-	// this step more inefficient!
+        // AARGH! Binding the component ID and the match together makes
+        // this step more inefficient!
         list<arPhleetNotification>::iterator l = k->second.begin();
-	while (l != k->second.end()) {
+        while (l != k->second.end()) {
           if (l->componentID == componentID) {
             l = k->second.erase(l);
-	  }
-	  else {
-	    l++;
-	  }
-	}
-	// if the list is empty, better remove it!
-	if (k->second.empty()) {
-	  lockNotificationDB.erase(k);
-	}
-      }
-      else {
-	ar_log_error() << "found no lock notification, needed by component list.\n";
+          }
+          else {
+            ++l;
+          }
+        }
+        // if the list is empty, better remove it!
+        if (k->second.empty()) {
+          lockNotificationDB.erase(k);
+        }
+      } else {
+        ar_log_error() << "found no lock notification, needed by component list.\n";
       }
     }
     // finally, the component has gone away... so remove its info
@@ -582,8 +578,8 @@ bool SZGreleaseLock(const string& lockName, int id) {
   if (i == lockOwnershipDB.end()) {
     // Lock is not held.
     ar_log_error() << "already released lock "
-	 << lockName << " as requested by component" << id
-	 << " (" << dataServer->getSocketLabel(id) << ").\n";
+                   << lockName << " as requested by component" << id
+                   << " (" << dataServer->getSocketLabel(id) << ").\n";
     return false;
   }
 
@@ -591,8 +587,8 @@ bool SZGreleaseLock(const string& lockName, int id) {
     // Lock is held by another component
     // component requesting the release doesn't own the lock
     ar_log_error() << "failed to release lock "
-	 << lockName << ": not held by component" << id
-	 << " (" << dataServer->getSocketLabel(id) << ").\n";
+                   << lockName << ": not held by component" << id
+                   << " (" << dataServer->getSocketLabel(id) << ").\n";
     return false;
   }
 
@@ -600,8 +596,7 @@ bool SZGreleaseLock(const string& lockName, int id) {
   lockOwnershipDB.erase(i);
 
   // Remove the lock from the component's database.
-  SZGcomponentLockOwnershipDB::iterator
-    j(componentLockOwnershipDB.find(id));
+  SZGcomponentLockOwnershipDB::iterator j(componentLockOwnershipDB.find(id));
   if (j == componentLockOwnershipDB.end()) {
     ar_log_error() << "internal error: lock list missing on release.\n";
     return false;
@@ -621,8 +616,7 @@ bool SZGreleaseLock(const string& lockName, int id) {
 void SZGreleaseLocksOwnedByComponent(int id) {
   // (Too late to call dataServer->getSocketLabel(id).)
   // Get the lockList.
-  SZGcomponentLockOwnershipDB::iterator
-    i(componentLockOwnershipDB.find(id));
+  SZGcomponentLockOwnershipDB::iterator i(componentLockOwnershipDB.find(id));
   if (i == componentLockOwnershipDB.end()) {
     return;
   }
@@ -699,11 +693,11 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock) {
     arStructuredData* data
       = dataParser->getStorage(lang.AR_SZG_KILL_NOTIFICATION);
     data->dataIn(lang.AR_SZG_KILL_NOTIFICATION_ID, &observedComponentID,
-		 AR_INT, 1);
+     AR_INT, 1);
     // This component has a list of other components that wish to be
     // notified when it exits.
     for (list<arPhleetNotification>::iterator j = i->second.begin();
-	 j != i->second.end(); j++) {
+   j != i->second.end(); j++) {
       // Must set the match.
       data->dataIn(lang.AR_PHLEET_MATCH, &j->match, AR_INT, 1);
       arSocket* theSocket = NULL;
@@ -718,41 +712,39 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock) {
         theSocket = dataServer->getConnectedSocket(j->componentID);
       }
       if (!theSocket) {
-	ar_log_error() << "can't send kill notification to missing component.\n";
+        ar_log_error() << "can't send kill notification to missing component.\n";
       }
       else {
-	// we use too different calls, sendData and sendDataNoLock,
-	// depending upon the context in which we were called.
-	if (serverLock) {
-          if (!dataServer->sendDataNoLock(data, theSocket)) {
-	    ar_log_error() << "failed to send no-lock kill notification.\n";
-	  }
-	}
-	else {
+        // we use too different calls, sendData and sendDataNoLock,
+        // depending upon the context in which we were called.
+        if (serverLock) {
+                if (!dataServer->sendDataNoLock(data, theSocket)) {
+            ar_log_error() << "failed to send no-lock kill notification.\n";
+          }
+        } else {
           if (!dataServer->sendData(data, theSocket)) {
-	    ar_log_error() << "failed to send kill notification.\n";
-	  }
-	}
+            ar_log_error() << "failed to send kill notification.\n";
+          }
+        }
       }
       // now, we need to do a little clean-up...
       // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
       // NOTE: this notification database is organized via REQUESTING
       // component ID (and j->componentID is REQUESTING COMPONENT ID)
       SZGkillNotificationOwnershipDB::iterator k
-	= killNotificationOwnershipDB.find(j->componentID);
+              = killNotificationOwnershipDB.find(j->componentID);
       if (k != killNotificationOwnershipDB.end()) {
-	// The lists in the killNotificationOwnershipDB are
-	// of OBSERVED component IDs (i.e. we want to be notified when this
-	// goes away)
+        // The lists in the killNotificationOwnershipDB are
+        // of OBSERVED component IDs (i.e. we want to be notified when this
+        // goes away)
         k->second.remove(observedComponentID);
-	// If this component has no more (other) components whose potential
-	// demise it is observing, remove the list.
+        // If this component has no more (other) components whose potential
+        // demise it is observing, remove the list.
         if (k->second.empty()) {
           killNotificationOwnershipDB.erase(k);
-	}
-      }
-      else {
-	ar_log_error() << "no expected kill notification owner.\n";
+        }
+      } else {
+        ar_log_error() << "no expected kill notification owner.\n";
       }
     }
     dataParser->recycle(data);
@@ -765,37 +757,34 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock) {
 // requests that it owns.
 void SZGremoveComponentKillNotifications(int requestingComponentID) {
   SZGkillNotificationOwnershipDB::iterator i =
-    killNotificationOwnershipDB.find(requestingComponentID);
+              killNotificationOwnershipDB.find(requestingComponentID);
   if (i != killNotificationOwnershipDB.end()) {
     // this component has some kill notifications.
     // traverse its list (which contains the IDs of the components it is OBSERVING).
-    for (list<int>::iterator j = i->second.begin();
-	 j != i->second.end(); j++) {
+    for (list<int>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
       // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
       // Find the observed component and look at its list of
       // registered kill notification requests.
       SZGkillNotificationDB::iterator k = killNotificationDB.find(*j);
       if (k != killNotificationDB.end()) {
-	// Remove every notification from the list which is related to the
-	// requestingComponentID.
+        // Remove every notification from the list which is related to the
+        // requestingComponentID.
         list<arPhleetNotification>::iterator l = k->second.begin();
-	while (l != k->second.end()) {
-	  // arPhleetNotification's componentID is the
-	  // ID of the component REQUESTING the notification!
+        while (l != k->second.end()) {
+          // arPhleetNotification's componentID is the
+          // ID of the component REQUESTING the notification!
           if (l->componentID == requestingComponentID) {
             l = k->second.erase(l);
-	  }
-	  else {
-	    ++l;
-	  }
-	}
-	if (k->second.empty()) {
-	  // Remove the empty list.
-	  killNotificationDB.erase(k);
-	}
-      }
-      else {
-	ar_log_error() << "no kill notification, needed by component list.\n";
+          } else {
+            ++l;
+          }
+        }
+        if (k->second.empty()) {
+          // Remove the empty list.
+          killNotificationDB.erase(k);
+        }
+      } else {
+        ar_log_error() << "no kill notification, needed by component list.\n";
       }
     }
     // finally, the component has gone away... so remove its info
@@ -815,15 +804,15 @@ void SZGremoveComponentKillNotifications(int requestingComponentID) {
 //  FORM BECAUSE THE CONNECTION BROKER CANNOT ITSELF DO EVERYTHING THAT IS
 //  NECESSARY TO RELEASE A COMPONENT WHEN IT GOES AWAY)
 void SZGreleaseNotificationCallback(int componentID,
-				    int match,
+            int match,
                                     const string& serviceName) {
   // since this is called from within the data server's lock, we have
   // to use the no-lock methods
   arSocket* destinationSocket
-    = dataServer->getConnectedSocketNoLock(componentID);
+              = dataServer->getConnectedSocketNoLock(componentID);
   if (destinationSocket) {
     arStructuredData* data
-      = dataParser->getStorage(lang.AR_SZG_SERVICE_RELEASE);
+                = dataParser->getStorage(lang.AR_SZG_SERVICE_RELEASE);
     // Must propogate the match!
     data->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
     data->dataInString(lang.AR_SZG_SERVICE_RELEASE_NAME, serviceName);
@@ -869,23 +858,23 @@ void SZGremoveComponentFromDB(const int componentID) {
       else {
         messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
                                  AR_INT, 1);
-	// Must propogate the match!
+        // Must propogate the match!
         messageAdminData->dataIn(lang.AR_PHLEET_MATCH, &j->second.idMatch,
                                  AR_INT, 1);
-	// the first element of the pair is the owner of the response
-	// the second element of the pair is the destination of our message
+        // the first element of the pair is the owner of the response
+        // the second element of the pair is the destination of our message
         responseDest = j->second.idDestination;
         messageOwnershipDB.erase(j);
         // The response destination may have vanished.
         arSocket* destinationSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
         if (!destinationSocket) {
-	  ar_log_error() << "destination vanished for message ID "
-	       << messageID << ".\n";
-	}
-	else {
+          ar_log_error() << "destination vanished for message ID "
+                         << messageID << ".\n";
+        }
+        else {
           dataServer->sendDataNoLock(messageAdminData, destinationSocket);
-	}
+        }
       }
     }
     componentMessageOwnershipDB.erase(i);
@@ -894,7 +883,7 @@ void SZGremoveComponentFromDB(const int componentID) {
   // Remove all the message trades owned by this component,
   // again sending failure messages to the originating components.
   const SZGcomponentTradingOwnershipDB::iterator l =
-    componentTradingOwnershipDB.find(componentID);
+                componentTradingOwnershipDB.find(componentID);
   if (l != componentTradingOwnershipDB.end()) {
     for (list<string>::iterator n=l->second.begin(); n!=l->second.end(); n++) {
       const string messageKey = *n;
@@ -908,9 +897,9 @@ void SZGremoveComponentFromDB(const int componentID) {
       else {
         messageID = m->second.id;
         responseDest = m->second.idDestination;
-	// Must make sure that the match is propogated.
-	messageAdminData->dataIn(lang.AR_PHLEET_MATCH,
-				 &m->second.idMatch, AR_INT, 1);
+        // Must make sure that the match is propogated.
+        messageAdminData->dataIn(lang.AR_PHLEET_MATCH,
+         &m->second.idMatch, AR_INT, 1);
         messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
                                  AR_INT, 1);
         messageTradingDB.erase(m);
@@ -918,12 +907,11 @@ void SZGremoveComponentFromDB(const int componentID) {
         arSocket* originatingSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
         if (!originatingSocket) {
-	  ar_log_error() << "on socket cleanup, destination vanished for message ID "
-	    << messageID << ".\n";
-	}
-	else {
+          ar_log_error() << "on socket cleanup, destination vanished for message ID "
+                         << messageID << ".\n";
+        } else {
           dataServer->sendDataNoLock(messageAdminData, originatingSocket);
-	}
+        }
       }
     }
     componentTradingOwnershipDB.erase(l);
@@ -986,7 +974,7 @@ void serverDiscoveryFunction(void* pv) {
   _socket.reuseAddress(true);
   if (_socket.ar_bind(&incomingAddress) < 0) {
     ar_log_critical() << "failed to bind to " << "INADDR_ANY:" << port
-	 << ".\n\t(is another szgserver already running?)\n";
+                      << ".\n\t(is another szgserver already running?)\n";
     *(bool *)pv = true; // abort
     return;
   }
@@ -1014,8 +1002,9 @@ void serverDiscoveryFunction(void* pv) {
 
     // It's a discovery packet.
     if (buffer[3] != SZG_VERSION_NUMBER) {
-      ar_log_error() << "ignored discovery packet with SZG_VERSION_NUMBER = " <<
-        int(buffer[3]) << " , from " << fromAddress.getRepresentation() << ".\n";
+      ar_log_error() << "ignored discovery packet with SZG_VERSION_NUMBER = "
+                     << int(buffer[3]) << " , from "
+                     << fromAddress.getRepresentation() << ".\n";
       continue;
     }
 
@@ -1038,24 +1027,24 @@ void serverDiscoveryFunction(void* pv) {
     for (int i=0; i<computerAddresses.size(); ++i) {
       arSocketAddress tmpAddress;
       if (!tmpAddress.setAddress(computerAddresses[i].c_str(), 0)) {
-	ar_log_remark() << "szg.conf has bad address '"
-	     << computerAddresses[i] << "'.\n";
-	continue;
+        ar_log_remark() << "szg.conf has bad address '"
+                        << computerAddresses[i] << "'.\n";
+        continue;
       }
       const string broadcastAddress =
-	tmpAddress.broadcastAddress(computerMasks[i].c_str());
+              tmpAddress.broadcastAddress(computerMasks[i].c_str());
       if (broadcastAddress == "NULL") {
-	ar_log_remark() << "szg.conf has bad mask '"
-	     << computerMasks[i] << "' for address '"
-	     << computerAddresses[i] << "'.\n";
-	continue;
+        ar_log_remark() << "szg.conf has bad mask '"
+                        << computerMasks[i] << "' for address '"
+                        << computerAddresses[i] << "'.\n";
+        continue;
       }
       if (broadcastAddress ==
-	  fromAddress.broadcastAddress(computerMasks[i].c_str())) {
-	fromAddress.setAddress(broadcastAddress.c_str(), port);
-	_socket.ar_write(buffer, 200, &fromAddress);
-	ok = true;
-	break;
+              fromAddress.broadcastAddress(computerMasks[i].c_str())) {
+        fromAddress.setAddress(broadcastAddress.c_str(), port);
+        _socket.ar_write(buffer, 200, &fromAddress);
+        ok = true;
+        break;
       }
     }
     if (!ok) {
@@ -1087,9 +1076,9 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
   if (type=="NULL") {
     // Send the process table.
     (void)dataResponse->dataInString(
-      lang.AR_ATTR_GET_RES_ATTR, attribute);
+                lang.AR_ATTR_GET_RES_ATTR, attribute);
     (void)dataResponse->dataInString(
-      lang.AR_ATTR_GET_RES_VAL, dataServer->dumpConnectionLabels());
+                lang.AR_ATTR_GET_RES_VAL, dataServer->dumpConnectionLabels());
   }
 
   else if (type=="ALL") {
@@ -1102,11 +1091,11 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
       string first = i->first;
       unsigned slash = first.find("/");
       if (slash == string::npos) {
-	// Global attr.
+        // Global attr.
         value += (first + "  " + i->second + "\n");
       }
       else {
-	// Local attr.  It has slashes.
+        // Local attr.  It has slashes.
         // Replace both slashes with spaces, to make it compatible with the syntax of dbatch.
         first.replace(slash, 1, " ");
         slash = first.find("/");
@@ -1125,7 +1114,7 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
       i != valueContainer->end(); ++i) {
       const string s(i->first + "  =  " + i->second + "\n");
       if (s.find(attribute) != string::npos) {
-	value += s;
+        value += s;
       }
     }
     (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute);
@@ -1209,8 +1198,7 @@ void attributeSetCallback(arStructuredData* pd, arSocket* dataSocket) {
   dataParser->recycle(attrGetResponseData);
 }
 
-inline const char* szgSuccess(bool ok)
-{
+inline const char* szgSuccess(bool ok) {
   return ok ? "SZG_SUCCESS" : "SZG_FAILURE";
 }
 
@@ -1218,7 +1206,7 @@ inline const char* szgSuccess(bool ok)
 // DO NOT INSERT THIS SORT OF THING IN THE FUTURE.
 bool SZGack(arStructuredData* messageAckData, bool ok) {
   return messageAckData->dataInString(lang.AR_SZG_MESSAGE_ACK_STATUS,
-    szgSuccess(ok));
+              szgSuccess(ok));
 }
 
 void processInfoCallback(arStructuredData* pd, arSocket* dataSocket) {
@@ -1291,13 +1279,13 @@ void messageProcessingCallback(arStructuredData* pd,
         // component that's allowed to respond,
         // and the ID of where to send the response.
         SZGaddMessageToDB(theMessageID, destSocket->getID(),
-	  dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
+              dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
       }
       if (!dataServer->sendData(pd, destSocket)) {
         ar_log_error() << "message send failed.\n";
       }
       else {
-	// Message probably forwarded ok.
+        // Message probably forwarded ok.
         forward = true;
       }
     }
@@ -1315,7 +1303,7 @@ void messageProcessingCallback(arStructuredData* pd,
 // @param pd Incoming data record
 // @param dataSocket Connection upon which we received the data
 void messageAdminCallback(arStructuredData* pd,
-			  arSocket* dataSocket) {
+        arSocket* dataSocket) {
   const string messageAdminType = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_TYPE);
   bool status = false;
   int responseOwner = -1;
@@ -1342,35 +1330,35 @@ void messageAdminCallback(arStructuredData* pd,
       responseDestination = SZGgetMessageOriginatorID(messageID);
       if (responseOwner != dataSocket->getID()) {
         ar_log_error() << "illegal response attempt from component "
-	     << dataSocket->getID()
-	     << " (" << dataServer->getSocketLabel(dataSocket->getID())
-	     << "), owner is " << responseOwner << ".\n";
+                       << dataSocket->getID()
+                       << " (" << dataServer->getSocketLabel(dataSocket->getID())
+                       << "), owner is " << responseOwner << ".\n";
       }
       else {
         responseSocket = dataServer->getConnectedSocket(responseDestination);
         if (!responseSocket) {
-	  ar_log_error() << "no destination to respond to.\n";
-	}
-	else {
-	  // Fill in the match.
+          ar_log_error() << "no destination to respond to.\n";
+        }
+        else {
+          // Fill in the match.
           const int match = SZGgetMessageMatch(messageID);
           pd->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
           if (!dataServer->sendData(pd, responseSocket)) {
-	    ar_log_error() << "response failed.\n";
-	  }
-	  else {
-	    status = true;
-	  }
-	}
+            ar_log_error() << "response failed.\n";
+          }
+          else {
+            status = true;
+          }
+        }
         const string s = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
         if (s != "SZG_CONTINUE") {
-	  // The message won't be continued.
+          // The message won't be continued.
           SZGremoveMessageFromDB(messageID);
-	  if (s != "SZG_SUCCESS") {
-	    ar_log_error() << "message response had unexpected status field '"
-		 << s << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
-	  }
-	}
+          if (s != "SZG_SUCCESS") {
+            ar_log_error() << "message response had unexpected status field '"
+           << s << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
+          }
+        }
       }
     }
   }
@@ -1401,10 +1389,10 @@ void messageAdminCallback(arStructuredData* pd,
       // Send back to the originator of the message trade, not the new owner.
       responseSocket = dataServer->getConnectedSocket(oldInfo.idOwner);
       if (!responseSocket) {
-	ar_log_error() << "missing originator of message trade.\n";
+        ar_log_error() << "missing originator of message trade.\n";
       }
       else if (!dataServer->sendData(messageAckData, responseSocket)) {
-	ar_log_error() << "failed to notify originator about message trade.  Originator may have failed.\n";
+        ar_log_error() << "failed to notify originator about message trade.  Originator may have failed.\n";
       }
       // Fill in the ID field of the record to be sent back to the component
       // requesting the trade with the message's ID.
@@ -1432,7 +1420,7 @@ void messageAdminCallback(arStructuredData* pd,
 
 // Let a component request notification when another component exits.
 void killNotificationCallback(arStructuredData* data,
-			      arSocket* dataSocket) {
+            arSocket* dataSocket) {
   int componentID = data->getDataInt(lang.AR_SZG_KILL_NOTIFICATION_ID);
   if (!dataServer->getConnectedSocket(componentID)) {
     // NO SUCH COMPONENT EXISTS. report back immediately
@@ -1475,7 +1463,7 @@ void lockRequestFinish(arStructuredData* lockResponseData,
 // @param pd Incoming data record (lock request)
 // @param dataSocket Connection upon which we received the data
 void lockRequestCallback(arStructuredData* pd,
-			 arSocket* dataSocket) {
+       arSocket* dataSocket) {
   arStructuredData* lockResponseData
     = dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
   // Must propogate the "match".
@@ -1493,7 +1481,7 @@ void lockRequestCallback(arStructuredData* pd,
 // @param pd Incoming data record (lock release)
 // @param dataSocket Connection upon which we received the data
 void lockReleaseCallback(arStructuredData* pd,
-			 arSocket* dataSocket) {
+       arSocket* dataSocket) {
   const int ownerID = -1;
   arStructuredData* lockResponseData =
     dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
@@ -1509,13 +1497,13 @@ void lockReleaseCallback(arStructuredData* pd,
 // @param pd Incoming data record (lock release)
 // @param dataSocket Connection upon which we received the data
 void lockListingCallback(arStructuredData* pd,
-			 arSocket* dataSocket) {
+       arSocket* dataSocket) {
   const int listSize = lockOwnershipDB.size();
   int* IDs = new int[listSize];
   int iID = 0;
   arSemicolonString locks;
   for (SZGlockOwnershipDB::iterator i=lockOwnershipDB.begin();
-       i != lockOwnershipDB.end(); i++) {
+       i != lockOwnershipDB.end(); ++i) {
     locks /= i->first;
     IDs[iID++] = i->second;
   }
@@ -1528,7 +1516,7 @@ void lockListingCallback(arStructuredData* pd,
 
 // Let a component request notification when a lock is released.
 void lockNotificationCallback(arStructuredData* data,
-			      arSocket* dataSocket) {
+            arSocket* dataSocket) {
   const string lockName(data->getDataString(lang.AR_SZG_LOCK_NOTIFICATION_NAME));
   // There is no need to propogate the match in the failure case, since
   // the received message is simply returned.
@@ -1577,7 +1565,7 @@ void registerServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
     // and return them to the requesting component
     result = connectionBroker.requestPorts(
         dataSocket->getID(), serviceName, computer, networks, addresses,
-	size, firstPort, blockSize);
+  size, firstPort, blockSize);
 LAgain:
     data = dataParser->getStorage(lang.AR_SZG_BROKER_RESULT);
     data->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
@@ -1613,8 +1601,7 @@ LAgain:
     // The service is truly registered.
     // Notify the components that are waiting.
     SZGRequestList waiting = connectionBroker.getPendingRequests(serviceName);
-    for (SZGRequestList::iterator i = waiting.begin();
-	 i != waiting.end(); i++) {
+    for (SZGRequestList::iterator i = waiting.begin(); i != waiting.end(); ++i) {
       // Do not put a service request on the queue, so
       // the last arg of requestService() is false.
       arPhleetAddress addr = connectionBroker.requestService(
@@ -1631,7 +1618,7 @@ LAgain:
       arSocket* dest = dataServer->getConnectedSocket(i->componentID);
       if (!dataServer->sendData(data, dest)) {
         ar_log_error() << "failed to send async broker result to component "
-	     << i->componentID << ".\n";
+       << i->componentID << ".\n";
       }
     }
   }
@@ -1696,7 +1683,7 @@ void requestServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
 // wants to kill a component offering a particular service so that a new
 // one can start up)
 void getServicesCallback(arStructuredData* pd,
-			arSocket* dataSocket) {
+      arSocket* dataSocket) {
   // WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
   // this method is not threadsafe vis-a-vis the connection broker.
   // no problem right now, since the szgserver executes requests in
@@ -1716,7 +1703,7 @@ void getServicesCallback(arStructuredData* pd,
       data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES,
                          connectionBroker.getServiceNames());
       data->dataInString(lang.AR_SZG_GET_SERVICES_COMPUTERS,
-		         connectionBroker.getServiceComputers());
+             connectionBroker.getServiceComputers());
       int* IDs = NULL;
       const int numberServices = connectionBroker.getServiceComponents(IDs);
       data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, IDs, AR_INT,
@@ -1740,7 +1727,7 @@ void getServicesCallback(arStructuredData* pd,
     int iID = 0;
     arSemicolonString names;
     arSlashString computers;
-    for (SZGRequestList::iterator i = result.begin(); i != result.end(); i++) {
+    for (SZGRequestList::iterator i = result.begin(); i != result.end(); ++i) {
       names /= i->serviceName;
       computers /= i->computer;
       IDs[iID++] = i->componentID;
@@ -1761,7 +1748,7 @@ void getServicesCallback(arStructuredData* pd,
 }
 
 void serviceReleaseCallback(arStructuredData* pd,
-			    arSocket* dataSocket) {
+          arSocket* dataSocket) {
   // IMPORTANT NOTE: there are major problems here with atomicity.
   // CURRENTLY, the fact that the szgserver processes messages one-at-a-time
   // saves us. TODO TODO TODO TODO TODO TODO
@@ -1783,13 +1770,13 @@ void serviceReleaseCallback(arStructuredData* pd,
   // broker should occur between the above and here.
   // BUG: THIS IS NOT ATOMIC AND REALLY SHOULD RESPOND WITH A BOOL.
   connectionBroker.registerReleaseNotification(dataSocket->getID(),
-				    pd->getDataInt(lang.AR_PHLEET_MATCH),
-				    computer,
-				    serviceName);
+            pd->getDataInt(lang.AR_PHLEET_MATCH),
+            computer,
+            serviceName);
 }
 
 void serviceInfoCallback(arStructuredData* pd,
-			 arSocket* dataSocket) {
+       arSocket* dataSocket) {
   // NOTE: since we are just sending the same data back, the match does not
   // need to be propogated!
   const string op(pd->getDataString(lang.AR_SZG_SERVICE_INFO_OP));
@@ -1875,7 +1862,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
       // Tell the component to *rudely* shut down
       // (as opposed to the polite messaging way).
       if (!dataServer->sendData(pd, killSocket)) {
-	ar_log_remark() << "failed to send kill.\n";
+        ar_log_remark() << "failed to send kill.\n";
       }
     }
     // Remove the socket from our table.
@@ -1945,7 +1932,7 @@ void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket) 
   }
   else {
     ar_log_error() << "ignoring record with unknown ID " << theID
-	 << ".\n  (Version mismatch between szgserver and client?)\n";
+                   << ".\n  (Version mismatch between szgserver and client?)\n";
   }
   fInside = false;
 }
@@ -1969,7 +1956,7 @@ int main(int argc, char** argv) {
 
   ar_log().setTimestamp(true);
   if (argc > 3) {
-    for (int i = 3; i < argc; i++) {
+    for (int i = 3; i < argc; ++i) {
       string arg( argv[i] );
       if (arg == "-debug") {
         (void)ar_setLogLevel("DEBUG", false);
@@ -2023,8 +2010,8 @@ int main(int argc, char** argv) {
   dataParser = new arStructuredDataParser(lang.getDictionary());
   if (!dataServer->setInterface("INADDR_ANY") ||
       !dataServer->setPort(serverPort)) {
-    ar_log_critical() << "data server has invalid IP:port " <<
-      serverIP  << ":" << serverPort << ".\n";
+    ar_log_critical() << "data server has invalid IP:port "
+                      << serverIP  << ":" << serverPort << ".\n";
     return 1;
   }
 
