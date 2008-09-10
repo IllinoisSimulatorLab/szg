@@ -298,8 +298,8 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
 }
 
 arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
-		int numPts, int numInd, float* points,
-		int* index, float* tex2, float height, arTexture* decalTexture) {
+                int numPts, int numInd, float* points,
+                int* index, float* tex2, float height, arTexture* decalTexture) {
 // @todo Let textureNameContainer hold either glNames or both arBumpMap
 //       and arTexture nodes, so we are not re-using the same texture
 //       memory for bump and texture maps...
@@ -325,7 +325,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
     bool fDone = false;
     arGuard _(_texturePathLock, "arGraphicsDatabase::addBumpMap");
     for (list<string>::iterator i = _texturePath->begin();
-	 !fDone && i != _texturePath->end(); ++i) {
+         !fDone && i != _texturePath->end(); ++i) {
       const string tmp(*i + buffer);
       ar_stringToBuffer(tmp, fileNameBuffer, sizeof(fileNameBuffer));
       fDone = theBumpMap->readPPM(fileNameBuffer, 1);
@@ -333,12 +333,12 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
     if (!fDone) {
       theBumpMap->dummy();
       if (!_fComplainedPPM) {
-	_fComplainedPPM = true;
-	ar_log_error() << "arGraphicsDatabase: no PPM file '" << buffer << "' in ";
-	if (_texturePath->size() <= 1) {
-	  ar_log_error() << "empty ";
-	}
-	ar_log_error() << "bump path." << ar_endl;
+        _fComplainedPPM = true;
+        ar_log_error() << "arGraphicsDatabase: no PPM file '" << buffer << "' in ";
+        if (_texturePath->size() <= 1) {
+          ar_log_error() << "empty ";
+        }
+        ar_log_error() << "bump path." << ar_endl;
       }
     }
   }
@@ -516,7 +516,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
-	                    (!theMatrix)*currentRay.getDirection()
+                            (!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0, 0, 0)));
   }
   // If this is a bounding sphere, intersect.
@@ -530,7 +530,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
       // intersection
       if (bestDistance < 0 || distance < bestDistance) {
         bestDistance = distance;
-		bestNodeID = node->getID();
+                bestNodeID = node->getID();
       }
     }
   }
@@ -577,7 +577,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
                                     const arBoundingSphere& b,
                                     stack<arMatrix4>& matrixStack,
                                     list<arDatabaseNode*>& nodes,
-				    arDatabaseNode*& bestNode,
+                                    arDatabaseNode*& bestNode,
                                     float& bestDistance,
                                     bool useRef) {
   // If this is a transform node, transform the ray.
@@ -596,20 +596,20 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
       // intersection or containment
       if (bestDistance < 0 || distance < bestDistance) {
         bestDistance = distance;
-	// Keep the best node separate from the list of intersecting nodes.
-	if (bestNode) {
-	  // If there was already a best node, save it.
-	  nodes.push_back(bestNode);
-	}
-	bestNode = node;
+        // Keep the best node separate from the list of intersecting nodes.
+        if (bestNode) {
+          // If there was already a best node, save it.
+          nodes.push_back(bestNode);
+        }
+        bestNode = node;
       }
       else {
-	// Keep the best node separate from the list of intersecting nodes.
-	nodes.push_back(node);
+        // Keep the best node separate from the list of intersecting nodes.
+        nodes.push_back(node);
       }
       if (useRef) {
-	// In either case, add an extra ref to our node.
-	node->ref();
+        // In either case, add an extra ref to our node.
+        node->ref();
       }
     }
   }
@@ -647,7 +647,7 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
     arMatrix4 theMatrix(((arTransformNode*)node)->getTransform());
     arRay currentRay(rayStack.top());
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
-			(!theMatrix)*currentRay.getDirection()
+                        (!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0, 0, 0)));
   }
   // Copypaste "intersect" with 2 previous instances in this file.
@@ -692,7 +692,7 @@ arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
   arGraphicsNode* bestNode = NULL;
   float bestDistance = -1;
   _intersectGeometry((arGraphicsNode*)&_rootNode, &context, rayStack,
-		     excludeBelow, bestNode, bestDistance);
+                     excludeBelow, bestNode, bestDistance);
   return bestNode;
 }
 
@@ -764,7 +764,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
-			(!theMatrix)*currentRay.getDirection()
+                        (!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0, 0, 0)));
   }
 
@@ -775,7 +775,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
     arRay intRay(rayStack.top());
     float distance = intRay.intersect(sphere.radius,
-				      sphere.position);
+                                      sphere.position);
     if (distance < 0) {
       // Must remember to pop the node stack upon leaving this function.
       if (context) {
@@ -800,8 +800,8 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       // system and find the distance.
       arVector3 v(localRay.getDirection());
       if (v.zero()) {
-	ar_log_error() << "arGraphicsDatabase overriding zero ray direction\n";
-	v = arVector3(1, 0, 0);
+        ar_log_error() << "arGraphicsDatabase overriding zero ray direction\n";
+        v = arVector3(1, 0, 0);
       }
       const arVector3 v1(toGlobal * localRay.getOrigin());
       const arVector3 v2(toGlobal * (localRay.getOrigin() +
@@ -916,7 +916,7 @@ arHead* arGraphicsDatabase::getHead() {
 
 // Should only be called from arPerspectiveCamera::receiveData.
 bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
-					arPerspectiveCamera* theCamera) {
+                                        arPerspectiveCamera* theCamera) {
   if (!theCamera) {
     ar_log_error() << "arGraphicsDatabase: no camera pointer.\n";
     return false;
@@ -1064,7 +1064,7 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data) {
     }
     else {
       ar_log_remark() << "arGraphicsDatabase: no viewer node with "
-	              << "ID=" << nodeID << ".\n";
+                      << "ID=" << nodeID << ".\n";
     }
   }
   return &_rootNode;

@@ -14,7 +14,7 @@ arBumpMapNode::arBumpMapNode() {
 }
 
 arStructuredData* arBumpMapNode::dumpData() {
-  int i, currPos = 0;	// this will keep track of where we are in commandBuffer
+  int i, currPos = 0;        // this will keep track of where we are in commandBuffer
   arStructuredData* result = _g->makeDataRecord(_g->AR_BUMPMAP);
   _dumpGenericNode(result, _g->AR_BUMPMAP_ID);
 

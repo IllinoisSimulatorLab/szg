@@ -384,7 +384,7 @@ bool IsenseTracker::GetData( arInputSource* source )
 
     arMatrix4 theTransMatrix;
     if ( m_bSupportsPositionMeasurement ) {
-    	// Rotate the position separately.
+            // Rotate the position separately.
       theTransMatrix =
         ar_translationMatrix(m_conversionMatrix*arVector3(
              c_meterToFoot*stationData->Position[0],
@@ -604,7 +604,7 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   }
   // Tell arInputSource how many we have counted.
   std::cerr << "IntersenseDriver::Totals buttons " << buttonIdx <<
-	  " axes " << axisIdx << " matrices " << sensorIdx << "\n";
+          " axes " << axisIdx << " matrices " << sensorIdx << "\n";
   this->_setDeviceElements( buttonIdx, axisIdx, sensorIdx );
 
   // Print all information to stderr.
@@ -647,9 +647,9 @@ bool arIntersenseDriver::Open( DWORD port )
     m_trackerCnt = 1;
   }
   if ( 0 == m_trackerCnt ) {
-	  std::cerr << "IntersenseDriver::found no trackers." <<
-		  "\n";
-	  return false;
+          std::cerr << "IntersenseDriver::found no trackers." <<
+                  "\n";
+          return false;
   }
   m_tracker = new IsenseTracker[ m_trackerCnt ];
   m_trackerFailed = new bool[ m_trackerCnt ];

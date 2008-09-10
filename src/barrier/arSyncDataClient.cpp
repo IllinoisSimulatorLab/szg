@@ -133,7 +133,7 @@ void arSyncDataClient::_readTask() {
     if (ok && _firstConsumption) {
       // if in sync read mode, request another buffer right away for double-buffering
       if (syncClient() && !_barrierClient.sync()) {
-	ar_log_error() << "_readTask()'s barrier client failed to sync.\n";
+        ar_log_error() << "_readTask()'s barrier client failed to sync.\n";
       }
       _firstConsumption = false;
     }
@@ -148,13 +148,13 @@ void arSyncDataClient::_readTask() {
       if (syncClient()) {
         _swapLock.lock("arSyncDataClient::_readTask sync");
         while (!_bufferSwapReady) {
-	  _bufferSwapCondVar.wait(_swapLock);
+          _bufferSwapCondVar.wait(_swapLock);
         }
         // Buffer swap can occur now.
         _bufferSwapReady = false;
 
-	_stackLock.lock("arSyncDataClient::_readTask stack B");
-	  _receiveStack.push_back(dataStorage);
+        _stackLock.lock("arSyncDataClient::_readTask stack B");
+          _receiveStack.push_back(dataStorage);
         _stackLock.unlock();
         //_backBuffer = 1 - _backBuffer;
 
@@ -388,9 +388,9 @@ void arSyncDataClient::consume() {
 
     _syncServer->_localConsumerReadyLock.lock("arSyncDataClient::consume A");
       if (_syncServer->_localConsumerReady == 2) {
-	// Everything may be stopping.
-	_syncServer->_localConsumerReadyLock.unlock();
-	return;
+        // Everything may be stopping.
+        _syncServer->_localConsumerReadyLock.unlock();
+        return;
       }
       _syncServer->_localConsumerReady = 1;
       _syncServer->_localConsumerReadyVar.signal();
@@ -399,12 +399,12 @@ void arSyncDataClient::consume() {
     // Wait for the data to become ready.
     _syncServer->_localProducerReadyLock.lock("arSyncDataClient::consume B");
       while (!_syncServer->_localProducerReady) {
-	_syncServer->_localProducerReadyVar.wait(_syncServer->_localProducerReadyLock);
+        _syncServer->_localProducerReadyVar.wait(_syncServer->_localProducerReadyLock);
       }
       if (_syncServer->_localProducerReady == 2) {
-	// Everything may be stopping.
-	_syncServer->_localProducerReadyLock.unlock();
-	return;
+        // Everything may be stopping.
+        _syncServer->_localProducerReadyLock.unlock();
+        return;
       }
       _syncServer->_localProducerReady = 0;
     _syncServer->_localProducerReadyLock.unlock();
@@ -458,14 +458,14 @@ void arSyncDataClient::consume() {
       _dataAvailable = 0;
       _swapLock.unlock();
       if (_exitProgram)
-	return;
+        return;
       time2 = ar_time();
       // Copy the current receive stack into the consume stack
       // (if we are synchronized, this will be exactly 1 buffer).
       // Then consume everything.
       _consumeStack.clear();
       if (_exitProgram)
-	return;
+        return;
       _stackLock.lock("arSyncDataClient::consume D");
       list<pair<char*, int> >::iterator iter;
       if (_mode == AR_NOSYNC_CLIENT) {
@@ -478,10 +478,10 @@ void arSyncDataClient::consume() {
         _receiveStack.clear();
       }
       else{
-	// Consume exactly one thing, since in synchronized read mode, AR_SYNC_CLIENT.
-	// But if the arSyncDataServer feeding us was killed by SIGINT
-	// instead of dkill, the connection would be shutting down,
-	// causing _receiveStack.empty().
+        // Consume exactly one thing, since in synchronized read mode, AR_SYNC_CLIENT.
+        // But if the arSyncDataServer feeding us was killed by SIGINT
+        // instead of dkill, the connection would be shutting down,
+        // causing _receiveStack.empty().
         if (!_exitProgram && !_receiveStack.empty()) {
           _consumeStack.push_back(_receiveStack.front());
           _receiveStack.pop_front();
@@ -490,14 +490,14 @@ void arSyncDataClient::consume() {
 
       _stackLock.unlock();
       if (_exitProgram)
-	return;
+        return;
 
 //      list<pair<char*, int> >::const_iterator iter;
       for (iter = _consumeStack.begin(); iter != _consumeStack.end() && !_exitProgram; ++iter) {
         _consumptionCallback(_bondedObject, iter->first);
       }
       if (_exitProgram)
-	return;
+        return;
 
       // move storage from consume stack to storage stack
       _stackLock.lock("arSyncDataClient::consume E");
@@ -509,27 +509,27 @@ void arSyncDataClient::consume() {
       _consumeStack.clear();
       _stackLock.unlock();
       if (_exitProgram)
-	return;
+        return;
 
       //_consumptionCallback(_bondedObject, _data[1 - _backBuffer]);
       time3 = ar_time();
       _actionCallback(_bondedObject);
       time4 = ar_time();
       if (_exitProgram)
-	return;
+        return;
 
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT) {
         if (!_barrierClient.sync()) {
-	  ar_log_error() << "consume()'s barrier client failed to sync.\n";
-	}
+          ar_log_error() << "consume()'s barrier client failed to sync.\n";
+        }
       }
       if (_exitProgram)
-	return;
+        return;
       _postSyncCallback(_bondedObject);
       // Signal that we are ready to swap buffers.
       if (_exitProgram)
-	return;
+        return;
 
       arGuard _(_swapLock, "arSyncDataClient::consume connected");
       _bufferSwapReady = true;
@@ -539,7 +539,7 @@ void arSyncDataClient::consume() {
       _dataAvailable = 0;
       _swapLock.unlock();
       if (_exitProgram)
-	return;
+        return;
       _nullCallback(_bondedObject);
     }
   }

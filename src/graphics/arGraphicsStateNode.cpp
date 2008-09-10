@@ -64,7 +64,7 @@ bool arGraphicsStateNode::isFloatState(const string& stateName) {
 }
 
 bool arGraphicsStateNode::getStateValuesInt(arGraphicsStateValue& value1,
-		                            arGraphicsStateValue& value2) {
+                                            arGraphicsStateValue& value2) {
   arGuard _(_nodeLock, "arGraphicsStateNode::getStateValuesInt");
   if (_isFloatState()) {
     return false;
@@ -140,8 +140,8 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
 }
 
 bool arGraphicsStateNode::setGraphicsStateString( const string& stateName,
-						  const string& value1,
-						  const string& value2) {
+                                                  const string& value1,
+                                                  const string& value2) {
   arGraphicsStateValue v1 = _convertStringToStateValue(value1);
   arGraphicsStateValue v2 = _convertStringToStateValue(value2);
   return setGraphicsStateInt( stateName, v1, v2 );
@@ -227,7 +227,7 @@ string arGraphicsStateNode::_convertStateIDToString(arGraphicsStateID id) {
 }
 
 arGraphicsStateValue arGraphicsStateNode::_convertStringToStateValue(
-						     const string& stateValue) {
+                                                     const string& stateValue) {
   if (stateValue == "false") {
     return AR_G_FALSE;
   }

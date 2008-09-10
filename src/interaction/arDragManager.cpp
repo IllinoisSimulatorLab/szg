@@ -106,9 +106,9 @@ void arDragManager::getActiveDrags( arEffector* eff,
          iter != _draggers.end(); ++iter) {
       arGrabCondition* gc = iter->first;
       if (gc->check( eff )) {
-	// Make sure we don't double up on the grab-conditions/drag-behaviors.
+        // Make sure we don't double up on the grab-conditions/drag-behaviors.
         for (arDragMap_t::iterator iter3 = draggers.begin();
-	     iter3 != draggers.end(); ++iter3) {
+             iter3 != draggers.end(); ++iter3) {
           if (*(iter3->first) == *gc)
             goto LFound;
         }

@@ -27,33 +27,33 @@ arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz) {
   switch (eulerRotationOrder) {
     case AR_XYZ:
       rotMatrix = ar_rotationMatrix(xVec, deg2rad(Rx)) *
-	ar_rotationMatrix(yVec, deg2rad(Ry)) *
-	ar_rotationMatrix(zVec, deg2rad(Rz));
+        ar_rotationMatrix(yVec, deg2rad(Ry)) *
+        ar_rotationMatrix(zVec, deg2rad(Rz));
       break;
     case AR_XZY:
       rotMatrix = ar_rotationMatrix(xVec, deg2rad(Rx)) *
-	ar_rotationMatrix(zVec, deg2rad(Rz)) *
-	ar_rotationMatrix(yVec, deg2rad(Ry));
+        ar_rotationMatrix(zVec, deg2rad(Rz)) *
+        ar_rotationMatrix(yVec, deg2rad(Ry));
       break;
     case AR_YXZ:
       rotMatrix = ar_rotationMatrix(yVec, deg2rad(Ry)) *
-	ar_rotationMatrix(xVec, deg2rad(Rx)) *
-	ar_rotationMatrix(zVec, deg2rad(Rz));
+        ar_rotationMatrix(xVec, deg2rad(Rx)) *
+        ar_rotationMatrix(zVec, deg2rad(Rz));
       break;
     case AR_YZX:
       rotMatrix = ar_rotationMatrix(yVec, deg2rad(Ry)) *
-	ar_rotationMatrix(zVec, deg2rad(Rz)) *
-	ar_rotationMatrix(xVec, deg2rad(Rx));
+        ar_rotationMatrix(zVec, deg2rad(Rz)) *
+        ar_rotationMatrix(xVec, deg2rad(Rx));
       break;
     case AR_ZXY:
       rotMatrix = ar_rotationMatrix(zVec, deg2rad(Rz)) *
-	ar_rotationMatrix(xVec, deg2rad(Rx)) *
-	ar_rotationMatrix(yVec, deg2rad(Ry));
+        ar_rotationMatrix(xVec, deg2rad(Rx)) *
+        ar_rotationMatrix(yVec, deg2rad(Ry));
       break;
     case AR_ZYX:
       rotMatrix = ar_rotationMatrix(zVec, deg2rad(Rz)) *
         ar_rotationMatrix(yVec, deg2rad(Ry)) *
-	ar_rotationMatrix(xVec, deg2rad(Rx));
+        ar_rotationMatrix(xVec, deg2rad(Rx));
       break;
     default:
       cerr << "arHTR warning: no valid rotation order found.\n";
@@ -75,7 +75,7 @@ arMatrix4 arHTR::HTRTransform(htrBasePosition *theBP,
 }
 
 bool arHTR::attachMesh(const string& objectName,
-		       const string& parent) {
+                       const string& parent) {
   arGraphicsNode* n = dgGetNode(parent);
   return n && attachMesh(n, objectName, false);
 }
@@ -92,7 +92,7 @@ bool arHTR::attachMesh(const string& /*baseName*/,
 // @param parent The node to which we will attach the HTR.
 // @param baseName Name of the new object to insert (affects the node names).
 // @param withLines (optional) draw lines for bones -- useful if no geometry will be
-//		     attached to the transform hierarchy
+//                     attached to the transform hierarchy
 bool arHTR::attachMesh(arGraphicsNode* parent,
                        const string& objectName,
                        bool withLines) {
@@ -180,8 +180,8 @@ void arHTR::attachChildNode(arGraphicsNode* parent,
     node->segment->scaleNode = (arTransformNode*)
       node->segment->transformNode->newNode("transform", objectName + tempName + ".bonescale");
     node->segment->scaleNode->setTransform(ar_scaleMatrix(node->boneLength,
-							  node->boneLength,
-							  node->boneLength));
+                                                          node->boneLength,
+                                                          node->boneLength));
     float pointPositions[6] = {0, 0, 0,
                                (boneLengthAxis=='X')?1:0,
                                (boneLengthAxis=='Y')?1:0,
@@ -193,7 +193,7 @@ void arHTR::attachChildNode(arGraphicsNode* parent,
                         (double)rand()/(double)RAND_MAX,
                         (double)rand()/(double)RAND_MAX);
     float colors[8] = {lineColor[0], lineColor[1], lineColor[2], 1,
-		       lineColor[0], lineColor[1], lineColor[2], 1};
+                       lineColor[0], lineColor[1], lineColor[2], 1};
     arColor4Node* color4 = (arColor4Node*) points->newNode("color4", objectName + tempName + ".colors");
     color4->setColor4(2, colors);
     arDrawableNode* drawable = (arDrawableNode*) color4->newNode("drawable", objectName + tempName + ".drawable");
@@ -241,7 +241,7 @@ void arHTR::normalizeModelSize(void) {
 
 // Helper function for normalizeModelSize recursion
 void arHTR::subNormalizeModelSize(arVector3 thePoint, arVector3& minVec,
-				  arVector3& maxVec, htrBasePosition* theBP) {
+                                  arVector3& maxVec, htrBasePosition* theBP) {
   unsigned int i = 0;
   for (int j=0; j<numFrames; j++) {
     arVector3 newPoint = HTRTransform(theBP, theBP->segment->frame[j])*thePoint;
@@ -256,7 +256,7 @@ void arHTR::subNormalizeModelSize(arVector3 thePoint, arVector3& minVec,
   }
   for (i=0; i<theBP->segment->children.size(); i++)
     subNormalizeModelSize(thePoint, minVec, maxVec,
-  		    	    theBP->segment->children[i]->basePosition);
+                                  theBP->segment->children[i]->basePosition);
 }
 
 arMatrix4 arHTR::segmentBaseTransformRelative(int segmentID) {
@@ -276,8 +276,8 @@ bool arHTR::frameValid(htrFrame* f) {
 #define lerpField(w, dst, src1, src2, field) dst->field = lerp(w, src1->field, src2->field)
 
 void arHTR::frameInterpolate(htrFrame* dst,
-			     const htrFrame* src1,
-			     const htrFrame* src2) {
+                             const htrFrame* src1,
+                             const htrFrame* src2) {
   if (!src1 || !src2)
     return;
 
@@ -337,21 +337,21 @@ void arHTR::basicDataSmoothing() {
     for (unsigned j=0; j<segmentData[i]->frame.size(); j++) {
       htrFrame* f = segmentData[i]->frame[j];
       if (!frameValid(f)) {
-	// Find the latest previous valid frame, if any.
-	int prev = j; // could go negative
-	while (prev >= 0 && !frameValid(segmentData[i]->frame[prev]))
-	  --prev;
-	unsigned next = j;
-	// Find the next valid frame, if any.
-	while (next < segmentData[i]->frame.size()
-	       && !frameValid(segmentData[i]->frame[next]))
-	  ++next;
-	htrFrame* interp1 = (prev >= 0) ?
-	  segmentData[i]->frame[prev] : NULL;
-	htrFrame* interp2 = (next < segmentData[i]->frame.size()) ?
-	  segmentData[i]->frame[next] : NULL;
+        // Find the latest previous valid frame, if any.
+        int prev = j; // could go negative
+        while (prev >= 0 && !frameValid(segmentData[i]->frame[prev]))
+          --prev;
+        unsigned next = j;
+        // Find the next valid frame, if any.
+        while (next < segmentData[i]->frame.size()
+               && !frameValid(segmentData[i]->frame[next]))
+          ++next;
+        htrFrame* interp1 = (prev >= 0) ?
+          segmentData[i]->frame[prev] : NULL;
+        htrFrame* interp2 = (next < segmentData[i]->frame.size()) ?
+          segmentData[i]->frame[next] : NULL;
         frameInterpolate(f, interp1, interp2);
-	// Update the matrices.
+        // Update the matrices.
         f->trans = HTRTransform(segmentData[i]->basePosition, f);
         f->totalScale = segmentData[i]->basePosition->boneLength * f->scale;
       }

@@ -54,16 +54,16 @@ int main(int argc, char** argv) {
       szgClient = new arSZGClient;
       szgClient->init(argc, argv);
       if (!*szgClient)
-	return szgClient->failStandalone(fInit);
+        return szgClient->failStandalone(fInit);
 
       szgClient->closeConnection();
       delete szgClient;
     }
     const double totalCon = ar_difftime(ar_time(), contime);
     cout << "Time to get attribute is "
-	 << totalCon/(1000.0*numberCon) << " ms.\n"
-	 << "  Requests per second = "
-	 << (1000000.0*numberCon)/totalCon << "\n";
+         << totalCon/(1000.0*numberCon) << " ms.\n"
+         << "  Requests per second = "
+         << (1000000.0*numberCon)/totalCon << "\n";
     szgClient = new arSZGClient;
     szgClient->init(argc, argv);
     if (!*szgClient)

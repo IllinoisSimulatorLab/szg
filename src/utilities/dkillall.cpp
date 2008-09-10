@@ -30,17 +30,17 @@ int main(int argc, char** argv) {
       int iBuf = 0;
       char szProcess[256];
       while (r[i] != ':' && i < r.length())
-	szProcess[iBuf++] = r[i++];
+        szProcess[iBuf++] = r[i++];
       szProcess[iBuf] = '\0';
 
       // Skip "hostname/szgd/number" lines.
       char* pch = strstr(szProcess, "/szgd/");
       if (pch && strspn(pch+6, "0123456789") == strlen(pch+6))
-	continue;
+        continue;
       // Skip dkillall, i.e. this program itself.
       pch = strstr(szProcess, "/dkillall/");
       if (pch && strspn(pch+10, "0123456789") == strlen(pch+10))
-	continue;
+        continue;
 
       // Extract process id.
       pch = strrchr(szProcess, '/')+1;

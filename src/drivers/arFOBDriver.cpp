@@ -118,7 +118,7 @@ bool arFOBDriver::init(arSZGClient& SZGClient) {
   }
   if (!baudRateFound) {
     ar_log_error() << "arFOBDriver: unexpected SZG_FOB/baud_rate "
-	 << baudRate << ".\n  Try one of:";
+         << baudRate << ".\n  Try one of:";
     for (i=0; i<_nBaudRates; i++)
       ar_log_error() << " " << baudRates[i];
     ar_log_error() << "\n";
@@ -153,8 +153,8 @@ LDefaultBaudRate:
       // Don't laugh.  The version once was repeatedly "111.253" with the
       // RS232 cable unplugged, picking up stray interference.
       ar_log_error() <<
-	"arFoBDriver: Preposterous FoB version " << int(b[0]) << "." << int(b[1]) <<
-	". RS232 unplugged? Wrong SZG_FOB/baud_rate?\n";
+        "arFoBDriver: Preposterous FoB version " << int(b[0]) << "." << int(b[1]) <<
+        ". RS232 unplugged? Wrong SZG_FOB/baud_rate?\n";
       return false;
     }
     ar_log_debug() << "FoB version " << int(b[0]) << "." << int(b[1]) << ".\n";
@@ -211,30 +211,30 @@ LDefaultBaudRate:
     for (i=0; i<14; ++i) {
       const unsigned t = c[i] & 0x3f;
       if (t == 0) {
-	if (c[i] != 0) {
-	  ar_log_error() << "arFOBDriver: flock unit at address " << i+1 <<
-	    " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
-	}
-	continue;
+        if (c[i] != 0) {
+          ar_log_error() << "arFOBDriver: flock unit at address " << i+1 <<
+            " reports fly or run, but neither bird nor transmitter.  Fried unit?\n\n";
+        }
+        continue;
       }
 
       /*
       Each FoB unit in birdConfiguration[] is one of:
-	0: bird
-	1: transmitter
-	2: transmitter AND bird
-	3: extended range transmitter
-	4: extended range transmitter AND bird
+        0: bird
+        1: transmitter
+        2: transmitter AND bird
+        3: extended range transmitter
+        4: extended range transmitter AND bird
       */
       const int u =
-	(t <= 0x08) ? 1 :			// tx
-	(t>=0x11 && t<=0x18) ? 3 :	// ert
-	(t==0x20) ? 0 :			// bird
-	(t>=0x21 && t<=0x28) ? 2 :	// tx and bird
-	(t>=0x31 && t<=0x38) ? 4 :	// ert and bird
-	-1;				// nothing
+        (t <= 0x08) ? 1 :                        // tx
+        (t>=0x11 && t<=0x18) ? 3 :        // ert
+        (t==0x20) ? 0 :                        // bird
+        (t>=0x21 && t<=0x28) ? 2 :        // tx and bird
+        (t>=0x31 && t<=0x38) ? 4 :        // ert and bird
+        -1;                                // nothing
       if (u >= 0) {
-	birdConfiguration[++_numFlockUnits] = u;
+        birdConfiguration[++_numFlockUnits] = u;
       }
     }
   }
@@ -257,21 +257,21 @@ LDefaultBaudRate:
       const int config = birdConfiguration[addr];
       switch (config) {
       default:
-	ar_log_error() << "arFOBDriver: internal error.\n";
-	return false;
+        ar_log_error() << "arFOBDriver: internal error.\n";
+        return false;
       case 0:
-	break;
+        break;
       case 1:
       case 2:
       case 3:
       case 4:
-	if (addrTransmitter > 0) {
-	  ar_log_error() << "arFOBDriver: flock has multiple transmitters.\n";
-	  return false;
-	}
-	addrTransmitter = addr;
-	_extendedRange = config >= 3;
-	break;
+        if (addrTransmitter > 0) {
+          ar_log_error() << "arFOBDriver: flock has multiple transmitters.\n";
+          return false;
+        }
+        addrTransmitter = addr;
+        _extendedRange = config >= 3;
+        break;
       }
       _sensorMap[addr] = config%2==0 ? _numBirds++ : -1;
     }
@@ -283,8 +283,8 @@ LDefaultBaudRate:
 
     if (addrTransmitter != 1) {
       ar_log_error() <<
-	"arFOBDriver's autoconfig requires transmitter to have address 1, not " <<
-	addrTransmitter << ".\n";
+        "arFOBDriver's autoconfig requires transmitter to have address 1, not " <<
+        addrTransmitter << ".\n";
       return false;
     }
 
@@ -305,8 +305,8 @@ LDefaultBaudRate:
   } else {
     for (int addr=1; addr<=_numFlockUnits; ++addr) {
       if (_isBird(addr) && !_setDataMode(addr)) {
-	ar_log_error() << "arFOBDriver failed to set data mode of bird at addr " << addr << ".\n";
-	return false;
+        ar_log_error() << "arFOBDriver failed to set data mode of bird at addr " << addr << ".\n";
+        return false;
       }
     }
   }
@@ -341,8 +341,8 @@ LDefaultBaudRate:
   } else {
     for (int addr=1; addr<=_numFlockUnits; ++addr) {
       if (_isBird(addr) && !_setHemisphere(hemisphere, addr)) {
-	ar_log_error() << "arFOBDriver failed to set hemisphere of bird at addr " << addr << ".\n";
-	return false;
+        ar_log_error() << "arFOBDriver failed to set hemisphere of bird at addr " << addr << ".\n";
+        return false;
       }
     }
 #ifdef AR_USE_LINUX
@@ -415,13 +415,13 @@ void arFOBDriver::_eventloop() {
       }
       // ar_log_debug() << "arFOBDriver polling bird at addr " << addr << " of " << _numFlockUnits << ".\n";
       if (!_getSendNextFrame(addr)) {
-	ar_log_error() << "arFOBDriver got no data from Flock.\n";
-	_stopped = true;
+        ar_log_error() << "arFOBDriver got no data from Flock.\n";
+        _stopped = true;
       }
       if (_stopped) {
-	_eventThreadRunning = false;
-	stop();
-	return;
+        _eventThreadRunning = false;
+        stop();
+        return;
       }
     }
     sendQueue();
@@ -874,8 +874,8 @@ bool arFOBDriver::_getSendNextFrame() {
     for (i=0; i<_numComports; i++) {
       bytesRead = _comPorts[i].ar_read( (char*)_dataBuffer+i*numBytes, numBytes );
       if (bytesRead != numBytes) {
-	ar_log_error() << "arFOBDriver read " << bytesRead <<
-	  " of " << numBytes << " bytes from bird # " << i << ".\n";
+        ar_log_error() << "arFOBDriver read " << bytesRead <<
+          " of " << numBytes << " bytes from bird # " << i << ".\n";
         stop();
         return false;
       }
@@ -887,8 +887,8 @@ bool arFOBDriver::_getSendNextFrame() {
     birdData = (short*) _dataBuffer + i*bytesPerBird;
     for (j=0; j<_dataSize; j++) {
       // Copied & pasted from Ascension code CMDUTIL.C
-  	  *birdData = (short)((((short)(*(unsigned char *) birdData) & 0x7F) |
-				(short)(*((unsigned char *) birdData+1)) << 7)) << 2;
+            *birdData = (short)((((short)(*(unsigned char *) birdData) & 0x7F) |
+                                (short)(*((unsigned char *) birdData+1)) << 7)) << 2;
       _floatData[j] = (float)*birdData++;
     }
     // specific to position+quaternion data mode!!!

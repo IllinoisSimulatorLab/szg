@@ -35,7 +35,7 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   // If this particular graphics state DOES NOT have int values, return
   // false. Otherwise, return true and pack the parameters appropriately.
   bool getStateValuesInt(arGraphicsStateValue& value1,
-			 arGraphicsStateValue& value2);
+                         arGraphicsStateValue& value2);
   // A getter that is more compatible with Python.
   arGraphicsStateValue getStateValueInt(int i);
   string getStateValueString(int i);
@@ -51,7 +51,7 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
                            arGraphicsStateValue value2 = AR_G_FALSE);
   bool setGraphicsStateString(const string& stateName,
                               const string& value1,
-			      const string& value2 = "false");
+                              const string& value2 = "false");
   bool setGraphicsStateFloat(const string& stateName,
                              float stateValueFloat);
 

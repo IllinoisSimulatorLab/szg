@@ -140,11 +140,11 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
                         ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
       int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
       fw->_simPtr->mouseButton(whichButton, whichState,
-			       mouseInfo->getPosX(), mouseInfo->getPosY());
+                               mouseInfo->getPosX(), mouseInfo->getPosY());
     }
     else{
       fw->_simPtr->mousePosition(mouseInfo->getPosX(),
-				 mouseInfo->getPosY());
+                                 mouseInfo->getPosY());
     }
   }
 }
@@ -204,9 +204,9 @@ void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo) {
   switch(windowInfo->getState()) {
   case AR_WINDOW_RESIZE:
     windowManager->setWindowViewport(windowInfo->getWindowID(),
-				     0, 0,
-				     windowInfo->getSizeX(),
-				     windowInfo->getSizeY());
+                                     0, 0,
+                                     windowInfo->getSizeX(),
+                                     windowInfo->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
     // Stop the framework (parameter is meaningless so far, though it does
@@ -361,8 +361,8 @@ void arDistSceneGraphFramework::setViewer() {
 
 void arDistSceneGraphFramework::setPlayer() {
   dsPlayer(_inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID),
-	   _head.getMidEyeOffset(),
-	   _unitSoundConversion);
+           _head.getMidEyeOffset(),
+           _unitSoundConversion);
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {
@@ -600,7 +600,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv) {
       //this arg might need to be removed.
       if (i+1 >= argc) {
         ar_log_error() << "-dsg flag is last in arg list.\n";
-	return false;
+        return false;
       }
 
       // we need to figure out which args these are.
@@ -630,19 +630,19 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv) {
       else if (key == "mode") {
         if (value != "feedback") {
           ar_log_error() << "illegal mode value '" << value << "'.\n";
-	  return false;
-	}
-	_peerMode = value;
+          return false;
+        }
+        _peerMode = value;
       }
       else if (key == "target") {
         _peerTarget = value;
       }
       else if (key == "root") {
-	_remoteRootID = atoi(value.c_str());
+        _remoteRootID = atoi(value.c_str());
       }
       else{
-	ar_log_error() << "arg pair has illegal key '" << key << "'.\n";
-	return false;
+        ar_log_error() << "arg pair has illegal key '" << key << "'.\n";
+        return false;
       }
 
       // if they are parsed, then they should also be erased
@@ -688,10 +688,10 @@ bool arDistSceneGraphFramework::_startStandaloneMode() {
   // with the arGUIXMLParser).
   // Default: non-threaded window manager.
   _wm = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
-			       ar_distSceneGraphGUIKeyboardFunction,
-			       ar_distSceneGraphGUIMouseFunction,
-			       NULL,
-			       false);
+                               ar_distSceneGraphGUIKeyboardFunction,
+                               ar_distSceneGraphGUIMouseFunction,
+                               NULL,
+                               false);
   _wm->setUserData(this);
   // arGraphicsClient is what actually draws and manages the windows.
   _graphicsClient.setWindowManager(_wm);
@@ -843,7 +843,7 @@ bool arDistSceneGraphFramework::_startPhleetMode() {
       }
       // Set up feedback to the remote peer.
       _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0,
-	AR_TRANSIENT_NODE, AR_TRANSIENT_NODE, AR_TRANSIENT_NODE);
+        AR_TRANSIENT_NODE, AR_TRANSIENT_NODE, AR_TRANSIENT_NODE);
     }
   }
 

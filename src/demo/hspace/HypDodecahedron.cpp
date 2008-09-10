@@ -324,7 +324,7 @@ void HypDodecahedron::project4DTo3D(float points3D[N_VERTS*3])
 }
 
 void HypDodecahedron::project4DTo3D(float points3D[N_VERTS*3],
-				    double* theMatrix){
+                                    double* theMatrix){
 
   double transformedPoint[4];
   for(int ii=0;ii<N_VERTS;ii++)

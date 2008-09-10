@@ -303,7 +303,7 @@ int arGUIWindow::beginEventThread( void )
   _creationMutex.lock("arGUIWindow::beginEventThread"); // lock with unlock AND with wait
     while ( !_creationFlag ) {
       if ( !_creationCond.wait( _creationMutex, 5000 ) )
-	return -1;
+        return -1;
     }
   _creationMutex.unlock();
   return 0;
@@ -402,9 +402,9 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
     for (EventIterator eitr = _usableEvents.begin();
          eitr != _usableEvents.end(); eitr++ ) {
       if ( (*eitr)->getDone() == 2 ) {
-	event = *eitr;
-	event->reset( wmEvent );
-	break;
+        event = *eitr;
+        event->reset( wmEvent );
+        break;
       }
     }
     // no usable events found, need to create a new one
@@ -446,8 +446,8 @@ int arGUIWindow::_processWMEvents( void )
           // assumes at least 1 fps
           int uSec = int( USEC / double( _windowConfig.getHz() ) );
           ar_timeval nextFrameTime(
-	    _lastFrameTime.sec,
-	    _lastFrameTime.usec + ( uSec > int(USEC) ? int(USEC) : uSec ) );
+            _lastFrameTime.sec,
+            _lastFrameTime.usec + ( uSec > int(USEC) ? int(USEC) : uSec ) );
 
           // carry the microseconds
           if ( nextFrameTime.usec > 1000000 ) {
@@ -464,7 +464,7 @@ int arGUIWindow::_processWMEvents( void )
             // event to this 'slow' window and move on to 'faster' windows (the
             // wm will wait if either its in singlethreaded mode or the swaps
             // are blocking {both fairly 'normal' modes of operation})
-	    _WMEventsMutex.unlock();
+            _WMEventsMutex.unlock();
             return 0;
             // ar_usleep( 0 );
             // currentTime = ar_time();
@@ -735,8 +735,8 @@ int arGUIWindow::_windowCreation( void )
       // Don't try dispFallback twice.
       if (!strcmp(disp, dispFallback) ||
           !(_windowHandle._dpy = XOpenDisplay(disp = dispFallback))) {
-	ar_log_error() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
-	return -1;
+        ar_log_error() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
+        return -1;
       }
     }
   }

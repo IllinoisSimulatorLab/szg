@@ -52,7 +52,7 @@ bool arTextureNode::receiveData(arStructuredData* inData) {
     _addLocalTexture(inData->getDataInt(_g->AR_TEXTURE_ALPHA),
                   inData->getDataInt(_g->AR_TEXTURE_WIDTH),
                   inData->getDataInt(_g->AR_TEXTURE_HEIGHT),
-		  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
+                  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
   }
   return true;
 }
@@ -125,8 +125,8 @@ arStructuredData* arTextureNode::_dumpData(
     // Raw pixels, not a filename.
     if (!r->dataInString(_g->AR_TEXTURE_FILE, "") ||
         !r->dataIn(_g->AR_TEXTURE_ALPHA, &alpha, AR_INT, 1) ||
-	!r->dataIn(_g->AR_TEXTURE_WIDTH, &width, AR_INT, 1) ||
-	!r->dataIn(_g->AR_TEXTURE_HEIGHT, &height, AR_INT, 1)) {
+        !r->dataIn(_g->AR_TEXTURE_WIDTH, &width, AR_INT, 1) ||
+        !r->dataIn(_g->AR_TEXTURE_HEIGHT, &height, AR_INT, 1)) {
       delete r;
       return NULL;
     }

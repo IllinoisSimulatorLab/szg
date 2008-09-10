@@ -56,27 +56,27 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #if defined _LIB || defined XILINK // static library
-    #define	DLLEXPORT 
-    #define	DLLENTRY __cdecl
+    #define        DLLEXPORT 
+    #define        DLLENTRY __cdecl
     typedef void (* DLL_EP)(void);
-    #define	DLL_EP_PTR __cdecl *
+    #define        DLL_EP_PTR __cdecl *
 #else
 
 #if defined UNDER_RTSS
-    #define	DLLEXPORT __declspec(dllexport)
-    #define	DLLENTRY _stdcall
+    #define        DLLEXPORT __declspec(dllexport)
+    #define        DLLENTRY _stdcall
     typedef void (* DLL_EP)(void);
-    #define	DLL_EP_PTR _stdcall *
+    #define        DLL_EP_PTR _stdcall *
 #elif defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
-    #define	DLLEXPORT __declspec(dllexport)
-    #define	DLLENTRY __cdecl
+    #define        DLLEXPORT __declspec(dllexport)
+    #define        DLLENTRY __cdecl
     typedef void (* DLL_EP)(void);
-    #define	DLL_EP_PTR __cdecl *
+    #define        DLL_EP_PTR __cdecl *
 #else
-    #define	DLLEXPORT
-    #define	DLLENTRY
+    #define        DLLEXPORT
+    #define        DLLENTRY
     typedef void (* DLL_EP)(void);
-    #define	DLL_EP_PTR *
+    #define        DLL_EP_PTR *
 #endif
 #endif
 

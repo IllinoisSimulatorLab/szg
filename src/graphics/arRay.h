@@ -24,14 +24,14 @@ class SZG_CALL arFrustumPlanes {
   float D[6];
 
  private:
-	enum PLANE_INDEX {
-		TOP = 0,
-		BOTTOM,
-		LEFT,
-		RIGHT,
-		NEARP,
-		FARP
-	};
+        enum PLANE_INDEX {
+                TOP = 0,
+                BOTTOM,
+                LEFT,
+                RIGHT,
+                NEARP,
+                FARP
+        };
   void _setFromMatrix( const arMatrix4& matrix );
   void _setCoefficients( PLANE_INDEX i, const float a, const float b, const float c, const float d );
 };

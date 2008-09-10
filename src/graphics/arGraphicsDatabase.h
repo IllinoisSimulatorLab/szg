@@ -113,7 +113,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   arGraphicsLanguage _gfx;
 
-  //GLuint	_normLookupTexture; //unused cruft from graphics/arBumpMap.cpp
+  //GLuint        _normLookupTexture; //unused cruft from graphics/arBumpMap.cpp
 
  protected:
   arLock _texturePathLock; // guards _texturePath
@@ -140,7 +140,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
                   const arBoundingSphere& b,
                   stack<arMatrix4>& matrixStack,
                   list<arDatabaseNode*>& nodes,
-		  arDatabaseNode*& bestNode,
+                  arDatabaseNode*& bestNode,
                   float& bestDistance,
                   bool useRef);
   void _intersectList(arGraphicsNode*, list<int>*, stack<arRay>&);

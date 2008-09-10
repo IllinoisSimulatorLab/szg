@@ -44,7 +44,7 @@ bool arSharedLib::open(const string& sharedLibName, const string& path) {
     libName = ar_fileFind(fileName, "", path);
     if (libName == "NULL") {
       ar_log_error() << "arSharedLib: no shared lib '" << fileName << "' on path '"
-	   << path << "'.\n";
+           << path << "'.\n";
       return false;
     }
   }

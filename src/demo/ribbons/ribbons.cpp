@@ -43,11 +43,11 @@ void stroke::append(const arVector3& v)
       const float steps = ceil(distance / (eraserRadius * .8)); // .8 fudge factor
       const float dt = 1. / steps;
       for (float t=dt; t<1.; t += dt) {
-	const arVector3 vLerp = previous + (t * diff);
-	if ((vLerp - v).magnitude() > resolution) {
-	  // not too close to v
-	  l.push_back(vLerp);
-	}
+        const arVector3 vLerp = previous + (t * diff);
+        if ((vLerp - v).magnitude() > resolution) {
+          // not too close to v
+          l.push_back(vLerp);
+        }
       }
     }
   }
@@ -78,17 +78,17 @@ Lagain:
       // ii needs removing!
 
       if (ii == l.begin()) {
-//							printf("erase head\n");
+//                                                        printf("erase head\n");
         // Just lop it off the beginning.
-	l.erase(ii);
-	goto Lagain;
+        l.erase(ii);
+        goto Lagain;
       }
 
-//							printf("erase nonhead\n");
+//                                                        printf("erase nonhead\n");
       iter iDel = ii++;
       l.erase(iDel);
       if (ii == l.end()) {
-//							printf("      was tail\n");
+//                                                        printf("      was tail\n");
         break;
       }
 
@@ -101,18 +101,18 @@ Lagain:
 //printf("oldlen %d, newlen %d\n", l.size(), t->l.size());
 
       if (i <= 3 /*l.size() <= 3*/) {
-	// mark old stroke for deletion
-//							printf("      prune %d, shortcut %d\n", l.size(), i);
-	l.clear();
+        // mark old stroke for deletion
+//                                                        printf("      prune %d, shortcut %d\n", l.size(), i);
+        l.clear();
       }
 
       if (t->l.size() <= 3) {
-//							printf("      was almost-tail\n");
+//                                                        printf("      was almost-tail\n");
         delete t;
-	break;
+        break;
       }
 
-//							printf("frags += stroke of size %d\n", t->l.size());
+//                                                        printf("frags += stroke of size %d\n", t->l.size());
       fragments.push_back(*t);
 
       // The loop would try to march on in t instead of in s,
@@ -170,7 +170,7 @@ LAgain:
       {
       // No sufficiently unique binormal, so use previous one
       if (i < 3)
-	// Unless there isn't a previous one yet.
+        // Unless there isn't a previous one yet.
         continue;
       bn = bnPrev;
       goto LAgain;
@@ -600,20 +600,20 @@ float parse(GLfloat* buf, GLint size) {
       case GL_DRAW_PIXEL_TOKEN:
       case GL_COPY_PIXEL_TOKEN:
         c -= 7;
-	break;
+        break;
       case GL_LINE_TOKEN:
       case GL_LINE_RESET_TOKEN:
         c -= 14;
-	break;
+        break;
       case GL_PASS_THROUGH_TOKEN:
         c -= 1;
-	break;
+        break;
       default:
         break;
       case GL_POLYGON_TOKEN:
         int nvertices = int(buf[size - c--]);
-	while (nvertices-- > 0)
-	  parseVertex(buf, size, c);
+        while (nvertices-- > 0)
+          parseVertex(buf, size, c);
       break;
     }
   }

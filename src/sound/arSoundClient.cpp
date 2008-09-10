@@ -84,9 +84,9 @@ class dspHRTFCIPIC_state
   int distance;
 
   // circular buffer
-  float rgxFIR[iFIRMax];	// Tidemann's fir_state
-  int iFIR;    			// Tidemann's fir_state_index
-  float xL;			// left channel of input
+  float rgxFIR[iFIRMax];        // Tidemann's fir_state
+  int iFIR;                            // Tidemann's fir_state_index
+  float xL;                        // left channel of input
 
   dspHRTFCIPIC_state() :
     iFIR(0),
@@ -162,9 +162,9 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
 #if 0
       // disabled until datafile reading implemented (see todo's in arSoundClient.cpp)
       for (unsigned m = iFIRMic; m < iFIRMic + iFIRMac; ++m) {
-	yL += dspHRTF.rgxFIR[jFIR] * hrirL[m];
-	yR += dspHRTF.rgxFIR[jFIR] * hrirR[m];
-	--jFIR %= iFIRMax;
+        yL += dspHRTF.rgxFIR[jFIR] * hrirL[m];
+        yR += dspHRTF.rgxFIR[jFIR] * hrirR[m];
+        --jFIR %= iFIRMax;
       }
 #else
       yL = yR = dspHRTF.rgxFIR[jFIR];
@@ -336,10 +336,10 @@ bool arSoundClient::start(arSZGClient& client) {
     // This material is cut-and-pasted from many other locations...
     for (int trials=0; trials < 10; ++trials) {
       if (_dataServer.beginListening(&_dspLanguage)) {
-	client.confirmPorts(serviceName, "sound", 1, &port);
-	_connectionThread.beginThread(ar_soundClientWaveformConnectionTask, this);
-	// We registered the service.
-	_dataServerRegistered = true;
+        client.confirmPorts(serviceName, "sound", 1, &port);
+        _connectionThread.beginThread(ar_soundClientWaveformConnectionTask, this);
+        // We registered the service.
+        _dataServerRegistered = true;
         break;
       }
       ar_log_error() << "failed to listen on brokered port.\n";
@@ -353,7 +353,7 @@ bool arSoundClient::start(arSZGClient& client) {
 }
 
 string arSoundClient::processMessage(const string& type,
-				     const string& body) {
+                                     const string& body) {
   if (type == "szg_sound_stream_info")
     return _processStreamInfo(body);
 

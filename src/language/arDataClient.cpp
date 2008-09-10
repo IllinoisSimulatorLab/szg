@@ -125,7 +125,7 @@ bool arDataClient::_dialUpActivate() {
   if (!_remoteStreamConfig.valid) {
     if (_remoteStreamConfig.refused) {
       ar_log_remark() << _exeName << ": connection got closed.\n"
-	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
+           << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
 
@@ -147,7 +147,7 @@ bool arDataClient::_dialUpActivate() {
   const ARint totalSize = ar_translateInt(sizeBuffer, _remoteStreamConfig);
   if (totalSize<AR_INT_SIZE) {
     ar_log_error() << _exeName << ": dialUp failed to translate dictionary "
-	 << "size.\n";
+         << "size.\n";
     return false;
   }
 

@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
   cout << "Test 1: Checking initial connection process.\n";
   if (!client.dialUp(argv[1], 3000)) {
     cout << "  Test failed. Could not connect. Is TestLanguageServer "
-	 << "running?\n";
+         << "running?\n";
     return 1;
   }
   arTemplateDictionary* theDictionary = client.getDictionary();
@@ -198,27 +198,27 @@ int main(int argc, char** argv) {
   if (guessMbps == 10) {
     if (testData1.size() != 20208) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else if (guessMbps == 100) {
    if (testData1.size() != 200208) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else if (guessMbps == 1000) {
     if (testData1.size() != 2000208) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else{
     cout << "  FAILED: guess of link speed has illegal value ("
-	 << guessMbps << ").\n";
+         << guessMbps << ").\n";
   }
   cout << "  PASSED: 10 records received, each of size "
        << testData1.size() << ", with speed "
@@ -246,27 +246,27 @@ int main(int argc, char** argv) {
   if (guessMbps == 10) {
     if (testData1.size() != 228) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else if (guessMbps == 100) {
    if (testData1.size() != 408) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else if (guessMbps == 1000) {
     if (testData1.size() != 2208) {
       cout << "  FAILED: test data size is wrong (" << testData1.size()
-	   << ").\n";
+           << ").\n";
       exit(1);
     }
   }
   else{
     cout << "  FAILED: guess of link speed has illegal value ("
-	 << guessMbps << ").\n";
+         << guessMbps << ").\n";
   }
   cout << "  PASSED: 10000 records received, each of size "
        << testData1.size() << ", with speed "

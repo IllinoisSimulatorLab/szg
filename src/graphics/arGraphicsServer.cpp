@@ -10,8 +10,8 @@
 #include "arLogStream.h"
 
 bool ar_graphicsServerConnectionCallback(void* server,
-					 arQueuedData*,
-					 list<arSocket*>* socketList) {
+                                         arQueuedData*,
+                                         list<arSocket*>* socketList) {
   return ((arGraphicsServer*)server)->_connectionCallback(socketList);
 }
 
@@ -49,7 +49,7 @@ bool arGraphicsServer::_connectionCallback(list<arSocket*>* socketList) {
 }
 
 arDatabaseNode* ar_graphicsServerMessageCallback(void* server,
-				                 arStructuredData* data) {
+                                                 arStructuredData* data) {
   // NOTE: we do NOT allow node creation ref'ing here.
   // Such is dealt with inside the receiveMessage call of the arSyncDataServer.
   return ((arGraphicsServer*)server)->arGraphicsDatabase::alter(data);
@@ -101,7 +101,7 @@ arDatabaseNode* arGraphicsServer::alter(arStructuredData* theData,
 }
 
 void arGraphicsServer::_recSerialize(arDatabaseNode* pNode,
-				     arStructuredData& nodeData) {
+                                     arStructuredData& nodeData) {
   // This will fail for the root node
   if (fillNodeData(&nodeData, pNode)) {
     _connectionQueue->forceQueueData(&nodeData);

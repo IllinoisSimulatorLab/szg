@@ -275,7 +275,7 @@ int ar_safePipeReadNonBlock(int, char*, int, int) {
   return 0;
 #else
 int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
-		            int timeout) {
+                            int timeout) {
   fd_set rset;
   fd_set wset;
   FD_ZERO(&rset);
@@ -297,7 +297,7 @@ int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
     if (FD_ISSET(pipeID, &rset)) {
       int n = read(pipeID, theData, numBytes);
       if (n<0) {
-	// This is an error, I think
+        // This is an error, I think
         break;
       }
       numBytes -= n;
@@ -455,8 +455,8 @@ void ar_translateField(ARchar* dest, ARint& destPos,
           dest[1] = src[2];
           dest[2] = src[1];
           dest[3] = src[0];
-	  src  += 4;
-	  dest += 4;
+          src  += 4;
+          dest += 4;
         }
         break;
       case 8:
@@ -469,8 +469,8 @@ void ar_translateField(ARchar* dest, ARint& destPos,
           dest[5] = src[2];
           dest[6] = src[1];
           dest[7] = src[0];
-	  src  += 8;
-	  dest += 8;
+          src  += 8;
+          dest += 8;
         }
         break;
     }
@@ -718,7 +718,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len) {
       // NOTE: This is sometimes OK, i.e. if you have to parse a
       // variable-length item list and you give the max. num. items...
       ar_log_debug() << "ar_parseIntString: stream failed during field " <<
-	numValues+1 << " of " << len << " in '" << theString << "'.\n";
+        numValues+1 << " of " << len << " in '" << theString << "'.\n";
       break;
     }
     if (wordString == "NULL") {
@@ -840,7 +840,7 @@ string& ar_pathAddSlash(string& s) {
 
 int arDelimitedString::size() const {
   const unsigned len = length();
-  if (len <= 0)			// empty string
+  if (len <= 0)                        // empty string
     return 0;
   const char* cstr = this->c_str();
   return 1 + std::count( cstr, cstr+len, _delimiter );
@@ -1110,8 +1110,8 @@ bool ar_isDirectory(const char* name) {
 // Returns the first file name of a file that can be opened on
 // <path component>/<subdirectory>/<name>
 string ar_fileFind(const string& name,
-		   const string& subdirectory,
-		   const string& path) {
+                   const string& subdirectory,
+                   const string& path) {
   // First, search the explicitly given path
   FILE* result = NULL;
   int location = 0;
@@ -1160,8 +1160,8 @@ string ar_fileFind(const string& name,
 // Returns the first directory name determined like so:
 // <path component>/<subdirectory>/<name>
 string ar_directoryFind(const string& name,
-		        const string& subdirectory,
-		        const string& path) {
+                        const string& subdirectory,
+                        const string& path) {
   // First, search the explicitly given path
   bool fileExists = false;
   bool isDirectory = false;
@@ -1200,7 +1200,7 @@ FILE* ar_fileOpen(const string& name,
                   const string& subdirectory,
                   const string& path,
                   const string& operation,
-		  const char* warner) {
+                  const char* warner) {
   // Search the path
   FILE* result = NULL;
   int location = 0;

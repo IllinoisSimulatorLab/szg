@@ -22,7 +22,7 @@ class SZG_CALL arIndexNode:public arGraphicsArrayNode{
   vector<int> getIndices();
   void setIndices(vector<int>& indices);
   void setIndices(vector<int>& indices,
-		  vector<int>& IDs);
+                  vector<int>& IDs);
 };
 
 #endif

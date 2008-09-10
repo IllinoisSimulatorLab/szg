@@ -161,7 +161,7 @@ void arGraphicsClient::render(arGUIWindowInfo& wI, arGraphicsWindow& w) {
     // Performance graphs.
     if (_drawFrameworkObjects) {
       for (list<arFrameworkObject*>::iterator i = _frameworkObjects.begin();
-	   i != _frameworkObjects.end(); ++i) {
+           i != _frameworkObjects.end(); ++i) {
         (*i)->drawWithComposition();
       }
     }

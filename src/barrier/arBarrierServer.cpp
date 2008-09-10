@@ -73,7 +73,7 @@ void arBarrierServer::_releaseFunction() {
         ++total;
       if (_totalWaiting >= total && total > 0) {
         _totalWaiting = 0;
-	break;
+        break;
       }
       _waitingCondVar.wait(_waitingLock);
     }

@@ -247,13 +247,13 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
 
     if (useTexture) {
       arTex2Node* tex2Node = (arTex2Node*)
-	materialNode->newNode("tex2", baseName+texCoordModifier+matIDBuf );
+        materialNode->newNode("tex2", baseName+texCoordModifier+matIDBuf );
       tex2Node->setTex2( 3*numTriUsingMaterial, texCoords );
       arTextureNode* textureNode = (arTextureNode*)
-	tex2Node->newNode("texture", baseName+textureModifier+matIDBuf );
+        tex2Node->newNode("texture", baseName+textureModifier+matIDBuf );
       textureNode->setFileName( thisMaterial.map_Kd );
       arDrawableNode* drawableNode = (arDrawableNode*)
-	textureNode->newNode("drawable", baseName+".geometry"+matIDBuf );
+        textureNode->newNode("drawable", baseName+".geometry"+matIDBuf );
       drawableNode->setDrawable( DG_TRIANGLES, numTriUsingMaterial );
     } else {
       arDrawableNode* drawableNode = (arDrawableNode*) materialNode->newNode("drawable", baseName+".geometry"+matIDBuf );
@@ -454,11 +454,11 @@ void arOBJ::_generateNormals() {
   for (i=0; i<_triangle.size(); i++) {
     // no normals
     if (_triangle[i].normals[0] == -1 ||
-	_triangle[i].normals[1] == -1 ||
+        _triangle[i].normals[1] == -1 ||
         _triangle[i].normals[2] == -1) {
       _normal.push_back(
-	(_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
-	(_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]) );
+        (_vertex[_triangle[i].vertices[1]] - _vertex[_triangle[i].vertices[0]]) *
+        (_vertex[_triangle[i].vertices[2]] - _vertex[_triangle[i].vertices[0]]) );
       _normal.back() /= ++_normal.back();
       _triangle[i].normals[0] =
       _triangle[i].normals[1] =
@@ -500,10 +500,10 @@ void arOBJ::_generateNormals() {
     for (j=0; j<sgVertex[i].size()-1; j++) {
       if (sgVertex[i][j] != -1 && _triangle[sgVertex[i][j]].smoothingGroup) {
         arVector3 tempNorm = _normal[_triangle[sgVertex[i][j]].normals[sgVertexNum[i][j]]];
-	for (k=j+1; k<sgVertex[i].size(); k++) {
- 	  if (sgVertex[i][k] != -1 && _triangle[sgVertex[i][j]].smoothingGroup ==
+        for (k=j+1; k<sgVertex[i].size(); k++) {
+           if (sgVertex[i][k] != -1 && _triangle[sgVertex[i][j]].smoothingGroup ==
               _triangle[sgVertex[i][k]].smoothingGroup) {
-      	    if (tempNorm%_normal[_triangle[sgVertex[i][k]].normals[sgVertexNum[i][k]]]>0)
+                  if (tempNorm%_normal[_triangle[sgVertex[i][k]].normals[sgVertexNum[i][k]]]>0)
               tempNorm += _normal[_triangle[sgVertex[i][k]].normals[sgVertexNum[i][k]]];
             else
               tempNorm -= _normal[_triangle[sgVertex[i][k]].normals[sgVertexNum[i][k]]];

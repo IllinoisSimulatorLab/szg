@@ -174,38 +174,38 @@ int arSocket::ar_connect(const char* IPaddress, int port) {
       // Timeout: 30 x 0.1 seconds = 3 seconds.
       int iTry = 30;
       while (--iTry > 0) {
-	FD_ZERO(&s);
-	FD_SET(_socketFD, &s);
-	tv.tv_sec = 0;
-	tv.tv_usec = 100000;
-	const int r = select(1+_socketFD, NULL, &s, NULL, &tv);
-	if (r == -1)
-	  perror("select() failed");
-	else if (r != 0) {
-	  // Writable.
-	  ok = 0;
-	  break;
-	}
+        FD_ZERO(&s);
+        FD_SET(_socketFD, &s);
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
+        const int r = select(1+_socketFD, NULL, &s, NULL, &tv);
+        if (r == -1)
+          perror("select() failed");
+        else if (r != 0) {
+          // Writable.
+          ok = 0;
+          break;
+        }
       }
       if (ok != 0) {
-	// Timed out.  Other end may be absent.
-	ok = -1;
+        // Timed out.  Other end may be absent.
+        ok = -1;
       }
       else {
-	int err = 0;
+        int err = 0;
 #ifdef AR_USE_SGI
 typedef int socklen_t;
 #endif
-	socklen_t errlen = sizeof(err);
-	int foo = getsockopt(_socketFD, SOL_SOCKET, SO_ERROR, &err, &errlen);
-	if (foo != 0)
-	  goto LError;
-	if (err != 0) {
-	  errno = err; // hack
+        socklen_t errlen = sizeof(err);
+        int foo = getsockopt(_socketFD, SOL_SOCKET, SO_ERROR, &err, &errlen);
+        if (foo != 0)
+          goto LError;
+        if (err != 0) {
+          errno = err; // hack
 LError:
-	  perror("arSocket connection worked only partially");
-	  ok = -1;
-	}
+          perror("arSocket connection worked only partially");
+          ok = -1;
+        }
       }
     }
   }
@@ -358,7 +358,7 @@ bool arSocket::writable() const {
 
 int arSocket::ar_write(const char* theData, int numBytes) const {
 #ifndef AR_USE_WIN_32
-	// UNIX code
+        // UNIX code
 
 #ifdef DEBUGGING_BLOCKED_SENDS
 {
@@ -399,12 +399,12 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
     if (fTimeout) {
       const double usecElapsed = ar_difftime(ar_time(), tStart);
       if (usecElapsed > usecTimeout) {
-	// timed out
+        // timed out
         return false;
       }
       if (!readable()) {
         a.sleep();
-	continue;
+        continue;
       }
       a.reset();
     }
@@ -432,12 +432,12 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
     if (fTimeout) {
       const double usecElapsed = ar_difftime(ar_time(), tStart);
       if (usecElapsed > usecTimeout) {
-	// timed out
+        // timed out
         return false;
       }
       if (!writable()) {
         a.sleep();
-	continue;
+        continue;
       }
       a.reset();
     }

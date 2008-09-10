@@ -19,7 +19,7 @@ public:
     //void initTheGL(void);
     SpaceJunk();
     virtual ~SpaceJunk() {}
-		
+                
     /// draw everything
     void drawAll(void);
 

@@ -159,8 +159,8 @@ bool arInteractable::processInteraction( arEffector& effector ) {
       }
       for (arDragMap_t::iterator iter = _activeDrags.begin();
            iter != _activeDrags.end(); iter++) {
-	// The drag behavior updates the interactable's matrix using the
-	// grab condition.
+        // The drag behavior updates the interactable's matrix using the
+        // grab condition.
         iter->second->update( &effector, this, iter->first );
       }
     }

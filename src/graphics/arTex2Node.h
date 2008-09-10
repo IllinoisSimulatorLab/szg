@@ -21,7 +21,7 @@ class SZG_CALL arTex2Node:public arGraphicsArrayNode{
   vector<arVector2> getTex2();
   void setTex2(vector<arVector2>& tex2);
   void setTex2(vector<arVector2>& tex2,
-	       vector<int>& IDs);
+               vector<int>& IDs);
 };
 
 #endif

@@ -86,84 +86,84 @@ SZG_CALL bool dgStateFloat(int nodeID, const string& stateName, float value);
 
 SZG_CALL int dgNormal3(const string& name, const string& parent,
                        int numNormals,
-	               int* IDs, float* normals);
+                       int* IDs, float* normals);
 SZG_CALL bool dgNormal3(int ID, int numNormals, int* IDs, float* normals);
 SZG_CALL int dgNormal3(const string& name, const string& parent,
                        int numNormals,
-	               float* normals);
+                       float* normals);
 SZG_CALL bool dgNormal3(int ID, int numNormals, float* normals);
 
 SZG_CALL int dgColor4(const string& name, const string& parent, int numColors,
-	              int* IDs, float* colors);
+                      int* IDs, float* colors);
 SZG_CALL bool dgColor4(int ID, int numColors, int* IDs, float* colors);
 SZG_CALL int dgColor4(const string& name, const string& parent, int numColors,
-	              float* colors);
+                      float* colors);
 SZG_CALL bool dgColor4(int ID, int numColors, float* colors);
 
 SZG_CALL int dgTex2(const string& name, const string& parent, int numTexcoords,
-	            int* IDs, float* coords);
+                    int* IDs, float* coords);
 SZG_CALL bool dgTex2(int ID, int numTexcoords, int* IDs, float* coords);
 SZG_CALL int dgTex2(const string& name, const string& parent, int numTexcoords,
-	            float* coords);
+                    float* coords);
 SZG_CALL bool dgTex2(int ID, int numTexcoords, float* coords);
 
 SZG_CALL int dgIndex(const string& name, const string& parent, int numIndices,
-	             int* IDs, int* indices);
+                     int* IDs, int* indices);
 SZG_CALL bool dgIndex(int ID, int numIndices, int* IDs, int* indices);
 SZG_CALL int dgIndex(const string& name, const string& parent, int numIndices,
-	             int* indices);
+                     int* indices);
 SZG_CALL bool dgIndex(int ID, int numIndices, int* indices);
 
 SZG_CALL int dgDrawable(const string& name, const string& parent,
-	                int drawableType, int numPrimitives);
+                        int drawableType, int numPrimitives);
 SZG_CALL bool dgDrawable(int ID, int drawableType, int numPrimitives);
 
 SZG_CALL int dgMaterial(const string& name, const string& parent,
                         const arVector3& diffuse,
-	                const arVector3& ambient = arVector3(0.2, 0.2, 0.2),
+                        const arVector3& ambient = arVector3(0.2, 0.2, 0.2),
                         const arVector3& specular = arVector3(0, 0, 0),
                         const arVector3& emissive = arVector3(0, 0, 0),
-	                float exponent = 0.,
+                        float exponent = 0.,
                         float alpha = 1.);
 SZG_CALL bool dgMaterial(int ID, const arVector3& diffuse,
-	                 const arVector3& ambient = arVector3(0.2, 0.2, 0.2),
+                         const arVector3& ambient = arVector3(0.2, 0.2, 0.2),
                          const arVector3& specular = arVector3(0, 0, 0),
                          const arVector3& emissive = arVector3(0, 0, 0),
-	                 float exponent = 0.,
+                         float exponent = 0.,
                          float alpha = 1.);
 
 SZG_CALL int dgLight(const string& name, const string& parent,
-	             int lightID, arVector4 position,
-	             const arVector3& diffuse,
-	             const arVector3& ambient = arVector3(0, 0, 0),
-	             const arVector3& specular = arVector3(1, 1, 1),
-	             const arVector3& attenuate = arVector3(1, 0, 0),
+                     int lightID, arVector4 position,
+                     const arVector3& diffuse,
+                     const arVector3& ambient = arVector3(0, 0, 0),
+                     const arVector3& specular = arVector3(1, 1, 1),
+                     const arVector3& attenuate = arVector3(1, 0, 0),
                      const arVector3& spotDiection = arVector3(0, 0, -1),
-	             float spotCutoff = 180.,
-	             float spotExponent = 0.);
+                     float spotCutoff = 180.,
+                     float spotExponent = 0.);
 
 SZG_CALL bool dgLight(int ID,
-	              int lightID, arVector4 position,
-	              const arVector3& diffuse,
-	              const arVector3& ambient = arVector3(0, 0, 0),
-	              const arVector3& specular = arVector3(1, 1, 1),
-	              const arVector3& attenuate = arVector3(1, 0, 0),
+                      int lightID, arVector4 position,
+                      const arVector3& diffuse,
+                      const arVector3& ambient = arVector3(0, 0, 0),
+                      const arVector3& specular = arVector3(1, 1, 1),
+                      const arVector3& attenuate = arVector3(1, 0, 0),
                       const arVector3& spotDiection = arVector3(0, 0, -1),
-	              float spotCutoff = 180.,
-	              float spotExponent = 0.);
+                      float spotCutoff = 180.,
+                      float spotExponent = 0.);
 
 // Attach a perspective camera to the scene graph.
 SZG_CALL int dgCamera(const string& name, const string& parent,
-	              int cameraID, float leftClip, float rightClip,
-	              float bottomClip, float topClip,
+                      int cameraID, float leftClip, float rightClip,
+                      float bottomClip, float topClip,
                       float nearClip, float farClip,
                       const arVector3& eyePosition = arVector3(0, 0, 0),
                       const arVector3& centerPosition = arVector3(0, 0, -1),
                       const arVector3& upDirection = arVector3(0, 1, 0));
 
 SZG_CALL bool dgCamera(int ID,
-	               int cameraID, float leftClip, float rightClip,
-	               float bottomClip, float topClip,
+                       int cameraID, float leftClip, float rightClip,
+                       float bottomClip, float topClip,
                        float nearClip, float farClip,
                        const arVector3& eyePosition = arVector3(0, 0, 0),
                        const arVector3& centerPosition = arVector3(0, 0, -1),
@@ -171,7 +171,7 @@ SZG_CALL bool dgCamera(int ID,
 
 // Attach a bump map node to the scene graph
 SZG_CALL int dgBumpMap(const string& name, const string& parent,
-	               const string& filename, float height=1.);
+                       const string& filename, float height=1.);
 
 SZG_CALL bool dgBumpMap(int ID, const string& filename, float height=1.);
 

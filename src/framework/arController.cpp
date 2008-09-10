@@ -32,7 +32,7 @@ void arController::setTransform(const arMatrix4& transform) {
   if (_transformID>=0 && _theDatabase != NULL) {
     if (!_transformData) {
       _transformData =
-	_theDatabase->_gfx.makeDataRecord(_theDatabase->_gfx.AR_TRANSFORM);
+        _theDatabase->_gfx.makeDataRecord(_theDatabase->_gfx.AR_TRANSFORM);
     }
     if (!_transformData->dataIn(
            _theDatabase->_gfx.AR_TRANSFORM_ID, &_transformID, AR_INT, 1) ||

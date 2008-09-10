@@ -147,7 +147,7 @@ void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& wi
       rows += i->length() / format.columns;
       // Handle the case where the line isn't a multiple of the column width.
       if (i->length()%format.columns != 0) {
-	++rows;
+        ++rows;
       }
     }
     else{

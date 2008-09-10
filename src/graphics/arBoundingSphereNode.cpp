@@ -39,9 +39,9 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData) {
   arGuard _(_nodeLock, "arBoundingSphereNode::receiveData");
   _boundingSphere.visibility = vis;
   inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
-		  &_boundingSphere.radius, AR_FLOAT, 1);
+                  &_boundingSphere.radius, AR_FLOAT, 1);
   inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
-		  _boundingSphere.position.v, AR_FLOAT, 3);
+                  _boundingSphere.position.v, AR_FLOAT, 3);
   return true;
 }
 

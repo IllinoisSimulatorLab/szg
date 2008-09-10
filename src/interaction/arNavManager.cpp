@@ -69,7 +69,7 @@ bool arNavManager::setTransCondition( char axis,
                                       arInputEventType type,
                                       unsigned index,
                                       float threshold
-				      ) {
+                                      ) {
   const int iAxis = axis - 'x';
   if (iAxis < 0 || iAxis > 2) {
     ar_log_error() << "arNavManager expected axis x y or z, not '" << axis << "'.\n";
@@ -130,7 +130,7 @@ void arNavManager::setRotSpeed( float degPerSec ) {
     _rotSpeeds[i] = degPerSec;
     if (_rotConditions[i].type() != AR_EVENT_GARBAGE) {
       _navObject.setDrag(
-	_rotConditions[i], arNavRotDrag( (char)(i+'x'), degPerSec ) );
+        _rotConditions[i], arNavRotDrag( (char)(i+'x'), degPerSec ) );
     }
   }
 }

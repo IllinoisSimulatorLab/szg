@@ -53,7 +53,7 @@ LUsage:
     const string trigger(szgClient.getAttribute(hostName, "SZG_TRIGGER", "map", ""));
     if (trigger == "NULL") {
       ar_log_critical() << "no SZG_TRIGGER/map for virtual computer '" <<
-	hostName << "'.\n";
+        hostName << "'.\n";
       return 1;
     }
     hostName = trigger;

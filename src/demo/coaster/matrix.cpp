@@ -7,15 +7,15 @@ void init_matrix(rcMatrix *m)
 {
     int i,j;
     for (i=0;i<4;i++)
-	for (j=0;j<4;j++)
-	    m->index[i][j] = (i==j?1:0);
+        for (j=0;j<4;j++)
+            m->index[i][j] = (i==j?1:0);
 }
 
 void init_vector(rcVector *v)
 {
     int i;
     for (i=0;i<3;i++)
-	v->index[i] = 0;
+        v->index[i] = 0;
     v->index[3] = 1;
 }
 
@@ -23,15 +23,15 @@ void copy_vector(rcVector *v1, rcVector *v2)
 {
     int i;
     for (i=0;i<4;i++)
-	v1->index[i] = v2->index[i];
+        v1->index[i] = v2->index[i];
 }
 
 void copy_matrix(rcMatrix *m1, rcMatrix *m2)
 {
     int i,j;
     for (i=0;i<4;i++)
-	for (j=0;j<4;j++)
-	    m1->index[i][j] = m2->index[i][j];
+        for (j=0;j<4;j++)
+            m1->index[i][j] = m2->index[i][j];
 }
 
 void multiply_vector_matrix(rcMatrix *m, rcVector *v)
@@ -40,9 +40,9 @@ void multiply_vector_matrix(rcMatrix *m, rcVector *v)
     rcVector t;
     for (i=0;i<4;i++)
     {
-	t.index[i] = 0;
-	for (j=0;j<4;j++)
-	    t.index[i] += m->index[i][j] * v->index[j];
+        t.index[i] = 0;
+        for (j=0;j<4;j++)
+            t.index[i] += m->index[i][j] * v->index[j];
     }
     copy_vector(v, &t);
 }
@@ -53,9 +53,9 @@ void multiply_matrix_vector(rcMatrix *m, rcVector *v)
     rcVector t;
     for (i=0;i<4;i++)
     {
-	t.index[i] = 0;
-	for (j=0;j<4;j++)
-	    t.index[i] += m->index[j][i] * v->index[j];
+        t.index[i] = 0;
+        for (j=0;j<4;j++)
+            t.index[i] += m->index[j][i] * v->index[j];
     }
     copy_vector(v, &t);
 }
@@ -66,12 +66,12 @@ void multiply_matrix(rcMatrix *m2, rcMatrix *m1)
     rcMatrix m;
     for (i=0;i<4;i++)
     {
-	for (j=0;j<4;j++)
-	{
-	    m.index[i][j] = 0;
-	    for (k=0;k<4;k++)
-		m.index[i][j] += m1->index[i][k]* m2->index[k][j];
-	}
+        for (j=0;j<4;j++)
+        {
+            m.index[i][j] = 0;
+            for (k=0;k<4;k++)
+                m.index[i][j] += m1->index[i][k]* m2->index[k][j];
+        }
     }
     copy_matrix(m2, &m);
 }

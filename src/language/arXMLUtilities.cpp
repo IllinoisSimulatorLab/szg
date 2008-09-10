@@ -87,7 +87,7 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
 // not including it).
 bool ar_getTextUntilEndTag(arTextStream* textStream,
                            const string& endTag,
-			   arBuffer<char>* textBuffer) {
+                           arBuffer<char>* textBuffer) {
   // Start at the beginning of the buffer.
   textBuffer->pushPosition = 0;
   while (true) {

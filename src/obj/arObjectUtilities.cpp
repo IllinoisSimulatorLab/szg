@@ -108,9 +108,9 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
 // \param tangent3 (output) Pointer to array populated with per-vertex tangents
 // \param binormal3 (output) Pointer to array populated with per-vertex binormals
 bool arGenerateLocalFrame(int numVerts, float* vertices, // input
-			  float *normals, float *texCoords,
-			  int numFaces, int *indices,
-			  float* tangent3, float* binormal3) { // output
+                          float *normals, float *texCoords,
+                          int numFaces, int *indices,
+                          float* tangent3, float* binormal3) { // output
   // storage for new values
   arVector3 *duList = new arVector3[numVerts];
   //arVector3 *dvList = new arVector3[numVerts];

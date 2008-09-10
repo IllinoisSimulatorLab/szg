@@ -89,8 +89,8 @@ bool dgViewer( int ID, const arHead& head ) {
 
 #if 0
 bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
-	     const arVector3& eyeDirection, float eyeSpacing,
-	     float nearClip, float farClip, float unitConversion,
+             const arVector3& eyeDirection, float eyeSpacing,
+             float nearClip, float farClip, float unitConversion,
              bool fixedHeadMode ) {
   arDatabaseNode* node = __database->getNode("szg_viewer", false);
   if (!node) {
@@ -368,7 +368,7 @@ bool dgStateFloat( int nodeID, const string& stateName, float value ) {
 }
 
 int dgNormal3(const string& name, const string& parent, int numNormals,
-	      int* IDs, float* normals) {
+              int* IDs, float* normals) {
   arDatabaseNode* node = dgMakeNode(name, parent, "normal3");
   return node && dgNormal3(node->getID(), numNormals, IDs, normals) ?
     node->getID() : -1;
@@ -388,7 +388,7 @@ bool dgNormal3(int ID, int numNormals, int* IDs, float* normals) {
 }
 
 int dgNormal3(const string& name, const string& parent, int numNormals,
-	      float* normals) {
+              float* normals) {
   arDatabaseNode* node = dgMakeNode(name, parent, "normal3");
   return node && dgNormal3(node->getID(), numNormals, normals) ?
     node->getID() : -1;
@@ -413,7 +413,7 @@ bool dgNormal3(int ID, int numNormals, float* normals) {
 // maybe there's something one can do about this eventually!
 
 int dgColor4(const string& name, const string& parent, int numColors,
-	     int* IDs, float* colors) {
+             int* IDs, float* colors) {
   arDatabaseNode* node = dgMakeNode(name, parent, "color4");
   return node && dgColor4(node->getID(), numColors, IDs, colors) ?
     node->getID() : -1;
@@ -433,7 +433,7 @@ bool dgColor4(int ID, int numColors, int* IDs, float* colors) {
 }
 
 int dgColor4(const string& name, const string& parent, int numColors,
-	     float* colors) {
+             float* colors) {
   arDatabaseNode* node = dgMakeNode(name, parent, "color4");
   return node && dgColor4(node->getID(), numColors, colors) ?
     node->getID() : -1;
@@ -454,7 +454,7 @@ bool dgColor4(int ID, int numColors, float* colors) {
 }
 
 int dgTex2(const string& name, const string& parent, int numTexcoords,
-	   int* IDs, float* coords) {
+           int* IDs, float* coords) {
   arDatabaseNode* node = dgMakeNode(name, parent, "tex2");
   return node && dgTex2(node->getID(), numTexcoords, IDs, coords) ?
     node->getID() : -1;
@@ -474,7 +474,7 @@ bool dgTex2(int ID, int numTexcoords, int* IDs, float* coords) {
 }
 
 int dgTex2(const string& name, const string& parent, int numTexcoords,
-	   float* coords) {
+           float* coords) {
   arDatabaseNode* node = dgMakeNode(name, parent, "tex2");
   return node && dgTex2(node->getID(), numTexcoords, coords) ?
     node->getID() : -1;
@@ -495,7 +495,7 @@ bool dgTex2(int ID, int numTexcoords, float* coords) {
 }
 
 int dgIndex(const string& name, const string& parent, int numIndices,
-	    int* IDs, int* indices) {
+            int* IDs, int* indices) {
   arDatabaseNode* node = dgMakeNode(name, parent, "index");
   return node && dgIndex(node->getID(), numIndices, IDs, indices) ?
     node->getID() : -1;
@@ -515,7 +515,7 @@ bool dgIndex(int ID, int numIndices, int* IDs, int* indices) {
 }
 
 int dgIndex(const string& name, const string& parent, int numIndices,
-	    int* indices) {
+            int* indices) {
   arDatabaseNode* node = dgMakeNode(name, parent, "index");
   return node && dgIndex(node->getID(), numIndices, indices) ?
     node->getID() : -1;
@@ -536,7 +536,7 @@ bool dgIndex(int ID, int numIndices, int* indices) {
 }
 
 int dgDrawable(const string& name, const string& parent,
-	       int drawableType, int numPrimitives) {
+               int drawableType, int numPrimitives) {
   arDatabaseNode* node = dgMakeNode(name, parent, "drawable");
   return node && dgDrawable(node->getID(), drawableType, numPrimitives) ?
     node->getID() : -1;
@@ -558,23 +558,23 @@ bool dgDrawable(int ID, int drawableType, int numPrimitives) {
 int dgMaterial(const string& name,
                const string& parent,
                const arVector3& diffuse,
-	       const arVector3& ambient,
+               const arVector3& ambient,
                const arVector3& specular,
                const arVector3& emissive,
-	       float exponent,
+               float exponent,
                float alpha) {
   arDatabaseNode* node = dgMakeNode(name, parent, "material");
   return node && dgMaterial(node->getID(), diffuse, ambient,
-		            specular, emissive, exponent, alpha) ?
+                            specular, emissive, exponent, alpha) ?
     node->getID() : -1;
 }
 
 bool dgMaterial(int ID,
                 const arVector3& diffuse,
-	        const arVector3& ambient,
+                const arVector3& ambient,
                 const arVector3& specular,
                 const arVector3& emissive,
-	        float exponent,
+                float exponent,
                 float alpha) {
   if (ID < 0)
     return false;
@@ -599,10 +599,10 @@ bool dgMaterial(int ID,
 
 int dgLight(const string& name,
             const string& parent,
-	    int lightID,
+            int lightID,
             arVector4 position,
             const arVector3& diffuse,
-	    const arVector3& ambient,
+            const arVector3& ambient,
             const arVector3& specular,
             const arVector3& attenuate,
             const arVector3& spotDirection,
@@ -616,10 +616,10 @@ int dgLight(const string& name,
 }
 
 bool dgLight(int ID,
-	     int lightID,
+             int lightID,
              arVector4 position,
              const arVector3& diffuse,
-	     const arVector3& ambient,
+             const arVector3& ambient,
              const arVector3& specular,
              const arVector3& attenuate,
              const arVector3& spotDirection,
@@ -628,10 +628,10 @@ bool dgLight(int ID,
   if (ID < 0)
     return false;
   const float temp[5] = {spotDirection.v[0],
-		   spotDirection.v[1],
-		   spotDirection.v[2],
-		   spotCutoff,
-		   spotExponent };
+                   spotDirection.v[1],
+                   spotDirection.v[2],
+                   spotCutoff,
+                   spotExponent };
   arStructuredData* data = __database->lightData;
   if (!data->dataIn(__gfx.AR_LIGHT_ID, &ID, AR_INT, 1) ||
       !data->dataIn(__gfx.AR_LIGHT_LIGHT_ID, &lightID, AR_INT, 1) ||
@@ -648,30 +648,30 @@ bool dgLight(int ID,
 }
 
 int dgCamera(const string& name, const string& parent,
-	     int cameraID, float leftClip, float rightClip,
-	     float bottomClip, float topClip, float nearClip, float farClip,
+             int cameraID, float leftClip, float rightClip,
+             float bottomClip, float topClip, float nearClip, float farClip,
              const arVector3& eyePosition,
              const arVector3& centerPosition,
              const arVector3& upDirection) {
   arDatabaseNode* node = dgMakeNode(name, parent, "persp camera");
   return node && dgCamera(node->getID(), cameraID, leftClip,
-		          rightClip, bottomClip, topClip, nearClip, farClip,
-		          eyePosition, centerPosition, upDirection) ?
+                          rightClip, bottomClip, topClip, nearClip, farClip,
+                          eyePosition, centerPosition, upDirection) ?
     node->getID() : -1;
 }
 
 bool dgCamera(int ID,
-	      int cameraID, float leftClip, float rightClip,
-	      float bottomClip, float topClip, float nearClip, float farClip,
+              int cameraID, float leftClip, float rightClip,
+              float bottomClip, float topClip, float nearClip, float farClip,
               const arVector3& eyePosition,
               const arVector3& centerPosition,
               const arVector3& upDirection) {
   if (ID < 0)
     return false;
   float temp1[6] = {leftClip, rightClip, bottomClip, topClip, nearClip,
-		    farClip};
+                    farClip};
   float temp2[9] = {eyePosition.v[0], eyePosition.v[1], eyePosition.v[2],
-		    centerPosition.v[0], centerPosition.v[1],
+                    centerPosition.v[0], centerPosition.v[1],
                     centerPosition.v[2],
                     upDirection.v[0], upDirection.v[1], upDirection.v[2]};
   arStructuredData* data = __database->perspCameraData;
@@ -686,7 +686,7 @@ bool dgCamera(int ID,
 }
 
 int dgBumpMap(const string& name, const string& parent,
-	      const string& filename, float height) {
+              const string& filename, float height) {
   arDatabaseNode* node = dgMakeNode(name, parent, "bump map");
   return node && dgBumpMap(node->getID(), filename, height) ?
     node->getID() : -1;
@@ -795,7 +795,7 @@ int dgPlugin(const string& name,
                std::vector< std::string >& stringData ) {
   arDatabaseNode* node = dgMakeNode(name, parent, "graphics plugin");
   return (node && dgPlugin( node->getID(), fileName, intData, floatData, longData,
-	                    doubleData, stringData )) ?
+                            doubleData, stringData )) ?
     node->getID() : -1;
 }
 

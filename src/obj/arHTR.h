@@ -153,7 +153,7 @@ class SZG_CALL arHTR : public arObject {
     int inverseIDForSegment(int i) { return segmentData[i]->invTransformNode ? segmentData[i]->invTransformNode->getID() : -1; }
     int boundingSphereIDForSegment(int i) { return segmentData[i]->boundingSphereNode ? segmentData[i]->boundingSphereNode->getID() : -1; }
     arMatrix4 segmentBaseTransformRelative(int segmentID);
-    int	numberOfSegment(const string& segmentName);
+    int        numberOfSegment(const string& segmentName);
     arMatrix4 inverseTransformForSegment(int i);
 
   protected:
@@ -167,7 +167,7 @@ class SZG_CALL arHTR : public arObject {
     bool precomputeData(void);
     bool setInvalid();
     void subNormalizeModelSize(arVector3 thePoint, arVector3 &minVec,
-		    	       arVector3 &maxVec, htrBasePosition *theBP);
+                                   arVector3 &maxVec, htrBasePosition *theBP);
     bool frameValid(htrFrame* f);
     void frameInterpolate(htrFrame*, const htrFrame*, const htrFrame*);
     arMatrix4 HTRTransform(htrBasePosition* theBP, htrFrame* theFrame);
@@ -196,8 +196,8 @@ class SZG_CALL arHTR : public arObject {
     vector<htrSegmentData*> segmentData;
 
     int _currentFrame;
-    arVector3 _normCenter;	// middle of the model
-    double _normScaleAmount;	// how much to scale model by to fit in unit sphere
+    arVector3 _normCenter;        // middle of the model
+    double _normScaleAmount;        // how much to scale model by to fit in unit sphere
 };
 
 #endif // __AR_HTR_H

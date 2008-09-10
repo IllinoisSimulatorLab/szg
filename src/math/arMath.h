@@ -29,12 +29,12 @@ inline float roundf(const float x) { return floor(x + 0.5f); }
 
 // For Euler angles.
 enum arAxisOrder {
-	AR_XYZ	= 0x01,
-	AR_XZY	= 0x00,
-	AR_YZX	= 0x11,
-	AR_YXZ	= 0x10,
-	AR_ZXY	= 0x21,
-	AR_ZYX	= 0x20
+        AR_XYZ        = 0x01,
+        AR_XZY        = 0x00,
+        AR_YZX        = 0x11,
+        AR_YXZ        = 0x10,
+        AR_ZXY        = 0x21,
+        AR_ZYX        = 0x20
   };
 
 enum arAxisName {
@@ -211,7 +211,7 @@ class SZG_CALL arMatrix4{
   arMatrix4();
   arMatrix4(const float* const);
   arMatrix4(float, float, float, float, float, float, float, float,
-	          float, float, float, float, float, float, float, float);
+                  float, float, float, float, float, float, float, float);
   ~arMatrix4() {}
 
   arMatrix4 inverse() const;
@@ -411,10 +411,10 @@ SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&, float);
 // returns the relected vector of direction across normal.
 SZG_CALL arVector3 ar_reflect(const arVector3& direction, const arVector3& normal);
 SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
-			               const arVector3& rayDirection,
-			               const arVector3& v1,
-			               const arVector3& v2,
-			               const arVector3& v3);
+                                       const arVector3& rayDirection,
+                                       const arVector3& v1,
+                                       const arVector3& v2,
+                                       const arVector3& v3);
 
 // One more abbreviation, analogous to ar_ET but after ar_extractEulerAngles
 // in this .h file.
@@ -467,9 +467,9 @@ SZG_CALL arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
 
 SZG_CALL arVector3 ar_tileScreenOffset(const arVector3&,
                                        const arVector3&,
-			               float, float, float, int, float, int );
+                                       float, float, float, int, float, int );
 SZG_CALL arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
-			             const arVector3& screenNormal,
+                                     const arVector3& screenNormal,
                                      const arVector3& screenUp,
                                      const float halfWidth,
                                      const float halfHeight,
@@ -586,40 +586,40 @@ inline float operator++(const arVector3& x) {
 // Should also define operator+=
 inline arMatrix4 operator+(const arMatrix4& x, const arMatrix4& y) {
   return arMatrix4(x.v[0]+y.v[0], x.v[4]+y.v[4],
-		   x.v[8]+y.v[8], x.v[12]+y.v[12],
-		   x.v[1]+y.v[1], x.v[5]+y.v[5],
-		   x.v[9]+y.v[9], x.v[13]+y.v[13],
-		   x.v[2]+y.v[2], x.v[6]+y.v[6],
-		   x.v[10]+y.v[10], x.v[14]+y.v[14],
+                   x.v[8]+y.v[8], x.v[12]+y.v[12],
+                   x.v[1]+y.v[1], x.v[5]+y.v[5],
+                   x.v[9]+y.v[9], x.v[13]+y.v[13],
+                   x.v[2]+y.v[2], x.v[6]+y.v[6],
+                   x.v[10]+y.v[10], x.v[14]+y.v[14],
                    x.v[3]+y.v[3], x.v[7]+y.v[7],
-		   x.v[11]+y.v[11], x.v[15]+y.v[15]);
+                   x.v[11]+y.v[11], x.v[15]+y.v[15]);
 }
 
 // Should also define operator-=
 inline arMatrix4 operator-(const arMatrix4& x) {
   return arMatrix4(-x.v[0], -x.v[4], -x.v[8], -x.v[12],
-		   -x.v[1], -x.v[5], -x.v[9], -x.v[13],
-		   -x.v[2], -x.v[6], -x.v[10], -x.v[14],
-		   -x.v[3], -x.v[7], -x.v[11], -x.v[15]);
+                   -x.v[1], -x.v[5], -x.v[9], -x.v[13],
+                   -x.v[2], -x.v[6], -x.v[10], -x.v[14],
+                   -x.v[3], -x.v[7], -x.v[11], -x.v[15]);
 }
 
 // Should also define operator-=
 inline arMatrix4 operator-(const arMatrix4& x, const arMatrix4& y) {
   return arMatrix4(x.v[0]-y.v[0], x.v[4]-y.v[4],
-		   x.v[8]-y.v[8], x.v[12]-y.v[12],
-		   x.v[1]-y.v[1], x.v[5]-y.v[5],
-		   x.v[9]-y.v[9], x.v[13]-y.v[13],
-		   x.v[2]-y.v[2], x.v[6]-y.v[6],
-		   x.v[10]-y.v[10], x.v[14]-y.v[14],
+                   x.v[8]-y.v[8], x.v[12]-y.v[12],
+                   x.v[1]-y.v[1], x.v[5]-y.v[5],
+                   x.v[9]-y.v[9], x.v[13]-y.v[13],
+                   x.v[2]-y.v[2], x.v[6]-y.v[6],
+                   x.v[10]-y.v[10], x.v[14]-y.v[14],
                    x.v[3]-y.v[3], x.v[7]-y.v[7],
-		   x.v[11]-y.v[11], x.v[15]-y.v[15]);
+                   x.v[11]-y.v[11], x.v[15]-y.v[15]);
 }
 
 inline arMatrix4 operator~(const arMatrix4& x) {
   return arMatrix4(x.v[0], x.v[1], x.v[2], x.v[3],
-		   x.v[4], x.v[5], x.v[6], x.v[7],
-		   x.v[8], x.v[9], x.v[10], x.v[11],
-		   x.v[12], x.v[13], x.v[14], x.v[15]);
+                   x.v[4], x.v[5], x.v[6], x.v[7],
+                   x.v[8], x.v[9], x.v[10], x.v[11],
+                   x.v[12], x.v[13], x.v[14], x.v[15]);
 }
 
 //******************************

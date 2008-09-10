@@ -93,8 +93,8 @@ bool arSoundFileNode::_adjust(bool useTrigger) {
 #undef YAKYAKYAK
 #ifdef YAKYAKYAK
       ar_log_critical() << "2D sound, azi " << azi*180./M_PI <<
-	", ele " << ele*180./M_PI <<
-	", dist " << dist << ".\n";
+        ", ele " << ele*180./M_PI <<
+        ", dist " << dist << ".\n";
 #endif
 
       // todo: pass azi, ele, dist to HRTF FIR filter.
@@ -105,9 +105,9 @@ bool arSoundFileNode::_adjust(bool useTrigger) {
       const float pan = x<-r ? -1. : x>r ? 1. : x/r;
       const float aDist = dist<1. ? 1. : 1. / dist; // hack: inverse not inverse square
       ar_log_debug() << "2D sound from " << point << ", pan " << pan <<
-	", ampl " << aDist << ".\n";
+        ", ampl " << aDist << ".\n";
       return ar_fmodcheck( FMOD_Channel_SetVolume( _channel, aRaw * aDist)) &&
-	     ar_fmodcheck( FMOD_Channel_SetPan( _channel, pan));
+             ar_fmodcheck( FMOD_Channel_SetPan( _channel, pan));
     }
   }
 
@@ -131,7 +131,7 @@ bool arSoundFileNode::render() {
     if (!_fComplained[0]) {
       _fComplained[0] = true;
       ar_log_error() << "arSoundFileNode '"
-	   << _name << "' has negative amplitude " << _amplitude << ".\n";
+           << _name << "' has negative amplitude " << _amplitude << ".\n";
     }
   }
   else{
@@ -142,7 +142,7 @@ bool arSoundFileNode::render() {
     if (!_fComplained[1]) {
       _fComplained[1] = true;
       ar_log_error() << "arSoundFileNode '"
-	   << _name << "' has excessive amplitude " << _amplitude << ".\n";
+           << _name << "' has excessive amplitude " << _amplitude << ".\n";
     }
   }
   else{
@@ -201,7 +201,7 @@ ar_log_critical() << "playpaused sound acquired _channel " << _channel << "\n";;
 ar_log_critical() << "gonna play sound " << _fileName << "\n";;
 #endif
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, false, &_channel)))
-	  return false;
+          return false;
       }
 #ifdef YAKYAKYAK
       else
@@ -217,10 +217,10 @@ ar_log_critical() << "played sound " << _fileName << "\n";;
     else if (_action == "pause") {
       if (!_channel) {
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
-	  return false;
+          return false;
       }
       if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, true ))) // redundant, from playSound(_, _, true, _) ?
-	return false;
+        return false;
       _action = "none";
     }
     else if (_action == "trigger") {
@@ -235,31 +235,31 @@ getPosition, getPaused, isPlaying, getCurrentSound...
 #endif
 
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
-	  return false;
+          return false;
 #ifdef YAKYAKYAK
 ar_log_critical() << "triggered sound, new _channel " << _fileName << "\n";;
 #endif
       }
       else{
 
-//	bool fPlaying;
-//	if (!ar_fmodcheck(_channel->isPlaying(&fPlaying))) {
-//	  _channel = NULL;
-//	  return false;
-//	}
+//        bool fPlaying;
+//        if (!ar_fmodcheck(_channel->isPlaying(&fPlaying))) {
+//          _channel = NULL;
+//          return false;
+//        }
 
-	const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
-	if (ok == FMOD_ERR_INVALID_HANDLE || ok == FMOD_ERR_CHANNEL_STOLEN) {
-	  // _channel is invalid, probably because it already stopped playing,
-	  // or because another sound is now playing on that channel.
-	  _channel = NULL;
-	}
-	else if (!ar_fmodcheck(ok)) {
-	  _channel = NULL;
-	  return false;
-	}
+        const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
+        if (ok == FMOD_ERR_INVALID_HANDLE || ok == FMOD_ERR_CHANNEL_STOLEN) {
+          // _channel is invalid, probably because it already stopped playing,
+          // or because another sound is now playing on that channel.
+          _channel = NULL;
+        }
+        else if (!ar_fmodcheck(ok)) {
+          _channel = NULL;
+          return false;
+        }
         if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
-	  return false;
+          return false;
 #ifdef YAKYAKYAK
 ar_log_critical() << "triggered sound, reused _channel " << _fileName << "\n";;
 #endif
@@ -272,7 +272,7 @@ ar_log_critical() << "triggered sound, reused _channel " << _fileName << "\n";;
     }
     else {
       ar_log_error() << "ignoring unexpected sound action " << _action <<
-	" for file '" << _fileName << "'.\n";
+        " for file '" << _fileName << "'.\n";
     }
   }
 #endif

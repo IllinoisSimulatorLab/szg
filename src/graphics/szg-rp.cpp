@@ -220,7 +220,7 @@ string handleList() {
   string s("szg-rp success: peer list:\n");
   for (PeerContainer::const_iterator i = peers.begin(); i != peers.end(); ++i) {
     s += "peer name = " + i->first +
-	 "\ncomment = " + i->second.comment + "\n" +
+         "\ncomment = " + i->second.comment + "\n" +
          i->second.peer->printConnections() + "\n\n";
   }
   return s;
@@ -404,17 +404,17 @@ void display() {
       i->second.peer->motionCull(&cullObject, &globalCamera);
       if (!cullObject.cullChangeOn.empty()) {
         for (list<int>::iterator onIter = cullObject.cullChangeOn.begin();
-	     onIter != cullObject.cullChangeOn.end();
-	     onIter++) {
-	  // Every node's update is requested.
+             onIter != cullObject.cullChangeOn.end();
+             onIter++) {
+          // Every node's update is requested.
           i->second.peer->mappedFilterDataBelow(*onIter, AR_TRANSIENT_NODE);
         }
       }
       if (!cullObject.cullChangeOff.empty()) {
         for (list<int>::iterator offIter = cullObject.cullChangeOff.begin();
-	     offIter != cullObject.cullChangeOff.end();
-	     offIter++) {
-	  // Only the updates to transient nodes are discarded.
+             offIter != cullObject.cullChangeOff.end();
+             offIter++) {
+          // Only the updates to transient nodes are discarded.
           i->second.peer->mappedFilterDataBelow(*offIter, AR_OPTIONAL_NODE);
         }
       }

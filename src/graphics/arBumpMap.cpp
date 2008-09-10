@@ -45,7 +45,7 @@ arBumpMap::~arBumpMap() {
 arBumpMap::arBumpMap( const arBumpMap& rhs ) : arTexture(rhs) {
   _numTBN = rhs._numTBN;
   _bumpHeight = rhs._bumpHeight;
-  if (_numTBN) {	// do we even have data?
+  if (_numTBN) {        // do we even have data?
     if (rhs._tangents) {
       _tangents = new float[_numTBN];
       memcpy(_tangents, rhs._tangents, sizeof(float)*3*_numTBN);
@@ -127,7 +127,7 @@ void arBumpMap::setTBN(int number, float *tangents, float *binorms, float *norms
 }
 
 void arBumpMap::setPIT(int numPts, int numInd, float* points,
-		       int* index, float* tex2) {
+                       int* index, float* tex2) {
   //printf("arBumpMap::setPIT() started\n");
   _numPts = numPts;
   _numInd = numInd;

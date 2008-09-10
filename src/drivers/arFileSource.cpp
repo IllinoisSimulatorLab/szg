@@ -22,39 +22,39 @@ void arFileSource::_eventThread() {
         ARint sig[3];
         data->dataOut("signature", sig, AR_INT, 3);
         if (sig[0] != getNumberButtons() ||
-	    sig[1] != getNumberAxes() ||
-	    sig[2] != getNumberMatrices()) {
-	  ar_log_remark() << "arFileSource changed signature.\n";
-	  _setDeviceElements(sig);
+            sig[1] != getNumberAxes() ||
+            sig[2] != getNumberMatrices()) {
+          ar_log_remark() << "arFileSource changed signature.\n";
+          _setDeviceElements(sig);
           _reconfig();
-	}
+        }
 
         ARint timeInfo[2];
         data->dataOut("timestamp", timeInfo, AR_INT, 2);
         latestTime.sec = timeInfo[0];
-	latestTime.usec = timeInfo[1];
+        latestTime.usec = timeInfo[1];
 
-	if (fNeedCheckpoint) {
+        if (fNeedCheckpoint) {
           fNeedCheckpoint = false;
           lastCheckpoint.sec = timeInfo[0];
-	  lastCheckpoint.usec = timeInfo[1];
-	}
+          lastCheckpoint.usec = timeInfo[1];
+        }
 
-	// Safely send the data.
+        // Safely send the data.
         _sendData(data);
         _parser->recycle(data);
       }
       else {
         // EOF
         _dataStream.ar_close();
-	// Loop by default.
+        // Loop by default.
         ar_usleep(500000);
-	if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)) {
-	  ar_log_error() << "arFileSource failed to reopen '" << _dataFilePath <<
-	    "/" << _dataFileName << "'.\n";
-	  return;
-	}
-	fNeedCheckpoint = true;
+        if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)) {
+          ar_log_error() << "arFileSource failed to reopen '" << _dataFilePath <<
+            "/" << _dataFileName << "'.\n";
+          return;
+        }
+        fNeedCheckpoint = true;
       }
     }
     fNeedCheckpoint = true;

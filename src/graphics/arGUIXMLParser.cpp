@@ -268,8 +268,8 @@ bool arGUIXMLAttributeValueValidator::operator()( const string& valueStr ) {
     return true;
 
   ar_log_error() << "arGUIXMLParser: invalid value '"
-		 << valueStr << "' in " << _nodeName << " attribute.\n"
-		 << "\tLegal values are:";
+                 << valueStr << "' in " << _nodeName << " attribute.\n"
+                 << "\tLegal values are:";
   vector< string >::const_iterator iter;
   for (iter = _valuesVec.begin(); iter != _valuesVec.end(); ++iter) {
     ar_log_error() << " " << *iter;

@@ -147,8 +147,8 @@ LAbort:
       ar_PForthSetSZGClient( &szgClient );
       if (!filter->loadProgram( pforthProgram )) {
         ar_log_critical() << "failed to configure pforth filter with program '" <<
-	  pforthProgram << "'.\n";
-	goto LAbort;
+          pforthProgram << "'.\n";
+        goto LAbort;
       }
       // The input node is not responsible for clean-up
       inputNode.addFilter(filter, false);

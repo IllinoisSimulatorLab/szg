@@ -169,7 +169,7 @@ bool arAppLauncher::setParameters() {
     }
     if (num > 100) {
       ar_log_remark() << "excessive screens for virtual computer " <<
-	_vircomp << ", " << num << ".\n";
+        _vircomp << ", " << num << ".\n";
     }
 
     _pipes.resize(num);
@@ -181,7 +181,7 @@ bool arAppLauncher::setParameters() {
     const arSlashString pipe(_getAttribute(_displayName(i), "map", ""));
     if (pipe.size() != 2 || pipe[1].substr(0, 11) != "SZG_DISPLAY") {
       ar_log_error() << "screen " << i << " of " <<
-	_vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
+        _vircomp << " maps to no (computer, SZG_DISPLAYn) pair.\n";
       return false;
     }
     // Two-stage assignment, because _getRenderContext(i) uses _pipes[i]
@@ -613,12 +613,12 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
         return false;
       }
       if (_szgClient->getLaunchingMessageID()) {
-	_szgClient->messageResponse(_szgClient->getLaunchingMessageID(),
-	  _exeName + string(" remark: ignored launch messages after 20-second timeout.\n",
-	  true));
+        _szgClient->messageResponse(_szgClient->getLaunchingMessageID(),
+          _exeName + string(" remark: ignored launch messages after 20-second timeout.\n",
+          true));
       }
       else {
-	ar_log_remark() << "ignored launch messages after 20-second timeout.\n";
+        ar_log_remark() << "ignored launch messages after 20-second timeout.\n";
       }
       return true;
     }
@@ -658,10 +658,10 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch) {
       }
       else if (successCode == -1) {
         // Got a continuation of this message.
-	initialMessageMatches.remove(match);
+        initialMessageMatches.remove(match);
       }
       else {
-	ar_log_error() << "got an invalid success code.\n";
+        ar_log_error() << "got an invalid success code.\n";
       }
     }
   }

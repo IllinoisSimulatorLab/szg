@@ -115,8 +115,8 @@ bool arInputState::setMatrix( const unsigned iMatrix, const arMatrix4& value) {
 // The arEffector constructor does so, if including
 // info about the signature.  So printing warnings is optional.
 void arInputState::setSignature( const unsigned numButtons,
-				 const unsigned numAxes,
-				 const unsigned numMatrices,
+                                 const unsigned numAxes,
+                                 const unsigned numMatrices,
                                  bool printWarnings) {
   arGuard _(_l, "arInputState::setSignature");
   _setSignature(numButtons, numAxes, numMatrices, printWarnings);

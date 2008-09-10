@@ -241,8 +241,8 @@ void IsenseTracker::_loadAllStationInfo() {
     for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
       if (!iter->getStatus()) {
         _stations.erase(iter);
-	done = false;
-	break;
+        done = false;
+        break;
       }
     }
   }
@@ -573,7 +573,7 @@ ostream& operator<<(ostream& s, const IsenseStation& t) {
                 << "\t" << t.getFirstAuxIndex()
       << "\n\tTotal:\t" << t.getNumButtons()
                 << "\t" << t.getNumAnalogInputs()
-		<< "\t" << t.getNumAuxInputs() << "\n";
+                << "\t" << t.getNumAuxInputs() << "\n";
   return s;
 }
 
@@ -688,7 +688,7 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   }
   // Tell arInputSource how many we have counted.
   ar_log_remark() << "IntersenseDriver::Totals buttons " << buttonIndex <<
-	  " axes " << axisIndex << " matrices " << matrixIndex << "\n";
+          " axes " << axisIndex << " matrices " << matrixIndex << "\n";
   this->_setDeviceElements( buttonIndex, axisIndex, matrixIndex );
 
   ostringstream s;
@@ -725,7 +725,7 @@ bool arIntersenseDriver::_open( DWORD port ) {
     trackerHandle[0] = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
     if ( trackerHandle[0] <= 0 ) {
       ar_log_error() << "arIntersenseDriver failed to open tracker on port " << port <<
-	".\n  (If ISDemo is running, try stopping it).\n";
+        ".\n  (If ISDemo is running, try stopping it).\n";
       return false;
     }
     numTrackers = 1;

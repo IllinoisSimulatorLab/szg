@@ -43,7 +43,7 @@ class SZG_CALL arViewport {
   void setEyeSign(float eyeSign);
   float getEyeSign();
   void setColorMask(GLboolean red, GLboolean green,
-		    GLboolean blue, GLboolean alpha);
+                    GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
   // e.g. GL_BACK_LEFT
   void setDrawBuffer( GLenum buf ) { _oglDrawBuffer = buf; }

@@ -148,7 +148,7 @@ class SZG_CALL arPhleetConnectionBroker{
   void   registerReleaseNotification(int componentID,
                                      int match,
                                      const string& computer,
-				     const string& serviceName);
+                                     const string& serviceName);
   void _removeService(const string& serviceName);
   void removeComponent(int componentID);
   void print() const;

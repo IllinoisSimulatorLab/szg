@@ -203,16 +203,16 @@ LAbort:
                             0,         0,         0,          1);
   // Conjugate with this matrix to change the coordinate system.
   const arMatrix4 switchMatrix(1,  0, 0, 0,
-			       0,  0, 1, 0,
-			       0, -1, 0, 0,
-			       0,  0, 0, 1);
+                               0,  0, 1, 0,
+                               0, -1, 0, 0,
+                               0,  0, 0, 1);
 
   // Transform the translation matrix into syzygy coordinates.
   arVector3 transVector(switchMatrix.inverse() * arVector3(values));
   const arMatrix4 transMatrix(1, 0, 0, transVector[0],
-	                      0, 1, 0, transVector[1],
-	                      0, 0, 1, transVector[2],
-	                      0, 0, 0, 1);
+                              0, 1, 0, transVector[1],
+                              0, 0, 1, transVector[2],
+                              0, 0, 0, 1);
 
   // Invert the matrix reported by the spacepad,
   // because it is intended to be right-multiplied by coordinates.
@@ -355,7 +355,7 @@ int arSpacepadDriver::_get_isa_record(short* rxbuf,
           phaseerror_count = 0;
           return RXERRORS;
         }
-	// If an error occured and we are in STREAM mode, resynch
+        // If an error occured and we are in STREAM mode, resynch
         if (outputmode == ASC_STREAM) {
           phaseerror_count++;
           resynch = TRUE;
@@ -379,7 +379,7 @@ int arSpacepadDriver::_get_isa_record(short* rxbuf,
     else{
       // rxcount > 0, get rest of data from ISA bus, otherwise handle error
       if ((rxword = _waitforword()) >= 0) {
-	// check phase bit
+        // check phase bit
         if (rxword & 0x0001) {
           if (outputmode == ASC_STREAM) {
             phaseerror_count++;
@@ -389,11 +389,11 @@ int arSpacepadDriver::_get_isa_record(short* rxbuf,
           else{
             phaseerror_count = 0;
             return RXPHASEERROR;
-	  }
-	}
+          }
+        }
       }
       else{
-	// handle error
+        // handle error
         if (outputmode == ASC_STREAM) {
           phaseerror_count++;
           resynch = TRUE;

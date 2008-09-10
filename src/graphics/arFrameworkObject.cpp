@@ -20,7 +20,7 @@ arFrameworkObject::arFrameworkObject() {
 // sort of like in sub windows. The coordinates are window-relative (i.e.
 // positive numbers between 0 and 1).
 void arFrameworkObject::preComposition(float lowerX, float lowerY,
-	  			       float widthX, float widthY) {
+                                         float widthX, float widthY) {
   // At least one OpenGL implementation
   // barfs on pushing the lighting bit with glPushAttrib.
   // So do that by hand.

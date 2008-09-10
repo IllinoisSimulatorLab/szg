@@ -165,8 +165,8 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 
         // ConfigureNotify's are passed on both window move's and resize's,
         // it's up to us to figure out which one it was. If x and y are not both
-		// 0 then it must be a move event (this is a quirk of how the XServer reports
-		// events). If window sizes change, then it must be a resize event.
+                // 0 then it must be a move event (this is a quirk of how the XServer reports
+                // events). If window sizes change, then it must be a resize event.
         if ( ( posX != _windowState.getPosX() || posY != _windowState.getPosY() ) &&
             ( posX != 0 || posY != 0 ) ) {
           if ( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
@@ -176,7 +176,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 
 #ifdef AR_USE_DARWIN
         // The Mac OS X xserver is different than the other Unixes with this event. It does not hurt to have
-		// additional resize events (one more for each window move event).
+                // additional resize events (one more for each window move event).
         if (true) {
 #else
         if ( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY() ) {
@@ -693,13 +693,13 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
         case SIZE_RESTORED:
           window->setVisible( true );
           // We need to add an explicit resize event too, so the application
-	  // framework reshape callback will get hit.
+          // framework reshape callback will get hit.
           addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE,
-				     window->getID(), 0,
-				     window->getPosX(),
-				     window->getPosY(),
-				     window->getWidth(),
-				     window->getHeight()) );
+                                     window->getID(), 0,
+                                     window->getPosX(),
+                                     window->getPosY(),
+                                     window->getWidth(),
+                                     window->getHeight()) );
         break;
 
         default:

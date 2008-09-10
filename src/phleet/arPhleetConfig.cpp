@@ -166,7 +166,7 @@ bool arPhleetConfig::print() const {
   cout << "computer = " << _computerName << "\n";
   for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i) {
     cout << "network  = " << i->first << ", " << i->second.address
-	 << "/" << i->second.mask  << "\n";
+         << "/" << i->second.mask  << "\n";
   }
   cout << "ports    = " << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
   return true; // convenience for caller
@@ -257,7 +257,7 @@ void arPhleetConfig::setComputerName(const string& name) {
 // explicitly to save this change to disk). If the interface does
 // not exist, add a pair to the list;  otherwise, alter the address.
 void arPhleetConfig::addInterface(const string& networkName,
-					const string& address,
+                                        const string& address,
                                         const string& netmask) {
   bool result = true; // don't know if it is a duplicate yet
   for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
@@ -283,7 +283,7 @@ void arPhleetConfig::addInterface(const string& networkName,
 // network name/ address does not describe an existing interface and
 // returns true otherwise.
 bool arPhleetConfig::deleteInterface(const string& networkName,
-					   const string& address) {
+                                           const string& address) {
   for (iNet i = _networkList.begin(); i != _networkList.end(); ++i) {
     if (i->first == networkName && i->second.address == address) {
       _networkList.erase(i);
@@ -411,13 +411,13 @@ void arPhleetConfig::_processInterfaceRecord(arStructuredData* data) {
     netmask = "255.255.255.0";
   }
   addInterface(data->getDataString(_l.AR_INTERFACE_NAME),
-	       data->getDataString(_l.AR_INTERFACE_ADDRESS),
+               data->getDataString(_l.AR_INTERFACE_ADDRESS),
                netmask);
 }
 
 void arPhleetConfig::_processPortsRecord(arStructuredData* data) {
   setPortBlock(data->getDataInt(_l.AR_PORTS_FIRST),
-	       data->getDataInt(_l.AR_PORTS_SIZE));
+               data->getDataInt(_l.AR_PORTS_SIZE));
 }
 
 bool arPhleetConfig::_writeName(FILE* output) {

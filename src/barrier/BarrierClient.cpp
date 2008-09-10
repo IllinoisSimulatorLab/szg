@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
       count = 0;
       cout << "Barrier sync averages "
            << ar_difftime(timeNow, timePrev) / float(countMax)
-	   << " usec.\n";
+           << " usec.\n";
       timePrev = ar_time();
     }
   }

@@ -22,7 +22,7 @@ arNodeLevel ar_convertToNodeLevel(int level) {
     return AR_TRANSIENT_NODE;
   default:
     cerr << "arGraphicsPeer error: unexpected integer conversion to "
-	 << "arNodeLevel.\n";
+         << "arNodeLevel.\n";
     return AR_IGNORE_NODE;
   }
 }
@@ -96,7 +96,7 @@ void ar_drawLines(int number, const int* indices,
 
 void ar_drawLineStrip(int number, const int* indices,
                       int numberPos, const float* positions,
-		      const float* colors, float blendFactor) {
+                      const float* colors, float blendFactor) {
   ar_draw01DRaw(GL_LINE_STRIP, 1+number, indices, numberPos, positions,
                 colors, blendFactor);
 }
@@ -105,9 +105,9 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
                          const int* indices, int numberPos, const float* positions,
                          const float* normals, const float* colors, const float* texCoord,
                          float blendFactor
-			 /* , int numCgParams=0,
-			 const CGparameter* cgParams=0,
-			 const float** cgData=0*/ ) {
+                         /* , int numCgParams=0,
+                         const CGparameter* cgParams=0,
+                         const float** cgData=0*/ ) {
   // Vertex array stuff has problems on some
   // boxen (specifically some Win2K w/ Nvidia cards)
 
@@ -198,7 +198,7 @@ void ar_drawTriangles(int number, const int* indices,
                       const float* normals, const float* colors, const float* texCoord,
                       float blendFactor) {
   ar_draw2DRaw(GL_TRIANGLES, 3*number, indices, numberPos, positions, normals,
-	       colors, texCoord, blendFactor);
+               colors, texCoord, blendFactor);
 }
 
 void ar_drawTriangleStrip(int number, const int* indices,
@@ -213,7 +213,7 @@ void ar_drawQuads(int number, const int* indices,
                   int numberPos, const float* positions, const float* normals,
                   const float* colors, const float* texCoord, float blendFactor) {
   ar_draw2DRaw(GL_QUADS, 4*number, indices, numberPos, positions, normals,
-	       colors, texCoord, blendFactor);
+               colors, texCoord, blendFactor);
 }
 
 void ar_drawQuadStrip(int number, const int* indices,
@@ -229,7 +229,7 @@ void ar_drawPolygon(int number, const int* indices,
                     const float* normals, const float* colors, const float* texCoord,
                     float blendFactor) {
   ar_draw2DRaw(GL_POLYGON, number, indices, numberPos, positions, normals,
-	       colors, texCoord, blendFactor);
+               colors, texCoord, blendFactor);
 }
 
 bool ar_openglStereo() {

@@ -20,11 +20,11 @@ class SZG_CALL arBumpMap : public arTexture {
   arBumpMap( const arBumpMap& rhs );
   arBumpMap& operator=( const arBumpMap& rhs );
   bool operator!();
-  void activate();	// initializes bump map in OpenGL (called once at start)
-  void reactivate();	// enables in OpenGL -- NOTE: Unused; deprecated???
-  void deactivate();	// disables in OpenGL
+  void activate();        // initializes bump map in OpenGL (called once at start)
+  void reactivate();        // enables in OpenGL -- NOTE: Unused; deprecated???
+  void deactivate();        // disables in OpenGL
 
-  void generateFrames(int numTBN);	// force-generates TBNs
+  void generateFrames(int numTBN);        // force-generates TBNs
 
   // sets how deep the bump map should be (default is 1)
   void setHeight(float newHeight);
@@ -47,32 +47,32 @@ class SZG_CALL arBumpMap : public arTexture {
 
  private:
   // private functions
-  bool		_loadIntoOpenGL();
-  void		_cgInit();
-  void		_computeFrame();
+  bool                _loadIntoOpenGL();
+  void                _cgInit();
+  void                _computeFrame();
   void          _initMainCg();
 
   // data
-  int		_numTBN;	// size of TBN arrays
-  float		_bumpHeight;	// how deep the bump map is (default: 1)
-  float*	_tangents;	// bump map tangents (along u/s)
-  float*	_binormals;	// bump map binormals (along v/t)
-  float*	_normals;	// bump map normals (TxB; roughly OpenGL normal)
-  float*	_TBN[3];	// pointers to the TBN data (for TBN() )
-  unsigned int	_decalName;	// GL texture ID to pass to Cg
-  arTexture*	_decalTexture;	// underlying color for bump map
+  int                _numTBN;        // size of TBN arrays
+  float                _bumpHeight;        // how deep the bump map is (default: 1)
+  float*        _tangents;        // bump map tangents (along u/s)
+  float*        _binormals;        // bump map binormals (along v/t)
+  float*        _normals;        // bump map normals (TxB; roughly OpenGL normal)
+  float*        _TBN[3];        // pointers to the TBN data (for TBN() )
+  unsigned int        _decalName;        // GL texture ID to pass to Cg
+  arTexture*        _decalTexture;        // underlying color for bump map
 
   // outside data pointers -- NOTE: these could become invalid at any time...
-  int		_numPts;	// size of _points array (& tex2 if no indices)
-  int		_numInd;	// size of _indices array (& tex2 if indices)
-  float*	_points;
-  int*		_indices;
-  float*	_tex2;
+  int                _numPts;        // size of _points array (& tex2 if no indices)
+  int                _numInd;        // size of _indices array (& tex2 if indices)
+  float*        _points;
+  int*                _indices;
+  float*        _tex2;
 
   // flags
-  bool		_fDirtyTex;	// Does texture need to be re-init'ed?
-  bool		_fDirtyCg;	// Does Cg need to be re-init'ed?
-  bool		_fDirtyTBN;	// Does TBN (bases) need to be re-init'ed?
+  bool                _fDirtyTex;        // Does texture need to be re-init'ed?
+  bool                _fDirtyCg;        // Does Cg need to be re-init'ed?
+  bool                _fDirtyTBN;        // Does TBN (bases) need to be re-init'ed?
   bool          _isMainCgInited;
   bool          _isTexParamSet;
 };

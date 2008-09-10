@@ -249,7 +249,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
       break;
     case ' ':
       if (_numRows > 1)
-	++_buttonSelector %= _numRows;
+        ++_buttonSelector %= _numRows;
       break;
     }
     return;

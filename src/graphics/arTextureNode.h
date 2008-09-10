@@ -37,7 +37,7 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   bool _locallyHeldTexture; // _texture is owned by us, not the arGraphicsDatabase store.
 
   arStructuredData* _dumpData(const string& fileName, int alpha,
-			      int width, int height, const char* pixels, bool owned);
+                              int width, int height, const char* pixels, bool owned);
   void _addLocalTexture(int alpha, int width, int height, char* pixels);
 };
 

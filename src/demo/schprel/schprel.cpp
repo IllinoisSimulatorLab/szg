@@ -40,14 +40,14 @@ float       farclip = 1000.;
 
 #define MOVING 1
 #define FROZEN 0
-int	theMode = MOVING;
-bool	movingBackwards = false;
-bool	button0Pressed = false;
+int        theMode = MOVING;
+bool        movingBackwards = false;
+bool        button0Pressed = false;
 
-ARfloat      *selfPosition = NULL;  		// keeps track of our recent movement
-ARfloat      *selfPositionTimes = NULL; 	// time from current index to 0th
-ARfloat      selfRotationAngles[3] = {0}; 	// current rotation (for drawing)
-ARfloat	     selfOffset[3] = {0};
+ARfloat      *selfPosition = NULL;                  // keeps track of our recent movement
+ARfloat      *selfPositionTimes = NULL;         // time from current index to 0th
+ARfloat      selfRotationAngles[3] = {0};         // current rotation (for drawing)
+ARfloat             selfOffset[3] = {0};
 ARfloat      velocity = .9, lightspeed = 2.;
 SchprelScene *scene = NULL;
 SchprelScene *self = NULL;
@@ -100,7 +100,7 @@ void drawBouncyLight(float fps) {
   if (lightspeed < 3.) {
     // only draw if speed of light low enough to make this useful
     bouncyLightPosition = bouncyLightPosition +
-	    bouncyLightDirection*1./fps*lightspeed;
+            bouncyLightDirection*1./fps*lightspeed;
     if (bouncyLightPosition > 3.) { 
       bouncyLightPosition = 6. - bouncyLightPosition;
       bouncyLightDirection *= -1.;
@@ -127,15 +127,15 @@ void updateSelfPosition (const arVector3 &transVec, const arMatrix4 &rotationMat
   if (theMode == MOVING) {
     newTransVec = selfRotationMatrix().inverse()*transVec;
     for (int i=0; i<3; i++)
-      selfOffset[i] += newTransVec[i];	// move Self
+      selfOffset[i] += newTransVec[i];        // move Self
     newTransVec = transVec;
   }
   
   arVector3 tempVec;
   for (int bb=HOW_FAR_BACK-1; bb > 0; bb--) {
     tempVec = arVector3(selfPosition[bb*3-3],// - newTransVec[0],
-	                selfPosition[bb*3-2],// - newTransVec[1],
-	 	        selfPosition[bb*3-1]);// - newTransVec[2]);
+                        selfPosition[bb*3-2],// - newTransVec[1],
+                         selfPosition[bb*3-1]);// - newTransVec[2]);
     tempVec = rotationMatrix*tempVec;
 
     selfPosition[bb*3+0] = tempVec[0] - newTransVec[0];
@@ -182,11 +182,11 @@ void preExchange(arMasterSlaveFramework& fw){
   
   /// Handle Joystick controls ///
   arVector3 wandDirection(ar_extractRotationMatrix(fw.getMatrix(1)) *
-		  	  arVector3(0,0,-1));
+                            arVector3(0,0,-1));
   double forwardSpeed = fw.getAxis(1);
   double barrelRoll = fw.getAxis(0);
   if (fabs(forwardSpeed) < 0.1)
-    forwardSpeed = 0.;		// "dead zone"
+    forwardSpeed = 0.;                // "dead zone"
   else if (forwardSpeed > 0.) {
     forwardSpeed = velocity;
     movingBackwards = false;
@@ -196,7 +196,7 @@ void preExchange(arMasterSlaveFramework& fw){
     movingBackwards = true;
   }
   if (fabs(barrelRoll) < 0.1)
-    barrelRoll = 0.;		// "dead zone"
+    barrelRoll = 0.;                // "dead zone"
 
   /// hold button 1, use 0 and 2 to adjust velocity
   if (fw.getButton(1) < 0.5){
@@ -215,7 +215,7 @@ void preExchange(arMasterSlaveFramework& fw){
 #if 0
   // start/stop moving //
   if (fw.getButton(0)) {
-    if (!button0Pressed) {	// if button was up, now down
+    if (!button0Pressed) {        // if button was up, now down
       theMode = 1 - theMode;
       button0Pressed = true;
     }
@@ -234,12 +234,12 @@ void preExchange(arMasterSlaveFramework& fw){
   if (theMode == MOVING)
     rotVec = ar_extractEulerAngles(fw.getMatrix(1));
 
-  rotVec /= fps*10.;	// make rotation per unit time, not per frame
+  rotVec /= fps*10.;        // make rotation per unit time, not per frame
   
   for (int i=0; i<3; i++) {
-    if (rotVec[i]*rotVec[i] < .0025/fps)	// "dead zone"
+    if (rotVec[i]*rotVec[i] < .0025/fps)        // "dead zone"
       rotVec[i] = 0.;
-    rotVec[i] *= -1.;//(1.-2.*(i%2));	// inverts "y" axis
+    rotVec[i] *= -1.;//(1.-2.*(i%2));        // inverts "y" axis
     selfRotationAngles[i] += rotVec[i]; // adjusted navigation angles
   }
 #endif
@@ -274,8 +274,8 @@ void postExchange(arMasterSlaveFramework& fw) {
   uv.selfPosition = selfPosition;
   uv.selfPositionTimes = selfPositionTimes;
   uv.howFarBack = HOW_FAR_BACK;
-  uv.selfRotation = arMatrix4();	// always pointing forward
-  uv.selfOffset = arVector3(0,0,0);	// no offset yet
+  uv.selfRotation = arMatrix4();        // always pointing forward
+  uv.selfOffset = arVector3(0,0,0);        // no offset yet
   
   self->updateAll( uv);
 
@@ -325,8 +325,8 @@ void draw(arMasterSlaveFramework& fw) {
   glColor3f(.5,1,1);
   char fpsString[64];
   sprintf(fpsString, "FPS: %4.0f, vel: %.3fm/s, c: %.3fm/s, gamma: %.4f, (%s)",
-	  fps, velocity, lightspeed, gamm(velocity, lightspeed),
-	  theMode==MOVING ? "Moving" : "Not Moving");
+          fps, velocity, lightspeed, gamm(velocity, lightspeed),
+          theMode==MOVING ? "Moving" : "Not Moving");
   showRasterString(1,1,fpsString);
 
 #ifdef DEBUGGING_ONLY

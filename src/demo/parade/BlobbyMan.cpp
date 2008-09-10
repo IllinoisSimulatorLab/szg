@@ -56,7 +56,7 @@ void BlobbyMan::initialize(ARfloat shirtColor[3])
                                      dkBrownColor);
   blobs[LEFT_ANKLE] =  new BlobbyNode(identity,
                                 ar_translationMatrix(0.0,0.0,-0.425),
-				     ar_scaleMatrix(0.08),
+                                     ar_scaleMatrix(0.08),
                                      greenColor);
   blobs[LEFT_TIBIA] = new BlobbyNode(identity,
                                 ar_translationMatrix(0.0,0.0,-0.425),
@@ -81,7 +81,7 @@ void BlobbyMan::initialize(ARfloat shirtColor[3])
                                      dkBrownColor);
   blobs[RIGHT_ANKLE] =  new BlobbyNode(identity,
                                 ar_translationMatrix(0.0,0.0,-0.425),
-				     ar_scaleMatrix(0.08),
+                                     ar_scaleMatrix(0.08),
                                      greenColor);
   blobs[RIGHT_TIBIA] = new BlobbyNode(identity,
                                 ar_translationMatrix(0.0,0.0,-0.425),

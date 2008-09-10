@@ -56,27 +56,27 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
   if ( keyInfo->getState() == AR_KEY_DOWN ) {
     switch( keyInfo->getKey() ) {
       case AR_VK_ESC:
-	// Don't block until the display thread is done.
-	// Block on everything else.
-	// Call exit() in the display thread rather than here.
-	fw->stop( false );
-	break;
+        // Don't block until the display thread is done.
+        // Block on everything else.
+        // Call exit() in the display thread rather than here.
+        fw->stop( false );
+        break;
       case AR_VK_f:
         fw->_wm->fullscreenWindow( keyInfo->getWindowID() );
-	break;
+        break;
       case AR_VK_F:
         fw->_wm->resizeWindow( keyInfo->getWindowID(), 600, 600 );
-	break;
+        break;
       case AR_VK_P:
         fw->_showPerformance = !fw->_showPerformance;
-	break;
+        break;
       case AR_VK_S:
         fw->_showSimulator = !fw->_showSimulator;
-	break;
+        break;
       case AR_VK_t:
         ar_log_critical() << "arMasterSlaveFramework frame time = " <<
-	  fw->_lastFrameTime << " msec\n";
-	break;
+          fw->_lastFrameTime << " msec\n";
+        break;
     }
 
     if ( fw->_standalone && fw->_standaloneControlMode == "simulator" ) {
@@ -854,7 +854,7 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
           break;
         case AR_WINDOW_RESIZE:
           fw->_wm->setWindowViewport(
-	    wI->getWindowID(), 0, 0, wI->getSizeX(), wI->getSizeY() );
+            wI->getWindowID(), 0, 0, wI->getSizeX(), wI->getSizeY() );
           break;
 
         case AR_WINDOW_CLOSE:
@@ -1226,10 +1226,10 @@ bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
 
 
 bool arMasterSlaveFramework::_addTransferField( const string& fieldName,
-						void* data,
-						const arDataType dataType,
-						const int size,
-						arTransferFieldData& fields) {
+                                                void* data,
+                                                const arDataType dataType,
+                                                const int size,
+                                                arTransferFieldData& fields) {
   if ( _startCalled ) {
     ar_log_error() << "ignoring addTransferField() after start().\n";
     return false;
@@ -1266,7 +1266,7 @@ bool arMasterSlaveFramework::addTransferField( const string& fieldName,
 
 bool arMasterSlaveFramework::addInternalTransferField( const string& fieldName,
                                                        const arDataType dataType,
-						       const unsigned size ) {
+                                                       const unsigned size ) {
 
   return _addTransferField(fieldName, ar_allocateBuffer(dataType, size), dataType,
     size, _internalTransferFieldData);
@@ -1411,8 +1411,8 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
   char* buf = new char[ _screenshotWidth * _screenshotHeight * 3];
   glReadBuffer( stereo ? GL_FRONT_LEFT : GL_FRONT );
   glReadPixels( _screenshotStartX, _screenshotStartY,
-		_screenshotWidth, _screenshotHeight,
-		GL_RGB, GL_UNSIGNED_BYTE, buf );
+                _screenshotWidth, _screenshotHeight,
+                GL_RGB, GL_UNSIGNED_BYTE, buf );
 
   // todo: constructor next two lines
   arTexture texture;
@@ -2047,7 +2047,7 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
     int graphicsID = -1;
     if ( !_SZGClient.getLock( screenLock, graphicsID ) ) {
       return _startrespond( "failed to get screen resource held by component " +
-	ar_intToString(graphicsID) + ".\n(dkill that component to proceed.)" );
+        ar_intToString(graphicsID) + ".\n(dkill that component to proceed.)" );
     }
   }
 
@@ -2253,11 +2253,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
         if ( messageBody != "NULL" ) {
           int tmp[ 4 ];
           ar_parseIntString( messageBody, tmp, 4 );
-	  // todo: error checking
+          // todo: error checking
           _screenshotStartX = tmp[ 0 ];
-      	  _screenshotStartY = tmp[ 1 ];
-      	  _screenshotWidth  = tmp[ 2 ];
-      	  _screenshotHeight = tmp[ 3 ];
+                _screenshotStartY = tmp[ 1 ];
+                _screenshotWidth  = tmp[ 2 ];
+                _screenshotHeight = tmp[ 3 ];
         }
         _SZGClient.messageResponse( messageID, getLabel()+" took screenshot." );
       }
@@ -2395,7 +2395,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _connectionThreadRunning = true;
 
       ar_log_remark() << "slave connecting to "
-	              << result.address << ":" << result.portIDs[0] << ".\n";
+                      << result.address << ":" << result.portIDs[0] << ".\n";
 
       if ( !result.valid ||
           !_stateClient.dialUpFallThrough( result.address, result.portIDs[ 0 ] ) ) {

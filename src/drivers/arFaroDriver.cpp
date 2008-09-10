@@ -187,8 +187,8 @@ bool arFaroDriver::_getSendData() {
   // by to get the tip position, but the probe orientation comes out in a
   // different coordinate system from that of its position...
   arMatrix4 rotMatrix( ar_rotationMatrix('z', angles[0])
-		     * ar_rotationMatrix('x', angles[1])
-		     * ar_rotationMatrix('z', angles[2]) );
+                     * ar_rotationMatrix('x', angles[1])
+                     * ar_rotationMatrix('z', angles[2]) );
 //    arMatrix4 rotMatrix( ar_rotationMatrix('z', -angles[2])
 //                       * ar_rotationMatrix('x', -angles[1])
 //                       * ar_rotationMatrix('z', -angles[0]) );

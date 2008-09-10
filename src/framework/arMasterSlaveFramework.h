@@ -246,8 +246,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // need to set it after the constructor.  So it's not declared const.
   bool    _master;
   bool    _stateClientConnected;    // Used only if !_master.
-  bool    _inputActive;	            // Set by master's start().
-  bool    _soundActive;	            // Set by master's start().
+  bool    _inputActive;                    // Set by master's start().
+  bool    _soundActive;                    // Set by master's start().
   // Storage for the arDataServer/arDataClient's messaging.
   ARchar* _inBuffer;
   ARint   _inBufferSize;

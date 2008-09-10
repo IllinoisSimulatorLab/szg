@@ -127,13 +127,13 @@ void SharkPilot(fishRec * fish, const arMatrix4& headMatrix, bool attackViewer)
         fish->attack = 1;
     } else if (fabs(tpsi - fish->psi) < 45.0) {
         if (fish->psi > tpsi) {
-	  //            fish->psi -= 0.5;
+          //            fish->psi -= 0.5;
             fish->psi -= 0.1;
             if (fish->psi < -180.0) {
                 fish->psi += 360.0;
             }
         } else if (fish->psi < tpsi) {
-	  //            fish->psi += 0.5;
+          //            fish->psi += 0.5;
             fish->psi += 0.1;
             if (fish->psi > 180.0) {
                 fish->psi -= 360.0;

@@ -82,10 +82,10 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       // Truncate based on array sizes. A point set draws howMany vertices.
       howMany = howMany <= maxNumber ? howMany : maxNumber;
       ar_drawPoints(howMany,
-		    (const int*) (iNode ? iNode->getBuffer() : NULL),
-		    numberPos,
-		    (const float*) (pNode ? pNode->getBuffer() : NULL),
-		    (const float*) (cNode ? cNode->getBuffer(): NULL), blendFactor);
+                    (const int*) (iNode ? iNode->getBuffer() : NULL),
+                    numberPos,
+                    (const float*) (pNode ? pNode->getBuffer() : NULL),
+                    (const float*) (cNode ? cNode->getBuffer(): NULL), blendFactor);
     }
     break;
   case DG_LINES:
@@ -94,10 +94,10 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       // howMany = number of lines.
       howMany = howMany <= maxNumber/2 ? howMany : maxNumber/2;
       ar_drawLines(howMany,
-		   (const int*) (iNode ? iNode->getBuffer() : NULL),
+                   (const int*) (iNode ? iNode->getBuffer() : NULL),
                    numberPos,
-		   (const float*) (pNode ? pNode->getBuffer() : NULL),
-		   (const float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
+                   (const float*) (pNode ? pNode->getBuffer() : NULL),
+                   (const float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
     }
     break;
   case DG_LINE_STRIP:
@@ -106,10 +106,10 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       // howMany = number of lines.
       howMany = howMany <= maxNumber-1 ? howMany : maxNumber-1;
       ar_drawLineStrip(howMany,
-		       (const int*) (iNode ? iNode->getBuffer() : NULL),
+                       (const int*) (iNode ? iNode->getBuffer() : NULL),
                        numberPos,
-		       (const float*) (pNode ? pNode->getBuffer() : NULL),
-		       (const float*) (cNode ? cNode->getBuffer() : NULL),
+                       (const float*) (pNode ? pNode->getBuffer() : NULL),
+                       (const float*) (cNode ? cNode->getBuffer() : NULL),
                        blendFactor);
     }
     break;
@@ -121,7 +121,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       // A failed experiment with CG code once was here.
       ar_drawTriangles(howMany,
                        (const int*) (iNode ? iNode->getBuffer() : NULL),
-		       numberPos,
+                       numberPos,
                        (const float*) (pNode ? pNode->getBuffer() : NULL),
                        (const float*) (nNode ? nNode->getBuffer() : NULL),
                        (const float*) (cNode ? cNode->getBuffer() : NULL),
@@ -136,7 +136,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       howMany = howMany <= maxNumber-2 ? howMany : maxNumber-2;
       ar_drawTriangleStrip(howMany,
                            (const int*) (iNode ? iNode->getBuffer() : NULL),
-			   numberPos,
+                           numberPos,
                            (const float*) (pNode ? pNode->getBuffer(): NULL),
                            (const float*) (nNode ? nNode->getBuffer() : NULL),
                            (const float*) (cNode ? cNode->getBuffer() : NULL),
@@ -151,7 +151,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       howMany = howMany <= maxNumber/4 ? howMany : maxNumber/4;
       ar_drawQuads(howMany,
                    (const int*) (iNode ? iNode->getBuffer() : NULL),
-		   numberPos,
+                   numberPos,
                    (const float*) (pNode ? pNode->getBuffer() : NULL),
                    (const float*) (nNode ? nNode->getBuffer() : NULL),
                    (const float*) (cNode ? cNode->getBuffer() : NULL),
@@ -166,7 +166,7 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       howMany = howMany <= maxNumber/2 - 1 ? howMany : maxNumber/2 - 1;
       ar_drawQuadStrip(howMany,
                        (const int*) (iNode ? iNode->getBuffer() : NULL),
-		       numberPos,
+                       numberPos,
                        (const float*) (pNode ? pNode->getBuffer() : NULL),
                        (const float*) (nNode ? nNode->getBuffer() : NULL),
                        (const float*) (cNode ? cNode->getBuffer() : NULL),
@@ -180,12 +180,12 @@ void arDrawableNode::draw(arGraphicsContext* context) {
       howMany = howMany <= maxNumber ? howMany : maxNumber;
       ar_drawPolygon(howMany,
                      (const int*) (iNode ? iNode->getBuffer() : NULL),
-		     numberPos,
+                     numberPos,
                      (const float*) (pNode ? pNode->getBuffer() : NULL),
                      (const float*) (nNode ? nNode->getBuffer() : NULL),
                      (const float*) (cNode ? cNode->getBuffer() : NULL),
                      (const float*) (t2Node ? t2Node->getBuffer() : NULL),
-		     blendFactor);
+                     blendFactor);
     }
     break;
   default:
@@ -258,7 +258,7 @@ arStructuredData* arDrawableNode::_dumpData(int type, int number, bool owned) {
 }
 
 bool arDrawableNode::_0DPreDraw(arGraphicsNode* pointsNode,
-				arGraphicsContext* context,
+                                arGraphicsContext* context,
                                 float& blendFactor) {
   if (!pointsNode) {
     return false;

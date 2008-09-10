@@ -68,9 +68,9 @@ arMatrix4::arMatrix4(const float* const matrixRef) {
 }
 
 arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
-		    float v1, float v5, float v9, float v13,
-		    float v2, float v6, float v10, float v14,
-		    float v3, float v7, float v11, float v15) {
+                    float v1, float v5, float v9, float v13,
+                    float v2, float v6, float v10, float v14,
+                    float v3, float v7, float v11, float v15) {
   v[0] = v0; v[1] = v1; v[2] = v2; v[3] = v3;
   v[4] = v4; v[5] = v5; v[6] = v6; v[7] = v7;
   v[8] = v8; v[9] = v9; v[10] = v10; v[11] = v11;
@@ -97,8 +97,8 @@ arMatrix4 arMatrix4::inverse() const {
       int which = i+1;
       while (which<4) {
         if (fabs(buffer[which][i]) != 0)
-	  break;
-	++which;
+          break;
+        ++which;
       }
       if (which==4) {
         // singular
@@ -122,7 +122,7 @@ arMatrix4 arMatrix4::inverse() const {
         const float scale = buffer[k][i];
         for (j=0; j<8; j++) {
           buffer[k][j] -= scale*buffer[i][j];
-	}
+        }
       }
     }
   }
@@ -166,7 +166,7 @@ arMatrix4::operator arQuaternion() const {
                          (v[1]-v[4])*scale );
   }
 
-  if ((v[0]>v[5])&&(v[0]>v[10]))  {	// Column 0:
+  if ((v[0]>v[5])&&(v[0]>v[10]))  {        // Column 0:
     if (1.+v[0]-v[5]-v[10] <= 0) {
       // Error.
       return arQuaternion(0, 0, 0, 1);
@@ -178,7 +178,7 @@ arMatrix4::operator arQuaternion() const {
                           (v[8]+v[2])*scale );
   }
 
-  if ( v[5] > v[10] ) {			// Column 1:
+  if ( v[5] > v[10] ) {                        // Column 1:
     if (1.+v[5]-v[0]-v[10] <= 0) {
       // Error
       return arQuaternion(0, 0, 0, 1);
@@ -443,10 +443,10 @@ arMatrix4 ar_rotationMatrix(const arVector3& a, float radians) {
   const arVector3 rotY(q*arVector3(0, 1, 0));
   const arVector3 rotZ(q*arVector3(0, 0, 1));
   return arMatrix4(
-		   rotX.v[0], rotY.v[0], rotZ.v[0], 0,
-		   rotX.v[1], rotY.v[1], rotZ.v[1], 0,
-		   rotX.v[2], rotY.v[2], rotZ.v[2], 0,
-		   0, 0, 0, 1);
+                   rotX.v[0], rotY.v[0], rotZ.v[0], 0,
+                   rotX.v[1], rotY.v[1], rotZ.v[1], 0,
+                   rotX.v[2], rotY.v[2], rotZ.v[2], 0,
+                   0, 0, 0, 1);
 }
 
 arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orientation) {
@@ -545,10 +545,10 @@ arVector3 ar_reflect(const arVector3& direction, const arVector3& normal) {
 }
 
 float ar_intersectRayTriangle(const arVector3& rayOrigin,
-			      const arVector3& rayDirection,
-			      const arVector3& vertex1,
-			      const arVector3& vertex2,
-			      const arVector3& vertex3) {
+                              const arVector3& rayDirection,
+                              const arVector3& vertex1,
+                              const arVector3& vertex2,
+                              const arVector3& vertex3) {
 
   // Algorithm from geometrysurfer.com by Dan Sunday
   const arVector3 u(vertex2 - vertex1);
@@ -694,10 +694,10 @@ arMatrix4 ar_planeToRotation(float posX, float posY) {
 // the center of an individual tile.  Tiles are in a rectangular,
 // planar grid covering the screen, tile (0, 0) at lower left.
 arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
-			      const arVector3& screenUp,
-			      float width, float height,
-			      float xTile, int nxTiles,
-			      float yTile, int nyTiles) {
+                              const arVector3& screenUp,
+                              float width, float height,
+                              float xTile, int nxTiles,
+                              float yTile, int nyTiles) {
   if (nxTiles == 0 || nyTiles == 0 || screenNormal.zero() || screenUp.zero()) {
     // Invalid arguments.
     return arVector3(0, 0, 0);
@@ -714,7 +714,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 }
 
 arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
-			    const arVector3& screenNormal,
+                            const arVector3& screenNormal,
                             const arVector3& screenUp,
                             const float halfWidth, const float halfHeight,
                             const float nearClip, const float farClip,
@@ -753,9 +753,9 @@ LAbort:
   const float funnyElement = (nearFrust+farFrust) / (nearFrust-farFrust);
 
   return arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
-		   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
-		   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
-		   0., 0., -1., 0. );
+                   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
+                   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
+                   0., 0., -1., 0. );
 }
 
 // in this version, eyePosition has been multiplied by
@@ -786,9 +786,9 @@ LAbort:
   float funnyElement = (nearFrust+farFrust) / (nearFrust-farFrust);
 
   return arMatrix4((2*nearFrust)/(rightFrust-leftFrust), 0., (rightFrust+leftFrust)/(rightFrust-leftFrust), 0.,
-		   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
-		   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
-		   0., 0., -1., 0. );
+                   0., (2*nearFrust)/(topFrust-botFrust), (topFrust+botFrust)/(topFrust-botFrust), 0.,
+                   0., 0., funnyElement, 2*nearFrust*farFrust/(nearFrust-farFrust),
+                   0., 0., -1., 0. );
 }
 
 // Like gluLookAt(), transform the frame (a, b, c) to (x, y, z), where

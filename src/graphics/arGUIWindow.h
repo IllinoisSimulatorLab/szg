@@ -951,7 +951,7 @@ class SZG_CALL arGUIWindow
 
     arConditionVar _creationCond;               // Signaled when the window has been created.
     arConditionVar _destructionCond;            // Signaled when the window has been destroyed.
-    arLock _creationMutex;			// with _creationCond.
+    arLock _creationMutex;                        // with _creationCond.
     arLock _destructionMutex;
     bool _creationFlag, _destructionFlag;       // Flags for the condition variables.
 

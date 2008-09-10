@@ -27,14 +27,14 @@ SpaceJunk::SpaceJunk()
    {
         flod[wVert][0] = vex;
         flod[wVert][1] = -5;
-	flod[wVert][2] = vez;
+        flod[wVert][2] = vez;
         wVert++;
    }
    for (aa=0;aa<1001;aa++)
    for (bb=0;bb<3;bb++)
-	flodraw[aa][bb] = flod[aa][bb];
+        flodraw[aa][bb] = flod[aa][bb];
 
-   for (aa=0;aa<1001;aa++)		/* init ceiling matrix */
+   for (aa=0;aa<1001;aa++)                /* init ceiling matrix */
    {
       ceid[aa][0] = ceidraw[aa][0] = flodraw[aa][0];
       ceid[aa][1] = ceidraw[aa][1] = 4;
@@ -59,7 +59,7 @@ SpaceJunk::SpaceJunk()
       pilldraw[aa][bb][dd] = pillars[aa][bb][dd];
 
 
-   vey = 0;		/* init trit, trib matrices */
+   vey = 0;                /* init trit, trib matrices */
    aa=0;
    for (bb=-2;bb<=2;bb++)
    for (dd=-2;dd<=2;dd++)
@@ -97,7 +97,7 @@ SpaceJunk::SpaceJunk()
       tritdraw[aa][wVert][bb] = trit[aa][wVert][bb];
    }
 
-   for (aa=0;aa<16;aa++)		/* init beam matrix */
+   for (aa=0;aa<16;aa++)                /* init beam matrix */
    {
    wVert = 0;
    for (vey = tribdraw[aa][0][1];vey<=tritdraw[aa][0][1];vey+=(tritdraw[aa][0][1]-tribdraw[aa][0][1])/29)

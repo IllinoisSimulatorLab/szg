@@ -16,12 +16,12 @@ bool identityTest(arMatrix4 m) {
   for (int i=0; i<16; i++) {
     if (i%4 == i/4) {
       if (fabs(m[i]-1) > epsilon) {
-	result = false;
+        result = false;
       }
     }
     else{
       if (fabs(m[i]-0) > epsilon) {
-	result = false;
+        result = false;
       }
     }
   }
@@ -85,26 +85,26 @@ int main() {
   }
 
   arMatrix4 matrix1 = arMatrix4(5, 5, 5, 5,
-				5, 5, 5, 5,
-				5, 5, 5, 5,
-				5, 5, 5, 5);
+                                5, 5, 5, 5,
+                                5, 5, 5, 5,
+                                5, 5, 5, 5);
   arMatrix4 matrix2            (1, 1, 1, 1,
-				0, 0, 0, 0,
-				1, 1, 1, 1,
-				0, 0, 0, 0);
+                                0, 0, 0, 0,
+                                1, 1, 1, 1,
+                                0, 0, 0, 0);
   arMatrix4 testMatrix = arMatrix4() + matrix1 - matrix2;
   if (!zeroTest(testMatrix - arMatrix4(5, 4, 4, 4,
-				       5, 6, 5, 5,
-				       4, 4, 5, 4,
-				       5, 5, 5, 6))) {
+                                       5, 6, 5, 5,
+                                       4, 4, 5, 4,
+                                       5, 5, 5, 6))) {
     cout << "FAILED: matrix addition test.\n";
   }
 
   // ar_identityMatrix() function plus matrix multiplication (i.e.
   // multiply something by the identity matrix and you get that matrix back)
   if (!zeroTest(ar_translationMatrix(1, 2, 3) -
-		arMatrix4() * ar_translationMatrix(1, 2, 3) *
-		arMatrix4())) {
+                arMatrix4() * ar_translationMatrix(1, 2, 3) *
+                arMatrix4())) {
     cout << "FAILED: identity matrix test.\n";
   }
 
@@ -125,7 +125,7 @@ int main() {
   // transpose. the transpose of a 3D rotation matrix is
   // the inverse of the original matrix.
   if (!identityTest(ar_rotationMatrix('x', ar_convertToRad(-45))
-	            *~ar_rotationMatrix('x', ar_convertToRad(-45)))) {
+                    *~ar_rotationMatrix('x', ar_convertToRad(-45)))) {
     cout << "FAILED: matrix transpose.\n";
   }
 
@@ -202,55 +202,55 @@ int main() {
   // test calculating the angle between two vectors
   cout << "Testing angle between vectors.\n";
   if (fabs(ar_angleBetween(arVector3(0, 0, 1), arVector3(0, 1, 0))
-	    -ar_convertToRad(90)) > epsilon) {
+            -ar_convertToRad(90)) > epsilon) {
     cout << "FAILED: angle between vectors (1).\n";
   }
   if (fabs(ar_angleBetween(arVector3(0, 0, 1), arVector3(1, 0, 0))
-	    -ar_convertToRad(90)) > epsilon) {
+            -ar_convertToRad(90)) > epsilon) {
     cout << "FAILED: angle between vectors (2).\n";
   }
   if (fabs(ar_angleBetween(arVector3(1, 0, 0), arVector3(1, 1, 0))
-	    -ar_convertToRad(45)) > epsilon) {
+            -ar_convertToRad(45)) > epsilon) {
     cout << "FAILED: angle between vectors (3).\n";
   }
   if (fabs(ar_angleBetween(arVector3(1, 1, 1), arVector3(-1, -1, -1))
-	    -ar_convertToRad(180)) > epsilon) {
+            -ar_convertToRad(180)) > epsilon) {
     cout << "FAILED: angle between vectors (4).\n";
     cout << ar_angleBetween(arVector3(1, 1, 1), arVector3(-1, -1, -1))
          << " <> " << ar_convertToRad(180) << endl;
   }
   if (fabs(ar_angleBetween(arVector3(0, 0, 1), arVector3(-1, 0, -1))
-	    -ar_convertToRad(135)) > epsilon) {
+            -ar_convertToRad(135)) > epsilon) {
     cout << "FAILED: angle between vectors (5).\n";
   }
 
   cout << "Testing screen tiling.\n";
   if (fabs(++(ar_tileScreenOffset(arVector3(0, 0, -1),
-				  arVector3(0, 1, 0), 1, 1, 0, 2, 0, 2) -
-	      arVector3(-0.25, -0.25, 0))) > epsilon) {
+                                  arVector3(0, 1, 0), 1, 1, 0, 2, 0, 2) -
+              arVector3(-0.25, -0.25, 0))) > epsilon) {
     cout << "FAILED: screen tile test (1).\n";
   }
   if (fabs(++(ar_tileScreenOffset(arVector3(1, 0, 0),
-				  arVector3(0, 1, 0), 2, 2, 0, 4, 0, 2) -
-	      arVector3(0, -0.5, -0.75))) > epsilon) {
+                                  arVector3(0, 1, 0), 2, 2, 0, 4, 0, 2) -
+              arVector3(0, -0.5, -0.75))) > epsilon) {
     cout << "FAILED: screen tile test (2).\n";
   }
   if (fabs(++(ar_tileScreenOffset(arVector3(1, 0, 0),
-				  arVector3(0, 1, 0), 2, 2, 3, 4, 1, 2) -
-	      arVector3(0, 0.5, 0.75))) > epsilon) {
+                                  arVector3(0, 1, 0), 2, 2, 3, 4, 1, 2) -
+              arVector3(0, 0.5, 0.75))) > epsilon) {
     cout << "FAILED: screen tile test (3).\n";
   }
   if (fabs(++(ar_tileScreenOffset(arVector3(1, 0, 0),
-				  arVector3(0, 1, 0), 1, 1, 0, 1, 0, 1) -
-	      arVector3(0, 0, 0))) > epsilon) {
+                                  arVector3(0, 1, 0), 1, 1, 0, 1, 0, 1) -
+              arVector3(0, 0, 0))) > epsilon) {
     cout << "FAILED: screen tile test (4).\n";
   }
 
   cout << "Testing frustum calculations.\n";
   arVector3 resultVec;
   arMatrix4 frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
-			    arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
-			    0.5, 0.5, 1, 10, arVector3( 0, 0, 0 ) );
+                            arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
+                            0.5, 0.5, 1, 10, arVector3( 0, 0, 0 ) );
   resultVec = frustum*arVector3( 0.5, 0.5, -1 );
   if (!equalVectorTest( resultVec, arVector3( 1, 1, -1 ) ) ) {
     cout << "FAILED: ar_frustumMatrix test (1).\n"
@@ -259,8 +259,8 @@ int main() {
   }
 
   frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
-			    arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
-			    0.5, 0.5, 1, 9, arVector3( 0, 0, 0 ) );
+                            arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
+                            0.5, 0.5, 1, 9, arVector3( 0, 0, 0 ) );
   resultVec = frustum*arVector3( -5, -5, -10 );
   if (!equalVectorTest( resultVec, arVector3( -1, -1, 1 )  ) ) {
     cout << "FAILED: ar_frustumMatrix test (2).\n"
@@ -269,8 +269,8 @@ int main() {
   }
 
   frustum = ar_frustumMatrix( arVector3( 0, 0, -1 ),
-			    arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
-			    0.5, 0.5, 1, 9, arVector3( 0.5, 0, 0 ) );
+                            arVector3( 0, 0, -1 ), arVector3( 0, 1, 0 ),
+                            0.5, 0.5, 1, 9, arVector3( 0.5, 0, 0 ) );
   resultVec = frustum*arVector3( -10, 0, -10 );
   if (!equalVectorTest( resultVec, arVector3( -1, 0, 1 ) ) ) {
     cout << "FAILED: ar_frustumMatrix test (3).\n"

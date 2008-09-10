@@ -65,8 +65,8 @@ bool arStreamNode::render() {
       if (!ar_fmodcheck( FMOD_Sound_GetLength( _stream,
              &_msecDuration, FMOD_TIMEUNIT_MS)) ||
           !ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(),
-	     FMOD_CHANNEL_FREE, _stream, false, &_channel))) {
-	return false;
+             FMOD_CHANNEL_FREE, _stream, false, &_channel))) {
+        return false;
       }
     }
     _fileNamePrev = _fileName;
@@ -123,10 +123,10 @@ arStructuredData* arStreamNode::dumpData() {
 bool arStreamNode::receiveData(arStructuredData* data) {
   if (data->getID() != _l.AR_STREAM) {
     cerr << "arStreamNode error: expected "
-	 << _l.AR_STREAM
-	 << " (" << _l._stringFromID(_l.AR_STREAM) << "), not "
-	 << data->getID()
-	 << " (" << _l._stringFromID(data->getID()) << ")\n";
+         << _l.AR_STREAM
+         << " (" << _l._stringFromID(_l.AR_STREAM) << "), not "
+         << data->getID()
+         << " (" << _l._stringFromID(data->getID()) << ")\n";
     return false;
   }
 

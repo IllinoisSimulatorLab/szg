@@ -239,10 +239,10 @@ arLogStream& arLogStream::operator<<(const char* s) {
     const unsigned l = strlen(s);
     for (unsigned i = 0; i < l; ++i) {
       if (s[i] == '\n') {
-	_postAppend(true);
+        _postAppend(true);
       }
       else{
-	_buffer << s[i];
+        _buffer << s[i];
       }
     }
   }
@@ -329,21 +329,21 @@ void arLogStream::_flush(const bool addNewline) {
       // Truncate year.
       pos = now.find("200");
       if (pos != string::npos)
-	now = now.substr(0, pos-1);
+        now = now.substr(0, pos-1);
 
       // Strip leading zero of day-of-month.
       pos = now.find(" 0");
       if (pos != string::npos) {
-	// now == "Oct 02 08:01:24"
-	now = now.substr(0, pos+1) + now.substr(pos+2);
-	}
+        // now == "Oct 02 08:01:24"
+        now = now.substr(0, pos+1) + now.substr(pos+2);
+        }
 
       // Strip leading zero of hour.
       pos = now.find(" 0", pos+5);
       if (pos != string::npos) {
-	// now == "Oct 2 08:01:24"
-	now = now.substr(0, pos+1) + now.substr(pos+2);
-	}
+        // now == "Oct 2 08:01:24"
+        now = now.substr(0, pos+1) + now.substr(pos+2);
+        }
 
       s += " " + now;
     }

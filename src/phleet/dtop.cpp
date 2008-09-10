@@ -63,9 +63,9 @@ void update(const string& lines)
   const int chost = 60;
   const int cchMax = 30;
   const int ctask = 15;
-  char hosts[chost][cchMax];		// list of hosts
-  char tasks[chost][ctask][cchMax];	// tasks of each host
-  char taskOrder[ctask][cchMax];	// color them consistently
+  char hosts[chost][cchMax];                // list of hosts
+  char tasks[chost][ctask][cchMax];        // tasks of each host
+  char taskOrder[ctask][cchMax];        // color them consistently
   char cchTask = 0;
   clear();
 
@@ -102,13 +102,13 @@ void update(const string& lines)
     for (ihost=0; ihost<chost; ihost++)
       {
       if (!*hosts[ihost])
-	{
+        {
         // new host
-	strcpy(hosts[ihost], host);
-	break;
-	}
+        strcpy(hosts[ihost], host);
+        break;
+        }
       if (!strcmp(host, hosts[ihost]))
-	// previously inserted
+        // previously inserted
         break;
       }
     for (ihost=0; ihost<chost; ++ihost)
@@ -118,27 +118,27 @@ void update(const string& lines)
       // Found the host.  Append task to that host's list.
       for (int itask=0; itask<ctask; ++itask)
         {
-	if (!*tasks[ihost][itask])
-	  {
-	  strcpy(tasks[ihost][itask], task);
-	  goto LBreak;
-	  }
-	}
+        if (!*tasks[ihost][itask])
+          {
+          strcpy(tasks[ihost][itask], task);
+          goto LBreak;
+          }
+        }
       }
 LBreak:
     for (int itask=0; itask<ctask; ++itask)
       {
       if (!*taskOrder[itask])
         {
-	// new task
-	strcpy(taskOrder[itask], task);
-	int cch = strlen(task);
-	if (cch > cchTask)
-	  cchTask = cch;
-	break;
-	}
+        // new task
+        strcpy(taskOrder[itask], task);
+        int cch = strlen(task);
+        if (cch > cchTask)
+          cchTask = cch;
+        break;
+        }
       if (!strcmp(task, taskOrder[itask]))
-	// previously inserted
+        // previously inserted
         break;
       }
   }
@@ -168,25 +168,25 @@ LBreak:
       if (!*task)
         break;
       if (fColor)
-	{
-	// find out which color it is
-	int taskColor = 1;
-	for (int i=0; i<ctask; i++)
-	  {
-	  if (!strcmp(task, taskOrder[i]))
-	    {
-	    taskColor = i;
-	    // colors 0..7 are bk r g y bl magenta cyan white
-	    // bk is background, white is hostname,
-	    // blue is invisible on black background.
-	    // So use r g y mag cyan, 1 2 3 5 6.
-	    const int _[5]= {1, 2, 3, 5, 6};
-	    taskColor = _[taskColor%5];
-	    break;
-	    }
-	  }
+        {
+        // find out which color it is
+        int taskColor = 1;
+        for (int i=0; i<ctask; i++)
+          {
+          if (!strcmp(task, taskOrder[i]))
+            {
+            taskColor = i;
+            // colors 0..7 are bk r g y bl magenta cyan white
+            // bk is background, white is hostname,
+            // blue is invisible on black background.
+            // So use r g y mag cyan, 1 2 3 5 6.
+            const int _[5]= {1, 2, 3, 5, 6};
+            taskColor = _[taskColor%5];
+            break;
+            }
+          }
         color_set(taskColor, NULL);
-	}
+        }
       const int x = 12 + itask * (cchTask+1);
       mvprintw(y, x, "%s ", task);
       }
@@ -234,7 +234,7 @@ LUsage:
       msec = atoi(argv[2]);
       // atoi() has poor error handling.
       if (msec <= 0 && strcmp(argv[1], "0"))
-	goto LUsage;
+        goto LUsage;
     }
     else
       goto LUsage;
@@ -266,7 +266,7 @@ LUsage:
     if (fVisible) {
       update(szgClient.getProcessList());
       if (getch() == 'q')
-	break;
+        break;
     }
   }
 

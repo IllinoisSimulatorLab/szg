@@ -107,7 +107,7 @@ bool arPPTDriver::_processInput() {
     //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet
     if (packet[i] == 'o' && i+PPT_PACKET_SIZE <= numRead && packet[i+PPT_PACKET_SIZE-1] == _checksum(&(packet[i]), PPT_PACKET_SIZE-1)
       && (int)packet[i+1] > 0 && (int)packet[i+1] <= PPT_MAX_LIGHTS) {
-      lastGoodIndex = i;	
+      lastGoodIndex = i;        
     }
   }
 

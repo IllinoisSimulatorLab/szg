@@ -44,7 +44,7 @@ void eventCallback(arInputEvent& inputEvent) {
     }
     else{
       for (i=0; i<16; i++)
-	fprintf(outputFile, "%f/", basePosition[i]);
+        fprintf(outputFile, "%f/", basePosition[i]);
       fprintf(outputFile, "\n");
       fclose(outputFile);
     }
@@ -78,14 +78,14 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/) {
       for( i = 0; i < 16; i++ )
         cout << basePosition[ i ] << "/";
       cout << "\n";
-	FILE* outputFile = fopen("temp-config.txt", "w");
+        FILE* outputFile = fopen("temp-config.txt", "w");
       if (!outputFile) {
-	cout << "DeskCalibrator: cannot write file.\n";
+        cout << "DeskCalibrator: cannot write file.\n";
       }
       else{
-	for (i=0; i<16; i++)
-	  fprintf(outputFile, "%f/", basePosition[i]);
-	fprintf(outputFile, "\n");
+        for (i=0; i<16; i++)
+          fprintf(outputFile, "%f/", basePosition[i]);
+        fprintf(outputFile, "\n");
       }
       fclose(outputFile);
       }

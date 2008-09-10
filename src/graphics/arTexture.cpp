@@ -16,8 +16,8 @@ extern "C"{
 #include <setjmp.h>
 
 struct arTexture_error_mgr {
-  struct jpeg_error_mgr pub;	// "public" fields
-  jmp_buf setjmp_buffer;	// for return to caller
+  struct jpeg_error_mgr pub;        // "public" fields
+  jmp_buf setjmp_buffer;        // for return to caller
 };
 #endif
 
@@ -301,7 +301,7 @@ bool arTexture::readImage(const string& fileName, int alpha, bool complain) {
 }
 
 bool arTexture:: readImage(const string& fileName, const string& path,
-			   int alpha, bool complain) {
+                           int alpha, bool complain) {
   return readImage(fileName, "", path, alpha, complain);
 }
 
@@ -325,7 +325,7 @@ bool arTexture::readAlphaImage(const string& fileName, bool complain) {
 }
 
 bool arTexture:: readAlphaImage(const string& fileName, const string& path,
-			   bool complain) {
+                           bool complain) {
   return readAlphaImage(fileName, "", path, complain);
 }
 
@@ -349,7 +349,7 @@ bool arTexture::readPPM(const string& fileName, int alpha, bool complain) {
 }
 
 bool arTexture::readPPM(const string& fileName, const string& path,
-			int alpha, bool complain) {
+                        int alpha, bool complain) {
   return readPPM(fileName, "", path, alpha, complain);
 }
 
@@ -455,7 +455,7 @@ bool arTexture::readAlphaPPM(const string& fileName, bool complain) {
 }
 
 bool arTexture::readAlphaPPM(const string& fileName, const string& path,
-			bool complain) {
+                        bool complain) {
   return readAlphaPPM(fileName, "", path, complain);
 }
 
@@ -608,7 +608,7 @@ bool arTexture::readJPEG(const string& fileName, int alpha, bool complain) {
 }
 
 bool arTexture::readJPEG(const string& fileName, const string& path,
-			 int alpha, bool complain) {
+                         int alpha, bool complain) {
   return readJPEG(fileName, "", path, alpha, complain);
 }
 
@@ -699,7 +699,7 @@ bool arTexture::readAlphaJPEG(const string& fileName, bool complain) {
 }
 
 bool arTexture::readAlphaJPEG(const string& fileName, const string& path,
-			 bool complain) {
+                         bool complain) {
   return readAlphaJPEG(fileName, "", path, complain);
 }
 
@@ -952,8 +952,8 @@ void arTexture::_assignAlpha(int alpha) {
   for (int i = _height*_width -1; i >= 0; i--) {
     unsigned char* pPixel = (unsigned char*)&_pixels[i * getDepth()];
     const int test = (int(pPixel[2])<<16) |
-		     (int(pPixel[1])<<8) |
-		      int(pPixel[0]);
+                     (int(pPixel[1])<<8) |
+                      int(pPixel[0]);
     pPixel[3] = (test == alpha) ? 0 : 255;
   }
   _textureFunc = GL_MODULATE; // for texture blending
@@ -1023,7 +1023,7 @@ bool arTexture::_loadIntoOpenGL() {
     gluBuild2DMipmaps(GL_TEXTURE_2D,
                       internalFormat,
                       _width, _height,
-	              _alpha ? GL_RGBA : GL_RGB,
+                      _alpha ? GL_RGBA : GL_RGB,
                       GL_UNSIGNED_BYTE, (GLubyte*) _pixels);
   } else {
     glTexImage2D(GL_TEXTURE_2D, 0,

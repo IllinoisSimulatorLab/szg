@@ -122,18 +122,18 @@ arGraphicsLanguage::arGraphicsLanguage():
   AR_LIGHT_SPOT = _light.add("spot", AR_FLOAT);
   AR_LIGHT = _dictionary.add(&_light);
 
-  AR_PERSP_CAMERA_ID =		_perspCamera.add("ID", 		AR_INT);
-  AR_PERSP_CAMERA_CAMERA_ID =	_perspCamera.add("camera ID", 	AR_INT);
-  AR_PERSP_CAMERA_FRUSTUM =	_perspCamera.add("frustum", 	AR_FLOAT);
-  AR_PERSP_CAMERA_LOOKAT =	_perspCamera.add("lookat", 	AR_FLOAT);
+  AR_PERSP_CAMERA_ID =                _perspCamera.add("ID",                 AR_INT);
+  AR_PERSP_CAMERA_CAMERA_ID =        _perspCamera.add("camera ID",         AR_INT);
+  AR_PERSP_CAMERA_FRUSTUM =        _perspCamera.add("frustum",         AR_FLOAT);
+  AR_PERSP_CAMERA_LOOKAT =        _perspCamera.add("lookat",         AR_FLOAT);
   AR_PERSP_CAMERA = _dictionary.add(&_perspCamera);
 
-  AR_BUMPMAP_ID =	_bumpMap.add("ID", 	 AR_INT);
+  AR_BUMPMAP_ID =        _bumpMap.add("ID",          AR_INT);
   AR_BUMPMAP_TANGENTS = _bumpMap.add("tangents", AR_FLOAT);
   AR_BUMPMAP_BINORMALS= _bumpMap.add("binormals", AR_FLOAT);
-  AR_BUMPMAP_NORMALS =	_bumpMap.add("normals",  AR_FLOAT);
-  AR_BUMPMAP_FILE =	_bumpMap.add("file", 	 AR_CHAR);
-  AR_BUMPMAP_HEIGHT =	_bumpMap.add("height", 	 AR_FLOAT);
+  AR_BUMPMAP_NORMALS =        _bumpMap.add("normals",  AR_FLOAT);
+  AR_BUMPMAP_FILE =        _bumpMap.add("file",          AR_CHAR);
+  AR_BUMPMAP_HEIGHT =        _bumpMap.add("height",          AR_FLOAT);
   AR_BUMPMAP = _dictionary.add(&_bumpMap);
 
   AR_GRAPHICS_ADMIN_ACTION = _graphicsAdmin.add("action", AR_CHAR);

@@ -93,7 +93,7 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
                               ARint& theSize, bool& fEndianMode, arSocket* fd,
                               const arStreamConfig& remoteConfig) {
   return getDataCore(dest, availableSize, _translationBuffer,
-		     _translationBufferSize, theSize, fEndianMode, fd,
+                     _translationBufferSize, theSize, fEndianMode, fd,
                      remoteConfig);
 }
 
@@ -168,7 +168,7 @@ arStreamConfig arDataPoint::handshakeConnectTo(
 }
 
 arStreamConfig arDataPoint::handshakeReceiveConnection(arSocket* fd,
-						   arStreamConfig localConfig) {
+                                                   arStreamConfig localConfig) {
   arStreamConfig config;
   // Bug: why does config get default values in handshakeConnectTo but not here?
   (void)_handshakeReceive(config, fd);
@@ -220,7 +220,7 @@ string arDataPoint::_constructConfigString(const arStreamConfig& config) {
 }
 
 map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
-						   const string& text) {
+                                                   const string& text) {
   map<string, string, less<string> > tokens;
   // Tokenize the string.
   stringstream s;
@@ -231,8 +231,8 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
     if (!s.fail()) {
       const unsigned position = myToken.find("=");
       if (position == string::npos) {
-	cerr << "arDataPoint error: invalid token.\n";
-	continue;
+        cerr << "arDataPoint error: invalid token.\n";
+        continue;
       }
       const string key(myToken.substr(0, position));
       const string value(myToken.substr(position+1, myToken.length()-position-1));

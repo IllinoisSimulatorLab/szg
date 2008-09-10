@@ -125,7 +125,7 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   int AR_PERSP_CAMERA_FRUSTUM;
   int AR_PERSP_CAMERA_LOOKAT;
 
-  int AR_BUMPMAP;		// a Cg-enabled bump map
+  int AR_BUMPMAP;                // a Cg-enabled bump map
   int AR_BUMPMAP_ID;
   int AR_BUMPMAP_TANGENTS;
   int AR_BUMPMAP_BINORMALS;

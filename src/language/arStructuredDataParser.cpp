@@ -102,9 +102,9 @@ arStructuredData* arStructuredDataParser::getStorage(int ID) {
     else {
       SZGdatalist* j = i->second;
       if (!j->empty()) {
-	// Found recycling for this ID.
-	result = *(j->begin());
-	j->pop_front();
+        // Found recycling for this ID.
+        result = *(j->begin());
+        j->pop_front();
       }
     }
     _recycleLock.unlock();
@@ -162,7 +162,7 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end) {
 // double the storage for buffers in the case of translation.
 arStructuredData* arStructuredDataParser::parse
                                     (ARchar* buffer, int& end,
-				     const arStreamConfig& remoteStreamConfig) {
+                                     const arStreamConfig& remoteStreamConfig) {
   if (remoteStreamConfig.endian == AR_ENDIAN_MODE) {
     return parse(buffer, end);
   }
@@ -286,7 +286,7 @@ LAbort:
     arDataType fieldType = theTemplate->getAttributeType(fieldBegin);
     if (fieldType == AR_GARBAGE) {
       cerr << "arStructuredDataParser error: type " << tagText
-	   << " has no field named " << fieldBegin << ".\n";
+           << " has no field named " << fieldBegin << ".\n";
       goto LAbort;
     }
     int size = -1;
@@ -306,7 +306,7 @@ LAbort:
       size = ar_parseXMLData<ARchar>(workingBuffer, charData, false);
       if (!charData) {
         cerr << "arStructuredDataParser error: expected XML char.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, charData, AR_CHAR, size);
       delete [] charData;
@@ -315,7 +315,7 @@ LAbort:
       size = ar_parseXMLData<ARint>(workingBuffer, intData);
       if (!intData) {
         cerr << "arStructuredDataParser error: expected XML int.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, intData, AR_INT, size);
       delete [] intData;
@@ -324,7 +324,7 @@ LAbort:
       size = ar_parseXMLData<ARfloat>(workingBuffer, floatData);
       if (!floatData) {
         cerr << "arStructuredDataParser error: expected XML float.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, floatData, AR_FLOAT, size);
       delete [] floatData;
@@ -333,7 +333,7 @@ LAbort:
       size = ar_parseXMLData<ARlong>(workingBuffer, longData);
       if (!longData) {
         cerr << "arStructuredDataParser error: expected XML long.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, longData, AR_LONG, size);
       delete [] longData;
@@ -342,7 +342,7 @@ LAbort:
       size = ar_parseXMLData<ARint64>(workingBuffer, int64Data);
       if (!int64Data) {
         cerr << "arStructuredDataParser error: expected XML 64-bit int.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, int64Data, AR_INT64, size);
       delete [] int64Data;
@@ -351,7 +351,7 @@ LAbort:
       size = ar_parseXMLData<ARdouble>(workingBuffer, doubleData);
       if (!doubleData) {
         cerr << "arStructuredDataParser error: expected XML double.\n";
-	goto LAbort;
+        goto LAbort;
       }
       (void)theData->dataIn(fieldBegin, doubleData, AR_DOUBLE, size);
       delete [] doubleData;
@@ -365,8 +365,8 @@ LAbort:
         !ar_isEndTag(fieldEnd) ||
         fieldBegin != ar_getTagType(fieldEnd)) {
       cerr << "arStructuredDataParser error: data field not terminated with "
-	   << "the correct closing tag. Field began with " << fieldBegin
-	   << " and closed with " << ar_getTagType(fieldEnd) << ".\n";
+           << "the correct closing tag. Field began with " << fieldBegin
+           << " and closed with " << ar_getTagType(fieldEnd) << ".\n";
       goto LAbort;
     }
   }
@@ -408,7 +408,7 @@ arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile) {
   if (result < recordSize - AR_INT_SIZE) {
     cerr << "arStructuredDataParser error: failed to read record: read only "
          << result+AR_INT_SIZE
-	 << " of " << recordSize << " expected bytes.\n";
+         << " of " << recordSize << " expected bytes.\n";
     recycleTranslationBuffer(buffer);
     return NULL;
   }
@@ -549,7 +549,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     arStructuredData* potentialData = l.front();
     if (dataID >= 0 && potentialData->getID() != dataID) {
       ar_log_error() << "arStructuredDataParser expected id " << dataID <<
-	", not " << potentialData->getID() <<".\n";
+        ", not " << potentialData->getID() <<".\n";
       _globalLock.unlock();
       return -1;
     }

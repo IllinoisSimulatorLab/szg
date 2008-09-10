@@ -166,7 +166,7 @@ float arViewport::getEyeSign() {
 
 // The viewport sets the color mask upon drawing (used for anaglyph stereo).
 void arViewport::setColorMask(GLboolean red, GLboolean green,
-		              GLboolean blue, GLboolean alpha) {
+                              GLboolean blue, GLboolean alpha) {
   _red = red;
   _blue = blue;
   _green = green;

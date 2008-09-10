@@ -72,7 +72,7 @@ void messageTask(void* pClient) {
     else if (messageType=="screenshot") {
       // copypaste with framework/arMasterSlaveFramework.cpp
       if (dataPath == "NULL") {
-	ar_log_error() << "szgrender screenshot failed: no SZG_DATA/path.\n";
+        ar_log_error() << "szgrender screenshot failed: no SZG_DATA/path.\n";
       }
       else{
         if (messageBody != "NULL") {
@@ -90,12 +90,12 @@ void messageTask(void* pClient) {
     else if (messageType=="pause") {
       if (messageBody == "on") {
         arGuard _(pauseLock, "szgrender messageTask pause on");
-	fPause = true;
+        fPause = true;
       }
       else if (messageBody == "off") {
         arGuard(pauseLock, "szgrender messageTask pause off");
-	fPause = false;
-	pauseVar.signal();
+        fPause = false;
+        pauseVar.signal();
       }
       else
         ar_log_error() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
@@ -104,11 +104,11 @@ void messageTask(void* pClient) {
     else if (messageType=="color") {
       float c[3] = {0, 0, 0};
       if (messageBody == "off") {
-	ar_log_remark() << "szgrender: color override off.\n";
+        ar_log_remark() << "szgrender: color override off.\n";
         graphicsClient.setOverrideColor(arVector3(-1, -1, -1));
       }
       else{
-	ar_parseFloatString(messageBody, c, 3);
+        ar_parseFloatString(messageBody, c, 3);
         ar_log_remark() << "szgrender screen color (" << c[0] << ", " << c[1] << ", " << c[2] << ").\n";
         graphicsClient.setOverrideColor(arVector3(c));
       }
@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
   while (!fExiting) {
     pauseLock.lock("szgrender main loop");
       while (fPause) {
-	pauseVar.wait(pauseLock);
+        pauseVar.wait(pauseLock);
       }
     pauseLock.unlock();
 

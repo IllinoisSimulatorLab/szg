@@ -80,18 +80,18 @@ void arDataServer::_readDataTask() {
     ARint theSize = -1;
     if (!getDataCore(dest, availableSize, transBuffer, transSize,
                      theSize, fEndianMode, newFD, remoteConfig))
-	break;
+        break;
     if (!fEndianMode) {
       if (!_theDictionary) {
-	ar_log_error() << "arDataServer: no dictionary.\n";
-	break;
+        ar_log_error() << "arDataServer: no dictionary.\n";
+        break;
       }
       const ARint recordID = ar_translateInt(transBuffer+AR_INT_SIZE, remoteConfig);
       // Bug? if !_atomicReceive, this still needs to be locked.
       arGuard _(_lockConsume, "arDataServer::_readDataTask");
       arDataTemplate* t = _theDictionary->find(recordID);
       if (!t || t->translate(dest, transBuffer, remoteConfig) <= 0) {
-	ar_log_error() << "arDataServer failed to translate record.\n";
+        ar_log_error() << "arDataServer failed to translate record.\n";
         break;
       }
     }
@@ -456,7 +456,7 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
 }
 
 void arDataServer::setConsumerFunction(void (*consumerFunction)
-			               (arStructuredData*, void*, arSocket*)) {
+                                       (arStructuredData*, void*, arSocket*)) {
   _consumerFunction = consumerFunction;
 }
 

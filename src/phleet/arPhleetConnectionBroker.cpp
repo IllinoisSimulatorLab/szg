@@ -85,7 +85,7 @@ LAbort:
   for (int m=0; m<size; m++) {
     if (i->second.availablePorts.empty()) {
       cout << "arPhleetConnectionBroker error: computer "
-	   << i->first << " has no available ports.\n";
+           << i->first << " has no available ports.\n";
       // HMMM... not sure that this really exits cleanly...
       // maybe we should release the ports that might have been
       // already assigned??
@@ -154,7 +154,7 @@ LAbort:
   const SZGComponentData::iterator k = _componentData.find(componentID);
   if (k == _componentData.end()) {
     cerr << "arPhleetConnectionBroker error: component record not found\n"
-	 << "on retry ports request.\n";
+         << "on retry ports request.\n";
     goto LAbort;
   }
   int nn=0;
@@ -177,7 +177,7 @@ LAbort:
     // NOTE: we make sure that there is, in fact, a port to broker
     if (j->second.availablePorts.empty()) {
       cerr << "arPhleetConnectionBroker error: computer "
-	   << j->first << " has no available ports.\n";
+           << j->first << " has no available ports.\n";
     goto LAbort;
     }
     const int port = j->second.availablePorts.front();
@@ -336,7 +336,7 @@ bool arPhleetConnectionBroker::checkService(const string& serviceName) const {
 // the request is registered on the pending connection queue for later
 // use by the szgserver via the getPendingRequests(...) method
 arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
-						 const string& computer,
+                                                 const string& computer,
                                                  int    match,
                                                  const string& serviceName,
                                                  const arSlashString& networks,
@@ -489,9 +489,9 @@ int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName) c
 // the given component. Pass in the name of the
 // host on which the component runs, since this call might create a component record.
 void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
-						   int match,
+                                                   int match,
                                                    const string& computer,
-						   const string& serviceName) {
+                                                   const string& serviceName) {
   arGuard _(_l, "arPhleetConnectionBroker::registerReleaseNotification");
   SZGServiceData::iterator k = _usedServices.find(serviceName);
   if (k == _usedServices.end()) {
@@ -614,8 +614,8 @@ void arPhleetConnectionBroker::removeComponent(int componentID) {
       while (nn != n->second.notifications.end()) {
         if (nn->componentID == componentID)
           nn = n->second.notifications.erase(nn);
-	else
-	  ++nn;
+        else
+          ++nn;
       }
     }
   }
@@ -645,7 +645,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID) {
   }
   else{
     ar_log_error() << "arPhleetConnectionBroker: on removal of component, found no computer record '"
-	 << computer << "'.\n";
+         << computer << "'.\n";
   }
 
   // Remove the component record.
@@ -667,18 +667,18 @@ void arPhleetConnectionBroker::print() const {
          << "  block size = " << i->second.blockSize << "\n"
          << "  available ports = ";
     for (nn = i->second.availablePorts.begin();
-	 nn != i->second.availablePorts.end();
-	 nn++) {
+         nn != i->second.availablePorts.end();
+         nn++) {
       cout << *nn << " ";
     }
     cout << "\n  temporary ports = ";
     for (nn = i->second.temporaryPorts.begin();
-	 nn != i->second.temporaryPorts.end(); ++nn) {
+         nn != i->second.temporaryPorts.end(); ++nn) {
       cout << *nn << " ";
     }
     cout << "\n  used ports = ";
     for (nn = i->second.usedPorts.begin();
-	 nn != i->second.usedPorts.end(); ++nn) {
+         nn != i->second.usedPorts.end(); ++nn) {
       cout << *nn << " ";
     }
     cout << "\n";
@@ -689,27 +689,27 @@ void arPhleetConnectionBroker::print() const {
          << "  running on computer = " << j->second.computer << "\n"
          << "  temporary service tags = ";
     for (mm = j->second.temporaryTags.begin();
-	 mm != j->second.temporaryTags.end(); mm++) {
+         mm != j->second.temporaryTags.end(); mm++) {
       cout << *mm << " ";
     }
     cout << "\n  used service tags = ";
     for (mm = j->second.usedTags.begin();
-	 mm != j->second.usedTags.end(); mm++) {
+         mm != j->second.usedTags.end(); mm++) {
       cout << *mm << " ";
     }
     cout << "\n  service release tags = ";
     for (mm = j->second.releaseTags.begin();
-	 mm != j->second.releaseTags.end(); mm++) {
+         mm != j->second.releaseTags.end(); mm++) {
       cout << *mm << " ";
     }
     cout << "\n  temporary ports = ";
     for (nn = j->second.temporaryPorts.begin();
-	 nn != j->second.temporaryPorts.end(); nn++) {
+         nn != j->second.temporaryPorts.end(); nn++) {
       cout << *nn << " ";
     }
     cout << "\n  used ports = ";
     for (nn = j->second.usedPorts.begin();
-	 nn != j->second.usedPorts.end(); nn++) {
+         nn != j->second.usedPorts.end(); nn++) {
       cout << *nn << "\n";
     }
     cout << "\n";

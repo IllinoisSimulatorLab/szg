@@ -54,8 +54,8 @@ void arPerformanceElement::pushNewValue(float value) {
   // Moving-average filter.
   value = .4 * value +
           .3 * _data[_numberEntries-2] +
-	  .2 * _data[_numberEntries-3] +
-	  .1 * _data[_numberEntries-4];
+          .2 * _data[_numberEntries-3] +
+          .1 * _data[_numberEntries-4];
   _data[_numberEntries-1] = value;
 }
 
@@ -143,9 +143,9 @@ void arFramerateGraph::drawWithComposition() {
 }
 
 void arFramerateGraph::drawPlaced(const float startX,
-				  const float startY,
-				  const float widthX,
-				  const float widthY) {
+                                  const float startY,
+                                  const float widthX,
+                                  const float widthY) {
   preComposition(startX, startY, widthX, widthY);
   draw();
   postComposition();

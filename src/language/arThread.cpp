@@ -48,7 +48,7 @@ LBackoff:
       // Fall back to a mutex of scope "app" not "the entire PC".
       _mutex = CreateMutex(NULL, FALSE, NULL);
       if (!_mutex) {
-	cerr << "arLock warning: failed to create mutex.\n";
+        cerr << "arLock warning: failed to create mutex.\n";
       }
     }
     else if (e == ERROR_PATH_NOT_FOUND) {
@@ -109,7 +109,7 @@ LBackoff:
       // Fall back to a mutex of scope "app" not "the entire PC".
       _mutex = CreateMutex(NULL, FALSE, NULL);
       if (!_mutex) {
-	cerr << "arGlobalLock warning: failed to create mutex.\n";
+        cerr << "arGlobalLock warning: failed to create mutex.\n";
       }
     }
     else if (e == ERROR_PATH_NOT_FOUND) {
@@ -189,17 +189,17 @@ void arLock::lock(const char* locker) {
     case WAIT_FAILED:
       const DWORD e = GetLastError();
       if (e == ERROR_INVALID_HANDLE) {
-	ar_log_error() << "arLock warning: invalid handle.\n";
-	// _mutex is bad, so stop using it.
-	_mutex = NULL;
-	// Desperate fallback: create a fresh (unnamed) mutex.
-	_mutex = CreateMutex(NULL, FALSE, NULL);
-	if (_mutex)
-	  continue;
-	ar_log_error() << "arLock unrecoverably failed to recreate handle.\n";
+        ar_log_error() << "arLock warning: invalid handle.\n";
+        // _mutex is bad, so stop using it.
+        _mutex = NULL;
+        // Desperate fallback: create a fresh (unnamed) mutex.
+        _mutex = CreateMutex(NULL, FALSE, NULL);
+        if (_mutex)
+          continue;
+        ar_log_error() << "arLock unrecoverably failed to recreate handle.\n";
       }
       else {
-	ar_log_error() << "arLock internal error: GetLastError()==" << e << ".\n";
+        ar_log_error() << "arLock internal error: GetLastError()==" << e << ".\n";
       }
       return;
     }
@@ -216,8 +216,8 @@ void arLock::lock(const char* locker) {
     case EBUSY:
       a.sleep();
       if (a.msecElapsed() > 3000.) {
-	_logretry(locker);
-	a.resetElapsed();
+        _logretry(locker);
+        a.resetElapsed();
       }
       break;
     case EINVAL:

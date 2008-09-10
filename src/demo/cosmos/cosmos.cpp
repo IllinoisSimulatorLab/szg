@@ -49,8 +49,8 @@ void attachLineSet(){
   // random vertices
   for (i=0; i<numLines; i++){
     arVector3 randPos(-5 + 10*(1.0*(rand()%200))/200.0,
-		      -5 + 10*(1.0*(rand()%200))/200.0,
-		      -5 + 10*(1.0*(rand()%200))/200.0);
+                      -5 + 10*(1.0*(rand()%200))/200.0,
+                      -5 + 10*(1.0*(rand()%200))/200.0);
     if (++randPos == 0){
       randPos = arVector3(0,0,1);
     }
@@ -124,7 +124,7 @@ void worldInit(arDistSceneGraphFramework& fw){
   billboardTransformID = dgTransform("billboard transform","visibility",
               billboardTransform);
   dgBillboard("billboard","billboard transform",1,
-	      " syzygy scene graph ");
+              " syzygy scene graph ");
 }
 
 void worldAlter(arDistSceneGraphFramework& fw) {

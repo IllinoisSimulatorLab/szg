@@ -76,9 +76,9 @@ bool arHTR::readHTR(FILE* htrFileHandle) {
 // @param theResult pointers to c-strings containing the data
 // @param buffer holds the current line to read from
 // @param desiredTokens how many arguments we're expecting on this line --
-//	determines whether we pass back true or false
+//        determines whether we pass back true or false
 // @param errorString the argument to write out in case of an error --
-//	very useful for finding syntax errors in files
+//        very useful for finding syntax errors in files
 bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens, string errorString) {
   bool found = false;
   char* value = (char *)1;
@@ -282,10 +282,10 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle) {
     while (!found && value) {
       value = fgets(textLine, MAXLINE, htrFileHandle);
       if (textLine[0] == '\n' || textLine[0] == '#')
-	// Skip comment or newline.
+        // Skip comment or newline.
         found = false;
       else if (value)
-	found = true;
+        found = true;
     }
     if (!found) {
       ar_log_error() << "arHTR: premature end of file.\n";
@@ -343,11 +343,11 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle) {
     while (!found && value) {
       value = fgets(textLine, MAXLINE, htrFileHandle);
       if (textLine[0] == '\n' || textLine[0] == '#' || textLine[0] == '\r') {
-	// Comment or newline.
+        // Comment or newline.
         continue;
       }
       if (value)
-	found = true;
+        found = true;
     }
     if (!found) {
       ar_log_error() << "arHTR: premature end of file.\n";
@@ -408,7 +408,7 @@ bool arHTR::precomputeData(void) {
             segmentData[j]->parent = segmentData[i];
             segmentData[i]->children.push_back(segmentData[j]);
             break;
-	  }
+          }
   // connect segment data and base position
   for (k=0; k<segmentData.size(); k++)
     for (l=0; l<basePosition.size(); l++)
@@ -452,7 +452,7 @@ bool arHTR::writeToFile(const string& fileName) {
   fprintf(htrFile, "DataFrameRate %i\n", dataFrameRate);
   fprintf(htrFile, "EulerRotationOrder %s\n", eulerRotationOrder==AR_XYZ?"XYZ":
           eulerRotationOrder==AR_XZY?"XZY":eulerRotationOrder==AR_YXZ?"YXZ":
-	  eulerRotationOrder==AR_YZX?"YZX":eulerRotationOrder==AR_ZXY?"ZXY":"ZYX");
+          eulerRotationOrder==AR_YZX?"YZX":eulerRotationOrder==AR_ZXY?"ZXY":"ZYX");
   fprintf(htrFile, "CalibrationUnits %s\n", calibrationUnits);
   fprintf(htrFile, "RotationUnits %s\n", rotationUnits);
   fprintf(htrFile, "GlobalAxisofGravity %c\n", globalAxisOfGravity);
@@ -469,8 +469,8 @@ bool arHTR::writeToFile(const string& fileName) {
   for (i=0; i<basePosition.size(); i++)
     fprintf(htrFile, "%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", basePosition[i]->name,
             basePosition[i]->Tx, basePosition[i]->Ty, basePosition[i]->Tz,
-	    basePosition[i]->Rx, basePosition[i]->Ry, basePosition[i]->Rz,
-	    basePosition[i]->boneLength);
+            basePosition[i]->Rx, basePosition[i]->Ry, basePosition[i]->Rz,
+            basePosition[i]->boneLength);
 
   fprintf(htrFile, "\n");
   for (int j=0; j<numSegments; j++) {
@@ -478,10 +478,10 @@ bool arHTR::writeToFile(const string& fileName) {
     fprintf(htrFile, "#Fr\tTx\tTy\tTz\tRx\tRy\tRz\tSF\n");
     for (i=0; i<segmentData[j]->frame.size(); i++) {
       fprintf(htrFile, "%i\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
-	      segmentData[j]->frame[i]->frameNum, segmentData[j]->frame[i]->Tx,
-	      segmentData[j]->frame[i]->Ty, segmentData[j]->frame[i]->Tz,
-	      segmentData[j]->frame[i]->Rx, segmentData[j]->frame[i]->Ry,
-	      segmentData[j]->frame[i]->Rz, segmentData[j]->frame[i]->scale);
+              segmentData[j]->frame[i]->frameNum, segmentData[j]->frame[i]->Tx,
+              segmentData[j]->frame[i]->Ty, segmentData[j]->frame[i]->Tz,
+              segmentData[j]->frame[i]->Rx, segmentData[j]->frame[i]->Ry,
+              segmentData[j]->frame[i]->Rz, segmentData[j]->frame[i]->scale);
     }
   }
 

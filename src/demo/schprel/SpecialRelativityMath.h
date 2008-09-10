@@ -3,21 +3,21 @@
 
 /*
  * SpecialRelativityMath.h
- * 	contains utility functions for SchpRel
+ *         contains utility functions for SchpRel
  */
 
 #include "arGraphicsAPI.h"
 
 // info to calculate special relativity
 struct s_updateValues {
-  double	velocity;
-  double	lightspeed;
-  double	gamma;
-  arMatrix4	selfRotation;
-  ARfloat	*selfPosition;
-  ARfloat	*selfPositionTimes;
-  unsigned int	howFarBack;
-  arVector3	selfOffset;
+  double        velocity;
+  double        lightspeed;
+  double        gamma;
+  arMatrix4        selfRotation;
+  ARfloat        *selfPosition;
+  ARfloat        *selfPositionTimes;
+  unsigned int        howFarBack;
+  arVector3        selfOffset;
 };
 
 double dist2(double x1, double y1, double z1);

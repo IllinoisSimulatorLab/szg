@@ -1,6 +1,6 @@
 /*
  * SpecialRelativityMath.cpp
- * 	contains utility functions for SchpRel
+ *         contains utility functions for SchpRel
  */
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
@@ -37,7 +37,7 @@ double updateVertex (double x1, double y1, double z1, double c1, double v1, doub
     double temp = c1*c1-v1*v1;
     double z2 = thegamma*z1;
     z2 += v1*(z2*v1-sqrt(z2*z2*v1*v1+temp*dist2(x1,y1,z2)))/temp;
-    return z2;	/*the meat of the (linear) program */
+    return z2;        /*the meat of the (linear) program */
 }
 
 #define mode 1
@@ -54,8 +54,8 @@ void relativisticTransform(ARfloat *vert, ARfloat *drawVert,
                            s_updateValues &uv)
 {
   int dd, ff;
-  double temp, temp_best;	// errors we want to minimize
-  arVector3 tempVec, bestVec;	// points corresponding to errors
+  double temp, temp_best;        // errors we want to minimize
+  arVector3 tempVec, bestVec;        // points corresponding to errors
 
   /// tempVecBase holds euclidean position of vert relative to observer
   arVector3 tempVecBase(vert);
@@ -63,13 +63,13 @@ void relativisticTransform(ARfloat *vert, ARfloat *drawVert,
     tempVecBase[dd] -= uv.selfOffset[dd];
   tempVecBase = uv.selfRotation*tempVecBase;
 
-  if (linearVel){	// assume constant, linear velocity
-    drawVert[2] = updateVertex(	tempVecBase[0], tempVecBase[1], tempVecBase[2],
-				uv.lightspeed, uv.velocity, uv.gamma);
+  if (linearVel){        // assume constant, linear velocity
+    drawVert[2] = updateVertex(        tempVecBase[0], tempVecBase[1], tempVecBase[2],
+                                uv.lightspeed, uv.velocity, uv.gamma);
     drawVert[1] = tempVecBase[1];
     drawVert[0] = tempVecBase[0];
   }
-  else{			// light propagation delay
+  else{                        // light propagation delay
     dd=ff=uv.howFarBack/2;
     temp_best = 10000;
     for (;;) {
@@ -78,7 +78,7 @@ void relativisticTransform(ARfloat *vert, ARfloat *drawVert,
         break;
      
       tempVec = arVector3(tempVecBase[0]-uv.selfPosition[dd*3+0],
-		          tempVecBase[1]-uv.selfPosition[dd*3+1],
+                          tempVecBase[1]-uv.selfPosition[dd*3+1],
                           tempVecBase[2]-uv.selfPosition[dd*3+2]);
       //tempVec = uv.selfRotation*tempVec;
       temp = uv.lightspeed*uv.selfPositionTimes[dd] - dist(uv.selfRotation*tempVec); 

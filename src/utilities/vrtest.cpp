@@ -92,15 +92,15 @@ void glutEyeglasses(float x, float y, float z, const int i,
     if (i < 2) {
       // left lens
       glPushMatrix();
-	glTranslatef(-xPupil, 0, 0);
-	glCircle(0, 0, r);
+        glTranslatef(-xPupil, 0, 0);
+        glCircle(0, 0, r);
       glPopMatrix();
     }
     if (i > 0) {
       // right lens
       glPushMatrix();
-	glTranslatef( xPupil, 0, 0);
-	glCircle(0, 0, r);
+        glTranslatef( xPupil, 0, 0);
+        glCircle(0, 0, r);
       glPopMatrix();
     }
   glPopMatrix();
@@ -149,7 +149,7 @@ void drawHead() {
   glPopMatrix();
 }
 
-const unsigned cmMax = 8;	// IS-900 reports this many tracked sensors.
+const unsigned cmMax = 8;        // IS-900 reports this many tracked sensors.
 const unsigned caMax = 20;
 const unsigned cbMax = 30;
 
@@ -377,9 +377,9 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       glTranslatef(-3, 7, -5);
       bluesquare();
       glPushMatrix();
-	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-	glRotatef(90, 1, 0, 0); // rotate back view to top view: 90 degrees about x axis
-	headwands();
+        glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+        glRotatef(90, 1, 0, 0); // rotate back view to top view: 90 degrees about x axis
+        headwands();
       glPopMatrix();
     glPopMatrix();
 
@@ -388,9 +388,9 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       glTranslatef(0, 7, -5);
       bluesquare();
       glPushMatrix();
-	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-	glRotatef(-90, 0, 1, 0); // rotate back view to side view: 90 degrees about y axis
-	headwands();
+        glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+        glRotatef(-90, 0, 1, 0); // rotate back view to side view: 90 degrees about y axis
+        headwands();
       glPopMatrix();
     glPopMatrix();
 
@@ -399,8 +399,8 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       glTranslatef(3, 7, -5);
       bluesquare();
       glPushMatrix();
-	glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
-	headwands();
+        glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+        headwands();
       glPopMatrix();
     glPopMatrix();
 
@@ -487,25 +487,25 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       // Box for each wand button, released or depressed.
       const float step = (1.0 / (cb-1));
       for (i=0; i<cb; ++i) {
-	glTranslatef(step, 0, 0);
-	if (rgButton[i] == 0) {
-	  glColor3f(1, .3, .2);
-	  glutSolidCube(0.5 / cb);
-	  glColor3f(0, 0, 0);
-	  glutWireCube(0.52 / cb);
-	}
-	else {
-	  glColor3f(.3, 1, .6);
-	  glutSolidCube(0.7 / cb);
-	  glColor3f(0, 0, 0);
-	  glutWireCube(0.72 / cb);
-	}
-	// 5 buttons per line
-	const int buttonsPerLine = 5;
-	if ((i+1) % buttonsPerLine == 0) {
-	  // x = carriage return, y = line feed
-	  glTranslatef(-buttonsPerLine*step, -step, 0);
-	}
+        glTranslatef(step, 0, 0);
+        if (rgButton[i] == 0) {
+          glColor3f(1, .3, .2);
+          glutSolidCube(0.5 / cb);
+          glColor3f(0, 0, 0);
+          glutWireCube(0.52 / cb);
+        }
+        else {
+          glColor3f(.3, 1, .6);
+          glutSolidCube(0.7 / cb);
+          glColor3f(0, 0, 0);
+          glutWireCube(0.72 / cb);
+        }
+        // 5 buttons per line
+        const int buttonsPerLine = 5;
+        if ((i+1) % buttonsPerLine == 0) {
+          // x = carriage return, y = line feed
+          glTranslatef(-buttonsPerLine*step, -step, 0);
+        }
       }
     glPopMatrix();
 
@@ -517,21 +517,21 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       glScalef(joy, joy, joy);
       glColor3f(.8, .4, .3);
       glBegin(GL_LINE_LOOP);
-	glVertex3f( 1,  1, 0);
-	glVertex3f( 1, -1, 0);
-	glVertex3f(-1, -1, 0);
-	glVertex3f(-1,  1, 0);
+        glVertex3f( 1,  1, 0);
+        glVertex3f( 1, -1, 0);
+        glVertex3f(-1, -1, 0);
+        glVertex3f(-1,  1, 0);
       glEnd();
       glBegin(GL_LINES);
-	glVertex3f( 0, -1, 0);
-	glVertex3f( 0,  1, 0);
-	glVertex3f(-1,  0, 0);
-	glVertex3f( 1,  0, 0);
+        glVertex3f( 0, -1, 0);
+        glVertex3f( 0,  1, 0);
+        glVertex3f(-1,  0, 0);
+        glVertex3f( 1,  0, 0);
       glEnd();
       glColor3f(.3, .9, 0);
       glPushMatrix();
-	glTranslatef(rgAxis[0], rgAxis[1], 0);
-	drawSliderCube();
+        glTranslatef(rgAxis[0], rgAxis[1], 0);
+        drawSliderCube();
       glPopMatrix();
     }
 
@@ -540,21 +540,21 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glLineWidth(2.);
     for (i=0; i<ca; ++i) {
       if (rgfjoy32k[i]) {
-	glColor3f(1, .7, 0);
-	glutPrintf(0, 1.1, 0, "32K" );
+        glColor3f(1, .7, 0);
+        glutPrintf(0, 1.1, 0, "32K" );
       } else {
-	glColor3f(.8, .4, .3);
+        glColor3f(.8, .4, .3);
       }
       glTranslatef(.5, 0, 0);
       glLineWidth(2.); // paranoid
       glBegin(GL_LINES);
-	glVertex3f( 0, -1, 0);
-	glVertex3f( 0,  1, 0);
+        glVertex3f( 0, -1, 0);
+        glVertex3f( 0,  1, 0);
       glEnd();
       glPushMatrix();
-	glColor3f(.3, .9, 0);
-	glTranslatef(0, rgAxis[i], 0);
-	drawSliderCube();
+        glColor3f(.3, .9, 0);
+        glTranslatef(0, rgAxis[i], 0);
+        drawSliderCube();
       glPopMatrix();
     }
 

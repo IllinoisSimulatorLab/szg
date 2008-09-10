@@ -147,8 +147,8 @@ bool SetupExample() {
   d.channels = 0; // default (use another value to generate a particular number of channels)
   d.read = DSP_ExampleCallback;
   return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &Unit )) &&
-  	 ar_fmodcheck( FMOD_DSP_SetActive( Unit, true ) ) &&
-  	 ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), Unit ));
+           ar_fmodcheck( FMOD_DSP_SetActive( Unit, true ) ) &&
+           ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), Unit ));
 }
 
 bool CloseExample() {
@@ -245,12 +245,12 @@ int main(int argc, char** argv) {
   if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
            int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
       !ar_fmodcheck( FMOD_System_Init( ar_fmod(),
-	   50/*numVirtualVoices*/, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
+           50/*numVirtualVoices*/, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
     cerr << "Failed to init fmod.\n";
     return 1;
   }
 
-	//;;;; FMOD_3D_HEADRELATIVE is possible.
+        //;;;; FMOD_3D_HEADRELATIVE is possible.
 
   bufRec = new char[cbRec*3]; // *3 is chicken factor
   bufPlay = new char[cbPlayMax];
@@ -334,7 +334,7 @@ LAbort:
         freqnew += 1000;
       if (freqnew != freq) {
         FMOD_Channel_SetFrequency( channel, freqnew );
-	freq = freqnew;
+        freq = freqnew;
       }
     }
     playposPrev = playpos;

@@ -255,11 +255,11 @@ void initFishs(void) {
 void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
   static float ambient[] = {0.1, 0.1, 0.1, 1.0};
   static float diffuse[] = {1.0, 1.0, 1.0, 1.0};
-	static float position[] =	{0.0, 1.0, 0.0, 0.0};
+        static float position[] =        {0.0, 1.0, 0.0, 0.0};
   static float mat_shininess[] = {100.0};
   static float mat_specular[] = {0.9, 0.9, 0.9, 1.0};
-	static float mat_diffuse[] = {0.46, 0.66, 0.795, 1.0};
-	static float mat_ambient[] = {0.0, 0.1, 0.2, 1.0};
+        static float mat_diffuse[] = {0.46, 0.66, 0.795, 1.0};
+        static float mat_ambient[] = {0.0, 0.1, 0.2, 1.0};
   static float lmodel_ambient[] = {0.5, 0.5, 0.5, 1.0};
   static float lmodel_localviewer[] = {0.4};
 

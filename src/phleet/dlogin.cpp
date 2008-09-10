@@ -11,7 +11,7 @@
 int main(int argc, char** argv) {
   if (argc != 3 && argc != 4) {
     cerr << "usage: " << argv[0] << " szgserver_name user_name\n"
-	 << "       " << argv[0] << " szgserver_IP szgserver_port user_name\n";
+         << "       " << argv[0] << " szgserver_IP szgserver_port user_name\n";
     return 1;
   }
 

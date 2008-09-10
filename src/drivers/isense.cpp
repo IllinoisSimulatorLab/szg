@@ -515,7 +515,7 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
     shl_t handle = (shl_t) dll;
     DLL_EP ep;
     return shl_findsym(&handle, name, TYPE_PROCEDURE, &ep) == -1 ?
-	    (DLL_EP) NULL : ep;
+            (DLL_EP) NULL : ep;
 #else
     dll = dll;
     name=name; // Suppress warnings

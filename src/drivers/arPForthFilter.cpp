@@ -160,7 +160,7 @@ bool arPForthFilter::loadProgram(const string& progText) {
             break;
           default:
             ar_log_error() << "arPForthFilter ignoring invalid event type " <<
-	      eventType << ".\n";
+              eventType << ".\n";
         }
       }
     }
@@ -213,7 +213,7 @@ bool arPForthFilter::_processEvent( arInputEvent& inputEvent ) {
       break;
     default:
       ar_log_error() << "PForth program " << _progName <<
-	" ignoring event with unexpected type " << eventType << "\n";
+        " ignoring event with unexpected type " << eventType << "\n";
       return true;
   }
   std::vector< arPForthProgram* >::iterator iter;

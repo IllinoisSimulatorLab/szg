@@ -24,7 +24,7 @@ void readDataTask(void* num) {
   while (true) {
     printLock.lock("readDataTask A");
     cout << "&&&&&& Component ID of service " << serviceName[number]
-	 << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
+         << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
     printLock.unlock();
     trial++;
     const int whichNetwork = rand()% networks.size();
@@ -66,11 +66,11 @@ void readDataTask(void* num) {
     arStructuredData* data = new arStructuredData(dictionary->find("test"));
     for (int k=0; k<10; k++) {
       if (!dataClient[number].getData(buffer, bufferSize)) {
-	arGuard _(printLock, "readDataTask 2");
+        arGuard _(printLock, "readDataTask 2");
         cout << "***** Thread number = " << number << "\n"
              << "  trial = " << trial << "\n"
              << "  error: szgClient failed to get data.\n";
-	// discover a new service
+        // discover a new service
         break;
       }
       data->unpack(buffer);

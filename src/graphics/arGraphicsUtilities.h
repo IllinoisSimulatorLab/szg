@@ -21,7 +21,7 @@ void ar_drawLines(int number, const int* indices, int numberPos, const float* po
 // There should be 1+number values in the indices array.
 void ar_drawLineStrip(int number, const int* indices,
                       int numberPos, const float* positions,
-		      const float* colors, float blendFactor);
+                      const float* colors, float blendFactor);
 // Draw "number" independent triangles. There should, for
 // instance, be 3*number values in the indices array
 void ar_drawTriangles(int number, const int* indices,
@@ -34,7 +34,7 @@ void ar_drawTriangles(int number, const int* indices,
 void ar_drawTriangleStrip(int number, const int* indices,
                           int numberPos, const float* positions,
                           const float* normals, const float* colors, const float* texCoord,
-			  float blendFactor);
+                          float blendFactor);
 // Draw "number" independent quads. There should be 4*number values in the indices array.
 void ar_drawQuads(int number, const int* indices,
                   int numberPos, const float* positions,
@@ -45,13 +45,13 @@ void ar_drawQuads(int number, const int* indices,
 void ar_drawQuadStrip(int number, const int* indices,
                       int numberPos, const float* positions,
                       const float* normals, const float* colors, const float* texCoord,
-		      float blendFactor);
+                      float blendFactor);
 // Draw a single polygon with "number" vertices.
 // There should be "number" values in the indices array.
 void ar_drawPolygon(int number, const int* indices,
                     int numberPos, const float* positions,
                     const float* normals, const float* colors, const float* texCoord,
-		    float blendFactor);
+                    float blendFactor);
 
 bool ar_openglStereo();
 

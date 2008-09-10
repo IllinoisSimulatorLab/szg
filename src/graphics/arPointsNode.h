@@ -24,7 +24,7 @@ class SZG_CALL arPointsNode:public arGraphicsArrayNode{
   vector<arVector3> getPoints();
   void setPoints(vector<arVector3>& points);
   void setPoints(vector<arVector3>& points,
-		 vector<int>& IDs);
+                 vector<int>& IDs);
 };
 
 #endif

@@ -586,11 +586,11 @@ int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxB
         if (gettimeofday( &tStruct, &zStruct )!=0) {
           ar_log_error() << "arRS232Port: gettimeofday failed during read.\n";
           return -1;
-	}
+        }
 
         timeElapsedTenths = static_cast<unsigned long>( static_cast<unsigned long>(
-	  10 * (tStruct.tv_sec-startTimeSecs) +
-	  static_cast<long>(floor((tStruct.tv_usec-startTimeMicSecs)/1.0e5)) ) );
+          10 * (tStruct.tv_sec-startTimeSecs) +
+          static_cast<long>(floor((tStruct.tv_usec-startTimeMicSecs)/1.0e5)) ) );
       }
     }
 

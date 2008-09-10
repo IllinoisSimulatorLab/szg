@@ -23,7 +23,7 @@ class SZG_CALL arColor4Node:public arGraphicsArrayNode{
   vector<arVector4> getColor4();
   void setColor4(vector<arVector4>& color4);
   void setColor4(vector<arVector4>& color4,
-		 vector<int>& IDs);
+                 vector<int>& IDs);
 };
 
 #endif

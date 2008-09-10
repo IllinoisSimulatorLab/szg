@@ -63,20 +63,20 @@ int __stdcall DoGetRS232StopBits(uchar * StopBits);
 #define HiByte(_) ((_ >> 8) & 0xff)
 
 enum {
-  FNCNumberDoSetInfraBufferEmpty	=1	, // restart of infra reading (if was stopped by RAM reading)
-  FNCNumberDoGetInfraCode		=2	, // transmit of receved infra code (if some code in infra buffer)
-  FNCNumberDoSetDataPortDirection	=3	, // set direction of data bits
-  FNCNumberDoGetDataPortDirection	=4	, // get direction of data bits
-  FNCNumberDoSetOutDataPort		=5	, // set data bits (if are bits as input, then set theirs pull-ups)
-  FNCNumberDoGetOutDataPort		=6	, // get data bits (if are bits as input, then get theirs pull-ups)
-  FNCNumberDoGetInDataPort		=7	, // get data bits - pin reading
-  FNCNumberDoEEPROMRead			=8	, // read EEPROM from given address
-  FNCNumberDoEEPROMWrite		=9	, // write data byte to EEPROM to given address
-  FNCNumberDoRS232Send  		=10	, // send one data byte to RS232 line
-  FNCNumberDoRS232Read			=11	, // read one data byte from serial line (only when FIFO not implemented in device)
-  FNCNumberDoSetRS232Baud		=12	, // set baud speed of serial line
-  FNCNumberDoGetRS232Baud		=13     , // get baud speed of serial line (exact value)
-  FNCNumberDoGetRS232Buffer		=14     , // get received bytes from FIFO RS232 buffer
+  FNCNumberDoSetInfraBufferEmpty        =1        , // restart of infra reading (if was stopped by RAM reading)
+  FNCNumberDoGetInfraCode                =2        , // transmit of receved infra code (if some code in infra buffer)
+  FNCNumberDoSetDataPortDirection        =3        , // set direction of data bits
+  FNCNumberDoGetDataPortDirection        =4        , // get direction of data bits
+  FNCNumberDoSetOutDataPort                =5        , // set data bits (if are bits as input, then set theirs pull-ups)
+  FNCNumberDoGetOutDataPort                =6        , // get data bits (if are bits as input, then get theirs pull-ups)
+  FNCNumberDoGetInDataPort                =7        , // get data bits - pin reading
+  FNCNumberDoEEPROMRead                        =8        , // read EEPROM from given address
+  FNCNumberDoEEPROMWrite                =9        , // write data byte to EEPROM to given address
+  FNCNumberDoRS232Send                  =10        , // send one data byte to RS232 line
+  FNCNumberDoRS232Read                        =11        , // read one data byte from serial line (only when FIFO not implemented in device)
+  FNCNumberDoSetRS232Baud                =12        , // set baud speed of serial line
+  FNCNumberDoGetRS232Baud                =13     , // get baud speed of serial line (exact value)
+  FNCNumberDoGetRS232Buffer                =14     , // get received bytes from FIFO RS232 buffer
   FNCNumberDoSetRS232DataBits           =15     , // set number of data bits of serial line
   FNCNumberDoGetRS232DataBits           =16     , // get number of data bits of serial line
   FNCNumberDoSetRS232Parity             =17     , // set parity of serial line
@@ -489,19 +489,19 @@ DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
     switch (WaitForMultipleObjects(2, Handles, false, INFINITE)) {
     case WAIT_OBJECT_0:
       do {
-  	// read to end of bufCG
+          // read to end of bufCG
         int BufferLength = cbCG - RS232BufferWrite;
 
-	if (DoGetRS232BufferLocal(bufCG + RS232BufferWrite, BufferLength) != USB_NO_ERROR) {
+        if (DoGetRS232BufferLocal(bufCG + RS232BufferWrite, BufferLength) != USB_NO_ERROR) {
           ar_log_error() << "arUSBDriver: rs232 problem\n";
-	  // wait 2 seconds if no answer, to save bandwidth for non-rs232 devices
-	  if (WaitForSingleObject(RS232BufferEndEvent, 2000) != WAIT_TIMEOUT)
-	    goto LDone;
-	}
-	// now BufferLength is how many bytes were actually read from the USB hardware
-	RS232BufferWrite += BufferLength;
-	if (RS232BufferWrite >= cbCG)
-	  RS232BufferWrite = 0;
+          // wait 2 seconds if no answer, to save bandwidth for non-rs232 devices
+          if (WaitForSingleObject(RS232BufferEndEvent, 2000) != WAIT_TIMEOUT)
+            goto LDone;
+        }
+        // now BufferLength is how many bytes were actually read from the USB hardware
+        RS232BufferWrite += BufferLength;
+        if (RS232BufferWrite >= cbCG)
+          RS232BufferWrite = 0;
       } while (false); // I don't think this loop ever needs to run more than once
       break;
     case WAIT_OBJECT_0+1:
@@ -732,11 +732,11 @@ ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << 
     static float xMin = 0., xMax = 0., yMin = 0., yMax = 0.;
     if (iInit > 0) {
       if (iInit == cInit)
-	ar_log_critical() << "arUSBDriver calibrating.  Don't wiggle joystick yet.\n";
+        ar_log_critical() << "arUSBDriver calibrating.  Don't wiggle joystick yet.\n";
       xAvg += xUse;
       yAvg += yUse;
       if (--iInit > 0)
-	continue;
+        continue;
       ar_log_critical() << "arUSBDriver calibrated.  OK to wiggle joystick now.\n";
       xAvg /= cInit;
       yAvg /= cInit;
@@ -806,12 +806,12 @@ ar_log_remark() << "Nrm xy: " << xx << ", " << yy << "\n";
       BlinkLED();
     }
 
-//	printf("X %.1f %.1f %.1f   %5.0f = %5.2f           Y %.1f %.1f %.1f  %5.0f = %5.2f\n",
-//	  xMin, xAvg, xMax, xUse, xx,
-//	  yMin, yAvg, yMax, yUse, yy);
+//        printf("X %.1f %.1f %.1f   %5.0f = %5.2f           Y %.1f %.1f %.1f  %5.0f = %5.2f\n",
+//          xMin, xAvg, xMax, xUse, xx,
+//          yMin, yAvg, yMax, yUse, yy);
 
-	printf("\t\t\tmsec: %6.1f %6.1f %6.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
-	// ar_usleep failing?  Why 4.0 or 13.5 msec, +- .7 ?  Expected 150.
+        printf("\t\t\tmsec: %6.1f %6.1f %6.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
+        // ar_usleep failing?  Why 4.0 or 13.5 msec, +- .7 ?  Expected 150.
 
     queueAxis(0, -xx);
     queueAxis(1, yy);
@@ -825,14 +825,14 @@ ar_log_remark() << "Nrm xy: " << xx << ", " << yy << "\n";
     }
     else {
       for (int i=0; i<3; ++i) {
-	// Read pins D3 D4 D5.
-	const bool fDown = !(cButtons & (1 << (i+3))); // 1=pulled up to 5V, 0=switched to ground.
-	// Send only state changes.
-	if (fDown != fButtonDown[i]) {
-	  queueButton(i, fDown);
-	  fButtonDown[i] = fDown;
+        // Read pins D3 D4 D5.
+        const bool fDown = !(cButtons & (1 << (i+3))); // 1=pulled up to 5V, 0=switched to ground.
+        // Send only state changes.
+        if (fDown != fButtonDown[i]) {
+          queueButton(i, fDown);
+          fButtonDown[i] = fDown;
           BlinkLED();
-	}
+        }
       }
     }
 

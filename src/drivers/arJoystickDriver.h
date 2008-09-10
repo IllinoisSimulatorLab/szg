@@ -15,18 +15,18 @@
 
 #ifdef AR_USE_MINGW
 
-#define MAX_JOYSTICKS	16
-#define MAX_AXES	6	// per joystick
-#define MAX_BUTTONS	32	// ditto
+#define MAX_JOYSTICKS        16
+#define MAX_AXES        6        // per joystick
+#define MAX_BUTTONS        32        // ditto
 
 struct JoystickInfo {
-	unsigned index;
-	int numAxes;
-	int axes[MAX_AXES];
+        unsigned index;
+        int numAxes;
+        int axes[MAX_AXES];
   int axisOffsets[MAX_AXES];
   float axisScales[MAX_AXES];
-	int numButtons;
-	unsigned int buttons[MAX_BUTTONS];
+        int numButtons;
+        unsigned int buttons[MAX_BUTTONS];
   UINT systemID;
   JOYCAPS capabilities;
 };

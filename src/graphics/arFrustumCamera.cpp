@@ -53,6 +53,6 @@ arMatrix4 arFrustumCamera::getModelviewMatrix() {
   // The modelview matrix is independent of the sort of camera
   // (ortho or perspective).
   return ar_lookatMatrix(arVector3(lookat),
-			 arVector3(lookat+3),
-			 arVector3(lookat+6));
+                         arVector3(lookat+3),
+                         arVector3(lookat+6));
 }

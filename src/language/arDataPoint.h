@@ -38,9 +38,9 @@ class SZG_CALL arDataPoint {
                    bool& fEndianMode, arSocket* fd,
                    const arStreamConfig& remoteConfig);
   bool getDataCore(ARchar*& dest, int& availableSize,
-		   ARchar*& trans, int& transSize,
-		   ARint& theSize, bool& fEndianMode, arSocket* fd,
-		   const arStreamConfig& remoteConfig);
+                   ARchar*& trans, int& transSize,
+                   ARint& theSize, bool& fEndianMode, arSocket* fd,
+                   const arStreamConfig& remoteConfig);
   void setBufferSize(int numBytes); // Set size of socket buffer.
 
   // Initial socket handshake.

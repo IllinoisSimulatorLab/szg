@@ -13,7 +13,7 @@ static inline int maxint(const unsigned a, const unsigned b) { return int(a>b ? 
 
 bool ar_fromStructuredData(int& sigLen, int& sigField, int* sigBuf,
          int*& typeBuf, int*& indexBuf, int*& buttonBuf, float*& axisBuf, float*& matrixBuf,
-	 int& numItems, int& numButtons, int& numAxes, int& numMatrices,
+         int& numItems, int& numButtons, int& numAxes, int& numMatrices,
          const arStructuredData* data) {
 
                sigField = data->getDataFieldIndex("signature");
@@ -266,7 +266,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
       case AR_EVENT_AXIS:
       case AR_EVENT_MATRIX:
         unsigned& sig = stateSig[typeBuf[i]];
-	if (eventIndex >= sig)
+        if (eventIndex >= sig)
           sig = eventIndex + 1;
         break;
     }
@@ -296,7 +296,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
       case AR_EVENT_BUTTON:
         if (iGizmo >= (unsigned)numButtons) {
           ar_log_error() <<
-	    "ar_setInputStateFromStructuredData ignoring extra buttons in index field.\n";
+            "ar_setInputStateFromStructuredData ignoring extra buttons in index field.\n";
           ok = false;
         } else
           state->setButton( eventIndex, buttonBuf[iGizmo++] );
@@ -304,7 +304,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
       case AR_EVENT_AXIS:
         if (iGizmo >= (unsigned)numAxes) {
           ar_log_error() <<
-	    "ar_setInputStateFromStructuredData ignoring extra axes in index field.\n";
+            "ar_setInputStateFromStructuredData ignoring extra axes in index field.\n";
           ok = false;
         } else
           state->setAxis( eventIndex, axisBuf[iGizmo++] );
@@ -312,7 +312,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
       case AR_EVENT_MATRIX:
         if (iGizmo >= (unsigned)numMatrices) {
           ar_log_error() <<
-	    "ar_setInputStateFromStructuredData ignoring extra matrices in index field.\n";
+            "ar_setInputStateFromStructuredData ignoring extra matrices in index field.\n";
           ok = false;
         } else
           state->setMatrix( eventIndex, matrixBuf + 16*iGizmo++ );

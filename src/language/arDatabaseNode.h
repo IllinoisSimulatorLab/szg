@@ -163,7 +163,7 @@ class SZG_CALL arDatabaseNode{
   void _dumpGenericNode(arStructuredData*, int);
   // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
-		 const arNodeMap* nodeMap, const bool checkTop);
+                 const arNodeMap* nodeMap, const bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
                        bool& success, const arNodeMap* nodeMap, const bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);

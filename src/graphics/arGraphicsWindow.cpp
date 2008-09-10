@@ -460,7 +460,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   unsigned int i = 0;
   if (colorMask == "NULL") {
     ar_log_error() << "arGraphicsWindow: viewport color mask for "
-	 << screenName << " defaulting to (true/true/true/true).\n";
+         << screenName << " defaulting to (true/true/true/true).\n";
     for (i=0; i<4; ++i)
       mask[i] = GL_TRUE;
   } else {

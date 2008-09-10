@@ -67,7 +67,7 @@ class SZG_CALL arTexture {
 
   bool readImage(const string& fileName, int alpha = -1, bool complain = true);
   bool readImage(const string& fileName, const string& path, int alpha = -1,
-		 bool complain = true);
+                 bool complain = true);
   bool readImage(const string& fileName,
                  const string& subdirectory,
                  const string& path,

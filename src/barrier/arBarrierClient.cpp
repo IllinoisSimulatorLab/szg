@@ -42,8 +42,8 @@ void arBarrierClient::_connectionTask() {
     _connected = _dataClient.dialUpFallThrough(result.address, result.portIDs[0]);
     if (!_connected) {
       ar_log_error() << getLabel() << " failed to connect to brokered address '"
-	   << result.address << "' for service '"
-	   << _serviceName << "' on network '" << _networks << "'.\n";
+           << result.address << "' for service '"
+           << _serviceName << "' on network '" << _networks << "'.\n";
     }
 
     if (_connected && !_handshakeData) {
@@ -56,11 +56,11 @@ void arBarrierClient::_connectionTask() {
 
       _clientTuningData = new arStructuredData(d, "client tuning");
       CLIENT_TUNING_DATA =
-	d->find("client tuning")->getAttributeID("client tuning data");
+        d->find("client tuning")->getAttributeID("client tuning data");
 
       _serverTuningData = new arStructuredData(d, "server tuning");
       SERVER_TUNING_DATA =
-	d->find("server tuning")->getAttributeID("server tuning data");
+        d->find("server tuning")->getAttributeID("server tuning data");
     }
   }
   _connectionThreadRunning = false;
@@ -99,7 +99,7 @@ void arBarrierClient::_dataTask() {
       _serverTuningData->unpack(_dataBuffer);
       _serverSendSize = _serverTuningData->getDataInt(SERVER_TUNING_DATA);
       if (_serverSendSize < 0)
-	_serverSendSize = 0; // ignore garbage data
+        _serverSendSize = 0; // ignore garbage data
       _releaseSignal.sendSignal();
     }
     else{
@@ -283,7 +283,7 @@ void arBarrierClient::stop() {
 }
 
 void arBarrierClient::setTuningData(int drawTime, int rcvTime,
-				    int procTime, int frameNum) {
+                                    int procTime, int frameNum) {
   _drawTime = drawTime;
   _rcvTime = rcvTime;
   _procTime = procTime;

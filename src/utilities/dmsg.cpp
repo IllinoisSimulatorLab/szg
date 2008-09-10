@@ -124,7 +124,7 @@ LProcess:
       // Virtual computer
       arAppLauncher launcher("dmsg", &szgClient);
       if (!launcher.setVircomp(argv[1])) {
-	return 1;
+        return 1;
       }
       if (!launcher.setParameters()) {
         cout << "dmsg error: invalid virtual computer definition.\n";
@@ -148,7 +148,7 @@ LProcess:
       // Virtual computer
       arAppLauncher launcher("dmsg", &szgClient);
       if (!launcher.setVircomp(argv[1])) {
-	return 1;
+        return 1;
       }
       if (!launcher.setParameters()) {
         cout << "dmsg error: invalid virtual computer definition.\n";
@@ -224,7 +224,7 @@ LLocked:
     for (;;) {
       int originalMatch = -1; // getMessageResponse sets this.
       const int status =
-	szgClient.getMessageResponse(list<int>(1, match), responseBody, originalMatch);
+        szgClient.getMessageResponse(list<int>(1, match), responseBody, originalMatch);
       if (status == 0) {
         // failure
         cout << "dmsg error: no message response.\n";

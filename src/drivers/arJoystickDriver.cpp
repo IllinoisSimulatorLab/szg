@@ -8,11 +8,11 @@
 
 #ifdef AR_USE_MINGW
 
-#define AXIS_MIN	-32768  /* minimum value for axis coordinate */
-#define AXIS_MAX	32767   /* maximum value for axis coordinate */
+#define AXIS_MIN        -32768  /* minimum value for axis coordinate */
+#define AXIS_MAX        32767   /* maximum value for axis coordinate */
 /* limit axis to 256 possible positions to filter out noise */
 #define JOY_AXIS_THRESHOLD      (((AXIS_MAX)-(AXIS_MIN))/256)
-#define JOY_BUTTON_FLAG(n)	(1<<n)
+#define JOY_BUTTON_FLAG(n)        (1<<n)
 
 #endif
 
@@ -46,13 +46,13 @@ void arJoystickDriver::_eventTask() {
 
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
-	MMRESULT result;
-	int i, j;
-	DWORD flags[MAX_AXES] = { JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ,
-				  JOY_RETURNR, JOY_RETURNU, JOY_RETURNV };
-	DWORD pos[MAX_AXES];
-	int value, change;
-	JOYINFOEX joyInfo;
+        MMRESULT result;
+        int i, j;
+        DWORD flags[MAX_AXES] = { JOY_RETURNX, JOY_RETURNY, JOY_RETURNZ,
+                                  JOY_RETURNR, JOY_RETURNU, JOY_RETURNV };
+        DWORD pos[MAX_AXES];
+        int value, change;
+        JOYINFOEX joyInfo;
   int axisNum;
   int buttonNum;
 
@@ -122,7 +122,7 @@ void arJoystickDriver::_eventTask() {
       cerr << "DirectInput poll failed.\n";
       break;
     }
-    DIJOYSTATE2	js;
+    DIJOYSTATE2        js;
     int rc = _pStick->GetDeviceState(sizeof(js), &js);
     if (FAILED(rc)) {
       cerr << "DirectInput GetDeviceState failed.\n";
@@ -234,37 +234,37 @@ bool arJoystickDriver::init(arSZGClient& szgClient) {
 
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
-	int i, j;
-	int maxDevices;
-	int numDevices;
-	JOYINFOEX joyInfo;
-	JOYCAPS	joyCaps;
-	MMRESULT result;
-	int fCapabilities[MAX_AXES-2] =
-		{ JOYCAPS_HASZ, JOYCAPS_HASR, JOYCAPS_HASU, JOYCAPS_HASV };
-	int axisMins[MAX_AXES], axisMaxes[MAX_AXES];
+        int i, j;
+        int maxDevices;
+        int numDevices;
+        JOYINFOEX joyInfo;
+        JOYCAPS        joyCaps;
+        MMRESULT result;
+        int fCapabilities[MAX_AXES-2] =
+                { JOYCAPS_HASZ, JOYCAPS_HASR, JOYCAPS_HASU, JOYCAPS_HASV };
+        int axisMins[MAX_AXES], axisMaxes[MAX_AXES];
 
 
-	for (i=0; i<MAX_JOYSTICKS; ++i) {
+        for (i=0; i<MAX_JOYSTICKS; ++i) {
     _joysticks[i].systemID = 0;
-	}
+        }
 
-	/* Loop over all potential joystick devices */
-	numDevices = 0;
-	maxDevices = joyGetNumDevs();
-	for (i=JOYSTICKID1; i<maxDevices && numDevices<MAX_JOYSTICKS; ++i) {
-		joyInfo.dwSize = sizeof(joyInfo);
-		joyInfo.dwFlags = JOY_RETURNALL;
-		result = joyGetPosEx( _joysticks[i].systemID, &joyInfo );
-		if (result == JOYERR_NOERROR) {
-			result = joyGetDevCaps(i, &joyCaps, sizeof(joyCaps));
-			if (result == JOYERR_NOERROR) {
+        /* Loop over all potential joystick devices */
+        numDevices = 0;
+        maxDevices = joyGetNumDevs();
+        for (i=JOYSTICKID1; i<maxDevices && numDevices<MAX_JOYSTICKS; ++i) {
+                joyInfo.dwSize = sizeof(joyInfo);
+                joyInfo.dwFlags = JOY_RETURNALL;
+                result = joyGetPosEx( _joysticks[i].systemID, &joyInfo );
+                if (result == JOYERR_NOERROR) {
+                        result = joyGetDevCaps(i, &joyCaps, sizeof(joyCaps));
+                        if (result == JOYERR_NOERROR) {
         _joysticks[numDevices].systemID = i;
         _joysticks[numDevices].capabilities = joyCaps;
-				numDevices++;
-			}
-		}
-	}
+                                numDevices++;
+                        }
+                }
+        }
   _numJoysticks = numDevices;
   ar_log_critical() << "Found " << _numJoysticks << " joysticks.\n";
 
@@ -333,7 +333,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient) {
   _pStick->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
 
   // set range of axes to +-32k
-  DIPROPRANGE	range;
+  DIPROPRANGE        range;
   range.diph.dwSize = sizeof(DIPROPRANGE);
   range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
   range.diph.dwHow = DIPH_BYOFFSET;
@@ -349,7 +349,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient) {
     ar_log_error() << "arJoystickDriver DirectInput failure number 5.\n";
     return false;
   }
-  DIPROPDWORD	dw;
+  DIPROPDWORD        dw;
   dw.dwData = DIPROPAXISMODE_ABS;
   dw.diph.dwSize = sizeof(DIPROPDWORD);
   dw.diph.dwHeaderSize = sizeof(DIPROPHEADER);

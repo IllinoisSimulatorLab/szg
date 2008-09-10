@@ -95,9 +95,9 @@ arDataTemplate* arTemplateDictionary::find(const string& name) {
       ar_log_error() << "arTemplateDictionary: no entry \"" << name << "\".\n"
            << "  (dictionary contains: ";
       for (iTemplate = _templateContainer.begin();
-	   iTemplate != _templateContainer.end();
-	   ++iTemplate) {
-	ar_log_error() << iTemplate->first << "; ";
+           iTemplate != _templateContainer.end();
+           ++iTemplate) {
+        ar_log_error() << iTemplate->first << "; ";
       }
       ar_log_error() << ")\n";
     }
@@ -192,21 +192,21 @@ void arTemplateDictionary::pack(ARchar* dest) const {
 
       for (arAttribute::const_iterator iAttr(theTemplate->attributeBegin());
            iAttr != theTemplate->attributeEnd(); ++iAttr) {
-	if (iAttr->second.second != i)
-	  continue;
+        if (iAttr->second.second != i)
+          continue;
 
-	// Pack the field name.
-	string attributeName = iAttr->first;
-	ar_packDataField(dest, position, AR_CHAR,
-	  attributeName.length(), attributeName.data());
+        // Pack the field name.
+        string attributeName = iAttr->first;
+        ar_packDataField(dest, position, AR_CHAR,
+          attributeName.length(), attributeName.data());
 
-	// Pack the data type.
-	ARint attributeType = iAttr->second.first;
-	ar_packDataField(dest, position, AR_INT, 1, &attributeType);
+        // Pack the data type.
+        ARint attributeType = iAttr->second.first;
+        ar_packDataField(dest, position, AR_INT, 1, &attributeType);
 
-	numFields += 2;
-	break;
-	}
+        numFields += 2;
+        break;
+        }
     }
   }
 
@@ -246,8 +246,8 @@ bool arTemplateDictionary::unpack(ARchar* source, arStreamConfig streamConfig) {
     position += AR_INT_SIZE;
     if (nameType != AR_CHAR || nameLength >= 1023) {
       cout << "arTemplateDictionary unpack error: name type of "
-	   << arDataTypeName((arDataType)nameType) << " or name length of "
-	   << nameLength << " are illegal\n";
+           << arDataTypeName((arDataType)nameType) << " or name length of "
+           << nameLength << " are illegal\n";
       return false;
     }
 
@@ -263,8 +263,8 @@ bool arTemplateDictionary::unpack(ARchar* source, arStreamConfig streamConfig) {
     position += AR_INT_SIZE;
     if (nameType != AR_INT || nameLength != 1) {
       cout << "arTemplateDictionary unpack error: field type of "
-	   << arDataTypeName((arDataType)nameType) << " or field length of "
-	   << nameLength << " are illegal.\n";
+           << arDataTypeName((arDataType)nameType) << " or field length of "
+           << nameLength << " are illegal.\n";
       return false;
     }
     nameType = ar_translateInt(source+position, streamConfig);
@@ -283,8 +283,8 @@ bool arTemplateDictionary::unpack(ARchar* source, arStreamConfig streamConfig) {
       position += AR_INT_SIZE;
       if (dataLength!=1 || dataType!=AR_INT) {
         cout << "arTemplateDictionary unpack error: illegal field type/length \""
-	   << arDataTypeName((arDataType)nameType) << "\"/"
-	   << nameLength << ".\n";
+           << arDataTypeName((arDataType)nameType) << "\"/"
+           << nameLength << ".\n";
         return false;
       }
       const ARint templateID = ar_translateInt(source+position, streamConfig);
@@ -301,7 +301,7 @@ bool arTemplateDictionary::unpack(ARchar* source, arStreamConfig streamConfig) {
         iField += 2;
       }
       else{
-	// Hey!  nameType==AR_GARBAGE wasn't the first case!  Abort.
+        // Hey!  nameType==AR_GARBAGE wasn't the first case!  Abort.
         cout << "arTemplateDictionary unpack error: field name incorrect.\n";
         return false;
       }

@@ -56,23 +56,23 @@ class SZG_CALL arSZGClient{
                     const string& parameterName,
                     const string& parameterValue);
   string testSetAttribute(const string& computerName,
-			  const string& groupName,
-			  const string& paramterName,
-			  const string& parameterValue);
+                          const string& groupName,
+                          const string& paramterName,
+                          const string& parameterValue);
   string testSetAttribute(const string& userName,
                           const string& computerName,
-			  const string& groupName,
-			  const string& parameterName,
-			  const string& parameterValue);
+                          const string& groupName,
+                          const string& parameterName,
+                          const string& parameterValue);
   string getAttribute(const string& userName,
-		      const string& computerName,
-		      const string& groupName,
-		      const string& parameterName,
-		      const string& validValues);
+                      const string& computerName,
+                      const string& groupName,
+                      const string& parameterName,
+                      const string& validValues);
   string getAttribute(const string& computerName,
                       const string& groupName,
                       const string& parameterName,
-		      const string& validValues /* no default */);
+                      const string& validValues /* no default */);
 
   // Parameter database, abbreviations for common cases thereof.
   bool setAttribute(const string& groupName,
@@ -81,22 +81,22 @@ class SZG_CALL arSZGClient{
     { return setAttribute("NULL", groupName, parameterName, parameterValue); }
   string getAttribute(const string& groupName,
                       const string& parameterName,
-		      const string& validValues = "")
+                      const string& validValues = "")
     { return getAttribute("NULL", groupName, parameterName, validValues); }
   int getAttributeInt(const string& groupName,
                       const string& parameterName);
   int getAttributeInt(const string&, const string&, const string&,
-		      const string&);
+                      const string&);
   bool getAttributeFloats(const string& groupName,
-		          const string& parameterName,
+                          const string& parameterName,
                           float* values,
                           int numvalues = 1);
   bool getAttributeInts(const string& groupName,
-		        const string& parameterName,
+                        const string& parameterName,
                         int* values,
                         int numvalues = 1);
   bool getAttributeLongs(const string& groupName,
-		         const string& parameterName,
+                         const string& parameterName,
                          long* values,
                          int numvalues = 1);
   bool getAttributeVector3( const string& groupName,
@@ -110,16 +110,16 @@ class SZG_CALL arSZGClient{
 
   // "Global" attributes (not for an individual host).
   bool setGlobalAttribute(const string& attributeName,
-			  const string& attributeValue);
+                          const string& attributeValue);
   bool setGlobalAttribute(const string& userName,
-			  const string& attributeName,
-			  const string& attributeValue);
+                          const string& attributeName,
+                          const string& attributeValue);
   string getGlobalAttribute(const string& attributeName);
   string getGlobalAttribute(const string& userName,
-			    const string& attributeName);
+                            const string& attributeName);
   string getSetGlobalXML(const string& userName,
-			 const arSlashString& pathList,
-			 const string& attributeValue);
+                         const arSlashString& pathList,
+                         const string& attributeValue);
   string getSetGlobalXML(const arSlashString& pathList,
                          const string& attributeValue = "NULL") {
     return getSetGlobalXML(_userName, pathList, attributeValue);
@@ -151,7 +151,7 @@ class SZG_CALL arSZGClient{
   int sendMessage(const string& type, const string& body, int destination,
                    bool responseRequested = false);
   int sendMessage(const string& type, const string& body,
-		   const string& context, int destination,
+                   const string& context, int destination,
                    bool responseRequested = false);
   int receiveMessage(string* messageType, string* messageBody)
     { return receiveMessage(NULL, messageType, messageBody, NULL); }
@@ -217,7 +217,7 @@ class SZG_CALL arSZGClient{
   string createContext(const string& virtualComputer,
                        const string& modeChannel,
                        const string& mode,
-		       const string& networksChannel,
+                       const string& networksChannel,
                        const arSlashString& networks);
 
   // Connecting to an szgserver.
@@ -321,9 +321,9 @@ class SZG_CALL arSZGClient{
 
   // Local parameter database, for standalone
   string _getAttributeLocal(const string&, const string&, const string&,
-			    const string&);
+                            const string&);
   bool _setAttributeLocal(const string&, const string&, const string&,
-			  const string&);
+                          const string&);
   string _getGlobalAttributeLocal(const string&);
   bool _setGlobalAttributeLocal(const string&, const string&);
   string _changeToValidValue(const string&, const string&,

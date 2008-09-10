@@ -88,8 +88,8 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
     // TO-DO: If the templates have the same name... WE SHOULD CHECK IF
     // THEY ARE EQUAL!!!
     if (!temp) {
-	  // NOTE: THIS WILL RENUMBER THE RECORDS FROM SUBORDINATE OBJECTS!
-	  // THIS IS CORRECTED IN START!
+          // NOTE: THIS WILL RENUMBER THE RECORDS FROM SUBORDINATE OBJECTS!
+          // THIS IS CORRECTED IN START!
       _dictionary.add(i->second);
     }
     else{
@@ -189,7 +189,7 @@ void arMasterSlaveDataRouter::_addStructuredDataToBuffer
     // data will be copied! (so ar_growBuffer is not suitable!)
     _buffer.grow(2*newBufferPosition);
     ar_log_remark() << "arMasterSlaveDataRouter growing buffer to size = "
-	 << 2*newBufferPosition << "\n";
+         << 2*newBufferPosition << "\n";
   }
   data->pack((_buffer.data)+_bufferPosition);
   _bufferPosition = newBufferPosition;

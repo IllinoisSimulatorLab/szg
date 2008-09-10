@@ -167,8 +167,8 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
       const float score = (*iter)->priorityScore( wandTipMatrix );
       if (score >= minPriorityScore &&
          ((highPriorityIter == _listUs.end() || score > highScore))) {
-	highScore = score;
-	highPriorityIter = iter;
+        highScore = score;
+        highPriorityIter = iter;
       }
     }
   }

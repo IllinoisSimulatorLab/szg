@@ -48,8 +48,8 @@ void testDatabase(arGraphicsDatabase& g) {
   s->setGraphicsStateFloat("point_size", 20.0);
   float c[12] = {-1, -1, 0,
                  1, -1, 0,
-		 1, 1, 0,
-		 -1, 1, 0};
+                 1, 1, 0,
+                 -1, 1, 0};
   arMaterialNode* m = (arMaterialNode*) g.newNode(s, "material");
   arMaterial mat;
   mat.diffuse = arVector3(1, 1, 0);
@@ -67,9 +67,9 @@ void testDatabase(arGraphicsDatabase& g) {
   in->setIndices(8, index);
   arColor4Node* color = (arColor4Node*) g.newNode(in, "color4");
   float lineColor[32] = {1,0,0,1, 1,0,0,1,
-			 1,0,0,1, 1,0,0,1,
-			 1,0,0,1, 1,0,0,1,
-			 1,0,0,1, 1,0,0,1};
+                         1,0,0,1, 1,0,0,1,
+                         1,0,0,1, 1,0,0,1,
+                         1,0,0,1, 1,0,0,1};
   color->setColor4(8, lineColor);
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 4);
@@ -82,7 +82,7 @@ void testDatabase(arGraphicsDatabase& g) {
   in->setIndices(4, index2);
   color = (arColor4Node*) g.newNode(in, "color4");
   float lineColor2[16] = {0,1,0,1, 0,1,0,1,
-			  0,1,0,1, 0,1,0,1};
+                          0,1,0,1, 0,1,0,1};
   color->setColor4(4, lineColor2);
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 2);
@@ -91,16 +91,16 @@ void testDatabase(arGraphicsDatabase& g) {
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s4->setGraphicsStateFloat("point_size", 10.0);
   float c2[12] = {-0.7, -0.7, 0,
-	          0.7, -0.7, 0,
+                  0.7, -0.7, 0,
                   0.7, 0.7, 0,
-	          -0.7, 0.7, 0};
+                  -0.7, 0.7, 0};
   p = (arPointsNode*) g.newNode(s4, "points");
   p->setPoints(4, c2);
   color = (arColor4Node*) g.newNode(p, "color4");
   float clr[16] = {1,0,0,1,
-		   0,1,0,1,
-		   0,0,1,1,
-		   0,1,1,1};
+                   0,1,0,1,
+                   0,0,1,1,
+                   0,1,1,1};
   color->setColor4(4, clr);
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_POINTS, 4);

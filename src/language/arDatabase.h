@@ -53,10 +53,10 @@ class SZG_CALL arDatabase{
   arDatabaseNode* findNode(const string& name, bool refNode=false);
   arDatabaseNode* findNodeRef(const string& name);
   arDatabaseNode* findNode(arDatabaseNode* node, const string& name,
-			   bool refNode = false);
+                           bool refNode = false);
   arDatabaseNode* findNodeRef(arDatabaseNode* node, const string& name);
   arDatabaseNode* findNodeByType(arDatabaseNode* node, const string& nodeType,
-				 bool refNode = false);
+                                 bool refNode = false);
   arDatabaseNode* findNodeByTypeRef(arDatabaseNode* node,
                                     const string& nodeType);
   arDatabaseNode* getRoot() { return &_rootNode; }
@@ -71,14 +71,14 @@ class SZG_CALL arDatabase{
   arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
                              const string& name = "");
   arDatabaseNode* insertNode(arDatabaseNode* parent,
-			     arDatabaseNode* child,
-			     const string& type,
-			     const string& name = "",
+                             arDatabaseNode* child,
+                             const string& type,
+                             const string& name = "",
                              bool refNode = false);
   arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
                              arDatabaseNode* child,
-			     const string& type,
-			     const string& name = "");
+                             const string& type,
+                             const string& name = "");
   bool cutNode(arDatabaseNode* node);
   bool cutNode(int ID);
   bool eraseNode(arDatabaseNode* node);
@@ -86,7 +86,7 @@ class SZG_CALL arDatabase{
   void permuteChildren(arDatabaseNode* parent,
                        list<arDatabaseNode*>& children);
   void permuteChildren(arDatabaseNode* parent,
-		       int number, int* children);
+                       int number, int* children);
 
   bool fillNodeData(arStructuredData* data, arDatabaseNode* node);
 
@@ -112,23 +112,23 @@ class SZG_CALL arDatabase{
   virtual bool writeDatabaseXML(const string& fileName,
                                 const string& path="");
   virtual bool writeRooted(arDatabaseNode* parent,
-			   const string& fileName,
-			   const string& path="");
+                           const string& fileName,
+                           const string& path="");
   virtual bool writeRootedXML(arDatabaseNode* parent,
                               const string& fileName,
                               const string& path="");
 
   bool createNodeMap(int externalNodeID,
-		     arDatabase* externalDatabase,
-		     arNodeMap& nodeMap);
+                     arDatabase* externalDatabase,
+                     arNodeMap& nodeMap);
   bool filterData(arStructuredData* record,
-		  arNodeMap& nodeMap);
+                  arNodeMap& nodeMap);
   int  filterIncoming(arDatabaseNode* mappingRoot,
                       arStructuredData* record,
-	              arNodeMap& nodeMap,
-		      int* mappedIDs,
-		      arNodeMap* outFilter,
-		      arNodeLevel outFilterLevel,
+                      arNodeMap& nodeMap,
+                      int* mappedIDs,
+                      arNodeMap* outFilter,
+                      arNodeLevel outFilterLevel,
                       bool allNew);
 
   bool empty(); // not const, because it uses a lock
@@ -207,34 +207,34 @@ class SZG_CALL arDatabase{
   void _writeDatabaseXML(arDatabaseNode* pNode, arStructuredData& nodeData,
                          FILE* destFile);
   void _createNodeMap(arDatabaseNode* localNode, int externalNodeID,
-		      arDatabase* externalDatabase,
-		      arNodeMap& nodeMap,
-		      bool& failure);
+                      arDatabase* externalDatabase,
+                      arNodeMap& nodeMap,
+                      bool& failure);
   void _insertOutFilter(arNodeMap& outFilter,
-			int nodeID,
-			arNodeLevel outFilterLevel); // Call only while lock()'d.
+                        int nodeID,
+                        arNodeLevel outFilterLevel); // Call only while lock()'d.
   arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
-				const string& nodeType,
-				const string& nodeName,
-				arNodeMap& nodeMap);
+                                const string& nodeType,
+                                const string& nodeName,
+                                arNodeMap& nodeMap);
   int _filterIncomingMakeNode(arDatabaseNode* mappingRoot,
                       arStructuredData* record,
-	              arNodeMap& nodeMap,
-		      int* mappedIDs,
-		      arNodeMap* outFilter,
-		      arNodeLevel outFilterLevel,
+                      arNodeMap& nodeMap,
+                      int* mappedIDs,
+                      arNodeMap* outFilter,
+                      arNodeLevel outFilterLevel,
                       bool allNew);
   int _filterIncomingInsert(arDatabaseNode* mappingRoot,
                       arStructuredData* data,
-	              arNodeMap& nodeMap,
-		      int* mappedIDs);
+                      arNodeMap& nodeMap,
+                      int* mappedIDs);
   int _filterIncomingErase(arDatabaseNode* mappingRoot,
                            arStructuredData* data,
-			   arNodeMap& nodeMap);
+                           arNodeMap& nodeMap);
   int _filterIncomingCut(arStructuredData* data,
-			 arNodeMap& nodeMap);
+                         arNodeMap& nodeMap);
   int _filterIncomingPermute(arStructuredData* data,
-			     arNodeMap& nodeMap);
+                             arNodeMap& nodeMap);
 
   // The factory function that is redefined by subclasses.
   virtual arDatabaseNode* _makeNode(const string& type);

@@ -49,475 +49,475 @@
 #ifndef __ISpNotifySource_FWD_DEFINED__
 #define __ISpNotifySource_FWD_DEFINED__
 typedef interface ISpNotifySource ISpNotifySource;
-#endif 	/* __ISpNotifySource_FWD_DEFINED__ */
+#endif         /* __ISpNotifySource_FWD_DEFINED__ */
 
 
 #ifndef __ISpNotifySink_FWD_DEFINED__
 #define __ISpNotifySink_FWD_DEFINED__
 typedef interface ISpNotifySink ISpNotifySink;
-#endif 	/* __ISpNotifySink_FWD_DEFINED__ */
+#endif         /* __ISpNotifySink_FWD_DEFINED__ */
 
 
 #ifndef __ISpNotifyTranslator_FWD_DEFINED__
 #define __ISpNotifyTranslator_FWD_DEFINED__
 typedef interface ISpNotifyTranslator ISpNotifyTranslator;
-#endif 	/* __ISpNotifyTranslator_FWD_DEFINED__ */
+#endif         /* __ISpNotifyTranslator_FWD_DEFINED__ */
 
 
 #ifndef __ISpDataKey_FWD_DEFINED__
 #define __ISpDataKey_FWD_DEFINED__
 typedef interface ISpDataKey ISpDataKey;
-#endif 	/* __ISpDataKey_FWD_DEFINED__ */
+#endif         /* __ISpDataKey_FWD_DEFINED__ */
 
 
 #ifndef __ISpRegDataKey_FWD_DEFINED__
 #define __ISpRegDataKey_FWD_DEFINED__
 typedef interface ISpRegDataKey ISpRegDataKey;
-#endif 	/* __ISpRegDataKey_FWD_DEFINED__ */
+#endif         /* __ISpRegDataKey_FWD_DEFINED__ */
 
 
 #ifndef __ISpObjectTokenCategory_FWD_DEFINED__
 #define __ISpObjectTokenCategory_FWD_DEFINED__
 typedef interface ISpObjectTokenCategory ISpObjectTokenCategory;
-#endif 	/* __ISpObjectTokenCategory_FWD_DEFINED__ */
+#endif         /* __ISpObjectTokenCategory_FWD_DEFINED__ */
 
 
 #ifndef __ISpObjectToken_FWD_DEFINED__
 #define __ISpObjectToken_FWD_DEFINED__
 typedef interface ISpObjectToken ISpObjectToken;
-#endif 	/* __ISpObjectToken_FWD_DEFINED__ */
+#endif         /* __ISpObjectToken_FWD_DEFINED__ */
 
 
 #ifndef __ISpObjectTokenInit_FWD_DEFINED__
 #define __ISpObjectTokenInit_FWD_DEFINED__
 typedef interface ISpObjectTokenInit ISpObjectTokenInit;
-#endif 	/* __ISpObjectTokenInit_FWD_DEFINED__ */
+#endif         /* __ISpObjectTokenInit_FWD_DEFINED__ */
 
 
 #ifndef __IEnumSpObjectTokens_FWD_DEFINED__
 #define __IEnumSpObjectTokens_FWD_DEFINED__
 typedef interface IEnumSpObjectTokens IEnumSpObjectTokens;
-#endif 	/* __IEnumSpObjectTokens_FWD_DEFINED__ */
+#endif         /* __IEnumSpObjectTokens_FWD_DEFINED__ */
 
 
 #ifndef __ISpObjectWithToken_FWD_DEFINED__
 #define __ISpObjectWithToken_FWD_DEFINED__
 typedef interface ISpObjectWithToken ISpObjectWithToken;
-#endif 	/* __ISpObjectWithToken_FWD_DEFINED__ */
+#endif         /* __ISpObjectWithToken_FWD_DEFINED__ */
 
 
 #ifndef __ISpResourceManager_FWD_DEFINED__
 #define __ISpResourceManager_FWD_DEFINED__
 typedef interface ISpResourceManager ISpResourceManager;
-#endif 	/* __ISpResourceManager_FWD_DEFINED__ */
+#endif         /* __ISpResourceManager_FWD_DEFINED__ */
 
 
 #ifndef __ISpEventSource_FWD_DEFINED__
 #define __ISpEventSource_FWD_DEFINED__
 typedef interface ISpEventSource ISpEventSource;
-#endif 	/* __ISpEventSource_FWD_DEFINED__ */
+#endif         /* __ISpEventSource_FWD_DEFINED__ */
 
 
 #ifndef __ISpEventSink_FWD_DEFINED__
 #define __ISpEventSink_FWD_DEFINED__
 typedef interface ISpEventSink ISpEventSink;
-#endif 	/* __ISpEventSink_FWD_DEFINED__ */
+#endif         /* __ISpEventSink_FWD_DEFINED__ */
 
 
 #ifndef __ISpStreamFormat_FWD_DEFINED__
 #define __ISpStreamFormat_FWD_DEFINED__
 typedef interface ISpStreamFormat ISpStreamFormat;
-#endif 	/* __ISpStreamFormat_FWD_DEFINED__ */
+#endif         /* __ISpStreamFormat_FWD_DEFINED__ */
 
 
 #ifndef __ISpStream_FWD_DEFINED__
 #define __ISpStream_FWD_DEFINED__
 typedef interface ISpStream ISpStream;
-#endif 	/* __ISpStream_FWD_DEFINED__ */
+#endif         /* __ISpStream_FWD_DEFINED__ */
 
 
 #ifndef __ISpStreamFormatConverter_FWD_DEFINED__
 #define __ISpStreamFormatConverter_FWD_DEFINED__
 typedef interface ISpStreamFormatConverter ISpStreamFormatConverter;
-#endif 	/* __ISpStreamFormatConverter_FWD_DEFINED__ */
+#endif         /* __ISpStreamFormatConverter_FWD_DEFINED__ */
 
 
 #ifndef __ISpAudio_FWD_DEFINED__
 #define __ISpAudio_FWD_DEFINED__
 typedef interface ISpAudio ISpAudio;
-#endif 	/* __ISpAudio_FWD_DEFINED__ */
+#endif         /* __ISpAudio_FWD_DEFINED__ */
 
 
 #ifndef __ISpMMSysAudio_FWD_DEFINED__
 #define __ISpMMSysAudio_FWD_DEFINED__
 typedef interface ISpMMSysAudio ISpMMSysAudio;
-#endif 	/* __ISpMMSysAudio_FWD_DEFINED__ */
+#endif         /* __ISpMMSysAudio_FWD_DEFINED__ */
 
 
 #ifndef __ISpTranscript_FWD_DEFINED__
 #define __ISpTranscript_FWD_DEFINED__
 typedef interface ISpTranscript ISpTranscript;
-#endif 	/* __ISpTranscript_FWD_DEFINED__ */
+#endif         /* __ISpTranscript_FWD_DEFINED__ */
 
 
 #ifndef __ISpLexicon_FWD_DEFINED__
 #define __ISpLexicon_FWD_DEFINED__
 typedef interface ISpLexicon ISpLexicon;
-#endif 	/* __ISpLexicon_FWD_DEFINED__ */
+#endif         /* __ISpLexicon_FWD_DEFINED__ */
 
 
 #ifndef __ISpContainerLexicon_FWD_DEFINED__
 #define __ISpContainerLexicon_FWD_DEFINED__
 typedef interface ISpContainerLexicon ISpContainerLexicon;
-#endif 	/* __ISpContainerLexicon_FWD_DEFINED__ */
+#endif         /* __ISpContainerLexicon_FWD_DEFINED__ */
 
 
 #ifndef __ISpPhoneConverter_FWD_DEFINED__
 #define __ISpPhoneConverter_FWD_DEFINED__
 typedef interface ISpPhoneConverter ISpPhoneConverter;
-#endif 	/* __ISpPhoneConverter_FWD_DEFINED__ */
+#endif         /* __ISpPhoneConverter_FWD_DEFINED__ */
 
 
 #ifndef __ISpVoice_FWD_DEFINED__
 #define __ISpVoice_FWD_DEFINED__
 typedef interface ISpVoice ISpVoice;
-#endif 	/* __ISpVoice_FWD_DEFINED__ */
+#endif         /* __ISpVoice_FWD_DEFINED__ */
 
 
 #ifndef __ISpPhrase_FWD_DEFINED__
 #define __ISpPhrase_FWD_DEFINED__
 typedef interface ISpPhrase ISpPhrase;
-#endif 	/* __ISpPhrase_FWD_DEFINED__ */
+#endif         /* __ISpPhrase_FWD_DEFINED__ */
 
 
 #ifndef __ISpPhraseAlt_FWD_DEFINED__
 #define __ISpPhraseAlt_FWD_DEFINED__
 typedef interface ISpPhraseAlt ISpPhraseAlt;
-#endif 	/* __ISpPhraseAlt_FWD_DEFINED__ */
+#endif         /* __ISpPhraseAlt_FWD_DEFINED__ */
 
 
 #ifndef __ISpRecoResult_FWD_DEFINED__
 #define __ISpRecoResult_FWD_DEFINED__
 typedef interface ISpRecoResult ISpRecoResult;
-#endif 	/* __ISpRecoResult_FWD_DEFINED__ */
+#endif         /* __ISpRecoResult_FWD_DEFINED__ */
 
 
 #ifndef __ISpGrammarBuilder_FWD_DEFINED__
 #define __ISpGrammarBuilder_FWD_DEFINED__
 typedef interface ISpGrammarBuilder ISpGrammarBuilder;
-#endif 	/* __ISpGrammarBuilder_FWD_DEFINED__ */
+#endif         /* __ISpGrammarBuilder_FWD_DEFINED__ */
 
 
 #ifndef __ISpRecoGrammar_FWD_DEFINED__
 #define __ISpRecoGrammar_FWD_DEFINED__
 typedef interface ISpRecoGrammar ISpRecoGrammar;
-#endif 	/* __ISpRecoGrammar_FWD_DEFINED__ */
+#endif         /* __ISpRecoGrammar_FWD_DEFINED__ */
 
 
 #ifndef __ISpRecoContext_FWD_DEFINED__
 #define __ISpRecoContext_FWD_DEFINED__
 typedef interface ISpRecoContext ISpRecoContext;
-#endif 	/* __ISpRecoContext_FWD_DEFINED__ */
+#endif         /* __ISpRecoContext_FWD_DEFINED__ */
 
 
 #ifndef __ISpProperties_FWD_DEFINED__
 #define __ISpProperties_FWD_DEFINED__
 typedef interface ISpProperties ISpProperties;
-#endif 	/* __ISpProperties_FWD_DEFINED__ */
+#endif         /* __ISpProperties_FWD_DEFINED__ */
 
 
 #ifndef __ISpRecognizer_FWD_DEFINED__
 #define __ISpRecognizer_FWD_DEFINED__
 typedef interface ISpRecognizer ISpRecognizer;
-#endif 	/* __ISpRecognizer_FWD_DEFINED__ */
+#endif         /* __ISpRecognizer_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechDataKey_FWD_DEFINED__
 #define __ISpeechDataKey_FWD_DEFINED__
 typedef interface ISpeechDataKey ISpeechDataKey;
-#endif 	/* __ISpeechDataKey_FWD_DEFINED__ */
+#endif         /* __ISpeechDataKey_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechObjectToken_FWD_DEFINED__
 #define __ISpeechObjectToken_FWD_DEFINED__
 typedef interface ISpeechObjectToken ISpeechObjectToken;
-#endif 	/* __ISpeechObjectToken_FWD_DEFINED__ */
+#endif         /* __ISpeechObjectToken_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechObjectTokens_FWD_DEFINED__
 #define __ISpeechObjectTokens_FWD_DEFINED__
 typedef interface ISpeechObjectTokens ISpeechObjectTokens;
-#endif 	/* __ISpeechObjectTokens_FWD_DEFINED__ */
+#endif         /* __ISpeechObjectTokens_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechObjectTokenCategory_FWD_DEFINED__
 #define __ISpeechObjectTokenCategory_FWD_DEFINED__
 typedef interface ISpeechObjectTokenCategory ISpeechObjectTokenCategory;
-#endif 	/* __ISpeechObjectTokenCategory_FWD_DEFINED__ */
+#endif         /* __ISpeechObjectTokenCategory_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechAudioBufferInfo_FWD_DEFINED__
 #define __ISpeechAudioBufferInfo_FWD_DEFINED__
 typedef interface ISpeechAudioBufferInfo ISpeechAudioBufferInfo;
-#endif 	/* __ISpeechAudioBufferInfo_FWD_DEFINED__ */
+#endif         /* __ISpeechAudioBufferInfo_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechAudioStatus_FWD_DEFINED__
 #define __ISpeechAudioStatus_FWD_DEFINED__
 typedef interface ISpeechAudioStatus ISpeechAudioStatus;
-#endif 	/* __ISpeechAudioStatus_FWD_DEFINED__ */
+#endif         /* __ISpeechAudioStatus_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechAudioFormat_FWD_DEFINED__
 #define __ISpeechAudioFormat_FWD_DEFINED__
 typedef interface ISpeechAudioFormat ISpeechAudioFormat;
-#endif 	/* __ISpeechAudioFormat_FWD_DEFINED__ */
+#endif         /* __ISpeechAudioFormat_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechWaveFormatEx_FWD_DEFINED__
 #define __ISpeechWaveFormatEx_FWD_DEFINED__
 typedef interface ISpeechWaveFormatEx ISpeechWaveFormatEx;
-#endif 	/* __ISpeechWaveFormatEx_FWD_DEFINED__ */
+#endif         /* __ISpeechWaveFormatEx_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechBaseStream_FWD_DEFINED__
 #define __ISpeechBaseStream_FWD_DEFINED__
 typedef interface ISpeechBaseStream ISpeechBaseStream;
-#endif 	/* __ISpeechBaseStream_FWD_DEFINED__ */
+#endif         /* __ISpeechBaseStream_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechFileStream_FWD_DEFINED__
 #define __ISpeechFileStream_FWD_DEFINED__
 typedef interface ISpeechFileStream ISpeechFileStream;
-#endif 	/* __ISpeechFileStream_FWD_DEFINED__ */
+#endif         /* __ISpeechFileStream_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechMemoryStream_FWD_DEFINED__
 #define __ISpeechMemoryStream_FWD_DEFINED__
 typedef interface ISpeechMemoryStream ISpeechMemoryStream;
-#endif 	/* __ISpeechMemoryStream_FWD_DEFINED__ */
+#endif         /* __ISpeechMemoryStream_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechCustomStream_FWD_DEFINED__
 #define __ISpeechCustomStream_FWD_DEFINED__
 typedef interface ISpeechCustomStream ISpeechCustomStream;
-#endif 	/* __ISpeechCustomStream_FWD_DEFINED__ */
+#endif         /* __ISpeechCustomStream_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechAudio_FWD_DEFINED__
 #define __ISpeechAudio_FWD_DEFINED__
 typedef interface ISpeechAudio ISpeechAudio;
-#endif 	/* __ISpeechAudio_FWD_DEFINED__ */
+#endif         /* __ISpeechAudio_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechMMSysAudio_FWD_DEFINED__
 #define __ISpeechMMSysAudio_FWD_DEFINED__
 typedef interface ISpeechMMSysAudio ISpeechMMSysAudio;
-#endif 	/* __ISpeechMMSysAudio_FWD_DEFINED__ */
+#endif         /* __ISpeechMMSysAudio_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechVoice_FWD_DEFINED__
 #define __ISpeechVoice_FWD_DEFINED__
 typedef interface ISpeechVoice ISpeechVoice;
-#endif 	/* __ISpeechVoice_FWD_DEFINED__ */
+#endif         /* __ISpeechVoice_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechVoiceStatus_FWD_DEFINED__
 #define __ISpeechVoiceStatus_FWD_DEFINED__
 typedef interface ISpeechVoiceStatus ISpeechVoiceStatus;
-#endif 	/* __ISpeechVoiceStatus_FWD_DEFINED__ */
+#endif         /* __ISpeechVoiceStatus_FWD_DEFINED__ */
 
 
 #ifndef ___ISpeechVoiceEvents_FWD_DEFINED__
 #define ___ISpeechVoiceEvents_FWD_DEFINED__
 typedef interface _ISpeechVoiceEvents _ISpeechVoiceEvents;
-#endif 	/* ___ISpeechVoiceEvents_FWD_DEFINED__ */
+#endif         /* ___ISpeechVoiceEvents_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecognizer_FWD_DEFINED__
 #define __ISpeechRecognizer_FWD_DEFINED__
 typedef interface ISpeechRecognizer ISpeechRecognizer;
-#endif 	/* __ISpeechRecognizer_FWD_DEFINED__ */
+#endif         /* __ISpeechRecognizer_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecognizerStatus_FWD_DEFINED__
 #define __ISpeechRecognizerStatus_FWD_DEFINED__
 typedef interface ISpeechRecognizerStatus ISpeechRecognizerStatus;
-#endif 	/* __ISpeechRecognizerStatus_FWD_DEFINED__ */
+#endif         /* __ISpeechRecognizerStatus_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecoContext_FWD_DEFINED__
 #define __ISpeechRecoContext_FWD_DEFINED__
 typedef interface ISpeechRecoContext ISpeechRecoContext;
-#endif 	/* __ISpeechRecoContext_FWD_DEFINED__ */
+#endif         /* __ISpeechRecoContext_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecoGrammar_FWD_DEFINED__
 #define __ISpeechRecoGrammar_FWD_DEFINED__
 typedef interface ISpeechRecoGrammar ISpeechRecoGrammar;
-#endif 	/* __ISpeechRecoGrammar_FWD_DEFINED__ */
+#endif         /* __ISpeechRecoGrammar_FWD_DEFINED__ */
 
 
 #ifndef ___ISpeechRecoContextEvents_FWD_DEFINED__
 #define ___ISpeechRecoContextEvents_FWD_DEFINED__
 typedef interface _ISpeechRecoContextEvents _ISpeechRecoContextEvents;
-#endif 	/* ___ISpeechRecoContextEvents_FWD_DEFINED__ */
+#endif         /* ___ISpeechRecoContextEvents_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRule_FWD_DEFINED__
 #define __ISpeechGrammarRule_FWD_DEFINED__
 typedef interface ISpeechGrammarRule ISpeechGrammarRule;
-#endif 	/* __ISpeechGrammarRule_FWD_DEFINED__ */
+#endif         /* __ISpeechGrammarRule_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRules_FWD_DEFINED__
 #define __ISpeechGrammarRules_FWD_DEFINED__
 typedef interface ISpeechGrammarRules ISpeechGrammarRules;
-#endif 	/* __ISpeechGrammarRules_FWD_DEFINED__ */
+#endif         /* __ISpeechGrammarRules_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleState_FWD_DEFINED__
 #define __ISpeechGrammarRuleState_FWD_DEFINED__
 typedef interface ISpeechGrammarRuleState ISpeechGrammarRuleState;
-#endif 	/* __ISpeechGrammarRuleState_FWD_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleState_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleStateTransition_FWD_DEFINED__
 #define __ISpeechGrammarRuleStateTransition_FWD_DEFINED__
 typedef interface ISpeechGrammarRuleStateTransition ISpeechGrammarRuleStateTransition;
-#endif 	/* __ISpeechGrammarRuleStateTransition_FWD_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleStateTransition_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleStateTransitions_FWD_DEFINED__
 #define __ISpeechGrammarRuleStateTransitions_FWD_DEFINED__
 typedef interface ISpeechGrammarRuleStateTransitions ISpeechGrammarRuleStateTransitions;
-#endif 	/* __ISpeechGrammarRuleStateTransitions_FWD_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleStateTransitions_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechTextSelectionInformation_FWD_DEFINED__
 #define __ISpeechTextSelectionInformation_FWD_DEFINED__
 typedef interface ISpeechTextSelectionInformation ISpeechTextSelectionInformation;
-#endif 	/* __ISpeechTextSelectionInformation_FWD_DEFINED__ */
+#endif         /* __ISpeechTextSelectionInformation_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecoResult_FWD_DEFINED__
 #define __ISpeechRecoResult_FWD_DEFINED__
 typedef interface ISpeechRecoResult ISpeechRecoResult;
-#endif 	/* __ISpeechRecoResult_FWD_DEFINED__ */
+#endif         /* __ISpeechRecoResult_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechRecoResultTimes_FWD_DEFINED__
 #define __ISpeechRecoResultTimes_FWD_DEFINED__
 typedef interface ISpeechRecoResultTimes ISpeechRecoResultTimes;
-#endif 	/* __ISpeechRecoResultTimes_FWD_DEFINED__ */
+#endif         /* __ISpeechRecoResultTimes_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseAlternate_FWD_DEFINED__
 #define __ISpeechPhraseAlternate_FWD_DEFINED__
 typedef interface ISpeechPhraseAlternate ISpeechPhraseAlternate;
-#endif 	/* __ISpeechPhraseAlternate_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseAlternate_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseAlternates_FWD_DEFINED__
 #define __ISpeechPhraseAlternates_FWD_DEFINED__
 typedef interface ISpeechPhraseAlternates ISpeechPhraseAlternates;
-#endif 	/* __ISpeechPhraseAlternates_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseAlternates_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseInfo_FWD_DEFINED__
 #define __ISpeechPhraseInfo_FWD_DEFINED__
 typedef interface ISpeechPhraseInfo ISpeechPhraseInfo;
-#endif 	/* __ISpeechPhraseInfo_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseInfo_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseElement_FWD_DEFINED__
 #define __ISpeechPhraseElement_FWD_DEFINED__
 typedef interface ISpeechPhraseElement ISpeechPhraseElement;
-#endif 	/* __ISpeechPhraseElement_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseElement_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseElements_FWD_DEFINED__
 #define __ISpeechPhraseElements_FWD_DEFINED__
 typedef interface ISpeechPhraseElements ISpeechPhraseElements;
-#endif 	/* __ISpeechPhraseElements_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseElements_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseReplacement_FWD_DEFINED__
 #define __ISpeechPhraseReplacement_FWD_DEFINED__
 typedef interface ISpeechPhraseReplacement ISpeechPhraseReplacement;
-#endif 	/* __ISpeechPhraseReplacement_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseReplacement_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseReplacements_FWD_DEFINED__
 #define __ISpeechPhraseReplacements_FWD_DEFINED__
 typedef interface ISpeechPhraseReplacements ISpeechPhraseReplacements;
-#endif 	/* __ISpeechPhraseReplacements_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseReplacements_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseProperty_FWD_DEFINED__
 #define __ISpeechPhraseProperty_FWD_DEFINED__
 typedef interface ISpeechPhraseProperty ISpeechPhraseProperty;
-#endif 	/* __ISpeechPhraseProperty_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseProperty_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseProperties_FWD_DEFINED__
 #define __ISpeechPhraseProperties_FWD_DEFINED__
 typedef interface ISpeechPhraseProperties ISpeechPhraseProperties;
-#endif 	/* __ISpeechPhraseProperties_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseProperties_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseRule_FWD_DEFINED__
 #define __ISpeechPhraseRule_FWD_DEFINED__
 typedef interface ISpeechPhraseRule ISpeechPhraseRule;
-#endif 	/* __ISpeechPhraseRule_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseRule_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseRules_FWD_DEFINED__
 #define __ISpeechPhraseRules_FWD_DEFINED__
 typedef interface ISpeechPhraseRules ISpeechPhraseRules;
-#endif 	/* __ISpeechPhraseRules_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseRules_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechLexicon_FWD_DEFINED__
 #define __ISpeechLexicon_FWD_DEFINED__
 typedef interface ISpeechLexicon ISpeechLexicon;
-#endif 	/* __ISpeechLexicon_FWD_DEFINED__ */
+#endif         /* __ISpeechLexicon_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconWords_FWD_DEFINED__
 #define __ISpeechLexiconWords_FWD_DEFINED__
 typedef interface ISpeechLexiconWords ISpeechLexiconWords;
-#endif 	/* __ISpeechLexiconWords_FWD_DEFINED__ */
+#endif         /* __ISpeechLexiconWords_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconWord_FWD_DEFINED__
 #define __ISpeechLexiconWord_FWD_DEFINED__
 typedef interface ISpeechLexiconWord ISpeechLexiconWord;
-#endif 	/* __ISpeechLexiconWord_FWD_DEFINED__ */
+#endif         /* __ISpeechLexiconWord_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconPronunciations_FWD_DEFINED__
 #define __ISpeechLexiconPronunciations_FWD_DEFINED__
 typedef interface ISpeechLexiconPronunciations ISpeechLexiconPronunciations;
-#endif 	/* __ISpeechLexiconPronunciations_FWD_DEFINED__ */
+#endif         /* __ISpeechLexiconPronunciations_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconPronunciation_FWD_DEFINED__
 #define __ISpeechLexiconPronunciation_FWD_DEFINED__
 typedef interface ISpeechLexiconPronunciation ISpeechLexiconPronunciation;
-#endif 	/* __ISpeechLexiconPronunciation_FWD_DEFINED__ */
+#endif         /* __ISpeechLexiconPronunciation_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseInfoBuilder_FWD_DEFINED__
 #define __ISpeechPhraseInfoBuilder_FWD_DEFINED__
 typedef interface ISpeechPhraseInfoBuilder ISpeechPhraseInfoBuilder;
-#endif 	/* __ISpeechPhraseInfoBuilder_FWD_DEFINED__ */
+#endif         /* __ISpeechPhraseInfoBuilder_FWD_DEFINED__ */
 
 
 #ifndef __ISpeechPhoneConverter_FWD_DEFINED__
 #define __ISpeechPhoneConverter_FWD_DEFINED__
 typedef interface ISpeechPhoneConverter ISpeechPhoneConverter;
-#endif 	/* __ISpeechPhoneConverter_FWD_DEFINED__ */
+#endif         /* __ISpeechPhoneConverter_FWD_DEFINED__ */
 
 
 #ifndef __SpNotifyTranslator_FWD_DEFINED__
@@ -529,7 +529,7 @@ typedef class SpNotifyTranslator SpNotifyTranslator;
 typedef struct SpNotifyTranslator SpNotifyTranslator;
 #endif /* __cplusplus */
 
-#endif 	/* __SpNotifyTranslator_FWD_DEFINED__ */
+#endif         /* __SpNotifyTranslator_FWD_DEFINED__ */
 
 
 #ifndef __SpObjectTokenCategory_FWD_DEFINED__
@@ -541,7 +541,7 @@ typedef class SpObjectTokenCategory SpObjectTokenCategory;
 typedef struct SpObjectTokenCategory SpObjectTokenCategory;
 #endif /* __cplusplus */
 
-#endif 	/* __SpObjectTokenCategory_FWD_DEFINED__ */
+#endif         /* __SpObjectTokenCategory_FWD_DEFINED__ */
 
 
 #ifndef __SpObjectToken_FWD_DEFINED__
@@ -553,7 +553,7 @@ typedef class SpObjectToken SpObjectToken;
 typedef struct SpObjectToken SpObjectToken;
 #endif /* __cplusplus */
 
-#endif 	/* __SpObjectToken_FWD_DEFINED__ */
+#endif         /* __SpObjectToken_FWD_DEFINED__ */
 
 
 #ifndef __SpResourceManager_FWD_DEFINED__
@@ -565,7 +565,7 @@ typedef class SpResourceManager SpResourceManager;
 typedef struct SpResourceManager SpResourceManager;
 #endif /* __cplusplus */
 
-#endif 	/* __SpResourceManager_FWD_DEFINED__ */
+#endif         /* __SpResourceManager_FWD_DEFINED__ */
 
 
 #ifndef __SpStreamFormatConverter_FWD_DEFINED__
@@ -577,7 +577,7 @@ typedef class SpStreamFormatConverter SpStreamFormatConverter;
 typedef struct SpStreamFormatConverter SpStreamFormatConverter;
 #endif /* __cplusplus */
 
-#endif 	/* __SpStreamFormatConverter_FWD_DEFINED__ */
+#endif         /* __SpStreamFormatConverter_FWD_DEFINED__ */
 
 
 #ifndef __SpMMAudioEnum_FWD_DEFINED__
@@ -589,7 +589,7 @@ typedef class SpMMAudioEnum SpMMAudioEnum;
 typedef struct SpMMAudioEnum SpMMAudioEnum;
 #endif /* __cplusplus */
 
-#endif 	/* __SpMMAudioEnum_FWD_DEFINED__ */
+#endif         /* __SpMMAudioEnum_FWD_DEFINED__ */
 
 
 #ifndef __SpMMAudioIn_FWD_DEFINED__
@@ -601,7 +601,7 @@ typedef class SpMMAudioIn SpMMAudioIn;
 typedef struct SpMMAudioIn SpMMAudioIn;
 #endif /* __cplusplus */
 
-#endif 	/* __SpMMAudioIn_FWD_DEFINED__ */
+#endif         /* __SpMMAudioIn_FWD_DEFINED__ */
 
 
 #ifndef __SpMMAudioOut_FWD_DEFINED__
@@ -613,7 +613,7 @@ typedef class SpMMAudioOut SpMMAudioOut;
 typedef struct SpMMAudioOut SpMMAudioOut;
 #endif /* __cplusplus */
 
-#endif 	/* __SpMMAudioOut_FWD_DEFINED__ */
+#endif         /* __SpMMAudioOut_FWD_DEFINED__ */
 
 
 #ifndef __SpRecPlayAudio_FWD_DEFINED__
@@ -625,7 +625,7 @@ typedef class SpRecPlayAudio SpRecPlayAudio;
 typedef struct SpRecPlayAudio SpRecPlayAudio;
 #endif /* __cplusplus */
 
-#endif 	/* __SpRecPlayAudio_FWD_DEFINED__ */
+#endif         /* __SpRecPlayAudio_FWD_DEFINED__ */
 
 
 #ifndef __SpStream_FWD_DEFINED__
@@ -637,7 +637,7 @@ typedef class SpStream SpStream;
 typedef struct SpStream SpStream;
 #endif /* __cplusplus */
 
-#endif 	/* __SpStream_FWD_DEFINED__ */
+#endif         /* __SpStream_FWD_DEFINED__ */
 
 
 #ifndef __SpVoice_FWD_DEFINED__
@@ -649,7 +649,7 @@ typedef class SpVoice SpVoice;
 typedef struct SpVoice SpVoice;
 #endif /* __cplusplus */
 
-#endif 	/* __SpVoice_FWD_DEFINED__ */
+#endif         /* __SpVoice_FWD_DEFINED__ */
 
 
 #ifndef __SpSharedRecoContext_FWD_DEFINED__
@@ -661,7 +661,7 @@ typedef class SpSharedRecoContext SpSharedRecoContext;
 typedef struct SpSharedRecoContext SpSharedRecoContext;
 #endif /* __cplusplus */
 
-#endif 	/* __SpSharedRecoContext_FWD_DEFINED__ */
+#endif         /* __SpSharedRecoContext_FWD_DEFINED__ */
 
 
 #ifndef __SpInprocRecognizer_FWD_DEFINED__
@@ -673,7 +673,7 @@ typedef class SpInprocRecognizer SpInprocRecognizer;
 typedef struct SpInprocRecognizer SpInprocRecognizer;
 #endif /* __cplusplus */
 
-#endif 	/* __SpInprocRecognizer_FWD_DEFINED__ */
+#endif         /* __SpInprocRecognizer_FWD_DEFINED__ */
 
 
 #ifndef __SpSharedRecognizer_FWD_DEFINED__
@@ -685,7 +685,7 @@ typedef class SpSharedRecognizer SpSharedRecognizer;
 typedef struct SpSharedRecognizer SpSharedRecognizer;
 #endif /* __cplusplus */
 
-#endif 	/* __SpSharedRecognizer_FWD_DEFINED__ */
+#endif         /* __SpSharedRecognizer_FWD_DEFINED__ */
 
 
 #ifndef __SpLexicon_FWD_DEFINED__
@@ -697,7 +697,7 @@ typedef class SpLexicon SpLexicon;
 typedef struct SpLexicon SpLexicon;
 #endif /* __cplusplus */
 
-#endif 	/* __SpLexicon_FWD_DEFINED__ */
+#endif         /* __SpLexicon_FWD_DEFINED__ */
 
 
 #ifndef __SpUnCompressedLexicon_FWD_DEFINED__
@@ -709,7 +709,7 @@ typedef class SpUnCompressedLexicon SpUnCompressedLexicon;
 typedef struct SpUnCompressedLexicon SpUnCompressedLexicon;
 #endif /* __cplusplus */
 
-#endif 	/* __SpUnCompressedLexicon_FWD_DEFINED__ */
+#endif         /* __SpUnCompressedLexicon_FWD_DEFINED__ */
 
 
 #ifndef __SpCompressedLexicon_FWD_DEFINED__
@@ -721,7 +721,7 @@ typedef class SpCompressedLexicon SpCompressedLexicon;
 typedef struct SpCompressedLexicon SpCompressedLexicon;
 #endif /* __cplusplus */
 
-#endif 	/* __SpCompressedLexicon_FWD_DEFINED__ */
+#endif         /* __SpCompressedLexicon_FWD_DEFINED__ */
 
 
 #ifndef __SpPhoneConverter_FWD_DEFINED__
@@ -733,7 +733,7 @@ typedef class SpPhoneConverter SpPhoneConverter;
 typedef struct SpPhoneConverter SpPhoneConverter;
 #endif /* __cplusplus */
 
-#endif 	/* __SpPhoneConverter_FWD_DEFINED__ */
+#endif         /* __SpPhoneConverter_FWD_DEFINED__ */
 
 
 #ifndef __SpNullPhoneConverter_FWD_DEFINED__
@@ -745,7 +745,7 @@ typedef class SpNullPhoneConverter SpNullPhoneConverter;
 typedef struct SpNullPhoneConverter SpNullPhoneConverter;
 #endif /* __cplusplus */
 
-#endif 	/* __SpNullPhoneConverter_FWD_DEFINED__ */
+#endif         /* __SpNullPhoneConverter_FWD_DEFINED__ */
 
 
 #ifndef __SpTextSelectionInformation_FWD_DEFINED__
@@ -757,7 +757,7 @@ typedef class SpTextSelectionInformation SpTextSelectionInformation;
 typedef struct SpTextSelectionInformation SpTextSelectionInformation;
 #endif /* __cplusplus */
 
-#endif 	/* __SpTextSelectionInformation_FWD_DEFINED__ */
+#endif         /* __SpTextSelectionInformation_FWD_DEFINED__ */
 
 
 #ifndef __SpPhraseInfoBuilder_FWD_DEFINED__
@@ -769,7 +769,7 @@ typedef class SpPhraseInfoBuilder SpPhraseInfoBuilder;
 typedef struct SpPhraseInfoBuilder SpPhraseInfoBuilder;
 #endif /* __cplusplus */
 
-#endif 	/* __SpPhraseInfoBuilder_FWD_DEFINED__ */
+#endif         /* __SpPhraseInfoBuilder_FWD_DEFINED__ */
 
 
 #ifndef __SpAudioFormat_FWD_DEFINED__
@@ -781,7 +781,7 @@ typedef class SpAudioFormat SpAudioFormat;
 typedef struct SpAudioFormat SpAudioFormat;
 #endif /* __cplusplus */
 
-#endif 	/* __SpAudioFormat_FWD_DEFINED__ */
+#endif         /* __SpAudioFormat_FWD_DEFINED__ */
 
 
 #ifndef __SpWaveFormatEx_FWD_DEFINED__
@@ -793,7 +793,7 @@ typedef class SpWaveFormatEx SpWaveFormatEx;
 typedef struct SpWaveFormatEx SpWaveFormatEx;
 #endif /* __cplusplus */
 
-#endif 	/* __SpWaveFormatEx_FWD_DEFINED__ */
+#endif         /* __SpWaveFormatEx_FWD_DEFINED__ */
 
 
 #ifndef __SpInProcRecoContext_FWD_DEFINED__
@@ -805,7 +805,7 @@ typedef class SpInProcRecoContext SpInProcRecoContext;
 typedef struct SpInProcRecoContext SpInProcRecoContext;
 #endif /* __cplusplus */
 
-#endif 	/* __SpInProcRecoContext_FWD_DEFINED__ */
+#endif         /* __SpInProcRecoContext_FWD_DEFINED__ */
 
 
 #ifndef __SpCustomStream_FWD_DEFINED__
@@ -817,7 +817,7 @@ typedef class SpCustomStream SpCustomStream;
 typedef struct SpCustomStream SpCustomStream;
 #endif /* __cplusplus */
 
-#endif 	/* __SpCustomStream_FWD_DEFINED__ */
+#endif         /* __SpCustomStream_FWD_DEFINED__ */
 
 
 #ifndef __SpFileStream_FWD_DEFINED__
@@ -829,7 +829,7 @@ typedef class SpFileStream SpFileStream;
 typedef struct SpFileStream SpFileStream;
 #endif /* __cplusplus */
 
-#endif 	/* __SpFileStream_FWD_DEFINED__ */
+#endif         /* __SpFileStream_FWD_DEFINED__ */
 
 
 #ifndef __SpMemoryStream_FWD_DEFINED__
@@ -841,7 +841,7 @@ typedef class SpMemoryStream SpMemoryStream;
 typedef struct SpMemoryStream SpMemoryStream;
 #endif /* __cplusplus */
 
-#endif 	/* __SpMemoryStream_FWD_DEFINED__ */
+#endif         /* __SpMemoryStream_FWD_DEFINED__ */
 
 
 /* header files for imported files */
@@ -872,7 +872,7 @@ typedef /* [hidden][restricted] */ struct WAVEFORMATEX
     WORD nBlockAlign;
     WORD wBitsPerSample;
     WORD cbSize;
-    } 	WAVEFORMATEX;
+    }         WAVEFORMATEX;
 
 #else
 #include <mmsystem.h>
@@ -904,11 +904,11 @@ typedef /* [hidden][restricted] */ struct WAVEFORMATEX
 
 typedef /* [hidden] */ 
 enum SPDATAKEYLOCATION
-    {	SPDKL_DefaultLocation	= 0,
-	SPDKL_CurrentUser	= 1,
-	SPDKL_LocalMachine	= 2,
-	SPDKL_CurrentConfig	= 5
-    } 	SPDATAKEYLOCATION;
+    {        SPDKL_DefaultLocation        = 0,
+        SPDKL_CurrentUser        = 1,
+        SPDKL_LocalMachine        = 2,
+        SPDKL_CurrentConfig        = 5
+    }         SPDATAKEYLOCATION;
 
 #define SPDUI_EngineProperties   L"EngineProperties"
 #define SPDUI_AddRemoveWord      L"AddRemoveWord"
@@ -919,78 +919,78 @@ enum SPDATAKEYLOCATION
 #define SPDUI_AudioVolume        L"AudioVolume"
 typedef /* [hidden] */ 
 enum SPSTREAMFORMAT
-    {	SPSF_Default	= -1,
-	SPSF_NoAssignedFormat	= 0,
-	SPSF_Text	= SPSF_NoAssignedFormat + 1,
-	SPSF_NonStandardFormat	= SPSF_Text + 1,
-	SPSF_ExtendedAudioFormat	= SPSF_NonStandardFormat + 1,
-	SPSF_8kHz8BitMono	= SPSF_ExtendedAudioFormat + 1,
-	SPSF_8kHz8BitStereo	= SPSF_8kHz8BitMono + 1,
-	SPSF_8kHz16BitMono	= SPSF_8kHz8BitStereo + 1,
-	SPSF_8kHz16BitStereo	= SPSF_8kHz16BitMono + 1,
-	SPSF_11kHz8BitMono	= SPSF_8kHz16BitStereo + 1,
-	SPSF_11kHz8BitStereo	= SPSF_11kHz8BitMono + 1,
-	SPSF_11kHz16BitMono	= SPSF_11kHz8BitStereo + 1,
-	SPSF_11kHz16BitStereo	= SPSF_11kHz16BitMono + 1,
-	SPSF_12kHz8BitMono	= SPSF_11kHz16BitStereo + 1,
-	SPSF_12kHz8BitStereo	= SPSF_12kHz8BitMono + 1,
-	SPSF_12kHz16BitMono	= SPSF_12kHz8BitStereo + 1,
-	SPSF_12kHz16BitStereo	= SPSF_12kHz16BitMono + 1,
-	SPSF_16kHz8BitMono	= SPSF_12kHz16BitStereo + 1,
-	SPSF_16kHz8BitStereo	= SPSF_16kHz8BitMono + 1,
-	SPSF_16kHz16BitMono	= SPSF_16kHz8BitStereo + 1,
-	SPSF_16kHz16BitStereo	= SPSF_16kHz16BitMono + 1,
-	SPSF_22kHz8BitMono	= SPSF_16kHz16BitStereo + 1,
-	SPSF_22kHz8BitStereo	= SPSF_22kHz8BitMono + 1,
-	SPSF_22kHz16BitMono	= SPSF_22kHz8BitStereo + 1,
-	SPSF_22kHz16BitStereo	= SPSF_22kHz16BitMono + 1,
-	SPSF_24kHz8BitMono	= SPSF_22kHz16BitStereo + 1,
-	SPSF_24kHz8BitStereo	= SPSF_24kHz8BitMono + 1,
-	SPSF_24kHz16BitMono	= SPSF_24kHz8BitStereo + 1,
-	SPSF_24kHz16BitStereo	= SPSF_24kHz16BitMono + 1,
-	SPSF_32kHz8BitMono	= SPSF_24kHz16BitStereo + 1,
-	SPSF_32kHz8BitStereo	= SPSF_32kHz8BitMono + 1,
-	SPSF_32kHz16BitMono	= SPSF_32kHz8BitStereo + 1,
-	SPSF_32kHz16BitStereo	= SPSF_32kHz16BitMono + 1,
-	SPSF_44kHz8BitMono	= SPSF_32kHz16BitStereo + 1,
-	SPSF_44kHz8BitStereo	= SPSF_44kHz8BitMono + 1,
-	SPSF_44kHz16BitMono	= SPSF_44kHz8BitStereo + 1,
-	SPSF_44kHz16BitStereo	= SPSF_44kHz16BitMono + 1,
-	SPSF_48kHz8BitMono	= SPSF_44kHz16BitStereo + 1,
-	SPSF_48kHz8BitStereo	= SPSF_48kHz8BitMono + 1,
-	SPSF_48kHz16BitMono	= SPSF_48kHz8BitStereo + 1,
-	SPSF_48kHz16BitStereo	= SPSF_48kHz16BitMono + 1,
-	SPSF_TrueSpeech_8kHz1BitMono	= SPSF_48kHz16BitStereo + 1,
-	SPSF_CCITT_ALaw_8kHzMono	= SPSF_TrueSpeech_8kHz1BitMono + 1,
-	SPSF_CCITT_ALaw_8kHzStereo	= SPSF_CCITT_ALaw_8kHzMono + 1,
-	SPSF_CCITT_ALaw_11kHzMono	= SPSF_CCITT_ALaw_8kHzStereo + 1,
-	SPSF_CCITT_ALaw_11kHzStereo	= SPSF_CCITT_ALaw_11kHzMono + 1,
-	SPSF_CCITT_ALaw_22kHzMono	= SPSF_CCITT_ALaw_11kHzStereo + 1,
-	SPSF_CCITT_ALaw_22kHzStereo	= SPSF_CCITT_ALaw_22kHzMono + 1,
-	SPSF_CCITT_ALaw_44kHzMono	= SPSF_CCITT_ALaw_22kHzStereo + 1,
-	SPSF_CCITT_ALaw_44kHzStereo	= SPSF_CCITT_ALaw_44kHzMono + 1,
-	SPSF_CCITT_uLaw_8kHzMono	= SPSF_CCITT_ALaw_44kHzStereo + 1,
-	SPSF_CCITT_uLaw_8kHzStereo	= SPSF_CCITT_uLaw_8kHzMono + 1,
-	SPSF_CCITT_uLaw_11kHzMono	= SPSF_CCITT_uLaw_8kHzStereo + 1,
-	SPSF_CCITT_uLaw_11kHzStereo	= SPSF_CCITT_uLaw_11kHzMono + 1,
-	SPSF_CCITT_uLaw_22kHzMono	= SPSF_CCITT_uLaw_11kHzStereo + 1,
-	SPSF_CCITT_uLaw_22kHzStereo	= SPSF_CCITT_uLaw_22kHzMono + 1,
-	SPSF_CCITT_uLaw_44kHzMono	= SPSF_CCITT_uLaw_22kHzStereo + 1,
-	SPSF_CCITT_uLaw_44kHzStereo	= SPSF_CCITT_uLaw_44kHzMono + 1,
-	SPSF_ADPCM_8kHzMono	= SPSF_CCITT_uLaw_44kHzStereo + 1,
-	SPSF_ADPCM_8kHzStereo	= SPSF_ADPCM_8kHzMono + 1,
-	SPSF_ADPCM_11kHzMono	= SPSF_ADPCM_8kHzStereo + 1,
-	SPSF_ADPCM_11kHzStereo	= SPSF_ADPCM_11kHzMono + 1,
-	SPSF_ADPCM_22kHzMono	= SPSF_ADPCM_11kHzStereo + 1,
-	SPSF_ADPCM_22kHzStereo	= SPSF_ADPCM_22kHzMono + 1,
-	SPSF_ADPCM_44kHzMono	= SPSF_ADPCM_22kHzStereo + 1,
-	SPSF_ADPCM_44kHzStereo	= SPSF_ADPCM_44kHzMono + 1,
-	SPSF_GSM610_8kHzMono	= SPSF_ADPCM_44kHzStereo + 1,
-	SPSF_GSM610_11kHzMono	= SPSF_GSM610_8kHzMono + 1,
-	SPSF_GSM610_22kHzMono	= SPSF_GSM610_11kHzMono + 1,
-	SPSF_GSM610_44kHzMono	= SPSF_GSM610_22kHzMono + 1,
-	SPSF_NUM_FORMATS	= SPSF_GSM610_44kHzMono + 1
-    } 	SPSTREAMFORMAT;
+    {        SPSF_Default        = -1,
+        SPSF_NoAssignedFormat        = 0,
+        SPSF_Text        = SPSF_NoAssignedFormat + 1,
+        SPSF_NonStandardFormat        = SPSF_Text + 1,
+        SPSF_ExtendedAudioFormat        = SPSF_NonStandardFormat + 1,
+        SPSF_8kHz8BitMono        = SPSF_ExtendedAudioFormat + 1,
+        SPSF_8kHz8BitStereo        = SPSF_8kHz8BitMono + 1,
+        SPSF_8kHz16BitMono        = SPSF_8kHz8BitStereo + 1,
+        SPSF_8kHz16BitStereo        = SPSF_8kHz16BitMono + 1,
+        SPSF_11kHz8BitMono        = SPSF_8kHz16BitStereo + 1,
+        SPSF_11kHz8BitStereo        = SPSF_11kHz8BitMono + 1,
+        SPSF_11kHz16BitMono        = SPSF_11kHz8BitStereo + 1,
+        SPSF_11kHz16BitStereo        = SPSF_11kHz16BitMono + 1,
+        SPSF_12kHz8BitMono        = SPSF_11kHz16BitStereo + 1,
+        SPSF_12kHz8BitStereo        = SPSF_12kHz8BitMono + 1,
+        SPSF_12kHz16BitMono        = SPSF_12kHz8BitStereo + 1,
+        SPSF_12kHz16BitStereo        = SPSF_12kHz16BitMono + 1,
+        SPSF_16kHz8BitMono        = SPSF_12kHz16BitStereo + 1,
+        SPSF_16kHz8BitStereo        = SPSF_16kHz8BitMono + 1,
+        SPSF_16kHz16BitMono        = SPSF_16kHz8BitStereo + 1,
+        SPSF_16kHz16BitStereo        = SPSF_16kHz16BitMono + 1,
+        SPSF_22kHz8BitMono        = SPSF_16kHz16BitStereo + 1,
+        SPSF_22kHz8BitStereo        = SPSF_22kHz8BitMono + 1,
+        SPSF_22kHz16BitMono        = SPSF_22kHz8BitStereo + 1,
+        SPSF_22kHz16BitStereo        = SPSF_22kHz16BitMono + 1,
+        SPSF_24kHz8BitMono        = SPSF_22kHz16BitStereo + 1,
+        SPSF_24kHz8BitStereo        = SPSF_24kHz8BitMono + 1,
+        SPSF_24kHz16BitMono        = SPSF_24kHz8BitStereo + 1,
+        SPSF_24kHz16BitStereo        = SPSF_24kHz16BitMono + 1,
+        SPSF_32kHz8BitMono        = SPSF_24kHz16BitStereo + 1,
+        SPSF_32kHz8BitStereo        = SPSF_32kHz8BitMono + 1,
+        SPSF_32kHz16BitMono        = SPSF_32kHz8BitStereo + 1,
+        SPSF_32kHz16BitStereo        = SPSF_32kHz16BitMono + 1,
+        SPSF_44kHz8BitMono        = SPSF_32kHz16BitStereo + 1,
+        SPSF_44kHz8BitStereo        = SPSF_44kHz8BitMono + 1,
+        SPSF_44kHz16BitMono        = SPSF_44kHz8BitStereo + 1,
+        SPSF_44kHz16BitStereo        = SPSF_44kHz16BitMono + 1,
+        SPSF_48kHz8BitMono        = SPSF_44kHz16BitStereo + 1,
+        SPSF_48kHz8BitStereo        = SPSF_48kHz8BitMono + 1,
+        SPSF_48kHz16BitMono        = SPSF_48kHz8BitStereo + 1,
+        SPSF_48kHz16BitStereo        = SPSF_48kHz16BitMono + 1,
+        SPSF_TrueSpeech_8kHz1BitMono        = SPSF_48kHz16BitStereo + 1,
+        SPSF_CCITT_ALaw_8kHzMono        = SPSF_TrueSpeech_8kHz1BitMono + 1,
+        SPSF_CCITT_ALaw_8kHzStereo        = SPSF_CCITT_ALaw_8kHzMono + 1,
+        SPSF_CCITT_ALaw_11kHzMono        = SPSF_CCITT_ALaw_8kHzStereo + 1,
+        SPSF_CCITT_ALaw_11kHzStereo        = SPSF_CCITT_ALaw_11kHzMono + 1,
+        SPSF_CCITT_ALaw_22kHzMono        = SPSF_CCITT_ALaw_11kHzStereo + 1,
+        SPSF_CCITT_ALaw_22kHzStereo        = SPSF_CCITT_ALaw_22kHzMono + 1,
+        SPSF_CCITT_ALaw_44kHzMono        = SPSF_CCITT_ALaw_22kHzStereo + 1,
+        SPSF_CCITT_ALaw_44kHzStereo        = SPSF_CCITT_ALaw_44kHzMono + 1,
+        SPSF_CCITT_uLaw_8kHzMono        = SPSF_CCITT_ALaw_44kHzStereo + 1,
+        SPSF_CCITT_uLaw_8kHzStereo        = SPSF_CCITT_uLaw_8kHzMono + 1,
+        SPSF_CCITT_uLaw_11kHzMono        = SPSF_CCITT_uLaw_8kHzStereo + 1,
+        SPSF_CCITT_uLaw_11kHzStereo        = SPSF_CCITT_uLaw_11kHzMono + 1,
+        SPSF_CCITT_uLaw_22kHzMono        = SPSF_CCITT_uLaw_11kHzStereo + 1,
+        SPSF_CCITT_uLaw_22kHzStereo        = SPSF_CCITT_uLaw_22kHzMono + 1,
+        SPSF_CCITT_uLaw_44kHzMono        = SPSF_CCITT_uLaw_22kHzStereo + 1,
+        SPSF_CCITT_uLaw_44kHzStereo        = SPSF_CCITT_uLaw_44kHzMono + 1,
+        SPSF_ADPCM_8kHzMono        = SPSF_CCITT_uLaw_44kHzStereo + 1,
+        SPSF_ADPCM_8kHzStereo        = SPSF_ADPCM_8kHzMono + 1,
+        SPSF_ADPCM_11kHzMono        = SPSF_ADPCM_8kHzStereo + 1,
+        SPSF_ADPCM_11kHzStereo        = SPSF_ADPCM_11kHzMono + 1,
+        SPSF_ADPCM_22kHzMono        = SPSF_ADPCM_11kHzStereo + 1,
+        SPSF_ADPCM_22kHzStereo        = SPSF_ADPCM_22kHzMono + 1,
+        SPSF_ADPCM_44kHzMono        = SPSF_ADPCM_22kHzStereo + 1,
+        SPSF_ADPCM_44kHzStereo        = SPSF_ADPCM_44kHzMono + 1,
+        SPSF_GSM610_8kHzMono        = SPSF_ADPCM_44kHzStereo + 1,
+        SPSF_GSM610_11kHzMono        = SPSF_GSM610_8kHzMono + 1,
+        SPSF_GSM610_22kHzMono        = SPSF_GSM610_11kHzMono + 1,
+        SPSF_GSM610_44kHzMono        = SPSF_GSM610_22kHzMono + 1,
+        SPSF_NUM_FORMATS        = SPSF_GSM610_44kHzMono + 1
+    }         SPSTREAMFORMAT;
 
 EXTERN_C const GUID SPDFID_Text;
 EXTERN_C const GUID SPDFID_WaveFormatEx;
@@ -1022,17 +1022,17 @@ EXTERN_C const GUID SPDFID_WaveFormatEx;
 #define SPWILDCARD L"..."
 #define SPDICTATION    L"*"
 #define SPINFDICTATION L"*+"
-#define	SP_LOW_CONFIDENCE	( -1 )
+#define        SP_LOW_CONFIDENCE        ( -1 )
 
-#define	SP_NORMAL_CONFIDENCE	( 0 )
+#define        SP_NORMAL_CONFIDENCE        ( 0 )
 
-#define	SP_HIGH_CONFIDENCE	( +1 )
+#define        SP_HIGH_CONFIDENCE        ( +1 )
 
-#define	DEFAULT_WEIGHT	( 1 )
+#define        DEFAULT_WEIGHT        ( 1 )
 
-#define	SP_MAX_WORD_LENGTH	( 128 )
+#define        SP_MAX_WORD_LENGTH        ( 128 )
 
-#define	SP_MAX_PRON_LENGTH	( 384 )
+#define        SP_MAX_PRON_LENGTH        ( 384 )
 
 #if defined(__cplusplus)
 interface ISpNotifyCallback
@@ -1099,7 +1099,7 @@ EXTERN_C const IID IID_ISpNotifySource;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpNotifySourceVtbl
     {
@@ -1162,41 +1162,41 @@ EXTERN_C const IID IID_ISpNotifySource;
 #ifdef COBJMACROS
 
 
-#define ISpNotifySource_QueryInterface(This, riid, ppvObject)	\
+#define ISpNotifySource_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpNotifySource_AddRef(This)	\
+#define ISpNotifySource_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpNotifySource_Release(This)	\
+#define ISpNotifySource_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpNotifySource_SetNotifySink(This, pNotifySink)	\
+#define ISpNotifySource_SetNotifySink(This, pNotifySink)        \
     (This)->lpVtbl -> SetNotifySink(This, pNotifySink)
 
-#define ISpNotifySource_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)	\
+#define ISpNotifySource_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)
 
-#define ISpNotifySource_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)	\
+#define ISpNotifySource_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)
 
-#define ISpNotifySource_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)	\
+#define ISpNotifySource_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)
 
-#define ISpNotifySource_SetNotifyWin32Event(This)	\
+#define ISpNotifySource_SetNotifyWin32Event(This)        \
     (This)->lpVtbl -> SetNotifyWin32Event(This)
 
-#define ISpNotifySource_WaitForNotifyEvent(This, dwMilliseconds)	\
+#define ISpNotifySource_WaitForNotifyEvent(This, dwMilliseconds)        \
     (This)->lpVtbl -> WaitForNotifyEvent(This, dwMilliseconds)
 
-#define ISpNotifySource_GetNotifyEventHandle(This)	\
+#define ISpNotifySource_GetNotifyEventHandle(This)        \
     (This)->lpVtbl -> GetNotifyEventHandle(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -1290,7 +1290,7 @@ void __RPC_STUB ISpNotifySource_GetNotifyEventHandle_Stub(
 
 
 
-#endif 	/* __ISpNotifySource_INTERFACE_DEFINED__ */
+#endif         /* __ISpNotifySource_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpNotifySink_INTERFACE_DEFINED__
@@ -1312,7 +1312,7 @@ EXTERN_C const IID IID_ISpNotifySink;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpNotifySinkVtbl
     {
@@ -1345,23 +1345,23 @@ EXTERN_C const IID IID_ISpNotifySink;
 #ifdef COBJMACROS
 
 
-#define ISpNotifySink_QueryInterface(This, riid, ppvObject)	\
+#define ISpNotifySink_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpNotifySink_AddRef(This)	\
+#define ISpNotifySink_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpNotifySink_Release(This)	\
+#define ISpNotifySink_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpNotifySink_Notify(This)	\
+#define ISpNotifySink_Notify(This)        \
     (This)->lpVtbl -> Notify(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -1377,7 +1377,7 @@ void __RPC_STUB ISpNotifySink_Notify_Stub(
 
 
 
-#endif 	/* __ISpNotifySink_INTERFACE_DEFINED__ */
+#endif         /* __ISpNotifySink_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpNotifyTranslator_INTERFACE_DEFINED__
@@ -1422,7 +1422,7 @@ EXTERN_C const IID IID_ISpNotifyTranslator;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpNotifyTranslatorVtbl
     {
@@ -1486,42 +1486,42 @@ EXTERN_C const IID IID_ISpNotifyTranslator;
 #ifdef COBJMACROS
 
 
-#define ISpNotifyTranslator_QueryInterface(This, riid, ppvObject)	\
+#define ISpNotifyTranslator_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpNotifyTranslator_AddRef(This)	\
+#define ISpNotifyTranslator_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpNotifyTranslator_Release(This)	\
+#define ISpNotifyTranslator_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpNotifyTranslator_Notify(This)	\
+#define ISpNotifyTranslator_Notify(This)        \
     (This)->lpVtbl -> Notify(This)
 
 
-#define ISpNotifyTranslator_InitWindowMessage(This, hWnd, Msg, wParam, lParam)	\
+#define ISpNotifyTranslator_InitWindowMessage(This, hWnd, Msg, wParam, lParam)        \
     (This)->lpVtbl -> InitWindowMessage(This, hWnd, Msg, wParam, lParam)
 
-#define ISpNotifyTranslator_InitCallback(This, pfnCallback, wParam, lParam)	\
+#define ISpNotifyTranslator_InitCallback(This, pfnCallback, wParam, lParam)        \
     (This)->lpVtbl -> InitCallback(This, pfnCallback, wParam, lParam)
 
-#define ISpNotifyTranslator_InitSpNotifyCallback(This, pSpCallback, wParam, lParam)	\
+#define ISpNotifyTranslator_InitSpNotifyCallback(This, pSpCallback, wParam, lParam)        \
     (This)->lpVtbl -> InitSpNotifyCallback(This, pSpCallback, wParam, lParam)
 
-#define ISpNotifyTranslator_InitWin32Event(This, hEvent, fCloseHandleOnRelease)	\
+#define ISpNotifyTranslator_InitWin32Event(This, hEvent, fCloseHandleOnRelease)        \
     (This)->lpVtbl -> InitWin32Event(This, hEvent, fCloseHandleOnRelease)
 
-#define ISpNotifyTranslator_Wait(This, dwMilliseconds)	\
+#define ISpNotifyTranslator_Wait(This, dwMilliseconds)        \
     (This)->lpVtbl -> Wait(This, dwMilliseconds)
 
-#define ISpNotifyTranslator_GetEventHandle(This)	\
+#define ISpNotifyTranslator_GetEventHandle(This)        \
     (This)->lpVtbl -> GetEventHandle(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -1605,7 +1605,7 @@ void __RPC_STUB ISpNotifyTranslator_GetEventHandle_Stub(
 
 
 
-#endif 	/* __ISpNotifyTranslator_INTERFACE_DEFINED__ */
+#endif         /* __ISpNotifyTranslator_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpDataKey_INTERFACE_DEFINED__
@@ -1673,7 +1673,7 @@ EXTERN_C const IID IID_ISpDataKey;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpDataKeyVtbl
     {
@@ -1763,56 +1763,56 @@ EXTERN_C const IID IID_ISpDataKey;
 #ifdef COBJMACROS
 
 
-#define ISpDataKey_QueryInterface(This, riid, ppvObject)	\
+#define ISpDataKey_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpDataKey_AddRef(This)	\
+#define ISpDataKey_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpDataKey_Release(This)	\
+#define ISpDataKey_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpDataKey_SetData(This, pszValueName, cbData, pData)	\
+#define ISpDataKey_SetData(This, pszValueName, cbData, pData)        \
     (This)->lpVtbl -> SetData(This, pszValueName, cbData, pData)
 
-#define ISpDataKey_GetData(This, pszValueName, pcbData, pData)	\
+#define ISpDataKey_GetData(This, pszValueName, pcbData, pData)        \
     (This)->lpVtbl -> GetData(This, pszValueName, pcbData, pData)
 
-#define ISpDataKey_SetStringValue(This, pszValueName, pszValue)	\
+#define ISpDataKey_SetStringValue(This, pszValueName, pszValue)        \
     (This)->lpVtbl -> SetStringValue(This, pszValueName, pszValue)
 
-#define ISpDataKey_GetStringValue(This, pszValueName, ppszValue)	\
+#define ISpDataKey_GetStringValue(This, pszValueName, ppszValue)        \
     (This)->lpVtbl -> GetStringValue(This, pszValueName, ppszValue)
 
-#define ISpDataKey_SetDWORD(This, pszValueName, dwValue)	\
+#define ISpDataKey_SetDWORD(This, pszValueName, dwValue)        \
     (This)->lpVtbl -> SetDWORD(This, pszValueName, dwValue)
 
-#define ISpDataKey_GetDWORD(This, pszValueName, pdwValue)	\
+#define ISpDataKey_GetDWORD(This, pszValueName, pdwValue)        \
     (This)->lpVtbl -> GetDWORD(This, pszValueName, pdwValue)
 
-#define ISpDataKey_OpenKey(This, pszSubKeyName, ppSubKey)	\
+#define ISpDataKey_OpenKey(This, pszSubKeyName, ppSubKey)        \
     (This)->lpVtbl -> OpenKey(This, pszSubKeyName, ppSubKey)
 
-#define ISpDataKey_CreateKey(This, pszSubKey, ppSubKey)	\
+#define ISpDataKey_CreateKey(This, pszSubKey, ppSubKey)        \
     (This)->lpVtbl -> CreateKey(This, pszSubKey, ppSubKey)
 
-#define ISpDataKey_DeleteKey(This, pszSubKey)	\
+#define ISpDataKey_DeleteKey(This, pszSubKey)        \
     (This)->lpVtbl -> DeleteKey(This, pszSubKey)
 
-#define ISpDataKey_DeleteValue(This, pszValueName)	\
+#define ISpDataKey_DeleteValue(This, pszValueName)        \
     (This)->lpVtbl -> DeleteValue(This, pszValueName)
 
-#define ISpDataKey_EnumKeys(This, Index, ppszSubKeyName)	\
+#define ISpDataKey_EnumKeys(This, Index, ppszSubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, ppszSubKeyName)
 
-#define ISpDataKey_EnumValues(This, Index, ppszValueName)	\
+#define ISpDataKey_EnumValues(This, Index, ppszValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ppszValueName)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -1973,7 +1973,7 @@ void __RPC_STUB ISpDataKey_EnumValues_Stub(
 
 
 
-#endif 	/* __ISpDataKey_INTERFACE_DEFINED__ */
+#endif         /* __ISpDataKey_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpRegDataKey_INTERFACE_DEFINED__
@@ -1997,7 +1997,7 @@ EXTERN_C const IID IID_ISpRegDataKey;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpRegDataKeyVtbl
     {
@@ -2092,60 +2092,60 @@ EXTERN_C const IID IID_ISpRegDataKey;
 #ifdef COBJMACROS
 
 
-#define ISpRegDataKey_QueryInterface(This, riid, ppvObject)	\
+#define ISpRegDataKey_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpRegDataKey_AddRef(This)	\
+#define ISpRegDataKey_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpRegDataKey_Release(This)	\
+#define ISpRegDataKey_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpRegDataKey_SetData(This, pszValueName, cbData, pData)	\
+#define ISpRegDataKey_SetData(This, pszValueName, cbData, pData)        \
     (This)->lpVtbl -> SetData(This, pszValueName, cbData, pData)
 
-#define ISpRegDataKey_GetData(This, pszValueName, pcbData, pData)	\
+#define ISpRegDataKey_GetData(This, pszValueName, pcbData, pData)        \
     (This)->lpVtbl -> GetData(This, pszValueName, pcbData, pData)
 
-#define ISpRegDataKey_SetStringValue(This, pszValueName, pszValue)	\
+#define ISpRegDataKey_SetStringValue(This, pszValueName, pszValue)        \
     (This)->lpVtbl -> SetStringValue(This, pszValueName, pszValue)
 
-#define ISpRegDataKey_GetStringValue(This, pszValueName, ppszValue)	\
+#define ISpRegDataKey_GetStringValue(This, pszValueName, ppszValue)        \
     (This)->lpVtbl -> GetStringValue(This, pszValueName, ppszValue)
 
-#define ISpRegDataKey_SetDWORD(This, pszValueName, dwValue)	\
+#define ISpRegDataKey_SetDWORD(This, pszValueName, dwValue)        \
     (This)->lpVtbl -> SetDWORD(This, pszValueName, dwValue)
 
-#define ISpRegDataKey_GetDWORD(This, pszValueName, pdwValue)	\
+#define ISpRegDataKey_GetDWORD(This, pszValueName, pdwValue)        \
     (This)->lpVtbl -> GetDWORD(This, pszValueName, pdwValue)
 
-#define ISpRegDataKey_OpenKey(This, pszSubKeyName, ppSubKey)	\
+#define ISpRegDataKey_OpenKey(This, pszSubKeyName, ppSubKey)        \
     (This)->lpVtbl -> OpenKey(This, pszSubKeyName, ppSubKey)
 
-#define ISpRegDataKey_CreateKey(This, pszSubKey, ppSubKey)	\
+#define ISpRegDataKey_CreateKey(This, pszSubKey, ppSubKey)        \
     (This)->lpVtbl -> CreateKey(This, pszSubKey, ppSubKey)
 
-#define ISpRegDataKey_DeleteKey(This, pszSubKey)	\
+#define ISpRegDataKey_DeleteKey(This, pszSubKey)        \
     (This)->lpVtbl -> DeleteKey(This, pszSubKey)
 
-#define ISpRegDataKey_DeleteValue(This, pszValueName)	\
+#define ISpRegDataKey_DeleteValue(This, pszValueName)        \
     (This)->lpVtbl -> DeleteValue(This, pszValueName)
 
-#define ISpRegDataKey_EnumKeys(This, Index, ppszSubKeyName)	\
+#define ISpRegDataKey_EnumKeys(This, Index, ppszSubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, ppszSubKeyName)
 
-#define ISpRegDataKey_EnumValues(This, Index, ppszValueName)	\
+#define ISpRegDataKey_EnumValues(This, Index, ppszValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ppszValueName)
 
 
-#define ISpRegDataKey_SetKey(This, hkey, fReadOnly)	\
+#define ISpRegDataKey_SetKey(This, hkey, fReadOnly)        \
     (This)->lpVtbl -> SetKey(This, hkey, fReadOnly)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -2163,7 +2163,7 @@ void __RPC_STUB ISpRegDataKey_SetKey_Stub(
 
 
 
-#endif 	/* __ISpRegDataKey_INTERFACE_DEFINED__ */
+#endif         /* __ISpRegDataKey_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpObjectTokenCategory_INTERFACE_DEFINED__
@@ -2205,7 +2205,7 @@ EXTERN_C const IID IID_ISpObjectTokenCategory;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpObjectTokenCategoryVtbl
     {
@@ -2323,75 +2323,75 @@ EXTERN_C const IID IID_ISpObjectTokenCategory;
 #ifdef COBJMACROS
 
 
-#define ISpObjectTokenCategory_QueryInterface(This, riid, ppvObject)	\
+#define ISpObjectTokenCategory_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpObjectTokenCategory_AddRef(This)	\
+#define ISpObjectTokenCategory_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpObjectTokenCategory_Release(This)	\
+#define ISpObjectTokenCategory_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpObjectTokenCategory_SetData(This, pszValueName, cbData, pData)	\
+#define ISpObjectTokenCategory_SetData(This, pszValueName, cbData, pData)        \
     (This)->lpVtbl -> SetData(This, pszValueName, cbData, pData)
 
-#define ISpObjectTokenCategory_GetData(This, pszValueName, pcbData, pData)	\
+#define ISpObjectTokenCategory_GetData(This, pszValueName, pcbData, pData)        \
     (This)->lpVtbl -> GetData(This, pszValueName, pcbData, pData)
 
-#define ISpObjectTokenCategory_SetStringValue(This, pszValueName, pszValue)	\
+#define ISpObjectTokenCategory_SetStringValue(This, pszValueName, pszValue)        \
     (This)->lpVtbl -> SetStringValue(This, pszValueName, pszValue)
 
-#define ISpObjectTokenCategory_GetStringValue(This, pszValueName, ppszValue)	\
+#define ISpObjectTokenCategory_GetStringValue(This, pszValueName, ppszValue)        \
     (This)->lpVtbl -> GetStringValue(This, pszValueName, ppszValue)
 
-#define ISpObjectTokenCategory_SetDWORD(This, pszValueName, dwValue)	\
+#define ISpObjectTokenCategory_SetDWORD(This, pszValueName, dwValue)        \
     (This)->lpVtbl -> SetDWORD(This, pszValueName, dwValue)
 
-#define ISpObjectTokenCategory_GetDWORD(This, pszValueName, pdwValue)	\
+#define ISpObjectTokenCategory_GetDWORD(This, pszValueName, pdwValue)        \
     (This)->lpVtbl -> GetDWORD(This, pszValueName, pdwValue)
 
-#define ISpObjectTokenCategory_OpenKey(This, pszSubKeyName, ppSubKey)	\
+#define ISpObjectTokenCategory_OpenKey(This, pszSubKeyName, ppSubKey)        \
     (This)->lpVtbl -> OpenKey(This, pszSubKeyName, ppSubKey)
 
-#define ISpObjectTokenCategory_CreateKey(This, pszSubKey, ppSubKey)	\
+#define ISpObjectTokenCategory_CreateKey(This, pszSubKey, ppSubKey)        \
     (This)->lpVtbl -> CreateKey(This, pszSubKey, ppSubKey)
 
-#define ISpObjectTokenCategory_DeleteKey(This, pszSubKey)	\
+#define ISpObjectTokenCategory_DeleteKey(This, pszSubKey)        \
     (This)->lpVtbl -> DeleteKey(This, pszSubKey)
 
-#define ISpObjectTokenCategory_DeleteValue(This, pszValueName)	\
+#define ISpObjectTokenCategory_DeleteValue(This, pszValueName)        \
     (This)->lpVtbl -> DeleteValue(This, pszValueName)
 
-#define ISpObjectTokenCategory_EnumKeys(This, Index, ppszSubKeyName)	\
+#define ISpObjectTokenCategory_EnumKeys(This, Index, ppszSubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, ppszSubKeyName)
 
-#define ISpObjectTokenCategory_EnumValues(This, Index, ppszValueName)	\
+#define ISpObjectTokenCategory_EnumValues(This, Index, ppszValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ppszValueName)
 
 
-#define ISpObjectTokenCategory_SetId(This, pszCategoryId, fCreateIfNotExist)	\
+#define ISpObjectTokenCategory_SetId(This, pszCategoryId, fCreateIfNotExist)        \
     (This)->lpVtbl -> SetId(This, pszCategoryId, fCreateIfNotExist)
 
-#define ISpObjectTokenCategory_GetId(This, ppszCoMemCategoryId)	\
+#define ISpObjectTokenCategory_GetId(This, ppszCoMemCategoryId)        \
     (This)->lpVtbl -> GetId(This, ppszCoMemCategoryId)
 
-#define ISpObjectTokenCategory_GetDataKey(This, spdkl, ppDataKey)	\
+#define ISpObjectTokenCategory_GetDataKey(This, spdkl, ppDataKey)        \
     (This)->lpVtbl -> GetDataKey(This, spdkl, ppDataKey)
 
-#define ISpObjectTokenCategory_EnumTokens(This, pzsReqAttribs, pszOptAttribs, ppEnum)	\
+#define ISpObjectTokenCategory_EnumTokens(This, pzsReqAttribs, pszOptAttribs, ppEnum)        \
     (This)->lpVtbl -> EnumTokens(This, pzsReqAttribs, pszOptAttribs, ppEnum)
 
-#define ISpObjectTokenCategory_SetDefaultTokenId(This, pszTokenId)	\
+#define ISpObjectTokenCategory_SetDefaultTokenId(This, pszTokenId)        \
     (This)->lpVtbl -> SetDefaultTokenId(This, pszTokenId)
 
-#define ISpObjectTokenCategory_GetDefaultTokenId(This, ppszCoMemTokenId)	\
+#define ISpObjectTokenCategory_GetDefaultTokenId(This, ppszCoMemTokenId)        \
     (This)->lpVtbl -> GetDefaultTokenId(This, ppszCoMemTokenId)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -2472,7 +2472,7 @@ void __RPC_STUB ISpObjectTokenCategory_GetDefaultTokenId_Stub(
 
 
 
-#endif 	/* __ISpObjectTokenCategory_INTERFACE_DEFINED__ */
+#endif         /* __ISpObjectTokenCategory_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpObjectToken_INTERFACE_DEFINED__
@@ -2543,7 +2543,7 @@ EXTERN_C const IID IID_ISpObjectToken;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpObjectTokenVtbl
     {
@@ -2694,87 +2694,87 @@ EXTERN_C const IID IID_ISpObjectToken;
 #ifdef COBJMACROS
 
 
-#define ISpObjectToken_QueryInterface(This, riid, ppvObject)	\
+#define ISpObjectToken_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpObjectToken_AddRef(This)	\
+#define ISpObjectToken_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpObjectToken_Release(This)	\
+#define ISpObjectToken_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpObjectToken_SetData(This, pszValueName, cbData, pData)	\
+#define ISpObjectToken_SetData(This, pszValueName, cbData, pData)        \
     (This)->lpVtbl -> SetData(This, pszValueName, cbData, pData)
 
-#define ISpObjectToken_GetData(This, pszValueName, pcbData, pData)	\
+#define ISpObjectToken_GetData(This, pszValueName, pcbData, pData)        \
     (This)->lpVtbl -> GetData(This, pszValueName, pcbData, pData)
 
-#define ISpObjectToken_SetStringValue(This, pszValueName, pszValue)	\
+#define ISpObjectToken_SetStringValue(This, pszValueName, pszValue)        \
     (This)->lpVtbl -> SetStringValue(This, pszValueName, pszValue)
 
-#define ISpObjectToken_GetStringValue(This, pszValueName, ppszValue)	\
+#define ISpObjectToken_GetStringValue(This, pszValueName, ppszValue)        \
     (This)->lpVtbl -> GetStringValue(This, pszValueName, ppszValue)
 
-#define ISpObjectToken_SetDWORD(This, pszValueName, dwValue)	\
+#define ISpObjectToken_SetDWORD(This, pszValueName, dwValue)        \
     (This)->lpVtbl -> SetDWORD(This, pszValueName, dwValue)
 
-#define ISpObjectToken_GetDWORD(This, pszValueName, pdwValue)	\
+#define ISpObjectToken_GetDWORD(This, pszValueName, pdwValue)        \
     (This)->lpVtbl -> GetDWORD(This, pszValueName, pdwValue)
 
-#define ISpObjectToken_OpenKey(This, pszSubKeyName, ppSubKey)	\
+#define ISpObjectToken_OpenKey(This, pszSubKeyName, ppSubKey)        \
     (This)->lpVtbl -> OpenKey(This, pszSubKeyName, ppSubKey)
 
-#define ISpObjectToken_CreateKey(This, pszSubKey, ppSubKey)	\
+#define ISpObjectToken_CreateKey(This, pszSubKey, ppSubKey)        \
     (This)->lpVtbl -> CreateKey(This, pszSubKey, ppSubKey)
 
-#define ISpObjectToken_DeleteKey(This, pszSubKey)	\
+#define ISpObjectToken_DeleteKey(This, pszSubKey)        \
     (This)->lpVtbl -> DeleteKey(This, pszSubKey)
 
-#define ISpObjectToken_DeleteValue(This, pszValueName)	\
+#define ISpObjectToken_DeleteValue(This, pszValueName)        \
     (This)->lpVtbl -> DeleteValue(This, pszValueName)
 
-#define ISpObjectToken_EnumKeys(This, Index, ppszSubKeyName)	\
+#define ISpObjectToken_EnumKeys(This, Index, ppszSubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, ppszSubKeyName)
 
-#define ISpObjectToken_EnumValues(This, Index, ppszValueName)	\
+#define ISpObjectToken_EnumValues(This, Index, ppszValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ppszValueName)
 
 
-#define ISpObjectToken_SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)	\
+#define ISpObjectToken_SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)        \
     (This)->lpVtbl -> SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)
 
-#define ISpObjectToken_GetId(This, ppszCoMemTokenId)	\
+#define ISpObjectToken_GetId(This, ppszCoMemTokenId)        \
     (This)->lpVtbl -> GetId(This, ppszCoMemTokenId)
 
-#define ISpObjectToken_GetCategory(This, ppTokenCategory)	\
+#define ISpObjectToken_GetCategory(This, ppTokenCategory)        \
     (This)->lpVtbl -> GetCategory(This, ppTokenCategory)
 
-#define ISpObjectToken_CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)	\
+#define ISpObjectToken_CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)        \
     (This)->lpVtbl -> CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)
 
-#define ISpObjectToken_GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)	\
+#define ISpObjectToken_GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)        \
     (This)->lpVtbl -> GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)
 
-#define ISpObjectToken_RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)	\
+#define ISpObjectToken_RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)        \
     (This)->lpVtbl -> RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)
 
-#define ISpObjectToken_Remove(This, pclsidCaller)	\
+#define ISpObjectToken_Remove(This, pclsidCaller)        \
     (This)->lpVtbl -> Remove(This, pclsidCaller)
 
-#define ISpObjectToken_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)	\
+#define ISpObjectToken_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)        \
     (This)->lpVtbl -> IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)
 
-#define ISpObjectToken_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)	\
+#define ISpObjectToken_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)        \
     (This)->lpVtbl -> DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)
 
-#define ISpObjectToken_MatchesAttributes(This, pszAttributes, pfMatches)	\
+#define ISpObjectToken_MatchesAttributes(This, pszAttributes, pfMatches)        \
     (This)->lpVtbl -> MatchesAttributes(This, pszAttributes, pfMatches)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -2920,7 +2920,7 @@ void __RPC_STUB ISpObjectToken_MatchesAttributes_Stub(
 
 
 
-#endif 	/* __ISpObjectToken_INTERFACE_DEFINED__ */
+#endif         /* __ISpObjectToken_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpObjectTokenInit_INTERFACE_DEFINED__
@@ -2945,7 +2945,7 @@ EXTERN_C const IID IID_ISpObjectTokenInit;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpObjectTokenInitVtbl
     {
@@ -3102,91 +3102,91 @@ EXTERN_C const IID IID_ISpObjectTokenInit;
 #ifdef COBJMACROS
 
 
-#define ISpObjectTokenInit_QueryInterface(This, riid, ppvObject)	\
+#define ISpObjectTokenInit_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpObjectTokenInit_AddRef(This)	\
+#define ISpObjectTokenInit_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpObjectTokenInit_Release(This)	\
+#define ISpObjectTokenInit_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpObjectTokenInit_SetData(This, pszValueName, cbData, pData)	\
+#define ISpObjectTokenInit_SetData(This, pszValueName, cbData, pData)        \
     (This)->lpVtbl -> SetData(This, pszValueName, cbData, pData)
 
-#define ISpObjectTokenInit_GetData(This, pszValueName, pcbData, pData)	\
+#define ISpObjectTokenInit_GetData(This, pszValueName, pcbData, pData)        \
     (This)->lpVtbl -> GetData(This, pszValueName, pcbData, pData)
 
-#define ISpObjectTokenInit_SetStringValue(This, pszValueName, pszValue)	\
+#define ISpObjectTokenInit_SetStringValue(This, pszValueName, pszValue)        \
     (This)->lpVtbl -> SetStringValue(This, pszValueName, pszValue)
 
-#define ISpObjectTokenInit_GetStringValue(This, pszValueName, ppszValue)	\
+#define ISpObjectTokenInit_GetStringValue(This, pszValueName, ppszValue)        \
     (This)->lpVtbl -> GetStringValue(This, pszValueName, ppszValue)
 
-#define ISpObjectTokenInit_SetDWORD(This, pszValueName, dwValue)	\
+#define ISpObjectTokenInit_SetDWORD(This, pszValueName, dwValue)        \
     (This)->lpVtbl -> SetDWORD(This, pszValueName, dwValue)
 
-#define ISpObjectTokenInit_GetDWORD(This, pszValueName, pdwValue)	\
+#define ISpObjectTokenInit_GetDWORD(This, pszValueName, pdwValue)        \
     (This)->lpVtbl -> GetDWORD(This, pszValueName, pdwValue)
 
-#define ISpObjectTokenInit_OpenKey(This, pszSubKeyName, ppSubKey)	\
+#define ISpObjectTokenInit_OpenKey(This, pszSubKeyName, ppSubKey)        \
     (This)->lpVtbl -> OpenKey(This, pszSubKeyName, ppSubKey)
 
-#define ISpObjectTokenInit_CreateKey(This, pszSubKey, ppSubKey)	\
+#define ISpObjectTokenInit_CreateKey(This, pszSubKey, ppSubKey)        \
     (This)->lpVtbl -> CreateKey(This, pszSubKey, ppSubKey)
 
-#define ISpObjectTokenInit_DeleteKey(This, pszSubKey)	\
+#define ISpObjectTokenInit_DeleteKey(This, pszSubKey)        \
     (This)->lpVtbl -> DeleteKey(This, pszSubKey)
 
-#define ISpObjectTokenInit_DeleteValue(This, pszValueName)	\
+#define ISpObjectTokenInit_DeleteValue(This, pszValueName)        \
     (This)->lpVtbl -> DeleteValue(This, pszValueName)
 
-#define ISpObjectTokenInit_EnumKeys(This, Index, ppszSubKeyName)	\
+#define ISpObjectTokenInit_EnumKeys(This, Index, ppszSubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, ppszSubKeyName)
 
-#define ISpObjectTokenInit_EnumValues(This, Index, ppszValueName)	\
+#define ISpObjectTokenInit_EnumValues(This, Index, ppszValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ppszValueName)
 
 
-#define ISpObjectTokenInit_SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)	\
+#define ISpObjectTokenInit_SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)        \
     (This)->lpVtbl -> SetId(This, pszCategoryId, pszTokenId, fCreateIfNotExist)
 
-#define ISpObjectTokenInit_GetId(This, ppszCoMemTokenId)	\
+#define ISpObjectTokenInit_GetId(This, ppszCoMemTokenId)        \
     (This)->lpVtbl -> GetId(This, ppszCoMemTokenId)
 
-#define ISpObjectTokenInit_GetCategory(This, ppTokenCategory)	\
+#define ISpObjectTokenInit_GetCategory(This, ppTokenCategory)        \
     (This)->lpVtbl -> GetCategory(This, ppTokenCategory)
 
-#define ISpObjectTokenInit_CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)	\
+#define ISpObjectTokenInit_CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)        \
     (This)->lpVtbl -> CreateInstance(This, pUnkOuter, dwClsContext, riid, ppvObject)
 
-#define ISpObjectTokenInit_GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)	\
+#define ISpObjectTokenInit_GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)        \
     (This)->lpVtbl -> GetStorageFileName(This, clsidCaller, pszValueName, pszFileNameSpecifier, nFolder, ppszFilePath)
 
-#define ISpObjectTokenInit_RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)	\
+#define ISpObjectTokenInit_RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)        \
     (This)->lpVtbl -> RemoveStorageFileName(This, clsidCaller, pszKeyName, fDeleteFile)
 
-#define ISpObjectTokenInit_Remove(This, pclsidCaller)	\
+#define ISpObjectTokenInit_Remove(This, pclsidCaller)        \
     (This)->lpVtbl -> Remove(This, pclsidCaller)
 
-#define ISpObjectTokenInit_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)	\
+#define ISpObjectTokenInit_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)        \
     (This)->lpVtbl -> IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, punkObject, pfSupported)
 
-#define ISpObjectTokenInit_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)	\
+#define ISpObjectTokenInit_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)        \
     (This)->lpVtbl -> DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData, punkObject)
 
-#define ISpObjectTokenInit_MatchesAttributes(This, pszAttributes, pfMatches)	\
+#define ISpObjectTokenInit_MatchesAttributes(This, pszAttributes, pfMatches)        \
     (This)->lpVtbl -> MatchesAttributes(This, pszAttributes, pfMatches)
 
 
-#define ISpObjectTokenInit_InitFromDataKey(This, pszCategoryId, pszTokenId, pDataKey)	\
+#define ISpObjectTokenInit_InitFromDataKey(This, pszCategoryId, pszTokenId, pDataKey)        \
     (This)->lpVtbl -> InitFromDataKey(This, pszCategoryId, pszTokenId, pDataKey)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -3205,7 +3205,7 @@ void __RPC_STUB ISpObjectTokenInit_InitFromDataKey_Stub(
 
 
 
-#endif 	/* __ISpObjectTokenInit_INTERFACE_DEFINED__ */
+#endif         /* __ISpObjectTokenInit_INTERFACE_DEFINED__ */
 
 
 #ifndef __IEnumSpObjectTokens_INTERFACE_DEFINED__
@@ -3245,7 +3245,7 @@ EXTERN_C const IID IID_IEnumSpObjectTokens;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct IEnumSpObjectTokensVtbl
     {
@@ -3301,38 +3301,38 @@ EXTERN_C const IID IID_IEnumSpObjectTokens;
 #ifdef COBJMACROS
 
 
-#define IEnumSpObjectTokens_QueryInterface(This, riid, ppvObject)	\
+#define IEnumSpObjectTokens_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define IEnumSpObjectTokens_AddRef(This)	\
+#define IEnumSpObjectTokens_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define IEnumSpObjectTokens_Release(This)	\
+#define IEnumSpObjectTokens_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define IEnumSpObjectTokens_Next(This, celt, pelt, pceltFetched)	\
+#define IEnumSpObjectTokens_Next(This, celt, pelt, pceltFetched)        \
     (This)->lpVtbl -> Next(This, celt, pelt, pceltFetched)
 
-#define IEnumSpObjectTokens_Skip(This, celt)	\
+#define IEnumSpObjectTokens_Skip(This, celt)        \
     (This)->lpVtbl -> Skip(This, celt)
 
-#define IEnumSpObjectTokens_Reset(This)	\
+#define IEnumSpObjectTokens_Reset(This)        \
     (This)->lpVtbl -> Reset(This)
 
-#define IEnumSpObjectTokens_Clone(This, ppEnum)	\
+#define IEnumSpObjectTokens_Clone(This, ppEnum)        \
     (This)->lpVtbl -> Clone(This, ppEnum)
 
-#define IEnumSpObjectTokens_Item(This, Index, ppToken)	\
+#define IEnumSpObjectTokens_Item(This, Index, ppToken)        \
     (This)->lpVtbl -> Item(This, Index, ppToken)
 
-#define IEnumSpObjectTokens_GetCount(This, pCount)	\
+#define IEnumSpObjectTokens_GetCount(This, pCount)        \
     (This)->lpVtbl -> GetCount(This, pCount)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -3411,7 +3411,7 @@ void __RPC_STUB IEnumSpObjectTokens_GetCount_Stub(
 
 
 
-#endif 	/* __IEnumSpObjectTokens_INTERFACE_DEFINED__ */
+#endif         /* __IEnumSpObjectTokens_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpObjectWithToken_INTERFACE_DEFINED__
@@ -3437,7 +3437,7 @@ EXTERN_C const IID IID_ISpObjectWithToken;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpObjectWithTokenVtbl
     {
@@ -3475,26 +3475,26 @@ EXTERN_C const IID IID_ISpObjectWithToken;
 #ifdef COBJMACROS
 
 
-#define ISpObjectWithToken_QueryInterface(This, riid, ppvObject)	\
+#define ISpObjectWithToken_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpObjectWithToken_AddRef(This)	\
+#define ISpObjectWithToken_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpObjectWithToken_Release(This)	\
+#define ISpObjectWithToken_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpObjectWithToken_SetObjectToken(This, pToken)	\
+#define ISpObjectWithToken_SetObjectToken(This, pToken)        \
     (This)->lpVtbl -> SetObjectToken(This, pToken)
 
-#define ISpObjectWithToken_GetObjectToken(This, ppToken)	\
+#define ISpObjectWithToken_GetObjectToken(This, ppToken)        \
     (This)->lpVtbl -> GetObjectToken(This, ppToken)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -3523,7 +3523,7 @@ void __RPC_STUB ISpObjectWithToken_GetObjectToken_Stub(
 
 
 
-#endif 	/* __ISpObjectWithToken_INTERFACE_DEFINED__ */
+#endif         /* __ISpObjectWithToken_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpResourceManager_INTERFACE_DEFINED__
@@ -3554,7 +3554,7 @@ EXTERN_C const IID IID_ISpResourceManager;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpResourceManagerVtbl
     {
@@ -3603,30 +3603,30 @@ EXTERN_C const IID IID_ISpResourceManager;
 #ifdef COBJMACROS
 
 
-#define ISpResourceManager_QueryInterface(This, riid, ppvObject)	\
+#define ISpResourceManager_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpResourceManager_AddRef(This)	\
+#define ISpResourceManager_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpResourceManager_Release(This)	\
+#define ISpResourceManager_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpResourceManager_QueryService(This, guidService, riid, ppvObject)	\
+#define ISpResourceManager_QueryService(This, guidService, riid, ppvObject)        \
     (This)->lpVtbl -> QueryService(This, guidService, riid, ppvObject)
 
 
-#define ISpResourceManager_SetObject(This, guidServiceId, pUnkObject)	\
+#define ISpResourceManager_SetObject(This, guidServiceId, pUnkObject)        \
     (This)->lpVtbl -> SetObject(This, guidServiceId, pUnkObject)
 
-#define ISpResourceManager_GetObject(This, guidServiceId, ObjectCLSID, ObjectIID, fReleaseWhenLastExternalRefReleased, ppObject)	\
+#define ISpResourceManager_GetObject(This, guidServiceId, ObjectCLSID, ObjectIID, fReleaseWhenLastExternalRefReleased, ppObject)        \
     (This)->lpVtbl -> GetObject(This, guidServiceId, ObjectCLSID, ObjectIID, fReleaseWhenLastExternalRefReleased, ppObject)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -3660,7 +3660,7 @@ void __RPC_STUB ISpResourceManager_GetObject_Stub(
 
 
 
-#endif 	/* __ISpResourceManager_INTERFACE_DEFINED__ */
+#endif         /* __ISpResourceManager_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0262 */
@@ -3668,52 +3668,52 @@ void __RPC_STUB ISpResourceManager_GetObject_Stub(
 
 typedef /* [hidden] */ 
 enum SPEVENTLPARAMTYPE
-    {	SPET_LPARAM_IS_UNDEFINED	= 0,
-	SPET_LPARAM_IS_TOKEN	= SPET_LPARAM_IS_UNDEFINED + 1,
-	SPET_LPARAM_IS_OBJECT	= SPET_LPARAM_IS_TOKEN + 1,
-	SPET_LPARAM_IS_POINTER	= SPET_LPARAM_IS_OBJECT + 1,
-	SPET_LPARAM_IS_STRING	= SPET_LPARAM_IS_POINTER + 1
-    } 	SPEVENTLPARAMTYPE;
+    {        SPET_LPARAM_IS_UNDEFINED        = 0,
+        SPET_LPARAM_IS_TOKEN        = SPET_LPARAM_IS_UNDEFINED + 1,
+        SPET_LPARAM_IS_OBJECT        = SPET_LPARAM_IS_TOKEN + 1,
+        SPET_LPARAM_IS_POINTER        = SPET_LPARAM_IS_OBJECT + 1,
+        SPET_LPARAM_IS_STRING        = SPET_LPARAM_IS_POINTER + 1
+    }         SPEVENTLPARAMTYPE;
 
 typedef /* [hidden] */ 
 enum SPEVENTENUM
-    {	SPEI_UNDEFINED	= 0,
-	SPEI_START_INPUT_STREAM	= 1,
-	SPEI_END_INPUT_STREAM	= 2,
-	SPEI_VOICE_CHANGE	= 3,
-	SPEI_TTS_BOOKMARK	= 4,
-	SPEI_WORD_BOUNDARY	= 5,
-	SPEI_PHONEME	= 6,
-	SPEI_SENTENCE_BOUNDARY	= 7,
-	SPEI_VISEME	= 8,
-	SPEI_TTS_AUDIO_LEVEL	= 9,
-	SPEI_TTS_PRIVATE	= 15,
-	SPEI_MIN_TTS	= 1,
-	SPEI_MAX_TTS	= 15,
-	SPEI_END_SR_STREAM	= 34,
-	SPEI_SOUND_START	= 35,
-	SPEI_SOUND_END	= 36,
-	SPEI_PHRASE_START	= 37,
-	SPEI_RECOGNITION	= 38,
-	SPEI_HYPOTHESIS	= 39,
-	SPEI_SR_BOOKMARK	= 40,
-	SPEI_PROPERTY_NUM_CHANGE	= 41,
-	SPEI_PROPERTY_STRING_CHANGE	= 42,
-	SPEI_FALSE_RECOGNITION	= 43,
-	SPEI_INTERFERENCE	= 44,
-	SPEI_REQUEST_UI	= 45,
-	SPEI_RECO_STATE_CHANGE	= 46,
-	SPEI_ADAPTATION	= 47,
-	SPEI_START_SR_STREAM	= 48,
-	SPEI_RECO_OTHER_CONTEXT	= 49,
-	SPEI_SR_AUDIO_LEVEL	= 50,
-	SPEI_SR_PRIVATE	= 52,
-	SPEI_MIN_SR	= 34,
-	SPEI_MAX_SR	= 52,
-	SPEI_RESERVED1	= 30,
-	SPEI_RESERVED2	= 33,
-	SPEI_RESERVED3	= 63
-    } 	SPEVENTENUM;
+    {        SPEI_UNDEFINED        = 0,
+        SPEI_START_INPUT_STREAM        = 1,
+        SPEI_END_INPUT_STREAM        = 2,
+        SPEI_VOICE_CHANGE        = 3,
+        SPEI_TTS_BOOKMARK        = 4,
+        SPEI_WORD_BOUNDARY        = 5,
+        SPEI_PHONEME        = 6,
+        SPEI_SENTENCE_BOUNDARY        = 7,
+        SPEI_VISEME        = 8,
+        SPEI_TTS_AUDIO_LEVEL        = 9,
+        SPEI_TTS_PRIVATE        = 15,
+        SPEI_MIN_TTS        = 1,
+        SPEI_MAX_TTS        = 15,
+        SPEI_END_SR_STREAM        = 34,
+        SPEI_SOUND_START        = 35,
+        SPEI_SOUND_END        = 36,
+        SPEI_PHRASE_START        = 37,
+        SPEI_RECOGNITION        = 38,
+        SPEI_HYPOTHESIS        = 39,
+        SPEI_SR_BOOKMARK        = 40,
+        SPEI_PROPERTY_NUM_CHANGE        = 41,
+        SPEI_PROPERTY_STRING_CHANGE        = 42,
+        SPEI_FALSE_RECOGNITION        = 43,
+        SPEI_INTERFERENCE        = 44,
+        SPEI_REQUEST_UI        = 45,
+        SPEI_RECO_STATE_CHANGE        = 46,
+        SPEI_ADAPTATION        = 47,
+        SPEI_START_SR_STREAM        = 48,
+        SPEI_RECO_OTHER_CONTEXT        = 49,
+        SPEI_SR_AUDIO_LEVEL        = 50,
+        SPEI_SR_PRIVATE        = 52,
+        SPEI_MIN_SR        = 34,
+        SPEI_MAX_SR        = 52,
+        SPEI_RESERVED1        = 30,
+        SPEI_RESERVED2        = 33,
+        SPEI_RESERVED3        = 63
+    }         SPEVENTENUM;
 
 #define SPFEI_FLAGCHECK ( (1ui64 << SPEI_RESERVED1) | (1ui64 << SPEI_RESERVED2) )
 #define SPFEI_ALL_TTS_EVENTS (0x000000000000FFFEui64 | SPFEI_FLAGCHECK)
@@ -3729,7 +3729,7 @@ typedef /* [hidden][restricted] */ struct SPEVENT
     ULONGLONG ullAudioStreamOffset;
     WPARAM wParam;
     LPARAM lParam;
-    } 	SPEVENT;
+    }         SPEVENT;
 
 typedef /* [hidden][restricted] */ struct SPSERIALIZEDEVENT
     {
@@ -3739,7 +3739,7 @@ typedef /* [hidden][restricted] */ struct SPSERIALIZEDEVENT
     ULONGLONG ullAudioStreamOffset;
     ULONG SerializedwParam;
     LONG SerializedlParam;
-    } 	SPSERIALIZEDEVENT;
+    }         SPSERIALIZEDEVENT;
 
 typedef /* [hidden][restricted] */ struct SPSERIALIZEDEVENT64
     {
@@ -3749,7 +3749,7 @@ typedef /* [hidden][restricted] */ struct SPSERIALIZEDEVENT64
     ULONGLONG ullAudioStreamOffset;
     ULONGLONG SerializedwParam;
     LONGLONG SerializedlParam;
-    } 	SPSERIALIZEDEVENT64;
+    }         SPSERIALIZEDEVENT64;
 
 #else
 typedef struct SPEVENT
@@ -3782,59 +3782,59 @@ typedef struct SPSERIALIZEDEVENT64
 #endif
 typedef /* [hidden] */ 
 enum SPINTERFERENCE
-    {	SPINTERFERENCE_NONE	= 0,
-	SPINTERFERENCE_NOISE	= SPINTERFERENCE_NONE + 1,
-	SPINTERFERENCE_NOSIGNAL	= SPINTERFERENCE_NOISE + 1,
-	SPINTERFERENCE_TOOLOUD	= SPINTERFERENCE_NOSIGNAL + 1,
-	SPINTERFERENCE_TOOQUIET	= SPINTERFERENCE_TOOLOUD + 1,
-	SPINTERFERENCE_TOOFAST	= SPINTERFERENCE_TOOQUIET + 1,
-	SPINTERFERENCE_TOOSLOW	= SPINTERFERENCE_TOOFAST + 1
-    } 	SPINTERFERENCE;
+    {        SPINTERFERENCE_NONE        = 0,
+        SPINTERFERENCE_NOISE        = SPINTERFERENCE_NONE + 1,
+        SPINTERFERENCE_NOSIGNAL        = SPINTERFERENCE_NOISE + 1,
+        SPINTERFERENCE_TOOLOUD        = SPINTERFERENCE_NOSIGNAL + 1,
+        SPINTERFERENCE_TOOQUIET        = SPINTERFERENCE_TOOLOUD + 1,
+        SPINTERFERENCE_TOOFAST        = SPINTERFERENCE_TOOQUIET + 1,
+        SPINTERFERENCE_TOOSLOW        = SPINTERFERENCE_TOOFAST + 1
+    }         SPINTERFERENCE;
 
 typedef /* [hidden] */ 
 enum SPENDSRSTREAMFLAGS
-    {	SPESF_NONE	= 0,
-	SPESF_STREAM_RELEASED	= 1 << 0
-    } 	SPENDSRSTREAMFLAGS;
+    {        SPESF_NONE        = 0,
+        SPESF_STREAM_RELEASED        = 1 << 0
+    }         SPENDSRSTREAMFLAGS;
 
 typedef /* [hidden] */ 
 enum SPVFEATURE
-    {	SPVFEATURE_STRESSED	= 1L << 0,
-	SPVFEATURE_EMPHASIS	= 1L << 1
-    } 	SPVFEATURE;
+    {        SPVFEATURE_STRESSED        = 1L << 0,
+        SPVFEATURE_EMPHASIS        = 1L << 1
+    }         SPVFEATURE;
 
 typedef /* [hidden] */ 
 enum SPVISEMES
-    {	SP_VISEME_0	= 0,
-	SP_VISEME_1	= SP_VISEME_0 + 1,
-	SP_VISEME_2	= SP_VISEME_1 + 1,
-	SP_VISEME_3	= SP_VISEME_2 + 1,
-	SP_VISEME_4	= SP_VISEME_3 + 1,
-	SP_VISEME_5	= SP_VISEME_4 + 1,
-	SP_VISEME_6	= SP_VISEME_5 + 1,
-	SP_VISEME_7	= SP_VISEME_6 + 1,
-	SP_VISEME_8	= SP_VISEME_7 + 1,
-	SP_VISEME_9	= SP_VISEME_8 + 1,
-	SP_VISEME_10	= SP_VISEME_9 + 1,
-	SP_VISEME_11	= SP_VISEME_10 + 1,
-	SP_VISEME_12	= SP_VISEME_11 + 1,
-	SP_VISEME_13	= SP_VISEME_12 + 1,
-	SP_VISEME_14	= SP_VISEME_13 + 1,
-	SP_VISEME_15	= SP_VISEME_14 + 1,
-	SP_VISEME_16	= SP_VISEME_15 + 1,
-	SP_VISEME_17	= SP_VISEME_16 + 1,
-	SP_VISEME_18	= SP_VISEME_17 + 1,
-	SP_VISEME_19	= SP_VISEME_18 + 1,
-	SP_VISEME_20	= SP_VISEME_19 + 1,
-	SP_VISEME_21	= SP_VISEME_20 + 1
-    } 	SPVISEMES;
+    {        SP_VISEME_0        = 0,
+        SP_VISEME_1        = SP_VISEME_0 + 1,
+        SP_VISEME_2        = SP_VISEME_1 + 1,
+        SP_VISEME_3        = SP_VISEME_2 + 1,
+        SP_VISEME_4        = SP_VISEME_3 + 1,
+        SP_VISEME_5        = SP_VISEME_4 + 1,
+        SP_VISEME_6        = SP_VISEME_5 + 1,
+        SP_VISEME_7        = SP_VISEME_6 + 1,
+        SP_VISEME_8        = SP_VISEME_7 + 1,
+        SP_VISEME_9        = SP_VISEME_8 + 1,
+        SP_VISEME_10        = SP_VISEME_9 + 1,
+        SP_VISEME_11        = SP_VISEME_10 + 1,
+        SP_VISEME_12        = SP_VISEME_11 + 1,
+        SP_VISEME_13        = SP_VISEME_12 + 1,
+        SP_VISEME_14        = SP_VISEME_13 + 1,
+        SP_VISEME_15        = SP_VISEME_14 + 1,
+        SP_VISEME_16        = SP_VISEME_15 + 1,
+        SP_VISEME_17        = SP_VISEME_16 + 1,
+        SP_VISEME_18        = SP_VISEME_17 + 1,
+        SP_VISEME_19        = SP_VISEME_18 + 1,
+        SP_VISEME_20        = SP_VISEME_19 + 1,
+        SP_VISEME_21        = SP_VISEME_20 + 1
+    }         SPVISEMES;
 
 typedef /* [hidden][restricted] */ struct SPEVENTSOURCEINFO
     {
     ULONGLONG ullEventInterest;
     ULONGLONG ullQueuedInterest;
     ULONG ulCount;
-    } 	SPEVENTSOURCEINFO;
+    }         SPEVENTSOURCEINFO;
 
 
 
@@ -3870,7 +3870,7 @@ EXTERN_C const IID IID_ISpEventSource;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpEventSourceVtbl
     {
@@ -3948,51 +3948,51 @@ EXTERN_C const IID IID_ISpEventSource;
 #ifdef COBJMACROS
 
 
-#define ISpEventSource_QueryInterface(This, riid, ppvObject)	\
+#define ISpEventSource_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpEventSource_AddRef(This)	\
+#define ISpEventSource_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpEventSource_Release(This)	\
+#define ISpEventSource_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpEventSource_SetNotifySink(This, pNotifySink)	\
+#define ISpEventSource_SetNotifySink(This, pNotifySink)        \
     (This)->lpVtbl -> SetNotifySink(This, pNotifySink)
 
-#define ISpEventSource_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)	\
+#define ISpEventSource_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)
 
-#define ISpEventSource_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)	\
+#define ISpEventSource_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)
 
-#define ISpEventSource_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)	\
+#define ISpEventSource_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)
 
-#define ISpEventSource_SetNotifyWin32Event(This)	\
+#define ISpEventSource_SetNotifyWin32Event(This)        \
     (This)->lpVtbl -> SetNotifyWin32Event(This)
 
-#define ISpEventSource_WaitForNotifyEvent(This, dwMilliseconds)	\
+#define ISpEventSource_WaitForNotifyEvent(This, dwMilliseconds)        \
     (This)->lpVtbl -> WaitForNotifyEvent(This, dwMilliseconds)
 
-#define ISpEventSource_GetNotifyEventHandle(This)	\
+#define ISpEventSource_GetNotifyEventHandle(This)        \
     (This)->lpVtbl -> GetNotifyEventHandle(This)
 
 
-#define ISpEventSource_SetInterest(This, ullEventInterest, ullQueuedInterest)	\
+#define ISpEventSource_SetInterest(This, ullEventInterest, ullQueuedInterest)        \
     (This)->lpVtbl -> SetInterest(This, ullEventInterest, ullQueuedInterest)
 
-#define ISpEventSource_GetEvents(This, ulCount, pEventArray, pulFetched)	\
+#define ISpEventSource_GetEvents(This, ulCount, pEventArray, pulFetched)        \
     (This)->lpVtbl -> GetEvents(This, ulCount, pEventArray, pulFetched)
 
-#define ISpEventSource_GetInfo(This, pInfo)	\
+#define ISpEventSource_GetInfo(This, pInfo)        \
     (This)->lpVtbl -> GetInfo(This, pInfo)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -4036,7 +4036,7 @@ void __RPC_STUB ISpEventSource_GetInfo_Stub(
 
 
 
-#endif 	/* __ISpEventSource_INTERFACE_DEFINED__ */
+#endif         /* __ISpEventSource_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpEventSink_INTERFACE_DEFINED__
@@ -4063,7 +4063,7 @@ EXTERN_C const IID IID_ISpEventSink;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpEventSinkVtbl
     {
@@ -4102,26 +4102,26 @@ EXTERN_C const IID IID_ISpEventSink;
 #ifdef COBJMACROS
 
 
-#define ISpEventSink_QueryInterface(This, riid, ppvObject)	\
+#define ISpEventSink_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpEventSink_AddRef(This)	\
+#define ISpEventSink_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpEventSink_Release(This)	\
+#define ISpEventSink_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpEventSink_AddEvents(This, pEventArray, ulCount)	\
+#define ISpEventSink_AddEvents(This, pEventArray, ulCount)        \
     (This)->lpVtbl -> AddEvents(This, pEventArray, ulCount)
 
-#define ISpEventSink_GetEventInterest(This, pullEventInterest)	\
+#define ISpEventSink_GetEventInterest(This, pullEventInterest)        \
     (This)->lpVtbl -> GetEventInterest(This, pullEventInterest)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -4151,7 +4151,7 @@ void __RPC_STUB ISpEventSink_GetEventInterest_Stub(
 
 
 
-#endif 	/* __ISpEventSink_INTERFACE_DEFINED__ */
+#endif         /* __ISpEventSink_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpStreamFormat_INTERFACE_DEFINED__
@@ -4175,7 +4175,7 @@ EXTERN_C const IID IID_ISpStreamFormat;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpStreamFormatVtbl
     {
@@ -4267,58 +4267,58 @@ EXTERN_C const IID IID_ISpStreamFormat;
 #ifdef COBJMACROS
 
 
-#define ISpStreamFormat_QueryInterface(This, riid, ppvObject)	\
+#define ISpStreamFormat_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpStreamFormat_AddRef(This)	\
+#define ISpStreamFormat_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpStreamFormat_Release(This)	\
+#define ISpStreamFormat_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpStreamFormat_Read(This, pv, cb, pcbRead)	\
+#define ISpStreamFormat_Read(This, pv, cb, pcbRead)        \
     (This)->lpVtbl -> Read(This, pv, cb, pcbRead)
 
-#define ISpStreamFormat_Write(This, pv, cb, pcbWritten)	\
+#define ISpStreamFormat_Write(This, pv, cb, pcbWritten)        \
     (This)->lpVtbl -> Write(This, pv, cb, pcbWritten)
 
 
-#define ISpStreamFormat_Seek(This, dlibMove, dwOrigin, plibNewPosition)	\
+#define ISpStreamFormat_Seek(This, dlibMove, dwOrigin, plibNewPosition)        \
     (This)->lpVtbl -> Seek(This, dlibMove, dwOrigin, plibNewPosition)
 
-#define ISpStreamFormat_SetSize(This, libNewSize)	\
+#define ISpStreamFormat_SetSize(This, libNewSize)        \
     (This)->lpVtbl -> SetSize(This, libNewSize)
 
-#define ISpStreamFormat_CopyTo(This, pstm, cb, pcbRead, pcbWritten)	\
+#define ISpStreamFormat_CopyTo(This, pstm, cb, pcbRead, pcbWritten)        \
     (This)->lpVtbl -> CopyTo(This, pstm, cb, pcbRead, pcbWritten)
 
-#define ISpStreamFormat_Commit(This, grfCommitFlags)	\
+#define ISpStreamFormat_Commit(This, grfCommitFlags)        \
     (This)->lpVtbl -> Commit(This, grfCommitFlags)
 
-#define ISpStreamFormat_Revert(This)	\
+#define ISpStreamFormat_Revert(This)        \
     (This)->lpVtbl -> Revert(This)
 
-#define ISpStreamFormat_LockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStreamFormat_LockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> LockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStreamFormat_UnlockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStreamFormat_UnlockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> UnlockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStreamFormat_Stat(This, pstatstg, grfStatFlag)	\
+#define ISpStreamFormat_Stat(This, pstatstg, grfStatFlag)        \
     (This)->lpVtbl -> Stat(This, pstatstg, grfStatFlag)
 
-#define ISpStreamFormat_Clone(This, ppstm)	\
+#define ISpStreamFormat_Clone(This, ppstm)        \
     (This)->lpVtbl -> Clone(This, ppstm)
 
 
-#define ISpStreamFormat_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)	\
+#define ISpStreamFormat_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -4336,7 +4336,7 @@ void __RPC_STUB ISpStreamFormat_GetFormat_Stub(
 
 
 
-#endif 	/* __ISpStreamFormat_INTERFACE_DEFINED__ */
+#endif         /* __ISpStreamFormat_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0265 */
@@ -4344,12 +4344,12 @@ void __RPC_STUB ISpStreamFormat_GetFormat_Stub(
 
 typedef /* [hidden] */ 
 enum SPFILEMODE
-    {	SPFM_OPEN_READONLY	= 0,
-	SPFM_OPEN_READWRITE	= SPFM_OPEN_READONLY + 1,
-	SPFM_CREATE	= SPFM_OPEN_READWRITE + 1,
-	SPFM_CREATE_ALWAYS	= SPFM_CREATE + 1,
-	SPFM_NUM_MODES	= SPFM_CREATE_ALWAYS + 1
-    } 	SPFILEMODE;
+    {        SPFM_OPEN_READONLY        = 0,
+        SPFM_OPEN_READWRITE        = SPFM_OPEN_READONLY + 1,
+        SPFM_CREATE        = SPFM_OPEN_READWRITE + 1,
+        SPFM_CREATE_ALWAYS        = SPFM_CREATE + 1,
+        SPFM_NUM_MODES        = SPFM_CREATE_ALWAYS + 1
+    }         SPFILEMODE;
 
 
 
@@ -4390,7 +4390,7 @@ EXTERN_C const IID IID_ISpStream;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpStreamVtbl
     {
@@ -4503,71 +4503,71 @@ EXTERN_C const IID IID_ISpStream;
 #ifdef COBJMACROS
 
 
-#define ISpStream_QueryInterface(This, riid, ppvObject)	\
+#define ISpStream_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpStream_AddRef(This)	\
+#define ISpStream_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpStream_Release(This)	\
+#define ISpStream_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpStream_Read(This, pv, cb, pcbRead)	\
+#define ISpStream_Read(This, pv, cb, pcbRead)        \
     (This)->lpVtbl -> Read(This, pv, cb, pcbRead)
 
-#define ISpStream_Write(This, pv, cb, pcbWritten)	\
+#define ISpStream_Write(This, pv, cb, pcbWritten)        \
     (This)->lpVtbl -> Write(This, pv, cb, pcbWritten)
 
 
-#define ISpStream_Seek(This, dlibMove, dwOrigin, plibNewPosition)	\
+#define ISpStream_Seek(This, dlibMove, dwOrigin, plibNewPosition)        \
     (This)->lpVtbl -> Seek(This, dlibMove, dwOrigin, plibNewPosition)
 
-#define ISpStream_SetSize(This, libNewSize)	\
+#define ISpStream_SetSize(This, libNewSize)        \
     (This)->lpVtbl -> SetSize(This, libNewSize)
 
-#define ISpStream_CopyTo(This, pstm, cb, pcbRead, pcbWritten)	\
+#define ISpStream_CopyTo(This, pstm, cb, pcbRead, pcbWritten)        \
     (This)->lpVtbl -> CopyTo(This, pstm, cb, pcbRead, pcbWritten)
 
-#define ISpStream_Commit(This, grfCommitFlags)	\
+#define ISpStream_Commit(This, grfCommitFlags)        \
     (This)->lpVtbl -> Commit(This, grfCommitFlags)
 
-#define ISpStream_Revert(This)	\
+#define ISpStream_Revert(This)        \
     (This)->lpVtbl -> Revert(This)
 
-#define ISpStream_LockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStream_LockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> LockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStream_UnlockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStream_UnlockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> UnlockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStream_Stat(This, pstatstg, grfStatFlag)	\
+#define ISpStream_Stat(This, pstatstg, grfStatFlag)        \
     (This)->lpVtbl -> Stat(This, pstatstg, grfStatFlag)
 
-#define ISpStream_Clone(This, ppstm)	\
+#define ISpStream_Clone(This, ppstm)        \
     (This)->lpVtbl -> Clone(This, ppstm)
 
 
-#define ISpStream_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)	\
+#define ISpStream_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)
 
 
-#define ISpStream_SetBaseStream(This, pStream, rguidFormat, pWaveFormatEx)	\
+#define ISpStream_SetBaseStream(This, pStream, rguidFormat, pWaveFormatEx)        \
     (This)->lpVtbl -> SetBaseStream(This, pStream, rguidFormat, pWaveFormatEx)
 
-#define ISpStream_GetBaseStream(This, ppStream)	\
+#define ISpStream_GetBaseStream(This, ppStream)        \
     (This)->lpVtbl -> GetBaseStream(This, ppStream)
 
-#define ISpStream_BindToFile(This, pszFileName, eMode, pFormatId, pWaveFormatEx, ullEventInterest)	\
+#define ISpStream_BindToFile(This, pszFileName, eMode, pFormatId, pWaveFormatEx, ullEventInterest)        \
     (This)->lpVtbl -> BindToFile(This, pszFileName, eMode, pFormatId, pWaveFormatEx, ullEventInterest)
 
-#define ISpStream_Close(This)	\
+#define ISpStream_Close(This)        \
     (This)->lpVtbl -> Close(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -4625,7 +4625,7 @@ void __RPC_STUB ISpStream_Close_Stub(
 
 
 
-#endif 	/* __ISpStream_INTERFACE_DEFINED__ */
+#endif         /* __ISpStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpStreamFormatConverter_INTERFACE_DEFINED__
@@ -4667,7 +4667,7 @@ EXTERN_C const IID IID_ISpStreamFormatConverter;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpStreamFormatConverterVtbl
     {
@@ -4787,77 +4787,77 @@ EXTERN_C const IID IID_ISpStreamFormatConverter;
 #ifdef COBJMACROS
 
 
-#define ISpStreamFormatConverter_QueryInterface(This, riid, ppvObject)	\
+#define ISpStreamFormatConverter_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpStreamFormatConverter_AddRef(This)	\
+#define ISpStreamFormatConverter_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpStreamFormatConverter_Release(This)	\
+#define ISpStreamFormatConverter_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpStreamFormatConverter_Read(This, pv, cb, pcbRead)	\
+#define ISpStreamFormatConverter_Read(This, pv, cb, pcbRead)        \
     (This)->lpVtbl -> Read(This, pv, cb, pcbRead)
 
-#define ISpStreamFormatConverter_Write(This, pv, cb, pcbWritten)	\
+#define ISpStreamFormatConverter_Write(This, pv, cb, pcbWritten)        \
     (This)->lpVtbl -> Write(This, pv, cb, pcbWritten)
 
 
-#define ISpStreamFormatConverter_Seek(This, dlibMove, dwOrigin, plibNewPosition)	\
+#define ISpStreamFormatConverter_Seek(This, dlibMove, dwOrigin, plibNewPosition)        \
     (This)->lpVtbl -> Seek(This, dlibMove, dwOrigin, plibNewPosition)
 
-#define ISpStreamFormatConverter_SetSize(This, libNewSize)	\
+#define ISpStreamFormatConverter_SetSize(This, libNewSize)        \
     (This)->lpVtbl -> SetSize(This, libNewSize)
 
-#define ISpStreamFormatConverter_CopyTo(This, pstm, cb, pcbRead, pcbWritten)	\
+#define ISpStreamFormatConverter_CopyTo(This, pstm, cb, pcbRead, pcbWritten)        \
     (This)->lpVtbl -> CopyTo(This, pstm, cb, pcbRead, pcbWritten)
 
-#define ISpStreamFormatConverter_Commit(This, grfCommitFlags)	\
+#define ISpStreamFormatConverter_Commit(This, grfCommitFlags)        \
     (This)->lpVtbl -> Commit(This, grfCommitFlags)
 
-#define ISpStreamFormatConverter_Revert(This)	\
+#define ISpStreamFormatConverter_Revert(This)        \
     (This)->lpVtbl -> Revert(This)
 
-#define ISpStreamFormatConverter_LockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStreamFormatConverter_LockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> LockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStreamFormatConverter_UnlockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpStreamFormatConverter_UnlockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> UnlockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpStreamFormatConverter_Stat(This, pstatstg, grfStatFlag)	\
+#define ISpStreamFormatConverter_Stat(This, pstatstg, grfStatFlag)        \
     (This)->lpVtbl -> Stat(This, pstatstg, grfStatFlag)
 
-#define ISpStreamFormatConverter_Clone(This, ppstm)	\
+#define ISpStreamFormatConverter_Clone(This, ppstm)        \
     (This)->lpVtbl -> Clone(This, ppstm)
 
 
-#define ISpStreamFormatConverter_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)	\
+#define ISpStreamFormatConverter_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)
 
 
-#define ISpStreamFormatConverter_SetBaseStream(This, pStream, fSetFormatToBaseStreamFormat, fWriteToBaseStream)	\
+#define ISpStreamFormatConverter_SetBaseStream(This, pStream, fSetFormatToBaseStreamFormat, fWriteToBaseStream)        \
     (This)->lpVtbl -> SetBaseStream(This, pStream, fSetFormatToBaseStreamFormat, fWriteToBaseStream)
 
-#define ISpStreamFormatConverter_GetBaseStream(This, ppStream)	\
+#define ISpStreamFormatConverter_GetBaseStream(This, ppStream)        \
     (This)->lpVtbl -> GetBaseStream(This, ppStream)
 
-#define ISpStreamFormatConverter_SetFormat(This, rguidFormatIdOfConvertedStream, pWaveFormatExOfConvertedStream)	\
+#define ISpStreamFormatConverter_SetFormat(This, rguidFormatIdOfConvertedStream, pWaveFormatExOfConvertedStream)        \
     (This)->lpVtbl -> SetFormat(This, rguidFormatIdOfConvertedStream, pWaveFormatExOfConvertedStream)
 
-#define ISpStreamFormatConverter_ResetSeekPosition(This)	\
+#define ISpStreamFormatConverter_ResetSeekPosition(This)        \
     (This)->lpVtbl -> ResetSeekPosition(This)
 
-#define ISpStreamFormatConverter_ScaleConvertedToBaseOffset(This, ullOffsetConvertedStream, pullOffsetBaseStream)	\
+#define ISpStreamFormatConverter_ScaleConvertedToBaseOffset(This, ullOffsetConvertedStream, pullOffsetBaseStream)        \
     (This)->lpVtbl -> ScaleConvertedToBaseOffset(This, ullOffsetConvertedStream, pullOffsetBaseStream)
 
-#define ISpStreamFormatConverter_ScaleBaseToConvertedOffset(This, ullOffsetBaseStream, pullOffsetConvertedStream)	\
+#define ISpStreamFormatConverter_ScaleBaseToConvertedOffset(This, ullOffsetBaseStream, pullOffsetConvertedStream)        \
     (This)->lpVtbl -> ScaleBaseToConvertedOffset(This, ullOffsetBaseStream, pullOffsetConvertedStream)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -4938,7 +4938,7 @@ void __RPC_STUB ISpStreamFormatConverter_ScaleBaseToConvertedOffset_Stub(
 
 
 
-#endif 	/* __ISpStreamFormatConverter_INTERFACE_DEFINED__ */
+#endif         /* __ISpStreamFormatConverter_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0267 */
@@ -4946,11 +4946,11 @@ void __RPC_STUB ISpStreamFormatConverter_ScaleBaseToConvertedOffset_Stub(
 
 typedef /* [hidden] */ 
 enum _SPAUDIOSTATE
-    {	SPAS_CLOSED	= 0,
-	SPAS_STOP	= SPAS_CLOSED + 1,
-	SPAS_PAUSE	= SPAS_STOP + 1,
-	SPAS_RUN	= SPAS_PAUSE + 1
-    } 	SPAUDIOSTATE;
+    {        SPAS_CLOSED        = 0,
+        SPAS_STOP        = SPAS_CLOSED + 1,
+        SPAS_PAUSE        = SPAS_STOP + 1,
+        SPAS_RUN        = SPAS_PAUSE + 1
+    }         SPAUDIOSTATE;
 
 typedef /* [hidden][restricted] */ struct SPAUDIOSTATUS
     {
@@ -4961,14 +4961,14 @@ typedef /* [hidden][restricted] */ struct SPAUDIOSTATUS
     ULONGLONG CurDevicePos;
     DWORD dwReserved1;
     DWORD dwReserved2;
-    } 	SPAUDIOSTATUS;
+    }         SPAUDIOSTATUS;
 
 typedef /* [hidden][restricted] */ struct SPAUDIOBUFFERINFO
     {
     ULONG ulMsMinNotification;
     ULONG ulMsBufferSize;
     ULONG ulMsEventBias;
-    } 	SPAUDIOBUFFERINFO;
+    }         SPAUDIOBUFFERINFO;
 
 
 
@@ -5027,7 +5027,7 @@ EXTERN_C const IID IID_ISpAudio;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpAudioVtbl
     {
@@ -5165,92 +5165,92 @@ EXTERN_C const IID IID_ISpAudio;
 #ifdef COBJMACROS
 
 
-#define ISpAudio_QueryInterface(This, riid, ppvObject)	\
+#define ISpAudio_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpAudio_AddRef(This)	\
+#define ISpAudio_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpAudio_Release(This)	\
+#define ISpAudio_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpAudio_Read(This, pv, cb, pcbRead)	\
+#define ISpAudio_Read(This, pv, cb, pcbRead)        \
     (This)->lpVtbl -> Read(This, pv, cb, pcbRead)
 
-#define ISpAudio_Write(This, pv, cb, pcbWritten)	\
+#define ISpAudio_Write(This, pv, cb, pcbWritten)        \
     (This)->lpVtbl -> Write(This, pv, cb, pcbWritten)
 
 
-#define ISpAudio_Seek(This, dlibMove, dwOrigin, plibNewPosition)	\
+#define ISpAudio_Seek(This, dlibMove, dwOrigin, plibNewPosition)        \
     (This)->lpVtbl -> Seek(This, dlibMove, dwOrigin, plibNewPosition)
 
-#define ISpAudio_SetSize(This, libNewSize)	\
+#define ISpAudio_SetSize(This, libNewSize)        \
     (This)->lpVtbl -> SetSize(This, libNewSize)
 
-#define ISpAudio_CopyTo(This, pstm, cb, pcbRead, pcbWritten)	\
+#define ISpAudio_CopyTo(This, pstm, cb, pcbRead, pcbWritten)        \
     (This)->lpVtbl -> CopyTo(This, pstm, cb, pcbRead, pcbWritten)
 
-#define ISpAudio_Commit(This, grfCommitFlags)	\
+#define ISpAudio_Commit(This, grfCommitFlags)        \
     (This)->lpVtbl -> Commit(This, grfCommitFlags)
 
-#define ISpAudio_Revert(This)	\
+#define ISpAudio_Revert(This)        \
     (This)->lpVtbl -> Revert(This)
 
-#define ISpAudio_LockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpAudio_LockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> LockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpAudio_UnlockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpAudio_UnlockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> UnlockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpAudio_Stat(This, pstatstg, grfStatFlag)	\
+#define ISpAudio_Stat(This, pstatstg, grfStatFlag)        \
     (This)->lpVtbl -> Stat(This, pstatstg, grfStatFlag)
 
-#define ISpAudio_Clone(This, ppstm)	\
+#define ISpAudio_Clone(This, ppstm)        \
     (This)->lpVtbl -> Clone(This, ppstm)
 
 
-#define ISpAudio_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)	\
+#define ISpAudio_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)
 
 
-#define ISpAudio_SetState(This, NewState, ullReserved)	\
+#define ISpAudio_SetState(This, NewState, ullReserved)        \
     (This)->lpVtbl -> SetState(This, NewState, ullReserved)
 
-#define ISpAudio_SetFormat(This, rguidFmtId, pWaveFormatEx)	\
+#define ISpAudio_SetFormat(This, rguidFmtId, pWaveFormatEx)        \
     (This)->lpVtbl -> SetFormat(This, rguidFmtId, pWaveFormatEx)
 
-#define ISpAudio_GetStatus(This, pStatus)	\
+#define ISpAudio_GetStatus(This, pStatus)        \
     (This)->lpVtbl -> GetStatus(This, pStatus)
 
-#define ISpAudio_SetBufferInfo(This, pBuffInfo)	\
+#define ISpAudio_SetBufferInfo(This, pBuffInfo)        \
     (This)->lpVtbl -> SetBufferInfo(This, pBuffInfo)
 
-#define ISpAudio_GetBufferInfo(This, pBuffInfo)	\
+#define ISpAudio_GetBufferInfo(This, pBuffInfo)        \
     (This)->lpVtbl -> GetBufferInfo(This, pBuffInfo)
 
-#define ISpAudio_GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)	\
+#define ISpAudio_GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)
 
-#define ISpAudio_EventHandle(This)	\
+#define ISpAudio_EventHandle(This)        \
     (This)->lpVtbl -> EventHandle(This)
 
-#define ISpAudio_GetVolumeLevel(This, pLevel)	\
+#define ISpAudio_GetVolumeLevel(This, pLevel)        \
     (This)->lpVtbl -> GetVolumeLevel(This, pLevel)
 
-#define ISpAudio_SetVolumeLevel(This, Level)	\
+#define ISpAudio_SetVolumeLevel(This, Level)        \
     (This)->lpVtbl -> SetVolumeLevel(This, Level)
 
-#define ISpAudio_GetBufferNotifySize(This, pcbSize)	\
+#define ISpAudio_GetBufferNotifySize(This, pcbSize)        \
     (This)->lpVtbl -> GetBufferNotifySize(This, pcbSize)
 
-#define ISpAudio_SetBufferNotifySize(This, cbSize)	\
+#define ISpAudio_SetBufferNotifySize(This, cbSize)        \
     (This)->lpVtbl -> SetBufferNotifySize(This, cbSize)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -5389,7 +5389,7 @@ void __RPC_STUB ISpAudio_SetBufferNotifySize_Stub(
 
 
 
-#endif 	/* __ISpAudio_INTERFACE_DEFINED__ */
+#endif         /* __ISpAudio_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpMMSysAudio_INTERFACE_DEFINED__
@@ -5424,7 +5424,7 @@ EXTERN_C const IID IID_ISpMMSysAudio;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpMMSysAudioVtbl
     {
@@ -5582,108 +5582,108 @@ EXTERN_C const IID IID_ISpMMSysAudio;
 #ifdef COBJMACROS
 
 
-#define ISpMMSysAudio_QueryInterface(This, riid, ppvObject)	\
+#define ISpMMSysAudio_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpMMSysAudio_AddRef(This)	\
+#define ISpMMSysAudio_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpMMSysAudio_Release(This)	\
+#define ISpMMSysAudio_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpMMSysAudio_Read(This, pv, cb, pcbRead)	\
+#define ISpMMSysAudio_Read(This, pv, cb, pcbRead)        \
     (This)->lpVtbl -> Read(This, pv, cb, pcbRead)
 
-#define ISpMMSysAudio_Write(This, pv, cb, pcbWritten)	\
+#define ISpMMSysAudio_Write(This, pv, cb, pcbWritten)        \
     (This)->lpVtbl -> Write(This, pv, cb, pcbWritten)
 
 
-#define ISpMMSysAudio_Seek(This, dlibMove, dwOrigin, plibNewPosition)	\
+#define ISpMMSysAudio_Seek(This, dlibMove, dwOrigin, plibNewPosition)        \
     (This)->lpVtbl -> Seek(This, dlibMove, dwOrigin, plibNewPosition)
 
-#define ISpMMSysAudio_SetSize(This, libNewSize)	\
+#define ISpMMSysAudio_SetSize(This, libNewSize)        \
     (This)->lpVtbl -> SetSize(This, libNewSize)
 
-#define ISpMMSysAudio_CopyTo(This, pstm, cb, pcbRead, pcbWritten)	\
+#define ISpMMSysAudio_CopyTo(This, pstm, cb, pcbRead, pcbWritten)        \
     (This)->lpVtbl -> CopyTo(This, pstm, cb, pcbRead, pcbWritten)
 
-#define ISpMMSysAudio_Commit(This, grfCommitFlags)	\
+#define ISpMMSysAudio_Commit(This, grfCommitFlags)        \
     (This)->lpVtbl -> Commit(This, grfCommitFlags)
 
-#define ISpMMSysAudio_Revert(This)	\
+#define ISpMMSysAudio_Revert(This)        \
     (This)->lpVtbl -> Revert(This)
 
-#define ISpMMSysAudio_LockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpMMSysAudio_LockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> LockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpMMSysAudio_UnlockRegion(This, libOffset, cb, dwLockType)	\
+#define ISpMMSysAudio_UnlockRegion(This, libOffset, cb, dwLockType)        \
     (This)->lpVtbl -> UnlockRegion(This, libOffset, cb, dwLockType)
 
-#define ISpMMSysAudio_Stat(This, pstatstg, grfStatFlag)	\
+#define ISpMMSysAudio_Stat(This, pstatstg, grfStatFlag)        \
     (This)->lpVtbl -> Stat(This, pstatstg, grfStatFlag)
 
-#define ISpMMSysAudio_Clone(This, ppstm)	\
+#define ISpMMSysAudio_Clone(This, ppstm)        \
     (This)->lpVtbl -> Clone(This, ppstm)
 
 
-#define ISpMMSysAudio_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)	\
+#define ISpMMSysAudio_GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetFormat(This, pguidFormatId, ppCoMemWaveFormatEx)
 
 
-#define ISpMMSysAudio_SetState(This, NewState, ullReserved)	\
+#define ISpMMSysAudio_SetState(This, NewState, ullReserved)        \
     (This)->lpVtbl -> SetState(This, NewState, ullReserved)
 
-#define ISpMMSysAudio_SetFormat(This, rguidFmtId, pWaveFormatEx)	\
+#define ISpMMSysAudio_SetFormat(This, rguidFmtId, pWaveFormatEx)        \
     (This)->lpVtbl -> SetFormat(This, rguidFmtId, pWaveFormatEx)
 
-#define ISpMMSysAudio_GetStatus(This, pStatus)	\
+#define ISpMMSysAudio_GetStatus(This, pStatus)        \
     (This)->lpVtbl -> GetStatus(This, pStatus)
 
-#define ISpMMSysAudio_SetBufferInfo(This, pBuffInfo)	\
+#define ISpMMSysAudio_SetBufferInfo(This, pBuffInfo)        \
     (This)->lpVtbl -> SetBufferInfo(This, pBuffInfo)
 
-#define ISpMMSysAudio_GetBufferInfo(This, pBuffInfo)	\
+#define ISpMMSysAudio_GetBufferInfo(This, pBuffInfo)        \
     (This)->lpVtbl -> GetBufferInfo(This, pBuffInfo)
 
-#define ISpMMSysAudio_GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)	\
+#define ISpMMSysAudio_GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)        \
     (This)->lpVtbl -> GetDefaultFormat(This, pFormatId, ppCoMemWaveFormatEx)
 
-#define ISpMMSysAudio_EventHandle(This)	\
+#define ISpMMSysAudio_EventHandle(This)        \
     (This)->lpVtbl -> EventHandle(This)
 
-#define ISpMMSysAudio_GetVolumeLevel(This, pLevel)	\
+#define ISpMMSysAudio_GetVolumeLevel(This, pLevel)        \
     (This)->lpVtbl -> GetVolumeLevel(This, pLevel)
 
-#define ISpMMSysAudio_SetVolumeLevel(This, Level)	\
+#define ISpMMSysAudio_SetVolumeLevel(This, Level)        \
     (This)->lpVtbl -> SetVolumeLevel(This, Level)
 
-#define ISpMMSysAudio_GetBufferNotifySize(This, pcbSize)	\
+#define ISpMMSysAudio_GetBufferNotifySize(This, pcbSize)        \
     (This)->lpVtbl -> GetBufferNotifySize(This, pcbSize)
 
-#define ISpMMSysAudio_SetBufferNotifySize(This, cbSize)	\
+#define ISpMMSysAudio_SetBufferNotifySize(This, cbSize)        \
     (This)->lpVtbl -> SetBufferNotifySize(This, cbSize)
 
 
-#define ISpMMSysAudio_GetDeviceId(This, puDeviceId)	\
+#define ISpMMSysAudio_GetDeviceId(This, puDeviceId)        \
     (This)->lpVtbl -> GetDeviceId(This, puDeviceId)
 
-#define ISpMMSysAudio_SetDeviceId(This, uDeviceId)	\
+#define ISpMMSysAudio_SetDeviceId(This, uDeviceId)        \
     (This)->lpVtbl -> SetDeviceId(This, uDeviceId)
 
-#define ISpMMSysAudio_GetMMHandle(This, pHandle)	\
+#define ISpMMSysAudio_GetMMHandle(This, pHandle)        \
     (This)->lpVtbl -> GetMMHandle(This, pHandle)
 
-#define ISpMMSysAudio_GetLineId(This, puLineId)	\
+#define ISpMMSysAudio_GetLineId(This, puLineId)        \
     (This)->lpVtbl -> GetLineId(This, puLineId)
 
-#define ISpMMSysAudio_SetLineId(This, uLineId)	\
+#define ISpMMSysAudio_SetLineId(This, uLineId)        \
     (This)->lpVtbl -> SetLineId(This, uLineId)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -5748,7 +5748,7 @@ void __RPC_STUB ISpMMSysAudio_SetLineId_Stub(
 
 
 
-#endif 	/* __ISpMMSysAudio_INTERFACE_DEFINED__ */
+#endif         /* __ISpMMSysAudio_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpTranscript_INTERFACE_DEFINED__
@@ -5774,7 +5774,7 @@ EXTERN_C const IID IID_ISpTranscript;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpTranscriptVtbl
     {
@@ -5812,26 +5812,26 @@ EXTERN_C const IID IID_ISpTranscript;
 #ifdef COBJMACROS
 
 
-#define ISpTranscript_QueryInterface(This, riid, ppvObject)	\
+#define ISpTranscript_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpTranscript_AddRef(This)	\
+#define ISpTranscript_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpTranscript_Release(This)	\
+#define ISpTranscript_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpTranscript_GetTranscript(This, ppszTranscript)	\
+#define ISpTranscript_GetTranscript(This, ppszTranscript)        \
     (This)->lpVtbl -> GetTranscript(This, ppszTranscript)
 
-#define ISpTranscript_AppendTranscript(This, pszTranscript)	\
+#define ISpTranscript_AppendTranscript(This, pszTranscript)        \
     (This)->lpVtbl -> AppendTranscript(This, pszTranscript)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -5860,7 +5860,7 @@ void __RPC_STUB ISpTranscript_AppendTranscript_Stub(
 
 
 
-#endif 	/* __ISpTranscript_INTERFACE_DEFINED__ */
+#endif         /* __ISpTranscript_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0270 */
@@ -5868,11 +5868,11 @@ void __RPC_STUB ISpTranscript_AppendTranscript_Stub(
 
 typedef /* [hidden] */ 
 enum SPDISPLYATTRIBUTES
-    {	SPAF_ONE_TRAILING_SPACE	= 0x2,
-	SPAF_TWO_TRAILING_SPACES	= 0x4,
-	SPAF_CONSUME_LEADING_SPACES	= 0x8,
-	SPAF_ALL	= 0xf
-    } 	SPDISPLAYATTRIBUTES;
+    {        SPAF_ONE_TRAILING_SPACE        = 0x2,
+        SPAF_TWO_TRAILING_SPACES        = 0x4,
+        SPAF_CONSUME_LEADING_SPACES        = 0x8,
+        SPAF_ALL        = 0xf
+    }         SPDISPLAYATTRIBUTES;
 
 typedef unsigned short SPPHONEID;
 
@@ -5892,7 +5892,7 @@ typedef /* [hidden][restricted] */ struct SPPHRASEELEMENT
     signed char ActualConfidence;
     BYTE Reserved;
     float SREngineConfidence;
-    } 	SPPHRASEELEMENT;
+    }         SPPHRASEELEMENT;
 
 typedef /* [hidden][restricted] */ struct SPPHRASERULE SPPHRASERULE;
 
@@ -5928,7 +5928,7 @@ typedef /* [hidden][restricted] */ struct SPPHRASEREPLACEMENT
     const WCHAR *pszReplacementText;
     ULONG ulFirstElement;
     ULONG ulCountOfElements;
-    } 	SPPHRASEREPLACEMENT;
+    }         SPPHRASEREPLACEMENT;
 
 typedef /* [hidden][restricted] */ struct SPPHRASE
     {
@@ -5949,35 +5949,35 @@ typedef /* [hidden][restricted] */ struct SPPHRASE
     GUID SREngineID;
     ULONG ulSREnginePrivateDataSize;
     const BYTE *pSREnginePrivateData;
-    } 	SPPHRASE;
+    }         SPPHRASE;
 
 typedef /* [hidden][restricted] */ struct SPSERIALIZEDPHRASE
     {
     ULONG ulSerializedSize;
-    } 	SPSERIALIZEDPHRASE;
+    }         SPSERIALIZEDPHRASE;
 
 typedef /* [hidden] */ 
 enum SPVALUETYPE
-    {	SPDF_PROPERTY	= 0x1,
-	SPDF_REPLACEMENT	= 0x2,
-	SPDF_RULE	= 0x4,
-	SPDF_DISPLAYTEXT	= 0x8,
-	SPDF_LEXICALFORM	= 0x10,
-	SPDF_PRONUNCIATION	= 0x20,
-	SPDF_AUDIO	= 0x40,
-	SPDF_ALTERNATES	= 0x80,
-	SPDF_ALL	= 0xff
-    } 	SPVALUETYPE;
+    {        SPDF_PROPERTY        = 0x1,
+        SPDF_REPLACEMENT        = 0x2,
+        SPDF_RULE        = 0x4,
+        SPDF_DISPLAYTEXT        = 0x8,
+        SPDF_LEXICALFORM        = 0x10,
+        SPDF_PRONUNCIATION        = 0x20,
+        SPDF_AUDIO        = 0x40,
+        SPDF_ALTERNATES        = 0x80,
+        SPDF_ALL        = 0xff
+    }         SPVALUETYPE;
 
 typedef /* [hidden] */ struct SPBINARYGRAMMAR
     {
     ULONG ulTotalSerializedSize;
-    } 	SPBINARYGRAMMAR;
+    }         SPBINARYGRAMMAR;
 
 typedef /* [hidden] */ 
 enum SPPHRASERNG
-    {	SPPR_ALL_ELEMENTS	= -1
-    } 	SPPHRASERNG;
+    {        SPPR_ALL_ELEMENTS        = -1
+    }         SPPHRASERNG;
 
 #define SP_GETWHOLEPHRASE SPPR_ALL_ELEMENTS
 #define SPRR_ALL_ELEMENTS SPPR_ALL_ELEMENTS
@@ -5989,62 +5989,62 @@ DECLARE_HANDLE(SPSTATEHANDLE);
 #endif
 typedef /* [hidden] */ 
 enum SPRECOEVENTFLAGS
-    {	SPREF_AutoPause	= 1 << 0,
-	SPREF_Emulated	= 1 << 1
-    } 	SPRECOEVENTFLAGS;
+    {        SPREF_AutoPause        = 1 << 0,
+        SPREF_Emulated        = 1 << 1
+    }         SPRECOEVENTFLAGS;
 
 typedef /* [hidden] */ 
 enum SPPARTOFSPEECH
-    {	SPPS_NotOverriden	= -1,
-	SPPS_Unknown	= 0,
-	SPPS_Noun	= 0x1000,
-	SPPS_Verb	= 0x2000,
-	SPPS_Modifier	= 0x3000,
-	SPPS_Function	= 0x4000,
-	SPPS_Interjection	= 0x5000
-    } 	SPPARTOFSPEECH;
+    {        SPPS_NotOverriden        = -1,
+        SPPS_Unknown        = 0,
+        SPPS_Noun        = 0x1000,
+        SPPS_Verb        = 0x2000,
+        SPPS_Modifier        = 0x3000,
+        SPPS_Function        = 0x4000,
+        SPPS_Interjection        = 0x5000
+    }         SPPARTOFSPEECH;
 
 typedef /* [hidden] */ 
 enum SPLEXICONTYPE
-    {	eLEXTYPE_USER	= 1L << 0,
-	eLEXTYPE_APP	= 1L << 1,
-	eLEXTYPE_RESERVED1	= 1L << 2,
-	eLEXTYPE_RESERVED2	= 1L << 3,
-	eLEXTYPE_RESERVED3	= 1L << 4,
-	eLEXTYPE_RESERVED4	= 1L << 5,
-	eLEXTYPE_RESERVED5	= 1L << 6,
-	eLEXTYPE_RESERVED6	= 1L << 7,
-	eLEXTYPE_RESERVED7	= 1L << 8,
-	eLEXTYPE_RESERVED8	= 1L << 9,
-	eLEXTYPE_RESERVED9	= 1L << 10,
-	eLEXTYPE_RESERVED10	= 1L << 11,
-	eLEXTYPE_PRIVATE1	= 1L << 12,
-	eLEXTYPE_PRIVATE2	= 1L << 13,
-	eLEXTYPE_PRIVATE3	= 1L << 14,
-	eLEXTYPE_PRIVATE4	= 1L << 15,
-	eLEXTYPE_PRIVATE5	= 1L << 16,
-	eLEXTYPE_PRIVATE6	= 1L << 17,
-	eLEXTYPE_PRIVATE7	= 1L << 18,
-	eLEXTYPE_PRIVATE8	= 1L << 19,
-	eLEXTYPE_PRIVATE9	= 1L << 20,
-	eLEXTYPE_PRIVATE10	= 1L << 21,
-	eLEXTYPE_PRIVATE11	= 1L << 22,
-	eLEXTYPE_PRIVATE12	= 1L << 23,
-	eLEXTYPE_PRIVATE13	= 1L << 24,
-	eLEXTYPE_PRIVATE14	= 1L << 25,
-	eLEXTYPE_PRIVATE15	= 1L << 26,
-	eLEXTYPE_PRIVATE16	= 1L << 27,
-	eLEXTYPE_PRIVATE17	= 1L << 28,
-	eLEXTYPE_PRIVATE18	= 1L << 29,
-	eLEXTYPE_PRIVATE19	= 1L << 30,
-	eLEXTYPE_PRIVATE20	= 1L << 31
-    } 	SPLEXICONTYPE;
+    {        eLEXTYPE_USER        = 1L << 0,
+        eLEXTYPE_APP        = 1L << 1,
+        eLEXTYPE_RESERVED1        = 1L << 2,
+        eLEXTYPE_RESERVED2        = 1L << 3,
+        eLEXTYPE_RESERVED3        = 1L << 4,
+        eLEXTYPE_RESERVED4        = 1L << 5,
+        eLEXTYPE_RESERVED5        = 1L << 6,
+        eLEXTYPE_RESERVED6        = 1L << 7,
+        eLEXTYPE_RESERVED7        = 1L << 8,
+        eLEXTYPE_RESERVED8        = 1L << 9,
+        eLEXTYPE_RESERVED9        = 1L << 10,
+        eLEXTYPE_RESERVED10        = 1L << 11,
+        eLEXTYPE_PRIVATE1        = 1L << 12,
+        eLEXTYPE_PRIVATE2        = 1L << 13,
+        eLEXTYPE_PRIVATE3        = 1L << 14,
+        eLEXTYPE_PRIVATE4        = 1L << 15,
+        eLEXTYPE_PRIVATE5        = 1L << 16,
+        eLEXTYPE_PRIVATE6        = 1L << 17,
+        eLEXTYPE_PRIVATE7        = 1L << 18,
+        eLEXTYPE_PRIVATE8        = 1L << 19,
+        eLEXTYPE_PRIVATE9        = 1L << 20,
+        eLEXTYPE_PRIVATE10        = 1L << 21,
+        eLEXTYPE_PRIVATE11        = 1L << 22,
+        eLEXTYPE_PRIVATE12        = 1L << 23,
+        eLEXTYPE_PRIVATE13        = 1L << 24,
+        eLEXTYPE_PRIVATE14        = 1L << 25,
+        eLEXTYPE_PRIVATE15        = 1L << 26,
+        eLEXTYPE_PRIVATE16        = 1L << 27,
+        eLEXTYPE_PRIVATE17        = 1L << 28,
+        eLEXTYPE_PRIVATE18        = 1L << 29,
+        eLEXTYPE_PRIVATE19        = 1L << 30,
+        eLEXTYPE_PRIVATE20        = 1L << 31
+    }         SPLEXICONTYPE;
 
 typedef /* [hidden] */ 
 enum SPWORDTYPE
-    {	eWORDTYPE_ADDED	= 1L << 0,
-	eWORDTYPE_DELETED	= 1L << 1
-    } 	SPWORDTYPE;
+    {        eWORDTYPE_ADDED        = 1L << 0,
+        eWORDTYPE_DELETED        = 1L << 1
+    }         SPWORDTYPE;
 
 typedef /* [hidden][restricted] */ struct SPWORDPRONUNCIATION
     {
@@ -6054,14 +6054,14 @@ typedef /* [hidden][restricted] */ struct SPWORDPRONUNCIATION
     WORD wReserved;
     SPPARTOFSPEECH ePartOfSpeech;
     SPPHONEID szPronunciation[ 1 ];
-    } 	SPWORDPRONUNCIATION;
+    }         SPWORDPRONUNCIATION;
 
 typedef /* [hidden][restricted] */ struct SPWORDPRONUNCIATIONLIST
     {
     ULONG ulSize;
     BYTE *pvBuffer;
     SPWORDPRONUNCIATION *pFirstWordPronunciation;
-    } 	SPWORDPRONUNCIATIONLIST;
+    }         SPWORDPRONUNCIATIONLIST;
 
 typedef /* [hidden][restricted] */ struct SPWORD
     {
@@ -6071,14 +6071,14 @@ typedef /* [hidden][restricted] */ struct SPWORD
     SPWORDTYPE eWordType;
     WCHAR *pszWord;
     SPWORDPRONUNCIATION *pFirstWordPronunciation;
-    } 	SPWORD;
+    }         SPWORD;
 
 typedef /* [hidden][restricted] */ struct SPWORDLIST
     {
     ULONG ulSize;
     BYTE *pvBuffer;
     SPWORD *pFirstWord;
-    } 	SPWORDLIST;
+    }         SPWORDLIST;
 
 
 
@@ -6134,7 +6134,7 @@ EXTERN_C const IID IID_ISpLexicon;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpLexiconVtbl
     {
@@ -6202,38 +6202,38 @@ EXTERN_C const IID IID_ISpLexicon;
 #ifdef COBJMACROS
 
 
-#define ISpLexicon_QueryInterface(This, riid, ppvObject)	\
+#define ISpLexicon_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpLexicon_AddRef(This)	\
+#define ISpLexicon_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpLexicon_Release(This)	\
+#define ISpLexicon_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpLexicon_GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)	\
+#define ISpLexicon_GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)        \
     (This)->lpVtbl -> GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)
 
-#define ISpLexicon_AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)	\
+#define ISpLexicon_AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)        \
     (This)->lpVtbl -> AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)
 
-#define ISpLexicon_RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)	\
+#define ISpLexicon_RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)        \
     (This)->lpVtbl -> RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)
 
-#define ISpLexicon_GetGeneration(This, pdwGeneration)	\
+#define ISpLexicon_GetGeneration(This, pdwGeneration)        \
     (This)->lpVtbl -> GetGeneration(This, pdwGeneration)
 
-#define ISpLexicon_GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)	\
+#define ISpLexicon_GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)        \
     (This)->lpVtbl -> GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)
 
-#define ISpLexicon_GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)	\
+#define ISpLexicon_GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)        \
     (This)->lpVtbl -> GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -6324,7 +6324,7 @@ void __RPC_STUB ISpLexicon_GetWords_Stub(
 
 
 
-#endif 	/* __ISpLexicon_INTERFACE_DEFINED__ */
+#endif         /* __ISpLexicon_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpContainerLexicon_INTERFACE_DEFINED__
@@ -6348,7 +6348,7 @@ EXTERN_C const IID IID_ISpContainerLexicon;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpContainerLexiconVtbl
     {
@@ -6421,42 +6421,42 @@ EXTERN_C const IID IID_ISpContainerLexicon;
 #ifdef COBJMACROS
 
 
-#define ISpContainerLexicon_QueryInterface(This, riid, ppvObject)	\
+#define ISpContainerLexicon_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpContainerLexicon_AddRef(This)	\
+#define ISpContainerLexicon_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpContainerLexicon_Release(This)	\
+#define ISpContainerLexicon_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpContainerLexicon_GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)	\
+#define ISpContainerLexicon_GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)        \
     (This)->lpVtbl -> GetPronunciations(This, pszWord, LangID, dwFlags, pWordPronunciationList)
 
-#define ISpContainerLexicon_AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)	\
+#define ISpContainerLexicon_AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)        \
     (This)->lpVtbl -> AddPronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)
 
-#define ISpContainerLexicon_RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)	\
+#define ISpContainerLexicon_RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)        \
     (This)->lpVtbl -> RemovePronunciation(This, pszWord, LangID, ePartOfSpeech, pszPronunciation)
 
-#define ISpContainerLexicon_GetGeneration(This, pdwGeneration)	\
+#define ISpContainerLexicon_GetGeneration(This, pdwGeneration)        \
     (This)->lpVtbl -> GetGeneration(This, pdwGeneration)
 
-#define ISpContainerLexicon_GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)	\
+#define ISpContainerLexicon_GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)        \
     (This)->lpVtbl -> GetGenerationChange(This, dwFlags, pdwGeneration, pWordList)
 
-#define ISpContainerLexicon_GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)	\
+#define ISpContainerLexicon_GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)        \
     (This)->lpVtbl -> GetWords(This, dwFlags, pdwGeneration, pdwCookie, pWordList)
 
 
-#define ISpContainerLexicon_AddLexicon(This, pAddLexicon, dwFlags)	\
+#define ISpContainerLexicon_AddLexicon(This, pAddLexicon, dwFlags)        \
     (This)->lpVtbl -> AddLexicon(This, pAddLexicon, dwFlags)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -6474,7 +6474,7 @@ void __RPC_STUB ISpContainerLexicon_AddLexicon_Stub(
 
 
 
-#endif 	/* __ISpContainerLexicon_INTERFACE_DEFINED__ */
+#endif         /* __ISpContainerLexicon_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpPhoneConverter_INTERFACE_DEFINED__
@@ -6502,7 +6502,7 @@ EXTERN_C const IID IID_ISpPhoneConverter;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpPhoneConverterVtbl
     {
@@ -6550,33 +6550,33 @@ EXTERN_C const IID IID_ISpPhoneConverter;
 #ifdef COBJMACROS
 
 
-#define ISpPhoneConverter_QueryInterface(This, riid, ppvObject)	\
+#define ISpPhoneConverter_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpPhoneConverter_AddRef(This)	\
+#define ISpPhoneConverter_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpPhoneConverter_Release(This)	\
+#define ISpPhoneConverter_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpPhoneConverter_SetObjectToken(This, pToken)	\
+#define ISpPhoneConverter_SetObjectToken(This, pToken)        \
     (This)->lpVtbl -> SetObjectToken(This, pToken)
 
-#define ISpPhoneConverter_GetObjectToken(This, ppToken)	\
+#define ISpPhoneConverter_GetObjectToken(This, ppToken)        \
     (This)->lpVtbl -> GetObjectToken(This, ppToken)
 
 
-#define ISpPhoneConverter_PhoneToId(This, pszPhone, pId)	\
+#define ISpPhoneConverter_PhoneToId(This, pszPhone, pId)        \
     (This)->lpVtbl -> PhoneToId(This, pszPhone, pId)
 
-#define ISpPhoneConverter_IdToPhone(This, pId, pszPhone)	\
+#define ISpPhoneConverter_IdToPhone(This, pId, pszPhone)        \
     (This)->lpVtbl -> IdToPhone(This, pId, pszPhone)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -6607,7 +6607,7 @@ void __RPC_STUB ISpPhoneConverter_IdToPhone_Stub(
 
 
 
-#endif 	/* __ISpPhoneConverter_INTERFACE_DEFINED__ */
+#endif         /* __ISpPhoneConverter_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0273 */
@@ -6617,25 +6617,25 @@ typedef /* [hidden][restricted] */ struct SPVPITCH
     {
     long MiddleAdj;
     long RangeAdj;
-    } 	SPVPITCH;
+    }         SPVPITCH;
 
 typedef /* [hidden] */ 
 enum SPVACTIONS
-    {	SPVA_Speak	= 0,
-	SPVA_Silence	= SPVA_Speak + 1,
-	SPVA_Pronounce	= SPVA_Silence + 1,
-	SPVA_Bookmark	= SPVA_Pronounce + 1,
-	SPVA_SpellOut	= SPVA_Bookmark + 1,
-	SPVA_Section	= SPVA_SpellOut + 1,
-	SPVA_ParseUnknownTag	= SPVA_Section + 1
-    } 	SPVACTIONS;
+    {        SPVA_Speak        = 0,
+        SPVA_Silence        = SPVA_Speak + 1,
+        SPVA_Pronounce        = SPVA_Silence + 1,
+        SPVA_Bookmark        = SPVA_Pronounce + 1,
+        SPVA_SpellOut        = SPVA_Bookmark + 1,
+        SPVA_Section        = SPVA_SpellOut + 1,
+        SPVA_ParseUnknownTag        = SPVA_Section + 1
+    }         SPVACTIONS;
 
 typedef /* [hidden][restricted] */ struct SPVCONTEXT
     {
     LPCWSTR pCategory;
     LPCWSTR pBefore;
     LPCWSTR pAfter;
-    } 	SPVCONTEXT;
+    }         SPVCONTEXT;
 
 typedef /* [hidden][restricted] */ struct SPVSTATE
     {
@@ -6650,28 +6650,28 @@ typedef /* [hidden][restricted] */ struct SPVSTATE
     SPPHONEID *pPhoneIds;
     SPPARTOFSPEECH ePartOfSpeech;
     SPVCONTEXT Context;
-    } 	SPVSTATE;
+    }         SPVSTATE;
 
 typedef /* [hidden] */ 
 enum SPRUNSTATE
-    {	SPRS_DONE	= 1L << 0,
-	SPRS_IS_SPEAKING	= 1L << 1
-    } 	SPRUNSTATE;
+    {        SPRS_DONE        = 1L << 0,
+        SPRS_IS_SPEAKING        = 1L << 1
+    }         SPRUNSTATE;
 
 typedef /* [hidden] */ 
 enum SPVLIMITS
-    {	SPMIN_VOLUME	= 0,
-	SPMAX_VOLUME	= 100,
-	SPMIN_RATE	= -10,
-	SPMAX_RATE	= 10
-    } 	SPVLIMITS;
+    {        SPMIN_VOLUME        = 0,
+        SPMAX_VOLUME        = 100,
+        SPMIN_RATE        = -10,
+        SPMAX_RATE        = 10
+    }         SPVLIMITS;
 
 typedef /* [hidden] */ 
 enum SPVPRIORITY
-    {	SPVPRI_NORMAL	= 0,
-	SPVPRI_ALERT	= 1L << 0,
-	SPVPRI_OVER	= 1L << 1
-    } 	SPVPRIORITY;
+    {        SPVPRI_NORMAL        = 0,
+        SPVPRI_ALERT        = 1L << 0,
+        SPVPRI_OVER        = 1L << 1
+    }         SPVPRIORITY;
 
 typedef /* [hidden][restricted] */ struct SPVOICESTATUS
     {
@@ -6688,22 +6688,22 @@ typedef /* [hidden][restricted] */ struct SPVOICESTATUS
     SPVISEMES VisemeId;
     DWORD dwReserved1;
     DWORD dwReserved2;
-    } 	SPVOICESTATUS;
+    }         SPVOICESTATUS;
 
 typedef /* [hidden] */ 
 enum SPEAKFLAGS
-    {	SPF_DEFAULT	= 0,
-	SPF_ASYNC	= 1L << 0,
-	SPF_PURGEBEFORESPEAK	= 1L << 1,
-	SPF_IS_FILENAME	= 1L << 2,
-	SPF_IS_XML	= 1L << 3,
-	SPF_IS_NOT_XML	= 1L << 4,
-	SPF_PERSIST_XML	= 1L << 5,
-	SPF_NLP_SPEAK_PUNC	= 1L << 6,
-	SPF_NLP_MASK	= SPF_NLP_SPEAK_PUNC,
-	SPF_VOICE_MASK	= SPF_ASYNC | SPF_PURGEBEFORESPEAK | SPF_IS_FILENAME | SPF_IS_XML | SPF_IS_NOT_XML | SPF_NLP_MASK | SPF_PERSIST_XML,
-	SPF_UNUSED_FLAGS	= ~SPF_VOICE_MASK
-    } 	SPEAKFLAGS;
+    {        SPF_DEFAULT        = 0,
+        SPF_ASYNC        = 1L << 0,
+        SPF_PURGEBEFORESPEAK        = 1L << 1,
+        SPF_IS_FILENAME        = 1L << 2,
+        SPF_IS_XML        = 1L << 3,
+        SPF_IS_NOT_XML        = 1L << 4,
+        SPF_PERSIST_XML        = 1L << 5,
+        SPF_NLP_SPEAK_PUNC        = 1L << 6,
+        SPF_NLP_MASK        = SPF_NLP_SPEAK_PUNC,
+        SPF_VOICE_MASK        = SPF_ASYNC | SPF_PURGEBEFORESPEAK | SPF_IS_FILENAME | SPF_IS_XML | SPF_IS_NOT_XML | SPF_NLP_MASK | SPF_PERSIST_XML,
+        SPF_UNUSED_FLAGS        = ~SPF_VOICE_MASK
+    }         SPEAKFLAGS;
 
 
 
@@ -6814,7 +6814,7 @@ EXTERN_C const IID IID_ISpVoice;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpVoiceVtbl
     {
@@ -7004,127 +7004,127 @@ EXTERN_C const IID IID_ISpVoice;
 #ifdef COBJMACROS
 
 
-#define ISpVoice_QueryInterface(This, riid, ppvObject)	\
+#define ISpVoice_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpVoice_AddRef(This)	\
+#define ISpVoice_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpVoice_Release(This)	\
+#define ISpVoice_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpVoice_SetNotifySink(This, pNotifySink)	\
+#define ISpVoice_SetNotifySink(This, pNotifySink)        \
     (This)->lpVtbl -> SetNotifySink(This, pNotifySink)
 
-#define ISpVoice_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)	\
+#define ISpVoice_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)
 
-#define ISpVoice_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)	\
+#define ISpVoice_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)
 
-#define ISpVoice_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)	\
+#define ISpVoice_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)
 
-#define ISpVoice_SetNotifyWin32Event(This)	\
+#define ISpVoice_SetNotifyWin32Event(This)        \
     (This)->lpVtbl -> SetNotifyWin32Event(This)
 
-#define ISpVoice_WaitForNotifyEvent(This, dwMilliseconds)	\
+#define ISpVoice_WaitForNotifyEvent(This, dwMilliseconds)        \
     (This)->lpVtbl -> WaitForNotifyEvent(This, dwMilliseconds)
 
-#define ISpVoice_GetNotifyEventHandle(This)	\
+#define ISpVoice_GetNotifyEventHandle(This)        \
     (This)->lpVtbl -> GetNotifyEventHandle(This)
 
 
-#define ISpVoice_SetInterest(This, ullEventInterest, ullQueuedInterest)	\
+#define ISpVoice_SetInterest(This, ullEventInterest, ullQueuedInterest)        \
     (This)->lpVtbl -> SetInterest(This, ullEventInterest, ullQueuedInterest)
 
-#define ISpVoice_GetEvents(This, ulCount, pEventArray, pulFetched)	\
+#define ISpVoice_GetEvents(This, ulCount, pEventArray, pulFetched)        \
     (This)->lpVtbl -> GetEvents(This, ulCount, pEventArray, pulFetched)
 
-#define ISpVoice_GetInfo(This, pInfo)	\
+#define ISpVoice_GetInfo(This, pInfo)        \
     (This)->lpVtbl -> GetInfo(This, pInfo)
 
 
-#define ISpVoice_SetOutput(This, pUnkOutput, fAllowFormatChanges)	\
+#define ISpVoice_SetOutput(This, pUnkOutput, fAllowFormatChanges)        \
     (This)->lpVtbl -> SetOutput(This, pUnkOutput, fAllowFormatChanges)
 
-#define ISpVoice_GetOutputObjectToken(This, ppObjectToken)	\
+#define ISpVoice_GetOutputObjectToken(This, ppObjectToken)        \
     (This)->lpVtbl -> GetOutputObjectToken(This, ppObjectToken)
 
-#define ISpVoice_GetOutputStream(This, ppStream)	\
+#define ISpVoice_GetOutputStream(This, ppStream)        \
     (This)->lpVtbl -> GetOutputStream(This, ppStream)
 
-#define ISpVoice_Pause(This)	\
+#define ISpVoice_Pause(This)        \
     (This)->lpVtbl -> Pause(This)
 
-#define ISpVoice_Resume(This)	\
+#define ISpVoice_Resume(This)        \
     (This)->lpVtbl -> Resume(This)
 
-#define ISpVoice_SetVoice(This, pToken)	\
+#define ISpVoice_SetVoice(This, pToken)        \
     (This)->lpVtbl -> SetVoice(This, pToken)
 
-#define ISpVoice_GetVoice(This, ppToken)	\
+#define ISpVoice_GetVoice(This, ppToken)        \
     (This)->lpVtbl -> GetVoice(This, ppToken)
 
-#define ISpVoice_Speak(This, pwcs, dwFlags, pulStreamNumber)	\
+#define ISpVoice_Speak(This, pwcs, dwFlags, pulStreamNumber)        \
     (This)->lpVtbl -> Speak(This, pwcs, dwFlags, pulStreamNumber)
 
-#define ISpVoice_SpeakStream(This, pStream, dwFlags, pulStreamNumber)	\
+#define ISpVoice_SpeakStream(This, pStream, dwFlags, pulStreamNumber)        \
     (This)->lpVtbl -> SpeakStream(This, pStream, dwFlags, pulStreamNumber)
 
-#define ISpVoice_GetStatus(This, pStatus, ppszLastBookmark)	\
+#define ISpVoice_GetStatus(This, pStatus, ppszLastBookmark)        \
     (This)->lpVtbl -> GetStatus(This, pStatus, ppszLastBookmark)
 
-#define ISpVoice_Skip(This, pItemType, lNumItems, pulNumSkipped)	\
+#define ISpVoice_Skip(This, pItemType, lNumItems, pulNumSkipped)        \
     (This)->lpVtbl -> Skip(This, pItemType, lNumItems, pulNumSkipped)
 
-#define ISpVoice_SetPriority(This, ePriority)	\
+#define ISpVoice_SetPriority(This, ePriority)        \
     (This)->lpVtbl -> SetPriority(This, ePriority)
 
-#define ISpVoice_GetPriority(This, pePriority)	\
+#define ISpVoice_GetPriority(This, pePriority)        \
     (This)->lpVtbl -> GetPriority(This, pePriority)
 
-#define ISpVoice_SetAlertBoundary(This, eBoundary)	\
+#define ISpVoice_SetAlertBoundary(This, eBoundary)        \
     (This)->lpVtbl -> SetAlertBoundary(This, eBoundary)
 
-#define ISpVoice_GetAlertBoundary(This, peBoundary)	\
+#define ISpVoice_GetAlertBoundary(This, peBoundary)        \
     (This)->lpVtbl -> GetAlertBoundary(This, peBoundary)
 
-#define ISpVoice_SetRate(This, RateAdjust)	\
+#define ISpVoice_SetRate(This, RateAdjust)        \
     (This)->lpVtbl -> SetRate(This, RateAdjust)
 
-#define ISpVoice_GetRate(This, pRateAdjust)	\
+#define ISpVoice_GetRate(This, pRateAdjust)        \
     (This)->lpVtbl -> GetRate(This, pRateAdjust)
 
-#define ISpVoice_SetVolume(This, usVolume)	\
+#define ISpVoice_SetVolume(This, usVolume)        \
     (This)->lpVtbl -> SetVolume(This, usVolume)
 
-#define ISpVoice_GetVolume(This, pusVolume)	\
+#define ISpVoice_GetVolume(This, pusVolume)        \
     (This)->lpVtbl -> GetVolume(This, pusVolume)
 
-#define ISpVoice_WaitUntilDone(This, msTimeout)	\
+#define ISpVoice_WaitUntilDone(This, msTimeout)        \
     (This)->lpVtbl -> WaitUntilDone(This, msTimeout)
 
-#define ISpVoice_SetSyncSpeakTimeout(This, msTimeout)	\
+#define ISpVoice_SetSyncSpeakTimeout(This, msTimeout)        \
     (This)->lpVtbl -> SetSyncSpeakTimeout(This, msTimeout)
 
-#define ISpVoice_GetSyncSpeakTimeout(This, pmsTimeout)	\
+#define ISpVoice_GetSyncSpeakTimeout(This, pmsTimeout)        \
     (This)->lpVtbl -> GetSyncSpeakTimeout(This, pmsTimeout)
 
-#define ISpVoice_SpeakCompleteEvent(This)	\
+#define ISpVoice_SpeakCompleteEvent(This)        \
     (This)->lpVtbl -> SpeakCompleteEvent(This)
 
-#define ISpVoice_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)	\
+#define ISpVoice_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)        \
     (This)->lpVtbl -> IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)
 
-#define ISpVoice_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)	\
+#define ISpVoice_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)        \
     (This)->lpVtbl -> DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -7441,7 +7441,7 @@ void __RPC_STUB ISpVoice_DisplayUI_Stub(
 
 
 
-#endif 	/* __ISpVoice_INTERFACE_DEFINED__ */
+#endif         /* __ISpVoice_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpPhrase_INTERFACE_DEFINED__
@@ -7477,7 +7477,7 @@ EXTERN_C const IID IID_ISpPhrase;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpPhraseVtbl
     {
@@ -7527,32 +7527,32 @@ EXTERN_C const IID IID_ISpPhrase;
 #ifdef COBJMACROS
 
 
-#define ISpPhrase_QueryInterface(This, riid, ppvObject)	\
+#define ISpPhrase_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpPhrase_AddRef(This)	\
+#define ISpPhrase_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpPhrase_Release(This)	\
+#define ISpPhrase_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpPhrase_GetPhrase(This, ppCoMemPhrase)	\
+#define ISpPhrase_GetPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetPhrase(This, ppCoMemPhrase)
 
-#define ISpPhrase_GetSerializedPhrase(This, ppCoMemPhrase)	\
+#define ISpPhrase_GetSerializedPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetSerializedPhrase(This, ppCoMemPhrase)
 
-#define ISpPhrase_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)	\
+#define ISpPhrase_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)        \
     (This)->lpVtbl -> GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)
 
-#define ISpPhrase_Discard(This, dwValueTypes)	\
+#define ISpPhrase_Discard(This, dwValueTypes)        \
     (This)->lpVtbl -> Discard(This, dwValueTypes)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -7609,7 +7609,7 @@ void __RPC_STUB ISpPhrase_Discard_Stub(
 
 
 
-#endif 	/* __ISpPhrase_INTERFACE_DEFINED__ */
+#endif         /* __ISpPhrase_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpPhraseAlt_INTERFACE_DEFINED__
@@ -7637,7 +7637,7 @@ EXTERN_C const IID IID_ISpPhraseAlt;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpPhraseAltVtbl
     {
@@ -7697,39 +7697,39 @@ EXTERN_C const IID IID_ISpPhraseAlt;
 #ifdef COBJMACROS
 
 
-#define ISpPhraseAlt_QueryInterface(This, riid, ppvObject)	\
+#define ISpPhraseAlt_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpPhraseAlt_AddRef(This)	\
+#define ISpPhraseAlt_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpPhraseAlt_Release(This)	\
+#define ISpPhraseAlt_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpPhraseAlt_GetPhrase(This, ppCoMemPhrase)	\
+#define ISpPhraseAlt_GetPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetPhrase(This, ppCoMemPhrase)
 
-#define ISpPhraseAlt_GetSerializedPhrase(This, ppCoMemPhrase)	\
+#define ISpPhraseAlt_GetSerializedPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetSerializedPhrase(This, ppCoMemPhrase)
 
-#define ISpPhraseAlt_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)	\
+#define ISpPhraseAlt_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)        \
     (This)->lpVtbl -> GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)
 
-#define ISpPhraseAlt_Discard(This, dwValueTypes)	\
+#define ISpPhraseAlt_Discard(This, dwValueTypes)        \
     (This)->lpVtbl -> Discard(This, dwValueTypes)
 
 
-#define ISpPhraseAlt_GetAltInfo(This, ppParent, pulStartElementInParent, pcElementsInParent, pcElementsInAlt)	\
+#define ISpPhraseAlt_GetAltInfo(This, ppParent, pulStartElementInParent, pcElementsInParent, pcElementsInAlt)        \
     (This)->lpVtbl -> GetAltInfo(This, ppParent, pulStartElementInParent, pcElementsInParent, pcElementsInAlt)
 
-#define ISpPhraseAlt_Commit(This)	\
+#define ISpPhraseAlt_Commit(This)        \
     (This)->lpVtbl -> Commit(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -7760,7 +7760,7 @@ void __RPC_STUB ISpPhraseAlt_Commit_Stub(
 
 
 
-#endif 	/* __ISpPhraseAlt_INTERFACE_DEFINED__ */
+#endif         /* __ISpPhraseAlt_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0276 */
@@ -7772,12 +7772,12 @@ typedef /* [hidden][restricted] */ struct SPRECORESULTTIMES
     ULONGLONG ullLength;
     DWORD dwTickCount;
     ULONGLONG ullStart;
-    } 	SPRECORESULTTIMES;
+    }         SPRECORESULTTIMES;
 
 typedef /* [hidden] */ struct SPSERIALIZEDRESULT
     {
     ULONG ulSerializedSize;
-    } 	SPSERIALIZEDRESULT;
+    }         SPSERIALIZEDRESULT;
 
 
 
@@ -7832,7 +7832,7 @@ EXTERN_C const IID IID_ISpRecoResult;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpRecoResultVtbl
     {
@@ -7920,54 +7920,54 @@ EXTERN_C const IID IID_ISpRecoResult;
 #ifdef COBJMACROS
 
 
-#define ISpRecoResult_QueryInterface(This, riid, ppvObject)	\
+#define ISpRecoResult_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpRecoResult_AddRef(This)	\
+#define ISpRecoResult_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpRecoResult_Release(This)	\
+#define ISpRecoResult_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpRecoResult_GetPhrase(This, ppCoMemPhrase)	\
+#define ISpRecoResult_GetPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetPhrase(This, ppCoMemPhrase)
 
-#define ISpRecoResult_GetSerializedPhrase(This, ppCoMemPhrase)	\
+#define ISpRecoResult_GetSerializedPhrase(This, ppCoMemPhrase)        \
     (This)->lpVtbl -> GetSerializedPhrase(This, ppCoMemPhrase)
 
-#define ISpRecoResult_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)	\
+#define ISpRecoResult_GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)        \
     (This)->lpVtbl -> GetText(This, ulStart, ulCount, fUseTextReplacements, ppszCoMemText, pbDisplayAttributes)
 
-#define ISpRecoResult_Discard(This, dwValueTypes)	\
+#define ISpRecoResult_Discard(This, dwValueTypes)        \
     (This)->lpVtbl -> Discard(This, dwValueTypes)
 
 
-#define ISpRecoResult_GetResultTimes(This, pTimes)	\
+#define ISpRecoResult_GetResultTimes(This, pTimes)        \
     (This)->lpVtbl -> GetResultTimes(This, pTimes)
 
-#define ISpRecoResult_GetAlternates(This, ulStartElement, cElements, ulRequestCount, ppPhrases, pcPhrasesReturned)	\
+#define ISpRecoResult_GetAlternates(This, ulStartElement, cElements, ulRequestCount, ppPhrases, pcPhrasesReturned)        \
     (This)->lpVtbl -> GetAlternates(This, ulStartElement, cElements, ulRequestCount, ppPhrases, pcPhrasesReturned)
 
-#define ISpRecoResult_GetAudio(This, ulStartElement, cElements, ppStream)	\
+#define ISpRecoResult_GetAudio(This, ulStartElement, cElements, ppStream)        \
     (This)->lpVtbl -> GetAudio(This, ulStartElement, cElements, ppStream)
 
-#define ISpRecoResult_SpeakAudio(This, ulStartElement, cElements, dwFlags, pulStreamNumber)	\
+#define ISpRecoResult_SpeakAudio(This, ulStartElement, cElements, dwFlags, pulStreamNumber)        \
     (This)->lpVtbl -> SpeakAudio(This, ulStartElement, cElements, dwFlags, pulStreamNumber)
 
-#define ISpRecoResult_Serialize(This, ppCoMemSerializedResult)	\
+#define ISpRecoResult_Serialize(This, ppCoMemSerializedResult)        \
     (This)->lpVtbl -> Serialize(This, ppCoMemSerializedResult)
 
-#define ISpRecoResult_ScaleAudio(This, pAudioFormatId, pWaveFormatEx)	\
+#define ISpRecoResult_ScaleAudio(This, pAudioFormatId, pWaveFormatEx)        \
     (This)->lpVtbl -> ScaleAudio(This, pAudioFormatId, pWaveFormatEx)
 
-#define ISpRecoResult_GetRecoContext(This, ppRecoContext)	\
+#define ISpRecoResult_GetRecoContext(This, ppRecoContext)        \
     (This)->lpVtbl -> GetRecoContext(This, ppRecoContext)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -8066,7 +8066,7 @@ void __RPC_STUB ISpRecoResult_GetRecoContext_Stub(
 
 
 
-#endif 	/* __ISpRecoResult_INTERFACE_DEFINED__ */
+#endif         /* __ISpRecoResult_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0277 */
@@ -8078,48 +8078,48 @@ typedef /* [hidden] */ struct tagSPTEXTSELECTIONINFO
     ULONG cchActiveChars;
     ULONG ulStartSelection;
     ULONG cchSelection;
-    } 	SPTEXTSELECTIONINFO;
+    }         SPTEXTSELECTIONINFO;
 
 typedef /* [hidden] */ 
 enum SPWORDPRONOUNCEABLE
-    {	SPWP_UNKNOWN_WORD_UNPRONOUNCEABLE	= 0,
-	SPWP_UNKNOWN_WORD_PRONOUNCEABLE	= 1,
-	SPWP_KNOWN_WORD_PRONOUNCEABLE	= 2
-    } 	SPWORDPRONOUNCEABLE;
+    {        SPWP_UNKNOWN_WORD_UNPRONOUNCEABLE        = 0,
+        SPWP_UNKNOWN_WORD_PRONOUNCEABLE        = 1,
+        SPWP_KNOWN_WORD_PRONOUNCEABLE        = 2
+    }         SPWORDPRONOUNCEABLE;
 
 typedef /* [hidden] */ 
 enum SPGRAMMARSTATE
-    {	SPGS_DISABLED	= 0,
-	SPGS_ENABLED	= 1,
-	SPGS_EXCLUSIVE	= 3
-    } 	SPGRAMMARSTATE;
+    {        SPGS_DISABLED        = 0,
+        SPGS_ENABLED        = 1,
+        SPGS_EXCLUSIVE        = 3
+    }         SPGRAMMARSTATE;
 
 typedef /* [hidden] */ 
 enum SPCONTEXTSTATE
-    {	SPCS_DISABLED	= 0,
-	SPCS_ENABLED	= 1
-    } 	SPCONTEXTSTATE;
+    {        SPCS_DISABLED        = 0,
+        SPCS_ENABLED        = 1
+    }         SPCONTEXTSTATE;
 
 typedef /* [hidden] */ 
 enum SPRULESTATE
-    {	SPRS_INACTIVE	= 0,
-	SPRS_ACTIVE	= 1,
-	SPRS_ACTIVE_WITH_AUTO_PAUSE	= 3
-    } 	SPRULESTATE;
+    {        SPRS_INACTIVE        = 0,
+        SPRS_ACTIVE        = 1,
+        SPRS_ACTIVE_WITH_AUTO_PAUSE        = 3
+    }         SPRULESTATE;
 
-#define	SP_STREAMPOS_ASAP	( 0 )
+#define        SP_STREAMPOS_ASAP        ( 0 )
 
-#define	SP_STREAMPOS_REALTIME	( -1 )
+#define        SP_STREAMPOS_REALTIME        ( -1 )
 
 #define SPRULETRANS_TEXTBUFFER (SPSTATEHANDLE)(-1)
 #define SPRULETRANS_WILDCARD   (SPSTATEHANDLE)(-2)
 #define SPRULETRANS_DICTATION  (SPSTATEHANDLE)(-3)
 typedef /* [hidden] */ 
 enum SPGRAMMARWORDTYPE
-    {	SPWT_DISPLAY	= 0,
-	SPWT_LEXICAL	= SPWT_DISPLAY + 1,
-	SPWT_PRONUNCIATION	= SPWT_LEXICAL + 1
-    } 	SPGRAMMARWORDTYPE;
+    {        SPWT_DISPLAY        = 0,
+        SPWT_LEXICAL        = SPWT_DISPLAY + 1,
+        SPWT_PRONUNCIATION        = SPWT_LEXICAL + 1
+    }         SPGRAMMARWORDTYPE;
 
 typedef /* [hidden] */ struct tagSPPROPERTYINFO
     {
@@ -8127,18 +8127,18 @@ typedef /* [hidden] */ struct tagSPPROPERTYINFO
     ULONG ulId;
     const WCHAR *pszValue;
     VARIANT vValue;
-    } 	SPPROPERTYINFO;
+    }         SPPROPERTYINFO;
 
 typedef /* [hidden] */ 
 enum SPCFGRULEATTRIBUTES
-    {	SPRAF_TopLevel	= 1 << 0,
-	SPRAF_Active	= 1 << 1,
-	SPRAF_Export	= 1 << 2,
-	SPRAF_Import	= 1 << 3,
-	SPRAF_Interpreter	= 1 << 4,
-	SPRAF_Dynamic	= 1 << 5,
-	SPRAF_AutoPause	= 1 << 16
-    } 	SPCFGRULEATTRIBUTES;
+    {        SPRAF_TopLevel        = 1 << 0,
+        SPRAF_Active        = 1 << 1,
+        SPRAF_Export        = 1 << 2,
+        SPRAF_Import        = 1 << 3,
+        SPRAF_Interpreter        = 1 << 4,
+        SPRAF_Dynamic        = 1 << 5,
+        SPRAF_AutoPause        = 1 << 16
+    }         SPCFGRULEATTRIBUTES;
 
 
 
@@ -8203,7 +8203,7 @@ EXTERN_C const IID IID_ISpGrammarBuilder;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpGrammarBuilderVtbl
     {
@@ -8282,44 +8282,44 @@ EXTERN_C const IID IID_ISpGrammarBuilder;
 #ifdef COBJMACROS
 
 
-#define ISpGrammarBuilder_QueryInterface(This, riid, ppvObject)	\
+#define ISpGrammarBuilder_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpGrammarBuilder_AddRef(This)	\
+#define ISpGrammarBuilder_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpGrammarBuilder_Release(This)	\
+#define ISpGrammarBuilder_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpGrammarBuilder_ResetGrammar(This, NewLanguage)	\
+#define ISpGrammarBuilder_ResetGrammar(This, NewLanguage)        \
     (This)->lpVtbl -> ResetGrammar(This, NewLanguage)
 
-#define ISpGrammarBuilder_GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)	\
+#define ISpGrammarBuilder_GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)        \
     (This)->lpVtbl -> GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)
 
-#define ISpGrammarBuilder_ClearRule(This, hState)	\
+#define ISpGrammarBuilder_ClearRule(This, hState)        \
     (This)->lpVtbl -> ClearRule(This, hState)
 
-#define ISpGrammarBuilder_CreateNewState(This, hState, phState)	\
+#define ISpGrammarBuilder_CreateNewState(This, hState, phState)        \
     (This)->lpVtbl -> CreateNewState(This, hState, phState)
 
-#define ISpGrammarBuilder_AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)	\
+#define ISpGrammarBuilder_AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)        \
     (This)->lpVtbl -> AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)
 
-#define ISpGrammarBuilder_AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)	\
+#define ISpGrammarBuilder_AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)        \
     (This)->lpVtbl -> AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)
 
-#define ISpGrammarBuilder_AddResource(This, hRuleState, pszResourceName, pszResourceValue)	\
+#define ISpGrammarBuilder_AddResource(This, hRuleState, pszResourceName, pszResourceValue)        \
     (This)->lpVtbl -> AddResource(This, hRuleState, pszResourceName, pszResourceValue)
 
-#define ISpGrammarBuilder_Commit(This, dwReserved)	\
+#define ISpGrammarBuilder_Commit(This, dwReserved)        \
     (This)->lpVtbl -> Commit(This, dwReserved)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -8437,7 +8437,7 @@ void __RPC_STUB ISpGrammarBuilder_Commit_Stub(
 
 
 
-#endif 	/* __ISpGrammarBuilder_INTERFACE_DEFINED__ */
+#endif         /* __ISpGrammarBuilder_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0278 */
@@ -8445,9 +8445,9 @@ void __RPC_STUB ISpGrammarBuilder_Commit_Stub(
 
 typedef /* [hidden] */ 
 enum SPLOADOPTIONS
-    {	SPLO_STATIC	= 0,
-	SPLO_DYNAMIC	= 1
-    } 	SPLOADOPTIONS;
+    {        SPLO_STATIC        = 0,
+        SPLO_DYNAMIC        = 1
+    }         SPLOADOPTIONS;
 
 
 
@@ -8544,7 +8544,7 @@ EXTERN_C const IID IID_ISpRecoGrammar;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpRecoGrammarVtbl
     {
@@ -8714,99 +8714,99 @@ EXTERN_C const IID IID_ISpRecoGrammar;
 #ifdef COBJMACROS
 
 
-#define ISpRecoGrammar_QueryInterface(This, riid, ppvObject)	\
+#define ISpRecoGrammar_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpRecoGrammar_AddRef(This)	\
+#define ISpRecoGrammar_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpRecoGrammar_Release(This)	\
+#define ISpRecoGrammar_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpRecoGrammar_ResetGrammar(This, NewLanguage)	\
+#define ISpRecoGrammar_ResetGrammar(This, NewLanguage)        \
     (This)->lpVtbl -> ResetGrammar(This, NewLanguage)
 
-#define ISpRecoGrammar_GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)	\
+#define ISpRecoGrammar_GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)        \
     (This)->lpVtbl -> GetRule(This, pszRuleName, dwRuleId, dwAttributes, fCreateIfNotExist, phInitialState)
 
-#define ISpRecoGrammar_ClearRule(This, hState)	\
+#define ISpRecoGrammar_ClearRule(This, hState)        \
     (This)->lpVtbl -> ClearRule(This, hState)
 
-#define ISpRecoGrammar_CreateNewState(This, hState, phState)	\
+#define ISpRecoGrammar_CreateNewState(This, hState, phState)        \
     (This)->lpVtbl -> CreateNewState(This, hState, phState)
 
-#define ISpRecoGrammar_AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)	\
+#define ISpRecoGrammar_AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)        \
     (This)->lpVtbl -> AddWordTransition(This, hFromState, hToState, psz, pszSeparators, eWordType, Weight, pPropInfo)
 
-#define ISpRecoGrammar_AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)	\
+#define ISpRecoGrammar_AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)        \
     (This)->lpVtbl -> AddRuleTransition(This, hFromState, hToState, hRule, Weight, pPropInfo)
 
-#define ISpRecoGrammar_AddResource(This, hRuleState, pszResourceName, pszResourceValue)	\
+#define ISpRecoGrammar_AddResource(This, hRuleState, pszResourceName, pszResourceValue)        \
     (This)->lpVtbl -> AddResource(This, hRuleState, pszResourceName, pszResourceValue)
 
-#define ISpRecoGrammar_Commit(This, dwReserved)	\
+#define ISpRecoGrammar_Commit(This, dwReserved)        \
     (This)->lpVtbl -> Commit(This, dwReserved)
 
 
-#define ISpRecoGrammar_GetGrammarId(This, pullGrammarId)	\
+#define ISpRecoGrammar_GetGrammarId(This, pullGrammarId)        \
     (This)->lpVtbl -> GetGrammarId(This, pullGrammarId)
 
-#define ISpRecoGrammar_GetRecoContext(This, ppRecoCtxt)	\
+#define ISpRecoGrammar_GetRecoContext(This, ppRecoCtxt)        \
     (This)->lpVtbl -> GetRecoContext(This, ppRecoCtxt)
 
-#define ISpRecoGrammar_LoadCmdFromFile(This, pszFileName, Options)	\
+#define ISpRecoGrammar_LoadCmdFromFile(This, pszFileName, Options)        \
     (This)->lpVtbl -> LoadCmdFromFile(This, pszFileName, Options)
 
-#define ISpRecoGrammar_LoadCmdFromObject(This, rcid, pszGrammarName, Options)	\
+#define ISpRecoGrammar_LoadCmdFromObject(This, rcid, pszGrammarName, Options)        \
     (This)->lpVtbl -> LoadCmdFromObject(This, rcid, pszGrammarName, Options)
 
-#define ISpRecoGrammar_LoadCmdFromResource(This, hModule, pszResourceName, pszResourceType, wLanguage, Options)	\
+#define ISpRecoGrammar_LoadCmdFromResource(This, hModule, pszResourceName, pszResourceType, wLanguage, Options)        \
     (This)->lpVtbl -> LoadCmdFromResource(This, hModule, pszResourceName, pszResourceType, wLanguage, Options)
 
-#define ISpRecoGrammar_LoadCmdFromMemory(This, pGrammar, Options)	\
+#define ISpRecoGrammar_LoadCmdFromMemory(This, pGrammar, Options)        \
     (This)->lpVtbl -> LoadCmdFromMemory(This, pGrammar, Options)
 
-#define ISpRecoGrammar_LoadCmdFromProprietaryGrammar(This, rguidParam, pszStringParam, pvDataPrarm, cbDataSize, Options)	\
+#define ISpRecoGrammar_LoadCmdFromProprietaryGrammar(This, rguidParam, pszStringParam, pvDataPrarm, cbDataSize, Options)        \
     (This)->lpVtbl -> LoadCmdFromProprietaryGrammar(This, rguidParam, pszStringParam, pvDataPrarm, cbDataSize, Options)
 
-#define ISpRecoGrammar_SetRuleState(This, pszName, pReserved, NewState)	\
+#define ISpRecoGrammar_SetRuleState(This, pszName, pReserved, NewState)        \
     (This)->lpVtbl -> SetRuleState(This, pszName, pReserved, NewState)
 
-#define ISpRecoGrammar_SetRuleIdState(This, ulRuleId, NewState)	\
+#define ISpRecoGrammar_SetRuleIdState(This, ulRuleId, NewState)        \
     (This)->lpVtbl -> SetRuleIdState(This, ulRuleId, NewState)
 
-#define ISpRecoGrammar_LoadDictation(This, pszTopicName, Options)	\
+#define ISpRecoGrammar_LoadDictation(This, pszTopicName, Options)        \
     (This)->lpVtbl -> LoadDictation(This, pszTopicName, Options)
 
-#define ISpRecoGrammar_UnloadDictation(This)	\
+#define ISpRecoGrammar_UnloadDictation(This)        \
     (This)->lpVtbl -> UnloadDictation(This)
 
-#define ISpRecoGrammar_SetDictationState(This, NewState)	\
+#define ISpRecoGrammar_SetDictationState(This, NewState)        \
     (This)->lpVtbl -> SetDictationState(This, NewState)
 
-#define ISpRecoGrammar_SetWordSequenceData(This, pText, cchText, pInfo)	\
+#define ISpRecoGrammar_SetWordSequenceData(This, pText, cchText, pInfo)        \
     (This)->lpVtbl -> SetWordSequenceData(This, pText, cchText, pInfo)
 
-#define ISpRecoGrammar_SetTextSelection(This, pInfo)	\
+#define ISpRecoGrammar_SetTextSelection(This, pInfo)        \
     (This)->lpVtbl -> SetTextSelection(This, pInfo)
 
-#define ISpRecoGrammar_IsPronounceable(This, pszWord, pWordPronounceable)	\
+#define ISpRecoGrammar_IsPronounceable(This, pszWord, pWordPronounceable)        \
     (This)->lpVtbl -> IsPronounceable(This, pszWord, pWordPronounceable)
 
-#define ISpRecoGrammar_SetGrammarState(This, eGrammarState)	\
+#define ISpRecoGrammar_SetGrammarState(This, eGrammarState)        \
     (This)->lpVtbl -> SetGrammarState(This, eGrammarState)
 
-#define ISpRecoGrammar_SaveCmd(This, pStream, ppszCoMemErrorText)	\
+#define ISpRecoGrammar_SaveCmd(This, pStream, ppszCoMemErrorText)        \
     (This)->lpVtbl -> SaveCmd(This, pStream, ppszCoMemErrorText)
 
-#define ISpRecoGrammar_GetGrammarState(This, peGrammarState)	\
+#define ISpRecoGrammar_GetGrammarState(This, peGrammarState)        \
     (This)->lpVtbl -> GetGrammarState(This, peGrammarState)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -9046,7 +9046,7 @@ void __RPC_STUB ISpRecoGrammar_GetGrammarState_Stub(
 
 
 
-#endif 	/* __ISpRecoGrammar_INTERFACE_DEFINED__ */
+#endif         /* __ISpRecoGrammar_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0279 */
@@ -9058,19 +9058,19 @@ typedef /* [hidden][restricted] */ struct SPRECOCONTEXTSTATUS
     WCHAR szRequestTypeOfUI[ 255 ];
     DWORD dwReserved1;
     DWORD dwReserved2;
-    } 	SPRECOCONTEXTSTATUS;
+    }         SPRECOCONTEXTSTATUS;
 
 typedef /* [hidden] */ 
 enum SPBOOKMARKOPTIONS
-    {	SPBO_NONE	= 0,
-	SPBO_PAUSE	= 1
-    } 	SPBOOKMARKOPTIONS;
+    {        SPBO_NONE        = 0,
+        SPBO_PAUSE        = 1
+    }         SPBOOKMARKOPTIONS;
 
 typedef /* [hidden] */ 
 enum SPAUDIOOPTIONS
-    {	SPAO_NONE	= 0,
-	SPAO_RETAIN_AUDIO	= 1 << 0
-    } 	SPAUDIOOPTIONS;
+    {        SPAO_NONE        = 0,
+        SPAO_RETAIN_AUDIO        = 1 << 0
+    }         SPAUDIOOPTIONS;
 
 
 
@@ -9158,7 +9158,7 @@ EXTERN_C const IID IID_ISpRecoContext;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpRecoContextVtbl
     {
@@ -9318,106 +9318,106 @@ EXTERN_C const IID IID_ISpRecoContext;
 #ifdef COBJMACROS
 
 
-#define ISpRecoContext_QueryInterface(This, riid, ppvObject)	\
+#define ISpRecoContext_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpRecoContext_AddRef(This)	\
+#define ISpRecoContext_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpRecoContext_Release(This)	\
+#define ISpRecoContext_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpRecoContext_SetNotifySink(This, pNotifySink)	\
+#define ISpRecoContext_SetNotifySink(This, pNotifySink)        \
     (This)->lpVtbl -> SetNotifySink(This, pNotifySink)
 
-#define ISpRecoContext_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)	\
+#define ISpRecoContext_SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyWindowMessage(This, hWnd, Msg, wParam, lParam)
 
-#define ISpRecoContext_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)	\
+#define ISpRecoContext_SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackFunction(This, pfnCallback, wParam, lParam)
 
-#define ISpRecoContext_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)	\
+#define ISpRecoContext_SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)        \
     (This)->lpVtbl -> SetNotifyCallbackInterface(This, pSpCallback, wParam, lParam)
 
-#define ISpRecoContext_SetNotifyWin32Event(This)	\
+#define ISpRecoContext_SetNotifyWin32Event(This)        \
     (This)->lpVtbl -> SetNotifyWin32Event(This)
 
-#define ISpRecoContext_WaitForNotifyEvent(This, dwMilliseconds)	\
+#define ISpRecoContext_WaitForNotifyEvent(This, dwMilliseconds)        \
     (This)->lpVtbl -> WaitForNotifyEvent(This, dwMilliseconds)
 
-#define ISpRecoContext_GetNotifyEventHandle(This)	\
+#define ISpRecoContext_GetNotifyEventHandle(This)        \
     (This)->lpVtbl -> GetNotifyEventHandle(This)
 
 
-#define ISpRecoContext_SetInterest(This, ullEventInterest, ullQueuedInterest)	\
+#define ISpRecoContext_SetInterest(This, ullEventInterest, ullQueuedInterest)        \
     (This)->lpVtbl -> SetInterest(This, ullEventInterest, ullQueuedInterest)
 
-#define ISpRecoContext_GetEvents(This, ulCount, pEventArray, pulFetched)	\
+#define ISpRecoContext_GetEvents(This, ulCount, pEventArray, pulFetched)        \
     (This)->lpVtbl -> GetEvents(This, ulCount, pEventArray, pulFetched)
 
-#define ISpRecoContext_GetInfo(This, pInfo)	\
+#define ISpRecoContext_GetInfo(This, pInfo)        \
     (This)->lpVtbl -> GetInfo(This, pInfo)
 
 
-#define ISpRecoContext_GetRecognizer(This, ppRecognizer)	\
+#define ISpRecoContext_GetRecognizer(This, ppRecognizer)        \
     (This)->lpVtbl -> GetRecognizer(This, ppRecognizer)
 
-#define ISpRecoContext_CreateGrammar(This, ullGrammarId, ppGrammar)	\
+#define ISpRecoContext_CreateGrammar(This, ullGrammarId, ppGrammar)        \
     (This)->lpVtbl -> CreateGrammar(This, ullGrammarId, ppGrammar)
 
-#define ISpRecoContext_GetStatus(This, pStatus)	\
+#define ISpRecoContext_GetStatus(This, pStatus)        \
     (This)->lpVtbl -> GetStatus(This, pStatus)
 
-#define ISpRecoContext_GetMaxAlternates(This, pcAlternates)	\
+#define ISpRecoContext_GetMaxAlternates(This, pcAlternates)        \
     (This)->lpVtbl -> GetMaxAlternates(This, pcAlternates)
 
-#define ISpRecoContext_SetMaxAlternates(This, cAlternates)	\
+#define ISpRecoContext_SetMaxAlternates(This, cAlternates)        \
     (This)->lpVtbl -> SetMaxAlternates(This, cAlternates)
 
-#define ISpRecoContext_SetAudioOptions(This, Options, pAudioFormatId, pWaveFormatEx)	\
+#define ISpRecoContext_SetAudioOptions(This, Options, pAudioFormatId, pWaveFormatEx)        \
     (This)->lpVtbl -> SetAudioOptions(This, Options, pAudioFormatId, pWaveFormatEx)
 
-#define ISpRecoContext_GetAudioOptions(This, pOptions, pAudioFormatId, ppCoMemWFEX)	\
+#define ISpRecoContext_GetAudioOptions(This, pOptions, pAudioFormatId, ppCoMemWFEX)        \
     (This)->lpVtbl -> GetAudioOptions(This, pOptions, pAudioFormatId, ppCoMemWFEX)
 
-#define ISpRecoContext_DeserializeResult(This, pSerializedResult, ppResult)	\
+#define ISpRecoContext_DeserializeResult(This, pSerializedResult, ppResult)        \
     (This)->lpVtbl -> DeserializeResult(This, pSerializedResult, ppResult)
 
-#define ISpRecoContext_Bookmark(This, Options, ullStreamPosition, lparamEvent)	\
+#define ISpRecoContext_Bookmark(This, Options, ullStreamPosition, lparamEvent)        \
     (This)->lpVtbl -> Bookmark(This, Options, ullStreamPosition, lparamEvent)
 
-#define ISpRecoContext_SetAdaptationData(This, pAdaptationData, cch)	\
+#define ISpRecoContext_SetAdaptationData(This, pAdaptationData, cch)        \
     (This)->lpVtbl -> SetAdaptationData(This, pAdaptationData, cch)
 
-#define ISpRecoContext_Pause(This, dwReserved)	\
+#define ISpRecoContext_Pause(This, dwReserved)        \
     (This)->lpVtbl -> Pause(This, dwReserved)
 
-#define ISpRecoContext_Resume(This, dwReserved)	\
+#define ISpRecoContext_Resume(This, dwReserved)        \
     (This)->lpVtbl -> Resume(This, dwReserved)
 
-#define ISpRecoContext_SetVoice(This, pVoice, fAllowFormatChanges)	\
+#define ISpRecoContext_SetVoice(This, pVoice, fAllowFormatChanges)        \
     (This)->lpVtbl -> SetVoice(This, pVoice, fAllowFormatChanges)
 
-#define ISpRecoContext_GetVoice(This, ppVoice)	\
+#define ISpRecoContext_GetVoice(This, ppVoice)        \
     (This)->lpVtbl -> GetVoice(This, ppVoice)
 
-#define ISpRecoContext_SetVoicePurgeEvent(This, ullEventInterest)	\
+#define ISpRecoContext_SetVoicePurgeEvent(This, ullEventInterest)        \
     (This)->lpVtbl -> SetVoicePurgeEvent(This, ullEventInterest)
 
-#define ISpRecoContext_GetVoicePurgeEvent(This, pullEventInterest)	\
+#define ISpRecoContext_GetVoicePurgeEvent(This, pullEventInterest)        \
     (This)->lpVtbl -> GetVoicePurgeEvent(This, pullEventInterest)
 
-#define ISpRecoContext_SetContextState(This, eContextState)	\
+#define ISpRecoContext_SetContextState(This, eContextState)        \
     (This)->lpVtbl -> SetContextState(This, eContextState)
 
-#define ISpRecoContext_GetContextState(This, peContextState)	\
+#define ISpRecoContext_GetContextState(This, peContextState)        \
     (This)->lpVtbl -> GetContextState(This, peContextState)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -9648,7 +9648,7 @@ void __RPC_STUB ISpRecoContext_GetContextState_Stub(
 
 
 
-#endif 	/* __ISpRecoContext_INTERFACE_DEFINED__ */
+#endif         /* __ISpRecoContext_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpProperties_INTERFACE_DEFINED__
@@ -9684,7 +9684,7 @@ EXTERN_C const IID IID_ISpProperties;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpPropertiesVtbl
     {
@@ -9734,32 +9734,32 @@ EXTERN_C const IID IID_ISpProperties;
 #ifdef COBJMACROS
 
 
-#define ISpProperties_QueryInterface(This, riid, ppvObject)	\
+#define ISpProperties_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpProperties_AddRef(This)	\
+#define ISpProperties_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpProperties_Release(This)	\
+#define ISpProperties_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpProperties_SetPropertyNum(This, pName, lValue)	\
+#define ISpProperties_SetPropertyNum(This, pName, lValue)        \
     (This)->lpVtbl -> SetPropertyNum(This, pName, lValue)
 
-#define ISpProperties_GetPropertyNum(This, pName, plValue)	\
+#define ISpProperties_GetPropertyNum(This, pName, plValue)        \
     (This)->lpVtbl -> GetPropertyNum(This, pName, plValue)
 
-#define ISpProperties_SetPropertyString(This, pName, pValue)	\
+#define ISpProperties_SetPropertyString(This, pName, pValue)        \
     (This)->lpVtbl -> SetPropertyString(This, pName, pValue)
 
-#define ISpProperties_GetPropertyString(This, pName, ppCoMemValue)	\
+#define ISpProperties_GetPropertyString(This, pName, ppCoMemValue)        \
     (This)->lpVtbl -> GetPropertyString(This, pName, ppCoMemValue)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -9816,13 +9816,13 @@ void __RPC_STUB ISpProperties_GetPropertyString_Stub(
 
 
 
-#endif 	/* __ISpProperties_INTERFACE_DEFINED__ */
+#endif         /* __ISpProperties_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_sapi_0281 */
 /* [local] */ 
 
-#define	SP_MAX_LANGIDS	( 20 )
+#define        SP_MAX_LANGIDS        ( 20 )
 
 typedef /* [hidden][restricted] */ struct SPRECOGNIZERSTATUS
     {
@@ -9835,22 +9835,22 @@ typedef /* [hidden][restricted] */ struct SPRECOGNIZERSTATUS
     WORD aLangID[ 20 ];
     DWORD dwReserved1;
     DWORD dwReserved2;
-    } 	SPRECOGNIZERSTATUS;
+    }         SPRECOGNIZERSTATUS;
 
 typedef /* [hidden] */ 
 enum SPWAVEFORMATTYPE
-    {	SPWF_INPUT	= 0,
-	SPWF_SRENGINE	= SPWF_INPUT + 1
-    } 	SPSTREAMFORMATTYPE;
+    {        SPWF_INPUT        = 0,
+        SPWF_SRENGINE        = SPWF_INPUT + 1
+    }         SPSTREAMFORMATTYPE;
 
 typedef /* [hidden] */ 
 enum SPRECOSTATE
-    {	SPRST_INACTIVE	= 0,
-	SPRST_ACTIVE	= SPRST_INACTIVE + 1,
-	SPRST_ACTIVE_ALWAYS	= SPRST_ACTIVE + 1,
-	SPRST_INACTIVE_WITH_PURGE	= SPRST_ACTIVE_ALWAYS + 1,
-	SPRST_NUM_STATES	= SPRST_INACTIVE_WITH_PURGE + 1
-    } 	SPRECOSTATE;
+    {        SPRST_INACTIVE        = 0,
+        SPRST_ACTIVE        = SPRST_INACTIVE + 1,
+        SPRST_ACTIVE_ALWAYS        = SPRST_ACTIVE + 1,
+        SPRST_INACTIVE_WITH_PURGE        = SPRST_ACTIVE_ALWAYS + 1,
+        SPRST_NUM_STATES        = SPRST_INACTIVE_WITH_PURGE + 1
+    }         SPRECOSTATE;
 
 
 
@@ -9931,7 +9931,7 @@ EXTERN_C const IID IID_ISpRecognizer;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpRecognizerVtbl
     {
@@ -10054,81 +10054,81 @@ EXTERN_C const IID IID_ISpRecognizer;
 #ifdef COBJMACROS
 
 
-#define ISpRecognizer_QueryInterface(This, riid, ppvObject)	\
+#define ISpRecognizer_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpRecognizer_AddRef(This)	\
+#define ISpRecognizer_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpRecognizer_Release(This)	\
+#define ISpRecognizer_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpRecognizer_SetPropertyNum(This, pName, lValue)	\
+#define ISpRecognizer_SetPropertyNum(This, pName, lValue)        \
     (This)->lpVtbl -> SetPropertyNum(This, pName, lValue)
 
-#define ISpRecognizer_GetPropertyNum(This, pName, plValue)	\
+#define ISpRecognizer_GetPropertyNum(This, pName, plValue)        \
     (This)->lpVtbl -> GetPropertyNum(This, pName, plValue)
 
-#define ISpRecognizer_SetPropertyString(This, pName, pValue)	\
+#define ISpRecognizer_SetPropertyString(This, pName, pValue)        \
     (This)->lpVtbl -> SetPropertyString(This, pName, pValue)
 
-#define ISpRecognizer_GetPropertyString(This, pName, ppCoMemValue)	\
+#define ISpRecognizer_GetPropertyString(This, pName, ppCoMemValue)        \
     (This)->lpVtbl -> GetPropertyString(This, pName, ppCoMemValue)
 
 
-#define ISpRecognizer_SetRecognizer(This, pRecognizer)	\
+#define ISpRecognizer_SetRecognizer(This, pRecognizer)        \
     (This)->lpVtbl -> SetRecognizer(This, pRecognizer)
 
-#define ISpRecognizer_GetRecognizer(This, ppRecognizer)	\
+#define ISpRecognizer_GetRecognizer(This, ppRecognizer)        \
     (This)->lpVtbl -> GetRecognizer(This, ppRecognizer)
 
-#define ISpRecognizer_SetInput(This, pUnkInput, fAllowFormatChanges)	\
+#define ISpRecognizer_SetInput(This, pUnkInput, fAllowFormatChanges)        \
     (This)->lpVtbl -> SetInput(This, pUnkInput, fAllowFormatChanges)
 
-#define ISpRecognizer_GetInputObjectToken(This, ppToken)	\
+#define ISpRecognizer_GetInputObjectToken(This, ppToken)        \
     (This)->lpVtbl -> GetInputObjectToken(This, ppToken)
 
-#define ISpRecognizer_GetInputStream(This, ppStream)	\
+#define ISpRecognizer_GetInputStream(This, ppStream)        \
     (This)->lpVtbl -> GetInputStream(This, ppStream)
 
-#define ISpRecognizer_CreateRecoContext(This, ppNewCtxt)	\
+#define ISpRecognizer_CreateRecoContext(This, ppNewCtxt)        \
     (This)->lpVtbl -> CreateRecoContext(This, ppNewCtxt)
 
-#define ISpRecognizer_GetRecoProfile(This, ppToken)	\
+#define ISpRecognizer_GetRecoProfile(This, ppToken)        \
     (This)->lpVtbl -> GetRecoProfile(This, ppToken)
 
-#define ISpRecognizer_SetRecoProfile(This, pToken)	\
+#define ISpRecognizer_SetRecoProfile(This, pToken)        \
     (This)->lpVtbl -> SetRecoProfile(This, pToken)
 
-#define ISpRecognizer_IsSharedInstance(This)	\
+#define ISpRecognizer_IsSharedInstance(This)        \
     (This)->lpVtbl -> IsSharedInstance(This)
 
-#define ISpRecognizer_GetRecoState(This, pState)	\
+#define ISpRecognizer_GetRecoState(This, pState)        \
     (This)->lpVtbl -> GetRecoState(This, pState)
 
-#define ISpRecognizer_SetRecoState(This, NewState)	\
+#define ISpRecognizer_SetRecoState(This, NewState)        \
     (This)->lpVtbl -> SetRecoState(This, NewState)
 
-#define ISpRecognizer_GetStatus(This, pStatus)	\
+#define ISpRecognizer_GetStatus(This, pStatus)        \
     (This)->lpVtbl -> GetStatus(This, pStatus)
 
-#define ISpRecognizer_GetFormat(This, WaveFormatType, pFormatId, ppCoMemWFEX)	\
+#define ISpRecognizer_GetFormat(This, WaveFormatType, pFormatId, ppCoMemWFEX)        \
     (This)->lpVtbl -> GetFormat(This, WaveFormatType, pFormatId, ppCoMemWFEX)
 
-#define ISpRecognizer_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)	\
+#define ISpRecognizer_IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)        \
     (This)->lpVtbl -> IsUISupported(This, pszTypeOfUI, pvExtraData, cbExtraData, pfSupported)
 
-#define ISpRecognizer_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)	\
+#define ISpRecognizer_DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)        \
     (This)->lpVtbl -> DisplayUI(This, hwndParent, pszTitle, pszTypeOfUI, pvExtraData, cbExtraData)
 
-#define ISpRecognizer_EmulateRecognition(This, pPhrase)	\
+#define ISpRecognizer_EmulateRecognition(This, pPhrase)        \
     (This)->lpVtbl -> EmulateRecognition(This, pPhrase)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -10334,7 +10334,7 @@ void __RPC_STUB ISpRecognizer_EmulateRecognition_Stub(
 
 
 
-#endif 	/* __ISpRecognizer_INTERFACE_DEFINED__ */
+#endif         /* __ISpRecognizer_INTERFACE_DEFINED__ */
 
 
 
@@ -10395,918 +10395,918 @@ typedef long SpeechLanguageId;
 #define __SpeechStringConstants_MODULE_DEFINED__
 typedef /* [hidden] */ 
 enum DISPID_SpeechDataKey
-    {	DISPID_SDKSetBinaryValue	= 1,
-	DISPID_SDKGetBinaryValue	= DISPID_SDKSetBinaryValue + 1,
-	DISPID_SDKSetStringValue	= DISPID_SDKGetBinaryValue + 1,
-	DISPID_SDKGetStringValue	= DISPID_SDKSetStringValue + 1,
-	DISPID_SDKSetLongValue	= DISPID_SDKGetStringValue + 1,
-	DISPID_SDKGetlongValue	= DISPID_SDKSetLongValue + 1,
-	DISPID_SDKOpenKey	= DISPID_SDKGetlongValue + 1,
-	DISPID_SDKCreateKey	= DISPID_SDKOpenKey + 1,
-	DISPID_SDKDeleteKey	= DISPID_SDKCreateKey + 1,
-	DISPID_SDKDeleteValue	= DISPID_SDKDeleteKey + 1,
-	DISPID_SDKEnumKeys	= DISPID_SDKDeleteValue + 1,
-	DISPID_SDKEnumValues	= DISPID_SDKEnumKeys + 1
-    } 	DISPID_SpeechDataKey;
+    {        DISPID_SDKSetBinaryValue        = 1,
+        DISPID_SDKGetBinaryValue        = DISPID_SDKSetBinaryValue + 1,
+        DISPID_SDKSetStringValue        = DISPID_SDKGetBinaryValue + 1,
+        DISPID_SDKGetStringValue        = DISPID_SDKSetStringValue + 1,
+        DISPID_SDKSetLongValue        = DISPID_SDKGetStringValue + 1,
+        DISPID_SDKGetlongValue        = DISPID_SDKSetLongValue + 1,
+        DISPID_SDKOpenKey        = DISPID_SDKGetlongValue + 1,
+        DISPID_SDKCreateKey        = DISPID_SDKOpenKey + 1,
+        DISPID_SDKDeleteKey        = DISPID_SDKCreateKey + 1,
+        DISPID_SDKDeleteValue        = DISPID_SDKDeleteKey + 1,
+        DISPID_SDKEnumKeys        = DISPID_SDKDeleteValue + 1,
+        DISPID_SDKEnumValues        = DISPID_SDKEnumKeys + 1
+    }         DISPID_SpeechDataKey;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechObjectToken
-    {	DISPID_SOTId	= 1,
-	DISPID_SOTDataKey	= DISPID_SOTId + 1,
-	DISPID_SOTCategory	= DISPID_SOTDataKey + 1,
-	DISPID_SOTGetDescription	= DISPID_SOTCategory + 1,
-	DISPID_SOTSetId	= DISPID_SOTGetDescription + 1,
-	DISPID_SOTGetAttribute	= DISPID_SOTSetId + 1,
-	DISPID_SOTCreateInstance	= DISPID_SOTGetAttribute + 1,
-	DISPID_SOTRemove	= DISPID_SOTCreateInstance + 1,
-	DISPID_SOTGetStorageFileName	= DISPID_SOTRemove + 1,
-	DISPID_SOTRemoveStorageFileName	= DISPID_SOTGetStorageFileName + 1,
-	DISPID_SOTIsUISupported	= DISPID_SOTRemoveStorageFileName + 1,
-	DISPID_SOTDisplayUI	= DISPID_SOTIsUISupported + 1,
-	DISPID_SOTMatchesAttributes	= DISPID_SOTDisplayUI + 1
-    } 	DISPID_SpeechObjectToken;
+    {        DISPID_SOTId        = 1,
+        DISPID_SOTDataKey        = DISPID_SOTId + 1,
+        DISPID_SOTCategory        = DISPID_SOTDataKey + 1,
+        DISPID_SOTGetDescription        = DISPID_SOTCategory + 1,
+        DISPID_SOTSetId        = DISPID_SOTGetDescription + 1,
+        DISPID_SOTGetAttribute        = DISPID_SOTSetId + 1,
+        DISPID_SOTCreateInstance        = DISPID_SOTGetAttribute + 1,
+        DISPID_SOTRemove        = DISPID_SOTCreateInstance + 1,
+        DISPID_SOTGetStorageFileName        = DISPID_SOTRemove + 1,
+        DISPID_SOTRemoveStorageFileName        = DISPID_SOTGetStorageFileName + 1,
+        DISPID_SOTIsUISupported        = DISPID_SOTRemoveStorageFileName + 1,
+        DISPID_SOTDisplayUI        = DISPID_SOTIsUISupported + 1,
+        DISPID_SOTMatchesAttributes        = DISPID_SOTDisplayUI + 1
+    }         DISPID_SpeechObjectToken;
 
 typedef 
 enum SpeechDataKeyLocation
-    {	SDKLDefaultLocation	= SPDKL_DefaultLocation,
-	SDKLCurrentUser	= SPDKL_CurrentUser,
-	SDKLLocalMachine	= SPDKL_LocalMachine,
-	SDKLCurrentConfig	= SPDKL_CurrentConfig
-    } 	SpeechDataKeyLocation;
+    {        SDKLDefaultLocation        = SPDKL_DefaultLocation,
+        SDKLCurrentUser        = SPDKL_CurrentUser,
+        SDKLLocalMachine        = SPDKL_LocalMachine,
+        SDKLCurrentConfig        = SPDKL_CurrentConfig
+    }         SpeechDataKeyLocation;
 
 typedef 
 enum SpeechTokenContext
-    {	STCInprocServer	= CLSCTX_INPROC_SERVER,
-	STCInprocHandler	= CLSCTX_INPROC_HANDLER,
-	STCLocalServer	= CLSCTX_LOCAL_SERVER,
-	STCRemoteServer	= CLSCTX_REMOTE_SERVER,
-	STCAll	= CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER
-    } 	SpeechTokenContext;
+    {        STCInprocServer        = CLSCTX_INPROC_SERVER,
+        STCInprocHandler        = CLSCTX_INPROC_HANDLER,
+        STCLocalServer        = CLSCTX_LOCAL_SERVER,
+        STCRemoteServer        = CLSCTX_REMOTE_SERVER,
+        STCAll        = CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER
+    }         SpeechTokenContext;
 
 typedef 
 enum SpeechTokenShellFolder
-    {	STSF_AppData	= 0x1a,
-	STSF_LocalAppData	= 0x1c,
-	STSF_CommonAppData	= 0x23,
-	STSF_FlagCreate	= 0x8000
-    } 	SpeechTokenShellFolder;
+    {        STSF_AppData        = 0x1a,
+        STSF_LocalAppData        = 0x1c,
+        STSF_CommonAppData        = 0x23,
+        STSF_FlagCreate        = 0x8000
+    }         SpeechTokenShellFolder;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechObjectTokens
-    {	DISPID_SOTsCount	= 1,
-	DISPID_SOTsItem	= DISPID_VALUE,
-	DISPID_SOTs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechObjectTokens;
+    {        DISPID_SOTsCount        = 1,
+        DISPID_SOTsItem        = DISPID_VALUE,
+        DISPID_SOTs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechObjectTokens;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechObjectTokenCategory
-    {	DISPID_SOTCId	= 1,
-	DISPID_SOTCDefault	= DISPID_SOTCId + 1,
-	DISPID_SOTCSetId	= DISPID_SOTCDefault + 1,
-	DISPID_SOTCGetDataKey	= DISPID_SOTCSetId + 1,
-	DISPID_SOTCEnumerateTokens	= DISPID_SOTCGetDataKey + 1
-    } 	DISPID_SpeechObjectTokenCategory;
+    {        DISPID_SOTCId        = 1,
+        DISPID_SOTCDefault        = DISPID_SOTCId + 1,
+        DISPID_SOTCSetId        = DISPID_SOTCDefault + 1,
+        DISPID_SOTCGetDataKey        = DISPID_SOTCSetId + 1,
+        DISPID_SOTCEnumerateTokens        = DISPID_SOTCGetDataKey + 1
+    }         DISPID_SpeechObjectTokenCategory;
 
 typedef 
 enum SpeechAudioFormatType
-    {	SAFTDefault	= -1,
-	SAFTNoAssignedFormat	= 0,
-	SAFTText	= SAFTNoAssignedFormat + 1,
-	SAFTNonStandardFormat	= SAFTText + 1,
-	SAFTExtendedAudioFormat	= SAFTNonStandardFormat + 1,
-	SAFT8kHz8BitMono	= SAFTExtendedAudioFormat + 1,
-	SAFT8kHz8BitStereo	= SAFT8kHz8BitMono + 1,
-	SAFT8kHz16BitMono	= SAFT8kHz8BitStereo + 1,
-	SAFT8kHz16BitStereo	= SAFT8kHz16BitMono + 1,
-	SAFT11kHz8BitMono	= SAFT8kHz16BitStereo + 1,
-	SAFT11kHz8BitStereo	= SAFT11kHz8BitMono + 1,
-	SAFT11kHz16BitMono	= SAFT11kHz8BitStereo + 1,
-	SAFT11kHz16BitStereo	= SAFT11kHz16BitMono + 1,
-	SAFT12kHz8BitMono	= SAFT11kHz16BitStereo + 1,
-	SAFT12kHz8BitStereo	= SAFT12kHz8BitMono + 1,
-	SAFT12kHz16BitMono	= SAFT12kHz8BitStereo + 1,
-	SAFT12kHz16BitStereo	= SAFT12kHz16BitMono + 1,
-	SAFT16kHz8BitMono	= SAFT12kHz16BitStereo + 1,
-	SAFT16kHz8BitStereo	= SAFT16kHz8BitMono + 1,
-	SAFT16kHz16BitMono	= SAFT16kHz8BitStereo + 1,
-	SAFT16kHz16BitStereo	= SAFT16kHz16BitMono + 1,
-	SAFT22kHz8BitMono	= SAFT16kHz16BitStereo + 1,
-	SAFT22kHz8BitStereo	= SAFT22kHz8BitMono + 1,
-	SAFT22kHz16BitMono	= SAFT22kHz8BitStereo + 1,
-	SAFT22kHz16BitStereo	= SAFT22kHz16BitMono + 1,
-	SAFT24kHz8BitMono	= SAFT22kHz16BitStereo + 1,
-	SAFT24kHz8BitStereo	= SAFT24kHz8BitMono + 1,
-	SAFT24kHz16BitMono	= SAFT24kHz8BitStereo + 1,
-	SAFT24kHz16BitStereo	= SAFT24kHz16BitMono + 1,
-	SAFT32kHz8BitMono	= SAFT24kHz16BitStereo + 1,
-	SAFT32kHz8BitStereo	= SAFT32kHz8BitMono + 1,
-	SAFT32kHz16BitMono	= SAFT32kHz8BitStereo + 1,
-	SAFT32kHz16BitStereo	= SAFT32kHz16BitMono + 1,
-	SAFT44kHz8BitMono	= SAFT32kHz16BitStereo + 1,
-	SAFT44kHz8BitStereo	= SAFT44kHz8BitMono + 1,
-	SAFT44kHz16BitMono	= SAFT44kHz8BitStereo + 1,
-	SAFT44kHz16BitStereo	= SAFT44kHz16BitMono + 1,
-	SAFT48kHz8BitMono	= SAFT44kHz16BitStereo + 1,
-	SAFT48kHz8BitStereo	= SAFT48kHz8BitMono + 1,
-	SAFT48kHz16BitMono	= SAFT48kHz8BitStereo + 1,
-	SAFT48kHz16BitStereo	= SAFT48kHz16BitMono + 1,
-	SAFTTrueSpeech_8kHz1BitMono	= SAFT48kHz16BitStereo + 1,
-	SAFTCCITT_ALaw_8kHzMono	= SAFTTrueSpeech_8kHz1BitMono + 1,
-	SAFTCCITT_ALaw_8kHzStereo	= SAFTCCITT_ALaw_8kHzMono + 1,
-	SAFTCCITT_ALaw_11kHzMono	= SAFTCCITT_ALaw_8kHzStereo + 1,
-	SAFTCCITT_ALaw_11kHzStereo	= SAFTCCITT_ALaw_11kHzMono + 1,
-	SAFTCCITT_ALaw_22kHzMono	= SAFTCCITT_ALaw_11kHzStereo + 1,
-	SAFTCCITT_ALaw_22kHzStereo	= SAFTCCITT_ALaw_22kHzMono + 1,
-	SAFTCCITT_ALaw_44kHzMono	= SAFTCCITT_ALaw_22kHzStereo + 1,
-	SAFTCCITT_ALaw_44kHzStereo	= SAFTCCITT_ALaw_44kHzMono + 1,
-	SAFTCCITT_uLaw_8kHzMono	= SAFTCCITT_ALaw_44kHzStereo + 1,
-	SAFTCCITT_uLaw_8kHzStereo	= SAFTCCITT_uLaw_8kHzMono + 1,
-	SAFTCCITT_uLaw_11kHzMono	= SAFTCCITT_uLaw_8kHzStereo + 1,
-	SAFTCCITT_uLaw_11kHzStereo	= SAFTCCITT_uLaw_11kHzMono + 1,
-	SAFTCCITT_uLaw_22kHzMono	= SAFTCCITT_uLaw_11kHzStereo + 1,
-	SAFTCCITT_uLaw_22kHzStereo	= SAFTCCITT_uLaw_22kHzMono + 1,
-	SAFTCCITT_uLaw_44kHzMono	= SAFTCCITT_uLaw_22kHzStereo + 1,
-	SAFTCCITT_uLaw_44kHzStereo	= SAFTCCITT_uLaw_44kHzMono + 1,
-	SAFTADPCM_8kHzMono	= SAFTCCITT_uLaw_44kHzStereo + 1,
-	SAFTADPCM_8kHzStereo	= SAFTADPCM_8kHzMono + 1,
-	SAFTADPCM_11kHzMono	= SAFTADPCM_8kHzStereo + 1,
-	SAFTADPCM_11kHzStereo	= SAFTADPCM_11kHzMono + 1,
-	SAFTADPCM_22kHzMono	= SAFTADPCM_11kHzStereo + 1,
-	SAFTADPCM_22kHzStereo	= SAFTADPCM_22kHzMono + 1,
-	SAFTADPCM_44kHzMono	= SAFTADPCM_22kHzStereo + 1,
-	SAFTADPCM_44kHzStereo	= SAFTADPCM_44kHzMono + 1,
-	SAFTGSM610_8kHzMono	= SAFTADPCM_44kHzStereo + 1,
-	SAFTGSM610_11kHzMono	= SAFTGSM610_8kHzMono + 1,
-	SAFTGSM610_22kHzMono	= SAFTGSM610_11kHzMono + 1,
-	SAFTGSM610_44kHzMono	= SAFTGSM610_22kHzMono + 1
-    } 	SpeechAudioFormatType;
+    {        SAFTDefault        = -1,
+        SAFTNoAssignedFormat        = 0,
+        SAFTText        = SAFTNoAssignedFormat + 1,
+        SAFTNonStandardFormat        = SAFTText + 1,
+        SAFTExtendedAudioFormat        = SAFTNonStandardFormat + 1,
+        SAFT8kHz8BitMono        = SAFTExtendedAudioFormat + 1,
+        SAFT8kHz8BitStereo        = SAFT8kHz8BitMono + 1,
+        SAFT8kHz16BitMono        = SAFT8kHz8BitStereo + 1,
+        SAFT8kHz16BitStereo        = SAFT8kHz16BitMono + 1,
+        SAFT11kHz8BitMono        = SAFT8kHz16BitStereo + 1,
+        SAFT11kHz8BitStereo        = SAFT11kHz8BitMono + 1,
+        SAFT11kHz16BitMono        = SAFT11kHz8BitStereo + 1,
+        SAFT11kHz16BitStereo        = SAFT11kHz16BitMono + 1,
+        SAFT12kHz8BitMono        = SAFT11kHz16BitStereo + 1,
+        SAFT12kHz8BitStereo        = SAFT12kHz8BitMono + 1,
+        SAFT12kHz16BitMono        = SAFT12kHz8BitStereo + 1,
+        SAFT12kHz16BitStereo        = SAFT12kHz16BitMono + 1,
+        SAFT16kHz8BitMono        = SAFT12kHz16BitStereo + 1,
+        SAFT16kHz8BitStereo        = SAFT16kHz8BitMono + 1,
+        SAFT16kHz16BitMono        = SAFT16kHz8BitStereo + 1,
+        SAFT16kHz16BitStereo        = SAFT16kHz16BitMono + 1,
+        SAFT22kHz8BitMono        = SAFT16kHz16BitStereo + 1,
+        SAFT22kHz8BitStereo        = SAFT22kHz8BitMono + 1,
+        SAFT22kHz16BitMono        = SAFT22kHz8BitStereo + 1,
+        SAFT22kHz16BitStereo        = SAFT22kHz16BitMono + 1,
+        SAFT24kHz8BitMono        = SAFT22kHz16BitStereo + 1,
+        SAFT24kHz8BitStereo        = SAFT24kHz8BitMono + 1,
+        SAFT24kHz16BitMono        = SAFT24kHz8BitStereo + 1,
+        SAFT24kHz16BitStereo        = SAFT24kHz16BitMono + 1,
+        SAFT32kHz8BitMono        = SAFT24kHz16BitStereo + 1,
+        SAFT32kHz8BitStereo        = SAFT32kHz8BitMono + 1,
+        SAFT32kHz16BitMono        = SAFT32kHz8BitStereo + 1,
+        SAFT32kHz16BitStereo        = SAFT32kHz16BitMono + 1,
+        SAFT44kHz8BitMono        = SAFT32kHz16BitStereo + 1,
+        SAFT44kHz8BitStereo        = SAFT44kHz8BitMono + 1,
+        SAFT44kHz16BitMono        = SAFT44kHz8BitStereo + 1,
+        SAFT44kHz16BitStereo        = SAFT44kHz16BitMono + 1,
+        SAFT48kHz8BitMono        = SAFT44kHz16BitStereo + 1,
+        SAFT48kHz8BitStereo        = SAFT48kHz8BitMono + 1,
+        SAFT48kHz16BitMono        = SAFT48kHz8BitStereo + 1,
+        SAFT48kHz16BitStereo        = SAFT48kHz16BitMono + 1,
+        SAFTTrueSpeech_8kHz1BitMono        = SAFT48kHz16BitStereo + 1,
+        SAFTCCITT_ALaw_8kHzMono        = SAFTTrueSpeech_8kHz1BitMono + 1,
+        SAFTCCITT_ALaw_8kHzStereo        = SAFTCCITT_ALaw_8kHzMono + 1,
+        SAFTCCITT_ALaw_11kHzMono        = SAFTCCITT_ALaw_8kHzStereo + 1,
+        SAFTCCITT_ALaw_11kHzStereo        = SAFTCCITT_ALaw_11kHzMono + 1,
+        SAFTCCITT_ALaw_22kHzMono        = SAFTCCITT_ALaw_11kHzStereo + 1,
+        SAFTCCITT_ALaw_22kHzStereo        = SAFTCCITT_ALaw_22kHzMono + 1,
+        SAFTCCITT_ALaw_44kHzMono        = SAFTCCITT_ALaw_22kHzStereo + 1,
+        SAFTCCITT_ALaw_44kHzStereo        = SAFTCCITT_ALaw_44kHzMono + 1,
+        SAFTCCITT_uLaw_8kHzMono        = SAFTCCITT_ALaw_44kHzStereo + 1,
+        SAFTCCITT_uLaw_8kHzStereo        = SAFTCCITT_uLaw_8kHzMono + 1,
+        SAFTCCITT_uLaw_11kHzMono        = SAFTCCITT_uLaw_8kHzStereo + 1,
+        SAFTCCITT_uLaw_11kHzStereo        = SAFTCCITT_uLaw_11kHzMono + 1,
+        SAFTCCITT_uLaw_22kHzMono        = SAFTCCITT_uLaw_11kHzStereo + 1,
+        SAFTCCITT_uLaw_22kHzStereo        = SAFTCCITT_uLaw_22kHzMono + 1,
+        SAFTCCITT_uLaw_44kHzMono        = SAFTCCITT_uLaw_22kHzStereo + 1,
+        SAFTCCITT_uLaw_44kHzStereo        = SAFTCCITT_uLaw_44kHzMono + 1,
+        SAFTADPCM_8kHzMono        = SAFTCCITT_uLaw_44kHzStereo + 1,
+        SAFTADPCM_8kHzStereo        = SAFTADPCM_8kHzMono + 1,
+        SAFTADPCM_11kHzMono        = SAFTADPCM_8kHzStereo + 1,
+        SAFTADPCM_11kHzStereo        = SAFTADPCM_11kHzMono + 1,
+        SAFTADPCM_22kHzMono        = SAFTADPCM_11kHzStereo + 1,
+        SAFTADPCM_22kHzStereo        = SAFTADPCM_22kHzMono + 1,
+        SAFTADPCM_44kHzMono        = SAFTADPCM_22kHzStereo + 1,
+        SAFTADPCM_44kHzStereo        = SAFTADPCM_44kHzMono + 1,
+        SAFTGSM610_8kHzMono        = SAFTADPCM_44kHzStereo + 1,
+        SAFTGSM610_11kHzMono        = SAFTGSM610_8kHzMono + 1,
+        SAFTGSM610_22kHzMono        = SAFTGSM610_11kHzMono + 1,
+        SAFTGSM610_44kHzMono        = SAFTGSM610_22kHzMono + 1
+    }         SpeechAudioFormatType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechAudioFormat
-    {	DISPID_SAFType	= 1,
-	DISPID_SAFGuid	= DISPID_SAFType + 1,
-	DISPID_SAFGetWaveFormatEx	= DISPID_SAFGuid + 1,
-	DISPID_SAFSetWaveFormatEx	= DISPID_SAFGetWaveFormatEx + 1
-    } 	DISPID_SpeechAudioFormat;
+    {        DISPID_SAFType        = 1,
+        DISPID_SAFGuid        = DISPID_SAFType + 1,
+        DISPID_SAFGetWaveFormatEx        = DISPID_SAFGuid + 1,
+        DISPID_SAFSetWaveFormatEx        = DISPID_SAFGetWaveFormatEx + 1
+    }         DISPID_SpeechAudioFormat;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechBaseStream
-    {	DISPID_SBSFormat	= 1,
-	DISPID_SBSRead	= DISPID_SBSFormat + 1,
-	DISPID_SBSWrite	= DISPID_SBSRead + 1,
-	DISPID_SBSSeek	= DISPID_SBSWrite + 1
-    } 	DISPID_SpeechBaseStream;
+    {        DISPID_SBSFormat        = 1,
+        DISPID_SBSRead        = DISPID_SBSFormat + 1,
+        DISPID_SBSWrite        = DISPID_SBSRead + 1,
+        DISPID_SBSSeek        = DISPID_SBSWrite + 1
+    }         DISPID_SpeechBaseStream;
 
 typedef 
 enum SpeechStreamSeekPositionType
-    {	SSSPTRelativeToStart	= STREAM_SEEK_SET,
-	SSSPTRelativeToCurrentPosition	= STREAM_SEEK_CUR,
-	SSSPTRelativeToEnd	= STREAM_SEEK_END
-    } 	SpeechStreamSeekPositionType;
+    {        SSSPTRelativeToStart        = STREAM_SEEK_SET,
+        SSSPTRelativeToCurrentPosition        = STREAM_SEEK_CUR,
+        SSSPTRelativeToEnd        = STREAM_SEEK_END
+    }         SpeechStreamSeekPositionType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechAudio
-    {	DISPID_SAStatus	= 200,
-	DISPID_SABufferInfo	= DISPID_SAStatus + 1,
-	DISPID_SADefaultFormat	= DISPID_SABufferInfo + 1,
-	DISPID_SAVolume	= DISPID_SADefaultFormat + 1,
-	DISPID_SABufferNotifySize	= DISPID_SAVolume + 1,
-	DISPID_SAEventHandle	= DISPID_SABufferNotifySize + 1,
-	DISPID_SASetState	= DISPID_SAEventHandle + 1
-    } 	DISPID_SpeechAudio;
+    {        DISPID_SAStatus        = 200,
+        DISPID_SABufferInfo        = DISPID_SAStatus + 1,
+        DISPID_SADefaultFormat        = DISPID_SABufferInfo + 1,
+        DISPID_SAVolume        = DISPID_SADefaultFormat + 1,
+        DISPID_SABufferNotifySize        = DISPID_SAVolume + 1,
+        DISPID_SAEventHandle        = DISPID_SABufferNotifySize + 1,
+        DISPID_SASetState        = DISPID_SAEventHandle + 1
+    }         DISPID_SpeechAudio;
 
 typedef 
 enum SpeechAudioState
-    {	SASClosed	= SPAS_CLOSED,
-	SASStop	= SPAS_STOP,
-	SASPause	= SPAS_PAUSE,
-	SASRun	= SPAS_RUN
-    } 	SpeechAudioState;
+    {        SASClosed        = SPAS_CLOSED,
+        SASStop        = SPAS_STOP,
+        SASPause        = SPAS_PAUSE,
+        SASRun        = SPAS_RUN
+    }         SpeechAudioState;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechMMSysAudio
-    {	DISPID_SMSADeviceId	= 300,
-	DISPID_SMSALineId	= DISPID_SMSADeviceId + 1,
-	DISPID_SMSAMMHandle	= DISPID_SMSALineId + 1
-    } 	DISPID_SpeechMMSysAudio;
+    {        DISPID_SMSADeviceId        = 300,
+        DISPID_SMSALineId        = DISPID_SMSADeviceId + 1,
+        DISPID_SMSAMMHandle        = DISPID_SMSALineId + 1
+    }         DISPID_SpeechMMSysAudio;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechFileStream
-    {	DISPID_SFSOpen	= 100,
-	DISPID_SFSClose	= DISPID_SFSOpen + 1
-    } 	DISPID_SpeechFileStream;
+    {        DISPID_SFSOpen        = 100,
+        DISPID_SFSClose        = DISPID_SFSOpen + 1
+    }         DISPID_SpeechFileStream;
 
 typedef 
 enum SpeechStreamFileMode
-    {	SSFMOpenForRead	= SPFM_OPEN_READONLY,
-	SSFMOpenReadWrite	= SPFM_OPEN_READWRITE,
-	SSFMCreate	= SPFM_CREATE,
-	SSFMCreateForWrite	= SPFM_CREATE_ALWAYS
-    } 	SpeechStreamFileMode;
+    {        SSFMOpenForRead        = SPFM_OPEN_READONLY,
+        SSFMOpenReadWrite        = SPFM_OPEN_READWRITE,
+        SSFMCreate        = SPFM_CREATE,
+        SSFMCreateForWrite        = SPFM_CREATE_ALWAYS
+    }         SpeechStreamFileMode;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechCustomStream
-    {	DISPID_SCSBaseStream	= 100
-    } 	DISPID_SpeechCustomStream;
+    {        DISPID_SCSBaseStream        = 100
+    }         DISPID_SpeechCustomStream;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechMemoryStream
-    {	DISPID_SMSSetData	= 100,
-	DISPID_SMSGetData	= DISPID_SMSSetData + 1
-    } 	DISPID_SpeechMemoryStream;
+    {        DISPID_SMSSetData        = 100,
+        DISPID_SMSGetData        = DISPID_SMSSetData + 1
+    }         DISPID_SpeechMemoryStream;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechAudioStatus
-    {	DISPID_SASFreeBufferSpace	= 1,
-	DISPID_SASNonBlockingIO	= DISPID_SASFreeBufferSpace + 1,
-	DISPID_SASState	= DISPID_SASNonBlockingIO + 1,
-	DISPID_SASCurrentSeekPosition	= DISPID_SASState + 1,
-	DISPID_SASCurrentDevicePosition	= DISPID_SASCurrentSeekPosition + 1
-    } 	DISPID_SpeechAudioStatus;
+    {        DISPID_SASFreeBufferSpace        = 1,
+        DISPID_SASNonBlockingIO        = DISPID_SASFreeBufferSpace + 1,
+        DISPID_SASState        = DISPID_SASNonBlockingIO + 1,
+        DISPID_SASCurrentSeekPosition        = DISPID_SASState + 1,
+        DISPID_SASCurrentDevicePosition        = DISPID_SASCurrentSeekPosition + 1
+    }         DISPID_SpeechAudioStatus;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechAudioBufferInfo
-    {	DISPID_SABIMinNotification	= 1,
-	DISPID_SABIBufferSize	= DISPID_SABIMinNotification + 1,
-	DISPID_SABIEventBias	= DISPID_SABIBufferSize + 1
-    } 	DISPID_SpeechAudioBufferInfo;
+    {        DISPID_SABIMinNotification        = 1,
+        DISPID_SABIBufferSize        = DISPID_SABIMinNotification + 1,
+        DISPID_SABIEventBias        = DISPID_SABIBufferSize + 1
+    }         DISPID_SpeechAudioBufferInfo;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechWaveFormatEx
-    {	DISPID_SWFEFormatTag	= 1,
-	DISPID_SWFEChannels	= DISPID_SWFEFormatTag + 1,
-	DISPID_SWFESamplesPerSec	= DISPID_SWFEChannels + 1,
-	DISPID_SWFEAvgBytesPerSec	= DISPID_SWFESamplesPerSec + 1,
-	DISPID_SWFEBlockAlign	= DISPID_SWFEAvgBytesPerSec + 1,
-	DISPID_SWFEBitsPerSample	= DISPID_SWFEBlockAlign + 1,
-	DISPID_SWFEExtraData	= DISPID_SWFEBitsPerSample + 1
-    } 	DISPID_SpeechWaveFormatEx;
+    {        DISPID_SWFEFormatTag        = 1,
+        DISPID_SWFEChannels        = DISPID_SWFEFormatTag + 1,
+        DISPID_SWFESamplesPerSec        = DISPID_SWFEChannels + 1,
+        DISPID_SWFEAvgBytesPerSec        = DISPID_SWFESamplesPerSec + 1,
+        DISPID_SWFEBlockAlign        = DISPID_SWFEAvgBytesPerSec + 1,
+        DISPID_SWFEBitsPerSample        = DISPID_SWFEBlockAlign + 1,
+        DISPID_SWFEExtraData        = DISPID_SWFEBitsPerSample + 1
+    }         DISPID_SpeechWaveFormatEx;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechVoice
-    {	DISPID_SVStatus	= 1,
-	DISPID_SVVoice	= DISPID_SVStatus + 1,
-	DISPID_SVAudioOutput	= DISPID_SVVoice + 1,
-	DISPID_SVAudioOutputStream	= DISPID_SVAudioOutput + 1,
-	DISPID_SVRate	= DISPID_SVAudioOutputStream + 1,
-	DISPID_SVVolume	= DISPID_SVRate + 1,
-	DISPID_SVAllowAudioOuputFormatChangesOnNextSet	= DISPID_SVVolume + 1,
-	DISPID_SVEventInterests	= DISPID_SVAllowAudioOuputFormatChangesOnNextSet + 1,
-	DISPID_SVPriority	= DISPID_SVEventInterests + 1,
-	DISPID_SVAlertBoundary	= DISPID_SVPriority + 1,
-	DISPID_SVSyncronousSpeakTimeout	= DISPID_SVAlertBoundary + 1,
-	DISPID_SVSpeak	= DISPID_SVSyncronousSpeakTimeout + 1,
-	DISPID_SVSpeakStream	= DISPID_SVSpeak + 1,
-	DISPID_SVPause	= DISPID_SVSpeakStream + 1,
-	DISPID_SVResume	= DISPID_SVPause + 1,
-	DISPID_SVSkip	= DISPID_SVResume + 1,
-	DISPID_SVGetVoices	= DISPID_SVSkip + 1,
-	DISPID_SVGetAudioOutputs	= DISPID_SVGetVoices + 1,
-	DISPID_SVWaitUntilDone	= DISPID_SVGetAudioOutputs + 1,
-	DISPID_SVSpeakCompleteEvent	= DISPID_SVWaitUntilDone + 1,
-	DISPID_SVIsUISupported	= DISPID_SVSpeakCompleteEvent + 1,
-	DISPID_SVDisplayUI	= DISPID_SVIsUISupported + 1
-    } 	DISPID_SpeechVoice;
+    {        DISPID_SVStatus        = 1,
+        DISPID_SVVoice        = DISPID_SVStatus + 1,
+        DISPID_SVAudioOutput        = DISPID_SVVoice + 1,
+        DISPID_SVAudioOutputStream        = DISPID_SVAudioOutput + 1,
+        DISPID_SVRate        = DISPID_SVAudioOutputStream + 1,
+        DISPID_SVVolume        = DISPID_SVRate + 1,
+        DISPID_SVAllowAudioOuputFormatChangesOnNextSet        = DISPID_SVVolume + 1,
+        DISPID_SVEventInterests        = DISPID_SVAllowAudioOuputFormatChangesOnNextSet + 1,
+        DISPID_SVPriority        = DISPID_SVEventInterests + 1,
+        DISPID_SVAlertBoundary        = DISPID_SVPriority + 1,
+        DISPID_SVSyncronousSpeakTimeout        = DISPID_SVAlertBoundary + 1,
+        DISPID_SVSpeak        = DISPID_SVSyncronousSpeakTimeout + 1,
+        DISPID_SVSpeakStream        = DISPID_SVSpeak + 1,
+        DISPID_SVPause        = DISPID_SVSpeakStream + 1,
+        DISPID_SVResume        = DISPID_SVPause + 1,
+        DISPID_SVSkip        = DISPID_SVResume + 1,
+        DISPID_SVGetVoices        = DISPID_SVSkip + 1,
+        DISPID_SVGetAudioOutputs        = DISPID_SVGetVoices + 1,
+        DISPID_SVWaitUntilDone        = DISPID_SVGetAudioOutputs + 1,
+        DISPID_SVSpeakCompleteEvent        = DISPID_SVWaitUntilDone + 1,
+        DISPID_SVIsUISupported        = DISPID_SVSpeakCompleteEvent + 1,
+        DISPID_SVDisplayUI        = DISPID_SVIsUISupported + 1
+    }         DISPID_SpeechVoice;
 
 typedef 
 enum SpeechVoicePriority
-    {	SVPNormal	= SPVPRI_NORMAL,
-	SVPAlert	= SPVPRI_ALERT,
-	SVPOver	= SPVPRI_OVER
-    } 	SpeechVoicePriority;
+    {        SVPNormal        = SPVPRI_NORMAL,
+        SVPAlert        = SPVPRI_ALERT,
+        SVPOver        = SPVPRI_OVER
+    }         SpeechVoicePriority;
 
 typedef 
 enum SpeechVoiceSpeakFlags
-    {	SVSFDefault	= SPF_DEFAULT,
-	SVSFlagsAsync	= SPF_ASYNC,
-	SVSFPurgeBeforeSpeak	= SPF_PURGEBEFORESPEAK,
-	SVSFIsFilename	= SPF_IS_FILENAME,
-	SVSFIsXML	= SPF_IS_XML,
-	SVSFIsNotXML	= SPF_IS_NOT_XML,
-	SVSFPersistXML	= SPF_PERSIST_XML,
-	SVSFNLPSpeakPunc	= SPF_NLP_SPEAK_PUNC,
-	SVSFNLPMask	= SPF_NLP_MASK,
-	SVSFVoiceMask	= SPF_VOICE_MASK,
-	SVSFUnusedFlags	= SPF_UNUSED_FLAGS
-    } 	SpeechVoiceSpeakFlags;
+    {        SVSFDefault        = SPF_DEFAULT,
+        SVSFlagsAsync        = SPF_ASYNC,
+        SVSFPurgeBeforeSpeak        = SPF_PURGEBEFORESPEAK,
+        SVSFIsFilename        = SPF_IS_FILENAME,
+        SVSFIsXML        = SPF_IS_XML,
+        SVSFIsNotXML        = SPF_IS_NOT_XML,
+        SVSFPersistXML        = SPF_PERSIST_XML,
+        SVSFNLPSpeakPunc        = SPF_NLP_SPEAK_PUNC,
+        SVSFNLPMask        = SPF_NLP_MASK,
+        SVSFVoiceMask        = SPF_VOICE_MASK,
+        SVSFUnusedFlags        = SPF_UNUSED_FLAGS
+    }         SpeechVoiceSpeakFlags;
 
 typedef 
 enum SpeechVoiceEvents
-    {	SVEStartInputStream	= 1L << 1,
-	SVEEndInputStream	= 1L << 2,
-	SVEVoiceChange	= 1L << 3,
-	SVEBookmark	= 1L << 4,
-	SVEWordBoundary	= 1L << 5,
-	SVEPhoneme	= 1L << 6,
-	SVESentenceBoundary	= 1L << 7,
-	SVEViseme	= 1L << 8,
-	SVEAudioLevel	= 1L << 9,
-	SVEPrivate	= 1L << 15,
-	SVEAllEvents	= 0x83fe
-    } 	SpeechVoiceEvents;
+    {        SVEStartInputStream        = 1L << 1,
+        SVEEndInputStream        = 1L << 2,
+        SVEVoiceChange        = 1L << 3,
+        SVEBookmark        = 1L << 4,
+        SVEWordBoundary        = 1L << 5,
+        SVEPhoneme        = 1L << 6,
+        SVESentenceBoundary        = 1L << 7,
+        SVEViseme        = 1L << 8,
+        SVEAudioLevel        = 1L << 9,
+        SVEPrivate        = 1L << 15,
+        SVEAllEvents        = 0x83fe
+    }         SpeechVoiceEvents;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechVoiceStatus
-    {	DISPID_SVSCurrentStreamNumber	= 1,
-	DISPID_SVSLastStreamNumberQueued	= DISPID_SVSCurrentStreamNumber + 1,
-	DISPID_SVSLastResult	= DISPID_SVSLastStreamNumberQueued + 1,
-	DISPID_SVSRunningState	= DISPID_SVSLastResult + 1,
-	DISPID_SVSInputWordPosition	= DISPID_SVSRunningState + 1,
-	DISPID_SVSInputWordLength	= DISPID_SVSInputWordPosition + 1,
-	DISPID_SVSInputSentencePosition	= DISPID_SVSInputWordLength + 1,
-	DISPID_SVSInputSentenceLength	= DISPID_SVSInputSentencePosition + 1,
-	DISPID_SVSLastBookmark	= DISPID_SVSInputSentenceLength + 1,
-	DISPID_SVSLastBookmarkId	= DISPID_SVSLastBookmark + 1,
-	DISPID_SVSPhonemeId	= DISPID_SVSLastBookmarkId + 1,
-	DISPID_SVSVisemeId	= DISPID_SVSPhonemeId + 1
-    } 	DISPID_SpeechVoiceStatus;
+    {        DISPID_SVSCurrentStreamNumber        = 1,
+        DISPID_SVSLastStreamNumberQueued        = DISPID_SVSCurrentStreamNumber + 1,
+        DISPID_SVSLastResult        = DISPID_SVSLastStreamNumberQueued + 1,
+        DISPID_SVSRunningState        = DISPID_SVSLastResult + 1,
+        DISPID_SVSInputWordPosition        = DISPID_SVSRunningState + 1,
+        DISPID_SVSInputWordLength        = DISPID_SVSInputWordPosition + 1,
+        DISPID_SVSInputSentencePosition        = DISPID_SVSInputWordLength + 1,
+        DISPID_SVSInputSentenceLength        = DISPID_SVSInputSentencePosition + 1,
+        DISPID_SVSLastBookmark        = DISPID_SVSInputSentenceLength + 1,
+        DISPID_SVSLastBookmarkId        = DISPID_SVSLastBookmark + 1,
+        DISPID_SVSPhonemeId        = DISPID_SVSLastBookmarkId + 1,
+        DISPID_SVSVisemeId        = DISPID_SVSPhonemeId + 1
+    }         DISPID_SpeechVoiceStatus;
 
 typedef 
 enum SpeechRunState
-    {	SRSEDone	= SPRS_DONE,
-	SRSEIsSpeaking	= SPRS_IS_SPEAKING
-    } 	SpeechRunState;
+    {        SRSEDone        = SPRS_DONE,
+        SRSEIsSpeaking        = SPRS_IS_SPEAKING
+    }         SpeechRunState;
 
 typedef 
 enum SpeechVisemeType
-    {	SVP_0	= 0,
-	SVP_1	= SVP_0 + 1,
-	SVP_2	= SVP_1 + 1,
-	SVP_3	= SVP_2 + 1,
-	SVP_4	= SVP_3 + 1,
-	SVP_5	= SVP_4 + 1,
-	SVP_6	= SVP_5 + 1,
-	SVP_7	= SVP_6 + 1,
-	SVP_8	= SVP_7 + 1,
-	SVP_9	= SVP_8 + 1,
-	SVP_10	= SVP_9 + 1,
-	SVP_11	= SVP_10 + 1,
-	SVP_12	= SVP_11 + 1,
-	SVP_13	= SVP_12 + 1,
-	SVP_14	= SVP_13 + 1,
-	SVP_15	= SVP_14 + 1,
-	SVP_16	= SVP_15 + 1,
-	SVP_17	= SVP_16 + 1,
-	SVP_18	= SVP_17 + 1,
-	SVP_19	= SVP_18 + 1,
-	SVP_20	= SVP_19 + 1,
-	SVP_21	= SVP_20 + 1
-    } 	SpeechVisemeType;
+    {        SVP_0        = 0,
+        SVP_1        = SVP_0 + 1,
+        SVP_2        = SVP_1 + 1,
+        SVP_3        = SVP_2 + 1,
+        SVP_4        = SVP_3 + 1,
+        SVP_5        = SVP_4 + 1,
+        SVP_6        = SVP_5 + 1,
+        SVP_7        = SVP_6 + 1,
+        SVP_8        = SVP_7 + 1,
+        SVP_9        = SVP_8 + 1,
+        SVP_10        = SVP_9 + 1,
+        SVP_11        = SVP_10 + 1,
+        SVP_12        = SVP_11 + 1,
+        SVP_13        = SVP_12 + 1,
+        SVP_14        = SVP_13 + 1,
+        SVP_15        = SVP_14 + 1,
+        SVP_16        = SVP_15 + 1,
+        SVP_17        = SVP_16 + 1,
+        SVP_18        = SVP_17 + 1,
+        SVP_19        = SVP_18 + 1,
+        SVP_20        = SVP_19 + 1,
+        SVP_21        = SVP_20 + 1
+    }         SpeechVisemeType;
 
 typedef 
 enum SpeechVisemeFeature
-    {	SVF_None	= 0,
-	SVF_Stressed	= SPVFEATURE_STRESSED,
-	SVF_Emphasis	= SPVFEATURE_EMPHASIS
-    } 	SpeechVisemeFeature;
+    {        SVF_None        = 0,
+        SVF_Stressed        = SPVFEATURE_STRESSED,
+        SVF_Emphasis        = SPVFEATURE_EMPHASIS
+    }         SpeechVisemeFeature;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechVoiceEvent
-    {	DISPID_SVEStreamStart	= 1,
-	DISPID_SVEStreamEnd	= DISPID_SVEStreamStart + 1,
-	DISPID_SVEVoiceChange	= DISPID_SVEStreamEnd + 1,
-	DISPID_SVEBookmark	= DISPID_SVEVoiceChange + 1,
-	DISPID_SVEWord	= DISPID_SVEBookmark + 1,
-	DISPID_SVEPhoneme	= DISPID_SVEWord + 1,
-	DISPID_SVESentenceBoundary	= DISPID_SVEPhoneme + 1,
-	DISPID_SVEViseme	= DISPID_SVESentenceBoundary + 1,
-	DISPID_SVEAudioLevel	= DISPID_SVEViseme + 1,
-	DISPID_SVEEnginePrivate	= DISPID_SVEAudioLevel + 1
-    } 	DISPID_SpeechVoiceEvent;
+    {        DISPID_SVEStreamStart        = 1,
+        DISPID_SVEStreamEnd        = DISPID_SVEStreamStart + 1,
+        DISPID_SVEVoiceChange        = DISPID_SVEStreamEnd + 1,
+        DISPID_SVEBookmark        = DISPID_SVEVoiceChange + 1,
+        DISPID_SVEWord        = DISPID_SVEBookmark + 1,
+        DISPID_SVEPhoneme        = DISPID_SVEWord + 1,
+        DISPID_SVESentenceBoundary        = DISPID_SVEPhoneme + 1,
+        DISPID_SVEViseme        = DISPID_SVESentenceBoundary + 1,
+        DISPID_SVEAudioLevel        = DISPID_SVEViseme + 1,
+        DISPID_SVEEnginePrivate        = DISPID_SVEAudioLevel + 1
+    }         DISPID_SpeechVoiceEvent;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecognizer
-    {	DISPID_SRRecognizer	= 1,
-	DISPID_SRAllowAudioInputFormatChangesOnNextSet	= DISPID_SRRecognizer + 1,
-	DISPID_SRAudioInput	= DISPID_SRAllowAudioInputFormatChangesOnNextSet + 1,
-	DISPID_SRAudioInputStream	= DISPID_SRAudioInput + 1,
-	DISPID_SRIsShared	= DISPID_SRAudioInputStream + 1,
-	DISPID_SRState	= DISPID_SRIsShared + 1,
-	DISPID_SRStatus	= DISPID_SRState + 1,
-	DISPID_SRProfile	= DISPID_SRStatus + 1,
-	DISPID_SREmulateRecognition	= DISPID_SRProfile + 1,
-	DISPID_SRCreateRecoContext	= DISPID_SREmulateRecognition + 1,
-	DISPID_SRGetFormat	= DISPID_SRCreateRecoContext + 1,
-	DISPID_SRSetPropertyNumber	= DISPID_SRGetFormat + 1,
-	DISPID_SRGetPropertyNumber	= DISPID_SRSetPropertyNumber + 1,
-	DISPID_SRSetPropertyString	= DISPID_SRGetPropertyNumber + 1,
-	DISPID_SRGetPropertyString	= DISPID_SRSetPropertyString + 1,
-	DISPID_SRIsUISupported	= DISPID_SRGetPropertyString + 1,
-	DISPID_SRDisplayUI	= DISPID_SRIsUISupported + 1,
-	DISPID_SRGetRecognizers	= DISPID_SRDisplayUI + 1,
-	DISPID_SVGetAudioInputs	= DISPID_SRGetRecognizers + 1,
-	DISPID_SVGetProfiles	= DISPID_SVGetAudioInputs + 1
-    } 	DISPID_SpeechRecognizer;
+    {        DISPID_SRRecognizer        = 1,
+        DISPID_SRAllowAudioInputFormatChangesOnNextSet        = DISPID_SRRecognizer + 1,
+        DISPID_SRAudioInput        = DISPID_SRAllowAudioInputFormatChangesOnNextSet + 1,
+        DISPID_SRAudioInputStream        = DISPID_SRAudioInput + 1,
+        DISPID_SRIsShared        = DISPID_SRAudioInputStream + 1,
+        DISPID_SRState        = DISPID_SRIsShared + 1,
+        DISPID_SRStatus        = DISPID_SRState + 1,
+        DISPID_SRProfile        = DISPID_SRStatus + 1,
+        DISPID_SREmulateRecognition        = DISPID_SRProfile + 1,
+        DISPID_SRCreateRecoContext        = DISPID_SREmulateRecognition + 1,
+        DISPID_SRGetFormat        = DISPID_SRCreateRecoContext + 1,
+        DISPID_SRSetPropertyNumber        = DISPID_SRGetFormat + 1,
+        DISPID_SRGetPropertyNumber        = DISPID_SRSetPropertyNumber + 1,
+        DISPID_SRSetPropertyString        = DISPID_SRGetPropertyNumber + 1,
+        DISPID_SRGetPropertyString        = DISPID_SRSetPropertyString + 1,
+        DISPID_SRIsUISupported        = DISPID_SRGetPropertyString + 1,
+        DISPID_SRDisplayUI        = DISPID_SRIsUISupported + 1,
+        DISPID_SRGetRecognizers        = DISPID_SRDisplayUI + 1,
+        DISPID_SVGetAudioInputs        = DISPID_SRGetRecognizers + 1,
+        DISPID_SVGetProfiles        = DISPID_SVGetAudioInputs + 1
+    }         DISPID_SpeechRecognizer;
 
 typedef 
 enum SpeechRecognizerState
-    {	SRSInactive	= SPRST_INACTIVE,
-	SRSActive	= SPRST_ACTIVE,
-	SRSActiveAlways	= SPRST_ACTIVE_ALWAYS,
-	SRSInactiveWithPurge	= SPRST_INACTIVE_WITH_PURGE
-    } 	SpeechRecognizerState;
+    {        SRSInactive        = SPRST_INACTIVE,
+        SRSActive        = SPRST_ACTIVE,
+        SRSActiveAlways        = SPRST_ACTIVE_ALWAYS,
+        SRSInactiveWithPurge        = SPRST_INACTIVE_WITH_PURGE
+    }         SpeechRecognizerState;
 
 typedef 
 enum SpeechDisplayAttributes
-    {	SDA_No_Trailing_Space	= 0,
-	SDA_One_Trailing_Space	= SPAF_ONE_TRAILING_SPACE,
-	SDA_Two_Trailing_Spaces	= SPAF_TWO_TRAILING_SPACES,
-	SDA_Consume_Leading_Spaces	= SPAF_CONSUME_LEADING_SPACES
-    } 	SpeechDisplayAttributes;
+    {        SDA_No_Trailing_Space        = 0,
+        SDA_One_Trailing_Space        = SPAF_ONE_TRAILING_SPACE,
+        SDA_Two_Trailing_Spaces        = SPAF_TWO_TRAILING_SPACES,
+        SDA_Consume_Leading_Spaces        = SPAF_CONSUME_LEADING_SPACES
+    }         SpeechDisplayAttributes;
 
 typedef 
 enum SpeechFormatType
-    {	SFTInput	= SPWF_INPUT,
-	SFTSREngine	= SPWF_SRENGINE
-    } 	SpeechFormatType;
+    {        SFTInput        = SPWF_INPUT,
+        SFTSREngine        = SPWF_SRENGINE
+    }         SpeechFormatType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecognizerStatus
-    {	DISPID_SRSAudioStatus	= 1,
-	DISPID_SRSCurrentStreamPosition	= DISPID_SRSAudioStatus + 1,
-	DISPID_SRSCurrentStreamNumber	= DISPID_SRSCurrentStreamPosition + 1,
-	DISPID_SRSNumberOfActiveRules	= DISPID_SRSCurrentStreamNumber + 1,
-	DISPID_SRSClsidEngine	= DISPID_SRSNumberOfActiveRules + 1,
-	DISPID_SRSSupportedLanguages	= DISPID_SRSClsidEngine + 1
-    } 	DISPID_SpeechRecognizerStatus;
+    {        DISPID_SRSAudioStatus        = 1,
+        DISPID_SRSCurrentStreamPosition        = DISPID_SRSAudioStatus + 1,
+        DISPID_SRSCurrentStreamNumber        = DISPID_SRSCurrentStreamPosition + 1,
+        DISPID_SRSNumberOfActiveRules        = DISPID_SRSCurrentStreamNumber + 1,
+        DISPID_SRSClsidEngine        = DISPID_SRSNumberOfActiveRules + 1,
+        DISPID_SRSSupportedLanguages        = DISPID_SRSClsidEngine + 1
+    }         DISPID_SpeechRecognizerStatus;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecoContext
-    {	DISPID_SRCRecognizer	= 1,
-	DISPID_SRCAudioInInterferenceStatus	= DISPID_SRCRecognizer + 1,
-	DISPID_SRCRequestedUIType	= DISPID_SRCAudioInInterferenceStatus + 1,
-	DISPID_SRCVoice	= DISPID_SRCRequestedUIType + 1,
-	DISPID_SRAllowVoiceFormatMatchingOnNextSet	= DISPID_SRCVoice + 1,
-	DISPID_SRCVoicePurgeEvent	= DISPID_SRAllowVoiceFormatMatchingOnNextSet + 1,
-	DISPID_SRCEventInterests	= DISPID_SRCVoicePurgeEvent + 1,
-	DISPID_SRCCmdMaxAlternates	= DISPID_SRCEventInterests + 1,
-	DISPID_SRCState	= DISPID_SRCCmdMaxAlternates + 1,
-	DISPID_SRCRetainedAudio	= DISPID_SRCState + 1,
-	DISPID_SRCRetainedAudioFormat	= DISPID_SRCRetainedAudio + 1,
-	DISPID_SRCPause	= DISPID_SRCRetainedAudioFormat + 1,
-	DISPID_SRCResume	= DISPID_SRCPause + 1,
-	DISPID_SRCCreateGrammar	= DISPID_SRCResume + 1,
-	DISPID_SRCCreateResultFromMemory	= DISPID_SRCCreateGrammar + 1,
-	DISPID_SRCBookmark	= DISPID_SRCCreateResultFromMemory + 1,
-	DISPID_SRCSetAdaptationData	= DISPID_SRCBookmark + 1
-    } 	DISPID_SpeechRecoContext;
+    {        DISPID_SRCRecognizer        = 1,
+        DISPID_SRCAudioInInterferenceStatus        = DISPID_SRCRecognizer + 1,
+        DISPID_SRCRequestedUIType        = DISPID_SRCAudioInInterferenceStatus + 1,
+        DISPID_SRCVoice        = DISPID_SRCRequestedUIType + 1,
+        DISPID_SRAllowVoiceFormatMatchingOnNextSet        = DISPID_SRCVoice + 1,
+        DISPID_SRCVoicePurgeEvent        = DISPID_SRAllowVoiceFormatMatchingOnNextSet + 1,
+        DISPID_SRCEventInterests        = DISPID_SRCVoicePurgeEvent + 1,
+        DISPID_SRCCmdMaxAlternates        = DISPID_SRCEventInterests + 1,
+        DISPID_SRCState        = DISPID_SRCCmdMaxAlternates + 1,
+        DISPID_SRCRetainedAudio        = DISPID_SRCState + 1,
+        DISPID_SRCRetainedAudioFormat        = DISPID_SRCRetainedAudio + 1,
+        DISPID_SRCPause        = DISPID_SRCRetainedAudioFormat + 1,
+        DISPID_SRCResume        = DISPID_SRCPause + 1,
+        DISPID_SRCCreateGrammar        = DISPID_SRCResume + 1,
+        DISPID_SRCCreateResultFromMemory        = DISPID_SRCCreateGrammar + 1,
+        DISPID_SRCBookmark        = DISPID_SRCCreateResultFromMemory + 1,
+        DISPID_SRCSetAdaptationData        = DISPID_SRCBookmark + 1
+    }         DISPID_SpeechRecoContext;
 
 typedef 
 enum SpeechRetainedAudioOptions
-    {	SRAONone	= SPAO_NONE,
-	SRAORetainAudio	= SPAO_RETAIN_AUDIO
-    } 	SpeechRetainedAudioOptions;
+    {        SRAONone        = SPAO_NONE,
+        SRAORetainAudio        = SPAO_RETAIN_AUDIO
+    }         SpeechRetainedAudioOptions;
 
 typedef 
 enum SpeechBookmarkOptions
-    {	SBONone	= SPBO_NONE,
-	SBOPause	= SPBO_PAUSE
-    } 	SpeechBookmarkOptions;
+    {        SBONone        = SPBO_NONE,
+        SBOPause        = SPBO_PAUSE
+    }         SpeechBookmarkOptions;
 
 typedef 
 enum SpeechInterference
-    {	SINone	= SPINTERFERENCE_NONE,
-	SINoise	= SPINTERFERENCE_NOISE,
-	SINoSignal	= SPINTERFERENCE_NOSIGNAL,
-	SITooLoud	= SPINTERFERENCE_TOOLOUD,
-	SITooQuiet	= SPINTERFERENCE_TOOQUIET,
-	SITooFast	= SPINTERFERENCE_TOOFAST,
-	SITooSlow	= SPINTERFERENCE_TOOSLOW
-    } 	SpeechInterference;
+    {        SINone        = SPINTERFERENCE_NONE,
+        SINoise        = SPINTERFERENCE_NOISE,
+        SINoSignal        = SPINTERFERENCE_NOSIGNAL,
+        SITooLoud        = SPINTERFERENCE_TOOLOUD,
+        SITooQuiet        = SPINTERFERENCE_TOOQUIET,
+        SITooFast        = SPINTERFERENCE_TOOFAST,
+        SITooSlow        = SPINTERFERENCE_TOOSLOW
+    }         SpeechInterference;
 
 typedef 
 enum SpeechRecoEvents
-    {	SREStreamEnd	= 1L << 0,
-	SRESoundStart	= 1L << 1,
-	SRESoundEnd	= 1L << 2,
-	SREPhraseStart	= 1L << 3,
-	SRERecognition	= 1L << 4,
-	SREHypothesis	= 1L << 5,
-	SREBookmark	= 1L << 6,
-	SREPropertyNumChange	= 1L << 7,
-	SREPropertyStringChange	= 1L << 8,
-	SREFalseRecognition	= 1L << 9,
-	SREInterference	= 1L << 10,
-	SRERequestUI	= 1L << 11,
-	SREStateChange	= 1L << 12,
-	SREAdaptation	= 1L << 13,
-	SREStreamStart	= 1L << 14,
-	SRERecoOtherContext	= 1L << 15,
-	SREAudioLevel	= 1L << 16,
-	SREPrivate	= 1L << 18,
-	SREAllEvents	= 0x5ffff
-    } 	SpeechRecoEvents;
+    {        SREStreamEnd        = 1L << 0,
+        SRESoundStart        = 1L << 1,
+        SRESoundEnd        = 1L << 2,
+        SREPhraseStart        = 1L << 3,
+        SRERecognition        = 1L << 4,
+        SREHypothesis        = 1L << 5,
+        SREBookmark        = 1L << 6,
+        SREPropertyNumChange        = 1L << 7,
+        SREPropertyStringChange        = 1L << 8,
+        SREFalseRecognition        = 1L << 9,
+        SREInterference        = 1L << 10,
+        SRERequestUI        = 1L << 11,
+        SREStateChange        = 1L << 12,
+        SREAdaptation        = 1L << 13,
+        SREStreamStart        = 1L << 14,
+        SRERecoOtherContext        = 1L << 15,
+        SREAudioLevel        = 1L << 16,
+        SREPrivate        = 1L << 18,
+        SREAllEvents        = 0x5ffff
+    }         SpeechRecoEvents;
 
 typedef 
 enum SpeechRecoContextState
-    {	SRCS_Disabled	= SPCS_DISABLED,
-	SRCS_Enabled	= SPCS_ENABLED
-    } 	SpeechRecoContextState;
+    {        SRCS_Disabled        = SPCS_DISABLED,
+        SRCS_Enabled        = SPCS_ENABLED
+    }         SpeechRecoContextState;
 
 typedef /* [hidden] */ 
 enum DISPIDSPRG
-    {	DISPID_SRGId	= 1,
-	DISPID_SRGRecoContext	= DISPID_SRGId + 1,
-	DISPID_SRGState	= DISPID_SRGRecoContext + 1,
-	DISPID_SRGRules	= DISPID_SRGState + 1,
-	DISPID_SRGReset	= DISPID_SRGRules + 1,
-	DISPID_SRGCommit	= DISPID_SRGReset + 1,
-	DISPID_SRGCmdLoadFromFile	= DISPID_SRGCommit + 1,
-	DISPID_SRGCmdLoadFromObject	= DISPID_SRGCmdLoadFromFile + 1,
-	DISPID_SRGCmdLoadFromResource	= DISPID_SRGCmdLoadFromObject + 1,
-	DISPID_SRGCmdLoadFromMemory	= DISPID_SRGCmdLoadFromResource + 1,
-	DISPID_SRGCmdLoadFromProprietaryGrammar	= DISPID_SRGCmdLoadFromMemory + 1,
-	DISPID_SRGCmdSetRuleState	= DISPID_SRGCmdLoadFromProprietaryGrammar + 1,
-	DISPID_SRGCmdSetRuleIdState	= DISPID_SRGCmdSetRuleState + 1,
-	DISPID_SRGDictationLoad	= DISPID_SRGCmdSetRuleIdState + 1,
-	DISPID_SRGDictationUnload	= DISPID_SRGDictationLoad + 1,
-	DISPID_SRGDictationSetState	= DISPID_SRGDictationUnload + 1,
-	DISPID_SRGSetWordSequenceData	= DISPID_SRGDictationSetState + 1,
-	DISPID_SRGSetTextSelection	= DISPID_SRGSetWordSequenceData + 1,
-	DISPID_SRGIsPronounceable	= DISPID_SRGSetTextSelection + 1
-    } 	DISPIDSPRG;
+    {        DISPID_SRGId        = 1,
+        DISPID_SRGRecoContext        = DISPID_SRGId + 1,
+        DISPID_SRGState        = DISPID_SRGRecoContext + 1,
+        DISPID_SRGRules        = DISPID_SRGState + 1,
+        DISPID_SRGReset        = DISPID_SRGRules + 1,
+        DISPID_SRGCommit        = DISPID_SRGReset + 1,
+        DISPID_SRGCmdLoadFromFile        = DISPID_SRGCommit + 1,
+        DISPID_SRGCmdLoadFromObject        = DISPID_SRGCmdLoadFromFile + 1,
+        DISPID_SRGCmdLoadFromResource        = DISPID_SRGCmdLoadFromObject + 1,
+        DISPID_SRGCmdLoadFromMemory        = DISPID_SRGCmdLoadFromResource + 1,
+        DISPID_SRGCmdLoadFromProprietaryGrammar        = DISPID_SRGCmdLoadFromMemory + 1,
+        DISPID_SRGCmdSetRuleState        = DISPID_SRGCmdLoadFromProprietaryGrammar + 1,
+        DISPID_SRGCmdSetRuleIdState        = DISPID_SRGCmdSetRuleState + 1,
+        DISPID_SRGDictationLoad        = DISPID_SRGCmdSetRuleIdState + 1,
+        DISPID_SRGDictationUnload        = DISPID_SRGDictationLoad + 1,
+        DISPID_SRGDictationSetState        = DISPID_SRGDictationUnload + 1,
+        DISPID_SRGSetWordSequenceData        = DISPID_SRGDictationSetState + 1,
+        DISPID_SRGSetTextSelection        = DISPID_SRGSetWordSequenceData + 1,
+        DISPID_SRGIsPronounceable        = DISPID_SRGSetTextSelection + 1
+    }         DISPIDSPRG;
 
 typedef 
 enum SpeechLoadOption
-    {	SLOStatic	= SPLO_STATIC,
-	SLODynamic	= SPLO_DYNAMIC
-    } 	SpeechLoadOption;
+    {        SLOStatic        = SPLO_STATIC,
+        SLODynamic        = SPLO_DYNAMIC
+    }         SpeechLoadOption;
 
 typedef 
 enum SpeechWordPronounceable
-    {	SWPUnknownWordUnpronounceable	= SPWP_UNKNOWN_WORD_UNPRONOUNCEABLE,
-	SWPUnknownWordPronounceable	= SPWP_UNKNOWN_WORD_PRONOUNCEABLE,
-	SWPKnownWordPronounceable	= SPWP_KNOWN_WORD_PRONOUNCEABLE
-    } 	SpeechWordPronounceable;
+    {        SWPUnknownWordUnpronounceable        = SPWP_UNKNOWN_WORD_UNPRONOUNCEABLE,
+        SWPUnknownWordPronounceable        = SPWP_UNKNOWN_WORD_PRONOUNCEABLE,
+        SWPKnownWordPronounceable        = SPWP_KNOWN_WORD_PRONOUNCEABLE
+    }         SpeechWordPronounceable;
 
 typedef 
 enum SpeechGrammarState
-    {	SGSEnabled	= SPGS_ENABLED,
-	SGSDisabled	= SPGS_DISABLED,
-	SGSExclusive	= SPGS_EXCLUSIVE
-    } 	SpeechGrammarState;
+    {        SGSEnabled        = SPGS_ENABLED,
+        SGSDisabled        = SPGS_DISABLED,
+        SGSExclusive        = SPGS_EXCLUSIVE
+    }         SpeechGrammarState;
 
 typedef 
 enum SpeechRuleState
-    {	SGDSInactive	= SPRS_INACTIVE,
-	SGDSActive	= SPRS_ACTIVE,
-	SGDSActiveWithAutoPause	= SPRS_ACTIVE_WITH_AUTO_PAUSE
-    } 	SpeechRuleState;
+    {        SGDSInactive        = SPRS_INACTIVE,
+        SGDSActive        = SPRS_ACTIVE,
+        SGDSActiveWithAutoPause        = SPRS_ACTIVE_WITH_AUTO_PAUSE
+    }         SpeechRuleState;
 
 typedef 
 enum SpeechRuleAttributes
-    {	SRATopLevel	= SPRAF_TopLevel,
-	SRADefaultToActive	= SPRAF_Active,
-	SRAExport	= SPRAF_Export,
-	SRAImport	= SPRAF_Import,
-	SRAInterpreter	= SPRAF_Interpreter,
-	SRADynamic	= SPRAF_Dynamic
-    } 	SpeechRuleAttributes;
+    {        SRATopLevel        = SPRAF_TopLevel,
+        SRADefaultToActive        = SPRAF_Active,
+        SRAExport        = SPRAF_Export,
+        SRAImport        = SPRAF_Import,
+        SRAInterpreter        = SPRAF_Interpreter,
+        SRADynamic        = SPRAF_Dynamic
+    }         SpeechRuleAttributes;
 
 typedef 
 enum SpeechGrammarWordType
-    {	SGDisplay	= SPWT_DISPLAY,
-	SGLexical	= SPWT_LEXICAL,
-	SGPronounciation	= SPWT_PRONUNCIATION
-    } 	SpeechGrammarWordType;
+    {        SGDisplay        = SPWT_DISPLAY,
+        SGLexical        = SPWT_LEXICAL,
+        SGPronounciation        = SPWT_PRONUNCIATION
+    }         SpeechGrammarWordType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecoContextEvents
-    {	DISPID_SRCEStartStream	= 1,
-	DISPID_SRCEEndStream	= DISPID_SRCEStartStream + 1,
-	DISPID_SRCEBookmark	= DISPID_SRCEEndStream + 1,
-	DISPID_SRCESoundStart	= DISPID_SRCEBookmark + 1,
-	DISPID_SRCESoundEnd	= DISPID_SRCESoundStart + 1,
-	DISPID_SRCEPhraseStart	= DISPID_SRCESoundEnd + 1,
-	DISPID_SRCERecognition	= DISPID_SRCEPhraseStart + 1,
-	DISPID_SRCEHypothesis	= DISPID_SRCERecognition + 1,
-	DISPID_SRCEPropertyNumberChange	= DISPID_SRCEHypothesis + 1,
-	DISPID_SRCEPropertyStringChange	= DISPID_SRCEPropertyNumberChange + 1,
-	DISPID_SRCEFalseRecognition	= DISPID_SRCEPropertyStringChange + 1,
-	DISPID_SRCEInterference	= DISPID_SRCEFalseRecognition + 1,
-	DISPID_SRCERequestUI	= DISPID_SRCEInterference + 1,
-	DISPID_SRCERecognizerStateChange	= DISPID_SRCERequestUI + 1,
-	DISPID_SRCEAdaptation	= DISPID_SRCERecognizerStateChange + 1,
-	DISPID_SRCERecognitionForOtherContext	= DISPID_SRCEAdaptation + 1,
-	DISPID_SRCEAudioLevel	= DISPID_SRCERecognitionForOtherContext + 1,
-	DISPID_SRCEEnginePrivate	= DISPID_SRCEAudioLevel + 1
-    } 	DISPID_SpeechRecoContextEvents;
+    {        DISPID_SRCEStartStream        = 1,
+        DISPID_SRCEEndStream        = DISPID_SRCEStartStream + 1,
+        DISPID_SRCEBookmark        = DISPID_SRCEEndStream + 1,
+        DISPID_SRCESoundStart        = DISPID_SRCEBookmark + 1,
+        DISPID_SRCESoundEnd        = DISPID_SRCESoundStart + 1,
+        DISPID_SRCEPhraseStart        = DISPID_SRCESoundEnd + 1,
+        DISPID_SRCERecognition        = DISPID_SRCEPhraseStart + 1,
+        DISPID_SRCEHypothesis        = DISPID_SRCERecognition + 1,
+        DISPID_SRCEPropertyNumberChange        = DISPID_SRCEHypothesis + 1,
+        DISPID_SRCEPropertyStringChange        = DISPID_SRCEPropertyNumberChange + 1,
+        DISPID_SRCEFalseRecognition        = DISPID_SRCEPropertyStringChange + 1,
+        DISPID_SRCEInterference        = DISPID_SRCEFalseRecognition + 1,
+        DISPID_SRCERequestUI        = DISPID_SRCEInterference + 1,
+        DISPID_SRCERecognizerStateChange        = DISPID_SRCERequestUI + 1,
+        DISPID_SRCEAdaptation        = DISPID_SRCERecognizerStateChange + 1,
+        DISPID_SRCERecognitionForOtherContext        = DISPID_SRCEAdaptation + 1,
+        DISPID_SRCEAudioLevel        = DISPID_SRCERecognitionForOtherContext + 1,
+        DISPID_SRCEEnginePrivate        = DISPID_SRCEAudioLevel + 1
+    }         DISPID_SpeechRecoContextEvents;
 
 typedef 
 enum SpeechRecognitionType
-    {	SRTStandard	= 0,
-	SRTAutopause	= SPREF_AutoPause,
-	SRTEmulated	= SPREF_Emulated
-    } 	SpeechRecognitionType;
+    {        SRTStandard        = 0,
+        SRTAutopause        = SPREF_AutoPause,
+        SRTEmulated        = SPREF_Emulated
+    }         SpeechRecognitionType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechGrammarRule
-    {	DISPID_SGRAttributes	= 1,
-	DISPID_SGRInitialState	= DISPID_SGRAttributes + 1,
-	DISPID_SGRName	= DISPID_SGRInitialState + 1,
-	DISPID_SGRId	= DISPID_SGRName + 1,
-	DISPID_SGRClear	= DISPID_SGRId + 1,
-	DISPID_SGRAddResource	= DISPID_SGRClear + 1,
-	DISPID_SGRAddState	= DISPID_SGRAddResource + 1
-    } 	DISPID_SpeechGrammarRule;
+    {        DISPID_SGRAttributes        = 1,
+        DISPID_SGRInitialState        = DISPID_SGRAttributes + 1,
+        DISPID_SGRName        = DISPID_SGRInitialState + 1,
+        DISPID_SGRId        = DISPID_SGRName + 1,
+        DISPID_SGRClear        = DISPID_SGRId + 1,
+        DISPID_SGRAddResource        = DISPID_SGRClear + 1,
+        DISPID_SGRAddState        = DISPID_SGRAddResource + 1
+    }         DISPID_SpeechGrammarRule;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechGrammarRules
-    {	DISPID_SGRsCount	= 1,
-	DISPID_SGRsDynamic	= DISPID_SGRsCount + 1,
-	DISPID_SGRsAdd	= DISPID_SGRsDynamic + 1,
-	DISPID_SGRsCommit	= DISPID_SGRsAdd + 1,
-	DISPID_SGRsCommitAndSave	= DISPID_SGRsCommit + 1,
-	DISPID_SGRsFindRule	= DISPID_SGRsCommitAndSave + 1,
-	DISPID_SGRsItem	= DISPID_VALUE,
-	DISPID_SGRs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechGrammarRules;
+    {        DISPID_SGRsCount        = 1,
+        DISPID_SGRsDynamic        = DISPID_SGRsCount + 1,
+        DISPID_SGRsAdd        = DISPID_SGRsDynamic + 1,
+        DISPID_SGRsCommit        = DISPID_SGRsAdd + 1,
+        DISPID_SGRsCommitAndSave        = DISPID_SGRsCommit + 1,
+        DISPID_SGRsFindRule        = DISPID_SGRsCommitAndSave + 1,
+        DISPID_SGRsItem        = DISPID_VALUE,
+        DISPID_SGRs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechGrammarRules;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechGrammarRuleState
-    {	DISPID_SGRSRule	= 1,
-	DISPID_SGRSTransitions	= DISPID_SGRSRule + 1,
-	DISPID_SGRSAddWordTransition	= DISPID_SGRSTransitions + 1,
-	DISPID_SGRSAddRuleTransition	= DISPID_SGRSAddWordTransition + 1,
-	DISPID_SGRSAddSpecialTransition	= DISPID_SGRSAddRuleTransition + 1
-    } 	DISPID_SpeechGrammarRuleState;
+    {        DISPID_SGRSRule        = 1,
+        DISPID_SGRSTransitions        = DISPID_SGRSRule + 1,
+        DISPID_SGRSAddWordTransition        = DISPID_SGRSTransitions + 1,
+        DISPID_SGRSAddRuleTransition        = DISPID_SGRSAddWordTransition + 1,
+        DISPID_SGRSAddSpecialTransition        = DISPID_SGRSAddRuleTransition + 1
+    }         DISPID_SpeechGrammarRuleState;
 
 typedef 
 enum SpeechSpecialTransitionType
-    {	SSTTWildcard	= 1,
-	SSTTDictation	= SSTTWildcard + 1,
-	SSTTTextBuffer	= SSTTDictation + 1
-    } 	SpeechSpecialTransitionType;
+    {        SSTTWildcard        = 1,
+        SSTTDictation        = SSTTWildcard + 1,
+        SSTTTextBuffer        = SSTTDictation + 1
+    }         SpeechSpecialTransitionType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechGrammarRuleStateTransitions
-    {	DISPID_SGRSTsCount	= 1,
-	DISPID_SGRSTsItem	= DISPID_VALUE,
-	DISPID_SGRSTs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechGrammarRuleStateTransitions;
+    {        DISPID_SGRSTsCount        = 1,
+        DISPID_SGRSTsItem        = DISPID_VALUE,
+        DISPID_SGRSTs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechGrammarRuleStateTransitions;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechGrammarRuleStateTransition
-    {	DISPID_SGRSTType	= 1,
-	DISPID_SGRSTText	= DISPID_SGRSTType + 1,
-	DISPID_SGRSTRule	= DISPID_SGRSTText + 1,
-	DISPID_SGRSTWeight	= DISPID_SGRSTRule + 1,
-	DISPID_SGRSTPropertyName	= DISPID_SGRSTWeight + 1,
-	DISPID_SGRSTPropertyId	= DISPID_SGRSTPropertyName + 1,
-	DISPID_SGRSTPropertyValue	= DISPID_SGRSTPropertyId + 1,
-	DISPID_SGRSTNextState	= DISPID_SGRSTPropertyValue + 1
-    } 	DISPID_SpeechGrammarRuleStateTransition;
+    {        DISPID_SGRSTType        = 1,
+        DISPID_SGRSTText        = DISPID_SGRSTType + 1,
+        DISPID_SGRSTRule        = DISPID_SGRSTText + 1,
+        DISPID_SGRSTWeight        = DISPID_SGRSTRule + 1,
+        DISPID_SGRSTPropertyName        = DISPID_SGRSTWeight + 1,
+        DISPID_SGRSTPropertyId        = DISPID_SGRSTPropertyName + 1,
+        DISPID_SGRSTPropertyValue        = DISPID_SGRSTPropertyId + 1,
+        DISPID_SGRSTNextState        = DISPID_SGRSTPropertyValue + 1
+    }         DISPID_SpeechGrammarRuleStateTransition;
 
 typedef 
 enum SpeechGrammarRuleStateTransitionType
-    {	SGRSTTEpsilon	= 0,
-	SGRSTTWord	= SGRSTTEpsilon + 1,
-	SGRSTTRule	= SGRSTTWord + 1,
-	SGRSTTDictation	= SGRSTTRule + 1,
-	SGRSTTWildcard	= SGRSTTDictation + 1,
-	SGRSTTTextBuffer	= SGRSTTWildcard + 1
-    } 	SpeechGrammarRuleStateTransitionType;
+    {        SGRSTTEpsilon        = 0,
+        SGRSTTWord        = SGRSTTEpsilon + 1,
+        SGRSTTRule        = SGRSTTWord + 1,
+        SGRSTTDictation        = SGRSTTRule + 1,
+        SGRSTTWildcard        = SGRSTTDictation + 1,
+        SGRSTTTextBuffer        = SGRSTTWildcard + 1
+    }         SpeechGrammarRuleStateTransitionType;
 
 typedef /* [hidden] */ 
 enum DISPIDSPTSI
-    {	DISPIDSPTSI_ActiveOffset	= 1,
-	DISPIDSPTSI_ActiveLength	= DISPIDSPTSI_ActiveOffset + 1,
-	DISPIDSPTSI_SelectionOffset	= DISPIDSPTSI_ActiveLength + 1,
-	DISPIDSPTSI_SelectionLength	= DISPIDSPTSI_SelectionOffset + 1
-    } 	DISPIDSPTSI;
+    {        DISPIDSPTSI_ActiveOffset        = 1,
+        DISPIDSPTSI_ActiveLength        = DISPIDSPTSI_ActiveOffset + 1,
+        DISPIDSPTSI_SelectionOffset        = DISPIDSPTSI_ActiveLength + 1,
+        DISPIDSPTSI_SelectionLength        = DISPIDSPTSI_SelectionOffset + 1
+    }         DISPIDSPTSI;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecoResult
-    {	DISPID_SRRRecoContext	= 1,
-	DISPID_SRRTimes	= DISPID_SRRRecoContext + 1,
-	DISPID_SRRAudioFormat	= DISPID_SRRTimes + 1,
-	DISPID_SRRPhraseInfo	= DISPID_SRRAudioFormat + 1,
-	DISPID_SRRAlternates	= DISPID_SRRPhraseInfo + 1,
-	DISPID_SRRAudio	= DISPID_SRRAlternates + 1,
-	DISPID_SRRSpeakAudio	= DISPID_SRRAudio + 1,
-	DISPID_SRRSaveToMemory	= DISPID_SRRSpeakAudio + 1,
-	DISPID_SRRDiscardResultInfo	= DISPID_SRRSaveToMemory + 1
-    } 	DISPID_SpeechRecoResult;
+    {        DISPID_SRRRecoContext        = 1,
+        DISPID_SRRTimes        = DISPID_SRRRecoContext + 1,
+        DISPID_SRRAudioFormat        = DISPID_SRRTimes + 1,
+        DISPID_SRRPhraseInfo        = DISPID_SRRAudioFormat + 1,
+        DISPID_SRRAlternates        = DISPID_SRRPhraseInfo + 1,
+        DISPID_SRRAudio        = DISPID_SRRAlternates + 1,
+        DISPID_SRRSpeakAudio        = DISPID_SRRAudio + 1,
+        DISPID_SRRSaveToMemory        = DISPID_SRRSpeakAudio + 1,
+        DISPID_SRRDiscardResultInfo        = DISPID_SRRSaveToMemory + 1
+    }         DISPID_SpeechRecoResult;
 
 typedef 
 enum SpeechDiscardType
-    {	SDTProperty	= SPDF_PROPERTY,
-	SDTReplacement	= SPDF_REPLACEMENT,
-	SDTRule	= SPDF_RULE,
-	SDTDisplayText	= SPDF_DISPLAYTEXT,
-	SDTLexicalForm	= SPDF_LEXICALFORM,
-	SDTPronunciation	= SPDF_PRONUNCIATION,
-	SDTAudio	= SPDF_AUDIO,
-	SDTAlternates	= SPDF_ALTERNATES,
-	SDTAll	= SPDF_ALL
-    } 	SpeechDiscardType;
+    {        SDTProperty        = SPDF_PROPERTY,
+        SDTReplacement        = SPDF_REPLACEMENT,
+        SDTRule        = SPDF_RULE,
+        SDTDisplayText        = SPDF_DISPLAYTEXT,
+        SDTLexicalForm        = SPDF_LEXICALFORM,
+        SDTPronunciation        = SPDF_PRONUNCIATION,
+        SDTAudio        = SPDF_AUDIO,
+        SDTAlternates        = SPDF_ALTERNATES,
+        SDTAll        = SPDF_ALL
+    }         SpeechDiscardType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseBuilder
-    {	DISPID_SPPBRestorePhraseFromMemory	= 1
-    } 	DISPID_SpeechPhraseBuilder;
+    {        DISPID_SPPBRestorePhraseFromMemory        = 1
+    }         DISPID_SpeechPhraseBuilder;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechRecoResultTimes
-    {	DISPID_SRRTStreamTime	= 1,
-	DISPID_SRRTLength	= DISPID_SRRTStreamTime + 1,
-	DISPID_SRRTTickCount	= DISPID_SRRTLength + 1,
-	DISPID_SRRTOffsetFromStart	= DISPID_SRRTTickCount + 1
-    } 	DISPID_SpeechRecoResultTimes;
+    {        DISPID_SRRTStreamTime        = 1,
+        DISPID_SRRTLength        = DISPID_SRRTStreamTime + 1,
+        DISPID_SRRTTickCount        = DISPID_SRRTLength + 1,
+        DISPID_SRRTOffsetFromStart        = DISPID_SRRTTickCount + 1
+    }         DISPID_SpeechRecoResultTimes;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseAlternate
-    {	DISPID_SPARecoResult	= 1,
-	DISPID_SPAStartElementInResult	= DISPID_SPARecoResult + 1,
-	DISPID_SPANumberOfElementsInResult	= DISPID_SPAStartElementInResult + 1,
-	DISPID_SPAPhraseInfo	= DISPID_SPANumberOfElementsInResult + 1,
-	DISPID_SPACommit	= DISPID_SPAPhraseInfo + 1
-    } 	DISPID_SpeechPhraseAlternate;
+    {        DISPID_SPARecoResult        = 1,
+        DISPID_SPAStartElementInResult        = DISPID_SPARecoResult + 1,
+        DISPID_SPANumberOfElementsInResult        = DISPID_SPAStartElementInResult + 1,
+        DISPID_SPAPhraseInfo        = DISPID_SPANumberOfElementsInResult + 1,
+        DISPID_SPACommit        = DISPID_SPAPhraseInfo + 1
+    }         DISPID_SpeechPhraseAlternate;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseAlternates
-    {	DISPID_SPAsCount	= 1,
-	DISPID_SPAsItem	= DISPID_VALUE,
-	DISPID_SPAs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechPhraseAlternates;
+    {        DISPID_SPAsCount        = 1,
+        DISPID_SPAsItem        = DISPID_VALUE,
+        DISPID_SPAs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechPhraseAlternates;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseInfo
-    {	DISPID_SPILanguageId	= 1,
-	DISPID_SPIGrammarId	= DISPID_SPILanguageId + 1,
-	DISPID_SPIStartTime	= DISPID_SPIGrammarId + 1,
-	DISPID_SPIAudioStreamPosition	= DISPID_SPIStartTime + 1,
-	DISPID_SPIAudioSizeBytes	= DISPID_SPIAudioStreamPosition + 1,
-	DISPID_SPIRetainedSizeBytes	= DISPID_SPIAudioSizeBytes + 1,
-	DISPID_SPIAudioSizeTime	= DISPID_SPIRetainedSizeBytes + 1,
-	DISPID_SPIRule	= DISPID_SPIAudioSizeTime + 1,
-	DISPID_SPIProperties	= DISPID_SPIRule + 1,
-	DISPID_SPIElements	= DISPID_SPIProperties + 1,
-	DISPID_SPIReplacements	= DISPID_SPIElements + 1,
-	DISPID_SPIEngineId	= DISPID_SPIReplacements + 1,
-	DISPID_SPIEnginePrivateData	= DISPID_SPIEngineId + 1,
-	DISPID_SPISaveToMemory	= DISPID_SPIEnginePrivateData + 1,
-	DISPID_SPIGetText	= DISPID_SPISaveToMemory + 1,
-	DISPID_SPIGetDisplayAttributes	= DISPID_SPIGetText + 1
-    } 	DISPID_SpeechPhraseInfo;
+    {        DISPID_SPILanguageId        = 1,
+        DISPID_SPIGrammarId        = DISPID_SPILanguageId + 1,
+        DISPID_SPIStartTime        = DISPID_SPIGrammarId + 1,
+        DISPID_SPIAudioStreamPosition        = DISPID_SPIStartTime + 1,
+        DISPID_SPIAudioSizeBytes        = DISPID_SPIAudioStreamPosition + 1,
+        DISPID_SPIRetainedSizeBytes        = DISPID_SPIAudioSizeBytes + 1,
+        DISPID_SPIAudioSizeTime        = DISPID_SPIRetainedSizeBytes + 1,
+        DISPID_SPIRule        = DISPID_SPIAudioSizeTime + 1,
+        DISPID_SPIProperties        = DISPID_SPIRule + 1,
+        DISPID_SPIElements        = DISPID_SPIProperties + 1,
+        DISPID_SPIReplacements        = DISPID_SPIElements + 1,
+        DISPID_SPIEngineId        = DISPID_SPIReplacements + 1,
+        DISPID_SPIEnginePrivateData        = DISPID_SPIEngineId + 1,
+        DISPID_SPISaveToMemory        = DISPID_SPIEnginePrivateData + 1,
+        DISPID_SPIGetText        = DISPID_SPISaveToMemory + 1,
+        DISPID_SPIGetDisplayAttributes        = DISPID_SPIGetText + 1
+    }         DISPID_SpeechPhraseInfo;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseElement
-    {	DISPID_SPEAudioTimeOffset	= 1,
-	DISPID_SPEAudioSizeTime	= DISPID_SPEAudioTimeOffset + 1,
-	DISPID_SPEAudioStreamOffset	= DISPID_SPEAudioSizeTime + 1,
-	DISPID_SPEAudioSizeBytes	= DISPID_SPEAudioStreamOffset + 1,
-	DISPID_SPERetainedStreamOffset	= DISPID_SPEAudioSizeBytes + 1,
-	DISPID_SPERetainedSizeBytes	= DISPID_SPERetainedStreamOffset + 1,
-	DISPID_SPEDisplayText	= DISPID_SPERetainedSizeBytes + 1,
-	DISPID_SPELexicalForm	= DISPID_SPEDisplayText + 1,
-	DISPID_SPEPronunciation	= DISPID_SPELexicalForm + 1,
-	DISPID_SPEDisplayAttributes	= DISPID_SPEPronunciation + 1,
-	DISPID_SPERequiredConfidence	= DISPID_SPEDisplayAttributes + 1,
-	DISPID_SPEActualConfidence	= DISPID_SPERequiredConfidence + 1,
-	DISPID_SPEEngineConfidence	= DISPID_SPEActualConfidence + 1
-    } 	DISPID_SpeechPhraseElement;
+    {        DISPID_SPEAudioTimeOffset        = 1,
+        DISPID_SPEAudioSizeTime        = DISPID_SPEAudioTimeOffset + 1,
+        DISPID_SPEAudioStreamOffset        = DISPID_SPEAudioSizeTime + 1,
+        DISPID_SPEAudioSizeBytes        = DISPID_SPEAudioStreamOffset + 1,
+        DISPID_SPERetainedStreamOffset        = DISPID_SPEAudioSizeBytes + 1,
+        DISPID_SPERetainedSizeBytes        = DISPID_SPERetainedStreamOffset + 1,
+        DISPID_SPEDisplayText        = DISPID_SPERetainedSizeBytes + 1,
+        DISPID_SPELexicalForm        = DISPID_SPEDisplayText + 1,
+        DISPID_SPEPronunciation        = DISPID_SPELexicalForm + 1,
+        DISPID_SPEDisplayAttributes        = DISPID_SPEPronunciation + 1,
+        DISPID_SPERequiredConfidence        = DISPID_SPEDisplayAttributes + 1,
+        DISPID_SPEActualConfidence        = DISPID_SPERequiredConfidence + 1,
+        DISPID_SPEEngineConfidence        = DISPID_SPEActualConfidence + 1
+    }         DISPID_SpeechPhraseElement;
 
 typedef 
 enum SpeechEngineConfidence
-    {	SECLowConfidence	= -1,
-	SECNormalConfidence	= 0,
-	SECHighConfidence	= 1
-    } 	SpeechEngineConfidence;
+    {        SECLowConfidence        = -1,
+        SECNormalConfidence        = 0,
+        SECHighConfidence        = 1
+    }         SpeechEngineConfidence;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseElements
-    {	DISPID_SPEsCount	= 1,
-	DISPID_SPEsItem	= DISPID_VALUE,
-	DISPID_SPEs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechPhraseElements;
+    {        DISPID_SPEsCount        = 1,
+        DISPID_SPEsItem        = DISPID_VALUE,
+        DISPID_SPEs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechPhraseElements;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseReplacement
-    {	DISPID_SPRDisplayAttributes	= 1,
-	DISPID_SPRText	= DISPID_SPRDisplayAttributes + 1,
-	DISPID_SPRFirstElement	= DISPID_SPRText + 1,
-	DISPID_SPRNumberOfElements	= DISPID_SPRFirstElement + 1
-    } 	DISPID_SpeechPhraseReplacement;
+    {        DISPID_SPRDisplayAttributes        = 1,
+        DISPID_SPRText        = DISPID_SPRDisplayAttributes + 1,
+        DISPID_SPRFirstElement        = DISPID_SPRText + 1,
+        DISPID_SPRNumberOfElements        = DISPID_SPRFirstElement + 1
+    }         DISPID_SpeechPhraseReplacement;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseReplacements
-    {	DISPID_SPRsCount	= 1,
-	DISPID_SPRsItem	= DISPID_VALUE,
-	DISPID_SPRs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechPhraseReplacements;
+    {        DISPID_SPRsCount        = 1,
+        DISPID_SPRsItem        = DISPID_VALUE,
+        DISPID_SPRs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechPhraseReplacements;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseProperty
-    {	DISPID_SPPName	= 1,
-	DISPID_SPPId	= DISPID_SPPName + 1,
-	DISPID_SPPValue	= DISPID_SPPId + 1,
-	DISPID_SPPFirstElement	= DISPID_SPPValue + 1,
-	DISPID_SPPNumberOfElements	= DISPID_SPPFirstElement + 1,
-	DISPID_SPPEngineConfidence	= DISPID_SPPNumberOfElements + 1,
-	DISPID_SPPConfidence	= DISPID_SPPEngineConfidence + 1,
-	DISPID_SPPParent	= DISPID_SPPConfidence + 1,
-	DISPID_SPPChildren	= DISPID_SPPParent + 1
-    } 	DISPID_SpeechPhraseProperty;
+    {        DISPID_SPPName        = 1,
+        DISPID_SPPId        = DISPID_SPPName + 1,
+        DISPID_SPPValue        = DISPID_SPPId + 1,
+        DISPID_SPPFirstElement        = DISPID_SPPValue + 1,
+        DISPID_SPPNumberOfElements        = DISPID_SPPFirstElement + 1,
+        DISPID_SPPEngineConfidence        = DISPID_SPPNumberOfElements + 1,
+        DISPID_SPPConfidence        = DISPID_SPPEngineConfidence + 1,
+        DISPID_SPPParent        = DISPID_SPPConfidence + 1,
+        DISPID_SPPChildren        = DISPID_SPPParent + 1
+    }         DISPID_SpeechPhraseProperty;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseProperties
-    {	DISPID_SPPsCount	= 1,
-	DISPID_SPPsItem	= DISPID_VALUE,
-	DISPID_SPPs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechPhraseProperties;
+    {        DISPID_SPPsCount        = 1,
+        DISPID_SPPsItem        = DISPID_VALUE,
+        DISPID_SPPs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechPhraseProperties;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseRule
-    {	DISPID_SPRuleName	= 1,
-	DISPID_SPRuleId	= DISPID_SPRuleName + 1,
-	DISPID_SPRuleFirstElement	= DISPID_SPRuleId + 1,
-	DISPID_SPRuleNumberOfElements	= DISPID_SPRuleFirstElement + 1,
-	DISPID_SPRuleParent	= DISPID_SPRuleNumberOfElements + 1,
-	DISPID_SPRuleChildren	= DISPID_SPRuleParent + 1,
-	DISPID_SPRuleConfidence	= DISPID_SPRuleChildren + 1,
-	DISPID_SPRuleEngineConfidence	= DISPID_SPRuleConfidence + 1
-    } 	DISPID_SpeechPhraseRule;
+    {        DISPID_SPRuleName        = 1,
+        DISPID_SPRuleId        = DISPID_SPRuleName + 1,
+        DISPID_SPRuleFirstElement        = DISPID_SPRuleId + 1,
+        DISPID_SPRuleNumberOfElements        = DISPID_SPRuleFirstElement + 1,
+        DISPID_SPRuleParent        = DISPID_SPRuleNumberOfElements + 1,
+        DISPID_SPRuleChildren        = DISPID_SPRuleParent + 1,
+        DISPID_SPRuleConfidence        = DISPID_SPRuleChildren + 1,
+        DISPID_SPRuleEngineConfidence        = DISPID_SPRuleConfidence + 1
+    }         DISPID_SpeechPhraseRule;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhraseRules
-    {	DISPID_SPRulesCount	= 1,
-	DISPID_SPRulesItem	= DISPID_VALUE,
-	DISPID_SPRules_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechPhraseRules;
+    {        DISPID_SPRulesCount        = 1,
+        DISPID_SPRulesItem        = DISPID_VALUE,
+        DISPID_SPRules_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechPhraseRules;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechLexicon
-    {	DISPID_SLGenerationId	= 1,
-	DISPID_SLGetWords	= DISPID_SLGenerationId + 1,
-	DISPID_SLAddPronunciation	= DISPID_SLGetWords + 1,
-	DISPID_SLAddPronunciationByPhoneIds	= DISPID_SLAddPronunciation + 1,
-	DISPID_SLRemovePronunciation	= DISPID_SLAddPronunciationByPhoneIds + 1,
-	DISPID_SLRemovePronunciationByPhoneIds	= DISPID_SLRemovePronunciation + 1,
-	DISPID_SLGetPronunciations	= DISPID_SLRemovePronunciationByPhoneIds + 1,
-	DISPID_SLGetGenerationChange	= DISPID_SLGetPronunciations + 1
-    } 	DISPID_SpeechLexicon;
+    {        DISPID_SLGenerationId        = 1,
+        DISPID_SLGetWords        = DISPID_SLGenerationId + 1,
+        DISPID_SLAddPronunciation        = DISPID_SLGetWords + 1,
+        DISPID_SLAddPronunciationByPhoneIds        = DISPID_SLAddPronunciation + 1,
+        DISPID_SLRemovePronunciation        = DISPID_SLAddPronunciationByPhoneIds + 1,
+        DISPID_SLRemovePronunciationByPhoneIds        = DISPID_SLRemovePronunciation + 1,
+        DISPID_SLGetPronunciations        = DISPID_SLRemovePronunciationByPhoneIds + 1,
+        DISPID_SLGetGenerationChange        = DISPID_SLGetPronunciations + 1
+    }         DISPID_SpeechLexicon;
 
 typedef 
 enum SpeechLexiconType
-    {	SLTUser	= eLEXTYPE_USER,
-	SLTApp	= eLEXTYPE_APP
-    } 	SpeechLexiconType;
+    {        SLTUser        = eLEXTYPE_USER,
+        SLTApp        = eLEXTYPE_APP
+    }         SpeechLexiconType;
 
 typedef 
 enum SpeechPartOfSpeech
-    {	SPSNotOverriden	= SPPS_NotOverriden,
-	SPSUnknown	= SPPS_Unknown,
-	SPSNoun	= SPPS_Noun,
-	SPSVerb	= SPPS_Verb,
-	SPSModifier	= SPPS_Modifier,
-	SPSFunction	= SPPS_Function,
-	SPSInterjection	= SPPS_Interjection
-    } 	SpeechPartOfSpeech;
+    {        SPSNotOverriden        = SPPS_NotOverriden,
+        SPSUnknown        = SPPS_Unknown,
+        SPSNoun        = SPPS_Noun,
+        SPSVerb        = SPPS_Verb,
+        SPSModifier        = SPPS_Modifier,
+        SPSFunction        = SPPS_Function,
+        SPSInterjection        = SPPS_Interjection
+    }         SpeechPartOfSpeech;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechLexiconWords
-    {	DISPID_SLWsCount	= 1,
-	DISPID_SLWsItem	= DISPID_VALUE,
-	DISPID_SLWs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechLexiconWords;
+    {        DISPID_SLWsCount        = 1,
+        DISPID_SLWsItem        = DISPID_VALUE,
+        DISPID_SLWs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechLexiconWords;
 
 typedef 
 enum SpeechWordType
-    {	SWTAdded	= eWORDTYPE_ADDED,
-	SWTDeleted	= eWORDTYPE_DELETED
-    } 	SpeechWordType;
+    {        SWTAdded        = eWORDTYPE_ADDED,
+        SWTDeleted        = eWORDTYPE_DELETED
+    }         SpeechWordType;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechLexiconWord
-    {	DISPID_SLWLangId	= 1,
-	DISPID_SLWType	= DISPID_SLWLangId + 1,
-	DISPID_SLWWord	= DISPID_SLWType + 1,
-	DISPID_SLWPronunciations	= DISPID_SLWWord + 1
-    } 	DISPID_SpeechLexiconWord;
+    {        DISPID_SLWLangId        = 1,
+        DISPID_SLWType        = DISPID_SLWLangId + 1,
+        DISPID_SLWWord        = DISPID_SLWType + 1,
+        DISPID_SLWPronunciations        = DISPID_SLWWord + 1
+    }         DISPID_SpeechLexiconWord;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechLexiconProns
-    {	DISPID_SLPsCount	= 1,
-	DISPID_SLPsItem	= DISPID_VALUE,
-	DISPID_SLPs_NewEnum	= DISPID_NEWENUM
-    } 	DISPID_SpeechLexiconProns;
+    {        DISPID_SLPsCount        = 1,
+        DISPID_SLPsItem        = DISPID_VALUE,
+        DISPID_SLPs_NewEnum        = DISPID_NEWENUM
+    }         DISPID_SpeechLexiconProns;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechLexiconPronunciation
-    {	DISPID_SLPType	= 1,
-	DISPID_SLPLangId	= DISPID_SLPType + 1,
-	DISPID_SLPPartOfSpeech	= DISPID_SLPLangId + 1,
-	DISPID_SLPPhoneIds	= DISPID_SLPPartOfSpeech + 1,
-	DISPID_SLPSymbolic	= DISPID_SLPPhoneIds + 1
-    } 	DISPID_SpeechLexiconPronunciation;
+    {        DISPID_SLPType        = 1,
+        DISPID_SLPLangId        = DISPID_SLPType + 1,
+        DISPID_SLPPartOfSpeech        = DISPID_SLPLangId + 1,
+        DISPID_SLPPhoneIds        = DISPID_SLPPartOfSpeech + 1,
+        DISPID_SLPSymbolic        = DISPID_SLPPhoneIds + 1
+    }         DISPID_SpeechLexiconPronunciation;
 
 typedef /* [hidden] */ 
 enum DISPID_SpeechPhoneConverter
-    {	DISPID_SPCLangId	= 1,
-	DISPID_SPCPhoneToId	= DISPID_SPCLangId + 1,
-	DISPID_SPCIdToPhone	= DISPID_SPCPhoneToId + 1
-    } 	DISPID_SpeechPhoneConverter;
+    {        DISPID_SPCLangId        = 1,
+        DISPID_SPCPhoneToId        = DISPID_SPCLangId + 1,
+        DISPID_SPCIdToPhone        = DISPID_SPCPhoneToId + 1
+    }         DISPID_SpeechPhoneConverter;
 
 
 EXTERN_C const IID LIBID_SpeechLib;
@@ -11374,7 +11374,7 @@ EXTERN_C const IID IID_ISpeechDataKey;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechDataKeyVtbl
     {
@@ -11491,69 +11491,69 @@ EXTERN_C const IID IID_ISpeechDataKey;
 #ifdef COBJMACROS
 
 
-#define ISpeechDataKey_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechDataKey_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechDataKey_AddRef(This)	\
+#define ISpeechDataKey_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechDataKey_Release(This)	\
+#define ISpeechDataKey_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechDataKey_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechDataKey_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechDataKey_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechDataKey_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechDataKey_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechDataKey_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechDataKey_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechDataKey_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechDataKey_SetBinaryValue(This, ValueName, Value)	\
+#define ISpeechDataKey_SetBinaryValue(This, ValueName, Value)        \
     (This)->lpVtbl -> SetBinaryValue(This, ValueName, Value)
 
-#define ISpeechDataKey_GetBinaryValue(This, ValueName, Value)	\
+#define ISpeechDataKey_GetBinaryValue(This, ValueName, Value)        \
     (This)->lpVtbl -> GetBinaryValue(This, ValueName, Value)
 
-#define ISpeechDataKey_SetStringValue(This, ValueName, Value)	\
+#define ISpeechDataKey_SetStringValue(This, ValueName, Value)        \
     (This)->lpVtbl -> SetStringValue(This, ValueName, Value)
 
-#define ISpeechDataKey_GetStringValue(This, ValueName, Value)	\
+#define ISpeechDataKey_GetStringValue(This, ValueName, Value)        \
     (This)->lpVtbl -> GetStringValue(This, ValueName, Value)
 
-#define ISpeechDataKey_SetLongValue(This, ValueName, Value)	\
+#define ISpeechDataKey_SetLongValue(This, ValueName, Value)        \
     (This)->lpVtbl -> SetLongValue(This, ValueName, Value)
 
-#define ISpeechDataKey_GetLongValue(This, ValueName, Value)	\
+#define ISpeechDataKey_GetLongValue(This, ValueName, Value)        \
     (This)->lpVtbl -> GetLongValue(This, ValueName, Value)
 
-#define ISpeechDataKey_OpenKey(This, SubKeyName, SubKey)	\
+#define ISpeechDataKey_OpenKey(This, SubKeyName, SubKey)        \
     (This)->lpVtbl -> OpenKey(This, SubKeyName, SubKey)
 
-#define ISpeechDataKey_CreateKey(This, SubKeyName, SubKey)	\
+#define ISpeechDataKey_CreateKey(This, SubKeyName, SubKey)        \
     (This)->lpVtbl -> CreateKey(This, SubKeyName, SubKey)
 
-#define ISpeechDataKey_DeleteKey(This, SubKeyName)	\
+#define ISpeechDataKey_DeleteKey(This, SubKeyName)        \
     (This)->lpVtbl -> DeleteKey(This, SubKeyName)
 
-#define ISpeechDataKey_DeleteValue(This, ValueName)	\
+#define ISpeechDataKey_DeleteValue(This, ValueName)        \
     (This)->lpVtbl -> DeleteValue(This, ValueName)
 
-#define ISpeechDataKey_EnumKeys(This, Index, SubKeyName)	\
+#define ISpeechDataKey_EnumKeys(This, Index, SubKeyName)        \
     (This)->lpVtbl -> EnumKeys(This, Index, SubKeyName)
 
-#define ISpeechDataKey_EnumValues(This, Index, ValueName)	\
+#define ISpeechDataKey_EnumValues(This, Index, ValueName)        \
     (This)->lpVtbl -> EnumValues(This, Index, ValueName)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -11712,7 +11712,7 @@ void __RPC_STUB ISpeechDataKey_EnumValues_Stub(
 
 
 
-#endif 	/* __ISpeechDataKey_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechDataKey_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechObjectToken_INTERFACE_DEFINED__
@@ -11791,7 +11791,7 @@ EXTERN_C const IID IID_ISpeechObjectToken;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechObjectTokenVtbl
     {
@@ -11922,72 +11922,72 @@ EXTERN_C const IID IID_ISpeechObjectToken;
 #ifdef COBJMACROS
 
 
-#define ISpeechObjectToken_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechObjectToken_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechObjectToken_AddRef(This)	\
+#define ISpeechObjectToken_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechObjectToken_Release(This)	\
+#define ISpeechObjectToken_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechObjectToken_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechObjectToken_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechObjectToken_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechObjectToken_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechObjectToken_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechObjectToken_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechObjectToken_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechObjectToken_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechObjectToken_get_Id(This, ObjectId)	\
+#define ISpeechObjectToken_get_Id(This, ObjectId)        \
     (This)->lpVtbl -> get_Id(This, ObjectId)
 
-#define ISpeechObjectToken_get_DataKey(This, DataKey)	\
+#define ISpeechObjectToken_get_DataKey(This, DataKey)        \
     (This)->lpVtbl -> get_DataKey(This, DataKey)
 
-#define ISpeechObjectToken_get_Category(This, Category)	\
+#define ISpeechObjectToken_get_Category(This, Category)        \
     (This)->lpVtbl -> get_Category(This, Category)
 
-#define ISpeechObjectToken_GetDescription(This, Locale, Description)	\
+#define ISpeechObjectToken_GetDescription(This, Locale, Description)        \
     (This)->lpVtbl -> GetDescription(This, Locale, Description)
 
-#define ISpeechObjectToken_SetId(This, Id, CategoryID, CreateIfNotExist)	\
+#define ISpeechObjectToken_SetId(This, Id, CategoryID, CreateIfNotExist)        \
     (This)->lpVtbl -> SetId(This, Id, CategoryID, CreateIfNotExist)
 
-#define ISpeechObjectToken_GetAttribute(This, AttributeName, AttributeValue)	\
+#define ISpeechObjectToken_GetAttribute(This, AttributeName, AttributeValue)        \
     (This)->lpVtbl -> GetAttribute(This, AttributeName, AttributeValue)
 
-#define ISpeechObjectToken_CreateInstance(This, pUnkOuter, ClsContext, Object)	\
+#define ISpeechObjectToken_CreateInstance(This, pUnkOuter, ClsContext, Object)        \
     (This)->lpVtbl -> CreateInstance(This, pUnkOuter, ClsContext, Object)
 
-#define ISpeechObjectToken_Remove(This, ObjectStorageCLSID)	\
+#define ISpeechObjectToken_Remove(This, ObjectStorageCLSID)        \
     (This)->lpVtbl -> Remove(This, ObjectStorageCLSID)
 
-#define ISpeechObjectToken_GetStorageFileName(This, ObjectStorageCLSID, KeyName, FileName, Folder, FilePath)	\
+#define ISpeechObjectToken_GetStorageFileName(This, ObjectStorageCLSID, KeyName, FileName, Folder, FilePath)        \
     (This)->lpVtbl -> GetStorageFileName(This, ObjectStorageCLSID, KeyName, FileName, Folder, FilePath)
 
-#define ISpeechObjectToken_RemoveStorageFileName(This, ObjectStorageCLSID, KeyName, DeleteFile)	\
+#define ISpeechObjectToken_RemoveStorageFileName(This, ObjectStorageCLSID, KeyName, DeleteFile)        \
     (This)->lpVtbl -> RemoveStorageFileName(This, ObjectStorageCLSID, KeyName, DeleteFile)
 
-#define ISpeechObjectToken_IsUISupported(This, TypeOfUI, ExtraData, Object, Supported)	\
+#define ISpeechObjectToken_IsUISupported(This, TypeOfUI, ExtraData, Object, Supported)        \
     (This)->lpVtbl -> IsUISupported(This, TypeOfUI, ExtraData, Object, Supported)
 
-#define ISpeechObjectToken_DisplayUI(This, hWnd, Title, TypeOfUI, ExtraData, Object)	\
+#define ISpeechObjectToken_DisplayUI(This, hWnd, Title, TypeOfUI, ExtraData, Object)        \
     (This)->lpVtbl -> DisplayUI(This, hWnd, Title, TypeOfUI, ExtraData, Object)
 
-#define ISpeechObjectToken_MatchesAttributes(This, Attributes, Matches)	\
+#define ISpeechObjectToken_MatchesAttributes(This, Attributes, Matches)        \
     (This)->lpVtbl -> MatchesAttributes(This, Attributes, Matches)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -12168,7 +12168,7 @@ void __RPC_STUB ISpeechObjectToken_MatchesAttributes_Stub(
 
 
 
-#endif 	/* __ISpeechObjectToken_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechObjectToken_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechObjectTokens_INTERFACE_DEFINED__
@@ -12198,7 +12198,7 @@ EXTERN_C const IID IID_ISpeechObjectTokens;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechObjectTokensVtbl
     {
@@ -12270,42 +12270,42 @@ EXTERN_C const IID IID_ISpeechObjectTokens;
 #ifdef COBJMACROS
 
 
-#define ISpeechObjectTokens_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechObjectTokens_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechObjectTokens_AddRef(This)	\
+#define ISpeechObjectTokens_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechObjectTokens_Release(This)	\
+#define ISpeechObjectTokens_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechObjectTokens_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechObjectTokens_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechObjectTokens_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechObjectTokens_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechObjectTokens_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechObjectTokens_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechObjectTokens_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechObjectTokens_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechObjectTokens_get_Count(This, Count)	\
+#define ISpeechObjectTokens_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechObjectTokens_Item(This, Index, Token)	\
+#define ISpeechObjectTokens_Item(This, Index, Token)        \
     (This)->lpVtbl -> Item(This, Index, Token)
 
-#define ISpeechObjectTokens_get__NewEnum(This, ppEnumVARIANT)	\
+#define ISpeechObjectTokens_get__NewEnum(This, ppEnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, ppEnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -12347,7 +12347,7 @@ void __RPC_STUB ISpeechObjectTokens_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechObjectTokens_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechObjectTokens_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechObjectTokenCategory_INTERFACE_DEFINED__
@@ -12389,7 +12389,7 @@ EXTERN_C const IID IID_ISpeechObjectTokenCategory;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechObjectTokenCategoryVtbl
     {
@@ -12476,51 +12476,51 @@ EXTERN_C const IID IID_ISpeechObjectTokenCategory;
 #ifdef COBJMACROS
 
 
-#define ISpeechObjectTokenCategory_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechObjectTokenCategory_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechObjectTokenCategory_AddRef(This)	\
+#define ISpeechObjectTokenCategory_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechObjectTokenCategory_Release(This)	\
+#define ISpeechObjectTokenCategory_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechObjectTokenCategory_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechObjectTokenCategory_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechObjectTokenCategory_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechObjectTokenCategory_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechObjectTokenCategory_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechObjectTokenCategory_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechObjectTokenCategory_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechObjectTokenCategory_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechObjectTokenCategory_get_Id(This, Id)	\
+#define ISpeechObjectTokenCategory_get_Id(This, Id)        \
     (This)->lpVtbl -> get_Id(This, Id)
 
-#define ISpeechObjectTokenCategory_put_Default(This, TokenId)	\
+#define ISpeechObjectTokenCategory_put_Default(This, TokenId)        \
     (This)->lpVtbl -> put_Default(This, TokenId)
 
-#define ISpeechObjectTokenCategory_get_Default(This, TokenId)	\
+#define ISpeechObjectTokenCategory_get_Default(This, TokenId)        \
     (This)->lpVtbl -> get_Default(This, TokenId)
 
-#define ISpeechObjectTokenCategory_SetId(This, Id, CreateIfNotExist)	\
+#define ISpeechObjectTokenCategory_SetId(This, Id, CreateIfNotExist)        \
     (This)->lpVtbl -> SetId(This, Id, CreateIfNotExist)
 
-#define ISpeechObjectTokenCategory_GetDataKey(This, Location, DataKey)	\
+#define ISpeechObjectTokenCategory_GetDataKey(This, Location, DataKey)        \
     (This)->lpVtbl -> GetDataKey(This, Location, DataKey)
 
-#define ISpeechObjectTokenCategory_EnumerateTokens(This, RequiredAttributes, OptionalAttributes, Tokens)	\
+#define ISpeechObjectTokenCategory_EnumerateTokens(This, RequiredAttributes, OptionalAttributes, Tokens)        \
     (This)->lpVtbl -> EnumerateTokens(This, RequiredAttributes, OptionalAttributes, Tokens)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -12601,7 +12601,7 @@ void __RPC_STUB ISpeechObjectTokenCategory_EnumerateTokens_Stub(
 
 
 
-#endif 	/* __ISpeechObjectTokenCategory_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechObjectTokenCategory_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechAudioBufferInfo_INTERFACE_DEFINED__
@@ -12639,7 +12639,7 @@ EXTERN_C const IID IID_ISpeechAudioBufferInfo;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechAudioBufferInfoVtbl
     {
@@ -12722,51 +12722,51 @@ EXTERN_C const IID IID_ISpeechAudioBufferInfo;
 #ifdef COBJMACROS
 
 
-#define ISpeechAudioBufferInfo_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechAudioBufferInfo_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechAudioBufferInfo_AddRef(This)	\
+#define ISpeechAudioBufferInfo_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechAudioBufferInfo_Release(This)	\
+#define ISpeechAudioBufferInfo_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechAudioBufferInfo_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechAudioBufferInfo_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechAudioBufferInfo_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechAudioBufferInfo_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechAudioBufferInfo_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechAudioBufferInfo_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechAudioBufferInfo_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechAudioBufferInfo_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechAudioBufferInfo_get_MinNotification(This, MinNotification)	\
+#define ISpeechAudioBufferInfo_get_MinNotification(This, MinNotification)        \
     (This)->lpVtbl -> get_MinNotification(This, MinNotification)
 
-#define ISpeechAudioBufferInfo_put_MinNotification(This, MinNotification)	\
+#define ISpeechAudioBufferInfo_put_MinNotification(This, MinNotification)        \
     (This)->lpVtbl -> put_MinNotification(This, MinNotification)
 
-#define ISpeechAudioBufferInfo_get_BufferSize(This, BufferSize)	\
+#define ISpeechAudioBufferInfo_get_BufferSize(This, BufferSize)        \
     (This)->lpVtbl -> get_BufferSize(This, BufferSize)
 
-#define ISpeechAudioBufferInfo_put_BufferSize(This, BufferSize)	\
+#define ISpeechAudioBufferInfo_put_BufferSize(This, BufferSize)        \
     (This)->lpVtbl -> put_BufferSize(This, BufferSize)
 
-#define ISpeechAudioBufferInfo_get_EventBias(This, EventBias)	\
+#define ISpeechAudioBufferInfo_get_EventBias(This, EventBias)        \
     (This)->lpVtbl -> get_EventBias(This, EventBias)
 
-#define ISpeechAudioBufferInfo_put_EventBias(This, EventBias)	\
+#define ISpeechAudioBufferInfo_put_EventBias(This, EventBias)        \
     (This)->lpVtbl -> put_EventBias(This, EventBias)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -12843,7 +12843,7 @@ void __RPC_STUB ISpeechAudioBufferInfo_put_EventBias_Stub(
 
 
 
-#endif 	/* __ISpeechAudioBufferInfo_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechAudioBufferInfo_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechAudioStatus_INTERFACE_DEFINED__
@@ -12878,7 +12878,7 @@ EXTERN_C const IID IID_ISpeechAudioStatus;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechAudioStatusVtbl
     {
@@ -12957,48 +12957,48 @@ EXTERN_C const IID IID_ISpeechAudioStatus;
 #ifdef COBJMACROS
 
 
-#define ISpeechAudioStatus_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechAudioStatus_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechAudioStatus_AddRef(This)	\
+#define ISpeechAudioStatus_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechAudioStatus_Release(This)	\
+#define ISpeechAudioStatus_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechAudioStatus_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechAudioStatus_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechAudioStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechAudioStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechAudioStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechAudioStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechAudioStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechAudioStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechAudioStatus_get_FreeBufferSpace(This, FreeBufferSpace)	\
+#define ISpeechAudioStatus_get_FreeBufferSpace(This, FreeBufferSpace)        \
     (This)->lpVtbl -> get_FreeBufferSpace(This, FreeBufferSpace)
 
-#define ISpeechAudioStatus_get_NonBlockingIO(This, NonBlockingIO)	\
+#define ISpeechAudioStatus_get_NonBlockingIO(This, NonBlockingIO)        \
     (This)->lpVtbl -> get_NonBlockingIO(This, NonBlockingIO)
 
-#define ISpeechAudioStatus_get_State(This, State)	\
+#define ISpeechAudioStatus_get_State(This, State)        \
     (This)->lpVtbl -> get_State(This, State)
 
-#define ISpeechAudioStatus_get_CurrentSeekPosition(This, CurrentSeekPosition)	\
+#define ISpeechAudioStatus_get_CurrentSeekPosition(This, CurrentSeekPosition)        \
     (This)->lpVtbl -> get_CurrentSeekPosition(This, CurrentSeekPosition)
 
-#define ISpeechAudioStatus_get_CurrentDevicePosition(This, CurrentDevicePosition)	\
+#define ISpeechAudioStatus_get_CurrentDevicePosition(This, CurrentDevicePosition)        \
     (This)->lpVtbl -> get_CurrentDevicePosition(This, CurrentDevicePosition)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -13063,7 +13063,7 @@ void __RPC_STUB ISpeechAudioStatus_get_CurrentDevicePosition_Stub(
 
 
 
-#endif 	/* __ISpeechAudioStatus_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechAudioStatus_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechAudioFormat_INTERFACE_DEFINED__
@@ -13101,7 +13101,7 @@ EXTERN_C const IID IID_ISpeechAudioFormat;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechAudioFormatVtbl
     {
@@ -13184,51 +13184,51 @@ EXTERN_C const IID IID_ISpeechAudioFormat;
 #ifdef COBJMACROS
 
 
-#define ISpeechAudioFormat_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechAudioFormat_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechAudioFormat_AddRef(This)	\
+#define ISpeechAudioFormat_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechAudioFormat_Release(This)	\
+#define ISpeechAudioFormat_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechAudioFormat_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechAudioFormat_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechAudioFormat_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechAudioFormat_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechAudioFormat_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechAudioFormat_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechAudioFormat_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechAudioFormat_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechAudioFormat_get_Type(This, AudioFormat)	\
+#define ISpeechAudioFormat_get_Type(This, AudioFormat)        \
     (This)->lpVtbl -> get_Type(This, AudioFormat)
 
-#define ISpeechAudioFormat_put_Type(This, AudioFormat)	\
+#define ISpeechAudioFormat_put_Type(This, AudioFormat)        \
     (This)->lpVtbl -> put_Type(This, AudioFormat)
 
-#define ISpeechAudioFormat_get_Guid(This, Guid)	\
+#define ISpeechAudioFormat_get_Guid(This, Guid)        \
     (This)->lpVtbl -> get_Guid(This, Guid)
 
-#define ISpeechAudioFormat_put_Guid(This, Guid)	\
+#define ISpeechAudioFormat_put_Guid(This, Guid)        \
     (This)->lpVtbl -> put_Guid(This, Guid)
 
-#define ISpeechAudioFormat_GetWaveFormatEx(This, WaveFormatEx)	\
+#define ISpeechAudioFormat_GetWaveFormatEx(This, WaveFormatEx)        \
     (This)->lpVtbl -> GetWaveFormatEx(This, WaveFormatEx)
 
-#define ISpeechAudioFormat_SetWaveFormatEx(This, WaveFormatEx)	\
+#define ISpeechAudioFormat_SetWaveFormatEx(This, WaveFormatEx)        \
     (This)->lpVtbl -> SetWaveFormatEx(This, WaveFormatEx)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -13305,7 +13305,7 @@ void __RPC_STUB ISpeechAudioFormat_SetWaveFormatEx_Stub(
 
 
 
-#endif 	/* __ISpeechAudioFormat_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechAudioFormat_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechWaveFormatEx_INTERFACE_DEFINED__
@@ -13367,7 +13367,7 @@ EXTERN_C const IID IID_ISpeechWaveFormatEx;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechWaveFormatExVtbl
     {
@@ -13482,75 +13482,75 @@ EXTERN_C const IID IID_ISpeechWaveFormatEx;
 #ifdef COBJMACROS
 
 
-#define ISpeechWaveFormatEx_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechWaveFormatEx_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechWaveFormatEx_AddRef(This)	\
+#define ISpeechWaveFormatEx_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechWaveFormatEx_Release(This)	\
+#define ISpeechWaveFormatEx_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechWaveFormatEx_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechWaveFormatEx_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechWaveFormatEx_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechWaveFormatEx_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechWaveFormatEx_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechWaveFormatEx_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechWaveFormatEx_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechWaveFormatEx_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechWaveFormatEx_get_FormatTag(This, FormatTag)	\
+#define ISpeechWaveFormatEx_get_FormatTag(This, FormatTag)        \
     (This)->lpVtbl -> get_FormatTag(This, FormatTag)
 
-#define ISpeechWaveFormatEx_put_FormatTag(This, FormatTag)	\
+#define ISpeechWaveFormatEx_put_FormatTag(This, FormatTag)        \
     (This)->lpVtbl -> put_FormatTag(This, FormatTag)
 
-#define ISpeechWaveFormatEx_get_Channels(This, Channels)	\
+#define ISpeechWaveFormatEx_get_Channels(This, Channels)        \
     (This)->lpVtbl -> get_Channels(This, Channels)
 
-#define ISpeechWaveFormatEx_put_Channels(This, Channels)	\
+#define ISpeechWaveFormatEx_put_Channels(This, Channels)        \
     (This)->lpVtbl -> put_Channels(This, Channels)
 
-#define ISpeechWaveFormatEx_get_SamplesPerSec(This, SamplesPerSec)	\
+#define ISpeechWaveFormatEx_get_SamplesPerSec(This, SamplesPerSec)        \
     (This)->lpVtbl -> get_SamplesPerSec(This, SamplesPerSec)
 
-#define ISpeechWaveFormatEx_put_SamplesPerSec(This, SamplesPerSec)	\
+#define ISpeechWaveFormatEx_put_SamplesPerSec(This, SamplesPerSec)        \
     (This)->lpVtbl -> put_SamplesPerSec(This, SamplesPerSec)
 
-#define ISpeechWaveFormatEx_get_AvgBytesPerSec(This, AvgBytesPerSec)	\
+#define ISpeechWaveFormatEx_get_AvgBytesPerSec(This, AvgBytesPerSec)        \
     (This)->lpVtbl -> get_AvgBytesPerSec(This, AvgBytesPerSec)
 
-#define ISpeechWaveFormatEx_put_AvgBytesPerSec(This, AvgBytesPerSec)	\
+#define ISpeechWaveFormatEx_put_AvgBytesPerSec(This, AvgBytesPerSec)        \
     (This)->lpVtbl -> put_AvgBytesPerSec(This, AvgBytesPerSec)
 
-#define ISpeechWaveFormatEx_get_BlockAlign(This, BlockAlign)	\
+#define ISpeechWaveFormatEx_get_BlockAlign(This, BlockAlign)        \
     (This)->lpVtbl -> get_BlockAlign(This, BlockAlign)
 
-#define ISpeechWaveFormatEx_put_BlockAlign(This, BlockAlign)	\
+#define ISpeechWaveFormatEx_put_BlockAlign(This, BlockAlign)        \
     (This)->lpVtbl -> put_BlockAlign(This, BlockAlign)
 
-#define ISpeechWaveFormatEx_get_BitsPerSample(This, BitsPerSample)	\
+#define ISpeechWaveFormatEx_get_BitsPerSample(This, BitsPerSample)        \
     (This)->lpVtbl -> get_BitsPerSample(This, BitsPerSample)
 
-#define ISpeechWaveFormatEx_put_BitsPerSample(This, BitsPerSample)	\
+#define ISpeechWaveFormatEx_put_BitsPerSample(This, BitsPerSample)        \
     (This)->lpVtbl -> put_BitsPerSample(This, BitsPerSample)
 
-#define ISpeechWaveFormatEx_get_ExtraData(This, ExtraData)	\
+#define ISpeechWaveFormatEx_get_ExtraData(This, ExtraData)        \
     (This)->lpVtbl -> get_ExtraData(This, ExtraData)
 
-#define ISpeechWaveFormatEx_put_ExtraData(This, ExtraData)	\
+#define ISpeechWaveFormatEx_put_ExtraData(This, ExtraData)        \
     (This)->lpVtbl -> put_ExtraData(This, ExtraData)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -13723,7 +13723,7 @@ void __RPC_STUB ISpeechWaveFormatEx_put_ExtraData_Stub(
 
 
 
-#endif 	/* __ISpeechWaveFormatEx_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechWaveFormatEx_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechBaseStream_INTERFACE_DEFINED__
@@ -13763,7 +13763,7 @@ EXTERN_C const IID IID_ISpeechBaseStream;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechBaseStreamVtbl
     {
@@ -13847,48 +13847,48 @@ EXTERN_C const IID IID_ISpeechBaseStream;
 #ifdef COBJMACROS
 
 
-#define ISpeechBaseStream_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechBaseStream_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechBaseStream_AddRef(This)	\
+#define ISpeechBaseStream_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechBaseStream_Release(This)	\
+#define ISpeechBaseStream_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechBaseStream_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechBaseStream_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechBaseStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechBaseStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechBaseStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechBaseStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechBaseStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechBaseStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechBaseStream_get_Format(This, AudioFormat)	\
+#define ISpeechBaseStream_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechBaseStream_putref_Format(This, AudioFormat)	\
+#define ISpeechBaseStream_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechBaseStream_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechBaseStream_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechBaseStream_Write(This, Buffer, BytesWritten)	\
+#define ISpeechBaseStream_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechBaseStream_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechBaseStream_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -13958,7 +13958,7 @@ void __RPC_STUB ISpeechBaseStream_Seek_Stub(
 
 
 
-#endif 	/* __ISpeechBaseStream_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechBaseStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechFileStream_INTERFACE_DEFINED__
@@ -13985,7 +13985,7 @@ EXTERN_C const IID IID_ISpeechFileStream;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechFileStreamVtbl
     {
@@ -14078,55 +14078,55 @@ EXTERN_C const IID IID_ISpeechFileStream;
 #ifdef COBJMACROS
 
 
-#define ISpeechFileStream_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechFileStream_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechFileStream_AddRef(This)	\
+#define ISpeechFileStream_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechFileStream_Release(This)	\
+#define ISpeechFileStream_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechFileStream_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechFileStream_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechFileStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechFileStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechFileStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechFileStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechFileStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechFileStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechFileStream_get_Format(This, AudioFormat)	\
+#define ISpeechFileStream_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechFileStream_putref_Format(This, AudioFormat)	\
+#define ISpeechFileStream_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechFileStream_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechFileStream_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechFileStream_Write(This, Buffer, BytesWritten)	\
+#define ISpeechFileStream_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechFileStream_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechFileStream_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 
-#define ISpeechFileStream_Open(This, FileName, FileMode, DoEvents)	\
+#define ISpeechFileStream_Open(This, FileName, FileMode, DoEvents)        \
     (This)->lpVtbl -> Open(This, FileName, FileMode, DoEvents)
 
-#define ISpeechFileStream_Close(This)	\
+#define ISpeechFileStream_Close(This)        \
     (This)->lpVtbl -> Close(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -14156,7 +14156,7 @@ void __RPC_STUB ISpeechFileStream_Close_Stub(
 
 
 
-#endif 	/* __ISpeechFileStream_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechFileStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechMemoryStream_INTERFACE_DEFINED__
@@ -14182,7 +14182,7 @@ EXTERN_C const IID IID_ISpeechMemoryStream;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechMemoryStreamVtbl
     {
@@ -14274,55 +14274,55 @@ EXTERN_C const IID IID_ISpeechMemoryStream;
 #ifdef COBJMACROS
 
 
-#define ISpeechMemoryStream_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechMemoryStream_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechMemoryStream_AddRef(This)	\
+#define ISpeechMemoryStream_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechMemoryStream_Release(This)	\
+#define ISpeechMemoryStream_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechMemoryStream_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechMemoryStream_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechMemoryStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechMemoryStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechMemoryStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechMemoryStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechMemoryStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechMemoryStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechMemoryStream_get_Format(This, AudioFormat)	\
+#define ISpeechMemoryStream_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechMemoryStream_putref_Format(This, AudioFormat)	\
+#define ISpeechMemoryStream_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechMemoryStream_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechMemoryStream_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechMemoryStream_Write(This, Buffer, BytesWritten)	\
+#define ISpeechMemoryStream_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechMemoryStream_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechMemoryStream_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 
-#define ISpeechMemoryStream_SetData(This, Data)	\
+#define ISpeechMemoryStream_SetData(This, Data)        \
     (This)->lpVtbl -> SetData(This, Data)
 
-#define ISpeechMemoryStream_GetData(This, pData)	\
+#define ISpeechMemoryStream_GetData(This, pData)        \
     (This)->lpVtbl -> GetData(This, pData)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -14351,7 +14351,7 @@ void __RPC_STUB ISpeechMemoryStream_GetData_Stub(
 
 
 
-#endif 	/* __ISpeechMemoryStream_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechMemoryStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechCustomStream_INTERFACE_DEFINED__
@@ -14377,7 +14377,7 @@ EXTERN_C const IID IID_ISpeechCustomStream;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechCustomStreamVtbl
     {
@@ -14469,55 +14469,55 @@ EXTERN_C const IID IID_ISpeechCustomStream;
 #ifdef COBJMACROS
 
 
-#define ISpeechCustomStream_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechCustomStream_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechCustomStream_AddRef(This)	\
+#define ISpeechCustomStream_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechCustomStream_Release(This)	\
+#define ISpeechCustomStream_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechCustomStream_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechCustomStream_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechCustomStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechCustomStream_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechCustomStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechCustomStream_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechCustomStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechCustomStream_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechCustomStream_get_Format(This, AudioFormat)	\
+#define ISpeechCustomStream_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechCustomStream_putref_Format(This, AudioFormat)	\
+#define ISpeechCustomStream_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechCustomStream_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechCustomStream_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechCustomStream_Write(This, Buffer, BytesWritten)	\
+#define ISpeechCustomStream_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechCustomStream_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechCustomStream_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 
-#define ISpeechCustomStream_get_BaseStream(This, ppUnkStream)	\
+#define ISpeechCustomStream_get_BaseStream(This, ppUnkStream)        \
     (This)->lpVtbl -> get_BaseStream(This, ppUnkStream)
 
-#define ISpeechCustomStream_putref_BaseStream(This, pUnkStream)	\
+#define ISpeechCustomStream_putref_BaseStream(This, pUnkStream)        \
     (This)->lpVtbl -> putref_BaseStream(This, pUnkStream)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -14546,7 +14546,7 @@ void __RPC_STUB ISpeechCustomStream_putref_BaseStream_Stub(
 
 
 
-#endif 	/* __ISpeechCustomStream_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechCustomStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechAudio_INTERFACE_DEFINED__
@@ -14593,7 +14593,7 @@ EXTERN_C const IID IID_ISpeechAudio;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechAudioVtbl
     {
@@ -14713,76 +14713,76 @@ EXTERN_C const IID IID_ISpeechAudio;
 #ifdef COBJMACROS
 
 
-#define ISpeechAudio_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechAudio_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechAudio_AddRef(This)	\
+#define ISpeechAudio_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechAudio_Release(This)	\
+#define ISpeechAudio_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechAudio_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechAudio_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechAudio_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechAudio_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechAudio_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechAudio_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechAudio_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechAudio_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechAudio_get_Format(This, AudioFormat)	\
+#define ISpeechAudio_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechAudio_putref_Format(This, AudioFormat)	\
+#define ISpeechAudio_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechAudio_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechAudio_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechAudio_Write(This, Buffer, BytesWritten)	\
+#define ISpeechAudio_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechAudio_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechAudio_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 
-#define ISpeechAudio_get_Status(This, Status)	\
+#define ISpeechAudio_get_Status(This, Status)        \
     (This)->lpVtbl -> get_Status(This, Status)
 
-#define ISpeechAudio_get_BufferInfo(This, BufferInfo)	\
+#define ISpeechAudio_get_BufferInfo(This, BufferInfo)        \
     (This)->lpVtbl -> get_BufferInfo(This, BufferInfo)
 
-#define ISpeechAudio_get_DefaultFormat(This, StreamFormat)	\
+#define ISpeechAudio_get_DefaultFormat(This, StreamFormat)        \
     (This)->lpVtbl -> get_DefaultFormat(This, StreamFormat)
 
-#define ISpeechAudio_get_Volume(This, Volume)	\
+#define ISpeechAudio_get_Volume(This, Volume)        \
     (This)->lpVtbl -> get_Volume(This, Volume)
 
-#define ISpeechAudio_put_Volume(This, Volume)	\
+#define ISpeechAudio_put_Volume(This, Volume)        \
     (This)->lpVtbl -> put_Volume(This, Volume)
 
-#define ISpeechAudio_get_BufferNotifySize(This, BufferNotifySize)	\
+#define ISpeechAudio_get_BufferNotifySize(This, BufferNotifySize)        \
     (This)->lpVtbl -> get_BufferNotifySize(This, BufferNotifySize)
 
-#define ISpeechAudio_put_BufferNotifySize(This, BufferNotifySize)	\
+#define ISpeechAudio_put_BufferNotifySize(This, BufferNotifySize)        \
     (This)->lpVtbl -> put_BufferNotifySize(This, BufferNotifySize)
 
-#define ISpeechAudio_get_EventHandle(This, EventHandle)	\
+#define ISpeechAudio_get_EventHandle(This, EventHandle)        \
     (This)->lpVtbl -> get_EventHandle(This, EventHandle)
 
-#define ISpeechAudio_SetState(This, State)	\
+#define ISpeechAudio_SetState(This, State)        \
     (This)->lpVtbl -> SetState(This, State)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -14895,7 +14895,7 @@ void __RPC_STUB ISpeechAudio_SetState_Stub(
 
 
 
-#endif 	/* __ISpeechAudio_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechAudio_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechMMSysAudio_INTERFACE_DEFINED__
@@ -14930,7 +14930,7 @@ EXTERN_C const IID IID_ISpeechMMSysAudio;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechMMSysAudioVtbl
     {
@@ -15070,92 +15070,92 @@ EXTERN_C const IID IID_ISpeechMMSysAudio;
 #ifdef COBJMACROS
 
 
-#define ISpeechMMSysAudio_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechMMSysAudio_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechMMSysAudio_AddRef(This)	\
+#define ISpeechMMSysAudio_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechMMSysAudio_Release(This)	\
+#define ISpeechMMSysAudio_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechMMSysAudio_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechMMSysAudio_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechMMSysAudio_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechMMSysAudio_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechMMSysAudio_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechMMSysAudio_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechMMSysAudio_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechMMSysAudio_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechMMSysAudio_get_Format(This, AudioFormat)	\
+#define ISpeechMMSysAudio_get_Format(This, AudioFormat)        \
     (This)->lpVtbl -> get_Format(This, AudioFormat)
 
-#define ISpeechMMSysAudio_putref_Format(This, AudioFormat)	\
+#define ISpeechMMSysAudio_putref_Format(This, AudioFormat)        \
     (This)->lpVtbl -> putref_Format(This, AudioFormat)
 
-#define ISpeechMMSysAudio_Read(This, Buffer, NumberOfBytes, BytesRead)	\
+#define ISpeechMMSysAudio_Read(This, Buffer, NumberOfBytes, BytesRead)        \
     (This)->lpVtbl -> Read(This, Buffer, NumberOfBytes, BytesRead)
 
-#define ISpeechMMSysAudio_Write(This, Buffer, BytesWritten)	\
+#define ISpeechMMSysAudio_Write(This, Buffer, BytesWritten)        \
     (This)->lpVtbl -> Write(This, Buffer, BytesWritten)
 
-#define ISpeechMMSysAudio_Seek(This, Position, Origin, NewPosition)	\
+#define ISpeechMMSysAudio_Seek(This, Position, Origin, NewPosition)        \
     (This)->lpVtbl -> Seek(This, Position, Origin, NewPosition)
 
 
-#define ISpeechMMSysAudio_get_Status(This, Status)	\
+#define ISpeechMMSysAudio_get_Status(This, Status)        \
     (This)->lpVtbl -> get_Status(This, Status)
 
-#define ISpeechMMSysAudio_get_BufferInfo(This, BufferInfo)	\
+#define ISpeechMMSysAudio_get_BufferInfo(This, BufferInfo)        \
     (This)->lpVtbl -> get_BufferInfo(This, BufferInfo)
 
-#define ISpeechMMSysAudio_get_DefaultFormat(This, StreamFormat)	\
+#define ISpeechMMSysAudio_get_DefaultFormat(This, StreamFormat)        \
     (This)->lpVtbl -> get_DefaultFormat(This, StreamFormat)
 
-#define ISpeechMMSysAudio_get_Volume(This, Volume)	\
+#define ISpeechMMSysAudio_get_Volume(This, Volume)        \
     (This)->lpVtbl -> get_Volume(This, Volume)
 
-#define ISpeechMMSysAudio_put_Volume(This, Volume)	\
+#define ISpeechMMSysAudio_put_Volume(This, Volume)        \
     (This)->lpVtbl -> put_Volume(This, Volume)
 
-#define ISpeechMMSysAudio_get_BufferNotifySize(This, BufferNotifySize)	\
+#define ISpeechMMSysAudio_get_BufferNotifySize(This, BufferNotifySize)        \
     (This)->lpVtbl -> get_BufferNotifySize(This, BufferNotifySize)
 
-#define ISpeechMMSysAudio_put_BufferNotifySize(This, BufferNotifySize)	\
+#define ISpeechMMSysAudio_put_BufferNotifySize(This, BufferNotifySize)        \
     (This)->lpVtbl -> put_BufferNotifySize(This, BufferNotifySize)
 
-#define ISpeechMMSysAudio_get_EventHandle(This, EventHandle)	\
+#define ISpeechMMSysAudio_get_EventHandle(This, EventHandle)        \
     (This)->lpVtbl -> get_EventHandle(This, EventHandle)
 
-#define ISpeechMMSysAudio_SetState(This, State)	\
+#define ISpeechMMSysAudio_SetState(This, State)        \
     (This)->lpVtbl -> SetState(This, State)
 
 
-#define ISpeechMMSysAudio_get_DeviceId(This, DeviceId)	\
+#define ISpeechMMSysAudio_get_DeviceId(This, DeviceId)        \
     (This)->lpVtbl -> get_DeviceId(This, DeviceId)
 
-#define ISpeechMMSysAudio_put_DeviceId(This, DeviceId)	\
+#define ISpeechMMSysAudio_put_DeviceId(This, DeviceId)        \
     (This)->lpVtbl -> put_DeviceId(This, DeviceId)
 
-#define ISpeechMMSysAudio_get_LineId(This, LineId)	\
+#define ISpeechMMSysAudio_get_LineId(This, LineId)        \
     (This)->lpVtbl -> get_LineId(This, LineId)
 
-#define ISpeechMMSysAudio_put_LineId(This, LineId)	\
+#define ISpeechMMSysAudio_put_LineId(This, LineId)        \
     (This)->lpVtbl -> put_LineId(This, LineId)
 
-#define ISpeechMMSysAudio_get_MMHandle(This, Handle)	\
+#define ISpeechMMSysAudio_get_MMHandle(This, Handle)        \
     (This)->lpVtbl -> get_MMHandle(This, Handle)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -15220,7 +15220,7 @@ void __RPC_STUB ISpeechMMSysAudio_get_MMHandle_Stub(
 
 
 
-#endif 	/* __ISpeechMMSysAudio_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechMMSysAudio_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechVoice_INTERFACE_DEFINED__
@@ -15350,7 +15350,7 @@ EXTERN_C const IID IID_ISpeechVoice;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechVoiceVtbl
     {
@@ -15551,129 +15551,129 @@ EXTERN_C const IID IID_ISpeechVoice;
 #ifdef COBJMACROS
 
 
-#define ISpeechVoice_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechVoice_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechVoice_AddRef(This)	\
+#define ISpeechVoice_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechVoice_Release(This)	\
+#define ISpeechVoice_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechVoice_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechVoice_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechVoice_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechVoice_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechVoice_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechVoice_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechVoice_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechVoice_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechVoice_get_Status(This, Status)	\
+#define ISpeechVoice_get_Status(This, Status)        \
     (This)->lpVtbl -> get_Status(This, Status)
 
-#define ISpeechVoice_get_Voice(This, Voice)	\
+#define ISpeechVoice_get_Voice(This, Voice)        \
     (This)->lpVtbl -> get_Voice(This, Voice)
 
-#define ISpeechVoice_putref_Voice(This, Voice)	\
+#define ISpeechVoice_putref_Voice(This, Voice)        \
     (This)->lpVtbl -> putref_Voice(This, Voice)
 
-#define ISpeechVoice_get_AudioOutput(This, AudioOutput)	\
+#define ISpeechVoice_get_AudioOutput(This, AudioOutput)        \
     (This)->lpVtbl -> get_AudioOutput(This, AudioOutput)
 
-#define ISpeechVoice_putref_AudioOutput(This, AudioOutput)	\
+#define ISpeechVoice_putref_AudioOutput(This, AudioOutput)        \
     (This)->lpVtbl -> putref_AudioOutput(This, AudioOutput)
 
-#define ISpeechVoice_get_AudioOutputStream(This, AudioOutputStream)	\
+#define ISpeechVoice_get_AudioOutputStream(This, AudioOutputStream)        \
     (This)->lpVtbl -> get_AudioOutputStream(This, AudioOutputStream)
 
-#define ISpeechVoice_putref_AudioOutputStream(This, AudioOutputStream)	\
+#define ISpeechVoice_putref_AudioOutputStream(This, AudioOutputStream)        \
     (This)->lpVtbl -> putref_AudioOutputStream(This, AudioOutputStream)
 
-#define ISpeechVoice_get_Rate(This, Rate)	\
+#define ISpeechVoice_get_Rate(This, Rate)        \
     (This)->lpVtbl -> get_Rate(This, Rate)
 
-#define ISpeechVoice_put_Rate(This, Rate)	\
+#define ISpeechVoice_put_Rate(This, Rate)        \
     (This)->lpVtbl -> put_Rate(This, Rate)
 
-#define ISpeechVoice_get_Volume(This, Volume)	\
+#define ISpeechVoice_get_Volume(This, Volume)        \
     (This)->lpVtbl -> get_Volume(This, Volume)
 
-#define ISpeechVoice_put_Volume(This, Volume)	\
+#define ISpeechVoice_put_Volume(This, Volume)        \
     (This)->lpVtbl -> put_Volume(This, Volume)
 
-#define ISpeechVoice_put_AllowAudioOutputFormatChangesOnNextSet(This, Allow)	\
+#define ISpeechVoice_put_AllowAudioOutputFormatChangesOnNextSet(This, Allow)        \
     (This)->lpVtbl -> put_AllowAudioOutputFormatChangesOnNextSet(This, Allow)
 
-#define ISpeechVoice_get_AllowAudioOutputFormatChangesOnNextSet(This, Allow)	\
+#define ISpeechVoice_get_AllowAudioOutputFormatChangesOnNextSet(This, Allow)        \
     (This)->lpVtbl -> get_AllowAudioOutputFormatChangesOnNextSet(This, Allow)
 
-#define ISpeechVoice_get_EventInterests(This, EventInterestFlags)	\
+#define ISpeechVoice_get_EventInterests(This, EventInterestFlags)        \
     (This)->lpVtbl -> get_EventInterests(This, EventInterestFlags)
 
-#define ISpeechVoice_put_EventInterests(This, EventInterestFlags)	\
+#define ISpeechVoice_put_EventInterests(This, EventInterestFlags)        \
     (This)->lpVtbl -> put_EventInterests(This, EventInterestFlags)
 
-#define ISpeechVoice_put_Priority(This, Priority)	\
+#define ISpeechVoice_put_Priority(This, Priority)        \
     (This)->lpVtbl -> put_Priority(This, Priority)
 
-#define ISpeechVoice_get_Priority(This, Priority)	\
+#define ISpeechVoice_get_Priority(This, Priority)        \
     (This)->lpVtbl -> get_Priority(This, Priority)
 
-#define ISpeechVoice_put_AlertBoundary(This, Boundary)	\
+#define ISpeechVoice_put_AlertBoundary(This, Boundary)        \
     (This)->lpVtbl -> put_AlertBoundary(This, Boundary)
 
-#define ISpeechVoice_get_AlertBoundary(This, Boundary)	\
+#define ISpeechVoice_get_AlertBoundary(This, Boundary)        \
     (This)->lpVtbl -> get_AlertBoundary(This, Boundary)
 
-#define ISpeechVoice_put_SynchronousSpeakTimeout(This, msTimeout)	\
+#define ISpeechVoice_put_SynchronousSpeakTimeout(This, msTimeout)        \
     (This)->lpVtbl -> put_SynchronousSpeakTimeout(This, msTimeout)
 
-#define ISpeechVoice_get_SynchronousSpeakTimeout(This, msTimeout)	\
+#define ISpeechVoice_get_SynchronousSpeakTimeout(This, msTimeout)        \
     (This)->lpVtbl -> get_SynchronousSpeakTimeout(This, msTimeout)
 
-#define ISpeechVoice_Speak(This, Text, Flags, StreamNumber)	\
+#define ISpeechVoice_Speak(This, Text, Flags, StreamNumber)        \
     (This)->lpVtbl -> Speak(This, Text, Flags, StreamNumber)
 
-#define ISpeechVoice_SpeakStream(This, Stream, Flags, StreamNumber)	\
+#define ISpeechVoice_SpeakStream(This, Stream, Flags, StreamNumber)        \
     (This)->lpVtbl -> SpeakStream(This, Stream, Flags, StreamNumber)
 
-#define ISpeechVoice_Pause(This)	\
+#define ISpeechVoice_Pause(This)        \
     (This)->lpVtbl -> Pause(This)
 
-#define ISpeechVoice_Resume(This)	\
+#define ISpeechVoice_Resume(This)        \
     (This)->lpVtbl -> Resume(This)
 
-#define ISpeechVoice_Skip(This, Type, NumItems, NumSkipped)	\
+#define ISpeechVoice_Skip(This, Type, NumItems, NumSkipped)        \
     (This)->lpVtbl -> Skip(This, Type, NumItems, NumSkipped)
 
-#define ISpeechVoice_GetVoices(This, RequiredAttributes, OptionalAttributes, ObjectTokens)	\
+#define ISpeechVoice_GetVoices(This, RequiredAttributes, OptionalAttributes, ObjectTokens)        \
     (This)->lpVtbl -> GetVoices(This, RequiredAttributes, OptionalAttributes, ObjectTokens)
 
-#define ISpeechVoice_GetAudioOutputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)	\
+#define ISpeechVoice_GetAudioOutputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)        \
     (This)->lpVtbl -> GetAudioOutputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)
 
-#define ISpeechVoice_WaitUntilDone(This, msTimeout, Done)	\
+#define ISpeechVoice_WaitUntilDone(This, msTimeout, Done)        \
     (This)->lpVtbl -> WaitUntilDone(This, msTimeout, Done)
 
-#define ISpeechVoice_SpeakCompleteEvent(This, Handle)	\
+#define ISpeechVoice_SpeakCompleteEvent(This, Handle)        \
     (This)->lpVtbl -> SpeakCompleteEvent(This, Handle)
 
-#define ISpeechVoice_IsUISupported(This, TypeOfUI, ExtraData, Supported)	\
+#define ISpeechVoice_IsUISupported(This, TypeOfUI, ExtraData, Supported)        \
     (This)->lpVtbl -> IsUISupported(This, TypeOfUI, ExtraData, Supported)
 
-#define ISpeechVoice_DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)	\
+#define ISpeechVoice_DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)        \
     (This)->lpVtbl -> DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -16076,7 +16076,7 @@ void __RPC_STUB ISpeechVoice_DisplayUI_Stub(
 
 
 
-#endif 	/* __ISpeechVoice_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechVoice_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechVoiceStatus_INTERFACE_DEFINED__
@@ -16132,7 +16132,7 @@ EXTERN_C const IID IID_ISpeechVoiceStatus;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechVoiceStatusVtbl
     {
@@ -16239,69 +16239,69 @@ EXTERN_C const IID IID_ISpeechVoiceStatus;
 #ifdef COBJMACROS
 
 
-#define ISpeechVoiceStatus_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechVoiceStatus_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechVoiceStatus_AddRef(This)	\
+#define ISpeechVoiceStatus_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechVoiceStatus_Release(This)	\
+#define ISpeechVoiceStatus_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechVoiceStatus_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechVoiceStatus_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechVoiceStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechVoiceStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechVoiceStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechVoiceStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechVoiceStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechVoiceStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechVoiceStatus_get_CurrentStreamNumber(This, StreamNumber)	\
+#define ISpeechVoiceStatus_get_CurrentStreamNumber(This, StreamNumber)        \
     (This)->lpVtbl -> get_CurrentStreamNumber(This, StreamNumber)
 
-#define ISpeechVoiceStatus_get_LastStreamNumberQueued(This, StreamNumber)	\
+#define ISpeechVoiceStatus_get_LastStreamNumberQueued(This, StreamNumber)        \
     (This)->lpVtbl -> get_LastStreamNumberQueued(This, StreamNumber)
 
-#define ISpeechVoiceStatus_get_LastHResult(This, HResult)	\
+#define ISpeechVoiceStatus_get_LastHResult(This, HResult)        \
     (This)->lpVtbl -> get_LastHResult(This, HResult)
 
-#define ISpeechVoiceStatus_get_RunningState(This, State)	\
+#define ISpeechVoiceStatus_get_RunningState(This, State)        \
     (This)->lpVtbl -> get_RunningState(This, State)
 
-#define ISpeechVoiceStatus_get_InputWordPosition(This, Position)	\
+#define ISpeechVoiceStatus_get_InputWordPosition(This, Position)        \
     (This)->lpVtbl -> get_InputWordPosition(This, Position)
 
-#define ISpeechVoiceStatus_get_InputWordLength(This, Length)	\
+#define ISpeechVoiceStatus_get_InputWordLength(This, Length)        \
     (This)->lpVtbl -> get_InputWordLength(This, Length)
 
-#define ISpeechVoiceStatus_get_InputSentencePosition(This, Position)	\
+#define ISpeechVoiceStatus_get_InputSentencePosition(This, Position)        \
     (This)->lpVtbl -> get_InputSentencePosition(This, Position)
 
-#define ISpeechVoiceStatus_get_InputSentenceLength(This, Length)	\
+#define ISpeechVoiceStatus_get_InputSentenceLength(This, Length)        \
     (This)->lpVtbl -> get_InputSentenceLength(This, Length)
 
-#define ISpeechVoiceStatus_get_LastBookmark(This, Bookmark)	\
+#define ISpeechVoiceStatus_get_LastBookmark(This, Bookmark)        \
     (This)->lpVtbl -> get_LastBookmark(This, Bookmark)
 
-#define ISpeechVoiceStatus_get_LastBookmarkId(This, BookmarkId)	\
+#define ISpeechVoiceStatus_get_LastBookmarkId(This, BookmarkId)        \
     (This)->lpVtbl -> get_LastBookmarkId(This, BookmarkId)
 
-#define ISpeechVoiceStatus_get_PhonemeId(This, PhoneId)	\
+#define ISpeechVoiceStatus_get_PhonemeId(This, PhoneId)        \
     (This)->lpVtbl -> get_PhonemeId(This, PhoneId)
 
-#define ISpeechVoiceStatus_get_VisemeId(This, VisemeId)	\
+#define ISpeechVoiceStatus_get_VisemeId(This, VisemeId)        \
     (This)->lpVtbl -> get_VisemeId(This, VisemeId)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -16450,7 +16450,7 @@ void __RPC_STUB ISpeechVoiceStatus_get_VisemeId_Stub(
 
 
 
-#endif 	/* __ISpeechVoiceStatus_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechVoiceStatus_INTERFACE_DEFINED__ */
 
 
 #ifndef ___ISpeechVoiceEvents_DISPINTERFACE_DEFINED__
@@ -16469,7 +16469,7 @@ EXTERN_C const IID DIID__ISpeechVoiceEvents;
     {
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct _ISpeechVoiceEventsVtbl
     {
@@ -16528,35 +16528,35 @@ EXTERN_C const IID DIID__ISpeechVoiceEvents;
 #ifdef COBJMACROS
 
 
-#define _ISpeechVoiceEvents_QueryInterface(This, riid, ppvObject)	\
+#define _ISpeechVoiceEvents_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define _ISpeechVoiceEvents_AddRef(This)	\
+#define _ISpeechVoiceEvents_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define _ISpeechVoiceEvents_Release(This)	\
+#define _ISpeechVoiceEvents_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define _ISpeechVoiceEvents_GetTypeInfoCount(This, pctinfo)	\
+#define _ISpeechVoiceEvents_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define _ISpeechVoiceEvents_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define _ISpeechVoiceEvents_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define _ISpeechVoiceEvents_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define _ISpeechVoiceEvents_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define _ISpeechVoiceEvents_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define _ISpeechVoiceEvents_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
-#endif 	/* ___ISpeechVoiceEvents_DISPINTERFACE_DEFINED__ */
+#endif         /* ___ISpeechVoiceEvents_DISPINTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecognizer_INTERFACE_DEFINED__
@@ -16676,7 +16676,7 @@ EXTERN_C const IID IID_ISpeechRecognizer;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecognizerVtbl
     {
@@ -16861,111 +16861,111 @@ EXTERN_C const IID IID_ISpeechRecognizer;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecognizer_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecognizer_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecognizer_AddRef(This)	\
+#define ISpeechRecognizer_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecognizer_Release(This)	\
+#define ISpeechRecognizer_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecognizer_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecognizer_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecognizer_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecognizer_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecognizer_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecognizer_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecognizer_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecognizer_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecognizer_putref_Recognizer(This, Recognizer)	\
+#define ISpeechRecognizer_putref_Recognizer(This, Recognizer)        \
     (This)->lpVtbl -> putref_Recognizer(This, Recognizer)
 
-#define ISpeechRecognizer_get_Recognizer(This, Recognizer)	\
+#define ISpeechRecognizer_get_Recognizer(This, Recognizer)        \
     (This)->lpVtbl -> get_Recognizer(This, Recognizer)
 
-#define ISpeechRecognizer_put_AllowAudioInputFormatChangesOnNextSet(This, Allow)	\
+#define ISpeechRecognizer_put_AllowAudioInputFormatChangesOnNextSet(This, Allow)        \
     (This)->lpVtbl -> put_AllowAudioInputFormatChangesOnNextSet(This, Allow)
 
-#define ISpeechRecognizer_get_AllowAudioInputFormatChangesOnNextSet(This, Allow)	\
+#define ISpeechRecognizer_get_AllowAudioInputFormatChangesOnNextSet(This, Allow)        \
     (This)->lpVtbl -> get_AllowAudioInputFormatChangesOnNextSet(This, Allow)
 
-#define ISpeechRecognizer_putref_AudioInput(This, AudioInput)	\
+#define ISpeechRecognizer_putref_AudioInput(This, AudioInput)        \
     (This)->lpVtbl -> putref_AudioInput(This, AudioInput)
 
-#define ISpeechRecognizer_get_AudioInput(This, AudioInput)	\
+#define ISpeechRecognizer_get_AudioInput(This, AudioInput)        \
     (This)->lpVtbl -> get_AudioInput(This, AudioInput)
 
-#define ISpeechRecognizer_putref_AudioInputStream(This, AudioInputStream)	\
+#define ISpeechRecognizer_putref_AudioInputStream(This, AudioInputStream)        \
     (This)->lpVtbl -> putref_AudioInputStream(This, AudioInputStream)
 
-#define ISpeechRecognizer_get_AudioInputStream(This, AudioInputStream)	\
+#define ISpeechRecognizer_get_AudioInputStream(This, AudioInputStream)        \
     (This)->lpVtbl -> get_AudioInputStream(This, AudioInputStream)
 
-#define ISpeechRecognizer_get_IsShared(This, Shared)	\
+#define ISpeechRecognizer_get_IsShared(This, Shared)        \
     (This)->lpVtbl -> get_IsShared(This, Shared)
 
-#define ISpeechRecognizer_put_State(This, State)	\
+#define ISpeechRecognizer_put_State(This, State)        \
     (This)->lpVtbl -> put_State(This, State)
 
-#define ISpeechRecognizer_get_State(This, State)	\
+#define ISpeechRecognizer_get_State(This, State)        \
     (This)->lpVtbl -> get_State(This, State)
 
-#define ISpeechRecognizer_get_Status(This, Status)	\
+#define ISpeechRecognizer_get_Status(This, Status)        \
     (This)->lpVtbl -> get_Status(This, Status)
 
-#define ISpeechRecognizer_putref_Profile(This, Profile)	\
+#define ISpeechRecognizer_putref_Profile(This, Profile)        \
     (This)->lpVtbl -> putref_Profile(This, Profile)
 
-#define ISpeechRecognizer_get_Profile(This, Profile)	\
+#define ISpeechRecognizer_get_Profile(This, Profile)        \
     (This)->lpVtbl -> get_Profile(This, Profile)
 
-#define ISpeechRecognizer_EmulateRecognition(This, TextElements, ElementDisplayAttributes, LanguageId)	\
+#define ISpeechRecognizer_EmulateRecognition(This, TextElements, ElementDisplayAttributes, LanguageId)        \
     (This)->lpVtbl -> EmulateRecognition(This, TextElements, ElementDisplayAttributes, LanguageId)
 
-#define ISpeechRecognizer_CreateRecoContext(This, NewContext)	\
+#define ISpeechRecognizer_CreateRecoContext(This, NewContext)        \
     (This)->lpVtbl -> CreateRecoContext(This, NewContext)
 
-#define ISpeechRecognizer_GetFormat(This, Type, Format)	\
+#define ISpeechRecognizer_GetFormat(This, Type, Format)        \
     (This)->lpVtbl -> GetFormat(This, Type, Format)
 
-#define ISpeechRecognizer_SetPropertyNumber(This, Name, Value, Supported)	\
+#define ISpeechRecognizer_SetPropertyNumber(This, Name, Value, Supported)        \
     (This)->lpVtbl -> SetPropertyNumber(This, Name, Value, Supported)
 
-#define ISpeechRecognizer_GetPropertyNumber(This, Name, Value, Supported)	\
+#define ISpeechRecognizer_GetPropertyNumber(This, Name, Value, Supported)        \
     (This)->lpVtbl -> GetPropertyNumber(This, Name, Value, Supported)
 
-#define ISpeechRecognizer_SetPropertyString(This, Name, Value, Supported)	\
+#define ISpeechRecognizer_SetPropertyString(This, Name, Value, Supported)        \
     (This)->lpVtbl -> SetPropertyString(This, Name, Value, Supported)
 
-#define ISpeechRecognizer_GetPropertyString(This, Name, Value, Supported)	\
+#define ISpeechRecognizer_GetPropertyString(This, Name, Value, Supported)        \
     (This)->lpVtbl -> GetPropertyString(This, Name, Value, Supported)
 
-#define ISpeechRecognizer_IsUISupported(This, TypeOfUI, ExtraData, Supported)	\
+#define ISpeechRecognizer_IsUISupported(This, TypeOfUI, ExtraData, Supported)        \
     (This)->lpVtbl -> IsUISupported(This, TypeOfUI, ExtraData, Supported)
 
-#define ISpeechRecognizer_DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)	\
+#define ISpeechRecognizer_DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)        \
     (This)->lpVtbl -> DisplayUI(This, hWndParent, Title, TypeOfUI, ExtraData)
 
-#define ISpeechRecognizer_GetRecognizers(This, RequiredAttributes, OptionalAttributes, ObjectTokens)	\
+#define ISpeechRecognizer_GetRecognizers(This, RequiredAttributes, OptionalAttributes, ObjectTokens)        \
     (This)->lpVtbl -> GetRecognizers(This, RequiredAttributes, OptionalAttributes, ObjectTokens)
 
-#define ISpeechRecognizer_GetAudioInputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)	\
+#define ISpeechRecognizer_GetAudioInputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)        \
     (This)->lpVtbl -> GetAudioInputs(This, RequiredAttributes, OptionalAttributes, ObjectTokens)
 
-#define ISpeechRecognizer_GetProfiles(This, RequiredAttributes, OptionalAttributes, ObjectTokens)	\
+#define ISpeechRecognizer_GetProfiles(This, RequiredAttributes, OptionalAttributes, ObjectTokens)        \
     (This)->lpVtbl -> GetProfiles(This, RequiredAttributes, OptionalAttributes, ObjectTokens)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -17304,7 +17304,7 @@ void __RPC_STUB ISpeechRecognizer_GetProfiles_Stub(
 
 
 
-#endif 	/* __ISpeechRecognizer_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecognizer_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecognizerStatus_INTERFACE_DEFINED__
@@ -17342,7 +17342,7 @@ EXTERN_C const IID IID_ISpeechRecognizerStatus;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecognizerStatusVtbl
     {
@@ -17425,51 +17425,51 @@ EXTERN_C const IID IID_ISpeechRecognizerStatus;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecognizerStatus_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecognizerStatus_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecognizerStatus_AddRef(This)	\
+#define ISpeechRecognizerStatus_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecognizerStatus_Release(This)	\
+#define ISpeechRecognizerStatus_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecognizerStatus_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecognizerStatus_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecognizerStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecognizerStatus_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecognizerStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecognizerStatus_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecognizerStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecognizerStatus_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecognizerStatus_get_AudioStatus(This, AudioStatus)	\
+#define ISpeechRecognizerStatus_get_AudioStatus(This, AudioStatus)        \
     (This)->lpVtbl -> get_AudioStatus(This, AudioStatus)
 
-#define ISpeechRecognizerStatus_get_CurrentStreamPosition(This, pCurrentStreamPos)	\
+#define ISpeechRecognizerStatus_get_CurrentStreamPosition(This, pCurrentStreamPos)        \
     (This)->lpVtbl -> get_CurrentStreamPosition(This, pCurrentStreamPos)
 
-#define ISpeechRecognizerStatus_get_CurrentStreamNumber(This, StreamNumber)	\
+#define ISpeechRecognizerStatus_get_CurrentStreamNumber(This, StreamNumber)        \
     (This)->lpVtbl -> get_CurrentStreamNumber(This, StreamNumber)
 
-#define ISpeechRecognizerStatus_get_NumberOfActiveRules(This, NumberOfActiveRules)	\
+#define ISpeechRecognizerStatus_get_NumberOfActiveRules(This, NumberOfActiveRules)        \
     (This)->lpVtbl -> get_NumberOfActiveRules(This, NumberOfActiveRules)
 
-#define ISpeechRecognizerStatus_get_ClsidEngine(This, ClsidEngine)	\
+#define ISpeechRecognizerStatus_get_ClsidEngine(This, ClsidEngine)        \
     (This)->lpVtbl -> get_ClsidEngine(This, ClsidEngine)
 
-#define ISpeechRecognizerStatus_get_SupportedLanguages(This, SupportedLanguages)	\
+#define ISpeechRecognizerStatus_get_SupportedLanguages(This, SupportedLanguages)        \
     (This)->lpVtbl -> get_SupportedLanguages(This, SupportedLanguages)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -17546,7 +17546,7 @@ void __RPC_STUB ISpeechRecognizerStatus_get_SupportedLanguages_Stub(
 
 
 
-#endif 	/* __ISpeechRecognizerStatus_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecognizerStatus_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecoContext_INTERFACE_DEFINED__
@@ -17643,7 +17643,7 @@ EXTERN_C const IID IID_ISpeechRecoContext;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecoContextVtbl
     {
@@ -17804,108 +17804,108 @@ EXTERN_C const IID IID_ISpeechRecoContext;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecoContext_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecoContext_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecoContext_AddRef(This)	\
+#define ISpeechRecoContext_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecoContext_Release(This)	\
+#define ISpeechRecoContext_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecoContext_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecoContext_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecoContext_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecoContext_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecoContext_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecoContext_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecoContext_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecoContext_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecoContext_get_Recognizer(This, Recognizer)	\
+#define ISpeechRecoContext_get_Recognizer(This, Recognizer)        \
     (This)->lpVtbl -> get_Recognizer(This, Recognizer)
 
-#define ISpeechRecoContext_get_AudioInputInterferenceStatus(This, Interference)	\
+#define ISpeechRecoContext_get_AudioInputInterferenceStatus(This, Interference)        \
     (This)->lpVtbl -> get_AudioInputInterferenceStatus(This, Interference)
 
-#define ISpeechRecoContext_get_RequestedUIType(This, UIType)	\
+#define ISpeechRecoContext_get_RequestedUIType(This, UIType)        \
     (This)->lpVtbl -> get_RequestedUIType(This, UIType)
 
-#define ISpeechRecoContext_putref_Voice(This, Voice)	\
+#define ISpeechRecoContext_putref_Voice(This, Voice)        \
     (This)->lpVtbl -> putref_Voice(This, Voice)
 
-#define ISpeechRecoContext_get_Voice(This, Voice)	\
+#define ISpeechRecoContext_get_Voice(This, Voice)        \
     (This)->lpVtbl -> get_Voice(This, Voice)
 
-#define ISpeechRecoContext_put_AllowVoiceFormatMatchingOnNextSet(This, Allow)	\
+#define ISpeechRecoContext_put_AllowVoiceFormatMatchingOnNextSet(This, Allow)        \
     (This)->lpVtbl -> put_AllowVoiceFormatMatchingOnNextSet(This, Allow)
 
-#define ISpeechRecoContext_get_AllowVoiceFormatMatchingOnNextSet(This, pAllow)	\
+#define ISpeechRecoContext_get_AllowVoiceFormatMatchingOnNextSet(This, pAllow)        \
     (This)->lpVtbl -> get_AllowVoiceFormatMatchingOnNextSet(This, pAllow)
 
-#define ISpeechRecoContext_put_VoicePurgeEvent(This, EventInterest)	\
+#define ISpeechRecoContext_put_VoicePurgeEvent(This, EventInterest)        \
     (This)->lpVtbl -> put_VoicePurgeEvent(This, EventInterest)
 
-#define ISpeechRecoContext_get_VoicePurgeEvent(This, EventInterest)	\
+#define ISpeechRecoContext_get_VoicePurgeEvent(This, EventInterest)        \
     (This)->lpVtbl -> get_VoicePurgeEvent(This, EventInterest)
 
-#define ISpeechRecoContext_put_EventInterests(This, EventInterest)	\
+#define ISpeechRecoContext_put_EventInterests(This, EventInterest)        \
     (This)->lpVtbl -> put_EventInterests(This, EventInterest)
 
-#define ISpeechRecoContext_get_EventInterests(This, EventInterest)	\
+#define ISpeechRecoContext_get_EventInterests(This, EventInterest)        \
     (This)->lpVtbl -> get_EventInterests(This, EventInterest)
 
-#define ISpeechRecoContext_put_CmdMaxAlternates(This, MaxAlternates)	\
+#define ISpeechRecoContext_put_CmdMaxAlternates(This, MaxAlternates)        \
     (This)->lpVtbl -> put_CmdMaxAlternates(This, MaxAlternates)
 
-#define ISpeechRecoContext_get_CmdMaxAlternates(This, MaxAlternates)	\
+#define ISpeechRecoContext_get_CmdMaxAlternates(This, MaxAlternates)        \
     (This)->lpVtbl -> get_CmdMaxAlternates(This, MaxAlternates)
 
-#define ISpeechRecoContext_put_State(This, State)	\
+#define ISpeechRecoContext_put_State(This, State)        \
     (This)->lpVtbl -> put_State(This, State)
 
-#define ISpeechRecoContext_get_State(This, State)	\
+#define ISpeechRecoContext_get_State(This, State)        \
     (This)->lpVtbl -> get_State(This, State)
 
-#define ISpeechRecoContext_put_RetainedAudio(This, Option)	\
+#define ISpeechRecoContext_put_RetainedAudio(This, Option)        \
     (This)->lpVtbl -> put_RetainedAudio(This, Option)
 
-#define ISpeechRecoContext_get_RetainedAudio(This, Option)	\
+#define ISpeechRecoContext_get_RetainedAudio(This, Option)        \
     (This)->lpVtbl -> get_RetainedAudio(This, Option)
 
-#define ISpeechRecoContext_putref_RetainedAudioFormat(This, Format)	\
+#define ISpeechRecoContext_putref_RetainedAudioFormat(This, Format)        \
     (This)->lpVtbl -> putref_RetainedAudioFormat(This, Format)
 
-#define ISpeechRecoContext_get_RetainedAudioFormat(This, Format)	\
+#define ISpeechRecoContext_get_RetainedAudioFormat(This, Format)        \
     (This)->lpVtbl -> get_RetainedAudioFormat(This, Format)
 
-#define ISpeechRecoContext_Pause(This)	\
+#define ISpeechRecoContext_Pause(This)        \
     (This)->lpVtbl -> Pause(This)
 
-#define ISpeechRecoContext_Resume(This)	\
+#define ISpeechRecoContext_Resume(This)        \
     (This)->lpVtbl -> Resume(This)
 
-#define ISpeechRecoContext_CreateGrammar(This, GrammarId, Grammar)	\
+#define ISpeechRecoContext_CreateGrammar(This, GrammarId, Grammar)        \
     (This)->lpVtbl -> CreateGrammar(This, GrammarId, Grammar)
 
-#define ISpeechRecoContext_CreateResultFromMemory(This, ResultBlock, Result)	\
+#define ISpeechRecoContext_CreateResultFromMemory(This, ResultBlock, Result)        \
     (This)->lpVtbl -> CreateResultFromMemory(This, ResultBlock, Result)
 
-#define ISpeechRecoContext_Bookmark(This, Options, StreamPos, BookmarkId)	\
+#define ISpeechRecoContext_Bookmark(This, Options, StreamPos, BookmarkId)        \
     (This)->lpVtbl -> Bookmark(This, Options, StreamPos, BookmarkId)
 
-#define ISpeechRecoContext_SetAdaptationData(This, AdaptationString)	\
+#define ISpeechRecoContext_SetAdaptationData(This, AdaptationString)        \
     (This)->lpVtbl -> SetAdaptationData(This, AdaptationString)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -18212,7 +18212,7 @@ void __RPC_STUB ISpeechRecoContext_SetAdaptationData_Stub(
 
 
 
-#endif 	/* __ISpeechRecoContext_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecoContext_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecoGrammar_INTERFACE_DEFINED__
@@ -18305,7 +18305,7 @@ EXTERN_C const IID IID_ISpeechRecoGrammar;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecoGrammarVtbl
     {
@@ -18456,90 +18456,90 @@ EXTERN_C const IID IID_ISpeechRecoGrammar;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecoGrammar_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecoGrammar_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecoGrammar_AddRef(This)	\
+#define ISpeechRecoGrammar_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecoGrammar_Release(This)	\
+#define ISpeechRecoGrammar_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecoGrammar_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecoGrammar_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecoGrammar_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecoGrammar_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecoGrammar_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecoGrammar_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecoGrammar_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecoGrammar_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecoGrammar_get_Id(This, Id)	\
+#define ISpeechRecoGrammar_get_Id(This, Id)        \
     (This)->lpVtbl -> get_Id(This, Id)
 
-#define ISpeechRecoGrammar_get_RecoContext(This, RecoContext)	\
+#define ISpeechRecoGrammar_get_RecoContext(This, RecoContext)        \
     (This)->lpVtbl -> get_RecoContext(This, RecoContext)
 
-#define ISpeechRecoGrammar_put_State(This, State)	\
+#define ISpeechRecoGrammar_put_State(This, State)        \
     (This)->lpVtbl -> put_State(This, State)
 
-#define ISpeechRecoGrammar_get_State(This, State)	\
+#define ISpeechRecoGrammar_get_State(This, State)        \
     (This)->lpVtbl -> get_State(This, State)
 
-#define ISpeechRecoGrammar_get_Rules(This, Rules)	\
+#define ISpeechRecoGrammar_get_Rules(This, Rules)        \
     (This)->lpVtbl -> get_Rules(This, Rules)
 
-#define ISpeechRecoGrammar_Reset(This, NewLanguage)	\
+#define ISpeechRecoGrammar_Reset(This, NewLanguage)        \
     (This)->lpVtbl -> Reset(This, NewLanguage)
 
-#define ISpeechRecoGrammar_CmdLoadFromFile(This, FileName, LoadOption)	\
+#define ISpeechRecoGrammar_CmdLoadFromFile(This, FileName, LoadOption)        \
     (This)->lpVtbl -> CmdLoadFromFile(This, FileName, LoadOption)
 
-#define ISpeechRecoGrammar_CmdLoadFromObject(This, ClassId, GrammarName, LoadOption)	\
+#define ISpeechRecoGrammar_CmdLoadFromObject(This, ClassId, GrammarName, LoadOption)        \
     (This)->lpVtbl -> CmdLoadFromObject(This, ClassId, GrammarName, LoadOption)
 
-#define ISpeechRecoGrammar_CmdLoadFromResource(This, hModule, ResourceName, ResourceType, LanguageId, LoadOption)	\
+#define ISpeechRecoGrammar_CmdLoadFromResource(This, hModule, ResourceName, ResourceType, LanguageId, LoadOption)        \
     (This)->lpVtbl -> CmdLoadFromResource(This, hModule, ResourceName, ResourceType, LanguageId, LoadOption)
 
-#define ISpeechRecoGrammar_CmdLoadFromMemory(This, GrammarData, LoadOption)	\
+#define ISpeechRecoGrammar_CmdLoadFromMemory(This, GrammarData, LoadOption)        \
     (This)->lpVtbl -> CmdLoadFromMemory(This, GrammarData, LoadOption)
 
-#define ISpeechRecoGrammar_CmdLoadFromProprietaryGrammar(This, ProprietaryGuid, ProprietaryString, ProprietaryData, LoadOption)	\
+#define ISpeechRecoGrammar_CmdLoadFromProprietaryGrammar(This, ProprietaryGuid, ProprietaryString, ProprietaryData, LoadOption)        \
     (This)->lpVtbl -> CmdLoadFromProprietaryGrammar(This, ProprietaryGuid, ProprietaryString, ProprietaryData, LoadOption)
 
-#define ISpeechRecoGrammar_CmdSetRuleState(This, Name, State)	\
+#define ISpeechRecoGrammar_CmdSetRuleState(This, Name, State)        \
     (This)->lpVtbl -> CmdSetRuleState(This, Name, State)
 
-#define ISpeechRecoGrammar_CmdSetRuleIdState(This, RuleId, State)	\
+#define ISpeechRecoGrammar_CmdSetRuleIdState(This, RuleId, State)        \
     (This)->lpVtbl -> CmdSetRuleIdState(This, RuleId, State)
 
-#define ISpeechRecoGrammar_DictationLoad(This, TopicName, LoadOption)	\
+#define ISpeechRecoGrammar_DictationLoad(This, TopicName, LoadOption)        \
     (This)->lpVtbl -> DictationLoad(This, TopicName, LoadOption)
 
-#define ISpeechRecoGrammar_DictationUnload(This)	\
+#define ISpeechRecoGrammar_DictationUnload(This)        \
     (This)->lpVtbl -> DictationUnload(This)
 
-#define ISpeechRecoGrammar_DictationSetState(This, State)	\
+#define ISpeechRecoGrammar_DictationSetState(This, State)        \
     (This)->lpVtbl -> DictationSetState(This, State)
 
-#define ISpeechRecoGrammar_SetWordSequenceData(This, Text, TextLength, Info)	\
+#define ISpeechRecoGrammar_SetWordSequenceData(This, Text, TextLength, Info)        \
     (This)->lpVtbl -> SetWordSequenceData(This, Text, TextLength, Info)
 
-#define ISpeechRecoGrammar_SetTextSelection(This, Info)	\
+#define ISpeechRecoGrammar_SetTextSelection(This, Info)        \
     (This)->lpVtbl -> SetTextSelection(This, Info)
 
-#define ISpeechRecoGrammar_IsPronounceable(This, Word, WordPronounceable)	\
+#define ISpeechRecoGrammar_IsPronounceable(This, Word, WordPronounceable)        \
     (This)->lpVtbl -> IsPronounceable(This, Word, WordPronounceable)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -18788,7 +18788,7 @@ void __RPC_STUB ISpeechRecoGrammar_IsPronounceable_Stub(
 
 
 
-#endif 	/* __ISpeechRecoGrammar_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecoGrammar_INTERFACE_DEFINED__ */
 
 
 #ifndef ___ISpeechRecoContextEvents_DISPINTERFACE_DEFINED__
@@ -18807,7 +18807,7 @@ EXTERN_C const IID DIID__ISpeechRecoContextEvents;
     {
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct _ISpeechRecoContextEventsVtbl
     {
@@ -18866,35 +18866,35 @@ EXTERN_C const IID DIID__ISpeechRecoContextEvents;
 #ifdef COBJMACROS
 
 
-#define _ISpeechRecoContextEvents_QueryInterface(This, riid, ppvObject)	\
+#define _ISpeechRecoContextEvents_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define _ISpeechRecoContextEvents_AddRef(This)	\
+#define _ISpeechRecoContextEvents_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define _ISpeechRecoContextEvents_Release(This)	\
+#define _ISpeechRecoContextEvents_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define _ISpeechRecoContextEvents_GetTypeInfoCount(This, pctinfo)	\
+#define _ISpeechRecoContextEvents_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define _ISpeechRecoContextEvents_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define _ISpeechRecoContextEvents_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define _ISpeechRecoContextEvents_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define _ISpeechRecoContextEvents_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define _ISpeechRecoContextEvents_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define _ISpeechRecoContextEvents_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
-#endif 	/* ___ISpeechRecoContextEvents_DISPINTERFACE_DEFINED__ */
+#endif         /* ___ISpeechRecoContextEvents_DISPINTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRule_INTERFACE_DEFINED__
@@ -18935,7 +18935,7 @@ EXTERN_C const IID IID_ISpeechGrammarRule;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechGrammarRuleVtbl
     {
@@ -19022,54 +19022,54 @@ EXTERN_C const IID IID_ISpeechGrammarRule;
 #ifdef COBJMACROS
 
 
-#define ISpeechGrammarRule_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechGrammarRule_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechGrammarRule_AddRef(This)	\
+#define ISpeechGrammarRule_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechGrammarRule_Release(This)	\
+#define ISpeechGrammarRule_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechGrammarRule_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechGrammarRule_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechGrammarRule_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechGrammarRule_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechGrammarRule_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechGrammarRule_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechGrammarRule_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechGrammarRule_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechGrammarRule_get_Attributes(This, Attributes)	\
+#define ISpeechGrammarRule_get_Attributes(This, Attributes)        \
     (This)->lpVtbl -> get_Attributes(This, Attributes)
 
-#define ISpeechGrammarRule_get_InitialState(This, State)	\
+#define ISpeechGrammarRule_get_InitialState(This, State)        \
     (This)->lpVtbl -> get_InitialState(This, State)
 
-#define ISpeechGrammarRule_get_Name(This, Name)	\
+#define ISpeechGrammarRule_get_Name(This, Name)        \
     (This)->lpVtbl -> get_Name(This, Name)
 
-#define ISpeechGrammarRule_get_Id(This, Id)	\
+#define ISpeechGrammarRule_get_Id(This, Id)        \
     (This)->lpVtbl -> get_Id(This, Id)
 
-#define ISpeechGrammarRule_Clear(This)	\
+#define ISpeechGrammarRule_Clear(This)        \
     (This)->lpVtbl -> Clear(This)
 
-#define ISpeechGrammarRule_AddResource(This, ResourceName, ResourceValue)	\
+#define ISpeechGrammarRule_AddResource(This, ResourceName, ResourceValue)        \
     (This)->lpVtbl -> AddResource(This, ResourceName, ResourceValue)
 
-#define ISpeechGrammarRule_AddState(This, State)	\
+#define ISpeechGrammarRule_AddState(This, State)        \
     (This)->lpVtbl -> AddState(This, State)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -19158,7 +19158,7 @@ void __RPC_STUB ISpeechGrammarRule_AddState_Stub(
 
 
 
-#endif 	/* __ISpeechGrammarRule_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechGrammarRule_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRules_INTERFACE_DEFINED__
@@ -19207,7 +19207,7 @@ EXTERN_C const IID IID_ISpeechGrammarRules;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechGrammarRulesVtbl
     {
@@ -19303,57 +19303,57 @@ EXTERN_C const IID IID_ISpeechGrammarRules;
 #ifdef COBJMACROS
 
 
-#define ISpeechGrammarRules_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechGrammarRules_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechGrammarRules_AddRef(This)	\
+#define ISpeechGrammarRules_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechGrammarRules_Release(This)	\
+#define ISpeechGrammarRules_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechGrammarRules_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechGrammarRules_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechGrammarRules_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechGrammarRules_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechGrammarRules_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechGrammarRules_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechGrammarRules_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechGrammarRules_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechGrammarRules_get_Count(This, Count)	\
+#define ISpeechGrammarRules_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechGrammarRules_FindRule(This, RuleNameOrId, Rule)	\
+#define ISpeechGrammarRules_FindRule(This, RuleNameOrId, Rule)        \
     (This)->lpVtbl -> FindRule(This, RuleNameOrId, Rule)
 
-#define ISpeechGrammarRules_Item(This, Index, Rule)	\
+#define ISpeechGrammarRules_Item(This, Index, Rule)        \
     (This)->lpVtbl -> Item(This, Index, Rule)
 
-#define ISpeechGrammarRules_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechGrammarRules_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
-#define ISpeechGrammarRules_get_Dynamic(This, Dynamic)	\
+#define ISpeechGrammarRules_get_Dynamic(This, Dynamic)        \
     (This)->lpVtbl -> get_Dynamic(This, Dynamic)
 
-#define ISpeechGrammarRules_Add(This, RuleName, Attributes, RuleId, Rule)	\
+#define ISpeechGrammarRules_Add(This, RuleName, Attributes, RuleId, Rule)        \
     (This)->lpVtbl -> Add(This, RuleName, Attributes, RuleId, Rule)
 
-#define ISpeechGrammarRules_Commit(This)	\
+#define ISpeechGrammarRules_Commit(This)        \
     (This)->lpVtbl -> Commit(This)
 
-#define ISpeechGrammarRules_CommitAndSave(This, ErrorText, SaveStream)	\
+#define ISpeechGrammarRules_CommitAndSave(This, ErrorText, SaveStream)        \
     (This)->lpVtbl -> CommitAndSave(This, ErrorText, SaveStream)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -19459,7 +19459,7 @@ void __RPC_STUB ISpeechGrammarRules_CommitAndSave_Stub(
 
 
 
-#endif 	/* __ISpeechGrammarRules_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechGrammarRules_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleState_INTERFACE_DEFINED__
@@ -19511,7 +19511,7 @@ EXTERN_C const IID IID_ISpeechGrammarRuleState;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechGrammarRuleStateVtbl
     {
@@ -19607,48 +19607,48 @@ EXTERN_C const IID IID_ISpeechGrammarRuleState;
 #ifdef COBJMACROS
 
 
-#define ISpeechGrammarRuleState_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechGrammarRuleState_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechGrammarRuleState_AddRef(This)	\
+#define ISpeechGrammarRuleState_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechGrammarRuleState_Release(This)	\
+#define ISpeechGrammarRuleState_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechGrammarRuleState_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechGrammarRuleState_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechGrammarRuleState_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechGrammarRuleState_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechGrammarRuleState_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechGrammarRuleState_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechGrammarRuleState_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechGrammarRuleState_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechGrammarRuleState_get_Rule(This, Rule)	\
+#define ISpeechGrammarRuleState_get_Rule(This, Rule)        \
     (This)->lpVtbl -> get_Rule(This, Rule)
 
-#define ISpeechGrammarRuleState_get_Transitions(This, Transitions)	\
+#define ISpeechGrammarRuleState_get_Transitions(This, Transitions)        \
     (This)->lpVtbl -> get_Transitions(This, Transitions)
 
-#define ISpeechGrammarRuleState_AddWordTransition(This, DestState, Words, Separators, Type, PropertyName, PropertyId, PropertyValue, Weight)	\
+#define ISpeechGrammarRuleState_AddWordTransition(This, DestState, Words, Separators, Type, PropertyName, PropertyId, PropertyValue, Weight)        \
     (This)->lpVtbl -> AddWordTransition(This, DestState, Words, Separators, Type, PropertyName, PropertyId, PropertyValue, Weight)
 
-#define ISpeechGrammarRuleState_AddRuleTransition(This, DestinationState, Rule, PropertyName, PropertyId, PropertyValue, Weight)	\
+#define ISpeechGrammarRuleState_AddRuleTransition(This, DestinationState, Rule, PropertyName, PropertyId, PropertyValue, Weight)        \
     (This)->lpVtbl -> AddRuleTransition(This, DestinationState, Rule, PropertyName, PropertyId, PropertyValue, Weight)
 
-#define ISpeechGrammarRuleState_AddSpecialTransition(This, DestinationState, Type, PropertyName, PropertyId, PropertyValue, Weight)	\
+#define ISpeechGrammarRuleState_AddSpecialTransition(This, DestinationState, Type, PropertyName, PropertyId, PropertyValue, Weight)        \
     (This)->lpVtbl -> AddSpecialTransition(This, DestinationState, Type, PropertyName, PropertyId, PropertyValue, Weight)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -19730,7 +19730,7 @@ void __RPC_STUB ISpeechGrammarRuleState_AddSpecialTransition_Stub(
 
 
 
-#endif 	/* __ISpeechGrammarRuleState_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleState_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleStateTransition_INTERFACE_DEFINED__
@@ -19774,7 +19774,7 @@ EXTERN_C const IID IID_ISpeechGrammarRuleStateTransition;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechGrammarRuleStateTransitionVtbl
     {
@@ -19865,57 +19865,57 @@ EXTERN_C const IID IID_ISpeechGrammarRuleStateTransition;
 #ifdef COBJMACROS
 
 
-#define ISpeechGrammarRuleStateTransition_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechGrammarRuleStateTransition_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechGrammarRuleStateTransition_AddRef(This)	\
+#define ISpeechGrammarRuleStateTransition_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechGrammarRuleStateTransition_Release(This)	\
+#define ISpeechGrammarRuleStateTransition_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechGrammarRuleStateTransition_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechGrammarRuleStateTransition_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechGrammarRuleStateTransition_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechGrammarRuleStateTransition_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechGrammarRuleStateTransition_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechGrammarRuleStateTransition_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechGrammarRuleStateTransition_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechGrammarRuleStateTransition_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechGrammarRuleStateTransition_get_Type(This, Type)	\
+#define ISpeechGrammarRuleStateTransition_get_Type(This, Type)        \
     (This)->lpVtbl -> get_Type(This, Type)
 
-#define ISpeechGrammarRuleStateTransition_get_Text(This, Text)	\
+#define ISpeechGrammarRuleStateTransition_get_Text(This, Text)        \
     (This)->lpVtbl -> get_Text(This, Text)
 
-#define ISpeechGrammarRuleStateTransition_get_Rule(This, Rule)	\
+#define ISpeechGrammarRuleStateTransition_get_Rule(This, Rule)        \
     (This)->lpVtbl -> get_Rule(This, Rule)
 
-#define ISpeechGrammarRuleStateTransition_get_Weight(This, Weight)	\
+#define ISpeechGrammarRuleStateTransition_get_Weight(This, Weight)        \
     (This)->lpVtbl -> get_Weight(This, Weight)
 
-#define ISpeechGrammarRuleStateTransition_get_PropertyName(This, PropertyName)	\
+#define ISpeechGrammarRuleStateTransition_get_PropertyName(This, PropertyName)        \
     (This)->lpVtbl -> get_PropertyName(This, PropertyName)
 
-#define ISpeechGrammarRuleStateTransition_get_PropertyId(This, PropertyId)	\
+#define ISpeechGrammarRuleStateTransition_get_PropertyId(This, PropertyId)        \
     (This)->lpVtbl -> get_PropertyId(This, PropertyId)
 
-#define ISpeechGrammarRuleStateTransition_get_PropertyValue(This, PropertyValue)	\
+#define ISpeechGrammarRuleStateTransition_get_PropertyValue(This, PropertyValue)        \
     (This)->lpVtbl -> get_PropertyValue(This, PropertyValue)
 
-#define ISpeechGrammarRuleStateTransition_get_NextState(This, NextState)	\
+#define ISpeechGrammarRuleStateTransition_get_NextState(This, NextState)        \
     (This)->lpVtbl -> get_NextState(This, NextState)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -20016,7 +20016,7 @@ void __RPC_STUB ISpeechGrammarRuleStateTransition_get_NextState_Stub(
 
 
 
-#endif 	/* __ISpeechGrammarRuleStateTransition_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleStateTransition_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechGrammarRuleStateTransitions_INTERFACE_DEFINED__
@@ -20046,7 +20046,7 @@ EXTERN_C const IID IID_ISpeechGrammarRuleStateTransitions;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechGrammarRuleStateTransitionsVtbl
     {
@@ -20118,42 +20118,42 @@ EXTERN_C const IID IID_ISpeechGrammarRuleStateTransitions;
 #ifdef COBJMACROS
 
 
-#define ISpeechGrammarRuleStateTransitions_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechGrammarRuleStateTransitions_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechGrammarRuleStateTransitions_AddRef(This)	\
+#define ISpeechGrammarRuleStateTransitions_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechGrammarRuleStateTransitions_Release(This)	\
+#define ISpeechGrammarRuleStateTransitions_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechGrammarRuleStateTransitions_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechGrammarRuleStateTransitions_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechGrammarRuleStateTransitions_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechGrammarRuleStateTransitions_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechGrammarRuleStateTransitions_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechGrammarRuleStateTransitions_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechGrammarRuleStateTransitions_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechGrammarRuleStateTransitions_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechGrammarRuleStateTransitions_get_Count(This, Count)	\
+#define ISpeechGrammarRuleStateTransitions_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechGrammarRuleStateTransitions_Item(This, Index, Transition)	\
+#define ISpeechGrammarRuleStateTransitions_Item(This, Index, Transition)        \
     (This)->lpVtbl -> Item(This, Index, Transition)
 
-#define ISpeechGrammarRuleStateTransitions_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechGrammarRuleStateTransitions_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -20195,7 +20195,7 @@ void __RPC_STUB ISpeechGrammarRuleStateTransitions_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechGrammarRuleStateTransitions_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechGrammarRuleStateTransitions_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechTextSelectionInformation_INTERFACE_DEFINED__
@@ -20239,7 +20239,7 @@ EXTERN_C const IID IID_ISpeechTextSelectionInformation;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechTextSelectionInformationVtbl
     {
@@ -20330,57 +20330,57 @@ EXTERN_C const IID IID_ISpeechTextSelectionInformation;
 #ifdef COBJMACROS
 
 
-#define ISpeechTextSelectionInformation_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechTextSelectionInformation_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechTextSelectionInformation_AddRef(This)	\
+#define ISpeechTextSelectionInformation_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechTextSelectionInformation_Release(This)	\
+#define ISpeechTextSelectionInformation_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechTextSelectionInformation_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechTextSelectionInformation_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechTextSelectionInformation_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechTextSelectionInformation_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechTextSelectionInformation_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechTextSelectionInformation_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechTextSelectionInformation_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechTextSelectionInformation_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechTextSelectionInformation_put_ActiveOffset(This, ActiveOffset)	\
+#define ISpeechTextSelectionInformation_put_ActiveOffset(This, ActiveOffset)        \
     (This)->lpVtbl -> put_ActiveOffset(This, ActiveOffset)
 
-#define ISpeechTextSelectionInformation_get_ActiveOffset(This, ActiveOffset)	\
+#define ISpeechTextSelectionInformation_get_ActiveOffset(This, ActiveOffset)        \
     (This)->lpVtbl -> get_ActiveOffset(This, ActiveOffset)
 
-#define ISpeechTextSelectionInformation_put_ActiveLength(This, ActiveLength)	\
+#define ISpeechTextSelectionInformation_put_ActiveLength(This, ActiveLength)        \
     (This)->lpVtbl -> put_ActiveLength(This, ActiveLength)
 
-#define ISpeechTextSelectionInformation_get_ActiveLength(This, ActiveLength)	\
+#define ISpeechTextSelectionInformation_get_ActiveLength(This, ActiveLength)        \
     (This)->lpVtbl -> get_ActiveLength(This, ActiveLength)
 
-#define ISpeechTextSelectionInformation_put_SelectionOffset(This, SelectionOffset)	\
+#define ISpeechTextSelectionInformation_put_SelectionOffset(This, SelectionOffset)        \
     (This)->lpVtbl -> put_SelectionOffset(This, SelectionOffset)
 
-#define ISpeechTextSelectionInformation_get_SelectionOffset(This, SelectionOffset)	\
+#define ISpeechTextSelectionInformation_get_SelectionOffset(This, SelectionOffset)        \
     (This)->lpVtbl -> get_SelectionOffset(This, SelectionOffset)
 
-#define ISpeechTextSelectionInformation_put_SelectionLength(This, SelectionLength)	\
+#define ISpeechTextSelectionInformation_put_SelectionLength(This, SelectionLength)        \
     (This)->lpVtbl -> put_SelectionLength(This, SelectionLength)
 
-#define ISpeechTextSelectionInformation_get_SelectionLength(This, SelectionLength)	\
+#define ISpeechTextSelectionInformation_get_SelectionLength(This, SelectionLength)        \
     (This)->lpVtbl -> get_SelectionLength(This, SelectionLength)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -20481,7 +20481,7 @@ void __RPC_STUB ISpeechTextSelectionInformation_get_SelectionLength_Stub(
 
 
 
-#endif 	/* __ISpeechTextSelectionInformation_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechTextSelectionInformation_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecoResult_INTERFACE_DEFINED__
@@ -20539,7 +20539,7 @@ EXTERN_C const IID IID_ISpeechRecoResult;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecoResultVtbl
     {
@@ -20646,63 +20646,63 @@ EXTERN_C const IID IID_ISpeechRecoResult;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecoResult_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecoResult_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecoResult_AddRef(This)	\
+#define ISpeechRecoResult_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecoResult_Release(This)	\
+#define ISpeechRecoResult_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecoResult_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecoResult_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecoResult_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecoResult_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecoResult_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecoResult_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecoResult_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecoResult_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecoResult_get_RecoContext(This, RecoContext)	\
+#define ISpeechRecoResult_get_RecoContext(This, RecoContext)        \
     (This)->lpVtbl -> get_RecoContext(This, RecoContext)
 
-#define ISpeechRecoResult_get_Times(This, Times)	\
+#define ISpeechRecoResult_get_Times(This, Times)        \
     (This)->lpVtbl -> get_Times(This, Times)
 
-#define ISpeechRecoResult_putref_AudioFormat(This, Format)	\
+#define ISpeechRecoResult_putref_AudioFormat(This, Format)        \
     (This)->lpVtbl -> putref_AudioFormat(This, Format)
 
-#define ISpeechRecoResult_get_AudioFormat(This, Format)	\
+#define ISpeechRecoResult_get_AudioFormat(This, Format)        \
     (This)->lpVtbl -> get_AudioFormat(This, Format)
 
-#define ISpeechRecoResult_get_PhraseInfo(This, PhraseInfo)	\
+#define ISpeechRecoResult_get_PhraseInfo(This, PhraseInfo)        \
     (This)->lpVtbl -> get_PhraseInfo(This, PhraseInfo)
 
-#define ISpeechRecoResult_Alternates(This, RequestCount, StartElement, Elements, Alternates)	\
+#define ISpeechRecoResult_Alternates(This, RequestCount, StartElement, Elements, Alternates)        \
     (This)->lpVtbl -> Alternates(This, RequestCount, StartElement, Elements, Alternates)
 
-#define ISpeechRecoResult_Audio(This, StartElement, Elements, Stream)	\
+#define ISpeechRecoResult_Audio(This, StartElement, Elements, Stream)        \
     (This)->lpVtbl -> Audio(This, StartElement, Elements, Stream)
 
-#define ISpeechRecoResult_SpeakAudio(This, StartElement, Elements, Flags, StreamNumber)	\
+#define ISpeechRecoResult_SpeakAudio(This, StartElement, Elements, Flags, StreamNumber)        \
     (This)->lpVtbl -> SpeakAudio(This, StartElement, Elements, Flags, StreamNumber)
 
-#define ISpeechRecoResult_SaveToMemory(This, ResultBlock)	\
+#define ISpeechRecoResult_SaveToMemory(This, ResultBlock)        \
     (This)->lpVtbl -> SaveToMemory(This, ResultBlock)
 
-#define ISpeechRecoResult_DiscardResultInfo(This, ValueTypes)	\
+#define ISpeechRecoResult_DiscardResultInfo(This, ValueTypes)        \
     (This)->lpVtbl -> DiscardResultInfo(This, ValueTypes)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -20835,7 +20835,7 @@ void __RPC_STUB ISpeechRecoResult_DiscardResultInfo_Stub(
 
 
 
-#endif 	/* __ISpeechRecoResult_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecoResult_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechRecoResultTimes_INTERFACE_DEFINED__
@@ -20867,7 +20867,7 @@ EXTERN_C const IID IID_ISpeechRecoResultTimes;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechRecoResultTimesVtbl
     {
@@ -20942,45 +20942,45 @@ EXTERN_C const IID IID_ISpeechRecoResultTimes;
 #ifdef COBJMACROS
 
 
-#define ISpeechRecoResultTimes_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechRecoResultTimes_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechRecoResultTimes_AddRef(This)	\
+#define ISpeechRecoResultTimes_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechRecoResultTimes_Release(This)	\
+#define ISpeechRecoResultTimes_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechRecoResultTimes_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechRecoResultTimes_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechRecoResultTimes_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechRecoResultTimes_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechRecoResultTimes_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechRecoResultTimes_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechRecoResultTimes_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechRecoResultTimes_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechRecoResultTimes_get_StreamTime(This, Time)	\
+#define ISpeechRecoResultTimes_get_StreamTime(This, Time)        \
     (This)->lpVtbl -> get_StreamTime(This, Time)
 
-#define ISpeechRecoResultTimes_get_Length(This, Length)	\
+#define ISpeechRecoResultTimes_get_Length(This, Length)        \
     (This)->lpVtbl -> get_Length(This, Length)
 
-#define ISpeechRecoResultTimes_get_TickCount(This, TickCount)	\
+#define ISpeechRecoResultTimes_get_TickCount(This, TickCount)        \
     (This)->lpVtbl -> get_TickCount(This, TickCount)
 
-#define ISpeechRecoResultTimes_get_OffsetFromStart(This, OffsetFromStart)	\
+#define ISpeechRecoResultTimes_get_OffsetFromStart(This, OffsetFromStart)        \
     (This)->lpVtbl -> get_OffsetFromStart(This, OffsetFromStart)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -21033,7 +21033,7 @@ void __RPC_STUB ISpeechRecoResultTimes_get_OffsetFromStart_Stub(
 
 
 
-#endif 	/* __ISpeechRecoResultTimes_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechRecoResultTimes_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseAlternate_INTERFACE_DEFINED__
@@ -21067,7 +21067,7 @@ EXTERN_C const IID IID_ISpeechPhraseAlternate;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseAlternateVtbl
     {
@@ -21145,48 +21145,48 @@ EXTERN_C const IID IID_ISpeechPhraseAlternate;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseAlternate_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseAlternate_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseAlternate_AddRef(This)	\
+#define ISpeechPhraseAlternate_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseAlternate_Release(This)	\
+#define ISpeechPhraseAlternate_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseAlternate_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseAlternate_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseAlternate_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseAlternate_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseAlternate_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseAlternate_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseAlternate_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseAlternate_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseAlternate_get_RecoResult(This, RecoResult)	\
+#define ISpeechPhraseAlternate_get_RecoResult(This, RecoResult)        \
     (This)->lpVtbl -> get_RecoResult(This, RecoResult)
 
-#define ISpeechPhraseAlternate_get_StartElementInResult(This, StartElement)	\
+#define ISpeechPhraseAlternate_get_StartElementInResult(This, StartElement)        \
     (This)->lpVtbl -> get_StartElementInResult(This, StartElement)
 
-#define ISpeechPhraseAlternate_get_NumberOfElementsInResult(This, NumberOfElements)	\
+#define ISpeechPhraseAlternate_get_NumberOfElementsInResult(This, NumberOfElements)        \
     (This)->lpVtbl -> get_NumberOfElementsInResult(This, NumberOfElements)
 
-#define ISpeechPhraseAlternate_get_PhraseInfo(This, PhraseInfo)	\
+#define ISpeechPhraseAlternate_get_PhraseInfo(This, PhraseInfo)        \
     (This)->lpVtbl -> get_PhraseInfo(This, PhraseInfo)
 
-#define ISpeechPhraseAlternate_Commit(This)	\
+#define ISpeechPhraseAlternate_Commit(This)        \
     (This)->lpVtbl -> Commit(This)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -21250,7 +21250,7 @@ void __RPC_STUB ISpeechPhraseAlternate_Commit_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseAlternate_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseAlternate_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseAlternates_INTERFACE_DEFINED__
@@ -21280,7 +21280,7 @@ EXTERN_C const IID IID_ISpeechPhraseAlternates;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseAlternatesVtbl
     {
@@ -21352,42 +21352,42 @@ EXTERN_C const IID IID_ISpeechPhraseAlternates;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseAlternates_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseAlternates_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseAlternates_AddRef(This)	\
+#define ISpeechPhraseAlternates_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseAlternates_Release(This)	\
+#define ISpeechPhraseAlternates_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseAlternates_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseAlternates_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseAlternates_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseAlternates_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseAlternates_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseAlternates_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseAlternates_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseAlternates_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseAlternates_get_Count(This, Count)	\
+#define ISpeechPhraseAlternates_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechPhraseAlternates_Item(This, Index, PhraseAlternate)	\
+#define ISpeechPhraseAlternates_Item(This, Index, PhraseAlternate)        \
     (This)->lpVtbl -> Item(This, Index, PhraseAlternate)
 
-#define ISpeechPhraseAlternates_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechPhraseAlternates_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -21429,7 +21429,7 @@ void __RPC_STUB ISpeechPhraseAlternates_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseAlternates_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseAlternates_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseInfo_INTERFACE_DEFINED__
@@ -21503,7 +21503,7 @@ EXTERN_C const IID IID_ISpeechPhraseInfo;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseInfoVtbl
     {
@@ -21632,81 +21632,81 @@ EXTERN_C const IID IID_ISpeechPhraseInfo;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseInfo_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseInfo_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseInfo_AddRef(This)	\
+#define ISpeechPhraseInfo_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseInfo_Release(This)	\
+#define ISpeechPhraseInfo_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseInfo_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseInfo_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseInfo_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseInfo_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseInfo_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseInfo_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseInfo_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseInfo_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseInfo_get_LanguageId(This, LanguageId)	\
+#define ISpeechPhraseInfo_get_LanguageId(This, LanguageId)        \
     (This)->lpVtbl -> get_LanguageId(This, LanguageId)
 
-#define ISpeechPhraseInfo_get_GrammarId(This, GrammarId)	\
+#define ISpeechPhraseInfo_get_GrammarId(This, GrammarId)        \
     (This)->lpVtbl -> get_GrammarId(This, GrammarId)
 
-#define ISpeechPhraseInfo_get_StartTime(This, StartTime)	\
+#define ISpeechPhraseInfo_get_StartTime(This, StartTime)        \
     (This)->lpVtbl -> get_StartTime(This, StartTime)
 
-#define ISpeechPhraseInfo_get_AudioStreamPosition(This, AudioStreamPosition)	\
+#define ISpeechPhraseInfo_get_AudioStreamPosition(This, AudioStreamPosition)        \
     (This)->lpVtbl -> get_AudioStreamPosition(This, AudioStreamPosition)
 
-#define ISpeechPhraseInfo_get_AudioSizeBytes(This, pAudioSizeBytes)	\
+#define ISpeechPhraseInfo_get_AudioSizeBytes(This, pAudioSizeBytes)        \
     (This)->lpVtbl -> get_AudioSizeBytes(This, pAudioSizeBytes)
 
-#define ISpeechPhraseInfo_get_RetainedSizeBytes(This, RetainedSizeBytes)	\
+#define ISpeechPhraseInfo_get_RetainedSizeBytes(This, RetainedSizeBytes)        \
     (This)->lpVtbl -> get_RetainedSizeBytes(This, RetainedSizeBytes)
 
-#define ISpeechPhraseInfo_get_AudioSizeTime(This, AudioSizeTime)	\
+#define ISpeechPhraseInfo_get_AudioSizeTime(This, AudioSizeTime)        \
     (This)->lpVtbl -> get_AudioSizeTime(This, AudioSizeTime)
 
-#define ISpeechPhraseInfo_get_Rule(This, Rule)	\
+#define ISpeechPhraseInfo_get_Rule(This, Rule)        \
     (This)->lpVtbl -> get_Rule(This, Rule)
 
-#define ISpeechPhraseInfo_get_Properties(This, Properties)	\
+#define ISpeechPhraseInfo_get_Properties(This, Properties)        \
     (This)->lpVtbl -> get_Properties(This, Properties)
 
-#define ISpeechPhraseInfo_get_Elements(This, Elements)	\
+#define ISpeechPhraseInfo_get_Elements(This, Elements)        \
     (This)->lpVtbl -> get_Elements(This, Elements)
 
-#define ISpeechPhraseInfo_get_Replacements(This, Replacements)	\
+#define ISpeechPhraseInfo_get_Replacements(This, Replacements)        \
     (This)->lpVtbl -> get_Replacements(This, Replacements)
 
-#define ISpeechPhraseInfo_get_EngineId(This, EngineIdGuid)	\
+#define ISpeechPhraseInfo_get_EngineId(This, EngineIdGuid)        \
     (This)->lpVtbl -> get_EngineId(This, EngineIdGuid)
 
-#define ISpeechPhraseInfo_get_EnginePrivateData(This, PrivateData)	\
+#define ISpeechPhraseInfo_get_EnginePrivateData(This, PrivateData)        \
     (This)->lpVtbl -> get_EnginePrivateData(This, PrivateData)
 
-#define ISpeechPhraseInfo_SaveToMemory(This, PhraseBlock)	\
+#define ISpeechPhraseInfo_SaveToMemory(This, PhraseBlock)        \
     (This)->lpVtbl -> SaveToMemory(This, PhraseBlock)
 
-#define ISpeechPhraseInfo_GetText(This, StartElement, Elements, UseReplacements, Text)	\
+#define ISpeechPhraseInfo_GetText(This, StartElement, Elements, UseReplacements, Text)        \
     (This)->lpVtbl -> GetText(This, StartElement, Elements, UseReplacements, Text)
 
-#define ISpeechPhraseInfo_GetDisplayAttributes(This, StartElement, Elements, UseReplacements, DisplayAttributes)	\
+#define ISpeechPhraseInfo_GetDisplayAttributes(This, StartElement, Elements, UseReplacements, DisplayAttributes)        \
     (This)->lpVtbl -> GetDisplayAttributes(This, StartElement, Elements, UseReplacements, DisplayAttributes)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -21909,7 +21909,7 @@ void __RPC_STUB ISpeechPhraseInfo_GetDisplayAttributes_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseInfo_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseInfo_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseElement_INTERFACE_DEFINED__
@@ -21968,7 +21968,7 @@ EXTERN_C const IID IID_ISpeechPhraseElement;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseElementVtbl
     {
@@ -22079,72 +22079,72 @@ EXTERN_C const IID IID_ISpeechPhraseElement;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseElement_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseElement_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseElement_AddRef(This)	\
+#define ISpeechPhraseElement_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseElement_Release(This)	\
+#define ISpeechPhraseElement_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseElement_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseElement_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseElement_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseElement_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseElement_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseElement_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseElement_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseElement_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseElement_get_AudioTimeOffset(This, AudioTimeOffset)	\
+#define ISpeechPhraseElement_get_AudioTimeOffset(This, AudioTimeOffset)        \
     (This)->lpVtbl -> get_AudioTimeOffset(This, AudioTimeOffset)
 
-#define ISpeechPhraseElement_get_AudioSizeTime(This, AudioSizeTime)	\
+#define ISpeechPhraseElement_get_AudioSizeTime(This, AudioSizeTime)        \
     (This)->lpVtbl -> get_AudioSizeTime(This, AudioSizeTime)
 
-#define ISpeechPhraseElement_get_AudioStreamOffset(This, AudioStreamOffset)	\
+#define ISpeechPhraseElement_get_AudioStreamOffset(This, AudioStreamOffset)        \
     (This)->lpVtbl -> get_AudioStreamOffset(This, AudioStreamOffset)
 
-#define ISpeechPhraseElement_get_AudioSizeBytes(This, AudioSizeBytes)	\
+#define ISpeechPhraseElement_get_AudioSizeBytes(This, AudioSizeBytes)        \
     (This)->lpVtbl -> get_AudioSizeBytes(This, AudioSizeBytes)
 
-#define ISpeechPhraseElement_get_RetainedStreamOffset(This, RetainedStreamOffset)	\
+#define ISpeechPhraseElement_get_RetainedStreamOffset(This, RetainedStreamOffset)        \
     (This)->lpVtbl -> get_RetainedStreamOffset(This, RetainedStreamOffset)
 
-#define ISpeechPhraseElement_get_RetainedSizeBytes(This, RetainedSizeBytes)	\
+#define ISpeechPhraseElement_get_RetainedSizeBytes(This, RetainedSizeBytes)        \
     (This)->lpVtbl -> get_RetainedSizeBytes(This, RetainedSizeBytes)
 
-#define ISpeechPhraseElement_get_DisplayText(This, DisplayText)	\
+#define ISpeechPhraseElement_get_DisplayText(This, DisplayText)        \
     (This)->lpVtbl -> get_DisplayText(This, DisplayText)
 
-#define ISpeechPhraseElement_get_LexicalForm(This, LexicalForm)	\
+#define ISpeechPhraseElement_get_LexicalForm(This, LexicalForm)        \
     (This)->lpVtbl -> get_LexicalForm(This, LexicalForm)
 
-#define ISpeechPhraseElement_get_Pronunciation(This, Pronunciation)	\
+#define ISpeechPhraseElement_get_Pronunciation(This, Pronunciation)        \
     (This)->lpVtbl -> get_Pronunciation(This, Pronunciation)
 
-#define ISpeechPhraseElement_get_DisplayAttributes(This, DisplayAttributes)	\
+#define ISpeechPhraseElement_get_DisplayAttributes(This, DisplayAttributes)        \
     (This)->lpVtbl -> get_DisplayAttributes(This, DisplayAttributes)
 
-#define ISpeechPhraseElement_get_RequiredConfidence(This, RequiredConfidence)	\
+#define ISpeechPhraseElement_get_RequiredConfidence(This, RequiredConfidence)        \
     (This)->lpVtbl -> get_RequiredConfidence(This, RequiredConfidence)
 
-#define ISpeechPhraseElement_get_ActualConfidence(This, ActualConfidence)	\
+#define ISpeechPhraseElement_get_ActualConfidence(This, ActualConfidence)        \
     (This)->lpVtbl -> get_ActualConfidence(This, ActualConfidence)
 
-#define ISpeechPhraseElement_get_EngineConfidence(This, EngineConfidence)	\
+#define ISpeechPhraseElement_get_EngineConfidence(This, EngineConfidence)        \
     (This)->lpVtbl -> get_EngineConfidence(This, EngineConfidence)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -22305,7 +22305,7 @@ void __RPC_STUB ISpeechPhraseElement_get_EngineConfidence_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseElement_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseElement_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseElements_INTERFACE_DEFINED__
@@ -22335,7 +22335,7 @@ EXTERN_C const IID IID_ISpeechPhraseElements;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseElementsVtbl
     {
@@ -22407,42 +22407,42 @@ EXTERN_C const IID IID_ISpeechPhraseElements;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseElements_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseElements_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseElements_AddRef(This)	\
+#define ISpeechPhraseElements_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseElements_Release(This)	\
+#define ISpeechPhraseElements_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseElements_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseElements_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseElements_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseElements_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseElements_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseElements_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseElements_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseElements_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseElements_get_Count(This, Count)	\
+#define ISpeechPhraseElements_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechPhraseElements_Item(This, Index, Element)	\
+#define ISpeechPhraseElements_Item(This, Index, Element)        \
     (This)->lpVtbl -> Item(This, Index, Element)
 
-#define ISpeechPhraseElements_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechPhraseElements_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -22484,7 +22484,7 @@ void __RPC_STUB ISpeechPhraseElements_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseElements_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseElements_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseReplacement_INTERFACE_DEFINED__
@@ -22516,7 +22516,7 @@ EXTERN_C const IID IID_ISpeechPhraseReplacement;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseReplacementVtbl
     {
@@ -22591,45 +22591,45 @@ EXTERN_C const IID IID_ISpeechPhraseReplacement;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseReplacement_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseReplacement_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseReplacement_AddRef(This)	\
+#define ISpeechPhraseReplacement_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseReplacement_Release(This)	\
+#define ISpeechPhraseReplacement_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseReplacement_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseReplacement_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseReplacement_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseReplacement_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseReplacement_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseReplacement_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseReplacement_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseReplacement_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseReplacement_get_DisplayAttributes(This, DisplayAttributes)	\
+#define ISpeechPhraseReplacement_get_DisplayAttributes(This, DisplayAttributes)        \
     (This)->lpVtbl -> get_DisplayAttributes(This, DisplayAttributes)
 
-#define ISpeechPhraseReplacement_get_Text(This, Text)	\
+#define ISpeechPhraseReplacement_get_Text(This, Text)        \
     (This)->lpVtbl -> get_Text(This, Text)
 
-#define ISpeechPhraseReplacement_get_FirstElement(This, FirstElement)	\
+#define ISpeechPhraseReplacement_get_FirstElement(This, FirstElement)        \
     (This)->lpVtbl -> get_FirstElement(This, FirstElement)
 
-#define ISpeechPhraseReplacement_get_NumberOfElements(This, NumberOfElements)	\
+#define ISpeechPhraseReplacement_get_NumberOfElements(This, NumberOfElements)        \
     (This)->lpVtbl -> get_NumberOfElements(This, NumberOfElements)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -22682,7 +22682,7 @@ void __RPC_STUB ISpeechPhraseReplacement_get_NumberOfElements_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseReplacement_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseReplacement_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseReplacements_INTERFACE_DEFINED__
@@ -22712,7 +22712,7 @@ EXTERN_C const IID IID_ISpeechPhraseReplacements;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseReplacementsVtbl
     {
@@ -22784,42 +22784,42 @@ EXTERN_C const IID IID_ISpeechPhraseReplacements;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseReplacements_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseReplacements_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseReplacements_AddRef(This)	\
+#define ISpeechPhraseReplacements_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseReplacements_Release(This)	\
+#define ISpeechPhraseReplacements_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseReplacements_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseReplacements_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseReplacements_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseReplacements_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseReplacements_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseReplacements_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseReplacements_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseReplacements_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseReplacements_get_Count(This, Count)	\
+#define ISpeechPhraseReplacements_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechPhraseReplacements_Item(This, Index, Reps)	\
+#define ISpeechPhraseReplacements_Item(This, Index, Reps)        \
     (This)->lpVtbl -> Item(This, Index, Reps)
 
-#define ISpeechPhraseReplacements_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechPhraseReplacements_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -22861,7 +22861,7 @@ void __RPC_STUB ISpeechPhraseReplacements_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseReplacements_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseReplacements_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseProperty_INTERFACE_DEFINED__
@@ -22908,7 +22908,7 @@ EXTERN_C const IID IID_ISpeechPhraseProperty;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhrasePropertyVtbl
     {
@@ -23003,60 +23003,60 @@ EXTERN_C const IID IID_ISpeechPhraseProperty;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseProperty_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseProperty_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseProperty_AddRef(This)	\
+#define ISpeechPhraseProperty_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseProperty_Release(This)	\
+#define ISpeechPhraseProperty_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseProperty_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseProperty_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseProperty_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseProperty_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseProperty_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseProperty_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseProperty_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseProperty_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseProperty_get_Name(This, Name)	\
+#define ISpeechPhraseProperty_get_Name(This, Name)        \
     (This)->lpVtbl -> get_Name(This, Name)
 
-#define ISpeechPhraseProperty_get_Id(This, Id)	\
+#define ISpeechPhraseProperty_get_Id(This, Id)        \
     (This)->lpVtbl -> get_Id(This, Id)
 
-#define ISpeechPhraseProperty_get_Value(This, Value)	\
+#define ISpeechPhraseProperty_get_Value(This, Value)        \
     (This)->lpVtbl -> get_Value(This, Value)
 
-#define ISpeechPhraseProperty_get_FirstElement(This, FirstElement)	\
+#define ISpeechPhraseProperty_get_FirstElement(This, FirstElement)        \
     (This)->lpVtbl -> get_FirstElement(This, FirstElement)
 
-#define ISpeechPhraseProperty_get_NumberOfElements(This, NumberOfElements)	\
+#define ISpeechPhraseProperty_get_NumberOfElements(This, NumberOfElements)        \
     (This)->lpVtbl -> get_NumberOfElements(This, NumberOfElements)
 
-#define ISpeechPhraseProperty_get_EngineConfidence(This, Confidence)	\
+#define ISpeechPhraseProperty_get_EngineConfidence(This, Confidence)        \
     (This)->lpVtbl -> get_EngineConfidence(This, Confidence)
 
-#define ISpeechPhraseProperty_get_Confidence(This, Confidence)	\
+#define ISpeechPhraseProperty_get_Confidence(This, Confidence)        \
     (This)->lpVtbl -> get_Confidence(This, Confidence)
 
-#define ISpeechPhraseProperty_get_Parent(This, ParentProperty)	\
+#define ISpeechPhraseProperty_get_Parent(This, ParentProperty)        \
     (This)->lpVtbl -> get_Parent(This, ParentProperty)
 
-#define ISpeechPhraseProperty_get_Children(This, Children)	\
+#define ISpeechPhraseProperty_get_Children(This, Children)        \
     (This)->lpVtbl -> get_Children(This, Children)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -23169,7 +23169,7 @@ void __RPC_STUB ISpeechPhraseProperty_get_Children_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseProperty_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseProperty_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseProperties_INTERFACE_DEFINED__
@@ -23199,7 +23199,7 @@ EXTERN_C const IID IID_ISpeechPhraseProperties;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhrasePropertiesVtbl
     {
@@ -23271,42 +23271,42 @@ EXTERN_C const IID IID_ISpeechPhraseProperties;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseProperties_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseProperties_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseProperties_AddRef(This)	\
+#define ISpeechPhraseProperties_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseProperties_Release(This)	\
+#define ISpeechPhraseProperties_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseProperties_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseProperties_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseProperties_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseProperties_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseProperties_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseProperties_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseProperties_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseProperties_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseProperties_get_Count(This, Count)	\
+#define ISpeechPhraseProperties_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechPhraseProperties_Item(This, Index, Property)	\
+#define ISpeechPhraseProperties_Item(This, Index, Property)        \
     (This)->lpVtbl -> Item(This, Index, Property)
 
-#define ISpeechPhraseProperties_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechPhraseProperties_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -23348,7 +23348,7 @@ void __RPC_STUB ISpeechPhraseProperties_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseProperties_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseProperties_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseRule_INTERFACE_DEFINED__
@@ -23392,7 +23392,7 @@ EXTERN_C const IID IID_ISpeechPhraseRule;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseRuleVtbl
     {
@@ -23483,57 +23483,57 @@ EXTERN_C const IID IID_ISpeechPhraseRule;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseRule_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseRule_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseRule_AddRef(This)	\
+#define ISpeechPhraseRule_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseRule_Release(This)	\
+#define ISpeechPhraseRule_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseRule_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseRule_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseRule_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseRule_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseRule_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseRule_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseRule_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseRule_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseRule_get_Name(This, Name)	\
+#define ISpeechPhraseRule_get_Name(This, Name)        \
     (This)->lpVtbl -> get_Name(This, Name)
 
-#define ISpeechPhraseRule_get_Id(This, Id)	\
+#define ISpeechPhraseRule_get_Id(This, Id)        \
     (This)->lpVtbl -> get_Id(This, Id)
 
-#define ISpeechPhraseRule_get_FirstElement(This, FirstElement)	\
+#define ISpeechPhraseRule_get_FirstElement(This, FirstElement)        \
     (This)->lpVtbl -> get_FirstElement(This, FirstElement)
 
-#define ISpeechPhraseRule_get_NumberOfElements(This, NumberOfElements)	\
+#define ISpeechPhraseRule_get_NumberOfElements(This, NumberOfElements)        \
     (This)->lpVtbl -> get_NumberOfElements(This, NumberOfElements)
 
-#define ISpeechPhraseRule_get_Parent(This, Parent)	\
+#define ISpeechPhraseRule_get_Parent(This, Parent)        \
     (This)->lpVtbl -> get_Parent(This, Parent)
 
-#define ISpeechPhraseRule_get_Children(This, Children)	\
+#define ISpeechPhraseRule_get_Children(This, Children)        \
     (This)->lpVtbl -> get_Children(This, Children)
 
-#define ISpeechPhraseRule_get_Confidence(This, ActualConfidence)	\
+#define ISpeechPhraseRule_get_Confidence(This, ActualConfidence)        \
     (This)->lpVtbl -> get_Confidence(This, ActualConfidence)
 
-#define ISpeechPhraseRule_get_EngineConfidence(This, EngineConfidence)	\
+#define ISpeechPhraseRule_get_EngineConfidence(This, EngineConfidence)        \
     (This)->lpVtbl -> get_EngineConfidence(This, EngineConfidence)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -23634,7 +23634,7 @@ void __RPC_STUB ISpeechPhraseRule_get_EngineConfidence_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseRule_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseRule_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhraseRules_INTERFACE_DEFINED__
@@ -23664,7 +23664,7 @@ EXTERN_C const IID IID_ISpeechPhraseRules;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseRulesVtbl
     {
@@ -23736,42 +23736,42 @@ EXTERN_C const IID IID_ISpeechPhraseRules;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseRules_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseRules_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseRules_AddRef(This)	\
+#define ISpeechPhraseRules_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseRules_Release(This)	\
+#define ISpeechPhraseRules_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseRules_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseRules_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseRules_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseRules_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseRules_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseRules_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseRules_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseRules_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseRules_get_Count(This, Count)	\
+#define ISpeechPhraseRules_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechPhraseRules_Item(This, Index, Rule)	\
+#define ISpeechPhraseRules_Item(This, Index, Rule)        \
     (This)->lpVtbl -> Item(This, Index, Rule)
 
-#define ISpeechPhraseRules_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechPhraseRules_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -23813,7 +23813,7 @@ void __RPC_STUB ISpeechPhraseRules_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseRules_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseRules_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechLexicon_INTERFACE_DEFINED__
@@ -23875,7 +23875,7 @@ EXTERN_C const IID IID_ISpeechLexicon;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechLexiconVtbl
     {
@@ -23984,57 +23984,57 @@ EXTERN_C const IID IID_ISpeechLexicon;
 #ifdef COBJMACROS
 
 
-#define ISpeechLexicon_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechLexicon_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechLexicon_AddRef(This)	\
+#define ISpeechLexicon_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechLexicon_Release(This)	\
+#define ISpeechLexicon_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechLexicon_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechLexicon_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechLexicon_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechLexicon_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechLexicon_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechLexicon_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechLexicon_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechLexicon_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechLexicon_get_GenerationId(This, GenerationId)	\
+#define ISpeechLexicon_get_GenerationId(This, GenerationId)        \
     (This)->lpVtbl -> get_GenerationId(This, GenerationId)
 
-#define ISpeechLexicon_GetWords(This, Flags, GenerationID, Words)	\
+#define ISpeechLexicon_GetWords(This, Flags, GenerationID, Words)        \
     (This)->lpVtbl -> GetWords(This, Flags, GenerationID, Words)
 
-#define ISpeechLexicon_AddPronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)	\
+#define ISpeechLexicon_AddPronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)        \
     (This)->lpVtbl -> AddPronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)
 
-#define ISpeechLexicon_AddPronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)	\
+#define ISpeechLexicon_AddPronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)        \
     (This)->lpVtbl -> AddPronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)
 
-#define ISpeechLexicon_RemovePronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)	\
+#define ISpeechLexicon_RemovePronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)        \
     (This)->lpVtbl -> RemovePronunciation(This, bstrWord, LangId, PartOfSpeech, bstrPronunciation)
 
-#define ISpeechLexicon_RemovePronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)	\
+#define ISpeechLexicon_RemovePronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)        \
     (This)->lpVtbl -> RemovePronunciationByPhoneIds(This, bstrWord, LangId, PartOfSpeech, PhoneIds)
 
-#define ISpeechLexicon_GetPronunciations(This, bstrWord, LangId, TypeFlags, ppPronunciations)	\
+#define ISpeechLexicon_GetPronunciations(This, bstrWord, LangId, TypeFlags, ppPronunciations)        \
     (This)->lpVtbl -> GetPronunciations(This, bstrWord, LangId, TypeFlags, ppPronunciations)
 
-#define ISpeechLexicon_GetGenerationChange(This, GenerationID, ppWords)	\
+#define ISpeechLexicon_GetGenerationChange(This, GenerationID, ppWords)        \
     (This)->lpVtbl -> GetGenerationChange(This, GenerationID, ppWords)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -24153,7 +24153,7 @@ void __RPC_STUB ISpeechLexicon_GetGenerationChange_Stub(
 
 
 
-#endif 	/* __ISpeechLexicon_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechLexicon_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconWords_INTERFACE_DEFINED__
@@ -24183,7 +24183,7 @@ EXTERN_C const IID IID_ISpeechLexiconWords;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechLexiconWordsVtbl
     {
@@ -24255,42 +24255,42 @@ EXTERN_C const IID IID_ISpeechLexiconWords;
 #ifdef COBJMACROS
 
 
-#define ISpeechLexiconWords_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechLexiconWords_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechLexiconWords_AddRef(This)	\
+#define ISpeechLexiconWords_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechLexiconWords_Release(This)	\
+#define ISpeechLexiconWords_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechLexiconWords_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechLexiconWords_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechLexiconWords_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechLexiconWords_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechLexiconWords_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechLexiconWords_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechLexiconWords_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechLexiconWords_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechLexiconWords_get_Count(This, Count)	\
+#define ISpeechLexiconWords_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechLexiconWords_Item(This, Index, Word)	\
+#define ISpeechLexiconWords_Item(This, Index, Word)        \
     (This)->lpVtbl -> Item(This, Index, Word)
 
-#define ISpeechLexiconWords_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechLexiconWords_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -24332,7 +24332,7 @@ void __RPC_STUB ISpeechLexiconWords_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechLexiconWords_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechLexiconWords_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconWord_INTERFACE_DEFINED__
@@ -24364,7 +24364,7 @@ EXTERN_C const IID IID_ISpeechLexiconWord;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechLexiconWordVtbl
     {
@@ -24439,45 +24439,45 @@ EXTERN_C const IID IID_ISpeechLexiconWord;
 #ifdef COBJMACROS
 
 
-#define ISpeechLexiconWord_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechLexiconWord_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechLexiconWord_AddRef(This)	\
+#define ISpeechLexiconWord_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechLexiconWord_Release(This)	\
+#define ISpeechLexiconWord_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechLexiconWord_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechLexiconWord_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechLexiconWord_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechLexiconWord_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechLexiconWord_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechLexiconWord_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechLexiconWord_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechLexiconWord_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechLexiconWord_get_LangId(This, LangId)	\
+#define ISpeechLexiconWord_get_LangId(This, LangId)        \
     (This)->lpVtbl -> get_LangId(This, LangId)
 
-#define ISpeechLexiconWord_get_Type(This, WordType)	\
+#define ISpeechLexiconWord_get_Type(This, WordType)        \
     (This)->lpVtbl -> get_Type(This, WordType)
 
-#define ISpeechLexiconWord_get_Word(This, Word)	\
+#define ISpeechLexiconWord_get_Word(This, Word)        \
     (This)->lpVtbl -> get_Word(This, Word)
 
-#define ISpeechLexiconWord_get_Pronunciations(This, Pronunciations)	\
+#define ISpeechLexiconWord_get_Pronunciations(This, Pronunciations)        \
     (This)->lpVtbl -> get_Pronunciations(This, Pronunciations)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -24530,7 +24530,7 @@ void __RPC_STUB ISpeechLexiconWord_get_Pronunciations_Stub(
 
 
 
-#endif 	/* __ISpeechLexiconWord_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechLexiconWord_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconPronunciations_INTERFACE_DEFINED__
@@ -24560,7 +24560,7 @@ EXTERN_C const IID IID_ISpeechLexiconPronunciations;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechLexiconPronunciationsVtbl
     {
@@ -24632,42 +24632,42 @@ EXTERN_C const IID IID_ISpeechLexiconPronunciations;
 #ifdef COBJMACROS
 
 
-#define ISpeechLexiconPronunciations_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechLexiconPronunciations_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechLexiconPronunciations_AddRef(This)	\
+#define ISpeechLexiconPronunciations_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechLexiconPronunciations_Release(This)	\
+#define ISpeechLexiconPronunciations_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechLexiconPronunciations_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechLexiconPronunciations_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechLexiconPronunciations_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechLexiconPronunciations_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechLexiconPronunciations_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechLexiconPronunciations_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechLexiconPronunciations_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechLexiconPronunciations_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechLexiconPronunciations_get_Count(This, Count)	\
+#define ISpeechLexiconPronunciations_get_Count(This, Count)        \
     (This)->lpVtbl -> get_Count(This, Count)
 
-#define ISpeechLexiconPronunciations_Item(This, Index, Pronunciation)	\
+#define ISpeechLexiconPronunciations_Item(This, Index, Pronunciation)        \
     (This)->lpVtbl -> Item(This, Index, Pronunciation)
 
-#define ISpeechLexiconPronunciations_get__NewEnum(This, EnumVARIANT)	\
+#define ISpeechLexiconPronunciations_get__NewEnum(This, EnumVARIANT)        \
     (This)->lpVtbl -> get__NewEnum(This, EnumVARIANT)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -24709,7 +24709,7 @@ void __RPC_STUB ISpeechLexiconPronunciations_get__NewEnum_Stub(
 
 
 
-#endif 	/* __ISpeechLexiconPronunciations_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechLexiconPronunciations_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechLexiconPronunciation_INTERFACE_DEFINED__
@@ -24744,7 +24744,7 @@ EXTERN_C const IID IID_ISpeechLexiconPronunciation;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechLexiconPronunciationVtbl
     {
@@ -24823,48 +24823,48 @@ EXTERN_C const IID IID_ISpeechLexiconPronunciation;
 #ifdef COBJMACROS
 
 
-#define ISpeechLexiconPronunciation_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechLexiconPronunciation_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechLexiconPronunciation_AddRef(This)	\
+#define ISpeechLexiconPronunciation_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechLexiconPronunciation_Release(This)	\
+#define ISpeechLexiconPronunciation_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechLexiconPronunciation_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechLexiconPronunciation_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechLexiconPronunciation_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechLexiconPronunciation_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechLexiconPronunciation_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechLexiconPronunciation_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechLexiconPronunciation_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechLexiconPronunciation_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechLexiconPronunciation_get_Type(This, LexiconType)	\
+#define ISpeechLexiconPronunciation_get_Type(This, LexiconType)        \
     (This)->lpVtbl -> get_Type(This, LexiconType)
 
-#define ISpeechLexiconPronunciation_get_LangId(This, LangId)	\
+#define ISpeechLexiconPronunciation_get_LangId(This, LangId)        \
     (This)->lpVtbl -> get_LangId(This, LangId)
 
-#define ISpeechLexiconPronunciation_get_PartOfSpeech(This, PartOfSpeech)	\
+#define ISpeechLexiconPronunciation_get_PartOfSpeech(This, PartOfSpeech)        \
     (This)->lpVtbl -> get_PartOfSpeech(This, PartOfSpeech)
 
-#define ISpeechLexiconPronunciation_get_PhoneIds(This, PhoneIds)	\
+#define ISpeechLexiconPronunciation_get_PhoneIds(This, PhoneIds)        \
     (This)->lpVtbl -> get_PhoneIds(This, PhoneIds)
 
-#define ISpeechLexiconPronunciation_get_Symbolic(This, Symbolic)	\
+#define ISpeechLexiconPronunciation_get_Symbolic(This, Symbolic)        \
     (This)->lpVtbl -> get_Symbolic(This, Symbolic)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -24929,7 +24929,7 @@ void __RPC_STUB ISpeechLexiconPronunciation_get_Symbolic_Stub(
 
 
 
-#endif 	/* __ISpeechLexiconPronunciation_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechLexiconPronunciation_INTERFACE_DEFINED__ */
 
 
 
@@ -24940,77 +24940,77 @@ void __RPC_STUB ISpeechLexiconPronunciation_get_Symbolic_Stub(
 /* module SpeechStringConstants */
 /* [uuid] */ 
 
-const BSTR SpeechRegistryUserRoot	=	L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech";
+const BSTR SpeechRegistryUserRoot        =        L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech";
 
-const BSTR SpeechRegistryLocalMachineRoot	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech";
+const BSTR SpeechRegistryLocalMachineRoot        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech";
 
-const BSTR SpeechCategoryAudioOut	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioOutput";
+const BSTR SpeechCategoryAudioOut        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioOutput";
 
-const BSTR SpeechCategoryAudioIn	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioInput";
+const BSTR SpeechCategoryAudioIn        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AudioInput";
 
-const BSTR SpeechCategoryVoices	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices";
+const BSTR SpeechCategoryVoices        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices";
 
-const BSTR SpeechCategoryRecognizers	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Recognizers";
+const BSTR SpeechCategoryRecognizers        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Recognizers";
 
-const BSTR SpeechCategoryAppLexicons	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AppLexicons";
+const BSTR SpeechCategoryAppLexicons        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\AppLexicons";
 
-const BSTR SpeechCategoryPhoneConverters	=	L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\PhoneConverters";
+const BSTR SpeechCategoryPhoneConverters        =        L"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\PhoneConverters";
 
-const BSTR SpeechCategoryRecoProfiles	=	L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\RecoProfiles";
+const BSTR SpeechCategoryRecoProfiles        =        L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\RecoProfiles";
 
-const BSTR SpeechTokenIdUserLexicon	=	L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\CurrentUserLexicon";
+const BSTR SpeechTokenIdUserLexicon        =        L"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Speech\CurrentUserLexicon";
 
-const BSTR SpeechTokenValueCLSID	=	L"CLSID";
+const BSTR SpeechTokenValueCLSID        =        L"CLSID";
 
-const BSTR SpeechTokenKeyFiles	=	L"Files";
+const BSTR SpeechTokenKeyFiles        =        L"Files";
 
-const BSTR SpeechTokenKeyUI	=	L"UI";
+const BSTR SpeechTokenKeyUI        =        L"UI";
 
-const BSTR SpeechTokenKeyAttributes	=	L"Attributes";
+const BSTR SpeechTokenKeyAttributes        =        L"Attributes";
 
-const BSTR SpeechVoiceCategoryTTSRate	=	L"DefaultTTSRate";
+const BSTR SpeechVoiceCategoryTTSRate        =        L"DefaultTTSRate";
 
-const BSTR SpeechPropertyResourceUsage	=	L"ResourceUsage";
+const BSTR SpeechPropertyResourceUsage        =        L"ResourceUsage";
 
-const BSTR SpeechPropertyHighConfidenceThreshold	=	L"HighConfidenceThreshold";
+const BSTR SpeechPropertyHighConfidenceThreshold        =        L"HighConfidenceThreshold";
 
-const BSTR SpeechPropertyNormalConfidenceThreshold	=	L"NormalConfidenceThreshold";
+const BSTR SpeechPropertyNormalConfidenceThreshold        =        L"NormalConfidenceThreshold";
 
-const BSTR SpeechPropertyLowConfidenceThreshold	=	L"LowConfidenceThreshold";
+const BSTR SpeechPropertyLowConfidenceThreshold        =        L"LowConfidenceThreshold";
 
-const BSTR SpeechPropertyResponseSpeed	=	L"ResponseSpeed";
+const BSTR SpeechPropertyResponseSpeed        =        L"ResponseSpeed";
 
-const BSTR SpeechPropertyComplexResponseSpeed	=	L"ComplexResponseSpeed";
+const BSTR SpeechPropertyComplexResponseSpeed        =        L"ComplexResponseSpeed";
 
-const BSTR SpeechPropertyAdaptationOn	=	L"AdaptationOn";
+const BSTR SpeechPropertyAdaptationOn        =        L"AdaptationOn";
 
-const BSTR SpeechDictationTopicSpelling	=	L"Spelling";
+const BSTR SpeechDictationTopicSpelling        =        L"Spelling";
 
-const BSTR SpeechGrammarTagWildcard	=	L"...";
+const BSTR SpeechGrammarTagWildcard        =        L"...";
 
-const BSTR SpeechGrammarTagDictation	=	L"*";
+const BSTR SpeechGrammarTagDictation        =        L"*";
 
-const BSTR SpeechGrammarTagUnlimitedDictation	=	L"*+";
+const BSTR SpeechGrammarTagUnlimitedDictation        =        L"*+";
 
-const BSTR SpeechEngineProperties	=	L"EngineProperties";
+const BSTR SpeechEngineProperties        =        L"EngineProperties";
 
-const BSTR SpeechAddRemoveWord	=	L"AddRemoveWord";
+const BSTR SpeechAddRemoveWord        =        L"AddRemoveWord";
 
-const BSTR SpeechUserTraining	=	L"UserTraining";
+const BSTR SpeechUserTraining        =        L"UserTraining";
 
-const BSTR SpeechMicTraining	=	L"MicTraining";
+const BSTR SpeechMicTraining        =        L"MicTraining";
 
-const BSTR SpeechRecoProfileProperties	=	L"RecoProfileProperties";
+const BSTR SpeechRecoProfileProperties        =        L"RecoProfileProperties";
 
-const BSTR SpeechAudioProperties	=	L"AudioProperties";
+const BSTR SpeechAudioProperties        =        L"AudioProperties";
 
-const BSTR SpeechAudioVolume	=	L"AudioVolume";
+const BSTR SpeechAudioVolume        =        L"AudioVolume";
 
-const BSTR SpeechVoiceSkipTypeSentence	=	L"Sentence";
+const BSTR SpeechVoiceSkipTypeSentence        =        L"Sentence";
 
-const BSTR SpeechAudioFormatGUIDWave	=	L"{C31ADBAE-527F-4ff5-A230-F62BB61FF70C}";
+const BSTR SpeechAudioFormatGUIDWave        =        L"{C31ADBAE-527F-4ff5-A230-F62BB61FF70C}";
 
-const BSTR SpeechAudioFormatGUIDText	=	L"{7CEEF9F9-3D13-11d2-9EE7-00C04F797396}";
+const BSTR SpeechAudioFormatGUIDText        =        L"{7CEEF9F9-3D13-11d2-9EE7-00C04F797396}";
 
 #endif /* __SpeechStringConstants_MODULE_DEFINED__ */
 
@@ -25022,17 +25022,17 @@ const BSTR SpeechAudioFormatGUIDText	=	L"{7CEEF9F9-3D13-11d2-9EE7-00C04F797396}"
 /* module SpeechConstants */
 /* [uuid] */ 
 
-const float Speech_Default_Weight	=	DEFAULT_WEIGHT;
+const float Speech_Default_Weight        =        DEFAULT_WEIGHT;
 
-const LONG Speech_Max_Word_Length	=	SP_MAX_WORD_LENGTH;
+const LONG Speech_Max_Word_Length        =        SP_MAX_WORD_LENGTH;
 
-const LONG Speech_Max_Pron_Length	=	SP_MAX_PRON_LENGTH;
+const LONG Speech_Max_Pron_Length        =        SP_MAX_PRON_LENGTH;
 
-const LONG Speech_StreamPos_Asap	=	SP_STREAMPOS_ASAP;
+const LONG Speech_StreamPos_Asap        =        SP_STREAMPOS_ASAP;
 
-const LONG Speech_StreamPos_RealTime	=	SP_STREAMPOS_REALTIME;
+const LONG Speech_StreamPos_RealTime        =        SP_STREAMPOS_REALTIME;
 
-const LONG SpeechAllElements	=	SPPR_ALL_ELEMENTS;
+const LONG SpeechAllElements        =        SPPR_ALL_ELEMENTS;
 
 #endif /* __SpeechConstants_MODULE_DEFINED__ */
 
@@ -25057,7 +25057,7 @@ EXTERN_C const IID IID_ISpeechPhraseInfoBuilder;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhraseInfoBuilderVtbl
     {
@@ -25121,36 +25121,36 @@ EXTERN_C const IID IID_ISpeechPhraseInfoBuilder;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhraseInfoBuilder_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhraseInfoBuilder_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhraseInfoBuilder_AddRef(This)	\
+#define ISpeechPhraseInfoBuilder_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhraseInfoBuilder_Release(This)	\
+#define ISpeechPhraseInfoBuilder_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhraseInfoBuilder_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhraseInfoBuilder_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhraseInfoBuilder_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhraseInfoBuilder_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhraseInfoBuilder_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhraseInfoBuilder_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhraseInfoBuilder_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhraseInfoBuilder_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhraseInfoBuilder_RestorePhraseFromMemory(This, PhraseInMemory, PhraseInfo)	\
+#define ISpeechPhraseInfoBuilder_RestorePhraseFromMemory(This, PhraseInMemory, PhraseInfo)        \
     (This)->lpVtbl -> RestorePhraseFromMemory(This, PhraseInMemory, PhraseInfo)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -25168,7 +25168,7 @@ void __RPC_STUB ISpeechPhraseInfoBuilder_RestorePhraseFromMemory_Stub(
 
 
 
-#endif 	/* __ISpeechPhraseInfoBuilder_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhraseInfoBuilder_INTERFACE_DEFINED__ */
 
 
 #ifndef __ISpeechPhoneConverter_INTERFACE_DEFINED__
@@ -25202,7 +25202,7 @@ EXTERN_C const IID IID_ISpeechPhoneConverter;
         
     };
     
-#else 	/* C style interface */
+#else         /* C style interface */
 
     typedef struct ISpeechPhoneConverterVtbl
     {
@@ -25279,45 +25279,45 @@ EXTERN_C const IID IID_ISpeechPhoneConverter;
 #ifdef COBJMACROS
 
 
-#define ISpeechPhoneConverter_QueryInterface(This, riid, ppvObject)	\
+#define ISpeechPhoneConverter_QueryInterface(This, riid, ppvObject)        \
     (This)->lpVtbl -> QueryInterface(This, riid, ppvObject)
 
-#define ISpeechPhoneConverter_AddRef(This)	\
+#define ISpeechPhoneConverter_AddRef(This)        \
     (This)->lpVtbl -> AddRef(This)
 
-#define ISpeechPhoneConverter_Release(This)	\
+#define ISpeechPhoneConverter_Release(This)        \
     (This)->lpVtbl -> Release(This)
 
 
-#define ISpeechPhoneConverter_GetTypeInfoCount(This, pctinfo)	\
+#define ISpeechPhoneConverter_GetTypeInfoCount(This, pctinfo)        \
     (This)->lpVtbl -> GetTypeInfoCount(This, pctinfo)
 
-#define ISpeechPhoneConverter_GetTypeInfo(This, iTInfo, lcid, ppTInfo)	\
+#define ISpeechPhoneConverter_GetTypeInfo(This, iTInfo, lcid, ppTInfo)        \
     (This)->lpVtbl -> GetTypeInfo(This, iTInfo, lcid, ppTInfo)
 
-#define ISpeechPhoneConverter_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)	\
+#define ISpeechPhoneConverter_GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)        \
     (This)->lpVtbl -> GetIDsOfNames(This, riid, rgszNames, cNames, lcid, rgDispId)
 
-#define ISpeechPhoneConverter_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)	\
+#define ISpeechPhoneConverter_Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)        \
     (This)->lpVtbl -> Invoke(This, dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr)
 
 
-#define ISpeechPhoneConverter_get_LanguageId(This, LanguageId)	\
+#define ISpeechPhoneConverter_get_LanguageId(This, LanguageId)        \
     (This)->lpVtbl -> get_LanguageId(This, LanguageId)
 
-#define ISpeechPhoneConverter_put_LanguageId(This, LanguageId)	\
+#define ISpeechPhoneConverter_put_LanguageId(This, LanguageId)        \
     (This)->lpVtbl -> put_LanguageId(This, LanguageId)
 
-#define ISpeechPhoneConverter_PhoneToId(This, Phonemes, IdArray)	\
+#define ISpeechPhoneConverter_PhoneToId(This, Phonemes, IdArray)        \
     (This)->lpVtbl -> PhoneToId(This, Phonemes, IdArray)
 
-#define ISpeechPhoneConverter_IdToPhone(This, IdArray, Phonemes)	\
+#define ISpeechPhoneConverter_IdToPhone(This, IdArray, Phonemes)        \
     (This)->lpVtbl -> IdToPhone(This, IdArray, Phonemes)
 
 #endif /* COBJMACROS */
 
 
-#endif 	/* C style interface */
+#endif         /* C style interface */
 
 
 
@@ -25372,7 +25372,7 @@ void __RPC_STUB ISpeechPhoneConverter_IdToPhone_Stub(
 
 
 
-#endif 	/* __ISpeechPhoneConverter_INTERFACE_DEFINED__ */
+#endif         /* __ISpeechPhoneConverter_INTERFACE_DEFINED__ */
 
 
 EXTERN_C const CLSID CLSID_SpNotifyTranslator;

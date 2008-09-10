@@ -63,7 +63,7 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
       break;
     default:
       ar_log_error() << "arInputEventQueue ignoring unexpected event type " <<
-	eventType << ".\n";
+        eventType << ".\n";
       return;
   }
   _queue.push_back( inputEvent );

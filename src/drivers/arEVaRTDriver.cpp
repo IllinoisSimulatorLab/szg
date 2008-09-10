@@ -73,12 +73,12 @@ int ar_evartDataHandler(int iType, void* data) {
     for (i=0; i<40; i++) {
       // garbage data gets placed out at infinity by the EVaRT software
       if (fabs(TrcFrame->Markers[i][0]) < 100000. &&
-	  fabs(TrcFrame->Markers[i][1]) < 100000. &&
-	  fabs(TrcFrame->Markers[i][2]) < 100000.) {
-	// data isn't garbage
+          fabs(TrcFrame->Markers[i][1]) < 100000. &&
+          fabs(TrcFrame->Markers[i][2]) < 100000.) {
+        // data isn't garbage
         __globalEVaRTDriver->queueAxis(3*i  , TrcFrame->Markers[i][0]);
-	__globalEVaRTDriver->queueAxis(3*i+1, TrcFrame->Markers[i][1]);
-	__globalEVaRTDriver->queueAxis(3*i+2, TrcFrame->Markers[i][2]);
+        __globalEVaRTDriver->queueAxis(3*i+1, TrcFrame->Markers[i][1]);
+        __globalEVaRTDriver->queueAxis(3*i+2, TrcFrame->Markers[i][2]);
       }
     }
     __globalEVaRTDriver->sendQueue();
@@ -91,12 +91,12 @@ int ar_evartDataHandler(int iType, void* data) {
       const float angleY = GtrFrame->Segments[i][4];
       const float angleZ = GtrFrame->Segments[i][5];
       const arMatrix4 sendMatrix(ar_translationMatrix(
-	  GtrFrame->Segments[i][0],
-	  GtrFrame->Segments[i][1],
-	  GtrFrame->Segments[i][2]) *
-	ar_rotationMatrix('z', ar_convertToRad(angleZ)) *
-	ar_rotationMatrix('y', ar_convertToRad(angleY)) *
-	ar_rotationMatrix('x', ar_convertToRad(angleX)));
+          GtrFrame->Segments[i][0],
+          GtrFrame->Segments[i][1],
+          GtrFrame->Segments[i][2]) *
+        ar_rotationMatrix('z', ar_convertToRad(angleZ)) *
+        ar_rotationMatrix('y', ar_convertToRad(angleY)) *
+        ar_rotationMatrix('x', ar_convertToRad(angleX)));
       __globalEVaRTDriver->queueMatrix(i, sendMatrix);
       __globalEVaRTDriver->queueAxis(i, GtrFrame->Segments[i][6]);
     }
@@ -124,15 +124,15 @@ int ar_evartDataHandler(int iType, void* data) {
       if (fabs(angleX) < 100000 && fabs(angleY) < 100000 && fabs(angleZ) < 100000) {
         rotationMatrix =
           ar_rotationMatrix('z', ar_convertToRad(angleZ)) *
-	  ar_rotationMatrix('y', ar_convertToRad(angleY)) *
-	  ar_rotationMatrix('x', ar_convertToRad(angleX)));
+          ar_rotationMatrix('y', ar_convertToRad(angleY)) *
+          ar_rotationMatrix('x', ar_convertToRad(angleX)));
       }
       if (i == __globalEVaRTDriver->_rootNode) {
         __globalEVaRTDriver->_segTransform[i] =
           ar_translationMatrix(__globalEVaRTDriver->_rootPosition[0],
-			       __globalEVaRTDriver->_rootPosition[1],
-			       __globalEVaRTDriver->_rootPosition[2]) *
-	  rotationMatrix;
+                               __globalEVaRTDriver->_rootPosition[1],
+                               __globalEVaRTDriver->_rootPosition[2]) *
+          rotationMatrix;
       }
       else{
         __globalEVaRTDriver->_segTransform[i] = rotationMatrix;

@@ -30,9 +30,9 @@ void ar_adjustNormals(const arMatrix4& m, int number, float* data) {
 bool ar_attachMesh(arGraphicsNode* parent, const string& name,
                    const int numberPoints, float* pointPositions,
                    const int numberVertices, int* triangleVertices,
-		   const int numberNormals, float* normals,
-		   const int numberTexCoord, float* texCoords,
-		   const arDrawableType drawableType, const int numberPrimitives) {
+                   const int numberNormals, float* normals,
+                   const int numberTexCoord, float* texCoords,
+                   const arDrawableType drawableType, const int numberPrimitives) {
   bool success = false;
   arPointsNode* points = NULL;
   arIndexNode* index = NULL;
@@ -80,7 +80,7 @@ LDone:
 }
 
 bool arMesh::attachMesh(const string& name,
-			const string& parentName) {
+                        const string& parentName) {
   arGraphicsNode* g = dgGetNode(parentName);
   return g && attachMesh(g, name);
 }
@@ -95,22 +95,22 @@ bool arCubeMesh::attachMesh(arGraphicsNode* parent, const string& name) {
                                 -0.5,-0.5,0.5, -0.5,-0.5,-0.5,
                                 0.5,-0.5,-0.5, 0.5,-0.5,0.5};
   ARint triangleVertices[numberTriangles*3] = {5,4,0, 5,0,1, 6,5,1, 6,1,2,
-				7,6,2, 7,2,3, 4,7,3, 4,3,0,
-				2,1,0, 2,0,3, 7,4,5, 7,5,6};
+                                7,6,2, 7,2,3, 4,7,3, 4,3,0,
+                                2,1,0, 2,0,3, 7,4,5, 7,5,6};
   ARfloat normals[3*numberTriangles*normalsPerTri]
                       = {-1,0,0, -1,0,0, -1,0,0, -1,0,0, -1,0,0, -1,0,0,
-			  0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-			  1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0,
+                          0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
+                          1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0,
                           0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1,
-			  0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0,
-			  0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0};
+                          0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0,
+                          0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0};
   ARfloat texCoords[3*numberTriangles*texcoordsPerTri]
                         = { 1,0, 0,0, 0,1, 1,0, 0,1, 1,1,
                             1,0, 0,0, 0,1, 1,0, 0,1, 1,1,
                             1,0, 0,0, 0,1, 1,0, 0,1, 1,1,
                             1,0, 0,0, 0,1, 1,0, 0,1, 1,1,
                             1,0, 0,0, 0,1, 1,0, 0,1, 1,1,
-			    1,0, 0,0, 0,1, 1,0, 0,1, 1,1 };
+                            1,0, 0,0, 0,1, 1,0, 0,1, 1,1 };
 
   // Apply matrix to generated points and normals.
   ar_adjustPoints(_matrix, numberPoints, pointPositions);
@@ -119,9 +119,9 @@ bool arCubeMesh::attachMesh(arGraphicsNode* parent, const string& name) {
   return ar_attachMesh(parent, name,
                        numberPoints, pointPositions,
                        numberTriangles*indicesPerTri, triangleVertices,
-		       numberTriangles*normalsPerTri, normals,
-		       numberTriangles*texcoordsPerTri, texCoords,
-		       DG_TRIANGLES, numberTriangles);
+                       numberTriangles*normalsPerTri, normals,
+                       numberTriangles*texcoordsPerTri, texCoords,
+                       DG_TRIANGLES, numberTriangles);
 }
 
 /////////  RECTANGLE  /////////////////////////////////////////////////////
@@ -146,9 +146,9 @@ bool arRectangleMesh::attachMesh(arGraphicsNode* parent,
   return ar_attachMesh(parent, name,
                        numberPoints, pointPositions,
                        numberTriangles*indicesPerTri, triangleVertices,
-		       numberTriangles*normalsPerTri, normals,
-		       numberTriangles*texcoordsPerTri, texCoords,
-		       DG_TRIANGLES, numberTriangles);
+                       numberTriangles*normalsPerTri, normals,
+                       numberTriangles*texcoordsPerTri, texCoords,
+                       DG_TRIANGLES, numberTriangles);
 }
 
 /////////  CYLINDER  /////////////////////////////////////////////////////
@@ -171,8 +171,8 @@ arCylinderMesh::arCylinderMesh(const arMatrix4& transform) :
 }
 
 void arCylinderMesh::setAttributes(int numberDivisions,
-			           float bottomRadius,
-			           float topRadius) {
+                                   float bottomRadius,
+                                   float topRadius) {
   _numberDivisions = numberDivisions;
   _bottomRadius = bottomRadius;
   _topRadius = topRadius;
@@ -369,9 +369,9 @@ bool arPyramidMesh::attachMesh(arGraphicsNode* parent, const string& name) {
   return ar_attachMesh(parent, name,
                        numberPoints, pointPositions,
                        numberTriangles*indicesPerTri, triangleVertices,
-		       numberTriangles*normalsPerTri, normals,
-		       numberTriangles*texcoordsPerTri, texCoords,
-		       DG_TRIANGLES, numberTriangles);
+                       numberTriangles*normalsPerTri, normals,
+                       numberTriangles*texcoordsPerTri, texCoords,
+                       DG_TRIANGLES, numberTriangles);
 }
 
 /////////  SPHERE  /////////////////////////////////////////////////////
@@ -499,13 +499,13 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name) {
     pnDst = normals - 18;
     for (j=0; j<_numberDivisions; ++j) {
       for (i=0; i<_numberDivisions; i+=_sectionSkip) {
-	const int iTriangleSrc = 2 * (j*_numberDivisions + i);
-	const int iVertex = iTriangleSrc * 3;
-	const int iCoord  = iTriangleSrc * 6;
-	const int iNormal = iTriangleSrc * 9;
-	memcpy(triDst += 6, triangleVertices + iVertex, 6 * sizeof(int));
-	memcpy(ptDst += 12, texCoords + iCoord, 12 * sizeof(float));
-	memcpy(pnDst += 18, normals + iNormal, 18 * sizeof(float));
+        const int iTriangleSrc = 2 * (j*_numberDivisions + i);
+        const int iVertex = iTriangleSrc * 3;
+        const int iCoord  = iTriangleSrc * 6;
+        const int iNormal = iTriangleSrc * 9;
+        memcpy(triDst += 6, triangleVertices + iVertex, 6 * sizeof(int));
+        memcpy(ptDst += 12, texCoords + iCoord, 12 * sizeof(float));
+        memcpy(pnDst += 18, normals + iNormal, 18 * sizeof(float));
       }
     }
     numberTriangles /= _sectionSkip;
@@ -607,10 +607,10 @@ void arTorusMesh::_reset(const int numberBigAroundQuads, const int numberSmallAr
       const int whichPoint = i*numberSmallAroundQuads+j;
 
       arVector3(
-	  bigRadius*cos_i + smallRadius*cos_i*cos_j,
-	  bigRadius*sin_i + smallRadius*sin_i*cos_j,
-	  smallRadius*sin_j
-	).get(_pointPositions + 3*whichPoint);
+          bigRadius*cos_i + smallRadius*cos_i*cos_j,
+          bigRadius*sin_i + smallRadius*sin_i*cos_j,
+          smallRadius*sin_j
+        ).get(_pointPositions + 3*whichPoint);
 
       int* pv = _triangleVertices + 6*whichPoint;
       *pv++ =      i * numberSmallAroundQuads +      j;

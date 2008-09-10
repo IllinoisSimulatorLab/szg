@@ -153,12 +153,12 @@ void arSharedMemDriver::_dataThread() {
     queueAxis(1, generateAxis(1, _shmWand));
 
     for (int i=0; i<8; i++) {
-	const int button = generateButton(i, _shmWand);
-	// send only state changes
-	if (button != _buttonPrev[i]) {
-	  queueButton(i, button);
-	  _buttonPrev[i] = button;
-	}
+        const int button = generateButton(i, _shmWand);
+        // send only state changes
+        if (button != _buttonPrev[i]) {
+          queueButton(i, button);
+          _buttonPrev[i] = button;
+        }
     }
 
     _l.unlock();

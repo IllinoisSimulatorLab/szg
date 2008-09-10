@@ -137,9 +137,9 @@ int main() {
    for (i=0; i<5; i++) {
      // doubles will not be the same!
      if (fabs(((double*)data2.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
-	      -i/2.0) > 0.0001) {
+              -i/2.0) > 0.0001) {
        cout << "*** test failed (wrong double field unpacking, "
-	    << "record 2).\n";
+            << "record 2).\n";
        exit(0);
      }
    }
@@ -157,7 +157,7 @@ int main() {
   for (i=0; i<5; i++) {
      // NOTE: doubles will not be the same!
      if (fabs(((double*)data3.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
-	      -i/2.0) > 0.0001) {
+              -i/2.0) > 0.0001) {
        cout << "*** test failed (wrong double field unpacking, record 2).\n";
        exit(0);
      }
@@ -205,34 +205,34 @@ int main() {
     if (fileData) {
       // check to see that the data is correct.
       if (fileData->getID() != t1.getID()) {
-	cout << "*** test failed (wrong ID on first record from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong ID on first record from file).\n";
+        exit(0);
       }
       if (fileData->getDataDimension(INT_ID) != 5) {
-	cout << "*** test failed (wrong data dimension on first record "
-	     << "(int field) from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong data dimension on first record "
+             << "(int field) from file).\n";
+        exit(0);
       }
       for (i=0; i<5; i++) {
         if (((int*)fileData->getDataPtr(INT_ID, AR_INT))[i] != 5*i) {
-	  cout << "*** test failed (wrong integer field unpacking, "
-	       << "record 1).\n";
-	  exit(0);
-	}
+          cout << "*** test failed (wrong integer field unpacking, "
+               << "record 1).\n";
+          exit(0);
+        }
       }
       if (fileData->getDataDimension(FLOAT_ID) != 5) {
-	cout << "*** test failed (wrong data dimension on first record "
-	     << "(float field) from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong data dimension on first record "
+             << "(float field) from file).\n";
+        exit(0);
       }
       for (i=0; i<5; i++) {
-	// NOTE: floats will not be the same!
+        // NOTE: floats will not be the same!
         if (fabs(((float*)fileData->getDataPtr(FLOAT_ID, AR_FLOAT))[i]-i/5.0)
             > 0.0001) {
-	  cout << "*** test failed (wrong float field unpacking, "
-	       << "record 1).\n";
-	  exit(0);
-	}
+          cout << "*** test failed (wrong float field unpacking, "
+               << "record 1).\n";
+          exit(0);
+        }
       }
       theParser.recycle(fileData);
     }
@@ -246,53 +246,53 @@ int main() {
     if (fileData) {
       // check to see that the data is correct.
       if (fileData->getID() != t2.getID()) {
-	cout << "*** test failed (wrong ID on second record from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong ID on second record from file).\n";
+        exit(0);
       }
       if (fileData->getDataDimension(CHAR_ID) != 5) {
-	cout << "*** test failed (wrong data dimension on second record "
-	     << "(char field) from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong data dimension on second record "
+             << "(char field) from file).\n";
+        exit(0);
       }
       testCharPtr = (char*)fileData->getDataPtr(CHAR_ID, AR_CHAR);
       if (testCharPtr[0] != 'A') {
-	cout << "*** test failed (wrong char field unpacking, "
-	     << "record 2).\n";
-	exit(0);
+        cout << "*** test failed (wrong char field unpacking, "
+             << "record 2).\n";
+        exit(0);
       }
       if (testCharPtr[1] != 'B') {
-	cout << "*** test failed (wrong char field unpacking, "
-	     << "record 2).\n";
-	exit(0);
+        cout << "*** test failed (wrong char field unpacking, "
+             << "record 2).\n";
+        exit(0);
       }
       if (testCharPtr[2] != ' ') {
-	cout << "*** test failed (wrong char field unpacking, "
-	     << "record 2).\n";
-	exit(0);
+        cout << "*** test failed (wrong char field unpacking, "
+             << "record 2).\n";
+        exit(0);
       }
       if (testCharPtr[3] != 'D') {
         cout << "*** test failed (wrong char field unpacking, "
-	     << "record 2).\n";
-	exit(0);
+             << "record 2).\n";
+        exit(0);
       }
       if (testCharPtr[4] != 'E') {
-	cout << "*** test failed (wrong char field unpacking, "
-	     << "record 2).\n";
+        cout << "*** test failed (wrong char field unpacking, "
+             << "record 2).\n";
         exit(0);
       }
       if (fileData->getDataDimension(DOUBLE_ID) != 5) {
-	cout << "*** test failed (wrong data dimension on second record "
-	     << "(char field) from file).\n";
-	exit(0);
+        cout << "*** test failed (wrong data dimension on second record "
+             << "(char field) from file).\n";
+        exit(0);
       }
       for (i=0; i<5; i++) {
-	// NOTE: doubles will not be the same!
+        // NOTE: doubles will not be the same!
         if (fabs(((double*)fileData->getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
-		 -i/2.0) > 0.0001) {
-	  cout << "*** test failed (wrong double field unpacking, "
-	       << "record 2).\n";
-	  exit(0);
-	}
+                 -i/2.0) > 0.0001) {
+          cout << "*** test failed (wrong double field unpacking, "
+               << "record 2).\n";
+          exit(0);
+        }
       }
       theParser.recycle(fileData);
     }
@@ -390,7 +390,7 @@ int main() {
     arStructuredData* result = theParser2.parse(&fileStream2);
     if (!result) {
       cout << "*** Test failed (could not read all records, stopped "
-	   << "at " << s << ").\n";
+           << "at " << s << ").\n";
       exit(0);
     }
   }

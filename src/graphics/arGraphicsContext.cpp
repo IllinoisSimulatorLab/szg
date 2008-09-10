@@ -233,7 +233,7 @@ void arGraphicsContext::setTriangleState(float& blendFactor) {
     arTexture* t = tn->getTexture();
     if (t) {
       if (t->getDepth() == 4) {
-	forceBlend = true;
+        forceBlend = true;
       }
       // Activating the texture also enables GL_TEXTURE_2D.
       t->activate();

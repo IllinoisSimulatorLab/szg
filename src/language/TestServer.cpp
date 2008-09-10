@@ -82,8 +82,8 @@ int main(int argc, char** argv) {
           !testData.dataIn(DOUBLE_DATA_ID, doubleData, AR_DOUBLE, 10) ||
           !dataServer->sendData(&testData, comm)) {
         cerr << argv[0] << " warning: dataIn or sendData failed.\n";
-	errorFlag = true;
-	break;
+        errorFlag = true;
+        break;
       }
     }
     if (errorFlag) {
@@ -98,8 +98,8 @@ int main(int argc, char** argv) {
           !testData.dataIn(DOUBLE_DATA_ID, doubleData, AR_DOUBLE, 10) ||
           !dataServer->sendData(&testData, comm)) {
         cerr << argv[0] << " warning: dataIn or sendData failed.\n";
-	errorFlag = true;
-	break;
+        errorFlag = true;
+        break;
       }
     }
     if (errorFlag) {
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
       testData.print(s2);
       socketOutput = s2.str();
       if (!comm->ar_safeWrite(socketOutput.c_str(), socketOutput.length())) {
-	break;
+        break;
       }
     }
   }

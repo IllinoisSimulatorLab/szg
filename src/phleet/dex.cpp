@@ -206,8 +206,8 @@ int main(int argc, char** argv) {
       ar_log_critical() << "no virtual computer '" << argv[1] <<
         "', and no szgd on host '" << argv[1] << "'.\n" <<
         (s.empty() ?
-	  "  (No virtual computers defined.  Did you run dbatch?)\n" :
-	  "  (Known virtual computers are: " + s + ".)\n" );
+          "  (No virtual computers defined.  Did you run dbatch?)\n" :
+          "  (Known virtual computers are: " + s + ".)\n" );
       return 1;
     }
   }
@@ -256,18 +256,18 @@ int main(int argc, char** argv) {
     default:
       break;
     case 1: {
-	// Remove lines of context (prefixed with "  |") from body.
-	vector< string > lines;
-	string line;
-	istringstream ist;
-	ist.str( body );
-	body = "";
-	while (getline( ist, line, '\n' ))
-	  lines.push_back( line );
-	for (vector< string >::const_iterator i=lines.begin(); i!=lines.end(); ++i)
-	  if (i->find( "  |", 0 ) != 0)
-	    body += *i + "\n";
-	// fallthrough
+        // Remove lines of context (prefixed with "  |") from body.
+        vector< string > lines;
+        string line;
+        istringstream ist;
+        ist.str( body );
+        body = "";
+        while (getline( ist, line, '\n' ))
+          lines.push_back( line );
+        for (vector< string >::const_iterator i=lines.begin(); i!=lines.end(); ++i)
+          if (i->find( "  |", 0 ) != 0)
+            body += *i + "\n";
+        // fallthrough
       }
     case 2:
       cout << body; // e.g., "cubevars launched.\n"

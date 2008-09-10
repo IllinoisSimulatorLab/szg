@@ -150,14 +150,14 @@ void ar3DS::attachChildNode(const string &baseName,
 
   unsigned int j=0, i=0;
   // Faces with indexed material.  +1 is for the default material.
-  vector<int>*	materialFaces = new vector<int>[_numMaterials+1];
+  vector<int>*        materialFaces = new vector<int>[_numMaterials+1];
   // names of the materials
-  Lib3dsMatrix invMeshMatrix;		// matrix for the mesh from Lib3DS
+  Lib3dsMatrix invMeshMatrix;                // matrix for the mesh from Lib3DS
   lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
   lib3ds_matrix_inv(invMeshMatrix);
 
   // Put a default material on the front of the material stack
-  vector<Lib3dsMaterial*> materials(1, new Lib3dsMaterial); 	// pointers to actual materials
+  vector<Lib3dsMaterial*> materials(1, new Lib3dsMaterial);         // pointers to actual materials
   materials.back()->ambient[0] = 0.2; materials.back()->ambient[1] = 0.2;
   materials.back()->ambient[2] = 0.2; materials.back()->ambient[3] = 1.0;
   materials.back()->diffuse[0] = 0.8; materials.back()->diffuse[1] = 0.8;
@@ -166,7 +166,7 @@ void ar3DS::attachChildNode(const string &baseName,
   materials.back()->specular[2] = 0.0; materials.back()->specular[3] = 1.0;
   materials.back()->shininess = 0.0;
   string* materialNames = new string[_numMaterials+1];
-  materialNames[0] = "(default)";	// no name on default material
+  materialNames[0] = "(default)";        // no name on default material
 
   // Calculate normals
   Lib3dsVector *normalL = new Lib3dsVector[3*mesh->faces];
@@ -183,19 +183,19 @@ void ar3DS::attachChildNode(const string &baseName,
     if (f.material[0]) {
       // see if the material exists already
       for (i=1; i<materials.size(); ++i) {
-      	if (materialNames[i] == string(f.material)) {
+              if (materialNames[i] == string(f.material)) {
           materialFaces[i].push_back(j);
           break;
         }
       }
-      	// if no matching material found, create a new one
+              // if no matching material found, create a new one
       if (i == materials.size()) {
         materials.push_back(lib3ds_file_material_by_name(_file, f.material));
         materialNames[i] = string(f.material);
         materialFaces[materials.size()-1].push_back(j);
       }
     }
-    else	// no material specified, so add it to the default list
+    else        // no material specified, so add it to the default list
       materialFaces[0].push_back(j);
 
     // Add the point and normals to respective temp. storage
@@ -211,7 +211,7 @@ void ar3DS::attachChildNode(const string &baseName,
   //_vertexNodeID =
   // dgPoints(newName + pointsModifier,
   //         newName,
-  //	   mesh->faces*3, points);
+  //           mesh->faces*3, points);
   arPointsNode* pointsNode = (arPointsNode*)
     database->newNode(newParent, "points", newName + pointsModifier);
   pointsNode->setPoints(mesh->faces*3, points);
@@ -252,16 +252,16 @@ void ar3DS::attachChildNode(const string &baseName,
     }
 
     //dgIndex(newName + indexModifier + materialNames[i],
-    //	      newName + normalsModifier,
-    //	      materialFaces[i].size()*3, drawIndices);
+    //              newName + normalsModifier,
+    //              materialFaces[i].size()*3, drawIndices);
     arIndexNode* indexNode
       = (arIndexNode*) database->newNode(normalNode, "index",
-			 newName+indexModifier+materialNames[i]);
+                         newName+indexModifier+materialNames[i]);
     indexNode->setIndices(materialFaces[i].size()*3, drawIndices);
     //dgMaterial(newName + materialsModifier + materialNames[i],
     //           newName + indexModifier     + materialNames[i],
     //           diffuse, ambient, specular, emmissive,
-    //	         11.-0.1*materials[i]->shininess);
+    //                 11.-0.1*materials[i]->shininess);
     // todo: constructor for next 5 lines
     arMaterial material;
     material.diffuse = diffuse;
@@ -271,14 +271,14 @@ void ar3DS::attachChildNode(const string &baseName,
     material.exponent = 11.-0.1*materials[i]->shininess;
     arMaterialNode* materialNode
       = (arMaterialNode*) database->newNode(indexNode, "material",
-			    newName + materialsModifier + materialNames[i]);
+                            newName + materialsModifier + materialNames[i]);
     materialNode->setMaterial(material);
     //dgDrawable(newName + geometryModifier  + materialNames[i],
     //           newName + materialsModifier + materialNames[i],
     //           DG_TRIANGLES, materialFaces[i].size());
     arDrawableNode* drawableNode
       = (arDrawableNode*) database->newNode(materialNode, "drawable",
-			    newName + geometryModifier + materialNames[i]);
+                            newName + geometryModifier + materialNames[i]);
     drawableNode->setDrawable(DG_TRIANGLES, materialFaces[i].size());
     delete [] drawIndices;
   }

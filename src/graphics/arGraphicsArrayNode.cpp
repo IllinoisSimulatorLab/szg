@@ -53,14 +53,14 @@ void arGraphicsArrayNode::_mergeElements(int number, void* elements, int* IDs) {
     int max=-1;
     for (i=0; i<number; i++) {
       if (IDs[i] > max) {
-	max = IDs[i];
+        max = IDs[i];
       }
     }
     _commandBuffer.grow(_arrayStride * (max+1));
     for (i=0; i<number; i++)
       memcpy(&_commandBuffer.v[_arrayStride*IDs[i]],
-	     (const char*)elements + numbytes * (_arrayStride*i),
-	     _arrayStride * numbytes);
+             (const char*)elements + numbytes * (_arrayStride*i),
+             _arrayStride * numbytes);
   }
 }
 

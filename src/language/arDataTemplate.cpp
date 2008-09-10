@@ -32,7 +32,7 @@ arDataTemplate::arDataTemplate(const arDataTemplate& dataTemplate) {
        i != dataTemplate._attributeContainer.end();
        i++) {
     _attributeContainer.insert(arAttribute::value_type(i->first,
-						       i->second));
+                                                       i->second));
   }
 }
 
@@ -49,7 +49,7 @@ arDataTemplate& arDataTemplate::operator=( const arDataTemplate& dataTemplate ) 
        i != dataTemplate._attributeContainer.end();
        ++i) {
     _attributeContainer.insert(arAttribute::value_type(i->first,
-						       i->second));
+                                                       i->second));
   }
   return *this;
 }
@@ -102,7 +102,7 @@ void arDataTemplate::dump() const {
   for (arAttribute::const_iterator iter(_attributeContainer.begin());
        iter != _attributeContainer.end(); ++iter) {
     cout << "  \"" << iter->first << "\":" << iter->second.second << ":"
-	 << arDataTypeName(iter->second.first) << "\n";
+         << arDataTypeName(iter->second.first) << "\n";
   }
 }
 
@@ -136,7 +136,7 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
     const ARint type =
       ar_translateInt(dest, positionDest, src, positionSrc, streamConfig);
     ar_translateField(dest, positionDest, src, positionSrc, (arDataType)type,
-		      dim, streamConfig);
+                      dim, streamConfig);
   }
   if (iField != numberFields)
     return -1;

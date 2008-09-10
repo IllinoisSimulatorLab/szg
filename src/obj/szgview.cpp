@@ -162,8 +162,8 @@ void display( arGUIWindowInfo*, arGraphicsWindow* )
 
   if ( isModelSpinning ) {
     mouseWorldMatrix = ar_rotationMatrix( arVector3( 0., 1., 0. ), 0.001 ) *
-    		       ar_rotationMatrix( arVector3( 1., 0., 0. ), 0.002 ) *
-	    	       mouseWorldMatrix;
+                           ar_rotationMatrix( arVector3( 1., 0., 0. ), 0.002 ) *
+                           mouseWorldMatrix;
     dgTransform( mouseTransformID, mouseWorldMatrix );
   }
 
@@ -306,8 +306,8 @@ void mouseCB( arGUIMouseInfo* mI )
       case SLIDER:
       {
         arGUIMouseInfo tMouseInfo( AR_MOUSE_EVENT, AR_GENERIC_STATE,
-	  -1, 0, AR_LBUTTON, mI->getPosX(), mI->getPosY(),
-	  mI->getPrevPosX(), mI->getPrevPosY() );
+          -1, 0, AR_LBUTTON, mI->getPosX(), mI->getPosY(),
+          mI->getPrevPosX(), mI->getPrevPosY() );
         mouseCB( &tMouseInfo );
         return;
       }
@@ -325,9 +325,9 @@ void mouseCB( arGUIMouseInfo* mI )
           float mag = ++rotationAxis;
           rotationAxis /= mag;
           mouseWorldMatrix = ar_ETM( mouseWorldMatrix ) *
-   	    ar_RM( arVector3( -1., 0., 0. ), -deltaY / 300. ) *
-   	    ar_RM( arVector3( 0., 1., 0. ), deltaX / 300. ) *
-  	    ar_ERM( mouseWorldMatrix ) * ar_ESM( mouseWorldMatrix );
+               ar_RM( arVector3( -1., 0., 0. ), -deltaY / 300. ) *
+               ar_RM( arVector3( 0., 1., 0. ), deltaX / 300. ) *
+              ar_ERM( mouseWorldMatrix ) * ar_ESM( mouseWorldMatrix );
         }
       break;
       }
@@ -365,11 +365,11 @@ void mouseCB( arGUIMouseInfo* mI )
     else {
       theObject->setFrame( int( float( mI->getPosX()-20 ) / float( width-77 ) *
                                 float( theObject->numberOfFrames() ) ) );
-	  }
+          }
   }
 
   if ( mI->getState() == AR_MOUSE_UP ) {
-    mouseManipState = oldState;	// done dragging bar
+    mouseManipState = oldState;        // done dragging bar
   }
 }
 

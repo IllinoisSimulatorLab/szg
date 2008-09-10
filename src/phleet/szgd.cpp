@@ -55,12 +55,12 @@ void warnTwice( ostream& errStream, const string& msg ) {
 
   python_directory1
       my_app_directory_1
-	   python_script_1.py
+           python_script_1.py
       my_app_directory_2
-	   python_script_2.py
+           python_script_2.py
   python_directory2
       my_app_directory_3
-	   python_script_2.py
+           python_script_2.py
 
   where SZG_PYTHON/path = python_directory1;python_directory2.
 
@@ -737,7 +737,7 @@ LDone:
     // Twenty second timeout, e.g. for Python on a busy CPU.
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, 1, 20000)) {
       info << "szgd launchee returned no success code\n"
-	   << "  (it failed to load a dll, crashed before framework init, or took too long to load).\n";
+           << "  (it failed to load a dll, crashed before framework init, or took too long to load).\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       goto LDone;
@@ -759,7 +759,7 @@ LDone:
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
         ar_log_error() << "internal error: ignoring bogus numberBuffer value " <<
-	  *(int*)numberBuffer << ".\n";
+          *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
       // The timeout can be small.
@@ -870,7 +870,7 @@ LDone:
   }
   if (!ar_safePipeWrite( pipeDescriptors[1],
                          terminalOutput.c_str(),
-			 terminalOutput.length())) {
+                         terminalOutput.length())) {
     ar_log_remark() << "failed to complete pipe-based handshake, text stage.\n";
   }
 
@@ -947,9 +947,9 @@ LDone:
   ar_log_remark() << "cmd = " << command << ", args = " << argsBuffer << "\n";
   // The child might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL,
-		     NULL, NULL, false,
-		     NORMAL_PRIORITY_CLASS, NULL, NULL,
-		     &si, &theInfo);
+                     NULL, NULL, false,
+                     NORMAL_PRIORITY_CLASS, NULL, NULL,
+                     &si, &theInfo);
 
   // Restore variables before unlocking.
   ar_setenv(envDLLPath, DLLPathPrev);
@@ -959,7 +959,7 @@ LDone:
 
   if (!fCreated) {
     info << "szgd failed to exec '" << command << "' with args '" << argsBuffer
-	 << "';\n\tGetLastError() = " << GetLastError() << ".\n";
+         << "';\n\tGetLastError() = " << GetLastError() << ".\n";
     // szgd, not the child, will respond.
     SZGClient->revokeMessageOwnershipTrade(tradingKey);
     SZGClient->messageResponse(receivedMessageID, info.str());

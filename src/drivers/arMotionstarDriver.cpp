@@ -315,7 +315,7 @@ void arMotionstarDriver::_parseData(BN_PACKET *packet) {
       break;
     default:
       printf("arMotionstarDriver warning: unsupported packet format %d (%d)\n",
-	  dptr->format >> 4, dptr->format);
+          dptr->format >> 4, dptr->format);
       break;
     }
     int tmp = (dptr->format & 0xf) << 1;

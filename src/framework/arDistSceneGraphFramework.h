@@ -43,9 +43,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&,
                  int messageID,
-							   const string& messageBody ));
+                                                           const string& messageBody ));
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&,
-							   const string& messageBody ));
+                                                           const string& messageBody ));
   arGraphicsDatabase* getDatabase();
 
   // An external peer might get peer control messages,

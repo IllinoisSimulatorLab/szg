@@ -142,7 +142,7 @@ SZG_CALL enum {
 // As such, uses are found in szgd and arSZGClient.cpp
 SZG_CALL bool ar_safePipeRead(int pipeID, char* theData, int numBytes);
 SZG_CALL int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
-			             int timeout);
+                                     int timeout);
 SZG_CALL bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes);
 
 SZG_CALL void ar_packData(ARchar*, const void*, arDataType, int);
@@ -282,19 +282,19 @@ SZG_CALL FILE* ar_fileOpen(const string& name,
                            const string& subdirectory,
                            const string& path,
                            const string& operation,
-			   const char* warner = NULL);
+                           const char* warner = NULL);
 SZG_CALL FILE* ar_fileOpen(const string& name,
                            const string& path,
                            const string& operation);
 
 // Looks for the named file in the given subdirectory of the path
 SZG_CALL string ar_fileFind(const string& name,
-		            const string& subdirectory,
-		            const string& path);
+                            const string& subdirectory,
+                            const string& path);
 // Looks for the named directory in the given subdirectory of the path
 SZG_CALL string ar_directoryFind(const string& name,
-		                 const string& subdirectory,
-		                 const string& path);
+                                 const string& subdirectory,
+                                 const string& path);
 SZG_CALL list<string> ar_listDirectory(const string& name);
 SZG_CALL int ar_fileClose(FILE* pf);
 
@@ -307,7 +307,7 @@ SZG_CALL void ar_usleep(int);
 // ar_usleep a little longer each time, from min to max.
 // Stops clients from DDOS'ing a server.  "Exponential Backoff."
 class SZG_CALL arSleepBackoff {
-  float _u;	// current naptime
+  float _u;        // current naptime
   float _uMin;  // initial short nap
   float _uMax;  // final long nap
   float _ratio; // ratio between successive naptimes

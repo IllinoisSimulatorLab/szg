@@ -142,8 +142,8 @@ void arSyncDataServer::_sendTaskRemote() {
         _dataQueue->getFrontBufferSize() * _dataServer.getNumberConnected());
     }
 //     cout << "draw = " << _barrierServer.getDrawTime() << " "
-// 	 << "proc = " << _barrierServer.getProcTime() << " "
-// 	 << "recv = " << _barrierServer.getRcvTime() << "\n";
+//          << "proc = " << _barrierServer.getProcTime() << " "
+//          << "recv = " << _barrierServer.getRcvTime() << "\n";
 
     // This local loop needs to be in the synchronization group.
     // we do not do this if we are in nosync mode!

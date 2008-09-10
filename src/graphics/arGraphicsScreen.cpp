@@ -162,7 +162,7 @@ void arGraphicsScreen::setDimensions(float width, float height) {
 // @param tileY The number of the tile in the Y direction, starting with 0.
 // @param numberTilesY The total number of tiles in the Y direction.
 void arGraphicsScreen::setTile(int tileX, int numberTilesX,
-			     int tileY, int numberTilesY) {
+                             int tileY, int numberTilesY) {
   _tileX = tileX;
   _numberTilesX = numberTilesX;
   _tileY = tileY;

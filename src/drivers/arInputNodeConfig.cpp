@@ -46,8 +46,8 @@ bool arInputNodeConfig::_parseTokenList(arStringTextStream& tokenStream,
     tokens >> token;
     if (!tokens.fail()) {
       if (find(tokenList.begin(), tokenList.end(), token) != tokenList.end()) {
-	ar_log_error() << tagType << " arInputNodeConfig ignoring duplicate token '" << token << "'\n";
-	continue;
+        ar_log_error() << tagType << " arInputNodeConfig ignoring duplicate token '" << token << "'\n";
+        continue;
       }
       tokenList.push_back( token );
       ar_log_debug() << tagType << " arInputNodeConfig token '" << token << "'\n";

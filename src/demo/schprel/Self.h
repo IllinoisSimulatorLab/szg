@@ -3,7 +3,7 @@
 
 /*
  * Self.h
- * 	Draws the red "skier" in SchpRel
+ *         Draws the red "skier" in SchpRel
  */
 
 #include "SchprelScene.h"
@@ -11,10 +11,10 @@
 /// Draws the red "skier" in SchpRel
 class Self : public SchprelScene {
   public:
-	Self();
-	virtual ~Self() {}
-	void drawAll();
-	void updateAll(s_updateValues &updateValues);
+        Self();
+        virtual ~Self() {}
+        void drawAll();
+        void updateAll(s_updateValues &updateValues);
 
   /// The original, constant vertices of the skier
   float self[120][3];

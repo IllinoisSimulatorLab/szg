@@ -388,19 +388,19 @@ bool arPForth::compileProgram( const string sourceCode ) {
       // But don't modify foo/*bar .
       unsigned cch = word.size();
       if (cch > 2) {
-	if (!strncmp(word.c_str(), "/*", 2)) {
-	  _inputWords.push_back( "/*" );
-	  // Strip the initial "/*".
-	  word = word.substr(2, cch-2);
-	  cch -= 2;
-	}
+        if (!strncmp(word.c_str(), "/*", 2)) {
+          _inputWords.push_back( "/*" );
+          // Strip the initial "/*".
+          word = word.substr(2, cch-2);
+          cch -= 2;
+        }
       }
       if (cch > 2) {
-	if (!strncmp(word.c_str()+cch-2, "*/", 2)) {
-	  _inputWords.push_back( word.substr(0, cch-2) );
-	  // Strip all but the final "*/".
-	  word = "*/";
-	}
+        if (!strncmp(word.c_str()+cch-2, "*/", 2)) {
+          _inputWords.push_back( word.substr(0, cch-2) );
+          // Strip all but the final "*/".
+          word = "*/";
+        }
       }
       _inputWords.push_back( word );
     }

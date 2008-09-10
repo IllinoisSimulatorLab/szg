@@ -63,22 +63,22 @@ class SZG_CALL ar3DS : public arObject{
 #ifdef Enable3DS
     void attachChildNode(const string& baseName, arGraphicsNode* parent, Lib3dsNode* node);
 #endif
-    arVector3 _minVec;	// vector of minimum x, y, and z values in mesh
-    arVector3 _maxVec;	// vector of maximum x, y, and z values in mesh
-    arVector3 _center;	// center of bounding box for mesh
-    bool    _normalize;	// tells attachMesh() whether or not to add a normalization matrix
+    arVector3 _minVec;        // vector of minimum x, y, and z values in mesh
+    arVector3 _maxVec;        // vector of maximum x, y, and z values in mesh
+    arVector3 _center;        // center of bounding box for mesh
+    bool    _normalize;        // tells attachMesh() whether or not to add a normalization matrix
 
   private:
 #ifdef Enable3DS
     // helper function for normalizationMatrix; allows easy recursing
     void subNormalizationMatrix(Lib3dsNode* node, arVector3& _minVec, arVector3& _maxVec);
-    Lib3dsFile	*_file;
+    Lib3dsFile        *_file;
 #else
-    void	*_file;
+    void        *_file;
 #endif
     int _uniqueName;
-    int _currentFrame;	// displayed frame
-    int _numMaterials;	// Number of materials in _file
+    int _currentFrame;        // displayed frame
+    int _numMaterials;        // Number of materials in _file
 };
 
 #endif // __AR_3DS_H

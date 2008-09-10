@@ -21,34 +21,34 @@ string __getGloveType(void) {
     ar_log_error() << "__getGloveType() ignoring NULL glove pointer.\n";
     return "NULL";
   }
-	int glovetype = FD_GLOVENONE;
-	glovetype = fdGetGloveType( __pGlove );
-	switch (glovetype) {
-	case FD_GLOVENONE:
+        int glovetype = FD_GLOVENONE;
+        glovetype = fdGetGloveType( __pGlove );
+        switch (glovetype) {
+        case FD_GLOVENONE:
     return "None";
-	case FD_GLOVE7:
+        case FD_GLOVE7:
     return "Glove7";
-	case FD_GLOVE7W:
+        case FD_GLOVE7W:
     return "Glove7W";
-	case FD_GLOVE16:
+        case FD_GLOVE16:
     return "Glove16";
-	case FD_GLOVE16W:
+        case FD_GLOVE16W:
     return "Glove16W";
-	case FD_GLOVE5U:
+        case FD_GLOVE5U:
     return "DG5 Ultra serial";
-	case FD_GLOVE5UW:
+        case FD_GLOVE5UW:
     return "DG5 Ultra serial, wireless";
-	case FD_GLOVE5U_USB:
+        case FD_GLOVE5U_USB:
     return "DG5 Ultra USB";
-	case FD_GLOVE14U:
+        case FD_GLOVE14U:
     return "DG14 Ultra serial";
-	case FD_GLOVE14UW:
+        case FD_GLOVE14UW:
     return "DG14 Ultra serial, wireless";
-	case FD_GLOVE14U_USB:
+        case FD_GLOVE14U_USB:
     return "DG14 Ultra USB";
   default:
     return "Unknown";
-	}
+        }
 }
 
 string __getGloveHandedNess(void) {

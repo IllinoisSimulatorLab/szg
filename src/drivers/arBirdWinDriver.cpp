@@ -221,7 +221,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     }
     if (devcnt != _numDevices) {
       ar_log_error() << "Found " << devcnt <<
-	" devices, mismatching number specified, " << _numDevices << ".\n";
+        " devices, mismatching number specified, " << _numDevices << ".\n";
       return false;
     }
 
@@ -236,7 +236,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
       _devConfig[i].byHemisphere = _hemisphereNum;
       if (!birdSetDeviceConfig(_groupID, i, &_devConfig[i])) {
         ar_log_error() <<
-	  "failed to set position/quaternion mode + hemisphere for device " << i << "\n";
+          "failed to set position/quaternion mode + hemisphere for device " << i << "\n";
         return false;
       }
     }

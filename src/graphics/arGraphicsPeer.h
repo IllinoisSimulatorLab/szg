@@ -83,8 +83,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   friend void ar_graphicsPeerSerializeFunction(void*);
   friend void ar_graphicsPeerConnectionDeletionFunction(void*);
   friend void ar_graphicsPeerConsumptionFunction(arStructuredData*,
-					         void*,
-					         arSocket*);
+                                                 void*,
+                                                 arSocket*);
   friend void ar_graphicsPeerDisconnectFunction(void*, arSocket*);
   friend void ar_graphicsPeerConnectionTask(void*);
  public:
@@ -120,11 +120,11 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   virtual bool attach(arDatabaseNode* parent, const string& fileName,
                       const string& path="");
   virtual bool attachXML(arDatabaseNode* parent, const string& fileName,
-			 const string& path="");
+                         const string& path="");
   virtual bool merge(arDatabaseNode* parent, const string& fileName,
                      const string& path="");
   virtual bool mergeXML(arDatabaseNode* parent, const string& fileName,
-		        const string& path="");
+                        const string& path="");
   virtual bool writeDatabase(const string& fileName, const string& path="");
   virtual bool writeDatabaseXML(const string& fileName,
                                 const string& path="");
@@ -268,8 +268,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                      arNodeMap& filterMap); // Call only when _lock()'ed.
   void _sendDataToBridge(arStructuredData*);
   bool _updateTransientMap(int nodeID,
-		  map<int, arGraphicsPeerUpdateInfo, less<int> >& transientMap,
-		  int remoteFrameTime);
+                  map<int, arGraphicsPeerUpdateInfo, less<int> >& transientMap,
+                  int remoteFrameTime);
 };
 
 #endif

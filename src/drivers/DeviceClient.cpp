@@ -127,7 +127,7 @@ bool CompactFilterEventStream::_processEvent( arInputEvent& event ) {
       const float *p = event.getMatrix().v;
       cout << "matrix|" << event.getIndex() << "|" << *p++;
       for (int i=1; i<16; ++i) {
-	cout << "," << *p++;
+        cout << "," << *p++;
       }
       cout << endl;
   }

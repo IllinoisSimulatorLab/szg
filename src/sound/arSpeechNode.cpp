@@ -35,7 +35,7 @@ void arSpeechNode::_initVoice() {
       CoCreateInstance( CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&_voice );
     if ( !SUCCEEDED( hr ) ) {
       ar_log_error() <<
-	"arSpeechNode failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
+        "arSpeechNode failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
       _voice = NULL;
       ::CoUninitialize();
       return;

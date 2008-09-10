@@ -59,14 +59,14 @@ int arDatabaseNode::getRef() const {
 
 // If this node has an owning database, use that as a node factory.
 arDatabaseNode* arDatabaseNode::newNode(const string& type,
-					const string& name,
+                                        const string& name,
                                         bool refNode) {
   return active() ? getOwner()->newNode(this, type, name, refNode) : NULL;
 }
 
 // Wrapper for newNode.  Return a ref'ed node pointer.
 arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
-					   const string& name) {
+                                           const string& name) {
   return newNode(type, name, true);
 }
 
@@ -421,14 +421,14 @@ void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList) {
     // Given the current node. Attempt to find it in the list and move it
     // to the front. Note how we need to iterate over this list in reverse.
     for (list<arDatabaseNode*>::iterator j = _children.begin();
-	 j != _children.end(); j++) {
+         j != _children.end(); j++) {
       if (*i == *j) {
         // No ref or unref; just move this node to the front of the list.
-	arDatabaseNode* node = *j;
+        arDatabaseNode* node = *j;
         _children.erase(j);
         _children.push_front(node);
-	// Search is done.
-	break;
+        // Search is done.
+        break;
       }
     }
   }

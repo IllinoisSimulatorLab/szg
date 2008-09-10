@@ -39,7 +39,7 @@ bool arSerialSwitchDriver::init(arSZGClient& SZGClient) {
   }
   if (!fFound) {
     cerr << "arSerialSwitchDriver got unexpected SZG_SERIALSWITCH/baud_rate "
-	 << baudRate << ".\n  Expected one of:";
+         << baudRate << ".\n  Expected one of:";
     for (i=0; i<NUM_BAUD_RATES; ++i)
       cerr << " " << baudRates[i];
     cerr << "\n";
@@ -67,8 +67,8 @@ LDefaultBaudRate:
 
   const string eventType = SZGClient.getAttribute( "SZG_SERIALSWITCH", "event_type", "|both|open|closed|" );
   _eventType = eventType == "closed" ? AR_CLOSED_SWITCH_EVENT :
-	       eventType == "open"   ? AR_OPEN_SWITCH_EVENT :
-	       AR_BOTH_SWITCH_EVENT;
+               eventType == "open"   ? AR_OPEN_SWITCH_EVENT :
+               AR_BOTH_SWITCH_EVENT;
 
   int signalByte = SZGClient.getAttributeInt( "SZG_SERIALSWITCH", "signal_byte" );
   if (signalByte == 0) {

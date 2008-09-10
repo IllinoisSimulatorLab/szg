@@ -38,8 +38,8 @@ bool arSoundFile::read(const char* filename, bool fLoop, const int renderMode) {
   if (renderMode == mode_fmodplugins) {
     // copypaste from FMOD_3D case
     if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), filename,
-	FMOD_SOFTWARE, // FMOD_2D | (fLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF),
-	0, &_psamp)) || !_psamp) {
+        FMOD_SOFTWARE, // FMOD_2D | (fLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF),
+        0, &_psamp)) || !_psamp) {
       goto LFailFmod;
     }
     return true;
