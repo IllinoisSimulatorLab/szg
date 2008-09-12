@@ -381,6 +381,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     return false;
   }
 
+  ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
+
   if (!_SZGClient) {
     // Standalone.
     const bool ok = _initStandaloneMode();

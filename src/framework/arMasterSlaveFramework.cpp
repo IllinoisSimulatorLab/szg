@@ -368,6 +368,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     return false;
   }
 
+  ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
+
   // Performance graphs.
   const arVector3 white  (1, 1, 1);
   const arVector3 yellow (1, 1, 0);
