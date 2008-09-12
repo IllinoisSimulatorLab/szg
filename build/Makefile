@@ -1,4 +1,4 @@
-.PHONY: all drivers clean docs demo clean-sdk bin-install install-shared demo-clean demo-create-sdk demo-bin-install
+.PHONY: all drivers phleet clean docs demo clean-sdk bin-install install-shared demo-clean demo-create-sdk demo-bin-install
 
 ifeq "$(SZGHOME)" ""
 all:
@@ -14,6 +14,7 @@ else
 # Install shared libraries in SZG_BINDIR (or INSTALLDIR for the SDK).
 include make/Makefile.libscan
 
+PHLEETDIRS=language math phleet
 DRVDIRS=language math phleet barrier drivers
 LIBDIRS=$(DRVDIRS) graphics sound obj interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
@@ -33,6 +34,9 @@ all:
 
 drivers:
 	@for i in $(DRVDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i -j $(JOBS) || exit 1 ; done
+
+phleet:
+	@for i in $(PHLEETDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i -j $(JOBS) || exit 1 ; done
 
 clean:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i --no-print-directory clean ; done

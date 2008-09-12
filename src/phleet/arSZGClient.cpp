@@ -97,6 +97,24 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
   _parseSpecialPhleetArgs = state;
 }
 
+
+bool arSZGClient::_connect() {
+  if (!_dialUpFallThrough()) {
+    _connected = false;
+    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
+    return false;
+  }
+  ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
+  ar_log_debug() << "connected to szgserver.\n";
+  return true;
+}
+
+
+bool arSZGClient::reconnect() {
+  return _connect();
+}
+
+
 // Connect client to the cluster. Call early in main().
 // @param argc main()'s argc
 // @param argv main()'s argv
@@ -106,7 +124,12 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Set the component's name from argv[0], for some component management.
   _exeName = ar_stripExeName(string(argv[0]));
-  ar_setLogLabel( _exeName );
+  _forcedName = forcedName;
+  if (_forcedName == "NULL") {
+    ar_setLogLabel( _exeName );
+  } else {
+    ar_setLogLabel( _forcedName );
+  }
 
   // On Unix, we might need to finish a handshake with szgd,
   // telling it we've been successfully forked.
@@ -221,28 +244,24 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   }
 
   // szgserver, username, etc ("context") are all set.  Connect to that szgserver.
-  if (!_dialUpFallThrough()) {
-    _connected = false;
-    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
+  if (!_connect()) {
     return false;
   }
-  ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
-  ar_log_debug() << "connected to szgserver.\n";
   ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
 
   _connected = true;
   const string configfile_serverName(_serverName);
 
   // Tell szgserver our name.
-  if (forcedName == "NULL") {
+  if (_forcedName == "NULL") {
     _setLabel(_exeName);
-  }
-  else {
-    if (forcedName != _exeName) {
-      ar_log_error() << "component name overriding exe name, Win98-style.\n";
+  } else {
+    if (_forcedName != _exeName) {
+      ar_log_warning() << "Using supplied label '" << _forcedName
+                       << "' instead of exe name '" << _exeName << "'\n";
     }
     // This also updates _exeName.
-    _setLabel(forcedName);
+    _setLabel(_forcedName);
   }
 
   if (configfile_serverName != "NULL" && configfile_serverName != _serverName) {

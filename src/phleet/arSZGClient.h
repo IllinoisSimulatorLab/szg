@@ -36,7 +36,7 @@ class SZG_CALL arSZGClient{
   void simpleHandshaking(bool state);
   void parseSpecialPhleetArgs(bool state);
   bool init(int&, char** const argv, string forcedName = string("NULL"));
-       // Call init() before parsing argv, so "-szg foo=..." works.
+  // Call init() before parsing argv, so "-szg foo=..." works.
   int failStandalone(bool fInited) const;
   stringstream& initResponse() { return _initResponseStream; }
   bool sendInitResponse(bool ok);
@@ -44,6 +44,7 @@ class SZG_CALL arSZGClient{
   bool sendStartResponse(bool ok);
 
   bool launchDiscoveryThreads();
+  bool reconnect();
 
   // Parameter database.
   bool setAttribute(const string& computerName,
@@ -250,6 +251,7 @@ class SZG_CALL arSZGClient{
   string               _computerName;
   string               _userName;
   string               _exeName;
+  string               _forcedName;
   arSlashString       _networks;  // the default networks
   arSlashString       _addresses; // the default addresses
   // Hack to route network traffic differently
@@ -301,6 +303,7 @@ class SZG_CALL arSZGClient{
 
   // Internal functions.
   bool _dialUpFallThrough();
+  bool _connect();
   arStructuredData* _getDataByID(int recordID);
   arStructuredData* _getTaggedData(int tag,
                                    int recordID = -1,

@@ -1079,6 +1079,7 @@ LRetry:
   SZGClient = new arSZGClient;
   // Force the component's name, because win98 can't provide it.
   const bool fInit = SZGClient->init(argc, argv, "szgd");
+  ar_log_debug() << "szgd version: " << ar_versionString() << ar_endl;
   if (!*SZGClient) {
     if (fRetry) {
 LGonnaRetry:

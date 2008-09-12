@@ -25,7 +25,7 @@ COMPILER = CC
 # In fact, recent versions of the compiler COMPLAIN if we, in fact,
 # use the -kPIC flag (saying it isn't supported anymore).
 COMPILE_FLAGS_NDEBUG =  $(SZG_OPT_FLAGS) -DAR_USE_SGI -LANG:std -n32 -ptused -c
-COMPILE_FLAGS_DEBUG = $(SZG_OPT_FLAGS) -DAR_USE_SGI -LANG:std -n32 -ptused -c -g
+COMPILE_FLAGS_DEBUG = $(SZG_OPT_FLAGS) -DAR_USE_SGI -DAR_USE_DEBUG -LANG:std -n32 -ptused -c -g
 ifneq ($(strip $(SZGDEBUG)),TRUE)
   COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
 else

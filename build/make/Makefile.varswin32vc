@@ -82,7 +82,7 @@ else
   HYBRID_FLAGS_DEBUG = -MDd
   HYBRID_FLAGS_NDEBUG = -MD
 endif
-OPT_FLAGS_DEBUG = -D "_CONSOLE" -O1 -D "_DEBUG" $(HYBRID_FLAGS_DEBUG)
+OPT_FLAGS_DEBUG = -D "AR_USE_DEBUG" -D "_CONSOLE" -O1 -D "_DEBUG" $(HYBRID_FLAGS_DEBUG)
 OPT_FLAGS_NDEBUG = -D "_CONSOLE" -O2 -D "NDEBUG" $(HYBRID_FLAGS_NDEBUG)
 # If we are using STLport, this include must come first to override the
 # standard Visual C++ includes.

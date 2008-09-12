@@ -123,9 +123,9 @@ void arDataServer::_readDataTask() {
   if (_atomicReceive) {
     _lockConsume.lock("arDataServer::_readDataTask B");
   }
-    _lockTransfer.lock("arDataServer::_readDataTask C");
-      _deleteSocketFromDatabase(newFD);
-    _lockTransfer.unlock();
+  _lockTransfer.lock("arDataServer::_readDataTask C");
+  _deleteSocketFromDatabase(newFD);
+  _lockTransfer.unlock();
   if (_atomicReceive) {
     _lockConsume.unlock();
   }

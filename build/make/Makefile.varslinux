@@ -20,7 +20,7 @@ EXE =
 COMPILER = g++
 COMPILE_FLAGS_NDEBUG = -DAR_USE_LINUX -c -fPIC -O2 -Wall -W \
   -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
-COMPILE_FLAGS_DEBUG = -DAR_USE_LINUX -c -fPIC -g -Wall -W \
+COMPILE_FLAGS_DEBUG = -DAR_USE_LINUX -DAR_USE_DEBUG -c -fPIC -g -Wall -W \
   -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
 # Do NOT use ":=" in defining COMPILE_FLAGS, since this allows more
 # flexibility in where SZG_OPT_FLAGS is defined.

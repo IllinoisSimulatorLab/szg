@@ -1966,6 +1966,8 @@ int main(int argc, char** argv) {
     }
   }
 
+  ar_log_debug() << "szgserver version: " << ar_versionString() << ar_endl;
+
   // If another szgserver on the network has the same name, abort.
   // We can discover this like dhunt's arSZGClientServerResponseThread(),
   // but we, not dhunt's stdout, need the result.

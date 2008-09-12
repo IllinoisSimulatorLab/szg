@@ -88,6 +88,9 @@ string ar_versionString() {
     os << SZG_MAJOR_VERSION << "."
        << SZG_MINOR_VERSION << "."
        << SZG_PATCH_VERSION;
+#ifdef AR_USE_DEBUG
+    os << " (DEBUG)";
+#endif
     __version = os.str();
   }
   return __version;
