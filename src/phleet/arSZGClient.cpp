@@ -111,6 +111,9 @@ bool arSZGClient::_connect() {
 
 
 bool arSZGClient::reconnect() {
+  if (_connected) {
+    closeConnection();
+  }
   return _connect();
 }
 

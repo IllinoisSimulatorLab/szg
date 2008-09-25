@@ -16,10 +16,7 @@
 #
 
 import sys
-import time
-import thread
 import math
-import random
 import szg
 
 

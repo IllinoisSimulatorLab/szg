@@ -1152,10 +1152,14 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   if (nodeID == -1) {
     // Assign an ID automatically.
     node->_setID(_nextAssignedID++);
+#ifdef PRINT_NODE_CREATIONS
     ar_log_debug() << "\t" << _typeString << " auto node " << node->dumpOneline();
+#endif
   } else {
     node->_setID(nodeID);
+#ifdef PRINT_NODE_CREATIONS
     ar_log_debug() << "\t" << _typeString << " new node " << node->dumpOneline();
+#endif
     if (_nextAssignedID <= nodeID) {
       _nextAssignedID = nodeID+1;
     }

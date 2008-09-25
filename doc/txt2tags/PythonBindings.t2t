@@ -227,3 +227,61 @@ and twisted.spread.jelly from the [Twisted http://twistedmatrix.com/] package. P
 security risk, because an attacker could insert arbitrary commands in a string that would
 be executed on un-pickling; only use pickle if you control both ends of a transaction.
 
+
+=Writing Python Input Device Drivers=[PythonDrivers]
+
+Python input devices only work in [Cluster Mode ClusterMode.html].
+
+This feature is specific to the new (SIP) bindings. Tersely, you implement a
+sub-class of ``arPyDeviceServerFramework``, minimally overriding the
+``configureInputNode()`` method. This method can do a few things:
+
++ Install one or more driver objects in the input node (//required//). In a Python program,
+  these should be either instances of ``arGenericDriver`` if you're going to
+  do all of the actual event generation in Python code or ``arSharedLibInputDriver``
+  if you want to load one of the C++ "ar..Driver" shared libaries. If it's
+  an ``arGenericDriver``, you'll want to save a reference to it.
+
++ Install an event filter. Only really needed if you're loading C++ shared-libary
+  drivers.
+
++ Add a network input source. This is what allows daisy-chaining of input
+  devices to work.
+
+
+In general you'll also want to have a loop that generates the actual events. Of
+course, these can be based on any information that Python can access: a
+real device via serial connection, a GLUT or wxPython GUI, or a web page, to
+name a few possibilities. There are a few simple examples in
+**szg/python_sip/demo/inputdevices**:
+
++ [randombuttons.py ../python_sip/demo/inputdevices/randombuttons.py] just sends random button events.
+
++ [bird_and_wand.py  ../python_sip/demo/inputdevices/bird_and_wand.py] loads two C++ dynamic libraries,
+  and is most interesting
+  as an example of how to do e.g. axis scaling and button re-mapping in Python.
+
++ [glutjoystick.py  ../python_sip/demo/inputdevices/glutjoystick.py] is a GLUT-based joystick simulator,
+  to demonstrate how to start writing alternatives to the standard [inputsimulator InputSimulator.html]
+  program. In extending it you might want to look at [PyUI http://pyui.sourceforge.net/].
+
++ [event_console.py  ../python_sip/demo/inputdevices/event_console.py] opens a mini command prompt in
+  which you can type commands to send input events.
+
+
+To use one in the context of a [virtual computer ClusterMode.html#VirtualComputer],
+you generally have to do three things:
+
++ Make sure you have defined the [Syzygy database SystemConfiguration.html#Database]
+  variable ``SZG_PYTHON/executable`` for the computer it's on.
++ Place it in a directory on your ``SZG_PYTHON/path`` (or one level down, see
+  [Path Configuration PathConfiguration.html]).
++ Add it to a [virtual computer VirtCompConfiguration.html] input map, e.g.:
+```
+   virtual_computer SZG_INPUT0  map  this_computer/glutjoystick.py
+```
+
+
+Then ``dex virtual_computer <app>`` should cause the Python input device to start on
+this_computer.
+

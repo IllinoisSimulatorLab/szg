@@ -137,7 +137,7 @@ int arSocket::ar_connect(const char* IPaddress, int port) {
   if (_type != AR_STANDARD_SOCKET) {
     return -1;
   }
-  // ar_log_debug() << "arSocket connecting to " << IPaddress << ":" << port << ".\n";
+//  ar_log_debug() << "arSocket connecting to " << IPaddress << ":" << port << ".\n";
   sockaddr_in servAddr;
   memset(&servAddr, 0, sizeof(servAddr));
   servAddr.sin_family = AF_INET;

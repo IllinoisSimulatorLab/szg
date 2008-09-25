@@ -299,8 +299,11 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout) {
   if (msecTimeout >= 0) {
     ok = WaitForSingleObject(_event, msecTimeout) != WAIT_TIMEOUT;
   }
-  else{
-    WaitForSingleObject(_event, INFINITE);
+  else {
+    while (WaitForSingleObject(_event, 5000) == WAIT_TIMEOUT) {
+      ar_log_debug() << "arConditionVar::wait() has been waiting for 5 seconds...\n";
+    }
+//    WaitForSingleObject(_event, INFINITE);
   }
 
   // Subtle race condition: if signal() is called here and gets the lock
@@ -389,7 +392,10 @@ void arThreadEvent::signal() {
 
 void arThreadEvent::wait() {
 #ifdef AR_USE_WIN_32
-  WaitForSingleObject( _event, INFINITE );
+  while (WaitForSingleObject(_event, 5000) == WAIT_TIMEOUT) {
+    ar_log_debug() << "arThreadEvent::wait() has been waiting for 5 seconds...\n";
+  }
+//  WaitForSingleObject( _event, INFINITE );
 #else
   pthread_mutex_lock( &_mutex );
   while (!_active)
@@ -526,7 +532,10 @@ void arSignalObject::sendSignal() {
 
 void arSignalObject::receiveSignal() {
 #ifdef AR_USE_WIN_32
-   WaitForSingleObject(_event, INFINITE);
+  while (WaitForSingleObject(_event, 5000) == WAIT_TIMEOUT) {
+    ar_log_debug() << "arSignalObject::receiveSignal() has been waiting for 5 seconds...\n";
+  }
+//   WaitForSingleObject(_event, INFINITE);
 #else
    pthread_mutex_lock(&_mutex);
    while (!_fSync) {

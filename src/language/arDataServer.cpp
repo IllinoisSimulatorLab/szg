@@ -234,7 +234,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive) {
   // But how can we distinguish this case from the general multiple-client case?
   // Caching a single addr as a member variable is too simplistic.
 
-  ar_log_remark() << "arDataServer connected from " << addr.getRepresentation() << ".\n";
+  ar_log_remark() << "arDataServer got connection from " << addr.getRepresentation() << ".\n";
 
   arGuard _(_lockTransfer, "arDataServer::_acceptConnection");
   _addSocketToDatabase(sockNew);
