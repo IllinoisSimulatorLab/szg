@@ -49,23 +49,28 @@ pushed all the way forwards.
 The input simulator has several modes.
 To activate a mode, hit its corresponding number key, 0 through 9.
 
-+ 1: Mouse moves the head in the horizontal plane.
-+ 2: Mouse moves the head in the vertical plane.
-+ 3: Mouse aims the head.
-+ 4: Mouse moves the wand in the horizontal plane.
-+ 5: Mouse moves the wand in the vertical plane.
-+ 6: Mouse aims the wand.
-+ 7: Mouse moves the joystick, only while a mouse button is held (``click and drag'').
+- 1: Mouse moves the head in the horizontal plane.
+- 2: Mouse moves the head in the vertical plane.
+- 3: Mouse aims the head.
+- 4: Mouse moves the wand in the horizontal plane.
+- 5: Mouse moves the wand in the vertical plane.
+- 6: Mouse aims the wand.
+- 7: Mouse moves the joystick, only while a mouse button is held (``click and drag'').
 The joystick recenters when you release the mouse button.
-+ 8: Mouse horizontal motion rolls the head about its gaze vector.
-+ 9: Mouse horizontal motion rolls the wand about its ``forwards'' vector.
-+ 0: Mouse twirls the entire wireframe box, to better show its contents' spatial relationships.
+- 8: Mouse horizontal motion rolls the head about its gaze vector.
+- 9: Mouse horizontal motion rolls the wand about its ``forwards'' vector.
+- 0: Mouse twirls the entire wireframe box, to better show its contents' spatial relationships.
 
 If you hit a number key twice, the corresponding mode resets to its initial value.
 For example, hitting 6 twice aims the wand directly forward;
 hitting 1 twice moves the head back to its central starting point.
 
-Note: Whether or not head rotation noticeably affects the application's
+Note 1: In most of these modes, simply moving the mouse will modify the input. This can
+be painful if you're using e.g. a pen tablet instead of a mouse. In this case, typing
+'B' will change the behavior such that dragging the input device with the left button
+held down is required.
+
+Note 2: Whether or not head rotation noticeably affects the application's
 display depends on the viewing camera. With the default head-mounted
 camera, rotating the head 90 degrees will rotate the field of view 90 degrees.
 But with fixed-screen cameras (as used in a CAVE), the displays
