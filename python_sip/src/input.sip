@@ -324,7 +324,7 @@ class arGenericDriver: arInputSource {
 
 
 
-class arSharedLibInputDriver : arSharedLib {
+class arSharedLibInputDriver {
 %TypeHeaderCode
 #include "arSharedLib.h"
 #include "arGenericDriver.h"
