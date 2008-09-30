@@ -59,17 +59,26 @@ LFailFmod:
 }
 
 #ifdef EnableSound
+// Dummy sound, a placeholder for when no .wav file is found.
 static FMOD_RESULT F_CALLBACK pcmreadcallback(FMOD_SOUND *sound, void *data, unsigned cb)
 {
   const unsigned cs = cb/2;
   signed short *ps = (signed short *)data;
-  static float t1 = 0., v1 = 0.;
+
+  const double amplitude = 3000.; // 32767 would be max
+  static double t1 = 0., v1 = 0.;
+
   for (unsigned is=0; is<cs; ++is)
   {
-    *ps++ = (signed short)(sin(t1) * 20000.);
-    t1 += .001 + v1;
-    v1 += sin(t1) * .0002;
+    *ps++ = (signed short)(sin(t1) * amplitude);
+    t1 += .05 - v1;
+    // Frequency sweep, so multiple copies are audible.
+    v1 += .00000006;
   }
+  // todo: avoid click when looping, by fading amplitude in and out
+  // at first and last call.  But how do we know when this is the last call?
+
+  // todo: if sound is a looped dummy(), abort it after about 5 loops.
 
   return FMOD_OK;
 }
@@ -84,8 +93,8 @@ bool arSoundFile::dummy() {
 #ifdef EnableSound
   FMOD_CREATESOUNDEXINFO ex = {0};
   ex.cbsize = sizeof(ex);
-  ex.decodebuffersize = 44100;
-  ex.length = 44100;
+  ex.length = 7 * 44100;
+  ex.decodebuffersize = sizeof(short) * ex.length;
   ex.numchannels = 1;
   ex.defaultfrequency = 44100;
   ex.format = FMOD_SOUND_FORMAT_PCM16;
