@@ -133,8 +133,7 @@ class SZG_CALL arTexture {
 
   arLock _lock; // guards _texNameMap
 
-  // The handles to the OpenGL textures are stored below (per calling graphics
-  // context).
+  // Handles to OpenGL textures, one per graphics context.
   map<ARint64, GLuint, less<ARint64> > _texNameMap;
 
   GLuint _sharedTextureID;
