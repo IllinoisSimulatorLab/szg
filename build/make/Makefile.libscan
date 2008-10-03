@@ -515,6 +515,19 @@ ifeq ($(strip $(MACHINE)), WIN32)
 #  endif
 #  endif
 
+  ifneq ($(strip $(SZG_COMPILER)), MINGW)
+  ifneq ($(strip $(SZG_COMPILER)), VC6)
+  ifneq ($(strip $(SZG_COMPILER)), VC7)
+    # Force an error if none of these are defined.
+    COMPILE_FLAGS := "undefined_env_var_SZG_COMPILER"
+    COMPILE_FLAGS_DEBUG := "undefined_env_var_SZG_COMPILER"
+all:
+	@echo "Environment variable SZG_COMPILER must be one of: MINGW VC6 VC7"
+
+  endif
+  endif
+  endif
+
 endif
 
 ifeq ($(strip $(MACHINE)), DARWIN)
