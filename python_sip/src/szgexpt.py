@@ -318,9 +318,9 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
     self.imASpy = False
     self.guiProcessID = None
     # Tell the framework what units we're using.
-    self.setUnitConversion( self.__class__.unitsPerFoot )
+    self.setUnitConversion( self.unitsPerFoot )
     # Near & far clipping planes.
-    self.setClipPlanes( self.__class__.nearClipDistance, self.__class__.farClipDistance )
+    self.setClipPlanes( self.nearClipDistance, self.farClipDistance )
 
   # Note returning False will cause program to exit.
   def onStart( self, szgClient ):

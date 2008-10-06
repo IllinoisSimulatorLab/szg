@@ -366,7 +366,7 @@ static bool sharkAttack = false;
 
 // Pack data into the networked shared memory to send to slaves
 void preExchange(arMasterSlaveFramework& fw) {
-  int i;
+  int i, j;
   static bool firstAttack = true;
   fw.navUpdate();
   if (fw.getOnButton(0)) {
@@ -388,10 +388,13 @@ void preExchange(arMasterSlaveFramework& fw) {
   }
 
   // Animate
-  const arMatrix4 headMatrix = ar_matrixToNavCoords( fw.getMatrix(0) );
+  arVector3 headPos = ar_extractTranslation( ar_matrixToNavCoords( fw.getMatrix(0) ) );
+  headPos.v[1] -= 2*ATLANTISUNITS_PER_FOOT;
   for (i = 0; i < NUM_SHARKS; i++) {
-    SharkPilot(&sharks[i], headMatrix, sharkAttack);
-    SharkMiss(i);
+    SharkPilot( &sharks[i], (sharkAttack)?(&headPos):(NULL) );
+    for (j = 0; j < NUM_SHARKS; j++) {
+      SharkMiss( &sharks[i], &sharks[j] );
+    }
     UpdateShark(&sharks[i]);
   }
   DolphinPilot(&dolph);

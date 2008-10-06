@@ -63,16 +63,11 @@ typedef struct _fishRec {
     int spurt, attack;
 } fishRec;
 
-extern fishRec sharks[NUM_SHARKS];
-extern fishRec momWhale;
-extern fishRec babyWhale;
-extern fishRec dolph;
-
 extern void FishTransform(fishRec *);
 extern void WhalePilot(fishRec *);
 extern void DolphinPilot(fishRec *);
-extern void SharkPilot(fishRec *, const arMatrix4&, bool);
-extern void SharkMiss(int);
+extern void SharkPilot( fishRec* fish, const arVector3* attractor=NULL );
+extern void SharkMiss( fishRec* s1, fishRec* s2 );
 extern void DrawWhale(fishRec *);
 extern void DrawShark(fishRec *);
 extern void DrawDolphin(fishRec *);

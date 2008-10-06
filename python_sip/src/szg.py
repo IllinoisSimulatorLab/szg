@@ -107,9 +107,16 @@ def ar_doPythonPrompt():
 
 
 class arPyMasterSlaveFramework(arMasterSlaveFramework):
+  unitsPerFoot = 1.   # default to feet
+  nearClipDistance = 1.
+  farClipDistance = 200.
   def __init__(self):
     arMasterSlaveFramework.__init__(self)
     self.__usePrompt = '--prompt' in sys.argv
+    # Tell the framework what units we're using.
+    self.setUnitConversion( self.unitsPerFoot )
+    # Near & far clipping planes.
+    self.setClipPlanes( self.nearClipDistance, self.farClipDistance )
   def onStart( self, client ):
     if self.__usePrompt:
       if self.getMaster():

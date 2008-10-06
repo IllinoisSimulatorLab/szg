@@ -4,6 +4,7 @@ VPATH=$(INTERFACE_DIR)
 
 # This project is different enough that we depart from the standard template.
 include $(SZGHOME)/build/make/Makefile.vars
+include $(SZGHOME)/build/make/Makefile.python_sip
 
 SIPFILES = $(INTERFACE_DIR)/math.sip \
 					 $(INTERFACE_DIR)/typemaps.sip \
@@ -24,21 +25,6 @@ SIPFILES = $(INTERFACE_DIR)/math.sip \
 # endif
 
 
-ifeq ($(strip $(MACHINE)), WIN32)
-	COMPILE_FLAGS_SHARED += -I$(SZGEXTERNAL)/win32/sip-4.7.3/include 
-  ifeq ($(strip $(SZG_COMPILER)), MINGW)
-		PRE_LIB_SEARCH_FLAGS += -L$(dir $(SZG_PYLIB))
-		SZG_OPT_LIBS_FULL += -lPython24
-	else
-		SZG_OPT_LIBS_FULL += $(SZG_PYLIB)
-	endif
-  PYSHAREDLIB_SUFFIX = .pyd
-endif
-ifeq ($(strip $(MACHINE)), LINUX)
-	SZG_OPT_LIBS_FULL += -l$(SZG_PYLIB)
-  PYSHAREDLIB_SUFFIX = .so
-endif
-
 SIP_ALL=_szg$(PYSHAREDLIB_SUFFIX) $(INTERFACE_DIR)/szg.py szgopengl$(PYSHAREDLIB_SUFFIX)
 
 ifeq ($(strip $(SWIG_SZGEXPT)),TRUE)
@@ -48,8 +34,6 @@ endif
 
 sip_all: $(SIP_ALL)
 	$(CP) $(SIP_ALL) $(SZG_BINDIR)
-
-SZG_INCLUDE += -I$(SZG_PYINCLUDE)
 
 # OBJS = rencode2$(OBJ_SUFFIX)
 

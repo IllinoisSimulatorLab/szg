@@ -77,21 +77,15 @@ DolphinPilot(fishRec * fish)
     fish->z += DOLPHINSPEED * fish->v * sin(fish->theta / RAD);
 }
 
-// SharkPilot(fishRec * fish, const arMatrix4& headMatrix, float magicRadius)
-void SharkPilot(fishRec * fish, const arMatrix4& headMatrix, bool attackViewer)
+void SharkPilot(fishRec * fish, const arVector3* attractor )
 {
     static int sign = 1;
     float X, Y, Z, tpsi, ttheta, thetal;
 
-    arVector3 headPos( ar_extractTranslation( headMatrix ) );
-    float temp = headPos[0];
-    headPos[0] = -headPos[2];
-    headPos[2] = headPos[1];
-    headPos[1] = temp;
-    if (attackViewer) {
-      fish->xt = headPos[0];
-      fish->yt = headPos[1] - 2*ATLANTISUNITS_PER_FOOT;
-      fish->zt = headPos[2];
+    if (attractor) {
+      fish->xt = attractor->v[0];
+      fish->yt = attractor->v[1];
+      fish->zt = attractor->v[2];
     } else {  
       fish->xt = 60000.0;
       fish->yt = 0.0;
@@ -185,32 +179,32 @@ void SharkPilot(fishRec * fish, const arMatrix4& headMatrix, bool attackViewer)
     fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
 }
 
-void
-SharkMiss(int i)
-{
-    int j;
+void SharkMiss( fishRec* s1, fishRec* s2 ) {
     float avoid, thetal;
     float X, Y, Z, R;
 
-    for (j = 0; j < NUM_SHARKS; j++) {
-        if (j != i) {
-            X = sharks[j].x - sharks[i].x;
-            Y = sharks[j].y - sharks[i].y;
-            Z = sharks[j].z - sharks[i].z;
+    if (!s1 || !s2) {
+      return;
+    }
+    if (s1 == s2 ) {
+      return;
+    }
 
-            R = sqrt(X * X + Y * Y + Z * Z);
+    X = s2->x - s1->x;
+    Y = s2->y - s1->y;
+    Z = s2->z - s1->z;
 
-            avoid = 1.0;
-            thetal = sharks[i].theta;
+    R = sqrt(X * X + Y * Y + Z * Z);
 
-            if (R < SHARKSIZE) {
-                if (Z > 0.0) {
-                    sharks[i].theta -= avoid;
-                } else {
-                    sharks[i].theta += avoid;
-                }
-            }
-            sharks[i].dtheta += (sharks[i].theta - thetal);
+    avoid = 1.0;
+    thetal = s1->theta;
+
+    if (R < SHARKSIZE) {
+        if (Z > 0.0) {
+            s1->theta -= avoid;
+        } else {
+            s1->theta += avoid;
         }
     }
+    s1->dtheta += (s1->theta - thetal);
 }

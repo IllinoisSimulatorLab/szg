@@ -15,11 +15,6 @@ firstFrame = True
 # See szg/doc/Interaction.html for a discussion of user/object interaction
 # concepts & classes
 
-# Unit conversions.  Tracker (and cube screen descriptions) use feet.
-# Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
-# factor is 12*2.54*10.*2.
-LOCAL_UNITS_PER_FOOT = 1.
-
 
 #### Class definitions & implementations. ####
 
@@ -107,6 +102,13 @@ class RodEffector( arEffector ):
 #  master/slave callbacks, e.g. the draw callback is onDraw(), etc.
 
 class SkeletonFramework(arPyMasterSlaveFramework):
+  # Unit conversions.  Tracker (and cube screen descriptions) use feet.
+  # Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
+  # factor is 12*2.54*10.*2.
+  unitsPerFoot = 1.   # default to feet
+  # Near & far clipping planes.
+  nearClipDistance = .1*unitsPerFoot
+  farClipDistance = 100.*unitsPerFoot
   def __init__(self):
     arPyMasterSlaveFramework.__init__(self)
 
@@ -116,14 +118,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # List of objects to interact with
     self.interactionList = [self.theSquare]
-
-    # Tell the framework what units we're using.
-    self.setUnitConversion( LOCAL_UNITS_PER_FOOT )
-
-    # Near & far clipping planes.
-    nearClipDistance = .1*LOCAL_UNITS_PER_FOOT
-    farClipDistance = 100.*LOCAL_UNITS_PER_FOOT
-    self.setClipPlanes( nearClipDistance, farClipDistance )
 
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
