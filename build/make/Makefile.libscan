@@ -272,12 +272,19 @@ ifeq ($(strip $(MACHINE)), WIN32)
 		OBJ_5DT := $(wildcard $(5DT_DIR)/dll/fglove.dll)
 	endif
 
-  EVART_DIR := $(SZGEXTERNAL)/win32/evart
-  INC_EVART := $(wildcard $(EVART_DIR)/include)
-  LIB_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.lib)
-  OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
+	ifeq ($(strip $(SZG_COMPILER)), MINGW)
+		EVART_DIR := $(SZGEXTERNAL)/win32/evart-mingw
+		INC_EVART := $(wildcard $(EVART_DIR)/include)
+		LIB_EVART := $(wildcard $(EVART_DIR)/lib/libmacrtcom.a)
+		LINK_EVART := -lmacrtcom
+	else
+		EVART_DIR := $(SZGEXTERNAL)/win32/evart-msvc
+		INC_EVART := $(wildcard $(EVART_DIR)/include)
+		LIB_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.lib)
+		OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
+	endif
 
-  ISENSE_DIR := $(SZGEXTERNAL)/win32/isense
+  ISENSE_DIR := $(SZGEXTERNmacrtcom)/win32/isense
   OBJ_ISENSE := $(wildcard $(ISENSE_DIR)/lib/isense.dll)
 
   # If the isense dll is available, copy its objects to SZG_BINDIR
@@ -381,6 +388,22 @@ ifeq ($(strip $(MACHINE)), WIN32)
     SZG_LINK_3DS = $(LINK_3DS)
 	endif
     SZG_OPT_LIBS_FULL += $(SZG_LINK_3DS)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_EVART)),)
+  ifneq ($(strip $(LIB_EVART)),)
+    # libEVART include file AND library exist.
+    SZG_OPT_FLAGS += -D "EnableEVART"
+    SZG_INCLUDE_EVART = -I$(INC_EVART)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_EVART)
+  ifneq ($(strip $(SZG_COMPILER)), MINGW)
+    SZG_LINK_EVART = $(LIB_EVART)
+	else
+    PRE_LIB_SEARCH_FLAGS += -L$(EVART_DIR)/lib
+    SZG_LINK_EVART = $(LINK_EVART)
+	endif
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_EVART)
   endif
   endif
 
