@@ -9,12 +9,9 @@
 #include "arDataType.h"
 #include "arLanguageCalling.h"
 
-// Utility class.  A simple buffer of floats. This class is a little
-// annoying. It is definitely a hack. First of all, it's a weird relic
-// of the early days of szg and particularly the arGraphicsDatabase, whose
-// nodes, for no real discernable reason, store all their internal
-// information in an array of floats! Well, eventually that should be
-// thrown out! And there is the (more useful) template class arBuffer...
+// Utility class, a buffer of floats.
+// Relic of early design, where arGraphicsDatabase nodes store
+// state in an array of floats.  See class arBuffer instead.
 
 class SZG_CALL arLightFloatBuffer{
  // Needs assignment operator and copy constructor, for pointer member.

@@ -12,11 +12,15 @@
 
 #ifdef AR_USE_WIN_32
 int main(int argc, char** argv) {
+  (void)argc;
+  (void)argv;
   cerr << "sorry, dtop unavailable under win32.\n";
 }
 #else
 #ifdef AR_USE_SGI
 int main(int argc, char** argv) {
+  (void)argc;
+  (void)argv;
   cerr << "sorry, dtop unavailable under Irix.\n";
 }
 #else

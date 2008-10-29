@@ -170,9 +170,8 @@ endif
 
 ifeq ($(strip $(MACHINE)), WIN32)
 
-#   If Python-building environment variables are not set, try
-#   appropriate directories in SZGEXTERNAL
   ifeq ($(strip $(SZG_PYLIB)),)
+  		# Python-building environment variables were not set.
 		SZG_PYLIB := $(SZGEXTERNAL)/win32/Python24/libs/Python24.lib
 		SZG_PYINCLUDE := $(SZGEXTERNAL)/win32/Python24/include
 	endif
@@ -192,8 +191,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
 	INC_GLUT := $(wildcard $(GLUT_DIR)/include)
 	OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/glut32.dll)
 	
-  # Some windows installations lack glext.h, which is needed for the
-  # q33 demo. Allow it to be added in SZGEXTERNAL
+  # Windows may lack glext.h, which demo/q33 needs.  Let SZGEXTERNAL add it.
   GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
 
 	FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4

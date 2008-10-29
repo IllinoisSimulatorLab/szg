@@ -21,7 +21,7 @@
 // Render graphics data using the SZG_GEOMETRY service
 // and draw OpenGL scenes from an arGraphicsDatabase.
 
-class SZG_CALL arGraphicsClient;
+class arGraphicsClient;
 class arGraphicsClientRenderCallback;
 bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
 bool ar_graphicsClientDisconnectCallback(void*);

@@ -6,11 +6,14 @@
 #ifndef AR_OBJECT_H
 #define AR_OBJECT_H
 
-#include <stdio.h>
-#include <iostream>
-#include "arMath.h"
 #include "arDataUtilities.h"
+#include "arGraphicsAPI.h"
 #include "arGraphicsDatabase.h"
+#include "arMath.h"
+#include "arObject.h"
+
+#include <iostream>
+#include <stdio.h>
 #include <string>
 #include <vector>
 
@@ -44,7 +47,10 @@ class SZG_CALL arObject {
   // Deprecated.
   // Annoyingly, this must be repeated in each subclass (because of the
   // *other* attachMesh virtual method).
-  virtual bool attachMesh(const string& objectName, const string& parentName);
+  virtual bool attachMesh(const string& objectName, const string& parentName) {
+    arGraphicsNode* g = dgGetNode(parentName);
+    return g && attachMesh(g, objectName);
+  }
 
   // Add a valid arObject file to the scenegraph.
   virtual bool attachMesh(arGraphicsNode* parent, const string& objectName="") = 0;

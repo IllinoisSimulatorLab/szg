@@ -127,7 +127,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   return false;
 #else
   // do lots of complicated stuff to wake up the flock.
-  const int baudRates[] = {2400, 4800, 9600, 19200, 38400, 57600, 115200};
+  const unsigned baudRates[] = {2400, 4800, 9600, 19200, 38400, 57600, 115200};
   const BYTE hemiNums[] = {BHC_FRONT, BHC_REAR, BHC_UPPER, BHC_LOWER, BHC_LEFT, BHC_RIGHT};
   const string hemispheres[] = {"front", "rear", "upper", "lower", "left", "right"};
   string received = SZGClient.getAttribute("SZG_FOB", "com_ports");
@@ -175,7 +175,6 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   }
   string hemisphere(SZGClient.getAttribute("SZG_FOB", "hemisphere"));
   int hemiFound = -1;
-  BYTE hemisphereNum;
   for (i=0; i<_nHemi; i++)
     if (hemisphere == hemispheres[i])
       hemiFound = i;

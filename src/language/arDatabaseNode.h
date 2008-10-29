@@ -18,7 +18,7 @@ class arDatabase;
 
 // Common way to manage nodes.
 typedef map< int, int, less<int> > arNodeMap;
-SZG_CALL inline arNodeMap::value_type arNodePair(const int a, const int b) { return arNodeMap::value_type(a, b); }
+inline arNodeMap::value_type arNodePair(const int a, const int b) { return arNodeMap::value_type(a, b); }
 
 // Types of nodes.
 enum arNodeLevel{

@@ -162,10 +162,10 @@ void SZGactivateUser(const string& userName) {
 // component (which is the list of message IDs to which the component is
 // expected to respond).
 void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID) {
-  SZGcomponentMessageOwnershipDB::iterator
+  const SZGcomponentMessageOwnershipDB::iterator
     i(componentMessageOwnershipDB.find(componentID));
   if (i == componentMessageOwnershipDB.end()) {
-    // the component owns no messages currently
+    // component owns no messages
     componentMessageOwnershipDB.insert
       (SZGcomponentMessageOwnershipDB::value_type(componentID,
               list<int>(1, messageID)));
@@ -179,7 +179,7 @@ void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID) {
 // given component (which is the list of message IDs to which the component
 // is expected to respond).
 void SZGremoveMessageIDFromComponentsList(int componentID, int messageID) {
-  SZGcomponentMessageOwnershipDB::iterator
+  const SZGcomponentMessageOwnershipDB::iterator
     i(componentMessageOwnershipDB.find(componentID));
   if (i == componentMessageOwnershipDB.end()) {
     ar_log_error() << "internal error: no message list for component "
@@ -189,14 +189,14 @@ void SZGremoveMessageIDFromComponentsList(int componentID, int messageID) {
   }
 }
 
-// A helper function for the larger message database manipulators.
+// Helper for the larger message database manipulators.
 // Adds the given key to the list maintained for the given component
 // (which is the list of keys on which the component has initiated trades)
 void SZGinsertKeyIntoComponentsList(int componentID, const string& key) {
-  SZGcomponentTradingOwnershipDB::iterator
+  const SZGcomponentTradingOwnershipDB::iterator
     i(componentTradingOwnershipDB.find(componentID));
   if (i == componentTradingOwnershipDB.end()) {
-    // the component has posted no trades as of yet
+    // component has not yet posted trades
     componentTradingOwnershipDB.insert
       (SZGcomponentTradingOwnershipDB::value_type(componentID,
               list<string>(1, key)));
@@ -205,11 +205,10 @@ void SZGinsertKeyIntoComponentsList(int componentID, const string& key) {
   }
 }
 
-// Helper function for the message database manipulators.
-// @param componentID A component
+// Helper for the message database manipulators.
 // @param key Key to be removed from the list of keys on which the component has initiated trades
 void SZGremoveKeyFromComponentsList(int componentID, const string& key) {
-  SZGcomponentTradingOwnershipDB::iterator
+  const SZGcomponentTradingOwnershipDB::iterator
     i(componentTradingOwnershipDB.find(componentID));
   if (i == componentTradingOwnershipDB.end()) {
     ar_log_error() << "internal error: no trading key in component's list.\n";
@@ -219,11 +218,8 @@ void SZGremoveKeyFromComponentsList(int componentID, const string& key) {
 }
 
 // Add a message to the internal database storage.
-// @param messageID ID of the message
-// @param componentOwnerID ID of the component which has the right
-// to respond to this message
-// @param componentOriginatorID ID of the component which sent the
-// message
+// componentOwnerID: component which may respond to this message
+// componentOriginatorID: message's sender
 void SZGaddMessageToDB(const int messageID,
                        const int componentOwnerID,
                        const int componentOriginatorID,
@@ -410,7 +406,7 @@ bool SZGgetMessageTradeInfo(const string& key, arPhleetMsg& message) {
 // @param ownerID Set to -1 if the lock was not previously held,
 // otherwise set to the ID of the holding component.
 bool SZGgetLock(const string& lockName, int id, int& ownerID) {
-  SZGlockOwnershipDB::const_iterator i(lockOwnershipDB.find(lockName));
+  const SZGlockOwnershipDB::const_iterator i(lockOwnershipDB.find(lockName));
   if (i != lockOwnershipDB.end()) {
     ownerID = i->second;
     // Don't complain, because this is common.
@@ -422,12 +418,12 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID) {
   // Insert the name in the list associated with this component.
   SZGcomponentLockOwnershipDB::iterator j(componentLockOwnershipDB.find(id));
   if (j == componentLockOwnershipDB.end()) {
-    // The component has never owned a lock.
+    // Component has never owned a lock.
     componentLockOwnershipDB.insert(SZGcomponentLockOwnershipDB::value_type
       (id, list<string>(1, lockName)));
   }
   else {
-    // The component either owns, or has owned, a lock.
+    // Component either owns, or has owned, a lock.
     j->second.push_back(lockName);
   }
   ownerID = -1;
@@ -449,24 +445,22 @@ void SZGrequestLockNotification(int id, const string& lockName, int match) {
   // Add to list keyed by lock name.
   SZGlockNotificationDB::iterator i(lockNotificationDB.find(lockName));
   if (i == lockNotificationDB.end()) {
-    // no notifications, yet, for this lock's release
+    // no notifications yet for this lock's release
     lockNotificationDB.insert(SZGlockNotificationDB::value_type
       (lockName, list<arPhleetNotification>(1, notification)));
   }
   else {
-    // there are already notifications requested for this lock
     i->second.push_back(notification);
   }
-  // we must also enter it into the list organized by component ID
+  // enter it into the list organized by component ID
   SZGlockNotificationOwnershipDB::iterator j
     = lockNotificationOwnershipDB.find(id);
   if (j == lockNotificationOwnershipDB.end()) {
-    // no notifications directed at this component
+    // no notifications yet directed at this component
     lockNotificationOwnershipDB.insert(SZGlockNotificationOwnershipDB::value_type
       (id, list<string>(1, lockName)));
   }
   else {
-    // there are already notifications directed towards this component
     j->second.push_back(lockName);
   }
 }

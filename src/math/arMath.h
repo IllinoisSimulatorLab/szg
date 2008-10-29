@@ -688,19 +688,19 @@ inline float ar_cmToFeet( float cm ) {
 
 // todo: rename like DegFromRad, RadFromDeg.
 
-inline SZG_CALL float ar_convertToDeg(const float angle) {
+inline float ar_convertToDeg(const float angle) {
   return angle * 180 / M_PI;
 }
 
-inline SZG_CALL float ar_convertToRad(const float angle) {
+inline float ar_convertToRad(const float angle) {
   return angle / 180 * M_PI;
 }
 
-inline SZG_CALL arVector3 ar_convertToDeg(const arVector3 v) {
+inline arVector3 ar_convertToDeg(const arVector3 v) {
   return 180 / M_PI * v;
 }
 
-inline SZG_CALL arVector3 ar_convertToRad(const arVector3 v) {
+inline arVector3 ar_convertToRad(const arVector3 v) {
   return M_PI / 180 * v;
 }
 

@@ -24,9 +24,6 @@ const int AXES_NUNCHUK    = 2;
 const int MATRIX_WIIMOTE  = 1;
 const int MATRIX_NUNCHUK  = 1;
 
-static arWiimoteDriver* __wiimoteDriver = NULL;
-static struct wiimote_t** __wiimotes = NULL;
-
 void ar_wiimoteDriverEventTask( void* wiimoteDriver ) {
   while (true) {
     ((arWiimoteDriver*) wiimoteDriver)->update();
@@ -38,6 +35,10 @@ arMatrix4 wiiAnglesToRotMatrix( const float yaw, const float pitch, const float 
          ar_rotationMatrix( 'x', pitch ) *
          ar_rotationMatrix( 'z', -roll );
 }
+
+#ifdef EnableWiimote
+static arWiimoteDriver* __wiimoteDriver = NULL;
+static struct wiimote_t** __wiimotes = NULL;
 
 void freeWiimotes() {
   if (!__wiimotes) {
@@ -51,8 +52,6 @@ void freeWiimotes() {
   free( __wiimotes );
   __wiimotes = NULL;
 }
-
-#ifdef EnableWiimote
 
 #include "wiiuse.h"
 
@@ -288,9 +287,9 @@ static wiiuse_event_cb       __handleEvent      = __pointerHandleEvent;
 static wiiuse_ctrl_status_cb __handleCtrlStatus = __pointerHandleCtrlStatus;
 static wiiuse_dis_cb         __handleDisconnect = __pointerHandleDisconnect;
 
-#endif
-
 static int __wiimote_ids[] = { WIIMOTE_ID_1 };
+
+#endif
 
 arWiimoteDriver::arWiimoteDriver() :
   arInputSource(),
@@ -305,6 +304,8 @@ arWiimoteDriver::arWiimoteDriver() :
 bool arWiimoteDriver::init( arSZGClient& szgClient ) {
 #ifndef EnableWiimote
   ar_log_error() << "Wiimote support not compiled.\n";
+  // avoid compiler warning
+  (void)szgClient;
   return false;
 #else
   __wiimoteDriver = this;
@@ -461,6 +462,10 @@ void arWiimoteDriver::updateStatus() {
 void arWiimoteDriver::updateSignature( const int numButtons, const int numAxes, const int numMatrices ) {
 #ifndef EnableWiimote
   ar_log_error() << "Wiimote support not compiled.\n";
+  // avoid compiler warning
+  (void)numButtons;
+  (void)numAxes;
+  (void)numMatrices;
 #else
   _setDeviceElements( numButtons, numAxes, numMatrices );
 #endif

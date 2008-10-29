@@ -14,10 +14,14 @@
 #include "isense.h"
 
 #ifdef AR_USE_WIN_32
+#ifndef WIN32
 #define WIN32
 #endif
+#endif
 #ifdef AR_USE_LINUX
+#ifndef LINUX
 #define LINUX
+#endif
 #endif
 
 // #ifdef AR_USE_SGI
