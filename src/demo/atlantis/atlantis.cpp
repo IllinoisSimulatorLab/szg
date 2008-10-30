@@ -45,7 +45,6 @@
 
 #include "atlantis.h"
 
-//Stupid comment to test bzr push over ssh
 // Syzygy conversion-specific parameters (give or take a string constant).
 
 int anaglyphMode = 0;
