@@ -171,6 +171,9 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
   }
 
   ///// otherwise, ignore line /////
+  else {
+    ar_log_debug() << "ignoring line of type '" << lineType << "'.\n";
+  }
   return true;
 }
 

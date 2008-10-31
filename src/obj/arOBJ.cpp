@@ -964,8 +964,11 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
       ar_log_remark() << "arOBJRenderer::readOBJ() read opacity map "
                       << thisMaterial.map_Opacity << ar_endl;
     }
+    arTexture* tex = _textures[matID];
+    if (tex) {
+      tex->repeating(true);
+    }
     if (_mipmapTextures) {
-      arTexture* tex = _textures[matID];
       if (tex) {
         tex->mipmap(true);
       }
