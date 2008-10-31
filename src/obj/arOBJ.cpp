@@ -967,11 +967,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
     arTexture* tex = _textures[matID];
     if (tex) {
       tex->repeating(true);
-    }
-    if (_mipmapTextures) {
-      if (tex) {
-        tex->mipmap(true);
-      }
+      tex->mipmap(_mipmapTextures);
     }
     ar_log_debug() << "arOBJRenderer::readOBJ() done preparing material #" << matID << ar_endl;
   }

@@ -27,6 +27,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _callbackFilter(this),
   _defaultUserFilter(this),
   _userEventFilter(NULL),
+  _dataBundlePathSet(false),
   _unitSoundConversion(1.),
   _speechNodeID(-1),
   _useNavInputMatrix(false),
@@ -58,6 +59,28 @@ void arSZGAppFramework::speak( const std::string& message ) {
     dsSpeak( _speechNodeID, message );
   }
 }
+
+void arSZGAppFramework::autoDataBundlePath() {
+  if (_dataBundlePathSet) {
+    ar_log_remark() << "Ignoring autoDataBundlePath, bundle path already set.\n";
+    cout << "Ignoring autoDataBundlePath, bundle path already set.\n";
+    return;
+  }
+  if (_label.length() > 3 && _label.substr(_label.length()-3, 3) == ".py") {
+    arPathString workDir;
+    ar_getWorkingDirectory( workDir );
+    if (workDir.empty()) {
+      ar_log_error() << "autoDataBundlePath(): empty working directory?\n";
+      cout << "autoDataBundlePath(): empty working directory?\n";
+      return;
+    }
+    string dirName( workDir[workDir.size()-1] );
+    setDataBundlePath( "SZG_PYTHON", dirName );
+  } else {
+    setDataBundlePath( "SZG_EXEC", _label );
+  }
+}
+
 
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   if (_initCalled) {

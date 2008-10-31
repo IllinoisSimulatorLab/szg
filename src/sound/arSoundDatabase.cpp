@@ -244,13 +244,16 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type) {
 }
 
 arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data) {
+  const string action = data->getDataString("action");
   const string name(data->getDataString("name"));
-  const arSlashString bundleInfo(name);
-  if (bundleInfo.size() == 2) {
-    setDataBundlePath(bundleInfo[0], bundleInfo[1]);
-    ar_log_remark() << "arSoundDatabase using sound bundle '" << name << "'\n";
-  } else {
-    ar_log_error() << "arSoundDatabase ignoring garbled sound bundle id for '" << name << "'.\n";
+  if ((action == "remote_path")||(action == "bundle_path")) {
+    const arSlashString bundleInfo(name);
+    if (bundleInfo.size() == 2) {
+      setDataBundlePath(bundleInfo[0], bundleInfo[1]);
+      ar_log_remark() << "arSoundDatabase using sound bundle '" << name << "'\n";
+    } else {
+      ar_log_error() << "arSoundDatabase ignoring garbled sound bundle id for '" << name << "'.\n";
+    }
   }
   return &_rootNode;
 }

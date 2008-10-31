@@ -368,6 +368,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     return false;
   }
 
+  autoDataBundlePath();
+
   ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
 
   // Performance graphs.
@@ -1135,11 +1137,13 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 // be SZG_PYTHON or SZG_DATA. bundleSubDirectory is usually the app's name.
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
+  _dataBundlePathSet = true;
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
   if ( _soundClient ) {
     // Standalone, so set up the internal sound client.
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
+  ar_log_debug() << "set bundle path to " << bundlePathName << "/" << bundleSubDirectory << ar_endl;
 }
 
 void arMasterSlaveFramework::loadNavMatrix(void ) {

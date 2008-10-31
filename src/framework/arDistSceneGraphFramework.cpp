@@ -271,6 +271,7 @@ void arDistSceneGraphFramework::onUserMessage( int messageID, const string& mess
 // For python programs, it might be convenient to put the data in SZG_PYTHON.
 void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
                                                   const string& bundleSubDirectory) {
+  _dataBundlePathSet = true;
   // The graphics client is only used for drawing in "standalone" mode.
   // It isn't used at all in "Phleet" mode. However, in the "standalone"
   // mode case, the connection process in the arGraphicsServer code
@@ -281,6 +282,8 @@ void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
 
   _soundServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   _soundClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
+
+  ar_log_debug() << "set bundle path to " << bundlePathName << "/" << bundleSubDirectory << ar_endl;
 }
 
 // Returns a pointer to the graphics database being used, so that programs
@@ -380,6 +383,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     // Already warned.
     return false;
   }
+
+  autoDataBundlePath();
 
   ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
 

@@ -66,6 +66,7 @@ class SZG_CALL arSZGAppFramework {
 
     virtual void setDataBundlePath( const string& /*bundlePath*/,
                                     const string& /*bundleSubDir*/ ) {}
+    void autoDataBundlePath();
     virtual void loadNavMatrix() {}
     void speak( const std::string& message );
     bool setInputSimulator( arInputSimulator* sim );
@@ -209,6 +210,7 @@ class SZG_CALL arSZGAppFramework {
     arLock _userMessageLock;
 
     string _dataPath;
+    bool _dataBundlePathSet;
     arHead _head;
     // Graphics unitConversion is now in the head, for convenience.
     float _unitSoundConversion;
