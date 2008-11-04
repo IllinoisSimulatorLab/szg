@@ -22,7 +22,8 @@ struct arTexture_error_mgr {
 #endif
 
 namespace arTextureNamespace {
-  bool allowLoadNotPowOf2(false);
+  bool allowLoadNotPowOf2(true);
+  bool warnedAllowLoadNotPowOf2(false);
   bool shareTexturesAmongContexts(true);
 }
 
@@ -40,6 +41,12 @@ void ar_setTextureAllowNotPowOf2( bool onoff ) {
 
 bool ar_getTextureAllowNotPowOf2() {
   return arTextureNamespace::allowLoadNotPowOf2;
+}
+
+bool ar_warnTextureAllowNotPowOf2() {
+  bool val = arTextureNamespace::warnedAllowLoadNotPowOf2;
+  arTextureNamespace::warnedAllowLoadNotPowOf2 = true;
+  return val;
 }
 
 arTexture::arTexture() :
@@ -999,6 +1006,10 @@ bool arTexture::_loadIntoOpenGL() {
       _fDirty = false; // So we hopefully only get one error message.
       return false;
     }
+  } else if (!ar_warnTextureAllowNotPowOf2()) {
+      ar_log_warning() << "arTexture::_loadIntoOpenGL() image width or height not power of two.\n"
+                     << "      If this causes crashes, set the database variable\n"
+                     << "      SZG_RENDER/allow_texture_not_pow2 to 'false' for each rendering computer.\n";
   }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,

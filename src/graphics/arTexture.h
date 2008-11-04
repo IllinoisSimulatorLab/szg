@@ -28,6 +28,7 @@ bool SZG_CALL ar_getShareTexturesAmongContexts();
 // ar_setTextureAllowNotPowOf2(true);
 void SZG_CALL ar_setTextureAllowNotPowOf2( bool onoff );
 bool SZG_CALL ar_getTextureAllowNotPowOf2();
+bool SZG_CALL ar_warnTextureAllowNotPowOf2();
 
 // Texture map loaded from a file or from memory.
 

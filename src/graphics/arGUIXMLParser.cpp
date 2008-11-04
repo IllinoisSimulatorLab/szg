@@ -324,7 +324,7 @@ arGUIXMLParser::~arGUIXMLParser( void )
 void arGUIXMLParser::setConfig( const string& config )
 {
   ar_setTextureAllowNotPowOf2( 
-    _SZGClient->getAttribute("SZG_RENDER", "allow_texture_not_pow2") == string("true") );
+    _SZGClient->getAttribute("SZG_RENDER", "allow_texture_not_pow2") != string("false") );
 
   if ( config == _config )
     return;
