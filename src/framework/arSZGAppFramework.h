@@ -82,9 +82,7 @@ class SZG_CALL arSZGAppFramework {
     virtual arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
     virtual arVector3 getMidEyePosition() { return _head.getMidEyePosition(); }
     virtual void setUnitConversion( float );
-    virtual void setUnitSoundConversion( float );
     virtual float getUnitConversion();
-    virtual float getUnitSoundConversion();
 
     // Access to the embedded input node.  Also see getInputNode().
     int getButton( const unsigned ) const;

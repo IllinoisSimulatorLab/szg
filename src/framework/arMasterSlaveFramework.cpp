@@ -1159,9 +1159,11 @@ void arMasterSlaveFramework::loadNavMatrix(void ) {
 void arMasterSlaveFramework::setPlayTransform( void ) {
   if ( soundActive() ) {
     if (getStandalone()) {
-      (void) _speakerObject.loadMatrices( _inputState->getMatrix(0), _soundServer.getMode() );
+//      (void) _speakerObject.loadMatrices( _inputState->getMatrix(0), _soundServer.getMode() );
+      (void) _speakerObject.loadMatrices( getMatrix(0), _soundServer.getMode() );
+      _speakerObject.setUnitConversion( getUnitConversion() );
     } else {
-      dsPlayer( _inputState->getMatrix(0), getHead()->getMidEyeOffset(), getUnitConversion() );
+      dsPlayer( getMatrix(0), getHead()->getMidEyeOffset(), getUnitConversion() );
     }
   }
 }

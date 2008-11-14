@@ -28,7 +28,6 @@ arSZGAppFramework::arSZGAppFramework() :
   _defaultUserFilter(this),
   _userEventFilter(NULL),
   _dataBundlePathSet(false),
-  _unitSoundConversion(1.),
   _speechNodeID(-1),
   _useNavInputMatrix(false),
   _navInputMatrixIndex(2),
@@ -186,16 +185,8 @@ void arSZGAppFramework::setUnitConversion( float unitConv ) {
   _head.setUnitConversion( unitConv );
 }
 
-void arSZGAppFramework::setUnitSoundConversion( float unitSoundConv ) {
-  _unitSoundConversion = unitSoundConv;
-}
-
 float arSZGAppFramework::getUnitConversion() {
   return _head.getUnitConversion();
-}
-
-float arSZGAppFramework::getUnitSoundConversion() {
-  return _unitSoundConversion;
 }
 
 bool arSZGAppFramework::_checkInput() const {

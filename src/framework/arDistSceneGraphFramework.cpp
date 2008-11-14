@@ -365,7 +365,7 @@ void arDistSceneGraphFramework::setViewer() {
 void arDistSceneGraphFramework::setPlayer() {
   dsPlayer(_inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID),
            _head.getMidEyeOffset(),
-           _unitSoundConversion);
+           _head.getUnitConversion());
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {
@@ -557,7 +557,7 @@ void arDistSceneGraphFramework::_initDatabases() {
   _VRCameraID = dgViewer( "root", _head );
 
   // Set up a default listening position.
-  dsPlayer( _head.getMatrix(), _head.getMidEyeOffset(), _unitSoundConversion );
+  dsPlayer( _head.getMatrix(), _head.getMidEyeOffset(), _head.getUnitConversion() );
 
   if (_graphicsNavNode == NULL) {
     _graphicsNavNode = (arTransformNode*) _usedGraphicsDatabase->getRoot()->

@@ -17,11 +17,9 @@ class SZG_CALL arSpeakerObject {
   arSpeakerObject();
   bool configure(arSZGClient&);
   bool loadMatrices(const arMatrix4&, const int rendermode);
-  void setUnitConversion(const float unitConversion)
-    { _unitConversion = unitConversion; }
+  void setUnitConversion(const float unitConversion);
 
  private:
-  float _unitConversion;
 #ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   bool _demoMode;
   float _demoHeadUpAngle;

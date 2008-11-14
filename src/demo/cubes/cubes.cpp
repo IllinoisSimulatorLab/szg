@@ -300,9 +300,6 @@ int main(int argc, char** argv) {
   
   arDistSceneGraphFramework fw;
 
-//  fw.setUnitConversion(3.);
-//  fw.setUnitSoundConversion(3.);
-  
   if (!fw.init(argc,argv))
     return 1;
 

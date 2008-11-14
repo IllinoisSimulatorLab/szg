@@ -275,9 +275,7 @@ class arSZGAppFramework {
     virtual arMatrix4 getMidEyeMatrix();
     virtual arVector3 getMidEyePosition();
     virtual void setUnitConversion( float conv );
-    virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
-    virtual float getUnitSoundConversion();
     
     int getButton( const unsigned int index ) const;
     float getAxis( const unsigned int index ) const;
