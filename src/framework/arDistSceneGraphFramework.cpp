@@ -362,10 +362,10 @@ void arDistSceneGraphFramework::setViewer() {
   }
 }
 
+static arVector3 dummy;
+
 void arDistSceneGraphFramework::setPlayer() {
-  dsPlayer(_inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID),
-           _head.getMidEyeOffset(),
-           _head.getUnitConversion());
+  dsPlayer( getMidEyeMatrix(), dummy, getUnitConversion() );
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {

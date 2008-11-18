@@ -467,7 +467,8 @@ bool arSoundClient::_initSound() {
   }
 
   const float feetNotMeters = 3.28;
-  const float rolloff = 0.008; // .8 is faint, 70 feet away.  .008 is much more gradual.
+  // JAC 11/18/08 experimenting with higher rolloff. used to be .008
+  const float rolloff = 0.08; // .8 is faint, 70 feet away.  .008 is much more gradual.
   const int numVirtualVoices = 40;
   return ar_fmodcheck( FMOD_System_Set3DSettings( ar_fmod(), 1.0, feetNotMeters, rolloff )) &&
          ar_fmodcheck( FMOD_System_Init( ar_fmod(),

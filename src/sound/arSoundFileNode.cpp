@@ -115,6 +115,7 @@ bool arSoundFileNode::_adjust(bool useTrigger) {
     static const FMOD_VECTOR velocity_unused(
       FmodvectorFromArvector(arVector3(0, 0, 0))); // doppler nyi
     const FMOD_VECTOR tmp(FmodvectorFromArvector(point));
+//    ar_log_debug() << "Setting 3D position: " << point << ar_endl;
     return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity_unused ));
   }
 

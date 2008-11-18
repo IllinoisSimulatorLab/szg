@@ -35,6 +35,7 @@ class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
   // transformation matrix of head
   int AR_PLAYER_MATRIX;
   // distance from motiontracking sensor to midpoint between eyes?
+  // This will disappear. Left now for runtime compatibility. Unused.
   int AR_PLAYER_MID_EYE_OFFSET;
   int AR_PLAYER_UNIT_CONVERSION;
 

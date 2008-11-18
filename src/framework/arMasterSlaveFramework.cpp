@@ -732,6 +732,7 @@ void arMasterSlaveFramework::preDraw( void ) {
 
   if ( _standalone && !_soundClient->silent()) {
     // Play the sounds locally.
+//    ar_log_debug() << "local sound consume.\n";
     _soundClient->_cliSync.consume();
   }
 
@@ -1157,13 +1158,15 @@ void arMasterSlaveFramework::loadNavMatrix(void ) {
 }
 
 void arMasterSlaveFramework::setPlayTransform( void ) {
+  static arVector3 dummy(0,0,0);
   if ( soundActive() ) {
     if (getStandalone()) {
 //      (void) _speakerObject.loadMatrices( _inputState->getMatrix(0), _soundServer.getMode() );
-      (void) _speakerObject.loadMatrices( getMatrix(0), _soundServer.getMode() );
+      (void) _speakerObject.loadMatrices( getMidEyeMatrix(), _soundServer.getMode() );
       _speakerObject.setUnitConversion( getUnitConversion() );
+      dsPlayer( getMidEyeMatrix(), dummy, getUnitConversion() );
     } else {
-      dsPlayer( getMatrix(0), getHead()->getMidEyeOffset(), getUnitConversion() );
+      dsPlayer( getMidEyeMatrix(), dummy, getUnitConversion() );
     }
   }
 }

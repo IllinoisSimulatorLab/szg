@@ -131,6 +131,7 @@ void worldAlter(void* f) {
                                        3.*cos(count*.0000141)+5.,
                                        6.*cos(count*.0000177));
     interactionArray[0].setMatrix( cube0Matrix );
+    dsTransform( soundTransformID, cube0Matrix );
 
     if (!fStatic) {
       // Jiggle any cube except the zeroth.
@@ -335,7 +336,7 @@ int main(int argc, char** argv) {
   arThread dummy(worldAlter, &fw);
 
   // Attach sound to big yellow box with star on it (cube0)
-  (void)dsLoop("foo", baseName + "0 transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
+  (void)dsLoop("foo", "sound_transform", "cubes.mp3", 1, 0.9, arVector3(0,0,0));
 
   while (true) {
     ar_usleep(1000000/200); // 200 fps cpu throttle

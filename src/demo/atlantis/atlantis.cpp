@@ -56,6 +56,9 @@ bool connected = false;
 const float ATLANTISUNITS_PER_CM = 20.;
 const float ATLANTISUNITS_PER_FOOT = 12*2.54*ATLANTISUNITS_PER_CM;
 
+// shrink sound distances relative to visual ones.
+const float SOUND_UNIT_SCALE = 1;
+
 // Near & far clipping planes.
 //const float nearClipDistance = 20*ATLANTISUNITS_PER_CM;
 const float nearClipDistance = 1*ATLANTISUNITS_PER_CM;
@@ -351,8 +354,9 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
 
   // Load and play looping sounds.
   const arMatrix4 ident;
-  whaleSoundTransformID = dsTransform( "whale sound matrix", "root", ident );
-  dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
+  dsTransform( "sound scale", fw.getNavNodeName(), ar_scaleMatrix(SOUND_UNIT_SCALE) );
+  whaleSoundTransformID = dsTransform( "whale sound matrix", "sound scale", ident );
+  dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "sound scale", ident );
   (void)dsLoop("whale song", "whale sound matrix", "whale.mp3",
     1, 1.0, arVector3(0,0,0));
   (void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3",
@@ -437,18 +441,18 @@ void preExchange(arMasterSlaveFramework& fw) {
   const arMatrix4 headInvMatrix( fw.getMatrix(0).inverse() );
 
   arMatrix4 fishMatrix( ar_translationMatrix( momWhale.y, momWhale.z, -momWhale.x ) );
-  arMatrix4 soundMatrix( headInvMatrix*navMatrix*fishMatrix );
+//  arMatrix4 soundMatrix( headInvMatrix*navMatrix*fishMatrix );
   // Decrease attenuation 'cause we're under water (and it sounds better)
-  for (i=12; i<15; i++ )
-    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
-  dsTransform( whaleSoundTransformID, soundMatrix );
+//  for (i=12; i<15; i++ )
+//    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
+  dsTransform( whaleSoundTransformID, fishMatrix );
 
   fishMatrix = ar_translationMatrix( dolph.y, dolph.z, -dolph.x );
-  soundMatrix = headInvMatrix*navMatrix*fishMatrix;
+//  soundMatrix = headInvMatrix*navMatrix*fishMatrix;
   // Decrease attenuation 'cause we're under water (and it sounds better)
-  for (i=12; i<15; i++ )
-    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
-  dsTransform( dolphinSoundTransformID, soundMatrix );
+//  for (i=12; i<15; i++ )
+//    soundMatrix[i] /= ATLANTISUNITS_PER_FOOT;
+  dsTransform( dolphinSoundTransformID, fishMatrix );
 }
 
 void postExchange(arMasterSlaveFramework& fw){

@@ -40,6 +40,7 @@ void arSpeakerObject::setUnitConversion(const float unitConversion) {
   float rolloffscale;
   FMOD_System_Get3DSettings( ar_fmod(), &dopplerscale, &distancefactor, &rolloffscale );
   distancefactor = FEET_PER_METER*unitConversion;
+//  ar_log_debug() << "arSpeakerObject sound units: " << distancefactor << ar_endl;
   FMOD_System_Set3DSettings( ar_fmod(), dopplerscale, distancefactor, rolloffscale );
 }
 
@@ -71,11 +72,11 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
 
   case mode_fmod:
   LFmod: {
-    const arMatrix4 rot(ar_ERM(head));
+    const arMatrix4 rot(ar_extractRotationMatrix(head));
     // safe to normalize because rot can't be zero
     const arVector3 up((rot * arVector3(0, 1, 0)).normalize());
     const arVector3 forward((rot * arVector3(0, 0, -1)).normalize());
-    const arVector3 pos(head * _midEyeOffset);
+    const arVector3 pos( ar_extractTranslation(head) );
 
     //cout << "mode_fmod listenerpos:\n\t" << pos << "\n\t" << forward << "\n\t" << up << "\n\n";;
     const arVector3 velocityNotUsed(0, 0, 0);

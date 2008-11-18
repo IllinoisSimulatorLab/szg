@@ -27,6 +27,7 @@ arSoundLanguage::arSoundLanguage():
 
   AR_PLAYER_ID = _player.add("ID", AR_INT);
   AR_PLAYER_MATRIX = _player.add("matrix", AR_FLOAT);
+  // This will disappear. Left now for runtime compatibility. Unused.
   AR_PLAYER_MID_EYE_OFFSET = _player.add("mid eye offset", AR_FLOAT);
   AR_PLAYER_UNIT_CONVERSION = _player.add("unit conversion", AR_FLOAT);
   AR_PLAYER = _dictionary.add(&_player);
