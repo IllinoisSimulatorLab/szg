@@ -187,7 +187,7 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
       self._stop( 'Play', arCallbackException(str(msg)) )
       self.stop( False )
   def onPlay( self ):
-    pass
+    self.setPlayTransform()
   def _onWindowEvent( self, winInfo ):
     try:
       self.onWindowEvent( winInfo )

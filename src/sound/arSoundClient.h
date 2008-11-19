@@ -121,6 +121,7 @@ class SZG_CALL arSoundClient{
   FMOD_CHANNEL* _recordChannel;
 #endif
   int             _microphoneVolume;
+  float _rolloff;
 
   bool _fSilent; // True iff sound subsystem failed to initialize at runtime.
   bool _initSound();

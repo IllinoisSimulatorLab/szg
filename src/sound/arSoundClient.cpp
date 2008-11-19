@@ -225,7 +225,9 @@ arSoundClient::arSoundClient():
 #ifdef EnableSound
   _recordChannel(NULL),
 #endif
-  _microphoneVolume(0) {
+  _microphoneVolume(0),
+  _rolloff(.08)  // .8 is faint, 70 feet away.  .008 is much more gradual.
+{
   // Set up the language.
   _waveTemplate.add("data", AR_FLOAT);
   _dspLanguage.add(&_waveTemplate);
@@ -281,6 +283,11 @@ bool arSoundClient::configure(arSZGClient* cli) {
       mode_mmio :
       mode_fmod);
 
+  float rolloff;
+  if (cli->getAttributeFloats( "SZG_SOUND", "fmod_rolloff", &rolloff )) {
+    _rolloff = rolloff;
+  }
+  
   // Hack in some sound system parameter values
   // (to be replaced eventually by database parameter values).
 //  FMOD_System_SetSpeakerPosition( ar_fmod(), FMOD_SPEAKER_FRONT_LEFT, 0., 1.  );
@@ -468,9 +475,8 @@ bool arSoundClient::_initSound() {
 
   const float feetNotMeters = 3.28;
   // JAC 11/18/08 experimenting with higher rolloff. used to be .008
-  const float rolloff = 0.08; // .8 is faint, 70 feet away.  .008 is much more gradual.
   const int numVirtualVoices = 40;
-  return ar_fmodcheck( FMOD_System_Set3DSettings( ar_fmod(), 1.0, feetNotMeters, rolloff )) &&
+  return ar_fmodcheck( FMOD_System_Set3DSettings( ar_fmod(), 1.0, feetNotMeters, _rolloff )) &&
          ar_fmodcheck( FMOD_System_Init( ar_fmod(),
              numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0 ));
 
