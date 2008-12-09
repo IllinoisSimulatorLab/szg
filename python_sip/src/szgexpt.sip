@@ -1,13 +1,5 @@
 %Module _szgexpt 0
 
-// Defines mapping from python to C++ strings.
-%Include typemaps.sip
-
-//%Include szgclient.sip
-//%Include input.sip
-//%Include interaction.sip
-//%Include frameworks.sip
-
 %Import szg.sip
 
 %ModuleHeaderCode
@@ -556,7 +548,26 @@ class arGluTessObject : arInteractableThing {
     void useDisplayList( bool use );
     bool buildDisplayList();
     virtual void draw();
-    void addContour( vector<arVector3>& vertexSequence  );
+
+    void addContour( SIP_PYLIST vertexSequence  );
+// Hack to get around vector typemaps not working properly when imported?
+%MethodCode
+      vector<arVector3> *qv = new vector<arVector3>;
+      for (int i = 0; i < PyList_GET_SIZE(a0); ++i) {
+        int state;
+        arVector3 *t = reinterpret_cast<arVector3 *>(sipConvertToInstance(PyList_GET_ITEM(a0, i), sipClass_arVector3, NULL, SIP_NOT_NONE, &state, &sipIsErr));
+        if (sipIsErr) {
+          sipReleaseInstance(t, sipClass_arVector3, state);
+          delete qv;
+          goto done;
+        }
+        qv->push_back(*t);
+        sipReleaseInstance(t, sipClass_arVector3, state);
+      }
+      sipCpp->addContour( *qv );
+      delete qv;
+done:
+%End
 };
 
 

@@ -1932,10 +1932,6 @@ bool arMasterSlaveFramework::_startMasterObjects() {
     return false;
   }
 
-  if (_soundNavMatrixID == -1) {
-    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", arMatrix4());
-  }
-
   _soundActive = true;
 
   ar_log_debug() << "master's objects started.\n";
@@ -2060,6 +2056,10 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
       return _startrespond( "failed to get screen resource held by component " +
         ar_intToString(graphicsID) + ".\n(dkill that component to proceed.)" );
     }
+  }
+
+  if (!_standalone && _master && (_soundNavMatrixID == -1)) {
+    _soundNavMatrixID = dsTransform(getNavNodeName(), "root", arMatrix4());
   }
 
   // User-defined init.  After _startDetermineMaster(),

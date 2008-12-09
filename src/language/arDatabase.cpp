@@ -118,7 +118,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn, bool refNode
   arGuard _(_dbLock, "arDatabase::getNode name");
   _rootNode._findNode(result, name, success, NULL, true);
   if (!success && fWarn) {
-    cerr << "arDatabase warning: no node '" << name << "'.\n";
+    ar_log_warning() << "arDatabase warning: no node '" << name << "'.\n";
   }
   return _ref(result, refNode);
 }
