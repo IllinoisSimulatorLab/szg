@@ -187,7 +187,7 @@ bool arAppLauncher::setParameters() {
     // Two-stage assignment, because _getRenderContext(i) uses _pipes[i]
     _pipes[i] = arPipe(pipe[0], pipe[1]);
     _pipes[i].renderer = arLaunchInfo(pipe[0], _renderer, _getRenderContext(i));
-    ar_log_debug() << _pipes[i] << ar_endl;
+    ar_log_debug() << "renderer: " << _pipes[i] << ar_endl;
   }
 
   // Input.

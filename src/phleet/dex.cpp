@@ -240,6 +240,8 @@ int main(int argc, char** argv) {
     // Hack, unpacked by szgd.
     msgBody += "||||" + ar_intToString(msecTimeoutRemote);
   }
+//  ar_log_critical() << "message body:" << msgBody << ar_endl;
+//  ar_log_critical() << "context     :" << msgContext << ar_endl;
   int match = szgClient.sendMessage("exec", msgBody, msgContext, szgdID, true);
   if (match < 0) {
     cerr << "dex error: failed to send message.\n";
