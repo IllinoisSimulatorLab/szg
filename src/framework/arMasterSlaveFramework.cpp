@@ -2354,7 +2354,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
             " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
       }
     } else {
-      _SZGClient.messageResponse( messageID, getLabel()+": unknown message type '"+messageType+"'"  );
+      _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+": unknown message type '"+messageType+"'"  );
     }
   }
 }
