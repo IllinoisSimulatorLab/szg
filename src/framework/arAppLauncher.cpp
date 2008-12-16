@@ -331,7 +331,7 @@ bool arAppLauncher::waitForKill() {
       killApp();
       break;
     } else {
-      _szgClient->messageResponse( messageID, getLocation()+" trigger: unknown message type '"
+      _szgClient->messageResponse( messageID, "ERROR: "+getLocation()+" trigger: unknown message type '"
           +messageType+"'"  );
     }
   }

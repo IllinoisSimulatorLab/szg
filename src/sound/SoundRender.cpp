@@ -62,7 +62,7 @@ LQuit:
     }
 
     else {
-      cli->messageResponse( sendID, "SoundRender: unknown message type '"+messageType+"'"  );
+      cli->messageResponse( sendID, "ERROR: SoundRender: unknown message type '"+messageType+"'"  );
     }
   }
 }

@@ -127,7 +127,7 @@ void messageTask(void* pClient) {
     }
 
     else {
-      cli->messageResponse( messageID, "szgrender: unknown message type '"+messageType+"'"  );
+      cli->messageResponse( messageID, "ERROR: szgrender: unknown message type '"+messageType+"'"  );
     }
   }
   shutdownAction();

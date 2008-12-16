@@ -1032,7 +1032,7 @@ void messageLoop( void* /*d*/ ) {
     }
 
     else {
-      SZGClient->messageResponse( receivedMessageID, "szgd: unknown message type '"+messageType+"'"  );
+      SZGClient->messageResponse( receivedMessageID, "ERROR: szgd: unknown message type '"+messageType+"'"  );
     }
   }
 }
