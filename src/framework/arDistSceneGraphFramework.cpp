@@ -35,7 +35,8 @@ LDie:
       }
       goto LDie;
     }
-    if (messageType=="log") {
+
+    else if (messageType=="log") {
       (void)ar_setLogLevel( messageBody );
     }
     else if (messageType=="demo") {
@@ -89,6 +90,8 @@ LDie:
         f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
             " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
       }
+    } else {
+      f->_SZGClient.messageResponse( messageID, f->getLabel()+": unknown message type '"+messageType+"'"  );
     }
 
     if (f->_peerName != "NULL" || f->_externalPeer) {

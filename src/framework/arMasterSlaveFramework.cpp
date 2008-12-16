@@ -2240,6 +2240,9 @@ void arMasterSlaveFramework::_messageTask( void ) {
       _requestReload = true;
       _SZGClient.messageResponse( messageID, getLabel()+" reloading rendering parameters." );
     }
+    else if ( messageType == "display_name" ) {
+      _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );
+    }
     else if ( messageType == "user" ) {
       _appendUserMessage( messageID, messageBody );
     }
@@ -2350,6 +2353,8 @@ void arMasterSlaveFramework::_messageTask( void ) {
         _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
             " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
       }
+    } else {
+      _SZGClient.messageResponse( messageID, getLabel()+": unknown message type '"+messageType+"'"  );
     }
   }
 }

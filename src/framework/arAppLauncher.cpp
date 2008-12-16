@@ -321,7 +321,8 @@ bool arAppLauncher::waitForKill() {
 
   while (true) {
     string messageType, messageBody;
-    if (!_szgClient->receiveMessage(&messageType, &messageBody)) {
+    int messageID = _szgClient->receiveMessage(&messageType, &messageBody);
+    if (!messageID) {
       ar_log_critical() << "no szgserver.\n";
       // Don't killApp(), because szgserver is gone.
       break;
@@ -329,15 +330,9 @@ bool arAppLauncher::waitForKill() {
     if (messageType == "quit") {
       killApp();
       break;
-    }
-    const string lockName(getMasterName()); // not expensive inside loop: we don't get MANY messages.
-    int componentID = -1;
-    if (_szgClient->getLock(lockName, componentID)) {
-      // nobody was holding the lock
-      _szgClient->releaseLock(lockName);
-      ar_log_error() << "master screen running no component.\n";
     } else {
-      _szgClient->sendMessage(messageType, messageBody, componentID);
+      _szgClient->messageResponse( messageID, getLocation()+" trigger: unknown message type '"
+          +messageType+"'"  );
     }
   }
   return true;

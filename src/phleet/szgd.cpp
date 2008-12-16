@@ -1030,6 +1030,10 @@ void messageLoop( void* /*d*/ ) {
     else if (messageType=="log") {
       (void)ar_setLogLevel( messageBody );
     }
+
+    else {
+      SZGClient->messageResponse( receivedMessageID, "szgd: unknown message type '"+messageType+"'"  );
+    }
   }
 }
 
