@@ -375,6 +375,13 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   if (!_okToInit(argv[0]))
     return false;
 
+  for (int i=0; i<argc; ++i) {
+    if (!strcmp( argv[i], "-szgtype" )) {
+       cout << "distgraphics" << endl;
+       exit(0);
+    }
+  }
+
   // Strip -dsg args.
   if (!_stripSceneGraphArgs(argc, argv)) {
     return false;

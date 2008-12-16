@@ -362,6 +362,12 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   if (!_okToInit(argv[0]))
     return false;
 
+  for (int i=0; i<argc; ++i) {
+    if (!strcmp( argv[i], "-szgtype" )) {
+       cout << "distapp" << endl;
+       exit(0);
+    }
+  }
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
   if (!_SZGClient.init( argc, argv )) {
