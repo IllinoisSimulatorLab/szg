@@ -372,15 +372,9 @@ void arDistSceneGraphFramework::setPlayer() {
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {
+  int i;
   if (!_okToInit(argv[0]))
     return false;
-
-  for (int i=0; i<argc; ++i) {
-    if (!strcmp( argv[i], "-szgtype" )) {
-       cout << "distgraphics" << endl;
-       exit(0);
-    }
-  }
 
   // Strip -dsg args.
   if (!_stripSceneGraphArgs(argc, argv)) {
@@ -399,10 +393,25 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
 
   if (!_SZGClient) {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         cout << "distgraphics" << endl;
+         exit(0);
+      }
+    }
+
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
+  } else {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         _SZGClient.initResponse() << "distapp" << ar_endl;
+         _SZGClient.sendInitResponse( true );
+         exit(0);
+      }
+    }
   }
 
   string currDir;

@@ -359,15 +359,11 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 // Initialize the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
+  int i;
+
   if (!_okToInit(argv[0]))
     return false;
 
-  for (int i=0; i<argc; ++i) {
-    if (!strcmp( argv[i], "-szgtype" )) {
-       cout << "distapp" << endl;
-       exit(0);
-    }
-  }
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
   if (!_SZGClient.init( argc, argv )) {
@@ -386,6 +382,12 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
 
   if ( !_SZGClient ) {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         cout << "distapp" << endl;
+         exit(0);
+      }
+    }
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
 
@@ -409,6 +411,14 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     // way yet to operate in a distributed fashion).
     // Don't initialize the master's objects, since they'll be unused.
     return true;
+  } else {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         _SZGClient.initResponse() << "distapp" << ar_endl;
+         _SZGClient.sendInitResponse( true );
+         exit(0);
+      }
+    }
   }
 
   string currDir;
