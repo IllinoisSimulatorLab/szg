@@ -61,8 +61,6 @@ void arSZGAppFramework::speak( const std::string& message ) {
 
 void arSZGAppFramework::autoDataBundlePath() {
   if (_dataBundlePathSet) {
-    ar_log_remark() << "Ignoring autoDataBundlePath, bundle path already set.\n";
-    cout << "Ignoring autoDataBundlePath, bundle path already set.\n";
     return;
   }
   if (_label.length() > 3 && _label.substr(_label.length()-3, 3) == ".py") {
