@@ -399,6 +399,18 @@ int main() {
   fclose(testFile);
   (void)unlink(filename);
   cout << "*** PASSED.\n";
+
+  cout << "Environment list test:\n";
+  map< string, string, less<string> > envMap;
+  if (!ar_getSzgEnv( envMap )) {
+    cout << "Environment list failed.\n";
+  } else {
+    map< string, string, less<string> >::iterator iter;
+    for (iter=envMap.begin(); iter!=envMap.end(); ++iter) {
+      cout << iter->first << "=" << iter->second << endl;
+    }
+  }
+  
   exit(0);
 
   cout << "Beginning unit test 4: Thread safety of platform's lib c++.\n";

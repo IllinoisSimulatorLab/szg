@@ -1030,6 +1030,33 @@ string ar_getenv(const string& variable) {
   return string(res ? res : "NULL");
 }
 
+extern char **environ;
+bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
+  envMap.clear();
+  if (environ == NULL) {
+    ar_log_error() << "NULL environment pointer.\n";
+    return false;
+  }
+  char **e;
+	for (e = environ; *e != NULL; e++) {
+		char *p = strchr(*e, '=');
+		if (p == NULL)
+			continue;
+    string name( *e, (int)(p-*e) );
+    if (name.find( "SZG" )!=0) {
+      continue;
+    }
+    string value( p+1 );
+    if (envMap.find( name )!=envMap.end()) {
+      ar_log_warning() << "ar_getSzgEnv() ignoring duplicate environment entry.\n";
+      continue;
+    }
+    envMap.insert( map< string, string, less<string> >::value_type
+        (name, value) );
+  }
+  return true;
+}
+
 string ar_getUser() {
 #ifdef AR_USE_WIN_32
   const unsigned long size = 1024; // todo: fixed size buffer
