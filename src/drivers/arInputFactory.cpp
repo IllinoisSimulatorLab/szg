@@ -42,7 +42,11 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
 }
 
 void arInputFactory::_printDriverNames( arLogStream& os ) {
+#ifdef AR_USE_MINGW
+  os << "[Cannot enumerate available drivers. Is the dll missing?]\n";
+#else
   os << "[Cannot enumerate available drivers when dynamically linked.]\n";
+#endif
 }
 
 arInputSink* arInputFactory::getInputSink( const string& sinkName ) {
