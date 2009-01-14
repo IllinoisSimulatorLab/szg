@@ -88,10 +88,10 @@ static bool _msPackSequenceData( PyObject* seq, std::vector<int>& typeData,
     // Its a String
     } else if (PyString_Check( item )) {
       char* cdata;
-      int ssize;
+      Py_ssize_t ssize;
       PyString_AsStringAndSize( item, &cdata, &ssize );
       stringData.push_back( cdata );
-      stringSizeData.push_back( ssize );
+      stringSizeData.push_back( (int)ssize );
       typeData.push_back( AR_CHAR );
       /*cerr << "'" << cdata << "'";*/
 
