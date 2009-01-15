@@ -1058,6 +1058,11 @@ bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   }
   return true;
 }
+#else
+bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
+  ar_log_warning() << "ar_getSzgEnv() does not work on MacOS.\n";
+  return false;
+}
 #endif
 
 string ar_getUser() {

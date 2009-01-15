@@ -400,7 +400,6 @@ int main() {
   (void)unlink(filename);
   cout << "*** PASSED.\n";
 
-#ifndef AR_USE_DARWIN
   cout << "Environment list test:\n";
   map< string, string, less<string> > envMap;
   if (!ar_getSzgEnv( envMap )) {
@@ -411,7 +410,6 @@ int main() {
       cout << iter->first << "=" << iter->second << endl;
     }
   }
-#endif
   
   exit(0);
 

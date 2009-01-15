@@ -1036,12 +1036,7 @@ void messageLoop( void* /*d*/ ) {
       if (messageBody == "NULL") {
         // Get all SZG... env vars.
         map< string, string, less<string> > envMap;
-#ifndef AR_USE_DARWIN
-        bool status = ar_getSzgEnv( envMap );
-#else
-        bool status(false);
-#endif
-        if (!status) {
+        if (!ar_getSzgEnv( envMap )) {
           response = "ERROR: ar_getSzgEnv() failed.\n";
         } else {
           bool first(true);
