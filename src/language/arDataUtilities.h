@@ -266,7 +266,9 @@ SZG_CALL string ar_replaceAll(const string& s, const string& from, const string&
 
 // manipulating system characteristics
 SZG_CALL string ar_getenv(const string&);
+#ifndef AR_USE_DARWIN
 SZG_CALL bool ar_getSzgEnv( map< string,string,less<string> >& envMap );
+#endif
 SZG_CALL void   ar_setenv(const string&, const string&);
 SZG_CALL void   ar_setenv(const string& variableName, int variableValue);
 SZG_CALL string ar_getUser();

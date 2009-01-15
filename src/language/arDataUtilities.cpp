@@ -1030,7 +1030,9 @@ string ar_getenv(const string& variable) {
   return string(res ? res : "NULL");
 }
 
+#ifndef AR_USE_DARWIN
 extern char **environ;
+
 bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   envMap.clear();
   if (environ == NULL) {
@@ -1056,6 +1058,7 @@ bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   }
   return true;
 }
+#endif
 
 string ar_getUser() {
 #ifdef AR_USE_WIN_32
