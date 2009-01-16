@@ -9,7 +9,19 @@
 #include "arPrecompiled.h"
 #include "arIntersenseDriver.h"
 
+// Temporary hack, required because the SZG_CALL preprocessor
+// macro is getting clobbered somehow (presumably by isense.h)
+// under MinGW.
+#ifdef AR_USE_MINGW
+extern "C" { \
+  __declspec(dllexport) void* factory() \
+    { return new arIntersenseDriver(); } \
+  __declspec(dllexport) void baseType(char* buffer, int size) \
+    { ar_stringToBuffer("arInputSource", buffer, size); } \
+}
+#else
 DriverFactory(arIntersenseDriver, "arInputSource")
+#endif
 
 const float METER_TO_FOOT = 3.280839895;
 const Bool USE_VERBOSE = TRUE;
