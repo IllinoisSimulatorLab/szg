@@ -300,8 +300,12 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout) {
     ok = WaitForSingleObject(_event, msecTimeout) != WAIT_TIMEOUT;
   }
   else {
+    int tries = 0;
     while (WaitForSingleObject(_event, 5000) == WAIT_TIMEOUT) {
-      ar_log_debug() << "arConditionVar::wait() has been waiting for 5 seconds...\n";
+      if (tries++ < 3) {
+	ar_log_debug() << "arConditionVar waited 5 seconds.\n";
+	// todo: << name of thread, i.e. arConditionVar::_threadName inited in constructor, nonoptionally.
+      }
     }
 //    WaitForSingleObject(_event, INFINITE);
   }
