@@ -670,7 +670,7 @@ void arOBJGroupRenderer::draw() {
     return;
   }
 
-  glPushAttrib( GL_LIGHTING_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT );
+  glPushAttrib( GL_CURRENT_BIT | GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT );
   const vector<arVector3>& vertices = _renderer->_vertices;
   const int iVertexMax = int(vertices.size());
   vector<arMaterial>& materials = _renderer->_materials;

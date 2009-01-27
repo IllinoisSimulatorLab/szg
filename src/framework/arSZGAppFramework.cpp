@@ -21,7 +21,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _simPtr(&_simulator),
   _showSimulator(true),
   _showPerformance( false ),
-#ifndef AR_LINKING_STATIC
+#if (!defined( AR_LINKING_STATIC )) || defined( AR_USE_MINGW )
   _inputFactory(),
 #endif
   _callbackFilter(this),
@@ -125,7 +125,7 @@ void arSZGAppFramework::_handleStandaloneInput() {
 }
 
 bool arSZGAppFramework::_loadInputDrivers() {
-#ifdef AR_LINKING_STATIC
+#if defined( AR_LINKING_STATIC ) && !defined( AR_USE_MINGW )
   ar_log_error() << "failed to load input drivers: standalone app linked statically.\n";
   return false;
 #else
