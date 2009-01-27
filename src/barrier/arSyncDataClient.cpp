@@ -200,7 +200,10 @@ arSyncDataClient::arSyncDataClient():
   _networks("NULL"),
   _stackLock("SYNCCLIENT_STACK"),
   _swapLock("SYNCCLIENT_SWAP"),
+  _bufferSwapCondVar("arSyncDataClient-bufferswap"),
+  _dataWaitCondVar("arSyncDataClient-datawait"),
   _nullHandshakeLock("SYNCCLIENT_SHAKE"),
+  _nullHandshakeVar("arSyncDataClient-nullhandshake"),
   _syncServer(NULL) {
 
   // todo: turn these assignments into initializers.

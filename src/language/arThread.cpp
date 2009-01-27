@@ -269,7 +269,7 @@ void arLock::unlock() {
 #endif
 }
 
-arConditionVar::arConditionVar() {
+arConditionVar::arConditionVar(const string& threadName) : _threadName(threadName) {
 #ifdef AR_USE_WIN_32
   _numberWaiting = 0;
   _event = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -302,9 +302,8 @@ bool arConditionVar::wait(arLock& l, const int msecTimeout) {
   else {
     int tries = 0;
     while (WaitForSingleObject(_event, 5000) == WAIT_TIMEOUT) {
-      if (tries++ < 3) {
-	ar_log_debug() << "arConditionVar waited 5 seconds.\n";
-	// todo: << name of thread, i.e. arConditionVar::_threadName inited in constructor, nonoptionally.
+      if (tries++ < 5) {
+	ar_log_debug() << "arConditionVar waited 5 seconds, thread " << _threadName << ".\n";
       }
     }
 //    WaitForSingleObject(_event, INFINITE);

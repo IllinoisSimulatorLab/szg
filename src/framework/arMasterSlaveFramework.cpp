@@ -283,6 +283,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _screenshotHeight( 480 ),
   _whichScreenshot( 0 ),
   _pauseFlag( false ),
+  _pauseVar( "arMasterSlaveFramework-pause" ),
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
   _requestReload( false ) {
 

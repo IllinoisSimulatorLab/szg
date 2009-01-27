@@ -24,7 +24,7 @@ bool fExiting = false;
 bool fReload = false;
 bool fPause = false;
 arLock pauseLock; // with pauseVar, around fPause, between message and display threads.
-arConditionVar pauseVar;
+arConditionVar pauseVar("szgrender-pause");
 string dataPath("NULL");
 string textPath("NULL");
 

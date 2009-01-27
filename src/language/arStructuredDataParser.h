@@ -19,8 +19,11 @@ using namespace std;
 
 class SZG_CALL arLockable {
   arLock l;
-  arConditionVar var;
+ protected:
+  arConditionVar var; //("arLockable");
  public:
+  // arLockable() : var("arLockable") {}
+  arLockable(const string& s) : var(s) {}
   void lock(const char* name)
     { l.lock(name); }
   void unlock()
@@ -39,7 +42,7 @@ class SZG_CALL arStructuredDataSynchronizer: public arLockable {
   int refCount;
   void reset()
     { exitFlag = false; tag = -1; refCount = 0; }
-  arStructuredDataSynchronizer()
+  arStructuredDataSynchronizer() : arLockable("arStructuredDataSynchronizer")
     { reset(); }
 };
 
@@ -48,7 +51,7 @@ class SZG_CALL arMessageQueueByID: public arLockable {
  public:
   bool exitFlag;
   list<arStructuredData*> messages;
-  arMessageQueueByID() : exitFlag(false) {}
+  arMessageQueueByID(const string& s) : arLockable("arMessageQueueByID " + s), exitFlag(false) {}
 };
 
 typedef list<arStructuredData*> SZGdatalist;

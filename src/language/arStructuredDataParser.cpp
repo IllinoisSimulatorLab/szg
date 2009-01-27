@@ -20,7 +20,7 @@ arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary)
   for (arTemplateType::const_iterator i = _dictionary->begin();
       i != _dictionary->end(); ++i) {
     _messageQueue.insert(SZGmessageQueue::value_type(
-      i->second->getID(), new arMessageQueueByID()));
+      i->second->getID(), new arMessageQueueByID(i->first)));
   }
 }
 
