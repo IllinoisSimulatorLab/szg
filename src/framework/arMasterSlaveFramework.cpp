@@ -2302,13 +2302,19 @@ void arMasterSlaveFramework::_messageTask( void ) {
         _SZGClient.messageResponse( messageID, getLabel()+" disabled fixed-head mode." );
       }
     }
+    else if ( messageType == "key" ) {
+      string::const_iterator siter;
+      for (siter = messageBody.begin(); siter != messageBody.end(); ++siter) {
+        onKey( *siter, 0, 0 );
+      }
+    }
 
     //*********************************************************
     // There's quite a bit of copy-pasting between the
     // messages accepted by szgrender and here... how can we
     // reuse messaging functionality?????
     //*********************************************************
-    if ( messageType == "delay" ) {
+    else if ( messageType == "delay" ) {
       _framerateThrottle = messageBody == "on";
       if (_framerateThrottle) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled frame-rate throttle." );
