@@ -52,6 +52,7 @@ OBJS_DRIVER := \
   arConstantHeadFilter$(OBJ_SUFFIX) \
   arFaroCalFilter$(OBJ_SUFFIX) \
   arTrackCalFilter$(OBJ_SUFFIX) \
+  arParallelSwitchDriver$(OBJ_SUFFIX)
 
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
   OBJS_DRIVER += \
@@ -228,6 +229,10 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 # Device-driver shared objects for DeviceServer.
 
 # Shared objects using only Syzygy internals like RS232.
+
+arParallelSwitchDriver$(PLUGIN_SUFFIX): arParallelSwitchDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arParallelSwitchDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
 
 arSerialSwitchDriver$(PLUGIN_SUFFIX): arSerialSwitchDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arSerialSwitchDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
