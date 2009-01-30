@@ -8,6 +8,8 @@
 
 #include "arLanguageCalling.h"
 
+#include <string>
+
 //******************************************
 // mutexes
 //******************************************
@@ -143,9 +145,9 @@ private:
 // simple condition variables
 //**************************************
 
-class SZG_CALL arConditionVar{
+class SZG_CALL arConditionVar {
  public:
-  arConditionVar();
+  arConditionVar(const std::string&);
   ~arConditionVar();
   bool wait(arLock&, const int msecTimeout = -1);
   void signal();       // semantics of pthread_cond_signal
@@ -157,6 +159,7 @@ class SZG_CALL arConditionVar{
 #else
   pthread_cond_t _conditionVar;
 #endif
+  const std::string _threadName;
 };
 
 //**************************************

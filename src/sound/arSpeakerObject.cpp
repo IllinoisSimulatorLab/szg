@@ -38,10 +38,12 @@ void arSpeakerObject::setUnitConversion(const float unitConversion) {
   float dopplerscale;
   float distancefactor;
   float rolloffscale;
+#ifdef EnableSound
   FMOD_System_Get3DSettings( ar_fmod(), &dopplerscale, &distancefactor, &rolloffscale );
   distancefactor = FEET_PER_METER*unitConversion;
 //  ar_log_debug() << "arSpeakerObject sound units: " << distancefactor << ar_endl;
   FMOD_System_Set3DSettings( ar_fmod(), dopplerscale, distancefactor, rolloffscale );
+#endif
 }
 
 

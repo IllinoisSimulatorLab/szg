@@ -191,14 +191,15 @@ arJoystickDriver::arJoystickDriver() :
   _pollingDone(false),
 #ifdef AR_USE_WIN_32
 #ifdef AR_USE_MINGW
-  _shutdown(false)
+  _shutdown(false),
 #else
   _shutdown(false),
-  _fFirst(true)
+  _fFirst(true),
 #endif
 #else
-  _shutdown(false)
+  _shutdown(false),
 #endif
+  _shutdownVar("arJoystickDriver")
 {
 }
 

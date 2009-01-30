@@ -55,6 +55,7 @@ LFailFmod:
     return dummy();
   }
 #endif
+  ar_log_debug() << "Created 3D sound.\n";
   return true;
 }
 

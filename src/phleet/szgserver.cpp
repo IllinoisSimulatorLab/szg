@@ -1076,6 +1076,8 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
   }
 
   else if (type=="ALL") {
+    vector<string> globalAttrs;
+    vector<string> localAttrs;
     // Concatenate all members of valueContainer into a return value.
     (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute);
     // todo: generate a 1.0-style szg dbatch script.
@@ -1086,7 +1088,8 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
       unsigned slash = first.find("/");
       if (slash == string::npos) {
         // Global attr.
-        value += (first + "  " + i->second + "\n");
+        globalAttrs.push_back( "<param>\n  <name>\n    " + first + 
+            "\n  </name>\n  <value>\n    " + i->second + "\n  </value>\n</param>\n");
       }
       else {
         // Local attr.  It has slashes.
@@ -1094,9 +1097,18 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
         first.replace(slash, 1, " ");
         slash = first.find("/");
         first.replace(slash, 1, " ");
-        const string& s = first + "   " + i->second + "\n";
-        value += s;
+        localAttrs.push_back( "  " + first + "  " + i->second + "\n" );
       }
+      vector<string>::iterator iter;
+      value = "<szg_config>\n";
+      for (iter=globalAttrs.begin(); iter != globalAttrs.end(); ++iter) {
+        value += *iter;
+      }
+      value += "<assign>\n";
+      for (iter=localAttrs.begin(); iter != localAttrs.end(); ++iter) {
+        value += *iter;
+      }
+      value += "</assign>\n</szg_config>\n";
     }
     (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }

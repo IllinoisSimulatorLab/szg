@@ -35,7 +35,8 @@ LDie:
       }
       goto LDie;
     }
-    if (messageType=="log") {
+
+    else if (messageType=="log") {
       (void)ar_setLogLevel( messageBody );
     }
     else if (messageType=="demo") {
@@ -89,6 +90,8 @@ LDie:
         f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
             " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
       }
+    } else {
+      f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+": unknown message type '"+messageType+"'"  );
     }
 
     if (f->_peerName != "NULL" || f->_externalPeer) {
@@ -369,6 +372,7 @@ void arDistSceneGraphFramework::setPlayer() {
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {
+  int i;
   if (!_okToInit(argv[0]))
     return false;
 
@@ -389,10 +393,25 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
 
   if (!_SZGClient) {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         cout << "distgraphics" << endl;
+         exit(0);
+      }
+    }
+
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
+  } else {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         _SZGClient.initResponse() << "distapp" << ar_endl;
+         _SZGClient.sendInitResponse( true );
+         exit(0);
+      }
+    }
   }
 
   string currDir;

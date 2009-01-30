@@ -433,7 +433,12 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer) {
   cout << "arGraphicsPeer error: connection accept failed.\n";
 }
 
-arGraphicsPeer::arGraphicsPeer() {
+arGraphicsPeer::arGraphicsPeer() :
+  _IDResponseVar("arGraphicsPeer-ID-response"),
+  _dumpVar("arGraphicsPeer-dump"),
+  _pingVar("arGraphicsPeer-ping"),
+  _queueConsumeVar("arGraphicsPeer-queue-consume")
+{
   // set a few defaults and initialize the mutexes.
   _localDatabase = true;
   _queueingData = false;
@@ -450,23 +455,16 @@ arGraphicsPeer::arGraphicsPeer() {
   // Originally, this was TRUE... and this created a problem (many jerky
   // instances of non-sending) on windows->windows...
   _dataServer->smallPacketOptimize(false);
-
   _requestedNodeID = -1;
-
   _queueConsumeQuery = false;
-
   _dumped = false;
-
   _readWritePath = "";
-
   _bridgeDatabase = NULL;
   _bridgeRootMapNode = NULL;
-
   _componentID = -1;
 }
 
 arGraphicsPeer::~arGraphicsPeer() {
-
 }
 
 // The graphics peer uses the "phleet" to offer its services to the

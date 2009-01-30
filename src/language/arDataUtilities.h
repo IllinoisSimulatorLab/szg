@@ -20,6 +20,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <map>
 #include <fstream>
 
 using namespace std;
@@ -265,6 +266,7 @@ SZG_CALL string ar_replaceAll(const string& s, const string& from, const string&
 
 // manipulating system characteristics
 SZG_CALL string ar_getenv(const string&);
+SZG_CALL bool ar_getSzgEnv( map< string,string,less<string> >& envMap );
 SZG_CALL void   ar_setenv(const string&, const string&);
 SZG_CALL void   ar_setenv(const string& variableName, int variableValue);
 SZG_CALL string ar_getUser();

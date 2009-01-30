@@ -81,7 +81,11 @@ void* arSharedLib::sym(const string& functionName) {
     return NULL;
   }
 #ifdef AR_USE_WIN_32
-  return (void*)GetProcAddress(_h, functionName.c_str());
+  void* addr = (void*)GetProcAddress(_h, functionName.c_str());
+  if (addr == NULL) {
+    ar_log_error() << error() << ar_endl;
+  }
+  return addr;
 #else
   const string name =
 #ifdef AR_USE_DARWIN

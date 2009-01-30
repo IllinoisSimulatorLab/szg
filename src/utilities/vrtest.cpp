@@ -140,12 +140,21 @@ void drawHead() {
       glColor3f(1, 0, 0);
       glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
+    glPushMatrix();
       glTranslatef(-0.5, 0, -0.7);
       glColor3f(0, 1, 1);
       glutSolidSphere(0.4, 8, 8);
       glTranslatef(0, 0, -0.34);
       glColor3f(1, 0, 0);
       glutSolidSphere(0.15, 5, 5);
+    glPopMatrix();
+    // cap
+    glColor3f( 1, 1, 0 );
+    glPushMatrix();
+      glTranslatef(-0., 1., -0.);
+      glScalef( 2., .1, 2. );
+      glutSolidCube(0.4);
+    glPopMatrix();
   glPopMatrix();
 }
 

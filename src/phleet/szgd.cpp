@@ -1030,6 +1030,38 @@ void messageLoop( void* /*d*/ ) {
     else if (messageType=="log") {
       (void)ar_setLogLevel( messageBody );
     }
+
+    else if (messageType == "getenv") {
+      string response;
+      if (messageBody == "NULL") {
+        // Get all SZG... env vars.
+        map< string, string, less<string> > envMap;
+        if (!ar_getSzgEnv( envMap )) {
+          response = "ERROR: ar_getSzgEnv() failed.\n";
+        } else {
+          bool first(true);
+          map< string, string, less<string> >::iterator envIter;
+          for (envIter=envMap.begin(); envIter!=envMap.end(); ++envIter) {
+            if (!first) {
+              response += '\n';
+            }
+            response += envIter->first + "=" + envIter->second;
+            first = false;
+          }
+        }
+      } else {
+        if (messageBody.substr( 0, 3 ) != "SZG") {
+          response = "ERROR: szgd can only report SZG... environment vars.";
+        } else {
+          response = ar_getenv( messageBody );
+        }
+      }
+      SZGClient->messageResponse( receivedMessageID, response  );
+    }
+
+    else {
+      SZGClient->messageResponse( receivedMessageID, "ERROR: szgd: unknown message type '"+messageType+"'"  );
+    }
   }
 }
 

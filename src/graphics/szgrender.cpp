@@ -24,7 +24,7 @@ bool fExiting = false;
 bool fReload = false;
 bool fPause = false;
 arLock pauseLock; // with pauseVar, around fPause, between message and display threads.
-arConditionVar pauseVar;
+arConditionVar pauseVar("szgrender-pause");
 string dataPath("NULL");
 string textPath("NULL");
 
@@ -54,8 +54,9 @@ void shutdownAction() {
 void messageTask(void* pClient) {
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
+  int messageID;
   while (!fExiting &&
-    cli->receiveMessage(&messageType, &messageBody) && messageType != "quit") {
+    (messageID = cli->receiveMessage(&messageType, &messageBody)) && messageType != "quit") {
 
     // receiveMessage() blocks in language/arStructuredDataParser.cpp getNextInternal().
     // If fExiting is set to true, it should unblock and this thread should die.
@@ -85,6 +86,10 @@ void messageTask(void* pClient) {
 
     else if (messageType=="delay") {
       framerateThrottle = messageBody=="on";
+    }
+
+    else if ( messageType == "display_name" ) {
+      cli->messageResponse( messageID, cli->getMode("graphics")  );
     }
 
     else if (messageType=="pause") {
@@ -119,6 +124,10 @@ void messageTask(void* pClient) {
       // gets them faster than the draw thread notices them.
       // Not a problem, though, in practice:  the "last" message gets processed.
       fReload = true;
+    }
+
+    else {
+      cli->messageResponse( messageID, "ERROR: szgrender: unknown message type '"+messageType+"'"  );
     }
   }
   shutdownAction();

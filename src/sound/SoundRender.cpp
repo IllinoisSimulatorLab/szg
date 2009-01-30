@@ -46,7 +46,8 @@ LQuit:
       soundClient->terminateSound();
       exit(0);
     }
-    if (messageType=="reload") {
+    
+    else if (messageType=="reload") {
       if (!loadParameters(*cli))
         exit(0);
     }
@@ -58,6 +59,10 @@ LQuit:
     else if (messageType=="szg_sound_stream_info") {
       const string response(soundClient->processMessage(messageType, messageBody));
       cli->messageResponse(sendID, response);
+    }
+
+    else {
+      cli->messageResponse( sendID, "ERROR: SoundRender: unknown message type '"+messageType+"'"  );
     }
   }
 }

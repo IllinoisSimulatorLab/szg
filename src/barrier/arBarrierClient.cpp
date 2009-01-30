@@ -109,7 +109,8 @@ void arBarrierClient::_dataTask() {
   _dataThreadRunning = false;
 }
 
-arBarrierClient::arBarrierClient() {
+arBarrierClient::arBarrierClient() :
+  _activationVar("arBarrierClient") {
   // ;; all these should be initializers, not assignments...
   _serviceName = string("NULL");
   _networks = string("NULL");

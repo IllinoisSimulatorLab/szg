@@ -187,7 +187,7 @@ bool arAppLauncher::setParameters() {
     // Two-stage assignment, because _getRenderContext(i) uses _pipes[i]
     _pipes[i] = arPipe(pipe[0], pipe[1]);
     _pipes[i].renderer = arLaunchInfo(pipe[0], _renderer, _getRenderContext(i));
-    ar_log_debug() << _pipes[i] << ar_endl;
+    ar_log_debug() << "renderer: " << _pipes[i] << ar_endl;
   }
 
   // Input.
@@ -321,7 +321,8 @@ bool arAppLauncher::waitForKill() {
 
   while (true) {
     string messageType, messageBody;
-    if (!_szgClient->receiveMessage(&messageType, &messageBody)) {
+    int messageID = _szgClient->receiveMessage(&messageType, &messageBody);
+    if (!messageID) {
       ar_log_critical() << "no szgserver.\n";
       // Don't killApp(), because szgserver is gone.
       break;
@@ -329,15 +330,9 @@ bool arAppLauncher::waitForKill() {
     if (messageType == "quit") {
       killApp();
       break;
-    }
-    const string lockName(getMasterName()); // not expensive inside loop: we don't get MANY messages.
-    int componentID = -1;
-    if (_szgClient->getLock(lockName, componentID)) {
-      // nobody was holding the lock
-      _szgClient->releaseLock(lockName);
-      ar_log_error() << "master screen running no component.\n";
     } else {
-      _szgClient->sendMessage(messageType, messageBody, componentID);
+      _szgClient->messageResponse( messageID, "ERROR: "+getLocation()+" trigger: unknown message type '"
+          +messageType+"'"  );
     }
   }
   return true;

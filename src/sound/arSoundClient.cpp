@@ -38,10 +38,14 @@ FMOD_SYSTEM* ar_fmod() {
     s = NULL;
     return s;
   }
+  char versionString[100];
+  sprintf( versionString, "%x", t );
   if (t < FMOD_VERSION) {
-    cerr << "fmod dll has version " << hex << t <<
+    ar_log_error() << "fmod dll has version " << versionString <<
       ", expected at least " << FMOD_VERSION << ".\n"; // not ar_log_xxx
     s = NULL;
+  } else {
+    ar_log_debug() << "fmod version: " << versionString << ar_endl;
   }
   // FMOD_VERSION == 0x40305 is known to work as of June 2008.
   return s;

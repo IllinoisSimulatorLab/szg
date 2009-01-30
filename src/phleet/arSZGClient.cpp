@@ -57,6 +57,8 @@ arSZGClient::arSZGClient():
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
+  _dataCondVar("arSZGClient data"),
+  _timerCondVar("arSZGClient timer"),
   _bufferResponse(false),
   _justPrinting(false)
 {

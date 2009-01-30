@@ -283,6 +283,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _screenshotHeight( 480 ),
   _whichScreenshot( 0 ),
   _pauseFlag( false ),
+  _pauseVar( "arMasterSlaveFramework-pause" ),
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
   _requestReload( false ) {
 
@@ -359,6 +360,8 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 // Initialize the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
+  int i;
+
   if (!_okToInit(argv[0]))
     return false;
 
@@ -380,6 +383,12 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   _framerateGraph.addElement( " cpu usec", 250, 10000, yellow );
 
   if ( !_SZGClient ) {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         cout << "distapp" << endl;
+         exit(0);
+      }
+    }
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
 
@@ -403,6 +412,14 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     // way yet to operate in a distributed fashion).
     // Don't initialize the master's objects, since they'll be unused.
     return true;
+  } else {
+    for (i=0; i<argc; ++i) {
+      if (!strcmp( argv[i], "-szgtype" )) {
+         _SZGClient.initResponse() << "distapp" << ar_endl;
+         _SZGClient.sendInitResponse( true );
+         exit(0);
+      }
+    }
   }
 
   string currDir;
@@ -2240,6 +2257,9 @@ void arMasterSlaveFramework::_messageTask( void ) {
       _requestReload = true;
       _SZGClient.messageResponse( messageID, getLabel()+" reloading rendering parameters." );
     }
+    else if ( messageType == "display_name" ) {
+      _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );
+    }
     else if ( messageType == "user" ) {
       _appendUserMessage( messageID, messageBody );
     }
@@ -2282,13 +2302,19 @@ void arMasterSlaveFramework::_messageTask( void ) {
         _SZGClient.messageResponse( messageID, getLabel()+" disabled fixed-head mode." );
       }
     }
+    else if ( messageType == "key" ) {
+      string::const_iterator siter;
+      for (siter = messageBody.begin(); siter != messageBody.end(); ++siter) {
+        onKey( *siter, 0, 0 );
+      }
+    }
 
     //*********************************************************
     // There's quite a bit of copy-pasting between the
     // messages accepted by szgrender and here... how can we
     // reuse messaging functionality?????
     //*********************************************************
-    if ( messageType == "delay" ) {
+    else if ( messageType == "delay" ) {
       _framerateThrottle = messageBody == "on";
       if (_framerateThrottle) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled frame-rate throttle." );
@@ -2350,6 +2376,8 @@ void arMasterSlaveFramework::_messageTask( void ) {
         _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
             " ignoring unexpected unit_convert_nav_input_matrix arg '"+messageBody+"'." );
       }
+    } else {
+      _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+": unknown message type '"+messageType+"'"  );
     }
   }
 }
