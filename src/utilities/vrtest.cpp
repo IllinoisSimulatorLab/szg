@@ -580,6 +580,7 @@ bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
   fw.addTransferField("g", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
   fw.addTransferField("h", &fWhitewalls, AR_INT, 1);
 
+  dsSpeak("_", "root", "Welcome to V R test.\n");
   return true;
 }
 
