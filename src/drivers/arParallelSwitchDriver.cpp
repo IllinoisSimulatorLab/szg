@@ -159,7 +159,9 @@ arParallelSwitchDriver::arParallelSwitchDriver() :
   _stopped(false),
   _byteMask(255),
   _lastValue(0),
-  _lastEventTime(0,0)
+  _lastEventTime(0,0),
+  _lastReportTime(0,0),
+  _reportCount(0)
 {}
 
 arParallelSwitchDriver::~arParallelSwitchDriver() {
@@ -212,10 +214,11 @@ void arParallelSwitchDriver::_eventloop() {
 #ifndef AR_USE_LINUX
   ar_log_error() << "arParallelSwitchDriver on Linux only!\n";
 #else
+  ar_log_critical() << "arParallelSwitchDriver starting event loop.\n";
   _eventThreadRunning = true;
-  cerr << "Calling ioperm.\n";
+  ar_log_debug() << "Calling ioperm.\n";
   ioperm( 0x378, 8, 1 );
-  cerr << "Calling lp_init().\n";
+  ar_log_debug() << "Calling lp_init().\n";
   try {
     lp_init(0);
   } catch(...) {
@@ -223,7 +226,7 @@ void arParallelSwitchDriver::_eventloop() {
     _eventThreadRunning = false;
     stop();
   }
-  cerr << "Called lp_init().\n";
+  ar_log_critical() << "lp_init() succeeded.\n";
   while (!_stopped) {
     //ar_usleep(10000);
     if (!_poll()) {
@@ -250,7 +253,7 @@ bool arParallelSwitchDriver::stop() {
   arSleepBackoff a(10, 30, 1.1);
   while (_eventThreadRunning)
     a.sleep();
-  ar_log_debug() << "arParallelSwitchDriver stopped.\n";
+  ar_log_critical() << "arParallelSwitchDriver stopped.\n";
   return true;
 #endif
 }
@@ -274,6 +277,10 @@ bool arParallelSwitchDriver::_poll( void ) {
   }
 
   if (value != _lastValue) {
+    if (_lastReportTime.zero()) {
+      _lastReportTime = ar_time();
+    }
+    const ar_timeval now = ar_time();
     ar_log_debug() << _lastValue << ", " << value;
     arParallelSwitchEventType switchState = (arParallelSwitchEventType)
       ((value != 0)+1);
@@ -283,7 +290,6 @@ bool arParallelSwitchDriver::_poll( void ) {
       if (_lastEventTime.zero()) {
         _lastEventTime = ar_time();
       } else {
-        const ar_timeval now = ar_time();
         double diffTime = ar_difftime( now, _lastEventTime );
         if (switchState == AR_OPEN_PARA_SWITCH_EVENT) {
           diffTime = -diffTime;
@@ -296,6 +302,12 @@ bool arParallelSwitchDriver::_poll( void ) {
     }
     _lastValue = value;
     ar_log_debug() << ar_endl;
+    ++_reportCount;
+    if (ar_difftime( now, _lastReportTime ) > 1.e6) {
+      ar_log_remark() << _reportCount << " transitions/sec.\n";
+      _reportCount = 0;
+      _lastReportTime = now;
+    }
   }
   return true;
 #endif

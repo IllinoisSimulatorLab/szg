@@ -47,6 +47,8 @@ class arParallelSwitchDriver: public arInputSource {
   unsigned char _lastValue;
   ar_timeval     _lastEventTime;
   arParallelSwitchEventType _eventType;
+  ar_timeval     _lastReportTime;
+  unsigned       _reportCount;
 };
 
 #endif
