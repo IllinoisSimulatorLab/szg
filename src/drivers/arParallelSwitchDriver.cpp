@@ -211,7 +211,6 @@ void ar_ParallelSwitchDriverEventTask(void* driver){
 void arParallelSwitchDriver::_eventloop() {
 #ifndef AR_USE_LINUX
   ar_log_error() << "arParallelSwitchDriver on Linux only!\n";
-  return false;
 #else
   _eventThreadRunning = true;
   cerr << "Calling ioperm.\n";
