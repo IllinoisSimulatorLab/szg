@@ -43,6 +43,7 @@ class arParallelSwitchDriver: public arInputSource {
   unsigned       _comPortID;
   bool           _eventThreadRunning;
   bool           _stopped;
+  unsigned char _byteMask;
   unsigned char _lastValue;
   ar_timeval     _lastEventTime;
   arParallelSwitchEventType _eventType;

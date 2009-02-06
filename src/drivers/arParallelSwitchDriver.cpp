@@ -157,6 +157,7 @@ DriverFactory(arParallelSwitchDriver, "arInputSource")
 arParallelSwitchDriver::arParallelSwitchDriver() :
   _eventThreadRunning(false),
   _stopped(false),
+  _byteMask(255),
   _lastValue(0),
   _lastEventTime(0,0)
 {}
@@ -178,9 +179,13 @@ bool arParallelSwitchDriver::init(arSZGClient& SZGClient){
     _comPortID = 1;
   }
   const string eventType = SZGClient.getAttribute( "SZG_PARALLEL_SWITCH", "event_type", "|both|open|closed|" );
+  ar_log_critical() << "Parallel switch event type = '" << eventType << "'.\n";
   _eventType = eventType == "closed" ? AR_CLOSED_PARA_SWITCH_EVENT :
 	       eventType == "open"   ? AR_OPEN_PARA_SWITCH_EVENT :
 	       AR_BOTH_PARA_SWITCH_EVENT;
+
+  _byteMask = static_cast<unsigned char>(SZGClient.getAttributeInt("SZG_PARALLEL_SWITCH", "byte_mask"));
+  ar_log_critical() << "Parallel switch byte mask = " << _byteMask << ".\n";
 
   // Report one axis, the time since the last event occurred.
   _setDeviceElements( 0, 1, 0 );
@@ -261,7 +266,7 @@ bool arParallelSwitchDriver::_poll( void ) {
 
   unsigned char value;
   try {
-    value = inb( lp_base_addr +status_offset );
+    value = inb( lp_base_addr +status_offset ) & _byteMask;
     //value = inb( lp_base_addr );
     //ar_log_debug() << "treadmill " << value << ar_endl;
   } catch(...) {
@@ -270,8 +275,11 @@ bool arParallelSwitchDriver::_poll( void ) {
   }
 
   if (value != _lastValue) {
+    ar_log_debug() << _lastValue << ", " << value;
     arParallelSwitchEventType switchState = (arParallelSwitchEventType)
-      ((value < 80)+1);
+      ((value != 0)+1);
+    ar_log_debug() << "; " << switchState << ", " << _eventType;
+      //((value < 80)+1);
     if (switchState & _eventType) {
       if (_lastEventTime.zero()) {
         _lastEventTime = ar_time();
@@ -282,12 +290,13 @@ bool arParallelSwitchDriver::_poll( void ) {
           diffTime = -diffTime;
         }
         float dt = float(diffTime*1.e-6);
-        ar_log_debug() << dt << ar_endl;
+        ar_log_debug() << ": " << dt;
         sendAxis( 0, dt );
         _lastEventTime = now;
       }
     }
     _lastValue = value;
+    ar_log_debug() << ar_endl;
   }
   return true;
 #endif
