@@ -40,6 +40,20 @@ ifeq ($(strip $(SZG_LINKING)), STATIC)
 endif
 endif
 
+# Add an input simulator plugin to all (shows how to build a dll).
+ifneq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arDefaultInputSimulator$(PLUGIN_SUFFIX)
+endif
+
+# do the same if MINGW and STATIC
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arDefaultInputSimulator$(PLUGIN_SUFFIX)
+endif
+endif
+
 # Makefile.rules defines standard target rules like "clean"
 # or "create-install".  This file is seperated from Makefile.vars
 # because make is fussy about rules' order. Don't change this line.
@@ -115,5 +129,9 @@ oopskel$(EXE): oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 
 arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE)
+	$(COPY)
+
+arDefaultInputSimulator$(PLUGIN_SUFFIX): arDefaultInputSimulator$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arDefaultInputSimulator$(OBJ_SUFFIX) $(POST_LINK_LINE)
 	$(COPY)
 
