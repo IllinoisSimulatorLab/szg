@@ -195,7 +195,7 @@ class SZG_CALL arSZGAppFramework {
     bool              _showSimulator;
     arFramerateGraph  _framerateGraph;
     bool              _showPerformance;
-#if (!defined( AR_LINKING_STATIC )) || defined( AR_USE_MINGW )
+#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
     arInputFactory    _inputFactory;
 #endif
 

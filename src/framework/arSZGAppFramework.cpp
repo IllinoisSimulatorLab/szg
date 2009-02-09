@@ -21,7 +21,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _simPtr(&_simulator),
   _showSimulator(true),
   _showPerformance( false ),
-#if (!defined( AR_LINKING_STATIC )) || defined( AR_USE_MINGW )
+#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
   _inputFactory(),
 #endif
   _callbackFilter(this),
@@ -100,6 +100,7 @@ void arSZGAppFramework::_appendUserMessage( int messageID, const std::string& me
 
 void arSZGAppFramework::_handleStandaloneInput() {
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_STANDALONE", "input_config" );
+  ar_log_debug() << "SZG_STANDALONE/input_config = " << _standaloneControlMode << ar_endl;
   if (_standaloneControlMode == "NULL") {
     _standaloneControlMode = "simulator";
   }
@@ -125,8 +126,8 @@ void arSZGAppFramework::_handleStandaloneInput() {
 }
 
 bool arSZGAppFramework::_loadInputDrivers() {
-#if defined( AR_LINKING_STATIC ) && !defined( AR_USE_MINGW )
-  ar_log_error() << "failed to load input drivers: standalone app linked statically.\n";
+#if defined( AR_USE_WIN_32 ) && !defined( AR_USE_MINGW )
+  ar_log_error() << "failed to load input drivers: standalone app linked statically with Visual C++.\n";
   return false;
 #else
   const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );

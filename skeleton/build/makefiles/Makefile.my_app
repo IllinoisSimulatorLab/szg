@@ -27,7 +27,7 @@ POST_LINK_LINE = $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(
 ALL := skeleton$(EXE) oopskel$(EXE)
 
 # Add a graphics plugin to all (shows how to build a dll).
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
+ifneq ($(strip $(MACHINE)),WIN32)
   ALL += \
     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
 endif
@@ -41,7 +41,7 @@ endif
 endif
 
 # Add an input simulator plugin to all (shows how to build a dll).
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
+ifneq ($(strip $(MACHINE)),WIN32)
   ALL += \
     arDefaultInputSimulator$(PLUGIN_SUFFIX)
 endif

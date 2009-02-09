@@ -14,7 +14,7 @@ class SZG_CALL arInputSimulatorFactory {
   public:
     arInputSimulator* createSimulator( arSZGClient& szgClient );
   private:
-#if defined( AR_LINKING_DYNAMIC ) || defined( AR_USE_MINGW )
+#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
     string _execPath;
 #endif
 };

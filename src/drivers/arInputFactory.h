@@ -44,7 +44,7 @@ class SZG_CALL arInputFactory {
     arInputNodeConfig _inputConfig;
     arSZGClient* _szgClientPtr;
     map< string, arInputSource* > _sourceNameMap;
-#if defined( AR_LINKING_DYNAMIC ) || defined( AR_USE_MINGW )
+#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
     string _execPath;
 #endif
 };

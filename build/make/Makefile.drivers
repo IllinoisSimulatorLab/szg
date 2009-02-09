@@ -141,6 +141,7 @@ endif
 
 
 
+ifeq ($(strip $(MACHINE)),WIN32)
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
@@ -168,7 +169,7 @@ ifeq ($(strip $(SZG_LINKING)), STATIC)
     $(POST_LINK_VRPN)
 endif
 endif
-
+endif
 
 
 ALL = \
@@ -180,7 +181,9 @@ ALL = \
   PForthTest$(EXE) \
   pfconsole$(EXE)
 
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
+
+
+ifneq ($(strip $(MACHINE)),WIN32)
   ALL += $(LIBS_DRIVER)
 endif
 
