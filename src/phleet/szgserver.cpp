@@ -1720,9 +1720,7 @@ void getServicesCallback(arStructuredData* pd, arSocket* dataSocket) {
   }
 
   else if (type == "pending") {
-    ar_log_debug() << "dpending getPendingRequests\n";
     SZGRequestList result = connectionBroker.getPendingRequests();
-    ar_log_debug() << "dpending parsing list.\n";
     const int listSize = result.size();
     int* IDs = new int[listSize];
     int iID = 0;
@@ -1733,12 +1731,10 @@ void getServicesCallback(arStructuredData* pd, arSocket* dataSocket) {
       computers /= i->computer;
       IDs[iID++] = i->componentID;
     }
-    ar_log_debug() << "dpending parsed list.\n";
     data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES, names);
     data->dataInString(lang.AR_SZG_GET_SERVICES_COMPUTERS, computers);
     data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, IDs, AR_INT, listSize);
     delete [] IDs;
-    ar_log_debug() << "dpending done.\n";
   }
 
   else {
