@@ -31,7 +31,7 @@ as a gzip-ed
 tar file. This file has grown too large to be useful. Instead, the data
 for the
 demos is now distributed on the Syzygy DVD, which can be obtained from the
-[Integrated Systems Lab www.isl.uiuc.edu]
+[Illinois Simulator Lab www.isl.uiuc.edu]
 (just follow the links to Syzygy
 from the lab's main page). To install the data, you will simply copy
 the 'data'
