@@ -157,8 +157,11 @@ DriverFactory(arParallelSwitchDriver, "arInputSource")
 arParallelSwitchDriver::arParallelSwitchDriver() :
   _eventThreadRunning(false),
   _stopped(false),
+  _byteMask(255),
   _lastValue(0),
-  _lastEventTime(0,0)
+  _lastEventTime(0,0),
+  _lastReportTime(0,0),
+  _reportCount(0)
 {}
 
 arParallelSwitchDriver::~arParallelSwitchDriver() {
@@ -178,9 +181,13 @@ bool arParallelSwitchDriver::init(arSZGClient& SZGClient){
     _comPortID = 1;
   }
   const string eventType = SZGClient.getAttribute( "SZG_PARALLEL_SWITCH", "event_type", "|both|open|closed|" );
+  ar_log_critical() << "Parallel switch event type = '" << eventType << "'.\n";
   _eventType = eventType == "closed" ? AR_CLOSED_PARA_SWITCH_EVENT :
 	       eventType == "open"   ? AR_OPEN_PARA_SWITCH_EVENT :
 	       AR_BOTH_PARA_SWITCH_EVENT;
+
+  _byteMask = static_cast<unsigned char>(SZGClient.getAttributeInt("SZG_PARALLEL_SWITCH", "byte_mask"));
+  ar_log_critical() << "Parallel switch byte mask = " << _byteMask << ".\n";
 
   // Report one axis, the time since the last event occurred.
   _setDeviceElements( 0, 1, 0 );
@@ -206,12 +213,12 @@ void ar_ParallelSwitchDriverEventTask(void* driver){
 void arParallelSwitchDriver::_eventloop() {
 #ifndef AR_USE_LINUX
   ar_log_error() << "arParallelSwitchDriver on Linux only!\n";
-  return false;
 #else
+  ar_log_critical() << "arParallelSwitchDriver starting event loop.\n";
   _eventThreadRunning = true;
-  cerr << "Calling ioperm.\n";
+  ar_log_debug() << "Calling ioperm.\n";
   ioperm( 0x378, 8, 1 );
-  cerr << "Calling lp_init().\n";
+  ar_log_debug() << "Calling lp_init().\n";
   try {
     lp_init(0);
   } catch(...) {
@@ -219,7 +226,7 @@ void arParallelSwitchDriver::_eventloop() {
     _eventThreadRunning = false;
     stop();
   }
-  cerr << "Called lp_init().\n";
+  ar_log_critical() << "lp_init() succeeded.\n";
   while (!_stopped) {
     //ar_usleep(10000);
     if (!_poll()) {
@@ -246,7 +253,7 @@ bool arParallelSwitchDriver::stop() {
   arSleepBackoff a(10, 30, 1.1);
   while (_eventThreadRunning)
     a.sleep();
-  ar_log_debug() << "arParallelSwitchDriver stopped.\n";
+  ar_log_critical() << "arParallelSwitchDriver stopped.\n";
   return true;
 #endif
 }
@@ -261,7 +268,7 @@ bool arParallelSwitchDriver::_poll( void ) {
 
   unsigned char value;
   try {
-    value = inb( lp_base_addr +status_offset );
+    value = inb( lp_base_addr +status_offset ) & _byteMask;
     //value = inb( lp_base_addr );
     //ar_log_debug() << "treadmill " << value << ar_endl;
   } catch(...) {
@@ -270,24 +277,37 @@ bool arParallelSwitchDriver::_poll( void ) {
   }
 
   if (value != _lastValue) {
+    if (_lastReportTime.zero()) {
+      _lastReportTime = ar_time();
+    }
+    const ar_timeval now = ar_time();
+    ar_log_debug() << _lastValue << ", " << value;
     arParallelSwitchEventType switchState = (arParallelSwitchEventType)
-      ((value < 80)+1);
+      ((value != 0)+1);
+    ar_log_debug() << "; " << switchState << ", " << _eventType;
+      //((value < 80)+1);
     if (switchState & _eventType) {
       if (_lastEventTime.zero()) {
         _lastEventTime = ar_time();
       } else {
-        const ar_timeval now = ar_time();
         double diffTime = ar_difftime( now, _lastEventTime );
         if (switchState == AR_OPEN_PARA_SWITCH_EVENT) {
           diffTime = -diffTime;
         }
         float dt = float(diffTime*1.e-6);
-        ar_log_debug() << dt << ar_endl;
+        ar_log_debug() << ": " << dt;
         sendAxis( 0, dt );
         _lastEventTime = now;
       }
     }
     _lastValue = value;
+    ar_log_debug() << ar_endl;
+    ++_reportCount;
+    if (ar_difftime( now, _lastReportTime ) > 1.e6) {
+      ar_log_remark() << _reportCount << " transitions/sec.\n";
+      _reportCount = 0;
+      _lastReportTime = now;
+    }
   }
   return true;
 #endif
