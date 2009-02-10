@@ -1684,18 +1684,16 @@ void requestServiceCallback(arStructuredData* pd, arSocket* dataSocket) {
 // (or for the component IDs of specific ones, as is required when one
 // wants to kill a component offering a particular service so that a new
 // one can start up)
-void getServicesCallback(arStructuredData* pd,
-      arSocket* dataSocket) {
+void getServicesCallback(arStructuredData* pd, arSocket* dataSocket) {
   // WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
   // this method is not threadsafe vis-a-vis the connection broker.
-  // no problem right now, since the szgserver executes requests in
-  // sequence.
+  // no problem right now, since the szgserver serializes requests.
   // WEIRD. IT SEEMS LIKE WE ARE USING A NEW PIECE OF DATA. WHY NOT
   // SEND IT BACK IN PLACE?
   const string type(pd->getDataString(lang.AR_SZG_GET_SERVICES_TYPE));
   arStructuredData* data = dataParser->getStorage(lang.AR_SZG_GET_SERVICES);
 
-  // Propogate the "match".
+  // Propagate the match.
   _transferMatchFromTo(pd, data);
 
   if (type == "active") {
@@ -1705,7 +1703,7 @@ void getServicesCallback(arStructuredData* pd,
       data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES,
                          connectionBroker.getServiceNames());
       data->dataInString(lang.AR_SZG_GET_SERVICES_COMPUTERS,
-             connectionBroker.getServiceComputers());
+             		 connectionBroker.getServiceComputers());
       int* IDs = NULL;
       const int numberServices = connectionBroker.getServiceComponents(IDs);
       data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, IDs, AR_INT,
@@ -1714,8 +1712,7 @@ void getServicesCallback(arStructuredData* pd,
       delete [] IDs;
     }
     else {
-      // we must respond with a particular service's ID, if that service
-      // exists, and otherwise return -1
+      // Respond with a particular service's ID, or -1 if no such service.
       data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES, serviceName);
       int result = connectionBroker.getServiceComponentID(serviceName);
       data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, &result, AR_INT, 1);
@@ -1723,25 +1720,29 @@ void getServicesCallback(arStructuredData* pd,
   }
 
   else if (type == "pending") {
+    ar_log_debug() << "dpending getPendingRequests\n";
     SZGRequestList result = connectionBroker.getPendingRequests();
+    ar_log_debug() << "dpending parsing list.\n";
     const int listSize = result.size();
     int* IDs = new int[listSize];
     int iID = 0;
     arSemicolonString names;
     arSlashString computers;
-    for (SZGRequestList::iterator i = result.begin(); i != result.end(); ++i) {
+    for (SZGRequestList::const_iterator i = result.begin(); i != result.end(); ++i) {
       names /= i->serviceName;
       computers /= i->computer;
       IDs[iID++] = i->componentID;
     }
+    ar_log_debug() << "dpending parsed list.\n";
     data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES, names);
     data->dataInString(lang.AR_SZG_GET_SERVICES_COMPUTERS, computers);
     data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, IDs, AR_INT, listSize);
     delete [] IDs;
+    ar_log_debug() << "dpending done.\n";
   }
 
   else {
-    ar_log_error() << "service listing had invalid request type '" << type << "'.\n";
+    ar_log_error() << "ignoring service listing with unexpected request type '" << type << "'.\n";
   }
 
   if (!dataServer->sendData(data, dataSocket))

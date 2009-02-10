@@ -2104,7 +2104,7 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
 }
 
 // Print either pending service requests or active services.
-// Argument "type" is "registered" or "active".
+// Argument "type" is "pending" or "active", see szgserver.cpp getServicesCallback().
 void arSZGClient::_printServices(const string& type) {
   if (!_connected) {
     return;
