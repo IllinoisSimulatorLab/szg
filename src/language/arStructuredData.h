@@ -67,8 +67,10 @@ class SZG_CALL arStructuredData {
    bool dataOut(const string&, void*, arDataType, int) const;
 
    int getDataFieldIndex( const string& fieldName ) const;
+#ifdef UNUSED
    bool getDataFieldName( const int index, string& fieldName ) const;
    void getFieldNames( std::vector< std::string >& names ) const;
+#endif
 
    // Abbreviations.
    bool dataInString(int id, const string& s)
