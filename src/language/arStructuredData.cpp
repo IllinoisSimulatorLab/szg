@@ -654,7 +654,6 @@ int arStructuredData::getDataFieldIndex( const string& fieldName ) const {
   return i->second;
 }
 
-#ifdef UNUSED
 bool arStructuredData::getDataFieldName( const int index, string& fieldName ) const {
   arNameMap::const_iterator iter;
   for (iter = _dataNameMap.begin(); iter != _dataNameMap.end(); iter++) {
@@ -671,7 +670,6 @@ void arStructuredData::getFieldNames( std::vector< std::string >& names ) const 
   for (iter = _dataNameMap.begin(); iter!= _dataNameMap.end(); iter++)
     names.push_back( iter->first );
 }
-#endif
 
 bool arStructuredData::dataOut(const string& fieldName, void* data,
                                arDataType theType, int dimension) const {
