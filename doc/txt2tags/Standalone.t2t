@@ -126,3 +126,19 @@ database parameter SZG_STANDALONE/input_config, which defaults to
 of a [global input device configuration parameter InputDeviceConfiguration.html#GlobalParameters]
 in the parameter file. Any defined input sources (drivers), filters, and
 PForth filter code are loaded.
+
+
+==Alternate Input Simulators==[alternate_sims]
+
+As of 2/08, you can create your own [Input Simulator InputSimulator.html] as a shared
+library and load it at runtime based on the value of the Syzygy database parameter
+SZG_INPUTSIM/sim_type. A stupid example called arDefaultInputSimulator is contained
+in szg/skeleton; it behaves just like the built-in one, but it does show you which
+methods are available for overriding. Copy the skeleton directory tree somewhere,
+rename the source file, and modify skeleton/build/makefiles/Makefile.my_app
+appropriately. To use it, add e.g. the following in an ``<assign>`` block in your
+szg_parameters.xml:
+```
+  NULL SZG_INPUTSIM sim_type arDefaultInputSimulator
+```
+...and provided your app can find it, it should load an use it.
