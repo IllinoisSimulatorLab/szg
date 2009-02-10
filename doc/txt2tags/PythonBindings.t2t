@@ -27,7 +27,7 @@ supported yet, although the older, undocumented [functional API ../src/graphics/
 (see [Blobby Man ../python_sip/demo/blobby/blobby.py] for an example).
 Supporting the newer interface requires figuring out some object ownership issues
 (that are undocumented and written by Ben Schaeffer, who is no longer with the
-Integrated Systems Lab).
+Illinois Simulator Lab).
 The Master/Slave Framework is pretty much completely supported and runs faster with the new
 bindings.
 

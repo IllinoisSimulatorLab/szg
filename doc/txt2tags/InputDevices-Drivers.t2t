@@ -207,7 +207,7 @@ For a host networked to an EVaRT optical tracker.
   Specifies the dotted-quad IP address of the EVaRT system.
 
 
-==Intersense==
+==Intersense Tracker==
 
 - Loadable module: arIntersenseDriver
 - Platform: Windows, Linux
@@ -221,13 +221,11 @@ For any Intersense tracker.  Needs Intersense's own DLL (or .so) installed.
   The 0th tracker's 1st sensor has 0 buttons and 0 axes.  It's probably a head tracker.
 ``` <computer> SZG_INTERSENSE station0_2 4/2/0
   The 0th tracker's 2nd sensor has 4 buttons and 2 axes.  It's probably a wand.
-``` <computer> SZG_INTERSENSE convert0_0 0/0/-1/2
-``` <computer> SZG_INTERSENSE convert0_1 1/0/0/1
-``` <computer> SZG_INTERSENSE convert0_2 0/-1/0/-2
-``` <computer> SZG_INTERSENSE convert0_3 0/0/0/1
-  A matrix translating Intersense coordinates to Syzygy coordinates.
-The top left 3x3 submatrix is universal, but the fourth column
-(translation) varies from installation to installation.
+
+  The SZG_INTERSENSE/convert# parameters for re-mapping the coordinates are no longer
+  used. Use a [PForth filter PForth.html] to do the coordinate transformation.
+  See the [Tracker Coordinate Conversion TrackerCoordConversion.html] section for
+  more information.
 
 
 ==VRPN==
