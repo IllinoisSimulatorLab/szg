@@ -534,7 +534,7 @@ bool arDataServer::_delSocketLabel(arSocket* s) {
   map<int, string, less<int> >::iterator i(_connectionLabels.find(s->getID()));
   if (i == _connectionLabels.end())
     return false;
-  ar_log_debug() << "Removing socket label (" << s->getID() << ", " << i->second << ").\n";
+  ar_log_debug() << "Deleted socket label " << s->getID() << ", " << i->second << ".\n";
   _connectionLabels.erase(i); // Socket already existed.
   return true;
 }
@@ -549,7 +549,7 @@ void arDataServer::_addSocketLabel(arSocket* s, const string& label) {
   (void)_delSocketLabel(s);
   _connectionLabels.insert(
     map<int, string, less<int> >::value_type(s->getID(), label));
-  ar_log_debug() << "Added socket label (" << s->getID() << ", " << label << ").\n";
+  ar_log_debug() << "Added socket label " << s->getID() << ", " << label << ".\n";
 }
 
 void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket) {
