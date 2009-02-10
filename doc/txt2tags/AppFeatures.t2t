@@ -43,3 +43,19 @@ where integer Y is how many screenshots have been taken so far by X.
 lest the files clobber each other.)
 Here's an example screenshot:@@
 [images/PerformanceGraph.jpg]
+
+To send a message to your application that you can handle in your own code:
+```
+  dmsg X user blahblahblah
+```
+Your app's onUserMessage() method (userMessageCallback, for old-style apps) will be
+called with "blahblahblah".
+
+To send single keypresses to your app (if e.g. you use the onKey() callback to change
+your app's state in standalone mode and can't be bothered to modify it for cluster
+mode):
+```
+  dmsg X key whee
+```
+...will cause the app's onKey() method to be called four times, once each with
+'w', 'h', 'e', 'e'.
