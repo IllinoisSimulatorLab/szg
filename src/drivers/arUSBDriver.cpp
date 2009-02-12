@@ -181,7 +181,7 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
     FunctionNumber,
     LoByte(Param1), HiByte(Param1),
     LoByte(Param2), HiByte(Param2) };
-  int OutLengthMax = cb<0 ? OutputDataLength : cb;
+  int OutLengthMax = /* cb<0 ? OutputDataLength : */ cb;
   if (OutLengthMax > 255)
     OutLengthMax = 255;
 
@@ -214,7 +214,6 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
 
 // Set direction of data bits.  0=in, 1=out.
 int DoSetDataPortDirections(char portb, char portc, char portd, char UsedPorts) {
-  short Param1, Param2;
   LOCK
   bool ok = SendToDriver(FNCNumberDoSetDataPortDirection,
       (portc<<8) | portb, (UsedPorts<<8) | portd, OutputData, OutLength);
@@ -228,7 +227,7 @@ int DoSetDataPortDirection(char portz) {
 }
 
 // Get direction of data bits
-int DoGetDataPortDirections(char& portb, char& portc, char& portd, char& UsedPorts) {
+int DoGetDataPortDirections(char& portb, char& /*portc*/, char& /*portd*/, char& UsedPorts) {
   LOCK
   OutLength = 3;
   if (!SendToDriver(FNCNumberDoGetDataPortDirection, 0, 0, OutputData, OutLength)) {
@@ -432,7 +431,6 @@ int DoSetRS232Baud(int BaudRate) {
 
 // External function for getting the bytes!
 int DoGetRS232Buffer(char* RS232Buffer, int& RS232BufferLength) {
-  int BufferLength = 0;
   int i;
   for (i=0; i<RS232BufferLength; ++i) {
     if (RS232BufferRead == RS232BufferWrite)
@@ -476,8 +474,7 @@ int DoGetRS232BufferLocal(char* RS232Buffer, int& RS232BufferLength) {
 bool fThreadDied = false;
 
 // system-unique thread for reading device RS232 FIFO into bufCG
-DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
-  const HANDLE MutexHandles[2] = { RS232MutexHandle, RS232BufferEndEvent };
+DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID /*Parameter*/) {
   LocalThreadRunningEvent = CreateEvent(NULL, false, false, NULL);
 
   const HANDLE Handles[2] = { RS232BufferGetEvent, RS232BufferEndEvent };

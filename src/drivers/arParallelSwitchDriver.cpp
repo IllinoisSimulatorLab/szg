@@ -169,11 +169,10 @@ arParallelSwitchDriver::~arParallelSwitchDriver() {
 
 bool arParallelSwitchDriver::init(arSZGClient& SZGClient){
 #ifndef AR_USE_LINUX
+  (void)SZGClient; // compiler warning
   ar_log_error() << "arParallelSwitchDriver on Linux only!\n";
   return false;
 #else
-  int i = 0;
-
   // Multiple serial ports aren't implemented.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PARALLEL_SWITCH", "port"));
   if (_comPortID <= 0) {
