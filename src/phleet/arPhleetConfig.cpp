@@ -374,8 +374,9 @@ bool arPhleetConfig::determineFileLocations( string& configLocation, string& log
   bool found = _findDir("SZG_CONF",  "c:\\szg", "config file", "szg.conf", configLocation)
       && _findDir("SZG_LOGIN", "c:\\szg", "login",       "szg_", loginPreamble);
 #else
+  string homeDir = ar_getenv("HOME");
   bool found = _findDir("SZG_CONF",  "/etc", "config file", "szg.conf", configLocation)
-      && _findDir("SZG_LOGIN", "/tmp", "login",       "szg_", loginPreamble);
+      && _findDir("SZG_LOGIN", homeDir.c_str(), "login",       "szg_", loginPreamble);
 #endif
   if (found) {
     loginFileLocation = loginPreamble + ar_getUser() + string(".conf");

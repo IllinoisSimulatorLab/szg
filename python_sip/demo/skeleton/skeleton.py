@@ -231,6 +231,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.theSquare.draw()
     self.theWand.draw()
 
+  def onKey( self, k, x, y ):
+    print 'KEY:',k
+
 
 
 if __name__ == '__main__':

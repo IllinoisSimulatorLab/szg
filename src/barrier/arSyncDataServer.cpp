@@ -162,6 +162,7 @@ arSyncDataServer::arSyncDataServer() :
   _mode(AR_SYNC_AUTO_SERVER),
   _dataQueue(NULL),
   _queueLock("SYNCSERV_QUEUE"),
+  _messageBufferVar("arSyncDataServer-messagebuffer"),
   _messageBufferFull(false),
   _exitProgram(false),
   _sendThreadRunning(false),
@@ -169,8 +170,10 @@ arSyncDataServer::arSyncDataServer() :
   _locallyConnected(false),
   _localConsumerReady(0),
   _localConsumerReadyLock("SYNCSERV_CONSUME"),
+  _localConsumerReadyVar("arSyncDataServer-consumer-ready"),
   _localProducerReady(0),
-  _localProducerReadyLock("SYNCSERV_PRODUCE") {
+  _localProducerReadyLock("SYNCSERV_PRODUCE"),
+  _localProducerReadyVar("arSyncDataServer-producer-ready") {
 }
 
 arSyncDataServer::~arSyncDataServer() {

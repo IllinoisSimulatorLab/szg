@@ -27,7 +27,7 @@ POST_LINK_LINE = $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(
 ALL := skeleton$(EXE) oopskel$(EXE)
 
 # Add a graphics plugin to all (shows how to build a dll).
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
+ifneq ($(strip $(MACHINE)),WIN32)
   ALL += \
     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
 endif
@@ -37,6 +37,20 @@ ifeq ($(strip $(SZG_COMPILER)),MINGW)
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   ALL += \
     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+endif
+endif
+
+# Add an input simulator plugin to all (shows how to build a dll).
+ifneq ($(strip $(MACHINE)),WIN32)
+  ALL += \
+    arDefaultInputSimulator$(PLUGIN_SUFFIX)
+endif
+
+# do the same if MINGW and STATIC
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arDefaultInputSimulator$(PLUGIN_SUFFIX)
 endif
 endif
 
@@ -115,5 +129,9 @@ oopskel$(EXE): oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 
 arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE)
+	$(COPY)
+
+arDefaultInputSimulator$(PLUGIN_SUFFIX): arDefaultInputSimulator$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arDefaultInputSimulator$(OBJ_SUFFIX) $(POST_LINK_LINE)
 	$(COPY)
 

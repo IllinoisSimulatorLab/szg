@@ -57,6 +57,8 @@ arSZGClient::arSZGClient():
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
+  _dataCondVar("arSZGClient data"),
+  _timerCondVar("arSZGClient timer"),
   _bufferResponse(false),
   _justPrinting(false)
 {
@@ -2102,7 +2104,7 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
 }
 
 // Print either pending service requests or active services.
-// Argument "type" is "registered" or "active".
+// Argument "type" is "pending" or "active", see szgserver.cpp getServicesCallback().
 void arSZGClient::_printServices(const string& type) {
   if (!_connected) {
     return;

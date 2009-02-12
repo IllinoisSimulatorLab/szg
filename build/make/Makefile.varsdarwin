@@ -18,7 +18,7 @@ else
 endif
 COMPILE_FLAGS_NDEBUG = $(DARWIN_PROC_FLAG) -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
   -fno-common -fPIC -O2 -c
-COMPILE_FLAGS_DEBUG = $(DARWIN_PROC_FLAG) -DAR_USE_DARWIN -DAR_USE_DEBUG $(SZG_OPT_FLAGS) \
+COMPILE_FLAGS_DEBUG = $(DARWIN_PROC_FLAG) -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
   -fno-common -fPIC -c -g
 ifneq ($(strip $(SZGDEBUG)),TRUE)
   COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
@@ -54,7 +54,15 @@ GENERAL_LIBS = -lm -lpthread -lcurses -lobjc
 # darwin may use GCC_VERSION_IDENTIFIER
 
 # warning: COCOA is deprecated in OS X 10.4
-GRAPHICS_LIBS = -L/usr/X11R6/lib -lX11 -lXext -lGL -framework OpenGL -framework GLUT -framework COCOA
+
+# Hack for 10.5 -- there are two libGL.dylib's, one in OpenGL.framework and one in /usr/X11R6/lib.
+# We need the /usr/X11R6/lib version, but it in turn needs the native OpenGL.framework version,
+# and both have the same basename (libGL.dylib).
+# A MacOS 10.5 linker bug prevents finding the native one;
+# using -dylib_file is a workaround, as described in
+#  http://lists.apple.com/archives/X11-users/2007/Oct/msg00145.html
+NATIVE_GL = /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib
+GRAPHICS_LIBS = -L/usr/X11R6/lib -lGL -lX11 -lXext -dylib_file ${NATIVE_GL}:${NATIVE_GL} -framework OpenGL -framework GLUT -framework COCOA
 GAMEPAD_LIBS = 
 
 # OS X needs an outside library to support dlopen.
@@ -62,7 +70,8 @@ SZG_DLL_LIB = $(SZGHOME)/contrib/dlcompat/libdl.a
 SZG_DLL_INCLUDE = -I$(SZGHOME)/contrib/dlcompat
 
 # OS X needs to explicitly set the location of glx.h.  This is misnamed, but backwards-compatible.
-SZG_INCLUDE_GLUT = -I/usr/X11R6/include
+##SZG_INCLUDE_GLUT = -I/usr/X11R6/include
+SZG_INCLUDE_GLUT = -I/usr/X11R6/include -I/System/Library/Frameworks/GLUT.framework/Versions/A/Headers
 
 # Since OS X allows relative runtime paths, don't bother setting
 # DYLD_LIBRARY_PATH (the equivalent of LD_LIBRARY_PATH for Darwin)

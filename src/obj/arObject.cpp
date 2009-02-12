@@ -4,19 +4,8 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-//#include "arObject.h"
+#include "arObject.h"
 //#include "arGraphicsAPI.h"
-
-// mingw win64 g++ 3.4.5 says:
-// warning: non-inline function 'virtual bool arObject::attachMesh(const std::string&, const std::string&)' is defined after prior declaration as dllimport: attribute ignored
-// This eventually produces subtle link errors in obj/ar*.o:
-//   undefined reference to `__imp___ZTV8arObject'
-//   undefined reference to `vtable for arObject'
-// The error vanishes when attachMesh is inlined in arObject.h.
-//
-// Other SZG_CALL base-class defaults for virtual functions don't warn like this,
-// e.g. drivers/arIOFilter.cpp arIOFilter::configure(), which
-// is overridden properly by arFaroCalFilter.cpp.
 
 /*
 bool arObject::attachMesh(const string& objectName, const string& parentName) {
@@ -24,3 +13,13 @@ bool arObject::attachMesh(const string& objectName, const string& parentName) {
   return g && attachMesh(g, objectName);
 }
 */
+
+int arObject::numberOfTriangles() {return -1;}
+int arObject::numberOfNormals() {return -1;}
+int arObject::numberOfVertices() {return -1;}
+int arObject::numberOfMaterials() {return -1;}
+int arObject::numberOfTexCoords() {return -1;}
+int arObject::numberOfSmoothingGroups() {return -1;}
+int arObject::numberOfGroups() {return -1;}
+int arObject::numberOfFrames() const { return -1; }
+int arObject::currentFrame() const { return -1; }

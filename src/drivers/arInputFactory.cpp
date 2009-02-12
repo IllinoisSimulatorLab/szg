@@ -14,11 +14,12 @@
 
 using std::string;
 
-#if defined( AR_LINKING_DYNAMIC ) || defined( AR_USE_MINGW )
+#if defined( AR_USE_MINGW ) || defined( AR_LINKING_DYNAMIC) || !defined( AR_USE_WIN_32 )
 
 #include "arSharedLib.h"
 
 bool arInputFactory::configure( arSZGClient& szgClient ) {
+  ar_log_debug() << "Configuring arInputFactory.\n";
   _execPath = szgClient.getAttribute( "SZG_EXEC", "path" ); // to search for dll's
   _szgClientPtr = &szgClient;
   return true;
@@ -42,7 +43,11 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
 }
 
 void arInputFactory::_printDriverNames( arLogStream& os ) {
+#ifdef AR_USE_MINGW
+  os << "[Cannot enumerate available drivers. Is the dll missing?]\n";
+#else
   os << "[Cannot enumerate available drivers when dynamically linked.]\n";
+#endif
 }
 
 arInputSink* arInputFactory::getInputSink( const string& sinkName ) {
@@ -78,16 +83,13 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
   return theFilter;
 }
 
-#else // AR_LINKING_STATIC
+#else // Visual C++, static linking
 
 // Various device driver headers.
 
-#ifndef AR_USE_MINGW
 #include "arIntelGamepadDriver.h"
 #include "arSpacepadDriver.h"
 #include "ar5DTGloveDriver.h"
-#endif
-
 #include "arJoystickDriver.h"
 #include "arMotionstarDriver.h"
 #include "arFOBDriver.h"

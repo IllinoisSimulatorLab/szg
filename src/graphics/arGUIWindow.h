@@ -338,19 +338,7 @@ class SZG_CALL arGUIWindowConfig
 class SZG_CALL arWMEvent
 {
   public:
-
-    /**
-     * The arWMEvent constructor.
-     *
-     * @param event Information about the window event.
-     */
     arWMEvent( const arGUIWindowInfo& event );
-
-    /**
-     * Reset the event state so that it can be reused.
-     *
-     * @param event Information to reset the state to.
-     */
     void reset( const arGUIWindowInfo& event );
 
     /**
@@ -368,14 +356,12 @@ class SZG_CALL arWMEvent
 
     /**
      * Signal the completion of the event.
-     *
      * @see arGUIWindow::_processWMEvents
      */
     void signal( void );
 
     //@{
     /** @name arWMEvent accessors.
-     *
      * Retrieve or set arWMEvent state.
      */
     void setEvent( arGUIWindowInfo event ) { _event = event; }
@@ -392,7 +378,6 @@ class SZG_CALL arWMEvent
     bool _conditionFlag; // Flag for _eventCond.
     arLock _eventMutex; // with _eventCond.
     arConditionVar _eventCond;
-
 };
 
 /**
@@ -978,7 +963,6 @@ class SZG_CALL arGUIWindow
     arLock _usableEventsMutex;  // Guard _usableEvents.
 
     arConditionVar _WMEventsVar;
-
 };
 
 #endif

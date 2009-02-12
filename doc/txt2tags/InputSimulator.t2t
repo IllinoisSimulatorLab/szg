@@ -1,9 +1,11 @@
 Header1 Tracking and Input Device Simulator
 Header2 %%mtime(%m/%d/%Y)
 
-%!options: --headers
+%!options: --headers --toc --toc-level=3
 
 Header3
+
+%%toc
 
 Syzygy applications work best with traditional VR head- and wand-tracking, that is,
 a six-degree-of-freedom (6DOF) position sensor on the head and another on a handheld
@@ -20,6 +22,9 @@ defined as the primary input (INPUT0) of the
 The input simulator sends data to the application specifying the position
 and orientation of the head and the wand, the placement of the wand's joysticks and sliders,
 and the up/down state of the wand's buttons (matrices, axes, and buttons, in Syzygy jargon).
+
+
+=The Default Input Simulator=
 
 The input simulator's display looks forwards into a 10-foot cubical space,
 like a wireframe cave.  A wireframe sphere in the center represents your
@@ -75,3 +80,22 @@ display depends on the viewing camera. With the default head-mounted
 camera, rotating the head 90 degrees will rotate the field of view 90 degrees.
 But with fixed-screen cameras (as used in a CAVE), the displays
 change almost imperceptibly.
+
+
+=Alternate Input Simulators=[alternate_sims]
+
+As of 2/08, you can create your own [Input Simulator InputSimulator.html] interface
+as a shared
+library and load it at runtime based on the value of the Syzygy database parameter
+SZG_INPUTSIM/sim_type. A stupid example called arDefaultInputSimulator is contained
+in szg/skeleton; it behaves just like the built-in one, but it does show you which
+methods are available for overriding. Copy the skeleton directory tree somewhere,
+rename the source file, and modify skeleton/build/makefiles/Makefile.my_app
+appropriately. To use it, add e.g. the following in an ``<assign>`` block in your
+dbatch file:
+```
+  <computer> SZG_INPUTSIM sim_type arDefaultInputSimulator
+```
+...where <computer> is the computer on which the inputsimulator program will run, as
+specified in the SZG_INPUT#/map section of your
+[virtual computer definition VirtCompConfiguration.html].

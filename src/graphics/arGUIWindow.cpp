@@ -81,7 +81,8 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
 {
 }
 
-arWMEvent::arWMEvent( const arGUIWindowInfo& event )
+arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
+  _eventCond("arWMEvent type " + ar_intToString(event.getEventType()) + ", state " + ar_intToString(event.getState()))
 {
   reset(event);
 }
@@ -176,11 +177,14 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _lastFrameTime(ar_time()),
   _GUIEventManager(new arGUIEventManager( userData )),
   _windowBuffer(new arGUIWindowBuffer( true )),
+  _creationCond("arGUIWindow-create, ID = " + ar_intToString(_ID)),
+  _destructionCond("arGUIWindow-destroy, ID = " + ar_intToString(_ID)),
   _creationFlag( false ),
   _destructionFlag( false ),
   _userData( userData ),
   _windowManager( NULL ),
-  _graphicsWindow( NULL )
+  _graphicsWindow( NULL ),
+  _WMEventsVar("arGUIWindow-events, ID = " + ar_intToString(_ID))
 {
 }
 

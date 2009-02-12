@@ -334,7 +334,7 @@ bool arPhleetConnectionBroker::checkService(const string& serviceName) const {
 // like to communicate.
 // @param async if set to true and we can't find the service, then
 // the request is registered on the pending connection queue for later
-// use by the szgserver via the getPendingRequests(...) method
+// use by the szgserver via getPendingRequests().
 arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
                                                  const string& computer,
                                                  int    match,
@@ -428,8 +428,9 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
 SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
-  SZGRequestList result;
   arGuard _(_l, "arPhleetConnectionBroker::getPendingRequests");
+  SZGRequestList result(_requestedServices.size());
+  // std::copy doesn't insert, it overwrites.
   std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
   return result;
 }

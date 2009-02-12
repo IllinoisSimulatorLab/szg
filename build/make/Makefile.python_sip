@@ -12,6 +12,9 @@ ifeq ($(strip $(MACHINE)), LINUX)
 	SZG_OPT_LIBS_FULL += -l$(SZG_PYLIB)
   PYSHAREDLIB_SUFFIX = .so
 endif
+ifeq ($(strip $(MACHINE)), DARWIN)
+  PYSHAREDLIB_SUFFIX = .so
+endif
 
 SZG_INCLUDE += -I$(SZG_PYINCLUDE)
 

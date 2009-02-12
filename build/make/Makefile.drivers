@@ -52,6 +52,7 @@ OBJS_DRIVER := \
   arConstantHeadFilter$(OBJ_SUFFIX) \
   arFaroCalFilter$(OBJ_SUFFIX) \
   arTrackCalFilter$(OBJ_SUFFIX) \
+  arParallelSwitchDriver$(OBJ_SUFFIX)
 
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
   OBJS_DRIVER += \
@@ -140,6 +141,7 @@ endif
 
 
 
+ifeq ($(strip $(MACHINE)),WIN32)
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
@@ -167,7 +169,7 @@ ifeq ($(strip $(SZG_LINKING)), STATIC)
     $(POST_LINK_VRPN)
 endif
 endif
-
+endif
 
 
 ALL = \
@@ -179,16 +181,21 @@ ALL = \
   PForthTest$(EXE) \
   pfconsole$(EXE)
 
-ifneq ($(strip $(SZG_LINKING)), STATIC) 
+
+
+ifneq ($(strip $(MACHINE)),WIN32)
   ALL += $(LIBS_DRIVER)
+else
+# do the same if MINGW and STATIC
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+  ALL += $(LIBS_DRIVER)
+endif
+else
+  ALL += $(LIBS_DRIVER)
+endif
 endif
 
-# do the same if MINGW and STATIC
-ifeq ($(strip $(SZG_COMPILER)),MINGW)
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  ALL += $(LIBS_DRIVER)
-endif
-endif
 
 include $(SZGHOME)/build/make/Makefile.rules
 
@@ -228,6 +235,10 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 # Device-driver shared objects for DeviceServer.
 
 # Shared objects using only Syzygy internals like RS232.
+
+arParallelSwitchDriver$(PLUGIN_SUFFIX): arParallelSwitchDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arParallelSwitchDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
 
 arSerialSwitchDriver$(PLUGIN_SUFFIX): arSerialSwitchDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arSerialSwitchDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)

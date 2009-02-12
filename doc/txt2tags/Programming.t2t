@@ -63,7 +63,7 @@ write) is not yoked in any way to the updating of the rendering nodes,
 which may or may not be an issue.
 
 NOTE: Ben Schaeffer, the only programmer really familiar with this
-framework, has left the Integrated Systems Lab. If you have questions about it,
+framework, has left the Illinois Simulator Lab. If you have questions about it,
 we may or may not be able to answer them.
 
 Both of these framework classes are subclasses of ``arSZGAppFramework``,

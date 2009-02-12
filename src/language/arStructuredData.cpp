@@ -299,8 +299,7 @@ int arStructuredData::getDataDimension(const int field) const {
   }
   const int dim = _dataDimension[field];
   if (dim < 0) {
-    cerr << "arStructuredData warning: negative dimension "
-         << dim << " for field "
+    cerr << "arStructuredData warning: negative dimension " << dim << " for field "
          << field << " (\"" << _name << "/" << _dataName[field] << "\").\n";
     return 0;
     }
@@ -667,9 +666,6 @@ bool arStructuredData::getDataFieldName( const int index, string& fieldName ) co
 }
 
 void arStructuredData::getFieldNames( std::vector< std::string >& names ) const {
-  // can this work instead?
-  // std::copy(_dataNameMap.begin(), _dataNameMap.end(), names.begin());
-
   arNameMap::const_iterator iter;
   for (iter = _dataNameMap.begin(); iter!= _dataNameMap.end(); iter++)
     names.push_back( iter->first );
@@ -685,7 +681,7 @@ bool arStructuredData::dataOut(const string& fieldName, void* data,
   return dataOut(i->second, data, theType, dimension);
 }
 
-// ptr is not const void*
+// ptr is not const
 bool arStructuredData::ptrIn(int field, void* ptr, int dim) {
   if (_numberDataItems <= 0) {
     cerr << "arStructuredData warning: ptrIn failed on empty \""
