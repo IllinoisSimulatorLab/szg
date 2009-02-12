@@ -179,6 +179,13 @@ chapter.
 Read the chapter on [Resource Path Specification PathConfiguration.html].
 
 
+===Alternate Input Simulator===
+
+If you're using the [inputsimulator InputSimulator.html] as your input device instead
+of a real device, you can create your own simulator interface as a shared library.
+See the [Alternate Input Simulators InputSimulator.html#alternate_sims] section.
+
+
 ===Virtual Computers===
 
 A //virtual computer// is a means of specifying how a set of computers are wired together and what
