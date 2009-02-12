@@ -21,7 +21,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _simPtr(&_simulator),
   _showSimulator(true),
   _showPerformance( false ),
-#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
+#if defined( AR_USE_MINGW ) || defined( AR_LINKING_DYNAMIC) || !defined( AR_USE_WIN_32 )
   _inputFactory(),
 #endif
   _callbackFilter(this),

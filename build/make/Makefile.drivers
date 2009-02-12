@@ -185,14 +185,17 @@ ALL = \
 
 ifneq ($(strip $(MACHINE)),WIN32)
   ALL += $(LIBS_DRIVER)
-endif
-
+else
 # do the same if MINGW and STATIC
-ifeq ($(strip $(SZG_COMPILER)),MINGW)
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+  ALL += $(LIBS_DRIVER)
+endif
+else
   ALL += $(LIBS_DRIVER)
 endif
 endif
+
 
 include $(SZGHOME)/build/make/Makefile.rules
 

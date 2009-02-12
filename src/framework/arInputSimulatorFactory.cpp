@@ -8,7 +8,7 @@
 #include "arInputSimulatorFactory.h"
 
 arInputSimulator* arInputSimulatorFactory::createSimulator( arSZGClient& szgClient ) {
-#if defined( AR_USE_MINGW ) || !defined( AR_USE_WIN_32 )
+#if defined( AR_USE_MINGW ) || defined( AR_LINKING_DYNAMIC) || !defined( AR_USE_WIN_32 )
   const string simType(szgClient.getAttribute( "SZG_INPUTSIM", "sim_type" ));
   if (simType == "NULL") {
     ar_log_debug() << "arInputSimulatorFactory ignoring NULL SZG_INPUTSIM/sim_type.\n";
