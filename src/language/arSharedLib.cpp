@@ -59,6 +59,11 @@ bool arSharedLib::open(const string& sharedLibName, const string& path) {
     _fLoaded = true;
   _h = dlopen(libName.c_str(), RTLD_NOW);
 #endif
+  if (_h!=NULL) {
+    ar_log_critical() << "arSharedLib loaded '" << libName << "'.\n";
+  } else {
+    ar_log_error() << "arSharedLib failed to load '" << libName << "'.\n";
+  }
   return _h != NULL;
 }
 

@@ -29,31 +29,23 @@ ALL := skeleton$(EXE) oopskel$(EXE)
 # Add a graphics plugin to all (shows how to build a dll).
 ifneq ($(strip $(MACHINE)),WIN32)
   ALL += \
-    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
-endif
-
-# do the same if MINGW and STATIC
-ifeq ($(strip $(SZG_COMPILER)),MINGW)
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  ALL += \
-    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
-endif
-endif
-
-# Add an input simulator plugin to all (shows how to build a dll).
-ifneq ($(strip $(MACHINE)),WIN32)
-  ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX) \
     arDefaultInputSimulator$(PLUGIN_SUFFIX)
-endif
-
-# do the same if MINGW and STATIC
-ifeq ($(strip $(SZG_COMPILER)),MINGW)
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
+else
+ifeq ($(strip $(SZG_LINKING)), DYNAMIC) 
   ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX) \
+    arDefaultInputSimulator$(PLUGIN_SUFFIX)
+else
+ifeq ($(strip $(SZG_COMPILER)),MINGW)
+  ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX) \
     arDefaultInputSimulator$(PLUGIN_SUFFIX)
 endif
 endif
+endif
 
+#
 # Makefile.rules defines standard target rules like "clean"
 # or "create-install".  This file is seperated from Makefile.vars
 # because make is fussy about rules' order. Don't change this line.

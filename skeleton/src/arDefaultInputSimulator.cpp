@@ -39,6 +39,9 @@ class arDefaultInputSimulator: public arInputSimulator {
 // to verify that this shared library is an input simulator plugin.
 // It then calls factory() to instantiate an object.
 // Further calls are made to that instance's methods.
+#undef SZG_IMPORT_LIBRARY
+#undef SZG_DO_NOT_EXPORT
+#include "arCallingConventions.h"
 extern "C" {
   SZG_CALL void baseType(char* buffer, int size)
     { ar_stringToBuffer("arInputSimulator", buffer, size); }
