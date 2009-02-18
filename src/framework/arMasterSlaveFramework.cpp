@@ -361,6 +361,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 // Initialize the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   int i;
+  string currDir;
 
   if (!_okToInit(argv[0]))
     return false;
@@ -392,6 +393,11 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
 
+    if (!ar_getWorkingDirectory( currDir )) {
+      ar_log_critical() << "Failed to get working directory.\n";
+    } else {
+      ar_log_critical() << "Directory: " << currDir << ar_endl;
+    }
     // copypaste
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
@@ -422,7 +428,6 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
   }
 
-  string currDir;
   if (!ar_getWorkingDirectory( currDir )) {
     ar_log_critical() << "Failed to get working directory.\n";
   } else {
