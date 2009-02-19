@@ -373,6 +373,7 @@ void arDistSceneGraphFramework::setPlayer() {
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   int i;
+  string currDir;
   if (!_okToInit(argv[0]))
     return false;
 
@@ -400,6 +401,11 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
       }
     }
 
+    if (!ar_getWorkingDirectory( currDir )) {
+      ar_log_critical() << "Failed to get working directory.\n";
+    } else {
+      ar_log_critical() << "Directory: " << currDir << ar_endl;
+    }
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
@@ -414,7 +420,6 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     }
   }
 
-  string currDir;
   if (!ar_getWorkingDirectory( currDir )) {
     ar_log_critical() << "Failed to get working directory.\n";
   } else {
