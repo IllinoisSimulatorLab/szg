@@ -211,7 +211,7 @@ line segments as its "bones":
 
 ==3D Studio format==
 
-We use [lib3ds lib3ds.sourceforge.net] to read in 3ds files, so we can only use versions 3 and 4. If your .3ds
+We use [lib3ds http://lib3ds.sourceforge.net] to read in 3ds files, so we can only use versions 3 and 4. If your .3ds
 file doesn't display or you see an error message when trying to read in the file, this
 is probably the reason. Simply convert it to version 3 or 4 (there are several free
 utilities out there), and the new .3ds should load into Syzygy. Basic materials and
