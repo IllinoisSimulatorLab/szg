@@ -50,7 +50,7 @@ bool arSocket::setSendBufferSize(int size)
 ```
 bool arSocket::smallPacketOptimize(bool flag)
 ```
-  Disable [Nagle's Algorithm http://en.wikipedia.org/wiki/Nagle\047s_Algorithm]
+  Disable [Nagle's Algorithm http://en.wikipedia.org/wiki/Nagle%27s_Algorithm]
   iff flag is "true".  Many TCP implementations enable Nagle's Algorithm,
   which reduces the performance of real-time applications
   that send small packets relatively slowly.
