@@ -360,12 +360,40 @@ void arDataServer::activatePassiveSocket(int socketID) {
   }
 }
 
+//#define DEBUG
+
 bool arDataServer::sendData(arStructuredData* pData) {
+  ar_timeval t0 = ar_time();
   const int theSize = pData->size();
   arGuard _(_lockTransfer, "arDataServer::sendData");
-  return ar_growBuffer(_dataBuffer, _dataBufferSize, theSize) &&
-    pData->pack(_dataBuffer) &&
-    _sendDataCore(_dataBuffer, theSize);
+  bool stat = ar_growBuffer(_dataBuffer, _dataBufferSize, theSize);
+  if (!stat) {
+#ifdef DEBUG
+    ar_log_error() << "arDataServer::sendData(): ar_growBuffer() failed.\n";
+#endif
+    return false;
+  }
+  ar_timeval t1 = ar_time();
+  stat = pData->pack(_dataBuffer); 
+  if (!stat) {
+#ifdef DEBUG
+    ar_log_error() << "arDataServer::sendData(): pack() failed.\n";
+#endif
+    return false;
+  }
+  ar_timeval t2 = ar_time();
+  stat = _sendDataCore( _dataBuffer, theSize );
+  if (!stat) {
+#ifdef DEBUG
+    ar_log_error() << "arDataServer::sendData(): _sendDataCore() failed.\n";
+#endif
+    return false;
+  }
+  ar_timeval t3 = ar_time();
+#ifdef DEBUG
+  ar_log_remark() << "sendData() time: " << ar_difftime( t3, t0 ) << ar_endl;
+#endif
+  return true;
 }
 
 bool arDataServer::sendDataQueue(arQueuedData* pData) {
@@ -384,10 +412,12 @@ bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize) {
     arSocket* fd = *iter;
     if (fd->ar_safeWrite(theBuffer, theSize)) {
       ok = true;
-    }
-    else{
+    } else {
       // Failed to broadcast data.
       removalList.push_back(fd);
+#ifdef DEBUG
+      ar_log_error() << "arSocket::ar_safeWrite() failed.\n";
+#endif
     }
   }
   for (iter = removalList.begin(); iter != removalList.end(); ++iter)
