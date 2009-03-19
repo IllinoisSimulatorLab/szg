@@ -22,7 +22,7 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
            << "  (Suppressing further error messages).\n";
       _complained = true;
     }
-    return arMatrix4();
+    return ar_identityMatrix();
   }
 
   const bool demoMode =

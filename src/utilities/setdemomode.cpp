@@ -44,27 +44,36 @@ Usage:
     return 1;
   }
 
-  // Send message to trigger, which relays to master if necessary.
-  // copypaste from dmsg.cpp
-  const string lockName = launcher.getLocation() + "/SZG_DEMO/app";
+  // First try to send message to master, then to trigger if that fails.
+  string lockName = launcher.getMasterName();
   int componentID = -1;
   if (szgClient.getLock(lockName, componentID)) {
-    // Nobody held the lock.
+    // nobody was holding the lock
     szgClient.releaseLock(lockName);
-    ar_log_critical() << "setdemomode: no trigger component running.\n";
-    ar_log_debug() << lockName << " lock-holder component ID = " << componentID << ar_endl;
-    return 1;
+    ar_log_critical() << "setdemomode: no master component running.\n";
+
+  // Try to send message to trigger.
+    lockName = launcher.getLocation() + "/SZG_DEMO/app";
+    if (szgClient.getLock(lockName, componentID)) {
+      // Nobody held the lock.
+      szgClient.releaseLock(lockName);
+      ar_log_critical() << "setdemomode: no trigger component running.\n";
+      ar_log_debug() << lockName << " lock-holder component ID = " << componentID << ar_endl;
+      componentID = -1;
+    }
   }
-  const int match = szgClient.sendMessage(
-    "demo", (paramVal == "true")? "on" : "off", componentID, false);
-  if ( match < 0 ) {
-    // sendMessage() already complained.
-    return 1;
+  if (componentID != -1) {
+    const int match = szgClient.sendMessage(
+      "demo", (paramVal == "true")? "on" : "off", componentID, false);
+    if ( match < 0 ) {
+      // sendMessage() already complained.
+      return 1;
+    }
   }
-  // end of copypaste from dmsg.cpp
 
   // set SZG_HEAD/fixed_head_mode on trigger & master.
   string triggerName = launcher.getTriggerName();
+  ar_log_debug() << "Trigger = " << triggerName << ar_endl;
   if (triggerName == "NULL") {
     ar_log_critical() << "no trigger map.\n";
     return 1;
@@ -74,6 +83,7 @@ Usage:
     return 1;
   }
   arSlashString masterMap(launcher.getMasterName());
+  ar_log_debug() << "Master = " << masterMap << ar_endl;
   if (masterMap == "NULL") {
     ar_log_critical() << "no master map.\n";
     return 1;

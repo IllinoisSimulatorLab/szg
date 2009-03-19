@@ -2299,7 +2299,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
     else if (( messageType == "demo" )||(messageType == "fixedhead")) {
-      bool useFixedHead(messageBody=="on");
+      bool useFixedHead((messageBody=="on")||(messageBody=="true"));
       setFixedHeadMode(useFixedHead);
       if (useFixedHead) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled fixed-head mode." );
