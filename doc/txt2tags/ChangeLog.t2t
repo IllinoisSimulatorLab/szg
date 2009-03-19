@@ -20,10 +20,12 @@ Python input devices in virtual computer definitions, so all programs will need 
 recompiled for any setup where you want to use a Python input driver. Hence the bump to
 1.3.
 
+Added the ability to set the application frameworks' navigation matrix from a matrix
+in the input event stream.
+
 Re-worked the Makefiles and conditional compilation such that input device drivers are built
 as shared libraries even if szg is built with SZG_LINKING=STATIC--//except// with Visual
-C++. This means that you can load input devices in standalone mode on Linux and MacOS
-(haven't tested on MacOS yet, actually).
+C++. This means that you can load input devices in standalone mode on Linux and MacOS.
 
 Renamed 'python' and 'sip_python' directories to 'python_swig' and 'python_sip', respectively.
 
