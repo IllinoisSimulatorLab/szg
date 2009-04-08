@@ -222,14 +222,14 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
       self.stop( False )
   def onOverlay( self ):
     pass
-  def _onKey( self, key, x, y ):
+  def _onKey( self, keyInfo ):
     try:
-      self.onKey( key, x, y )
+      self.onKey( keyInfo )
     except Exception, msg:
       traceback.print_exc()
       self._stop( 'Key', arCallbackException(str(msg)) )
       self.stop( False )
-  def onKey( self, key, x, y ):
+  def onKey( self, keyInfo ):
     pass
   # master->slave data-transfer based on cPickle module
   def initObjectTransfer(self,name): self.initStringTransfer(name)

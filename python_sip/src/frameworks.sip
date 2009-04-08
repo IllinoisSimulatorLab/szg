@@ -526,9 +526,8 @@ class arMasterSlaveFramework : arSZGAppFramework {
   virtual void onWindowEvent( arGUIWindowInfo* ) /PyName=_onWindowEvent/;
   //virtual void onCleanup() /PyName=_onCleanup/;
   virtual void onOverlay() /PyName=_onOverlay/;
-  virtual void onKey( unsigned char key, int x, int y ) /PyName=_onKey/;
-//  virtual void onKey( arGUIKeyInfo* );
-//  virtual void onMouse( arGUIMouseInfo* );
+  virtual void onKey( arGUIKeyInfo* ) /PyName=_onKey/;
+//  virtual void onMouse( arGUIMouseInfo* ) /PyName=_onMouse/;
 
   void setDataBundlePath( const string& bundlePathName,
                           const string& bundleSubDirectory );

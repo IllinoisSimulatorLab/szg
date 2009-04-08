@@ -85,8 +85,91 @@ class arGUIInfo {
 
     //void setWindowManager( arGUIWindowManager* wm);
     //arGUIWindowManager* getWindowManager( void ) const;
+};
 
 
+class arGUIKeyInfo : arGUIInfo {
+%TypeHeaderCode
+#include "arGUIInfo.h"
+%End
+  public:
+
+    // eventType Which type of event this is.
+    // state     What state the event is in
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // key       Which key was involved in this event.
+    // ctrl      The state of the ctrl modifier.
+    // alt       The state of the alt modifier.
+    arGUIKeyInfo( arGUIEventType eventType = AR_KEY_EVENT,
+                  arGUIState state = AR_GENERIC_STATE,
+                  int windowID = -1, int flag = 0,
+                  unsigned int key = AR_VK_GARBAGE,
+                  int ctrl = 0, int alt = 0 );
+//    arGUIKeyInfo( arStructuredData& data );
+
+    // Accessors.
+    void setKey( unsigned int key );
+    unsigned int getKey() const;
+
+    void setCtrl( int ctrl );
+    int getCtrl() const;
+
+    void setAlt( int alt );
+    int getAlt() const;
+
+    string __str__();
+%MethodCode
+      ostringstream s;
+      s << "arGUIKeyInfo ";
+      s << "ID=" << sipCpp->getWindowID();
+      s << ", State=" << sipCpp->getState();
+      s << ", Key=(" << sipCpp->getKey();
+      s << "), CTRL=(" << sipCpp->getCtrl() << "), ALT=(" << sipCpp->getAlt() << ")";
+      sipRes = new string( s.str() );
+%End
+};
+
+
+class arGUIMouseInfo : arGUIInfo {
+%TypeHeaderCode
+#include "arGUIInfo.h"
+%End
+  public:
+    // eventType Which type of event this is.
+    // state     What state the event is in
+    // windowID  Which window this event took place in.
+    // flag      Generic flag for function specific information.
+    // button    Which mouse button was involved in this event.
+    // posX      The current x position of the mouse.
+    // posY      The current y position of the mouse.
+    // prevPosX  The previous x position of the mouse.
+    // prevPosY  The previous y position of the mouse.
+    arGUIMouseInfo( arGUIEventType eventType = AR_MOUSE_EVENT,
+                    arGUIState state = AR_GENERIC_STATE,
+                    int windowID = -1, int flag = 0,
+                    unsigned int button = AR_BUTTON_GARBAGE,
+                    int posX = -1, int posY = -1,
+                    int prevPosX = -1, int prevPosY = -1 );
+  //  arGUIMouseInfo( arStructuredData& data );
+
+    // Accessors.
+    void setButton( unsigned int button );
+    unsigned int getButton() const;
+
+    void setPosX( int posX );
+    void setPosY( int posY );
+    void setPos( int posX, int posY );
+
+    void setPrevPosX( int prevPosX );
+    void setPrevPosY( int prevPosY );
+    void setPrevPos( int prevPosX, int prevPosY );
+
+    int getPosX() const;
+    int getPosY() const;
+
+    int getPrevPosX() const;
+    int getPrevPosY() const;
 };
 
 
