@@ -230,19 +230,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.theSquare.draw()
     self.theWand.draw()
 
-  def onKey( self, keyInfo ):
-    state = keyInfo.getState()
-    if state == AR_KEY_DOWN:
-      stateString = 'DOWN'
-    elif state == AR_KEY_UP:
-      stateString = 'UP'
-    elif state == AR_KEY_REPEAT:
-      stateString = 'REPEAT'
-    else:
-      stateString = 'UNKNOWN'
-    print 'KEY: ascii=%d, ctrl=%d, alt=%d, state=%s' % \
-        (keyInfo.getKey(),keyInfo.getCtrl(),keyInfo.getAlt(),stateString)
+  def onKeyDown( self, key, ctrl, alt ):
+    print 'Key down:',key,' ctrl=',ctrl,' alt=',alt
 
+  def onKeyUp( self, key, ctrl, alt ):
+    print 'Key up  :',key,' ctrl=',ctrl,' alt=',alt
 
 if __name__ == '__main__':
   szgrun( appClass=SkeletonFramework )

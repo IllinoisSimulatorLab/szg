@@ -230,6 +230,13 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
       self._stop( 'Key', arCallbackException(str(msg)) )
       self.stop( False )
   def onKey( self, keyInfo ):
+    if keyInfo.getState() == AR_KEY_DOWN:
+      self.onKeyDown( keyInfo.getKey(), keyInfo.getCtrl(), keyInfo.getAlt() )
+    elif keyInfo.getState() == AR_KEY_UP:
+      self.onKeyUp( keyInfo.getKey(), keyInfo.getCtrl(), keyInfo.getAlt() )
+  def onKeyDown( self, key, ctrl, alt ):
+    pass
+  def onKeyUp( self, key, ctrl, alt ):
     pass
   # master->slave data-transfer based on cPickle module
   def initObjectTransfer(self,name): self.initStringTransfer(name)
