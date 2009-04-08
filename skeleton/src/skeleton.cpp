@@ -194,6 +194,25 @@ void display( arMasterSlaveFramework& fw ) {
   theEffector.draw();
 }
 
+// Catch key events.
+void keypress( arMasterSlaveFramework& fw, arGUIKeyInfo* keyInfo ) {
+  cout << "Key ascii value = " << keyInfo->getKey() << endl;
+  cout << "Key ctrl  value = " << keyInfo->getCtrl() << endl;
+  cout << "Key alt   value = " << keyInfo->getAlt() << endl;
+  string stateString;
+  arGUIState state = keyInfo->getState();
+  if (state == AR_KEY_DOWN) {
+    stateString = "DOWN";
+  } else if (state == AR_KEY_UP) {
+    stateString = "UP";
+  } else if (state == AR_KEY_REPEAT) {
+    stateString = "REPEAT";
+  } else {
+    stateString = "UNKNOWN";
+  }
+  cout << "Key state = " << stateString << endl;
+}
+    
 // This is how we have to catch reshape events now, still
 // dealing with the fallout from the GLUT->arGUI conversion.
 // Note that the behavior implemented below is the default.
@@ -224,6 +243,7 @@ int main(int argc, char** argv) {
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(display);
+  framework.setKeyboardCallback( keypress );
   framework.setWindowEventCallback( windowEvent );
   // also setExitCallback(), setUserMessageCallback()
   // in demo/arMasterSlaveFramework.h

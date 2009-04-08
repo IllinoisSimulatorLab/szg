@@ -117,7 +117,7 @@ class SkeletonFramework: public arMasterSlaveFramework {
 //    virtual void onUserMessage( const string& messageBody );
 //    virtual void onOverlay( void );
 //    virtual void onKey( unsigned char key, int x, int y );
-//    virtual void onKey( arGUIKeyInfo* );
+    virtual void onKey( arGUIKeyInfo* );
 //    virtual void onMouse( arGUIMouseInfo* );
   private:
     // Our single object and effector
@@ -224,6 +224,25 @@ void SkeletonFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) 
   // Draw stuff.
   _square.draw();
   _effector.draw();
+}
+
+// Catch key events.
+void SkeletonFramework::onKey( arGUIKeyInfo* keyInfo ) {
+  cout << "Key ascii value = " << keyInfo->getKey() << endl;
+  cout << "Key ctrl  value = " << keyInfo->getCtrl() << endl;
+  cout << "Key alt   value = " << keyInfo->getAlt() << endl;
+  string stateString;
+  arGUIState state = keyInfo->getState();
+  if (state == AR_KEY_DOWN) {
+    stateString = "DOWN";
+  } else if (state == AR_KEY_UP) {
+    stateString = "UP";
+  } else if (state == AR_KEY_REPEAT) {
+    stateString = "REPEAT";
+  } else {
+    stateString = "UNKNOWN";
+  }
+  cout << "Key state = " << stateString << endl;
 }
 
 // This is how we have to catch reshape events now, still
