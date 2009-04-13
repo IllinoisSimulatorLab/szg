@@ -133,6 +133,9 @@ class arPyExperiment(arExperiment):
       return None
     return self.currentTrialPhase.getName()
 
+  def getEyeSpacing( self ):
+    return self.getDoubleSubjectParameter( 'eye_spacing_cm' )
+
   def activateTrialPhase( self, name ):
     if self.currentTrialPhase:
       self.currentTrialPhase.finish()
@@ -361,7 +364,7 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
             raise RuntimeError, 'The experiment failed to start.'
           # Normally the eye spacing is read from the Syzygy database. We want to use
           # the value read from the subject database file instead.
-          eyeSpacing = self.experiment.getDoubleSubjectParameter( 'eye_spacing_cm' )
+          eyeSpacing = self.experiment.getEyeSpacing()
           self.setEyeSpacing( eyeSpacing/(2.54*12) )
         self.experiment.update()
 
