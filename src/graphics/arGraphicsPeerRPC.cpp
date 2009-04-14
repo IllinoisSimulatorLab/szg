@@ -396,7 +396,7 @@ string ar_graphicsPeerHandlePrintPeer(arGraphicsPeer* peer, const string&) {
 string ar_graphicsPeerStripName(string& messageBody) {
   string peerName;
   string actualMessageBody;
-  unsigned int position = messageBody.find('/');
+  const string::size_type position = messageBody.find('/');
   if (position == string::npos) {
     // Just the peer name.
     peerName = messageBody;

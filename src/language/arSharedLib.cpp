@@ -93,10 +93,10 @@ void* arSharedLib::sym(const string& functionName) {
   return addr;
 #else
   const string name =
-#ifdef AR_USE_DARWIN
+//#ifdef AR_USE_DARWIN
   // Linux and Irix don't need leading "_"
-    "_" +
-#endif
+//    "_" +
+//#endif
           functionName;
   return dlsym(_h, name.c_str());
 #endif

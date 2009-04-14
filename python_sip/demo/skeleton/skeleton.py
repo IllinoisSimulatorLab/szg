@@ -156,7 +156,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   def onWindowStartGL( self, winInfo ):
     glClearColor(0,0,0,0)
 
-
   # Callback called before data is transferred from master to slaves. Now
   # called _only on the master_. This is where anything having to do with
   # processing user input or random variables should happen. Normally, most
@@ -231,10 +230,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.theSquare.draw()
     self.theWand.draw()
 
-  def onKey( self, k, x, y ):
-    print 'KEY:',k
+  def onKeyDown( self, key, ctrl, alt ):
+    print 'Key down:',key,' ctrl=',ctrl,' alt=',alt
 
-
+  def onKeyUp( self, key, ctrl, alt ):
+    print 'Key up  :',key,' ctrl=',ctrl,' alt=',alt
 
 if __name__ == '__main__':
   szgrun( appClass=SkeletonFramework )

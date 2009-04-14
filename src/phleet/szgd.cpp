@@ -542,7 +542,7 @@ static void TweakPath(string& path) {
 
 #ifndef AR_USE_WIN_32
   // Change windows szg path's ';' delimiter to unix's ':'.
-  unsigned pos;
+  string::size_type pos;
   while ((pos = path.find(";")) != string::npos) {
     path.replace( pos, 1, ":" );
   }
@@ -815,11 +815,11 @@ LDone:
   }
   info << "szgd running " << symbolicCommand << " on path\n" << execPath << ".\n";
 
-  const unsigned iLog = messageContext.find("log=");
+  const string::size_type iLog = messageContext.find("log=");
   if (iLog != string::npos) {
     argsMangled.push_back("-szg");
     // messageContext is ;-delimited
-    const unsigned iSemi = messageContext.find(";");
+    const string::size_type iSemi = messageContext.find(";");
     if (iSemi == string::npos) {
       // "log=FOO" was last
       argsMangled.push_back(messageContext.substr(iLog));

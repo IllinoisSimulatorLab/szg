@@ -474,6 +474,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     char szLogLevel[80] = "log="; // more than long enough, for internally generated string
     if (!ar_log().logLevelDefault()) {
       // Play fast and loose with extending argv[], since it was longer before.
+      // Also, Miss Manners says we should new[] storage for all that gets assigned to argv[].
       argv[argc++] = "-szg";
       argv[argc++] = strncat(szLogLevel, ar_log().logLevel().c_str(), 79);
     }
@@ -2299,7 +2300,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
     else if (( messageType == "demo" )||(messageType == "fixedhead")) {
-      bool useFixedHead(messageBody=="on");
+      bool useFixedHead((messageBody=="on")||(messageBody=="true"));
       setFixedHeadMode(useFixedHead);
       if (useFixedHead) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled fixed-head mode." );

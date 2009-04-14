@@ -414,7 +414,7 @@ int main( int argc, char** argv ) {
   theDatabase = new arGraphicsDatabase;
   char texPath[ 256 ] = {0};
 #ifndef AR_USE_WIN_32
-    getcwd( texPath, 256 );
+    (void)getcwd( texPath, 256 );
 #endif
   theDatabase->setTexturePath( string( texPath ) );
 

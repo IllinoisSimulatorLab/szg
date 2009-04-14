@@ -8,8 +8,7 @@
 
 #include "arPhleetConfig.h"
 
-// prints the log-in information, szgserver name, szgserver IP, szgserver
-// port, and user name
+// Print login info, szgserver name/IP/port, user name.
 int main(int argc, char** argv) {
   if (argc != 1) {
     cerr << "usage: " << argv[0] << "\n";
@@ -17,36 +16,33 @@ int main(int argc, char** argv) {
   }
 
   arPhleetConfig config;
-  if (!config.readLogin()) {
-    string configLocation, loginLocation;
-    config.determineFileLocations( configLocation, loginLocation );
-    bool exists, isFile;
-    if (!ar_fileExists( configLocation, exists, isFile )) {
-      cerr << "Could not determine whether or not " << configLocation << " exists?!?\n";
-      return 1;
-    }
-    if (!exists) {
-      cerr << configLocation << " does not exist. You must use dname and daddinterface to create it.\n";
-      return 1;
-    }
-    if (!isFile) {
-      cerr << configLocation << " exists, but is not a file. You must delete or move it, then use dname and daddinterface to create the file.\n";
-      return 1;
-    }
-    if (!ar_fileExists( loginLocation, exists, isFile )) {
-      cerr << "Could not determine whether or not " << loginLocation << " exists?!?\n";
-      return 1;
-    }
-    if (!exists) {
-      cerr << loginLocation << " does not exist. You must dlogin.\n";
-      return 1;
-    }
-    if (!isFile) {
-      cerr << loginLocation << " exists, but is not a file. You must delete or move it, then dlogin\n";
-      return 1;
-    }
-    cerr << "Login file exists, but does not contain valid user information (possible file corruption?).\n"
-         << "Suggest you dlogin to re-create it.\n";
+  if (config.readLogin())
+    return config.printLogin() ? 0 : 1;
+
+  string configLocation, loginLocation;
+  config.determineFileLocations( configLocation, loginLocation );
+  bool exists, isFile;
+  cerr << argv[0] << ": ";
+  if (!ar_fileExists( configLocation, exists, isFile )) {
+    cerr << configLocation << " existence indeterminate.\n";
   }
-  return config.printLogin() ? 0 : 1;
+  else if (!exists) {
+    cerr << "first run dname and daddinterface to create " << configLocation << ".\n";
+  }
+  else if (!isFile) {
+    cerr << configLocation << " is not a file. First run dname and daddinterface to recreate it.\n";
+  }
+  else if (!ar_fileExists( loginLocation, exists, isFile )) {
+    cerr << loginLocation << " existence indeterminate.\n";
+  }
+  else if (!exists) {
+    cerr << "no " << loginLocation << ". First dlogin.\n";
+  }
+  else if (!isFile) {
+    cerr << loginLocation << " is not a file. First dlogin.\n";
+  }
+  else {
+    cerr << loginLocation << " contains no valid user information (file corrupt?). First dlogin.\n";
+  }
+  return 1;
 }

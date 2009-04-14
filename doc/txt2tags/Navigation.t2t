@@ -17,18 +17,18 @@ you may only need to make two function calls.
 =Background=
 
 There are two
-levels of support for navigation. //math/arNavigationUtilities.{h,cpp}//
+levels of support for navigation. First, //math/arNavigationUtilities.{h,cpp}//
 contains tools for setting
 and reading a global navigation matrix and for converting points, vector
 offsets, and matrices between input coordinates and navigation
 coordinates. You can use these routines even if you're not using one of
-the application frameworks. The application frameworks also provide a
+the application frameworks. Second, the application frameworks also provide a
 navigation interface that handles automatic event-processing for
 navigation. This interface is currently based on the routines in
-arNavigationUtilities; however, although easy to use the
-arNavigationUtilities place an undesirable restriction on the structure
-of virtual worlds, so we expect to be changing the underlying framework
-navigation code in the not-too-distant future.
+arNavigationUtilities. //New in 1.3//: If you use the framework
+navigation interface, you can also control your application's navigation
+from a matrix event from the input event stream, e.g. from a
+[Python input device driver or script PythonBindings.html#PythonDrivers].
 
 The drawback is
 that you can't have any transformations between the navigation matrix
@@ -98,20 +98,25 @@ The application
 frameworks provide a simple interface for automatically converting input
 events into navigation commands. Navigation commands are handled by the
 arNavigationUtilities, input-event conversion is handled by the classes
-in the [ Interaction.html]interaction directory.
+in the [ Interaction.html]interaction directory. //New in 1.3//: You can
+set a couple of Syzygy database parameters that will make the framework
+copy a specific matrix event from the input stream into the navigation
+matrix, allowing you to externally script your navigation.
 
 
 ==Levels of behaviors==
 
 Three levels of behaviors are available:
 + The frameworks have built-in default behaviors.
-+ These behaviors can be overridden by setting a few parameters in the Syzygy
++ These behaviors can be modified by setting a few parameters in the Syzygy
 database.
 + The first two sets of behaviors can be overridden by calling framework methods
 from within an application.
++ All of these are ignored if you set the database parameters that tell
+the framework to set the navigation matrix from the input event stream.
 
 
-==Behavior specification==
+==Default Behavior Modification==
 
 To determine behavior, you specify two things: the
 nature of the behavior and the condition required to trigger it. Two
@@ -225,6 +230,11 @@ index. This parameter defaults to 1/0/0/2/0, in other words, use matrix
 #1 (#0 is generally assumed to be attached to the head), no buttons, and
 axes 0 and 1 for navigation.
 
+//New in 1.3//: Setting SZG_NAV/use_nav_input_matrix to "true" tells the
+framework to copy a matrix from the input event stream into the
+navigation matrix. The matrix event index to copy is specified by the
+value of SZG_NAV/nav_input_matrix_index, which defaults to 2.
+
 
 ==Framework methods==
 
@@ -281,4 +291,18 @@ database (clobbering the value we've just set in code) in response to a
     framework.ownNavParam( "translation_speed" );
 ```
 
+
+==Externally-scripted Navigation==[ExternalNavigation]
+
+//New in 1.3//: Setting SZG_NAV/use_nav_input_matrix to "true" tells the
+framework to copy a matrix from the input event stream into the
+navigation matrix. The matrix event index to copy is specified by the
+value of SZG_NAV/nav_input_matrix_index, which defaults to 2.
+
+As an example, suppose you had several applications. For a demo of all of
+these applications you wanted the viewpoint to always face the origin while orbiting
+around it at a fixed distance. You could write a
+[Python input driver PythonBindings.html#PythonDrivers] that generated a
+stream of matrix events with index 2 and computed as in
+[orbit.py ../python_sip/demo/inputdevices/orbit.py].
 

@@ -381,7 +381,7 @@ cerr << "attempt #2: queue length == " << ifr.ifr_qlen << endl;
 //1: 2A7F7E82:10B2 2A7F7E82:271A 01 00001B00:00000000 01:00000056 00000003 12159        0 318761
 }
 #endif
-
+//printf("socket write: %d\n",numBytes);
   return write(_socketFD, theData, numBytes);
 #else
   // Win32
@@ -422,6 +422,8 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
   return true;
 }
 
+//#define DEBUG
+
 int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecTimeout) {
   const bool fTimeout = usecTimeout > 0.;
   const ar_timeval tStart = ar_time();
@@ -433,6 +435,9 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
       const double usecElapsed = ar_difftime(ar_time(), tStart);
       if (usecElapsed > usecTimeout) {
         // timed out
+#ifdef DEBUG
+        ar_log_error() << "ar_safeWrite() timed out.\n";
+#endif
         return false;
       }
       if (!writable()) {
@@ -444,6 +449,9 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
     const int n = ar_write(theData, numBytes);
     if (n<0) {
       // an error in writing to the socket
+#ifdef DEBUG
+        ar_log_error() << "ar_write() failed.\n";
+#endif
       --_usageCount;
       return false;
     }

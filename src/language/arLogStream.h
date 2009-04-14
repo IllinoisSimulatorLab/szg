@@ -88,7 +88,7 @@ class SZG_CALL arLogStream {
   arLogStream& _setLevel(int);
 
   // Guards _header, _threshold, _flush(), _buffer interleaving.
-  // Guards _level *only* when altering, to avoid deadlocks.
+  // Guards _level *only* when altering.
   arGlobalLock _streamLock;
   void _lock(const char* name) { _streamLock.lock(name); }
   void _unlock() { _streamLock.unlock(); }

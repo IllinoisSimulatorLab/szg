@@ -1085,7 +1085,7 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
       i != valueContainer->end(); ++i) {
       // Output in dbatch format.
       string first = i->first;
-      unsigned slash = first.find("/");
+      string::size_type slash = first.find("/");
       if (slash == string::npos) {
         // Global attr.
         globalAttrs.push_back( "<param>\n  <name>\n    " + first + 

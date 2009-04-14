@@ -8,32 +8,33 @@
 
 #include "arPhleetConfig.h"
 
-void printusage() {
-    cout << "szg:ERROR:usage: 'dname [name]' (to set manually) or 'dname -hostname' (to set automatically).\n"
-         << "szg:ERROR:       'dname' prints current name.\n";
+int printusage() {
+  cout << "dname ERROR: usage: dname <szgname>' (set name)\n"
+       << "dname ERROR: usage: dname -hostname' (set name automatically)\n"
+       << "dname ERROR: usage: dname (print current name)\n";
+  return 1;
 }
 
 int main(int argc, char** argv) {
-  arPhleetConfig config;
+  if ((argc != 1)&&(argc != 2)) {
+    return printusage();
+  }
 
+  arPhleetConfig config;
   char* host = argv[1];
   char buf[200];
-  int stat;
-
-  if ((argc != 1)&&(argc != 2)) {
-    printusage();
-    return 1;
-  }
+  bool ok = false;
 
   if (argc == 1) {
     if (!config.read()) {
-      cout << "szg:ERROR:Computer's Syzygy name has not been set.\n";
-      printusage();
-      return 1;
+      cout << "dname ERROR: computer's Syzygy name has not been set.\n";
+      return printusage();
     }
-    stat = 0;
+    ok = true;
+
   } else {
-    if (strcmp( host, "-hostname" )==0) {
+
+    if (!strcmp( host, "-hostname" )) {
 #ifdef AR_USE_WIN_32
       if (!ar_winSockInit())
         return 1;
@@ -43,18 +44,18 @@ int main(int argc, char** argv) {
       char* pch = strchr(buf, '.');
       if (pch)
         *pch = '\0';
-      cout << "szg:REMARK: gethostname() returned the name " << buf << endl;
+      cout << "dname REMARK: gethostname() returned '" << buf << "'.\n";
       host = buf;
     }
 
-    if (!config.read()) {
-      // THIS IS NOT AN ERROR!
-      // This can occur the first time one of these program is run.
-      cout << "szg:REMARK: writing new config file.\n";
-    }
+    bool fNewFile = config.read();
     config.setComputerName(host);
-    stat = config.write() ? 0 : 1;
+    ok = config.write();
+    if (ok && fNewFile)
+      cout << "dname REMARK: wrote new config file.\n";
   }
-  cout << "szg:CRITICAL:Computer name = " << config.getComputerName() << endl;
-  return stat;
+
+  if (ok)
+    cout << "dname CRITICAL: computer's Syzygy name is '" << config.getComputerName() << "'.\n";
+  return ok ? 0 : 1;
 }

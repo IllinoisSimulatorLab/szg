@@ -1,10 +1,9 @@
 # Linux variables
 
 MACHINE_DIR = linux
-# NOTE: Each time an executable or shared library gets built, it is
-# automatically copied. Do NOT use "cp -u" here (the only-copy-for-update
-# is vulnerable to clock misalignment (i.e. "why isn't my new executable
-# running?")
+
+# Whenever an exe or dll is built, it's automatically copied.
+# Avoid "cp -u", which suffers from clock drift across smb.
 CP = cp
 
 # The suffixes unique to the platform.
@@ -17,6 +16,9 @@ EXE =
 
 # General info regarding compiling such as flags for the various build styles.
 # NOTE: since we are building DLL's, need POSITION INDEPENDENT code
+# On 64bit ubuntu ibex:
+#   instead of -march=i686 , -m64 -msse5
+#   sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
 COMPILER = g++
 COMPILE_FLAGS_NDEBUG = -DAR_USE_LINUX -c -fPIC -O2 -Wall -W \
   -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)

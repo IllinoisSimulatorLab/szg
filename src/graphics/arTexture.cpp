@@ -373,7 +373,7 @@ bool arTexture::readPPM(const string& fileName,
 
 #ifndef BROKEN
   char PPMHeader[4]; // fscanf's %3c averts danger of buffer overflow
-  fscanf(fd, "%3c ", PPMHeader);
+  (void)fscanf(fd, "%3c ", PPMHeader);
   if (PPMHeader[2] == '\n') {
     PPMHeader[2] = '\0';
   }
@@ -396,16 +396,16 @@ bool arTexture::readPPM(const string& fileName,
     if (nextChar != '#') {
       break;
     }
-    fgets(buffer, sizeof(buffer), fd);
+    (void)fgets(buffer, sizeof(buffer), fd);
   }
 
-  fscanf(fd, "%d %d", &_width, &_height);
+  (void)fscanf(fd, "%d %d", &_width, &_height);
 
   // todo: validate image dimensions (powers of two), with ar_isPowerOfTwo().
   // todo: if invalid, resize.
 
   int maxGrey = -1;
-  fscanf(fd, "%d", &maxGrey);
+  (void)fscanf(fd, "%d", &maxGrey);
 
   _alpha = (alpha != -1);
   if (!_reallocPixels()) {
@@ -425,7 +425,7 @@ bool arTexture::readPPM(const string& fileName,
       ar_log_error() << "arTexture readPPM localBuffer out of memory.\n";
       return false;
     }
-    fread(localBuffer, _width*_height*3, 1, fd);
+    (void)fread(localBuffer, _width*_height*3, 1, fd);
     char* pSrc = localBuffer;
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
@@ -441,7 +441,7 @@ bool arTexture::readPPM(const string& fileName,
     int aPixel[3];
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
-        fscanf(fd, "%d %d %d", aPixel, aPixel+1, aPixel+2);
+        (void)fscanf(fd, "%d %d %d", aPixel, aPixel+1, aPixel+2);
         pPixel = &_pixels[(i*_width+j)*getDepth()];
         *pPixel++ = (unsigned char)aPixel[0];
         *pPixel++ = (unsigned char)aPixel[1];
@@ -482,7 +482,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
 
 #ifndef BROKEN
   char PPMHeader[4]; // fscanf's %3c averts danger of buffer overflow
-  fscanf(fd, "%3c ", PPMHeader);
+  (void)fscanf(fd, "%3c ", PPMHeader);
   if (PPMHeader[2] == '\n') {
     PPMHeader[2] = '\0';
   }
@@ -505,11 +505,11 @@ bool arTexture::readAlphaPPM(const string& fileName,
     if (nextChar != '#') {
       break;
     }
-    fgets(buffer, sizeof(buffer), fd);
+    (void)fgets(buffer, sizeof(buffer), fd);
   }
 
   int width, height;
-  fscanf(fd, "%d %d", &width, &height);
+  (void)fscanf(fd, "%d %d", &width, &height);
   if (!_pixels) {
     _width = width;
     _height = height;
@@ -534,7 +534,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
   // todo: if invalid, resize.
 
   int maxGrey = -1;
-  fscanf(fd, "%d", &maxGrey);
+  (void)fscanf(fd, "%d", &maxGrey);
 
   // Get the carriage return before the pixel data.
   fgetc(fd);
@@ -547,7 +547,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
       ar_log_error() << "arTexture readAlphaPPM localBuffer out of memory.\n";
       return false;
     }
-    fread(localBuffer, _width*_height*3, 1, fd);
+    (void)fread(localBuffer, _width*_height*3, 1, fd);
     char* pSrc = localBuffer;
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
@@ -565,7 +565,7 @@ bool arTexture::readAlphaPPM(const string& fileName,
     int aPixel[3];
     for (i=_height-1; i>=0; --i) {
       for (j=0; j<_width; ++j) {
-        fscanf(fd, "%d %d %d", aPixel, aPixel+1, aPixel+2);
+        (void)fscanf(fd, "%d %d %d", aPixel, aPixel+1, aPixel+2);
         sum = 0;
         for (k=0; k<3; ++k) {
           sum += aPixel[k];
@@ -604,7 +604,7 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
     ar_log_error() << "arTexture writePPM _packPixels failed.\n";
     return false;
   }
-  fwrite(buffer, 1, _height*_width*3, fp);
+  (void)fwrite(buffer, 1, _height*_width*3, fp);
   fclose(fp);
   delete[] buffer;
   return true;

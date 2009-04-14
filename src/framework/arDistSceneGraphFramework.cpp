@@ -638,12 +638,12 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv) {
       // THIS IS COPY-PASTED FROM arSZGClient (where other key=value args
       // are parsed). SHOULD IT BE GLOBALIZED?
       const string thePair(argv[i+1]);
-      unsigned int location = thePair.find('=');
+      string::size_type location = thePair.find('=');
       if (location == string::npos) {
         ar_log_error() << "context pair has no '='.\n";
         return false;
       }
-      unsigned int length = thePair.length();
+      string::size_type length = thePair.length();
       if (location == length-1) {
         ar_log_error() << "context pair ends with '='.\n";
         return false;

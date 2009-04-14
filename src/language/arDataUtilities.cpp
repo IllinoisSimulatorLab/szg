@@ -339,16 +339,12 @@ bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes) {
 
 // The following functions are platform dependent (endianness).
 
-void ar_packData(ARchar* destination, const void* data,
-                 arDataType type, int dimension) {
-  const int totalSize = dimension * arDataTypeSize(type);
-  memcpy(destination, data, totalSize);
+void ar_packData(ARchar* dst, const void* src, arDataType type, int dim) {
+  memcpy(dst, src, dim * arDataTypeSize(type));
 }
 
-void ar_unpackData(const ARchar* source, void* destination,
-                   arDataType type, int dimension) {
-  const int totalSize = dimension * arDataTypeSize(type);
-  memcpy(destination, source, totalSize);
+void ar_unpackData(const ARchar* src, void* dst, arDataType type, int dim) {
+  memcpy(dst, src, dim * arDataTypeSize(type));
 }
 
 ARint ar_rawDataGetSize(ARchar* data) {
@@ -372,6 +368,7 @@ ARint ar_rawDataGetFields(ARchar* data) {
 arStreamConfig ar_getLocalStreamConfig() {
   arStreamConfig config;
   config.endian = AR_ENDIAN_MODE;
+  // Bug: the other fields are uninitialized garbage. Should arStreamConfig be a class not a struct, with a proper constructor?
   return config;
 }
 
@@ -394,7 +391,7 @@ ARint ar_translateInt(ARchar* buffer, arStreamConfig conf) {
 }
 
 ARint ar_fieldSize(arDataType theType, ARint dim) {
-  // We pad out char fields to end on a 4-byte boundary.
+  // Pad char fields to the next 4-byte boundary.
   ARint result = arDataTypeSize(theType) * dim;
   if (theType == AR_CHAR && dim%4)
     result += 4 - dim%4;
@@ -963,7 +960,7 @@ string ar_exePath(const string& name) {
 // We want to do this to determine if something is a python script,
 // for instance.
 string ar_getExtension(const string& name) {
-  const unsigned position = name.find_last_of(".");
+  const string::size_type position = name.find_last_of(".");
   if (position == string::npos || position == name.length())
     return string("");
   return name.substr(position+1, name.length()-position-1);
@@ -980,7 +977,7 @@ void ar_addSharedLibExtension(string& name) {
 
 // For ar_replaceAll(), pop the first word off the front of s, and return that word.
 inline string popword(string& s, const string& delim) {
-  const unsigned i = s.find(delim);
+  const string::size_type i = s.find(delim);
   const string w(s.substr(0, i));
   if (i == string::npos)
     s.erase(); // s was only one word

@@ -1065,10 +1065,10 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     string actualElementType(pathList[iPath]);
 
     // If there is an array index, remove it.
-    const unsigned firstArrayLoc = pathList[iPath].find('[');
+    const string::size_type firstArrayLoc = pathList[iPath].find('[');
     if ( firstArrayLoc != string::npos ) {
       // There might be a valid array index.
-      const unsigned lastArrayLoc = pathList[iPath].find_last_of("]");
+      const string::size_type lastArrayLoc = pathList[iPath].find_last_of("]");
       if (lastArrayLoc == string::npos) {
         ar_log_error() << "invalid array index in " << pathList[iPath] << ".\n";
         return string("NULL");
@@ -2360,7 +2360,7 @@ string arSZGClient::getVirtualComputers() {
 
   // From each line, extract up to the first slash.
   string r;
-  unsigned a=0, b=0;
+  string::size_type a=0, b=0;
   for (;;) {
     a = hint.find('/');
     b = hint.find('\n');
@@ -2429,7 +2429,7 @@ inline const string namevalue(const string& name, const string& value) {
 
 // Remove any trailing semicolons.
 inline const string dropsemi(string& s) {
-  const unsigned i = s.find_last_not_of(";");
+  const string::size_type i = s.find_last_not_of(";");
   return i==string::npos ? s : s.erase(i+1);
 }
 
@@ -2614,13 +2614,13 @@ bool arSZGClient::_parseContext() {
 
 bool arSZGClient::_parsePair(const string& thePair,
   arSlashString& pair1, string& pair2, string& pair1Type) {
-  const unsigned i = thePair.find('=');
+  const string::size_type i = thePair.find('=');
   if (i == string::npos) {
     ar_log_error() << "no '=' in context pair '" << thePair << "'.\n";
     return false;
   }
 
-  const unsigned length = thePair.length() - 1;
+  const string::size_type length = thePair.length() - 1;
   if (i == length) {
     ar_log_error() << "nothing after '=' in context pair '" <<
       thePair << "'.\n";

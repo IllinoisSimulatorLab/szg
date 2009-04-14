@@ -11,18 +11,21 @@ Header3
 =Changes in version 1.3=
 
 
+Added support for alternate input simulators, built as shared libraries and loaded
+based on a database parameter (SZG_INPUTSIM/sim_type) at runtime. An example is
+included in szg/skeleton.
+
 Added support for Python input devices. This required changes to the arAppLauncher to allow
 Python input devices in virtual computer definitions, so all programs will need to be
 recompiled for any setup where you want to use a Python input driver. Hence the bump to
 1.3.
 
+Added the ability to set the application frameworks' navigation matrix from a matrix
+in the input event stream.
+
 Re-worked the Makefiles and conditional compilation such that input device drivers are built
 as shared libraries even if szg is built with SZG_LINKING=STATIC--//except// with Visual
-C++. This means that you can load input devices in standalone mode on Linux and MacOS
-(haven't tested on MacOS yet, actually).
-
-Added ability to build alternate versions of inputsimulator as shared libraries and load
-the desired one at runtime based on the value of a Syzygy database parameter.
+C++. This means that you can load input devices in standalone mode on Linux and MacOS.
 
 Renamed 'python' and 'sip_python' directories to 'python_swig' and 'python_sip', respectively.
 

@@ -255,10 +255,10 @@ arLogStream& arLogStream::operator<<(const string& s) {
   if (!_preAppend())
     return *this;
 
-  const unsigned l = s.length();
-  unsigned current = 0;
+  const string::size_type l = s.length();
+  string::size_type current = 0;
   while (current < l) {
-    const unsigned next = s.find('\n', current);
+    const string::size_type next = s.find('\n', current);
     if (next == string::npos) {
       _buffer << s.substr(current, l-current);
       _postAppend(false);
@@ -315,7 +315,7 @@ void arLogStream::_flush(const bool addNewline) {
       string now(ar_currentTimeString());
 
       // Skip past gobbledegook.
-      unsigned pos = now.find('/');
+      string::size_type pos = now.find('/');
       if (pos == string::npos)
         goto LDone;
       now = now.substr(pos+1);

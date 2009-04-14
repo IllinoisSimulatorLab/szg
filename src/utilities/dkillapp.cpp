@@ -17,7 +17,6 @@ int main(int argc, char** argv) {
     return szgClient.failStandalone(fInit);
 
   if (argc < 2) {
-LPrintUsage:
     cout << "Usage: dkillapp <location>\n";
     return 1;
   }

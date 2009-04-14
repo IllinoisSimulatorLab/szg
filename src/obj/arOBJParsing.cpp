@@ -142,7 +142,8 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
     FILE* matFile = ar_fileOpen(matFileName, _subdirectory, _searchPath, "rb", "arOBJ mtllib");
     if (matFile) {
       ar_log_debug() << "Parsing mtl file '" << matFileName << "'.\n";
-      while (_readMaterialsFromFile(matFile));
+      while (_readMaterialsFromFile(matFile)) {
+      }
       _thisMaterial = 0;
       ar_log_debug() << "Parsed mtl file '" << matFileName << "'.\n";
     }
@@ -192,7 +193,7 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     {
     fseek(matFile, -1, SEEK_CUR);
     char mtlNameBuf[256] = {0};
-    fscanf(matFile, "%s %s", buffer, mtlNameBuf);
+    (void)fscanf(matFile, "%s %s", buffer, mtlNameBuf);
     string mtlName(mtlNameBuf);
     if (!strcmp(buffer, "newmtl")) {
       const unsigned cchMax = 64;
@@ -230,19 +231,19 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     switch (typeChar) {
       float x1, y1, z1;
       case 'a':      // ambient coeff
-        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        (void)fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
         _material[_thisMaterial].Ka = arVector3(x1, y1, z1);
         break;
       case 'd':      // diffuse coeff (MAIN)
-        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        (void)fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
         _material[_thisMaterial].Kd = arVector3(x1, y1, z1);
         break;
       case 's':      // specular coeff
-        fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
+        (void)fscanf(matFile, "%f %f %f", &x1, &y1, &z1);
         _material[_thisMaterial].Ks = arVector3(x1, y1, z1);
         break;
       default:        // ignore line
-        fgets(buffer, 1000, matFile);
+        (void)fgets(buffer, 1000, matFile);
         break;
     }
     break;
@@ -251,7 +252,7 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
   case 'M':
     //fseek(matFile, -1, SEEK_CUR);
     char mapName[256];
-    fscanf(matFile, "%s %s", buffer, mapName);
+    (void)fscanf(matFile, "%s %s", buffer, mapName);
     if (!strcmp(buffer, "ap_Kd")) {
       ar_log_debug() << "OBJ diffuse map: " << (_material[_thisMaterial].map_Kd = string(mapName)) << ar_endl;
     } else if (!strcmp(buffer, "ap_Bump")) {
@@ -269,12 +270,12 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     break;
 
   case '#':       // comment; ignore line
-    fgets(buffer, 1000, matFile);
+    (void)fgets(buffer, 1000, matFile);
     break;
 
   default:        // ignore line
   //  printf("(MTL file)Got char: %c\n", typeChar);
-    fgets(buffer, 1000, matFile);
+    (void)fgets(buffer, 1000, matFile);
     break;
   } // end case
   return true;

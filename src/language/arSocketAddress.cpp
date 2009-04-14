@@ -167,7 +167,7 @@ bool arSocketAddress::checkMask(list<string>& criteria) {
   }
 
   for (list<string>::iterator i = criteria.begin(); i != criteria.end(); ++i) {
-    unsigned position = i->find("/");
+    string::size_type position = i->find("/");
     if (position == string::npos) {
       // Single IP address.
       if (getRepresentation() == *i) {

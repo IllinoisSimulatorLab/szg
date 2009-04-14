@@ -128,9 +128,6 @@ LBackoff:
 arGlobalLock::arGlobalLock(const char* name) : arLock(name) {}
 #endif
 
-
-
-
 void arLock::_setName( const char* name ) {
   if (name != NULL) {
     _name = new char[strlen(name)+1];
@@ -140,7 +137,6 @@ void arLock::_setName( const char* name ) {
     memcpy( _name, "NONAME", 7 );
   }
 }
-
 
 bool arLock::valid() const {
 #ifdef AR_USE_WIN_32

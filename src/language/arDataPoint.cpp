@@ -229,7 +229,7 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
   while (true) {
     s >> myToken;
     if (!s.fail()) {
-      const unsigned position = myToken.find("=");
+      const string::size_type position = myToken.find("=");
       if (position == string::npos) {
         cerr << "arDataPoint error: invalid token.\n";
         continue;

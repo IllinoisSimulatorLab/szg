@@ -93,12 +93,12 @@ bool arSharedMemDriver::start() {
     return false;
   }
   _shmFoB = shmat(idFoB, NULL, 0);
-  if ((int)_shmFoB == -1) {
+  if ((long)_shmFoB < 0) {
     perror("shmat failed for Flock of Birds");
     return false;
   }
   _shmWand = shmat(idWand, NULL, 0);
-  if ((int)_shmWand == -1) {
+  if ((long)_shmWand < 0) {
     perror("shmat failed for wand");
     return false;
   }
