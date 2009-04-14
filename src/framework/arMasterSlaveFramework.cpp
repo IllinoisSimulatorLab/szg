@@ -262,7 +262,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   // Time.
   _time( 0.0 ),
-  _lastFrameTime( 0.1 ),
+  _lastFrameTime( 0.005 ),
+  _lastComputeTime( 10 ),
+  _lastSyncTime( 10 ),
   _firstTimePoll( true ),
 
   // Random numbers.

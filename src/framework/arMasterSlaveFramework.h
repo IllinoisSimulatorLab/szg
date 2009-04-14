@@ -303,9 +303,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Time variables
   ar_timeval _startTime;
   double     _time;
-  double     _lastFrameTime;
-  double     _lastComputeTime;
-  double     _lastSyncTime;
+  double     _lastFrameTime; // msec
+  double     _lastComputeTime; // usec
+  double     _lastSyncTime; // usec
   bool       _firstTimePoll;
 
   // Shared random number functions, as might be used in predetermined harmony mode.

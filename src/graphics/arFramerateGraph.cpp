@@ -36,8 +36,9 @@ void arPerformanceElement::setNumberEntries(const int number) {
   if (_data) {
     delete [] _data;
   }
-  _data = new float[number];
   _numberEntries = number;
+  _data = new float[_numberEntries];
+  _fInit = false;
 }
 
 void arPerformanceElement::pushNewValue(float value) {
