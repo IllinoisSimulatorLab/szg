@@ -51,7 +51,7 @@ bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, con
  *  "path" shouldn't be a default parameter, since the function will fail then.
  */
 arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
-  const unsigned pos = fileName.find('.');
+  const string::size_type pos = fileName.find('.');
   if (pos == string::npos) {
     ar_log_error() << "arObjUtil: no extension (dot) in filename '" << fileName << "'.\n";
     return NULL;

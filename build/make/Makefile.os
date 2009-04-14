@@ -55,6 +55,13 @@ ifeq "$(OSTYPE)" "linux-gnu"
   PLATFORM=linux
 endif
 
+# Upgrade to 64-bit.
+ifeq "$(PLATFORM)" "linux"
+  ifeq ($(shell uname -m), x86_64)
+    PLATFORM=linux64
+  endif
+endif
+
 # Fallback: OS environment variable
 
 ifeq "$(OS)" "Windows_NT"
@@ -73,6 +80,9 @@ ifeq "$(PLATFORM)" "win32"
 		JOBS = 1
 	endif
 else
+ifeq "$(PLATFORM)" "linux64"
+  JOBS = 8
+else
 ifeq "$(PLATFORM)" "linux"
   JOBS = 2
 else
@@ -86,6 +96,7 @@ ifeq "$(PLATFORM)" "darwin"
   JOBS = 2
 else
   JOBS = 1
+endif
 endif
 endif
 endif
@@ -108,8 +119,12 @@ ifeq "$(PLATFORM)" "win32"
   MACHINE_DIR=win32
 endif
 ifeq "$(PLATFORM)" "linux"
-  MACHINE=LINUX
+  MACHINE=LINUXbogus
   MACHINE_DIR=linux
+endif
+ifeq "$(PLATFORM)" "linux64"
+  MACHINE=LINUX64
+  MACHINE_DIR=linux64
 endif
 ifeq "$(PLATFORM)" "darwin"
   MACHINE=DARWIN

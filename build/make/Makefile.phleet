@@ -33,6 +33,9 @@ endif
 ifeq ($(strip $(MACHINE)),LINUX)
   SZG_OPTIONAL_LIBS += -lncurses
 endif
+ifeq ($(strip $(MACHINE)),LINUX64)
+  SZG_OPTIONAL_LIBS += -lncurses
+endif
 
 ALL = \
   $(SZG_CURRENT_DLL) \
