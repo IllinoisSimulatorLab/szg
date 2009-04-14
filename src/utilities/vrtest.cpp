@@ -590,5 +590,6 @@ int main(int argc, char** argv) {
   fw.setDrawCallback(callbackDraw);
   fw.setPreExchangeCallback(callbackPreEx);
   fw.setClipPlanes(.15, 20.);
+  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
