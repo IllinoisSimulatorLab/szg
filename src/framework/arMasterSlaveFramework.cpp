@@ -159,17 +159,17 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // and arViewport parameters (these give it enough information to perform
 // view frustum culling, LOD, and other tricks).
 //
-// What is the call sequence?
+// The call sequence is:
 // 1. From the event loop, the window manager requests that all (arGUI)
 //    windows draw.
 // 2. Each window (possibly in its own display thread) then calls
 //    its arGUI render callback. In a master/slave app, this is actually
 //    a call to arMasterSlaveRenderCallback::operator( arGUIWindowInfo* ).
-// 3. arMasterSlaveFramework::_drawWindow(...) is called. It is responsible for
-//    drawing the whole window and then blocking until all OpenGL commands
+// 3. arMasterSlaveFramework::_drawWindow() is called. It draws
+//    the whole window and then blocks until all OpenGL commands
 //    have written to the frame buffer.
-//    It calls the arGraphicsWindow draw. It also draws various overlays
-//    (like the performance graph or the inputsimulator).
+//    It calls the arGraphicsWindow draw. It also draws overlays
+//    like the performance graph and the inputsimulator.
 // 4. Inside the arGraphicsWindow draw, for each owned viewport, the graphics window's
 //    render callback is called. In an m/s app, this is a call to
 //    arMasterSlaveRenderCallback::operator( arGraphicsWindow&, arViewport& ).
@@ -2503,9 +2503,8 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
             _framerateGraph.drawWithComposition();
           }
 
-          // we draw the application's overlay last, if such exists. This is only
-          // done on the master instance.
           if ( getMaster() ) {
+	    // Draw the application's overlay last, if such exists.
             onOverlay();
           }
         }
