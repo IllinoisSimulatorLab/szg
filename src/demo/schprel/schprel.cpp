@@ -347,6 +347,7 @@ void draw(arMasterSlaveFramework& fw) {
 
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
+  glutInit(&argc, argv);
   if (!framework.init(argc, argv))
     return 1;
 

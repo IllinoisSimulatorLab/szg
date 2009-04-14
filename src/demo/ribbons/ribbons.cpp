@@ -686,5 +686,6 @@ int main(int argc, char** argv){
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);
+  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

@@ -637,5 +637,6 @@ int main(int argc, char** argv){
   fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
   fw.setDataBundlePath("SZG_DATA", "atlantis");
+  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

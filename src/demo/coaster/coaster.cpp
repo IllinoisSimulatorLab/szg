@@ -534,7 +534,6 @@ void DrawStuff(void)
   display_wheel(plaatje2);
 
   glFlush();
-  // glutSwapBuffers();
   glPopMatrix();
 }
 
