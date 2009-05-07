@@ -133,9 +133,8 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
   arDistSceneGraphFramework* fw
     = (arDistSceneGraphFramework*) mouseInfo->getUserData();
 
-  // in standalone mode, button events should go to the interface
-  if (fw->_standalone &&
-      fw->_standaloneControlMode == "simulator") {
+  if (fw->_standalone && fw->_standaloneControlMode == "simulator") {
+    // Pass button events to the interface.
     if (mouseInfo->getState() == AR_MOUSE_DOWN
         || mouseInfo->getState() == AR_MOUSE_UP) {
       int whichButton = ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
@@ -145,9 +144,8 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
       fw->_simPtr->mouseButton(whichButton, whichState,
                                mouseInfo->getPosX(), mouseInfo->getPosY());
     }
-    else{
-      fw->_simPtr->mousePosition(mouseInfo->getPosX(),
-                                 mouseInfo->getPosY());
+    else {
+      fw->_simPtr->mousePosition(mouseInfo->getPosX(), mouseInfo->getPosY());
     }
   }
 }
@@ -162,39 +160,38 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ) {
     = (arDistSceneGraphFramework*) keyInfo->getUserData();
 
   if ( keyInfo->getState() == AR_KEY_DOWN ) {
+    // todo: document all these keystrokes.
     switch ( keyInfo->getKey() ) {
     case AR_VK_ESC:
       // Stop the framework (parameter meaningless so far here, though it
       // does have meaning for the arMasterSlaveFramework)
       fw->stop(true);
-      // Do not exit here. Instead, let that happen inside the standalone
-      // thread of control.
+      // The standalone thread of control will exit().
       break;
     case AR_VK_f:
         fw->_graphicsClient.getWindowManager()->fullscreenWindow( keyInfo->getWindowID() );
       break;
-      case AR_VK_F:
-        fw->_graphicsClient.getWindowManager()->resizeWindow( keyInfo->getWindowID(), 600, 600 );
-      break;
-    case 'S':
+    case AR_VK_F:
+      // todo: instead of 600x600, restore to a size (and position?) saved in AR_VK_f.
+      fw->_graphicsClient.getWindowManager()->resizeWindow( keyInfo->getWindowID(), 600, 600 );
+    break;
+    case AR_VK_S:
       fw->_showSimulator = !fw->_showSimulator;
       fw->_graphicsClient.showSimulator(fw->_showSimulator);
       break;
-    case 'P':
+    case AR_VK_P:
       fw->_graphicsClient.toggleFrameworkObjects();
       break;
     }
 
-    // in standalone mode, keyboard events should also go to the interface
-    if (fw->_standalone &&
-      fw->_standaloneControlMode == "simulator") {
+    if (fw->_standalone && fw->_standaloneControlMode == "simulator") {
+      // Pass keyboard events to the interface.
       fw->_simPtr->keyboard(keyInfo->getKey(), 1, 0, 0);
     }
   }
 }
 
-// NOTE: These window events come specifically from the OS, not from any
-// arGUIWindowManager calls.
+// These window events come from the OS, not from arGUIWindowManager calls.
 void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo) {
   if (!windowInfo || !windowInfo->getUserData()) {
     return;
@@ -222,7 +219,6 @@ void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo) {
     break;
   }
 }
-
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
@@ -257,7 +253,6 @@ void arDistSceneGraphFramework::setUserMessageCallback
   _oldUserMessageCallback = userMessageCallback;
   _userMessageCallback = NULL;
 }
-
 
 void arDistSceneGraphFramework::onUserMessage( int messageID, const string& messageBody ) {
   if (_userMessageCallback) {
@@ -330,7 +325,7 @@ void arDistSceneGraphFramework::swapBuffers() {
     // No sync in the peer case! (i.e. _peerName != "NULL")
     _graphicsServer._syncServer.swapBuffers();
   }
-  else{
+  else {
     // We are in "peer mode" and there is no need to swap (message) buffers.
     // Throttle applications that would
     // otherwise rely on the swap timing of the remote display for a throttle.
@@ -461,7 +456,7 @@ void arDistSceneGraphFramework::stop(bool) {
   if (_peerName == "NULL" || _standalone) {
     _graphicsServer.stop();
   }
-  else{
+  else {
     _graphicsPeer.stop();
   }
   _soundServer.stop();
@@ -671,7 +666,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv) {
       else if (key == "root") {
         _remoteRootID = atoi(value.c_str());
       }
-      else{
+      else {
         ar_log_error() << "arg pair has illegal key '" << key << "'.\n";
         return false;
       }
@@ -757,7 +752,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode() {
       return false;
     }
   }
-  else{
+  else {
     if (!createWindows(true)) {
 
       // Stop started services, before exiting.  Does this segfault?
@@ -833,7 +828,7 @@ bool arDistSceneGraphFramework::_initPhleetMode() {
       return false;
     }
   }
-  else{
+  else {
     if (!_graphicsPeer.init(_SZGClient)) {
       ar_log_error() << "graphics peer failed to init.\n";
       if (!_SZGClient.sendInitResponse(false)) {
@@ -861,7 +856,7 @@ bool arDistSceneGraphFramework::_startPhleetMode() {
       return _startRespond("graphics server failed to listen.");
     }
   }
-  else{
+  else {
     // Peer mode.
     if (!_graphicsPeer.start()) {
       return _startRespond("graphics peer failed to start.");
