@@ -172,12 +172,12 @@ bool arPhleetConfig::print() const {
   return true; // convenience for caller
 }
 
-// Print human-readable login information
+// Print human-readable login status
 bool arPhleetConfig::printLogin() const {
-  cout << "OS user     = " << ar_getUser() << "\n"
-       << "syzygy user = " << _userName << "\n"
-       << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
-  return true; // convenience for caller
+  cout << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort <<
+        "\nSyzygy user = " << _userName <<
+        "\nOS user     = " << ar_getUser() << "\n";
+  return true; // convenient for caller
 }
 
 // Returns slash-delimited addresses (as defined in the config file) of
