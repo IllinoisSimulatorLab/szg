@@ -60,11 +60,7 @@ return sipGetState(sipTransferObj);
     return PyList_Check(sipPy);
   vector<string> *v = new vector<string>;
   char *buf;
-#ifdef AR_USE_DARWIN
       Py_ssize_t len(0);
-#else
-      int len(0);
-#endif
   for (int i = 0; i < PyList_GET_SIZE(sipPy); ++i) {
     PyString_AsStringAndSize( PyList_GET_ITEM(sipPy,i), &buf, &len );
     v->push_back(string( const_cast<const char*>(buf), static_cast<size_t>(len) ));
@@ -396,11 +392,7 @@ using namespace std;
     return PyList_Check(sipPy);
   list<string> *v = new list<string>;
   char *buf;
-#ifdef AR_USE_DARWIN
       Py_ssize_t len(0);
-#else
-      int len(0);
-#endif
   for (int i = 0; i < PyList_GET_SIZE(sipPy); ++i) {
     PyString_AsStringAndSize( PyList_GET_ITEM(sipPy,i), &buf, &len );
     v->push_back(string( const_cast<const char*>(buf), static_cast<size_t>(len) ));
