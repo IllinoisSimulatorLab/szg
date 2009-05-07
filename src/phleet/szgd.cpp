@@ -289,6 +289,22 @@ class ExecInfo {
 const char* const ExecInfo::_formatnames[formatInvalid+1] =
     { "native", "python", "invalid" };
 
+ostream& operator<<(ostream& os, const ExecInfo& x) {
+  os << "Exec( user:" << x.userName
+     << ", body:" << x.messageBody
+     << ", context:" << x.messageContext
+     << ", appDirPath:" << x.appDirPath << " )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const ExecInfo& x) {
+  os << "Exec( user:" << x.userName
+     << ", body:" << x.messageBody
+     << ", context:" << x.messageContext
+     << ", appDirPath:" << x.appDirPath << " )";
+  return os;
+}
+
 /*****************************************************************************/
 
 
@@ -549,10 +565,51 @@ static void TweakPath(string& path) {
 #endif
 }
 
+string gLogPath;
+
+bool checkPath( const string& path ) {
+  bool exists;
+  bool isDirectory;
+  if (!ar_directoryExists( path, exists, isDirectory )) {
+    ar_log_error() << "Path check failed for " << path << ar_endl;
+    return false;
+  }
+  if (!exists || !isDirectory) {
+    ar_log_error() << path << " does not exist or is not a directory." << ar_endl;
+    return false;
+  }
+  return true;
+}
+
+void getLogPath( arSZGClient& szgClient ) {
+  gLogPath = szgClient.getAttribute( "SZG_LOG", "path" );
+  if ((gLogPath != "NULL")&& checkPath(gLogPath)) {
+    gLogPath = gLogPath;
+    return;
+  }
+  if (gLogPath=="NULL") {
+    ar_log_warning() << "SZG_LOG/path not set, using default:\n";
+#ifdef AR_USE_WIN_32
+    gLogPath = "C:\szg";
+#else
+    gLogPath = "~/.szg";
+#endif
+    ar_log_warning() << "               " << gLogPath << ar_endl;
+    if (checkPath( gLogPath )) {
+      ar_log_error() << "getLogPath() failed.\n";
+      gLogPath = gLogPath;
+      return;
+    }
+  }
+  ar_log_error() << "getLogPath() failed.\n";
+  gLogPath = "";
+  return;
+}
 
 /*****************************************************************************/
 void execProcess(void* i) {
   ExecInfo* execInfo = (ExecInfo*)i;
+  ar_log_debug() << *execInfo << ar_endl;
   const string& userName = execInfo->userName;
   const string& messageContext = execInfo->messageContext;
   const int receivedMessageID = execInfo->receivedMessageID;
@@ -1135,6 +1192,8 @@ LGonnaRetry:
     // and start up anyways.
     return 1;
   }
+
+//  getLogPath(*SZGClient);
 
   arThread dummy(messageLoop, NULL);
 

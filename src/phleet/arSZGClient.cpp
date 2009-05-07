@@ -285,6 +285,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     // Tell dex that the exe is starting to launch.
     const string tradingKey = getComputerName() + "/" +
       ar_getenv("SZGTRADINGNUM") + "/" + _exeName;
+    ar_log_debug() << "Trading key: " << tradingKey << ar_endl;
 
     // Control the right to respond to the launching message.
     _launchingMessageID = requestMessageOwnership(tradingKey);
