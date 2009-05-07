@@ -40,6 +40,12 @@ double updateVertex (double x1, double y1, double z1, double c1, double v1, doub
     return z2;        /*the meat of the (linear) program */
 }
 
+// George Francis, 2009, claims this math is incorrect.
+// http://en.wikipedia.org/wiki/Lorentz_transformation may have some ideas,
+// but Camille prefers a special-relativity navigator in the Syzygy core
+// that can pop into *any* app.  For instance, the core of
+// <http://freshmeat.net/projects/lightspeed!>
+
 #define mode 1
 #define FLYMODE 1
 #define linearVel 0
@@ -97,7 +103,3 @@ void relativisticTransform(ARfloat *vert, ARfloat *drawVert,
     drawVert[2] = bestVec[2];
   }
 }
-
-
-
-
