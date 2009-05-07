@@ -84,12 +84,15 @@ class arPyExptTrialPhase(object):
 
 class arPyTimedExptTrialPhase(arPyExptTrialPhase):
   duration = 0. # seconds
+  def __init__( self ):
+    arPyExptTrialPhase.__init__(self)
+    self.startTime = 0.
   def start(self):
-    self._startTime = time.clock()
+    self.startTime = time.clock()
   def time(self):
-    return time.clock() - self._startTime
+    return time.clock() - self.startTime
   def done(self):
-    return time.clock() - self._startTime > self.duration
+    return time.clock() - self.startTime > self.duration
 
 
 class arPyExptException(RuntimeError):
@@ -331,7 +334,7 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
       if hasattr( self.__class__, 'experimentClass' ):
         self.findGuiProcess()
         print 'creating experiment'
-        self.experiment = self.__class__.experimentClass( self, szgClient )
+        self.experiment = self.__class__.experimentClass( szgClient )
         print 'done creating experiment'
         if not self.experiment:
           print 'experiment creation failed.'

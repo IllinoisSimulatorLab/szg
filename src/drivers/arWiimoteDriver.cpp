@@ -103,7 +103,7 @@ static void __pointerHandleEvent( struct wiimote_t* wm ) {
     __wiimoteDriver->queueMatrix( 0, wiiAnglesToRotMatrix( yaw, pitch, roll ));
   }
 
-#if 0
+#if 1
   // Ubuntu gutsy gibbon (isl92) needs this.
   #define expNunchuk EXP_NUNCHUK
 #else
