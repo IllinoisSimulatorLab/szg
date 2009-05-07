@@ -1197,6 +1197,14 @@ int arGUIWindow::fullscreen( void )
   // HWND_TOPMOST flag)
   raise( AR_ZORDER_TOPMOST );
 
+  // Linux *does* need this, despite the claim in the windows code above.
+  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT,
+                                               AR_WINDOW_RESIZE, _ID, 0,
+                                               changes.x, changes.y,
+                                               changes.width,
+					       changes.height ) );
+
+
 #endif
 
   _fullscreen = true;
