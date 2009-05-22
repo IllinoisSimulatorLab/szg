@@ -1654,7 +1654,7 @@ void arMasterSlaveFramework::_pollInputData( void ) {
   }
 
   _inputState->updateLastButtons();
-  _inputDevice->processBufferedEvents();
+  _inputNode->processBufferedEvents();
 
   _head.setMatrix( getMatrix( AR_VR_HEAD_MATRIX_ID, false ) );
 }
@@ -1809,16 +1809,16 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // to control a standalone master/slave application. An embedded
   // inputsimulator and a joystick interface
   _inputActive = true;
-  _inputDevice = new arInputNode( true );
-  _inputState = &_inputDevice->_inputState;
+  _inputNode = new arInputNode( true );
+  _inputState = &_inputNode->_inputState;
 
   _handleStandaloneInput();
 
   // Ignore init()'s success.  (Failure might mean just that
   // no szgserver was found, vacuously true since standalone.)
   // But init() nevertheless, so arInputNode components also get init'ed.
-  (void)_inputDevice->init( _SZGClient );
-  _inputDevice->start();
+  (void)_inputNode->init( _SZGClient );
+  _inputNode->start();
   _installFilters();
 
   // Init sound here (not in
@@ -1866,26 +1866,26 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _barrierServer->registerLocal();
   _barrierServer->setSignalObject( &_swapSignal );
 
-  // Try to init _inputDevice.
+  // Try to init _inputNode.
   _inputActive = false;
-  _inputDevice = new arInputNode( true );
+  _inputNode = new arInputNode( true );
 
-  if ( !_inputDevice ) {
+  if ( !_inputNode ) {
     ar_log_error() << "master failed to construct input device.\n";
     return false;
   }
 
-  _inputState = &_inputDevice->_inputState;
-  _inputDevice->addInputSource( &_netInputSource, false );
+  _inputState = &_inputNode->_inputState;
+  _inputNode->addInputSource( &_netInputSource, false );
   if (!_netInputSource.setSlot(0)) {
     ar_log_error() << "master failed to set slot 0.\n";
 LAbort:
-    delete _inputDevice;
-    _inputDevice = NULL;
+    delete _inputNode;
+    _inputNode = NULL;
     return false;
   }
 
-  if ( !_inputDevice->init( _SZGClient ) ) {
+  if ( !_inputNode->init( _SZGClient ) ) {
     ar_log_error() << "master failed to init input device.\n";
     goto LAbort;
   }
@@ -1964,15 +1964,15 @@ bool arMasterSlaveFramework::_startMasterObjects() {
 }
 
 bool arMasterSlaveFramework::_startInput() {
-  if (!_inputDevice) {
+  if (!_inputNode) {
     ar_log_error() << "no input device to start.\n";
     return false;
   }
 
-  if (!_inputDevice->start()) {
+  if (!_inputNode->start()) {
     ar_log_error() << "failed to start input device.\n";
-    delete _inputDevice;
-    _inputDevice = NULL;
+    delete _inputNode;
+    _inputNode = NULL;
     return false;
   }
 

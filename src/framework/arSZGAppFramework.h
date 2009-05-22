@@ -161,7 +161,7 @@ class SZG_CALL arSZGAppFramework {
     // Info about the virtual computer.
     arAppLauncher* getAppLauncher() { return &_launcher; }
     // For nonstandard use of the input node.
-    arInputNode* getInputNode() { return _inputDevice; }
+    arInputNode* getInputNode() { return _inputNode; }
     arInputNode* getInputDevice() { return getInputNode(); } // Deprecated version of getInputNode()
     // Allowing the user access to the window manager increases the flexibility
     // of the framework. Lots of info about the GUI becomes available.
@@ -177,7 +177,7 @@ class SZG_CALL arSZGAppFramework {
 
   protected:
     arSZGClient _SZGClient;
-    arInputNode* _inputDevice;
+    arInputNode* _inputNode;
     arInputState* _inputState;
     string _label;
     arNetInputSource _netInputSource;

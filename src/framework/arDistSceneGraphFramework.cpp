@@ -350,7 +350,7 @@ void arDistSceneGraphFramework::loadNavMatrix() {
 }
 
 void arDistSceneGraphFramework::setViewer() {
-  _head.setMatrix( _inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID) );
+  _head.setMatrix( _inputNode->getMatrix(AR_VR_HEAD_MATRIX_ID) );
   // It does not make sense to do this for the peer case.
   if (_peerName == "NULL") {
     // An alter(...) on a "graphics admin" record, as occurs in setVRCameraID,
@@ -589,20 +589,20 @@ void arDistSceneGraphFramework::_initDatabases() {
 }
 
 bool arDistSceneGraphFramework::_initInput() {
-  _inputDevice = new arInputNode;
-  if (!_inputDevice) {
+  _inputNode = new arInputNode;
+  if (!_inputNode) {
     ar_log_error() << "failed to create input device.\n";
     return false;
   }
-  _inputState = &(_inputDevice->_inputState);
+  _inputState = &(_inputNode->_inputState);
 
   if (!_standalone) {
-    _inputDevice->addInputSource(&_netInputSource, false);
+    _inputNode->addInputSource(&_netInputSource, false);
     if (!_netInputSource.setSlot(0)) {
       ar_log_error() << "failed to set slot 0.\n";
       return false;
     }
-    _inputState = &(_inputDevice->_inputState);
+    _inputState = &(_inputNode->_inputState);
 
   } else {  // Standalone
     _handleStandaloneInput();
@@ -610,7 +610,7 @@ bool arDistSceneGraphFramework::_initInput() {
 
   _installFilters();
 
-  if (!_inputDevice->init(_SZGClient) && !_standalone) {
+  if (!_inputNode->init(_SZGClient) && !_standalone) {
     ar_log_error() << "failed to init input device.\n";
     if (!_SZGClient.sendInitResponse(false)) {
       cerr << _label << " error: maybe szgserver died.\n";
@@ -736,7 +736,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode() {
   }
   // Peer mode is meaningless here.
   _graphicsServer.start();
-  _inputDevice->start();
+  _inputNode->start();
   arThread graphicsThread; // For display.
   if (_autoBufferSwap) {
     graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
@@ -875,7 +875,7 @@ bool arDistSceneGraphFramework::_startPhleetMode() {
 
   // Don't start the input device or sound server if in peer mode,
   // so multiple peers can run.
-  if (_peerName == "NULL" && !_inputDevice->start()) {
+  if (_peerName == "NULL" && !_inputNode->start()) {
     return _startRespond("failed to start input device.");
   }
 

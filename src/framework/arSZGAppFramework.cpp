@@ -11,7 +11,7 @@
 
 // Defaults include an average eye spacing of 6 cm.
 arSZGAppFramework::arSZGAppFramework() :
-  _inputDevice(0),
+  _inputNode(0),
   _inputState(0),
   _label("arSZGAppFramework"),
   _launcher(_label.c_str()), // pointless, since derived class sets _label after constructor?
@@ -47,8 +47,8 @@ arSZGAppFramework::arSZGAppFramework() :
 }
 
 arSZGAppFramework::~arSZGAppFramework() {
-  if (_inputDevice != 0)
-    delete _inputDevice;
+  if (_inputNode != 0)
+    delete _inputNode;
 }
 
 void arSZGAppFramework::speak( const std::string& message ) {
@@ -121,7 +121,7 @@ void arSZGAppFramework::_handleStandaloneInput() {
         _simPtr = tmp;
       }
     }
-    _simPtr->registerInputNode( _inputDevice );
+    _simPtr->registerInputNode( _inputNode );
   }
 }
 
@@ -131,7 +131,7 @@ bool arSZGAppFramework::_loadInputDrivers() {
   return false;
 #else
   const string& config = _SZGClient.getGlobalAttribute( _standaloneControlMode );
-  if (!_inputDevice) {
+  if (!_inputNode) {
     ar_log_error() << "failed to load input drivers: NULL input node.\n";
     return false;
   }
@@ -151,12 +151,12 @@ bool arSZGAppFramework::_loadInputDrivers() {
     return false;
   }
   unsigned slotNumber = 0;
-  if (!_inputFactory.loadInputSources( *_inputDevice, slotNumber )) {
+  if (!_inputFactory.loadInputSources( *_inputNode, slotNumber )) {
     ar_log_error() << "failed to load input sources.\n";
     return false;
   }
   ar_log_debug() << "Loaded input sources from '" << _standaloneControlMode << "'.\n";
-  if (!_inputFactory.loadFilters( *_inputDevice )) {
+  if (!_inputFactory.loadFilters( *_inputNode )) {
     ar_log_error() << "failed to load filters.\n";
     return false;
   }
@@ -318,7 +318,7 @@ void arSZGAppFramework::navUpdate( const arMatrix4& navMatrix ) {
 }
 
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
-  if (!_inputDevice) {
+  if (!_inputNode) {
     ar_log_error() << "failed to install event filter in NULL input device.\n";
     return false;
   }
@@ -327,8 +327,8 @@ bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
     filter = &_defaultUserFilter;
   }
   const bool ok = _userEventFilter ?
-    _inputDevice->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false ) :
-    (_inputDevice->addFilter( (arIOFilter*)filter, false ) != -1);
+    _inputNode->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false ) :
+    (_inputNode->addFilter( (arIOFilter*)filter, false ) != -1);
   if (ok) {
     _userEventFilter = filter;
   }
@@ -358,7 +358,7 @@ void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& q ) {
 
 void arSZGAppFramework::_installFilters() {
   setEventFilter( &_defaultUserFilter );
-  _inputDevice->addFilter( (arIOFilter*)&_callbackFilter, false );
+  _inputNode->addFilter( (arIOFilter*)&_callbackFilter, false );
 }
 
 static bool ___firstNavLoad = true; // todo: make this a member of arSZGAppFramework
