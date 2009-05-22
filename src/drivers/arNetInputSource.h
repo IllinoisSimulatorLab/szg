@@ -20,7 +20,10 @@ class SZG_CALL arNetInputSource: public arInputSource{
   arNetInputSource();
   virtual ~arNetInputSource() {}
 
+  // Only use ONE OR THE OTHER of these two!
   bool setSlot(unsigned);
+  bool setServiceName( const string& name );
+
   bool connected() const
     { return _connected; }
 
@@ -33,6 +36,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   ARchar*       _dataBuffer;
   int           _dataBufferSize;
   unsigned    _slot;
+  string      _serviceName;
   string _IP;
   int    _port;
   bool   _connected;

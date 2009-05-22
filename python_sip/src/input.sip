@@ -360,7 +360,11 @@ class arNetInputSource: arInputSource {
  public:
   arNetInputSource();
   virtual ~arNetInputSource();
+
+  // Only use ONE of these
   bool setSlot(unsigned);
+  bool setServiceName( const string& name );
+
   bool connected() const;
   virtual bool init( arSZGClient& );
   virtual bool start();

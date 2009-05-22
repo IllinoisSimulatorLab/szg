@@ -184,6 +184,7 @@ class SZG_CALL arSZGClient{
   bool releaseLock(const string& lockName);
   int requestLockReleaseNotification(const string& lockName);
   int getLockReleaseNotification(list<int> tags, int timeout = -1);
+  vector<string> findLocks();
   void printLocks();
 
   // Connection brokering.
@@ -201,6 +202,9 @@ class SZG_CALL arSZGClient{
   string getServiceInfo(const string& serviceName);
   bool setServiceInfo(const string& serviceName,
                       const string& info);
+  vector<string> findServices(const string& type);
+  vector<string> findActiveServices() { return findServices("active"); }
+  vector<string> findPendingServices() { return findServices("pending"); }
   void _printServices(const string& type);
   void printServices();
   void printPendingServiceRequests();

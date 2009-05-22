@@ -317,6 +317,7 @@ class arSZGClient {
   bool releaseLock(const string& lockName);
   int requestLockReleaseNotification(const string& lockName);
   int getLockReleaseNotification(list<int> tags, int timeout = -1);
+  vector<string> findLocks();
   void printLocks();
 
   // connection brokering functions
@@ -334,6 +335,10 @@ class arSZGClient {
   string getServiceInfo(const string& serviceName);
   bool setServiceInfo(const string& serviceName,
                       const string& info);
+
+  vector<string> findActiveServices();
+  vector<string> findPendingServices();
+
   void printServices();
   void printPendingServiceRequests();
   int  getServiceComponentID(const string& serviceName);

@@ -42,8 +42,10 @@ void ar_netInputSourceConnectionTask(void* p) {
 void arNetInputSource::_connectionTask() {
   // todo: designate a particular network.
   // todo: use a service name specific to a virtual computer, or specific to a user.
-  const string serviceName(
-    _szgClient->createComplexServiceName("SZG_INPUT" + ar_intToString(_slot)));
+  string serviceName( _serviceName );
+  if (serviceName == "NULL") {
+    serviceName = _szgClient->createComplexServiceName("SZG_INPUT" + ar_intToString(_slot));
+  }
   const arSlashString networks(_szgClient->getNetworks("input"));
 
   arSleepBackoff a(50, 3000, 1.5);
@@ -71,8 +73,7 @@ void arNetInputSource::_connectionTask() {
     // This service has exactly one port.
     const int port = netAddress.portIDs[0];
     const string& IP = netAddress.address;
-    svc = serviceName +  ", slot " + ar_intToString(_slot) + ", " + IP + ":" +
-          ar_intToString(port) + ".\n";
+    svc = serviceName + ", " + IP + ":" + ar_intToString(port) + ".\n";
     ar_log_debug() << "connecting to " << svc;
     if (!_dataClient.dialUpFallThrough(IP, port)) {
       ar_log_warning() << "reconnecting to " << svc;
@@ -98,6 +99,7 @@ arNetInputSource::arNetInputSource() :
   _dataBuffer(new ARchar[bufsizeStart]),
   _dataBufferSize(bufsizeStart),
   _slot(0),
+  _serviceName("NULL"),
   _IP("NULL"),
   _port(0),
   _connected(false),
@@ -110,8 +112,22 @@ arNetInputSource::arNetInputSource() :
 // Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
 
 bool arNetInputSource::setSlot(unsigned slot) {
+  if (_serviceName != "NULL") {
+    ar_log_error() << "arNetInputSource service name has already been set, setSlot() is illegal.\n";
+    return false;
+  }
   _slot = slot;
   ar_log_debug() << "using slot " << _slot << ".\n";
+  return true;
+}
+
+bool arNetInputSource::setServiceName( const string& name ) {
+  if (_slot != 0) {
+    ar_log_error() << "arNetInputSource service slot has already been set, setServiceName() is illegal.\n";
+    return false;
+  }
+  _serviceName = name;
+  ar_log_debug() << "using service " << _serviceName << ".\n";
   return true;
 }
 

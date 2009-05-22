@@ -1812,9 +1812,10 @@ int arSZGClient::getLockReleaseNotification(list<int> tags,
 }
 
 // Prints all locks currently held inside the szgserver.
-void arSZGClient::printLocks() {
+vector<string> arSZGClient::findLocks() {
+  vector<string> results;
   if (!_connected) {
-    return;
+    return results;
   }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_LOCK_LISTING);
   // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
@@ -1824,7 +1825,7 @@ void arSZGClient::printLocks() {
   if (!_dataClient.sendData(data)) {
     ar_log_error() << "warning: failed to request list of locks.\n";
     _dataParser->recycle(data);
-    return;
+    return results;
   }
   _dataParser->recycle(data);
 
@@ -1832,18 +1833,29 @@ void arSZGClient::printLocks() {
   arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_LISTING);
   if (!ack) {
     ar_log_error() << "got no list of locks.\n";
-    return;
+    return results;
   }
 
   const string locks(data->getDataString(_l.AR_SZG_LOCK_LISTING_LOCKS));
   int* IDs = (int*)data->getDataPtr(_l.AR_SZG_LOCK_LISTING_COMPONENTS, AR_INT);
   int number = data->getDataDimension(_l.AR_SZG_LOCK_LISTING_COMPONENTS);
   int where = 0;
+  ostringstream os;
   for (int i=0; i<number; ++i) {
-    // cout, not ar_log_xxx.
-    cout << ar_pathToken(locks, where) << ";" << IDs[i] << "\n";
+    os.str("");
+    os << ar_pathToken(locks, where) << ";" << IDs[i];
+    results.push_back( os.str() );
   }
   _dataParser->recycle(data);
+  return results;
+}
+
+void arSZGClient::printLocks() {
+  vector<string> locks = findLocks();
+  for (vector<string>::const_iterator i = locks.begin(); i != locks.end(); ++i) {
+    // cout, not ar_log_xxx.
+    cout << *i << endl;
+  }
 }
 
 // Helper for registerService() and requestNewPorts().
@@ -2104,11 +2116,12 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   return result;
 }
 
-// Print either pending service requests or active services.
+// List either pending service requests or active services.
 // Argument "type" is "pending" or "active", see szgserver.cpp getServicesCallback().
-void arSZGClient::_printServices(const string& type) {
+vector<string> arSZGClient::findServices(const string& type) {
+  vector<string> results;
   if (!_connected) {
-    return;
+    return results;
   }
 
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
@@ -2122,7 +2135,7 @@ void arSZGClient::_printServices(const string& type) {
   if (!_dataClient.sendData(data)) {
     ar_log_error() << "failed to request service list.\n";
     _dataParser->recycle(data);
-    return;
+    return results;
   }
   _dataParser->recycle(data);
 
@@ -2130,7 +2143,7 @@ void arSZGClient::_printServices(const string& type) {
   data = _getTaggedData(match, _l.AR_SZG_GET_SERVICES);
   if (!data) {
     ar_log_error() << "got no service list.\n";
-    return;
+    return results;
   }
 
   const string services(data->getDataString(_l.AR_SZG_GET_SERVICES_SERVICES));
@@ -2138,15 +2151,22 @@ void arSZGClient::_printServices(const string& type) {
   const int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, AR_INT);
   const int number = data->getDataDimension(_l.AR_SZG_GET_SERVICES_COMPONENTS);
   int where = 0;
+  ostringstream os;
   for (int i=0; i<number; ++i) {
-    // stdout, not ar_log_xxx().
-    cout << computers[i] << ";"
-         << ar_pathToken(services, where) << ";"
-         << IDs[i] << "\n";
+    os.str("");
+    os << computers[i] << ";" << ar_pathToken(services,where) << ";" << IDs[i];
+    results.push_back( os.str() );
   }
   _dataParser->recycle(data);
+  return results;
 }
 
+void arSZGClient::_printServices(const string& type) {
+  vector<string> services = findServices( type );
+  for (vector<string>::const_iterator i = services.begin(); i != services.end(); ++i) {
+    cout << *i << endl;
+  }
+}
 // Request that the szgserver send us a notification when the named
 // service is no longer actively held by a component in the system.
 // Returns the match to be used with the other side of this call on
@@ -3083,27 +3103,10 @@ bool arSZGClient::discoverSZGServer(const string& name,
 
 // Find szgservers and print their names.
 void arSZGClient::printSZGServers(const string& broadcast) {
-  if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()) {
-    // A diagnostic was already printed.  Don't complain here.
-    return;
+  vector<string> servers = findSZGServers( broadcast );
+  for (vector<string>::const_iterator i = servers.begin(); i != servers.end(); ++i) {
+    cout << *i << endl;
   }
-  _bufferResponse = true;
-  _justPrinting = true; // Hack. Copypaste of findSZGServers().
-
-  _lock.lock("arSZGClient::printSZGServers");
-    _foundServers.clear();
-    _dataRequested = true;
-    _beginTimer = true;
-    _requestedName = "";
-    _sendDiscoveryPacket("*", broadcast);
-    _timerCondVar.signal();
-    while (_beginTimer) {
-      _dataCondVar.wait(_lock);
-    }
-  _lock.unlock();
-  _dataRequested = false;
-  _justPrinting = false;
-  _bufferResponse = false;
 }
 
 // Find szgservers and return their names.
