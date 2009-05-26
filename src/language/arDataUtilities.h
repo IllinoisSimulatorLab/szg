@@ -33,12 +33,12 @@ SZG_CALL string ar_getLastWin32ErrorString();
 
 // Version info
 
-// Syzygy version string, e.g. "1.3.0"
-SZG_CALL string ar_versionString();
+// Syzygy version string, e.g. "1.3.0" or "Syzygy version: 1.3.0.\n"
+SZG_CALL string ar_versionString(bool fVerbose=true);
 
-// Bazaar version info. Only returns meaningful info if
+// Bazaar version info. Returns meaningful info only if
 // bzr and Python are present when libraries are built.
-SZG_CALL string ar_versionInfo();
+SZG_CALL string ar_versionInfo(bool fVerbose=true);
 
 
 // Small utility classes.

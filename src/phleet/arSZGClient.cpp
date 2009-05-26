@@ -103,8 +103,7 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 bool arSZGClient::_connect() {
   if (!_dialUpFallThrough()) {
     _connected = false;
-    ar_log_debug() << "Version info:\n" << ar_versionInfo();
-    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
+    ar_log_debug() << ar_versionInfo() << ar_versionString();
     return false;
   }
   ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
@@ -245,7 +244,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
         parseParameterFile(s, false);
       }
     }
-    ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
+    ar_log_debug() << ar_versionString();
     return true;
   }
 
@@ -253,7 +252,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   if (!_connect()) {
     return false;
   }
-  ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
+  ar_log_debug() << ar_versionString();
 
   _connected = true;
   const string configfile_serverName(_serverName);

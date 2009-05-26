@@ -57,8 +57,7 @@ bool arDeviceServerFramework::init( int& argc, char** argv, string forcedName ) 
   // Force the component's name because Win98 won't give the name
   // automatically.  Ascension Spacepad needs Win98.
   const bool fInit = _szgClient.init(argc, argv, forcedName);
-  ar_log_debug() << _name << " Version info:\n" << ar_versionInfo();
-  ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
+  ar_log_debug() << _name << " " << ar_versionInfo() << ar_versionString();
 
   string currDir;
   if (!ar_getWorkingDirectory( currDir )) {

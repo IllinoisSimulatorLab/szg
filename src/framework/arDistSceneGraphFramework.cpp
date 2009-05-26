@@ -386,8 +386,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
 
   autoDataBundlePath();
 
-  ar_log_debug() << "Version info:\n" << ar_versionInfo();
-  ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
+  ar_log_debug() << ar_versionInfo() << ar_versionString();
 
   if (!_SZGClient) {
     for (i=0; i<argc; ++i) {

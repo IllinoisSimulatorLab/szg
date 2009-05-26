@@ -376,8 +376,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
 
   autoDataBundlePath();
 
-  ar_log_debug() << "Version info:\n" << ar_versionInfo();
-  ar_log_debug() << "Syzygy version: " << ar_versionString() << ar_endl;
+  ar_log_debug() << ar_versionInfo() << ar_versionString();
 
   // Performance graphs.
   const arVector3 white  (1, 1, 1);

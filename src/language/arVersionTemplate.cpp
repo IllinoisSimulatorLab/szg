@@ -9,7 +9,7 @@
 
 static string __version("");
 
-string ar_versionString() {
+string ar_versionString(bool fVerbose) {
   if (__version == "") {
     ostringstream os;
     os << SZG_MAJOR_VERSION << "."
@@ -20,20 +20,16 @@ string ar_versionString() {
 #endif
     __version = os.str();
   }
-  return __version;
+  return fVerbose ? ("Syzygy version: " + __version + ".\n") : __version;
 }
 
-
 static const string __default_revinfo =
-"Please install Python <http://www.python.org/> and bazaar <http://bazaar-vcs/org> and rebuild szg.";
+"Please install Python <http://python.org/> and bazaar <http://bazaar-vcs.org> and rebuild Syzygy.";
 static string __bzr_revinfo("REPLACE_THIS");
 
-
-string ar_versionInfo() {
+string ar_versionInfo(bool fVerbose) {
   if (__bzr_revinfo == "REPLACE_THIS") {
     __bzr_revinfo = __default_revinfo;
   }
-  return __bzr_revinfo;
+  return fVerbose ? ("Version info:\n" + __bzr_revinfo) : __bzr_revinfo;
 }
-
-
