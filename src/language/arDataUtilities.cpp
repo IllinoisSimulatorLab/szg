@@ -80,23 +80,6 @@ bool ar_winSockInit() {
 #endif
 
 
-static string __version("");
-
-string ar_versionString() {
-  if (__version == "") {
-    ostringstream os;
-    os << SZG_MAJOR_VERSION << "."
-       << SZG_MINOR_VERSION << "."
-       << SZG_PATCH_VERSION;
-#ifdef AR_USE_DEBUG
-    os << " (DEBUG)";
-#endif
-    __version = os.str();
-  }
-  return __version;
-}
-
-
 
 // Cross-platform clock.
 #ifdef AR_USE_WIN_32

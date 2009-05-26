@@ -5,6 +5,7 @@ VPATH = ../../../src/language
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
+  arVersion$(OBJ_SUFFIX) \
   arRS232Port$(OBJ_SUFFIX) \
   arDatabaseLanguage$(OBJ_SUFFIX) \
   arDatabaseNode$(OBJ_SUFFIX) \
@@ -43,6 +44,7 @@ ifeq ($(strip $(MACHINE)),WIN32)
 endif
 
 ALL = \
+  $(SRCDIR)/arVersion.cpp \
   $(SZG_CURRENT_DLL) \
   RS232EchoTest$(EXE) \
   RS232SendTest$(EXE) \
@@ -56,6 +58,13 @@ include $(SZGHOME)/build/make/Makefile.rules
 $(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
 	$(LINK_SZG_LIB)
 	$(COPY)
+
+# Version info functions.
+.PHONY: $(SRCDIR)/arVersion.cpp
+$(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
+	$(CP) $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/arVersion.cpp
+	-python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+
 
 # For stability, heavily optimize only the raw-information-handling objects.
 # Old optimize-everything way:

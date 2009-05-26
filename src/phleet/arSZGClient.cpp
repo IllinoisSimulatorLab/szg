@@ -103,6 +103,7 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 bool arSZGClient::_connect() {
   if (!_dialUpFallThrough()) {
     _connected = false;
+    ar_log_debug() << "Version info:\n" << ar_versionInfo();
     ar_log_debug() << "Syzygy version: " << ar_versionString() << ".\n";
     return false;
   }

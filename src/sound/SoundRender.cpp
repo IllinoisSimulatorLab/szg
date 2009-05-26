@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
   szgClient.simpleHandshaking(false);
   // Force the component's name, because win98 can't provide it.
   const bool fInit = szgClient.init(argc, argv, "SoundRender");
+  ar_log_debug() << "SoundRender version info:\n" << ar_versionInfo();
   ar_log_debug() << "SoundRender Syzygy version: " << ar_versionString() << ar_endl;
   if (!szgClient)
     return szgClient.failStandalone(fInit);

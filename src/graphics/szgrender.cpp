@@ -177,6 +177,8 @@ int main(int argc, char** argv) {
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   const bool fInit = szgClient.init(argc, argv);
+  ar_log_debug() << "szgrender version info:\n" << ar_versionInfo();
+  ar_log_debug() << "szgrender Syzygy version: " << ar_versionString() << ar_endl;
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 

@@ -30,9 +30,16 @@ SZG_CALL bool ar_winSockInit();
 SZG_CALL string ar_getLastWin32ErrorString();
 #endif
 
-// Version
 
+// Version info
+
+// Syzygy version string, e.g. "1.3.0"
 SZG_CALL string ar_versionString();
+
+// Bazaar version info. Only returns meaningful info if
+// bzr and Python are present when libraries are built.
+SZG_CALL string ar_versionInfo();
+
 
 // Small utility classes.
 
