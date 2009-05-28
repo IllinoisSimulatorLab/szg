@@ -1,6 +1,5 @@
 import sys
 import os
-import subprocess
 import traceback
 from StringIO import StringIO
 
@@ -15,10 +14,16 @@ def getBzrVersion():
     versionString = myOut.getvalue()
     myOut.close()
   except ImportError:
-    pipe = subprocess.Popen( 'bzr version-info --rio', shell=True, \
+    try:
+      import subprocess
+      pipe = subprocess.Popen( 'bzr version-info --rio', shell=True, \
                   stdout=subprocess.PIPE).stdout
-    versionString = pipe.read()
-    pipe.close()
+      versionString = pipe.read()
+      pipe.close()
+    except ImportError:
+      pipe = os.popen( 'bzr version-info --rio' )
+      versionString = pipe.read()
+      pipe.close()
   versionString = versionString.replace('\n',r'\n')
   return versionString
 
