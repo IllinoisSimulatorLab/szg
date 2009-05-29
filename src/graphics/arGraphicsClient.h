@@ -54,7 +54,7 @@ class SZG_CALL arGraphicsClient{
   //arGraphicsWindow* getGraphicsWindow() { return &_graphicsWindow; }
 
   // Gets called after the graphics window has been created to do some
-  // initialization (so far only used for the wildcats)
+  // initialization.
   // void init();
 
 //  void monoEyeOffset( const string& eye );

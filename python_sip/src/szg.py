@@ -1,6 +1,7 @@
 print 'szg module:',__file__
 from _szg import *
-print 'Syzygy version:',ar_versionString()
+print ar_versionString(True)
+print ar_versionInfo(True)
 import sys
 import traceback
 

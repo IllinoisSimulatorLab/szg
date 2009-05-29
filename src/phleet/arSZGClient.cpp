@@ -2466,6 +2466,7 @@ string arSZGClient::createContext() {
     namevalue("networks/sound", _soundNetworks) +
     namevalue("networks/input", _inputNetworks) +
     namevalue("log", ar_logLevelToString(_logLevel)));
+  ar_log_debug() << "context: " << s << ar_endl;
   return dropsemi(s);
 }
 
@@ -2493,6 +2494,7 @@ string arSZGClient::createContext(const string& virtualComputer,
     // Propagate log level to all spawnees.
     s += namevalue("log", ar_logLevelToString(_logLevel));
   }
+  ar_log_debug() << "context: " << s << ar_endl;
   return dropsemi(s);
 }
 

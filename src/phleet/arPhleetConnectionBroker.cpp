@@ -39,6 +39,10 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
                                                      int size,
                                                      int firstPort,
                                                      int blockSize) {
+  ar_log_debug() << "requesting port for service '" << serviceName << "'\n"
+                 << "   computer = '" << computer << "'\n"
+                 << "   networks = '" << networks << "'\n"
+                 << "   addresses = '" << addresses << "'\n";
   arPhleetService result;
   arGuard _(_l, "arPhleetConnectionBroker::requestPorts");
   if (_temporaryServices.find(serviceName) != _temporaryServices.end()) {

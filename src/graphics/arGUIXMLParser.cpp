@@ -769,12 +769,16 @@ bool arGUIXMLParser::parse( void )
     _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "display 'threaded'" ) ? 1 : 0 );
   }
 
-  // <framelock value="wildcat" />
+  // <framelock value="wildcat" /> <framelock value="wgl" />
   if ( szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
     string framelock = szgDisplayNode->ToElement()->Attribute( "framelock" );
-    arGUIXMLAttributeValueValidator fLockValidator( "display 'framelock'", "wildcat/none" );
+    arGUIXMLAttributeValueValidator fLockValidator( "display 'framelock'", "wildcat/wgl/none" );
     fLockValidator( framelock );
-    _windowingConstruct->setUseFramelock( framelock == "wildcat" ? 1 : 0 );
+    if (framelock == "wildcat") {
+      ar_log_warning() << "<szg_display framelock=""wildcat""> is deprecated,\n"
+                       << "   please use <szg_display framelock=""wgl""> instead.\n";
+    }
+    _windowingConstruct->setUseFramelock( ((framelock == "wildcat")||(framelock == "wgl")) ? 1 : 0 );
   }
 
   // iterate over all <szg_window> elements

@@ -525,7 +525,7 @@ virtual computers.
   <param>
   <name>front_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />
@@ -544,7 +544,7 @@ virtual computers.
   <param>
   <name>right_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />
@@ -563,7 +563,7 @@ virtual computers.
   <param>
   <name>left_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />
@@ -582,7 +582,7 @@ virtual computers.
   <param>
   <name>rear_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />
@@ -601,7 +601,7 @@ virtual computers.
   <param>
   <name>top_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />
@@ -620,7 +620,7 @@ virtual computers.
   <param>
   <name>bottom_window_stereo</name>
   <value>
-  <szg_display framelock="wildcat">
+  <szg_display framelock="wgl">
    <szg_window>
      <decorate value="false" />
      <fullscreen value="true" />

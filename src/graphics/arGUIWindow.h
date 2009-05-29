@@ -385,7 +385,7 @@ class SZG_CALL arWMEvent
  *
  * @see arGUIWindow::swap
  *
- * @todo implement wildcat framelocking functionality inside this class
+ * @todo implement framelocking functionality inside this class
  */
 class arGUIWindowBuffer
 {

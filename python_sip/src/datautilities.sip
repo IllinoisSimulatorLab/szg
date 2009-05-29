@@ -1,7 +1,8 @@
 // Defines mapping from python to C++ strings.
 %Include typemaps.sip
 
-string ar_versionString();
+string ar_versionString( bool verbose=true );
+string ar_versionInfo( bool verbose=true );
 
 string ar_getUser();
 

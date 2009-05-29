@@ -317,8 +317,8 @@ Each Syzygy rendering program will attach itself to a display. As of Syzygy 0.8,
 display contains one or more windows; previously each process could only open one window.
 
 Other parameters of displays are:
-- **framelock** (wildcat/none): specifies whether the display supports hardware gen-locking,
-  currently only 3D Labs Wildcat genlocked cards are supported.
+- **framelock** (wgl/wildcat/none): specifies whether the display supports hardware gen-locking
+  Note that "wgl" and "wildcat" are equivalent, "wildcat" is deprecate.
 - **threaded** (yes/no): In a multi-window display, are the windows rendered by separate
   program threads.
 
