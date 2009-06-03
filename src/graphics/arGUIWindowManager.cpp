@@ -8,7 +8,7 @@
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
 #include "arGUIXMLParser.h"
-#include "arWildcatUtilities.h"
+#include "arFramelockUtilities.h"
 
 // Default callbacks for window and keyboard events.
 
@@ -741,15 +741,15 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
 void arGUIWindowManager::useFramelock( bool fUse )
 {
-  ar_useWildcatFramelock( fUse );
+  ar_useFramelock( fUse );
 }
 
 void arGUIWindowManager::findFramelock( void )
 {
-  ar_findWildcatFramelock();
+  ar_findFramelock();
 }
 
-// Hack for Wildcat graphics cards.
+// Hack for Framelock graphics cards.
 void arGUIWindowManager::activateFramelock( void )
 {
   if (_fActivatedFramelock)
@@ -765,7 +765,7 @@ void arGUIWindowManager::activateFramelock( void )
     return;
   }
 
-  ar_activateWildcatFramelock();
+  ar_activateFramelock();
   ar_log_debug() << "arGUIWindowManager activated framelock.\n";
 }
 
@@ -784,6 +784,6 @@ void arGUIWindowManager::deactivateFramelock( void )
     return;
   }
 
-  ar_deactivateWildcatFramelock();
+  ar_deactivateFramelock();
   ar_log_debug() << "arGUIWindowManager deactivated framelock.\n";
 }

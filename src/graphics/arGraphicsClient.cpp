@@ -14,7 +14,7 @@ bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*) {
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientDisconnectCallback(void* client) {
-  // Frame-locking for the wildcat boards cannot be disabled
+  // Frame-locking cannot be disabled
   // here, since this is not in the graphics thread but in the connection
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;

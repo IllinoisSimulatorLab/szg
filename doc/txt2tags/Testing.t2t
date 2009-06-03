@@ -74,23 +74,6 @@ fail. If this happens, try unchecking "Prevent MS-DOS-based programs
 from detecting Windows".
 
 
-==Wildcat Graphics Cards: Specifics==
-
-While the Syzygy network-based framelocking scheme works well
-with most graphics
-cards, the Wildcat series of graphics cards needs to also have its internal
-framelocking feature enabled for top quality results (i.e. anecdotally, 100%
-quality vs. 99% quality). To enable framelocking for
-a given rendering machine (in this case vr1):
-
-```
-  vr1 SZG_RENDER wildcat_framelock true
-```
-
-Note that the default is to have wildcat framelocking (i.e. the internal
-framelocking on the card) disabled.
-
-
 =Testing Procedures=
 
 Syzygy is stable enough that it can now be used to reliably detect bugs

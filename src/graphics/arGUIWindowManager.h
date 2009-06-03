@@ -615,9 +615,9 @@ class SZG_CALL arGUIWindowManager
     int deleteAllWindows( void );
 
     //@{
-    /** @name Window manager wildcat framelock accessors.
+    /** @name Window manager framelock accessors.
      *
-     * Operate upon the wildcat framelock.
+     * Operate upon the framelock.
      */
     void useFramelock( bool isOn );
     void findFramelock( void );

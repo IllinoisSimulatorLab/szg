@@ -60,7 +60,7 @@ OBJS = \
   arViewerNode$(OBJ_SUFFIX) \
   arViewport$(OBJ_SUFFIX) \
   arVisibilityNode$(OBJ_SUFFIX) \
-  arWildcatUtilities$(OBJ_SUFFIX) 
+  arFramelockUtilities$(OBJ_SUFFIX) 
 
 # Explicit definitions, replacing the otherwise generic ones in Makefile.defines
 

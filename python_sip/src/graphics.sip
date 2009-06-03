@@ -15,6 +15,7 @@
 #include "arMaterial.h"
 #include "arLargeImage.h"
 #include "arTexture.h"
+#include "arFramelockUtilities.h"
 #include <string>
 using namespace std;
 %End
@@ -359,4 +360,10 @@ class arLight {
   void activateLight();
   void activateLight(arMatrix4 lightPositionTransform);
 };
+
+
+void ar_useFramelock( bool yesno );
+void ar_findFramelock();
+void ar_activateFramelock();
+void ar_deactivateFramelock();
 

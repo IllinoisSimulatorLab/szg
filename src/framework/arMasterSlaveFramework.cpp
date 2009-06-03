@@ -1565,8 +1565,7 @@ bool arMasterSlaveFramework::_getData( void ) {
 
     // we need to disable framelock now, so that it can be appropriately
     // re-enabled upon reconnection to the master
-    // wildcat framelock is only deactivated if this makes sense
-    // ar_deactivateWildcatFramelock();
+    // framelock is only deactivated if this makes sense
     _wm->deactivateFramelock();
     return false;
   }
@@ -2164,7 +2163,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
 
   // Set window-wide attributes based on the display name, like
-  // stereo, window size, window position, wildcat framelock.
+  // stereo, window size, window position, framelock.
 
   _guiXMLParser->setConfig(_SZGClient.getDisplayName(_SZGClient.getMode("graphics")));
   if (!_guiXMLParser->parse()) {
