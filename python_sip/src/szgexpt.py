@@ -334,7 +334,7 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
       if hasattr( self.__class__, 'experimentClass' ):
         self.findGuiProcess()
         print 'creating experiment'
-        self.experiment = self.__class__.experimentClass( szgClient )
+        self.experiment = self.__class__.experimentClass()
         print 'done creating experiment'
         if not self.experiment:
           print 'experiment creation failed.'
