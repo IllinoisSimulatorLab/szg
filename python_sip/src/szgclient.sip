@@ -94,7 +94,7 @@ class arPhleetConfig {
   /// size of block of ports, default 200.
   int getPortBlockSize();
   /// number of interfaces in the config.
-  int getNumberInterfaces();
+  int getNumNetworks()/PyName=getNumberNetworks/;
   string getAddresses();
   string getNetworks();
   string getMasks();
@@ -239,7 +239,15 @@ class arSZGClient {
                          int numvalues = 1);
   string getAllAttributes(const string& substring);
 
-  string getGlobalAttribute( const string& userName, const string& attributeName );
+  string getGlobalAttribute(const string& attributeName);
+  string getGlobalAttribute( const string& userName, 
+                             const string& attributeName );
+
+  bool setGlobalAttribute(const string& attributeName,
+                          const string& attributeValue);
+  bool setGlobalAttribute(const string& userName,
+                          const string& attributeName,
+                          const string& attributeValue);
 
   bool parseAssignmentString(const string& text);
 

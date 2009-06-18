@@ -10,6 +10,10 @@ Header3
 
 =Changes in version 1.3=
 
+Make now inserts bazaar revision number and other info into a source file,
+szg/src/language/arVersion.cpp. This requires that both bzr and python. If
+they're not available, set the environment variable SZG_BZR_INFO=FALSE to
+skip this step.
 
 Added support for alternate input simulators, built as shared libraries and loaded
 based on a database parameter (SZG_INPUTSIM/sim_type) at runtime. An example is

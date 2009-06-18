@@ -61,9 +61,13 @@ $(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS) $(SRCDIR)/arVersion.cpp
 
 # Version info functions.
 .PHONY: $(SRCDIR)/arVersion.cpp
+ifeq ($(strip $(SZG_BZR_INFO)),FALSE)
 $(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
 	$(CP) $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/arVersion.cpp
-	-python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+else
+$(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
+	python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+endif
 
 
 # For stability, heavily optimize only the raw-information-handling objects.

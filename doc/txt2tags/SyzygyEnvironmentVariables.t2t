@@ -49,6 +49,12 @@ and links to fuller explanations.
 - SZGDEBUG: By default, software is not built with debugging information.
  By setting this to TRUE, debugging symbols will be built in.
 
+- SZG_BZR_INFO //New as of 06/09//: The current bazaar revision number and some other information
+  is inserted into a source file during a build (and printed by most components
+  on startup, at least if launched with ``-szg log=DEBUG``). This requires both
+  bzr and python. If one or the other is not available, set ``SZG_BZR_INFO=FALSE``
+  to skip this step.
+
 - SZG_USE_PCH: Again, only meaningful on Windows platforms. By default,
   on these platforms, a pre-compiled header is used to (greatly) speed up
   compilation. However, this can sometimes be a pain when working with code
