@@ -55,7 +55,7 @@ ALL = \
 include $(SZGHOME)/build/make/Makefile.rules
 
 # On Windows, compile the precompiled header FIRST.
-$(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
+$(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS) $(SRCDIR)/arVersion.cpp
 	$(LINK_SZG_LIB)
 	$(COPY)
 
