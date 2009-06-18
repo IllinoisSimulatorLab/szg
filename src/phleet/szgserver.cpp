@@ -1953,6 +1953,8 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  ar_log_critical() << ar_versionInfo() << ar_versionString();
+
   ar_log().setTimestamp(true);
   if (argc > 3) {
     for (int i = 3; i < argc; ++i) {
