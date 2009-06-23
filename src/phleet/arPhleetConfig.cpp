@@ -19,7 +19,6 @@
 // todo: use initializers
 arPhleetConfig::arPhleetConfig() {
   _computerName = string("NULL");
-  _numberInterfaces = 0;
   _numNetworks = 0;
   // _firstPort and _blockSize are reasonable for Linux and Win32.
   _firstPort = 4700;
