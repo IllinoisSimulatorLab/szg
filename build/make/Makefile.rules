@@ -16,8 +16,13 @@ Everything: $(ALL)
 # copy that .lib to $(INSTALLDIR)/lib (SZG_LIB_COPY_LINE).
 #
 # If shared libs use sonames (like linux), build symlinks in the install dir.
+#
+# Create the install dir if it's missing.  (How do we do that in Windows?)
 
 create-sdk: Everything
+ifneq ($(strip $(MACHINE)), WIN32)
+	mkdir -p $(INSTALLDIR)/bin
+endif
 	$(CP) $(ALL) $(SZG_SHARED_COPY_LOCAL) $(INSTALLDIR)/bin
 	$(SZG_LIB_COPY_LINE)
 	cd $(INSTALLDIR)/bin; $(SZG_SHARED_COPY_ACTION_LOCAL)

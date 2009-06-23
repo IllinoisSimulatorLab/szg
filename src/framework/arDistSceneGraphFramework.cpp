@@ -391,7 +391,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   if (!_SZGClient) {
     for (i=0; i<argc; ++i) {
       if (!strcmp( argv[i], "-szgtype" )) {
-         cout << "distgraphics" << endl;
+         cout << "distgraphics\n";
          exit(0);
       }
     }
@@ -401,17 +401,18 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     } else {
       ar_log_critical() << "Directory: " << currDir << ar_endl;
     }
+
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
-  } else {
-    for (i=0; i<argc; ++i) {
-      if (!strcmp( argv[i], "-szgtype" )) {
-         _SZGClient.initResponse() << "distapp" << ar_endl;
-         _SZGClient.sendInitResponse( true );
-         exit(0);
-      }
+  }
+
+  for (i=0; i<argc; ++i) {
+    if (!strcmp( argv[i], "-szgtype" )) {
+       _SZGClient.initResponse() << "distapp\n";
+       _SZGClient.sendInitResponse( true );
+       exit(0);
     }
   }
 
