@@ -626,7 +626,7 @@ bool arTexture::readJPEG(const string& fileName,
                          int alpha,
                          bool complain) {
 #ifndef EnableJPEG
-  ar_log_error() << "compiled without jpg support. No textures.\n";
+  ar_log_error() << "syzygy core compiled without jpg support. No textures.\n";
   // Avoid compiler warnings.
   (void)fileName;
   (void)subdirectory;
@@ -716,7 +716,7 @@ bool arTexture::readAlphaJPEG(const string& fileName,
                          const string& path,
                          bool complain) {
 #ifndef EnableJPEG
-  ar_log_error() << "compiled without jpg support. No textures.\n";
+  ar_log_error() << "syzygy core compiled without jpg support. No textures.\n";
   // Avoid compiler warnings.
   (void)fileName;
   (void)subdirectory;
@@ -810,7 +810,7 @@ bool arTexture::writeJPEG(const string& fileName, const string& path) {
 bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
                           const string& path) {
 #ifndef EnableJPEG
-  ar_log_error() << "compiled without jpeg support.  No textures.\n";
+  ar_log_error() << "syzygy core compiled without jpg support. No textures.\n";
   // Avoid compiler warnings.
   (void)fileName;
   (void)subdirectory;

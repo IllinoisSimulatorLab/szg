@@ -78,7 +78,7 @@ void arSyncDataClient::_connectionTask() {
 
     // bug: some copypaste with below
     // Guarantee that one _nullCallback is called
-    // before a new connection is made, especially for wildcat graphics cards.
+    // before a new connection is made, especially for genlocked graphics cards.
     _nullHandshakeLock.lock("arSyncDataClient::_connectionTask");
     // We might be in stop mode.
     if (_nullHandshakeState != 2) {
@@ -429,7 +429,7 @@ void arSyncDataClient::consume() {
     // bug: some copypaste with above
     // Guarantee that one _nullCallback is called
     // before a new connection is made, especially for
-    // wildcat graphics cards.
+    // genlocked graphics cards.
     arGuard _(_nullHandshakeLock, "arSyncDataClient::consume disconnected");
     if (_nullHandshakeState == 1) {
       // The connection thread registers disconnected and is waiting for

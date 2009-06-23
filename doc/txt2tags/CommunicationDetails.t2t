@@ -371,7 +371,7 @@ Syzygy now uses the szgserver as a connection broker. Roughly speaking, when a
 component becomes available as a data source, it registers itself with the szgserver,
 using a tag. The szgserver responds with a port on which it can listen for connection
 requests. All internet-based Syzygy services now bind to INADDR_ANY. This increases
-flexibility as, often, a service providing component will want to drive components
+flexibility as, often, a service-providing component will want to drive components
 on multiple IP networks. The client chooses the network on which the connection occurs.
 When a client wants to establish a connection to a Syzygy service, it contacts the
 szgserver with the tag describing the service to which it wants to connect. If the
@@ -480,10 +480,14 @@ SZG_INPUT0, SZG_INPUT1, etc.
 Master/slave applications have a service type given by their name (after all,
 different master/slave apps form unique service classes). The tag with which the
 service is registered depends on the method via which the service was launched.
-For instance, if an SZG_GEOMETRY service is launched in the context of virtual computer
-cube, the tag will be NULL/SZG_GEOMETRY/cube. On the other hand, if the same service is
-launched by user foo, but not on a virtual computer, the tag will be
-foo/SZG_GEOMETRY/NULL.
+Suppose (1) the service SZG_GEOMETRY is launched in the context of a virtual
+computer 'vccube' that has a location parameter (see
+[Virtual Computer Configuration VirtCompConfiguration.html#toc2]) 'beckman_cube';
+its tag will be ``beckman_cube/SZG_GEOMETRY``. If (2) it is launched in the context
+of the virtual computer 'vccube' //without// a location parameter, its tag will be
+``vccube/SZG_GEOMETRY``. If it is launched without a virtual computer, the
+launching user's name becomes part of the tag: ``SZG_GEOMETRY/bill``, for
+example.
 
 + The component sends an "SZG Register Source" record to the szgserver, with "Tag" field
 containing the tag determined in the previous step and with "Status" field set to
