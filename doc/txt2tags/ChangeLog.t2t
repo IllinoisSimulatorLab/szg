@@ -11,7 +11,7 @@ Header3
 =Changes in version 1.3=
 
 Make now inserts bazaar revision number and other info into a source file,
-szg/src/language/arVersion.cpp. This requires that both bzr and python. If
+szg/src/language/arVersion.cpp. This requires both bzr and python. If
 they're not available, set the environment variable SZG_BZR_INFO=FALSE to
 skip this step.
 
@@ -24,8 +24,9 @@ Python input devices in virtual computer definitions, so all programs will need 
 recompiled for any setup where you want to use a Python input driver. Hence the bump to
 1.3.
 
-Added the ability to set the application frameworks' navigation matrix from a matrix
-in the input event stream.
+Added the ability to set the application frameworks' navigation matrix by copying a matrix
+directly from the input event stream. This allows control of navigation by e.g. a Python
+script.
 
 Re-worked the Makefiles and conditional compilation such that input device drivers are built
 as shared libraries even if szg is built with SZG_LINKING=STATIC--//except// with Visual
