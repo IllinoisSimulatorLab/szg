@@ -87,7 +87,6 @@ arIOFilter* arInputFactory::getFilter( const string& filterName ) {
 
 // Various device driver headers.
 
-#include "arIntelGamepadDriver.h"
 #include "arSpacepadDriver.h"
 #include "ar5DTGloveDriver.h"
 #include "arJoystickDriver.h"
@@ -116,7 +115,7 @@ const int NUM_SERVICES = 22;
 // devices/ services, but it is stuck as SZG_INPUT!
 const struct DriverTableEntry driverTable[NUM_SERVICES] = {
   { "arJoystickDriver",     "SZG_JOYSTICK", "joystick driver", NULL},
-  { "arIntelGamepadDriver", "SZG_JOYSTICK", "intel gamepad driver", NULL},
+  { "arIntelGamepadDriver", "NULL",         "", NULL},
   { "arSpacepadDriver",     "SZG_TRACKER",  "Ascension Spacepad", NULL},
   { "arIdeskTracker",       "SZG_INPUT",    "IDesk tracker", NULL},
   { "arMotionstarDriver",   "SZG_TRACKER",  "MotionStar driver", NULL},
@@ -157,11 +156,7 @@ arInputSource* arInputFactory::getInputSource( const string& driverName ) {
         theSource = new arJoystickDriver;
         break;
       case 1:
-#ifndef AR_USE_MINGW
-        theSource = new arIntelGamepadDriver;
-#else
-        ar_log_error() << "arIntelGamepadDriver not supported with g++ (MinGW compiler) on Windows.\n";
-#endif
+        ar_log_error() << "arIntelGamepadDriver is no longer an option.\n";
         break;
       case 2:
 #ifndef AR_USE_MINGW

@@ -335,7 +335,7 @@ class arSharedLibInputDriver : public arSharedLib {
                      string& error) {
     return arSharedLib::createFactory( sharedLibName, path, "arInputSource", error );
   }
-  arGenericDriver* createObject() {
+  arGenericDriver* _createObject() {
     return (arGenericDriver*) arSharedLib::createObject();
   }
 };
@@ -344,7 +344,7 @@ class arSharedLibInputDriver : public arSharedLib {
     bool createFactory(const string& sharedLibName,
                        const string& path,
                        string& error /Out/);
-    arGenericDriver* createObject();
+    arGenericDriver* _createObject() /PyName=createObject/;
   private:
     bool createFactory(const string& sharedLibName,
                        const string& path,
