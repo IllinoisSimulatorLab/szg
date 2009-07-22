@@ -80,19 +80,7 @@ Has 20 axes and 20 buttons.@@
 
 ==Intel Wireless Gamepad==
 
-- Loadable module: arIntelGamepadDriver
-- Platform: Windows
-- Service: none
-
-For a Windows host with an Intel Wireless Series Gamepad.@@
-Emulates arJoystickServer, with
-two axes for the D-pad (holding down the D-pad increases the value).
-D-pad for a few moments increases the value.@@
-The 20 buttons are, in order:  A, B, C, X, Y, Z, L (left trigger), R (right
-trigger); then the same buttons with the gamepad's shift key held down,
-namely D, E, F, U, V, W, G, H;  then the HOME and END keys for the
-gamepad's start button, unshifted and shifted.  Since Windows sees this
-gamepad as a DirectInput keyboard, a normal keyboard can also be used.
+Sorry, no longer supported
 
 
 ==Ascension MotionStar==

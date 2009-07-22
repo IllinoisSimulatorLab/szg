@@ -7,6 +7,10 @@
 #include "ar3DS.h"
 #include "arGraphicsAPI.h"
 
+//#ifdef _MSC_VER && (_MSC_VER >= 1400)
+//extern "C" { FILE _iob[3] = {__iob_func()[0], __iob_func()[1], __iob_func()[2]}; }
+//#endif
+
 ar3DS::ar3DS() :
   _normalize(false),
   _file(NULL),

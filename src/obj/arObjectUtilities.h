@@ -8,8 +8,8 @@
 
 #include "arObject.h"
 #include "arHTR.h"
-#include "arOBJ.h"
 #include "ar3DS.h"
+#include "arOBJ.h"
 #include "arGraphicsAPI.h"
 #include "arObjCalling.h"
 

@@ -7,6 +7,17 @@
 #define __AR_HTR_H
 
 // Written by Mark Flider.
+#ifdef Enable3DS
+#include <lib3ds/file.h>
+#include <lib3ds/vector.h>
+#include <lib3ds/matrix.h>
+#include <lib3ds/camera.h>
+#include <lib3ds/light.h>
+#include <lib3ds/material.h>
+#include <lib3ds/mesh.h>
+#include <lib3ds/node.h>
+#endif
+
 
 #include "arMath.h"
 #include "arGraphicsDatabase.h"

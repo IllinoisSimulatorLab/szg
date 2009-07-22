@@ -388,8 +388,8 @@ bool arSZGClient::sendStartResponse(bool ok) {
 }
 
 void arSZGClient::closeConnection() {
-  _dataClient.closeConnection();
   _connected = false;
+  _dataClient.closeConnection();
 }
 
 bool arSZGClient::launchDiscoveryThreads() {
@@ -3028,7 +3028,9 @@ void arSZGClient::_dataThread() {
       // Don't complain if the destructor has already been invoked.
       // Disconnect?
       _keepRunning = false;
-      ar_log_critical() << "no szgserver.\n";
+      if (_connected) {
+        ar_log_critical() << "no szgserver.\n";
+      }
       break;
     }
 

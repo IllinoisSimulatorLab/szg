@@ -70,8 +70,7 @@ the STLPort STL headers or Visual Studio .NET without)
 or the MinGW implementation of the GNU g++ compiler and linker.
 Note that not all functionality is available when compiling
 with g++ on Windows: You can't currently compile scene graph plugins.
-The device drivers for Intel wireless gamepads,
-and the SpacePad are also unavailable (see
+The device drivers for the SpacePad is also unavailable (see
 [Supported Input Devices InputDevices-Drivers.html].
 However, we can supply you with precompiled binaries of
 the device drivers. //New in 1.2//: Speech synthesis, .3ds model files,
