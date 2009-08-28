@@ -226,41 +226,124 @@ They can be specified in a couple of different ways:
   you enumerate a set of viewports using the parameters described above.
 + By setting the **viewmode** parameter to one of the pre-defined viewing modes. In these
   viewing modes, you only specify a camera that is shared by the viewports;
-  the software automatically generates one or more viewports. The predefined viewing modes are:
-  - **normal**: A single viewport that fills the window.
+  the software automatically generates one or more viewports. The number of
+  viewports generated depends on whether or not 
+  [the window's **stereo** parameter is set to "true" (for active stereo) #Windows].
+  In each case, two sets of viewports are created if active stereo is in use;
+  one set has **eyesign** set to -1. and **ogldrawbuf** set to GL_BACK_LEFT,
+  while the other has **eyesign** set to 1. and **ogldrawbuf** set to GL_BACK_RIGHT.
+  Each set is as described below. If active
+  stereo is not in use, all viewports have **eyesign** == 0. and **ogldrawbuf**
+  set to GL_BACK_LEFT.
+  The predefined viewing modes are:
+  - **normal**: A single viewport that fills the window, i.e.:
+```
+  <szg_viewport_list viewmode="normal">
+    <szg_camera usenamed="camera_default" />
+  </szg_viewport_list>
+```
+    ...is equivalent to:
+```
+  <szg_viewport_list viewmode="custom">
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width="1." height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="yes" B="yes" A="true" />
+      <eyesign value="0." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+  </szg_viewport_list>
+```
+    ...or if active stereo is in use, to:
+```
+  <szg_viewport_list viewmode="custom">
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width="1." height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="yes" B="yes" A="true" />
+      <eyesign value="-1." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width="1." height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="yes" B="yes" A="true" />
+      <eyesign value="1." />
+      <ogldrawbuf value="GL_BACK_RIGHT" />
+    </szg_viewport>
+  </szg_viewport_list>
+```
+
   - **anaglyph**: As described above, for stereo viewing with red/cyan anaglyph glasses,
-    available from [http://www.berezin.com/3D/3dglasses.htm] or [http://www.3dglassesonline.com/].
+    available from [http://www.berezin.com/3D/3dglasses.htm] or [http://www.3dglassesonline.com/]. This:
+```
+  <szg_viewport_list viewmode="anaglyph">
+    <szg_camera usenamed="camera_default" />
+  </szg_viewport_list>
+```
+    ...is equivalent to (without active stereo; note **colormask** and
+    **depthclear** values):
+```
+  <szg_viewport_list viewmode="custom">
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width="1." height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="no" B="no" A="yes" />
+      <eyesign value="-1." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width="1." height="1." />
+      <depthclear value="yes" />
+      <colormask R="no" G="yes" B="yes" A="yes" />
+      <eyesign value="1." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+  </szg_viewport_list>
+```
     Note that this will only work properly if your scene is rendered in gray-scale.
   - **walleyed**: Divides the window in half horizontally, with the left-eye image in the left
     half and the right-eye image on the right. For e.g. the
-    [Screenscope viewer http://www.berezin.com/3D/screenscope.htm].
+    [Screenscope viewer http://www.berezin.com/3D/screenscope.htm]. This:
+```
+  <szg_viewport_list viewmode="walleyed">
+    <szg_camera usenamed="camera_default" />
+  </szg_viewport_list>
+```
+    ...is equivalent to:
+```
+  <szg_viewport_list viewmode="custom">
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left="0." bottom="0." width=".5" height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="yes" B="yes" A="yes" />
+      <eyesign value="-1." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+    <szg_viewport>
+      <szg_camera usenamed="camera_default" />
+      <coords left=".5" bottom="0." width=".5" height="1." />
+      <depthclear value="no" />
+      <colormask R="yes" G="yes" B="yes" A="yes" />
+      <eyesign value="1." />
+      <ogldrawbuf value="GL_BACK_LEFT" />
+    </szg_viewport>
+  </szg_viewport_list>
+```
   - **crosseyed**: The converse of the above, with the right-eye image on the left and vice versa.
   - **overunder**: Divides the window in half vertically, for viewers like the
     [View Magic http://www.berezin.com/3D/ViewMagic.htm].
 
-Here's the simplest possible viewport list: a pre-defined viewing mode and a camera.
-```
-<param>
-<name>vplist_default</name>
-<value>
-  <szg_viewport_list viewmode="walleyed">
-    <szg_camera usenamed="camera_default" />
-  </szg_viewport_list>
-</value>
-</param>
-```
-Here's a 'custom' viewport list containing a single viewport:
-(NOTE: replace this with a more complex and interesting example.)
-```
-<param>
-<name>win_default</name>
-<value>
-  <szg_viewport_list viewmode="custom">
-    <szg_viewport usenamed="viewport_default" />
-  </szg_viewport_list>
-</value>
-</param>
-```
+
+As stated above, all of the viewing modes described here can be combined with
+active stereo. This is not something you'd want to do for normal VR, but it's
+there if you need it.
 
 
 ==Windows==[Windows]
@@ -318,7 +401,7 @@ display contains one or more windows; previously each process could only open on
 
 Other parameters of displays are:
 - **framelock** (wgl/wildcat/none): specifies whether the display supports hardware gen-locking
-  Note that "wgl" and "wildcat" are equivalent, "wildcat" is deprecate.
+  Note that "wgl" and "wildcat" are equivalent, "wildcat" is deprecated.
 - **threaded** (yes/no): In a multi-window display, are the windows rendered by separate
   program threads.
 
