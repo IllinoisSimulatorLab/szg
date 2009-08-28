@@ -248,6 +248,7 @@ bool arJoystickDriver::stop() {
   return true;
 }
 
+#ifdef AR_USE_WIN_32
 void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
   string error;
   switch (errCode) {
@@ -273,3 +274,4 @@ void arJoystickDriver::_printMMError( const string funcName, int errCode ) {
   }
   ar_log_error() << funcName << ": " << error << ar_endl;
 }
+#endif
