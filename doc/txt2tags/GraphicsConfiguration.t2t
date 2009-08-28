@@ -228,12 +228,12 @@ They can be specified in a couple of different ways:
   viewing modes, you only specify a camera that is shared by the viewports;
   the software automatically generates one or more viewports. The number of
   viewports generated depends on whether or not 
-  [the window's **stereo** parameter is set to "true" (for active stereo) #Windows].
+  [the window's "stereo" parameter is set to "true" (for active stereo) #Windows].
   In each case, two sets of viewports are created if active stereo is in use;
-  one set has **eyesign** set to -1. and **ogldrawbuf** set to GL_BACK_LEFT,
-  while the other has **eyesign** set to 1. and **ogldrawbuf** set to GL_BACK_RIGHT.
+  one set has **eyesign** set to -1 and **ogldrawbuf** set to GL_BACK_LEFT,
+  while the other has **eyesign** set to +1 and **ogldrawbuf** set to GL_BACK_RIGHT.
   Each set is as described below. If active
-  stereo is not in use, all viewports have **eyesign** == 0. and **ogldrawbuf**
+  stereo is not in use, all viewports have **eyesign** set to 0 and **ogldrawbuf**
   set to GL_BACK_LEFT.
   The predefined viewing modes are:
   - **normal**: A single viewport that fills the window, i.e.:
