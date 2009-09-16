@@ -80,6 +80,8 @@ class SZG_CALL arAppLauncher {
   bool getRenderProgram(const int num, string& computer, string& renderName);
   void updateRenderers(const string& attribute, const string& value);
 
+  vector<string> findServices();
+
  private:
   arSZGClient* _szgClient;
   bool _ownedClient;
@@ -91,7 +93,7 @@ class SZG_CALL arAppLauncher {
   string _location;
   string _exeName;
   vector<arPipe> _pipes;
-  list<arLaunchInfo> _serviceList;
+  list<arLaunchInfo> _serviceLaunchList;
 
   string _getAttribute(const string& g, const string& p, const string& v) const
     { return _szgClient->getAttribute(_vircomp, g, p, v); }
