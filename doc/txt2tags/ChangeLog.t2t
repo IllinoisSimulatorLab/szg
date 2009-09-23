@@ -10,6 +10,10 @@ Header3
 
 =Changes in version 1.3=
 
+As of revision number 1794 of July '09, the 
+[environment variables for building the python bindings PythonBindings.html#BuildBindings]
+have changed. Please read the linked section.
+
 Make now inserts bazaar revision number and other info into a source file,
 szg/src/language/arVersion.cpp. This requires both bzr and python. If
 they're not available, set the environment variable SZG_BZR_INFO=FALSE to

@@ -62,7 +62,7 @@ bool printConfig() const {
   /// size of block of ports, default 200.
   int getPortBlockSize();
   /// number of interfaces in the config.
-  int getNumberInterfaces();
+  int getNumNetworks();
   string getAddresses();
   string getNetworks();
   string getMasks();

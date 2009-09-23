@@ -39,7 +39,7 @@ endif
 
 # linking
 LINKER = c++
-STATIC_LINKER = ar -r
+STATIC_LINKER = ar -c -r
 LINK_PREFIX =
 LINK_FLAGS = -o
 LINK_FLAGS_DEBUG = $(LINK_FLAGS)

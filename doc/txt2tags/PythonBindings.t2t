@@ -9,6 +9,13 @@ Header3
 %%toc
 
 
+=Important Change=
+
+As of revision number 1794 of July '09, the 
+[environment variables for building the python bindings #BuildBindings]
+have changed. Please read the linked section.
+
+
 =Background=
 
 The Syzygy Python bindings are in flux now. We're switching binding-generation
@@ -37,13 +44,13 @@ still read this page, as procedural clarifications relevant to both will probabl
 added here).
 
 
-=Building the Bindings=
+=Building the Bindings=[BuildBindings]
 
 + Get a reasonably recent version of Python. If you are using the Cygwin command shell on windows,
   make sure that it does
-  not include its own version of Python or SWIG. You must remove them if they exist, since
-  cygwin's Python and Syzygy use incompatible object-file formats (gcc vs. Visual
-  Studio). Install the native Windows version of Python from
+  not include its own version of Python. You must remove it if it exists, since
+  cygwin's Python and Syzygy use incompatible object-file formats (cygwin gcc vs. Visual
+  C++). Install the native Windows version of Python from
   [python.org www.python.org].
 
 + Get a //very// recent version of SIP. I doubt that any version before 4.7 will work.
@@ -61,14 +68,17 @@ added here).
 
   - Linux: This would typically be something like ``/usr/include/python2.5``.
 
-+ Set the SZG_PYLIB environment variable. This variable functions a bit differently
-  on different platforms:
++ Set the SIP_INCLUDE environment variable to the location of the sip.h header.
 
-  - On Windows, it's the location of the Python shared library: With Python 2.4 in
-    C:\python24 this would be ``C:/Python24/libs/python24.lib`` (also forward slashes).
++ If you're on Linux or MacOS or using MinGW g++ on Windows, set the SZG_PYLIB environment
+  variable. On Linux and MacOS, this is the word 'python' followed by the Python version
+  number //with a decimal point//, e.g. ``python2.5``;
+  on Windows it should //not// include the decimal point, e.g. ``python24``. I know, it's ugly. 
+  This is the value for the -l linker argument.
 
-  - On Linux, it's the value for the -l linker argument. For example, to link against
-    /usr/lib/libpython2.5.so, this should be set to ``python2.5``
++ For all compilers on Windows set the SZG_PYLIB_PATH environment variable to the location of
+  the Python link library: For example, with Python 2.4 in C:\python24 this would be
+  ``C:/Python24/libs/python24.lib`` (also forward slashes).
 
 + ``cd`` to szg/python_sip and type ``make``. ``make clean`` cleans (deletes) things up.
   A number of files are generated/moved.

@@ -10,6 +10,10 @@
 #include "arMath.h"
 
 #ifdef EnableJPEG
+//#ifdef _MSC_VER && (_MSC_VER >= 1400)
+//extern "C" { FILE _iob[3] = {__iob_func()[0], __iob_func()[1], __iob_func()[2]}; }
+//#endif
+
 extern "C"{
 #include "jpeglib.h"
 }

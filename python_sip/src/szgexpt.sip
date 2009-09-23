@@ -235,7 +235,7 @@ class arExperiment {
     /// be ignored. Use this only in special cases, e.g. when
     /// creating a demo that will reside in the same directory as an experiment.
     /// Must be called before init().
-    bool saveData( bool yesno );
+    bool saveData( bool yesno ) /PyName=savingData/;
     /// Set the trial-generation method. This would normally be read from
     /// SZG_EXPT/method, but if this has been called that parameter will be ignored.
     /// Must be called before init().

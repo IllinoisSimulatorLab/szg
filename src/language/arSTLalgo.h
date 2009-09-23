@@ -10,5 +10,7 @@
   // For gcc 4.1.2 "accumulator"
   #include <numeric>
 #endif
-
+#ifdef AR_USE_WIN_32
+  #include <numeric>
+#endif
 #endif

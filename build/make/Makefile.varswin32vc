@@ -139,7 +139,7 @@ GENERAL_LIBS = advapi32.lib kernel32.lib user32.lib gdi32.lib Ws2_32.lib
 # NOTE: glut is now added in Makefile.libscan, so that we can do without
 # installing it (and make use of such in SZGEXTERNAL) if such is desired.
 GRAPHICS_LIBS = opengl32.lib glu32.lib
-GAMEPAD_LIBS = dinput.lib dxguid.lib
+GAMEPAD_LIBS = winmm.lib
 # We want to be able to NOT do a console-based app if necessary
 SZG_SUBSYSTEM = -subsystem:console
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
