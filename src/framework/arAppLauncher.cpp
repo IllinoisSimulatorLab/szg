@@ -6,7 +6,7 @@
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 #include "arLogStream.h"
-#include <algorithm>		// gcc 4.3.2 ubuntu64 needs this for find() on std::vector
+#include <arSTLalgo.h>		// gcc 4.3.2 ubuntu64 needs this for find() on std::vector
 
 ostream& operator<<(ostream& os, const arLaunchInfo& x) {
   os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
