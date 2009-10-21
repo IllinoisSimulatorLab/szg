@@ -56,6 +56,7 @@ class arOBJMaterial {
   arVector3 Ka;  
   string    map_Kd;
   string    map_Bump;
+  string    map_Opacity;
   char*     name; // 32-char array
 %GetCode
   if ((sipPy = PyString_FromString(sipCpp->name)) == NULL) {
