@@ -49,16 +49,23 @@ include the header arGlut.h.
 ==Linux==
 
   - X11 and ncurses development packages are required for
-compilation. Your distribution might not install these by default.
+compilation. Your distribution might not install these by default, e.g.
+on Ubuntu 8.04 we install build-essential, libncurses5-dev,
+libxi-dev, libxext-dev, libxmu-dev. For Python development install
+python-sip4-dev and sip4; note also that if you want to compile the
+Python bindings a bug in g++ 4.2 will make this a very slow process;
+4.1 or 4.3 will work much better.
+
 
   - GLUT is required for compilation as well. Either install a
-GLUT development package via your distribution or install GLUT in
-Syzygy's external build libraries, as described [here SupportingLibraries.html].
+GLUT development package via your distribution (freeglut3-dev)
+or install GLUT in Syzygy's external build libraries, as described
+[here SupportingLibraries.html].
 
   - IMPORTANT NOTE: the Syzygy build environment produces code
 for the i686 architecture by default.If you have an older processor,
 you need to change the "-march=i686" flag in
-szg/build/make/Makefile.vars. Experiment with either removing it or
+szg/build/make/Makefile.varslinux. Experiment with either removing it or
 downgrading, for instance to "-march=i586".
 
 
@@ -66,14 +73,14 @@ downgrading, for instance to "-march=i586".
 
   - Syzygy's build system uses GNU make and either the command line
 Visual Studio compiler and linker (either Visual Studio 6 with
-the STLPort STL headers or Visual Studio .NET without)
+the STLPort STL headers or Visual Studio 7 (.NET) without)
 or the MinGW implementation of the GNU g++ compiler and linker.
-Note that not all functionality is available when compiling
-with g++ on Windows: You can't currently compile scene graph plugins.
-The device drivers for the SpacePad is also unavailable (see
+Note that when compiling with g++ on Windows,
+the device driver for the SpacePad is unavailable (see
 [Supported Input Devices InputDevices-Drivers.html].
-However, we can supply you with precompiled binaries of
-the device drivers. //New in 1.2//: Speech synthesis, .3ds model files,
+However, we can supply you with a precompiled binary of
+the device driver. Users have successfully built Syzygy with
+Visual Studio 2005. //New in 1.2//: Speech synthesis, .3ds model files,
 and joysticks are now supported when using the MinGW g++ compiler. It
 turns out that it was possible to build the Python bindings all along,
 presumably because the MinGW runtime is linked against the dynamic-linked
