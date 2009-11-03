@@ -1,0 +1,25 @@
+import os
+import sys
+import shutil
+import subprocess
+
+Import('buildEnv','pathDict')
+
+dirName = 'barrier'
+
+libSrc = ( \
+    'arBarrierServer.cpp',
+    'arBarrierClient.cpp',
+    'arSyncDataClient.cpp',
+    'arSyncDataServer.cpp'
+  )
+
+progNames = (
+    'BarrierServer',
+    'BarrierClient'
+    )
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+

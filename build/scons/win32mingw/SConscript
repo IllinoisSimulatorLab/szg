@@ -1,0 +1,87 @@
+# Aszgard/MinGW-specific build file for scons
+# Builds a basic Hello World using a vanilla
+# build environment, then creates an build
+# environment for building freeglut-based
+# programs
+
+import os
+import sys
+
+Import('envDict')
+
+numCPU = int(os.environ.get( 'NUMBER_OF_PROCESSORS', 2 ))
+SetOption( 'num_jobs', numCPU )
+
+
+if 'ASZGARD' in os.environ:
+  def aszgardPath( relPath ):
+    return os.path.join( os.environ['ASZGARD'], relPath ).replace('\\','/')
+
+  # Exec path offsets from aszgard
+  relExecPaths = [
+    'bin/MinGW/bin',
+    'bin/msys/bin'
+  ]
+  # Construct absolute exec paths
+  execPaths = [aszgardPath( p ) for p in relExecPaths]
+
+  # Create MinGW build environment.
+  basicEnv = Environment( ENV={'PATH':execPaths}, tools=['mingw'] )
+else:
+  # Create MinGW build environment.
+  basicEnv = Environment( tools=['mingw'] )
+
+pathDict = envDict['paths']
+
+commonFlags = {
+    'CPPPATH':[pathDict['includePath']],
+    'LIBPATH':[pathDict['libPath']],
+    'LIBS':['glu32','opengl32','kernel32','user32','gdi32','winmm','wsock32'],
+    'CCFLAGS':['-O2','-Wall','-W','-Wpointer-arith','-march=i686','-D AR_USE_WIN_32','-D AR_USE_MINGW'],
+    'LINKFLAGS':['-Wl,--enable-stdcall-fixup','--enable-runtime-pseudo-reloc','--compat-implib']
+    }
+
+
+szgEnv = basicEnv.Clone()
+bld = Builder( action='ar -r $TARGET $SOURCES', prefix='lib', suffix='.a', src_suffix='.o' )
+szgEnv['BUILDERS']['StaticLibrary'] = bld
+szgEnv.MergeFlags( envDict['versionFlags'] )
+szgEnv.MergeFlags( commonFlags )
+
+############# Detecting libraries ##########################
+
+externalFlags = {}
+
+######## GLUT ################################
+
+SConscript( 'SConscript.glut', exports=['szgEnv','externalFlags'] )
+
+######## FMOD ################################
+
+SConscript( 'SConscript.fmod', exports=['szgEnv','externalFlags'] )
+
+######## Detecting libraries end ############################
+
+def makeLibName( libName ):
+  libName = 'ar'+libName.capitalize()
+  if os.environ.get( 'SZG_LINKING', 'STATIC' ) != 'DYNAMIC':
+    libName += '_static'
+  return libName
+    
+langEnv = szgEnv.Clone()
+mathEnv = szgEnv.Clone()
+mathEnv.Prepend( LIBS=makeLibName('language') )
+phleetEnv = mathEnv.Clone()
+phleetEnv.Prepend( LIBS=makeLibName('math') )
+barrierEnv = phleetEnv.Clone()
+barrierEnv.Prepend( LIBS=makeLibName('phleet') )
+
+envDict.update( \
+    {'szgEnv':szgEnv,
+      'languageEnv':langEnv,
+      'mathEnv':mathEnv,
+      'phleetEnv':phleetEnv,
+      'barrierEnv':barrierEnv
+    } \
+  )
+

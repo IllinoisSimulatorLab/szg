@@ -1,0 +1,32 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')
+
+# include and library paths
+includes = extPath+'/win32/fmod-4/include'
+libPath = extPath+'/win32/fmod-4/lib'
+
+flags = {
+    'CPPPATH':[includes], 'LIBPATH':[libPath],
+    'CCFLAGS':['-D EnableSound'], 'LIBS':['fmodex']
+    }
+
+# Create a clone of the build environment an stuff the new
+# flags into it. Note that this entire script gets run before
+# any of the targets are built. If we just stuffed the freeglut
+# flags into env instead of cloning it, then hello.exe would
+# get built with all the freeglut flags (which would work,
+# but it's more instructive this way).
+testEnv = szgEnv.Clone()
+if not testEnv.GetOption('clean'):
+  testEnv.MergeFlags( flags )
+  conf = Configure( testEnv )
+  if not conf.CheckLibWithHeader( 'fmodex', 'fmod.h', 'c' ):
+    print "Didn't find required fmod; you won't be able to build past the graphics directory."
+  else:
+    externalFlags['fmod'] = flags
+  conf.Finish()
+

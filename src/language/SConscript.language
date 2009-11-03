@@ -1,0 +1,61 @@
+Import('buildEnv','pathDict')
+
+dirName = 'language'
+
+libSrc = ( \
+  'arVersion.cpp', \
+  'arRS232Port.cpp', \
+  'arDatabaseLanguage.cpp', \
+  'arDatabaseNode.cpp', \
+  'arDatabase.cpp', \
+  'arDataPoint.cpp', \
+  'arDataClient.cpp', \
+  'arDataServer.cpp', \
+  'arDataTemplate.cpp', \
+  'arDataUtilities.cpp', \
+  'arLanguage.cpp', \
+  'arLightFloatBuffer.cpp', \
+  'arQueuedData.cpp', \
+  'arSharedLib.cpp', \
+  'arSocket.cpp', \
+  'arStructuredDataParser.cpp', \
+  'arStructuredData.cpp', \
+  'arTemplateDictionary.cpp', \
+  'arSocketTextStream.cpp', \
+  'arFileTextStream.cpp', \
+  'arXMLUtilities.cpp', \
+  'arThread.cpp', \
+  'arUDPSocket.cpp', \
+  'arSocketAddress.cpp', \
+  'arXMLParser.cpp', \
+  'arLogStream.cpp' \
+  )
+
+progNames = ('RS232EchoTest',
+    'RS232SendTest',
+    'TestLanguageClient',
+    'TestLanguageServer',
+    'TestLanguage')
+
+
+# Copy the bzr revision info into arVersion.cpp
+
+import os
+import sys
+import shutil
+import subprocess
+
+srcPath = os.path.join( os.environ['SZGHOME'], 'src', dirName )
+
+if not buildEnv.GetOption('clean'):
+  if 'SZG_BZR_INFO' in os.environ and os.environ['SZG_BZR_INFO'] == 'FALSE':
+    filePaths = tuple([os.path.join( srcPath, f ) for f in ('arVersionTemplate.cpp','arVersion.cpp')])
+    shutil.copyfile( *filePaths )
+  else:
+    subprocess.call([sys.executable,os.path.join( srcPath, 'make_arVersion.py' ),srcPath] )
+
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
