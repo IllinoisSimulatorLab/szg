@@ -15,13 +15,15 @@ SConscript('build/scons/SConscript.platform',exports='envDict')
 
 # Get the dictionary of build, include, lib, install paths.
 pathDict = envDict['paths']
+externalFlags = envDict['externalFlags']
+priorLibs = []
 
-subdirs = ('language','math','phleet','barrier')
-for d in subdirs:
+for d in envDict['subdirs']:
   sourcePath = 'src/'+d+'/SConscript.'+d
   variantDir = pathDict['buildPath']+'/'+d
   buildEnv = envDict[d+'Env']
-  exports = ['buildEnv','pathDict']
+  # NOTE: priorLibs gets modified by each directories' SConscript
+  exports = ['buildEnv','pathDict','priorLibs','externalFlags']
   SConscript( sourcePath, \
       variant_dir=variantDir, \
       exports=exports, \

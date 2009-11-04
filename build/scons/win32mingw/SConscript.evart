@@ -7,13 +7,13 @@ extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/'+sys.platform+'/'
 
 
 # parameters specific to this library
-name = 'fmod'
-includePath = extPath+'fmod-4/include'
-libPath = extPath+'fmod-4/lib'
-ccFlag = '-D EnableSound'
-libName = 'fmodex'
-headerName = 'fmod.h'
-checkFailMessage = "Didn't find optional fmodex library or fmod.h header; sound disabled."
+name = 'evart'
+includePath = extPath+'evart-mingw/include'
+libPath = extPath+'evart-mingw/lib'
+ccFlag = '-D EnableEVART'
+libName = 'macrtcom'
+headerName = 'EVaRT.h'
+checkFailMessage = "Didn't find optional EVaRT (macrtcom) library or header; EVaRTDriver disabled."
 
 # boileplate code that should be pretty much common to all libraries
 # (may factor it out later).

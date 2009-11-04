@@ -3,7 +3,7 @@ import sys
 import shutil
 import subprocess
 
-Import('buildEnv','pathDict')
+Import('buildEnv','pathDict','priorLibs','externalFlags')
 
 dirName = 'math'
 

@@ -1,4 +1,4 @@
-Import('buildEnv','pathDict')
+Import('buildEnv','pathDict','priorLibs','externalFlags')
 
 dirName = 'language'
 

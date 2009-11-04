@@ -3,49 +3,39 @@ import sys
 
 Import('szgEnv','externalFlags')
 
-extPath = os.environ['SZGEXTERNAL'].replace('\\','/')
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/'+sys.platform+'/'
 
-# include and library paths
-includes = extPath+'/win32/freeglut-2.4.0-mingw/include'
-libPath = extPath+'/win32/freeglut-2.4.0-mingw/lib'
 
-# Flags. Two sets, one for linking statically and one for using dll
+# parameters specific to this library
+name = 'glut'
+includePath = extPath+'freeglut-2.4.0-mingw/include'
+libPath = extPath+'freeglut-2.4.0-mingw/lib'
+headerName = 'GL/glut.h'
+checkFailMessage = "Didn't find required freeglut; You can't build past drivers directory."
 
-# Flags for both cases...
-flags = {'CPPPATH':[includes], 'LIBPATH':[libPath] }
+# For use with freeglut.dll
+libName = 'freeglut'
+ccFlag = ''
 
-# static.
-staticFlags = {
-    'CCFLAGS':['-D FREEGLUT_STATIC'],
-    'LIBS':['freeglut_static']
+# For use with static freeglut library.
+#libName = 'freeglut_static'
+#ccFlag = '-F FREEGLUT_STATIC'
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'CPPPATH':[includePath], 'LIBPATH':[libPath], 'LIBS':[libName]
     }
 
-# dynamic
-dllFlags = {
-    'LIBS':['freeglut']
-    }
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
 
-# We'll use the dll flags...(Makes smaller programs, but requires
-# that dll be somewhere reachable, generally either in the
-# current directory or on the PATH).
-if os.environ.get( 'SZG_LINKING', 'STATIC' ) == 'DYNAMIC':
-  flags.update( dllFlags )
-else:
-  flags.update( staticFlags )
-
-# Create a clone of the build environment an stuff the new
-# flags into it. Note that this entire script gets run before
-# any of the targets are built. If we just stuffed the freeglut
-# flags into env instead of cloning it, then hello.exe would
-# get built with all the freeglut flags (which would work,
-# but it's more instructive this way).
 testEnv = szgEnv.Clone()
-if not testEnv.GetOption('clean'):
-  testEnv.MergeFlags( flags )
-  conf = Configure( testEnv )
-  if not conf.CheckLibWithHeader( 'freeglut', 'GL/glut.h', 'c' ):
-    print "Didn't find required freeglut; You can't build past drivers directory."
-  else:
-    externalFlags['glut'] = flags
-  conf.Finish()
-
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()

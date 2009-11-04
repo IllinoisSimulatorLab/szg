@@ -50,15 +50,17 @@ szgEnv.MergeFlags( commonFlags )
 
 ############# Detecting libraries ##########################
 
+######## Check and get flags for external dependencies ######
+
 externalFlags = {}
 
-######## GLUT ################################
-
 SConscript( 'SConscript.glut', exports=['szgEnv','externalFlags'] )
-
-######## FMOD ################################
-
+SConscript( 'SConscript.jpeg', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.fmod', exports=['szgEnv','externalFlags'] )
+SConscript( 'SConscript.bird', exports=['szgEnv','externalFlags'] )
+SConscript( 'SConscript.evart', exports=['szgEnv','externalFlags'] )
+
+envDict['externalFlags'] = externalFlags
 
 ######## Detecting libraries end ############################
 
@@ -68,20 +70,18 @@ def makeLibName( libName ):
     libName += '_static'
   return libName
     
-langEnv = szgEnv.Clone()
-mathEnv = szgEnv.Clone()
-mathEnv.Prepend( LIBS=makeLibName('language') )
-phleetEnv = mathEnv.Clone()
-phleetEnv.Prepend( LIBS=makeLibName('math') )
-barrierEnv = phleetEnv.Clone()
-barrierEnv.Prepend( LIBS=makeLibName('phleet') )
+envDict['szgEnv'] = szgEnv
+lastEnv = szgEnv
+lastDir = ''
 
-envDict.update( \
-    {'szgEnv':szgEnv,
-      'languageEnv':langEnv,
-      'mathEnv':mathEnv,
-      'phleetEnv':phleetEnv,
-      'barrierEnv':barrierEnv
-    } \
-  )
+subdirs = ('language','math','phleet','barrier','drivers','graphics')
 
+for d in subdirs:
+  print 'Adding build environment for',d
+  env = lastEnv.Clone()
+  env.Prepend( LIBS=makeLibName(d) )
+  envDict[d+'Env'] = env
+  lastEnv = env
+  lastDir = d
+
+envDict['subdirs'] = subdirs
