@@ -12,7 +12,8 @@ libPath = extPath+'jpeg-mingw/lib'
 ccFlag = '-D EnableJPEG'
 libName = 'jpeg'
 headerName = 'jpeglib.h'
-checkFailMessage = "Didn't find optional jpeg library or jpeglib.h header; jpeg support disabled."
+#checkFailMessage = "Didn't find optional jpeg library or jpeglib.h header; jpeg support disabled."
+checkFailMessage = "Didn't find optional jpeg library; jpeg support disabled."
 
 # boilerplate code that should be pretty much common to all libraries
 # (may factor it out later).
@@ -24,27 +25,17 @@ if ccFlag:
   flags['CCFLAGS'] = [ccFlag]
 
 
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
 # The standard SCons check code fails incorrectly for no apparent
-# reason.
-libFilename = 'libjpeg.a'
-msg = 'Checking for C library jpeg... '
-if os.path.exists( includePath+'/'+headerName ) and os.path.exists( libPath + '/' +libFilename ):
-  externalFlags[name] = flags
-  msg += 'yes'
-  print msg
-else:
-  msg += 'no'
-  print msg
+# reason if we also look for the header. Works OK with just the
+# library, though.
+#if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+if not conf.CheckLib( libName ):
   print checkFailMessage
   externalFlags[name] = {}
-
-#testEnv = szgEnv.Clone()
-#testEnv.MergeFlags( flags )
-#conf = Configure( testEnv )
-#if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
-#  print checkFailMessage
-#  externalFlags[name] = {}
-#else:
-#  externalFlags[name] = flags
-#conf.Finish()
+else:
+  externalFlags[name] = flags
+conf.Finish()
 

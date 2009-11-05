@@ -73,9 +73,6 @@ progNames = (
     )
 
 
-buildEnv.MergeFlags( externalFlags['glut'] )
-buildEnv.MergeFlags( externalFlags['jpeg'] )
-
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )

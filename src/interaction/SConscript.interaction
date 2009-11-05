@@ -1,0 +1,29 @@
+import os
+import sys
+import shutil
+import subprocess
+
+Import('buildEnv','pathDict','priorLibs','externalFlags')
+
+dirName = 'interaction'
+
+libSrc = ( \
+    'arInteractionSelector.cpp',
+    'arEffector.cpp',
+    'arInteractable.cpp',
+    'arCallbackInteractable.cpp',
+    'arGrabCondition.cpp',
+    'arDragBehavior.cpp',
+    'arDragManager.cpp',
+    'arNavManager.cpp',
+    'arUniqueInteractor.cpp',
+    'arInterfaceObject.cpp',
+    'arInteractionUtilities.cpp',
+  )
+
+progNames = ()
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
