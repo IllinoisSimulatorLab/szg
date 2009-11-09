@@ -1,0 +1,91 @@
+import os
+import sys
+import shutil
+import subprocess
+
+Import('buildEnv','pathDict','priorLibs','externalFlags')
+
+dirName = 'drivers'
+
+libSrc = ( \
+    'arDeviceServerFramework.cpp',
+    'arInputNodeConfig.cpp',
+    'arInputFactory.cpp',
+    'arEventUtilities.cpp',
+    'arFileSink.cpp',
+    'arFileSource.cpp',
+    'arGenericDriver.cpp',
+    'arIOFilter.cpp',
+    'arInputEvent.cpp',
+    'arInputEventQueue.cpp',
+    'arInputLanguage.cpp',
+    'arInputNode.cpp',
+    'arInputSource.cpp',
+    'arInputState.cpp',
+    'arNetInputSink.cpp',
+    'arNetInputSource.cpp',
+    'arPForth.cpp',
+    'arPForthDatabaseVocabulary.cpp',
+    'arPForthEventVocabulary.cpp',
+    'arPForthFilter.cpp',
+    'arPForthStandardVocabulary.cpp'
+  )
+
+progNames = (
+    'DeviceServer',
+    'DeviceClient',
+    'EventTest',
+    'FaroTest',
+    'PForthTest',
+    'pfconsole'
+    )
+
+pluginSrc = (
+    'arJoystickDriver.cpp',
+    'arSerialSwitchDriver.cpp',
+    'arFOBDriver.cpp',
+    'arFaroDriver.cpp',
+    'arLogitechDriver.cpp',
+    'arMotionstarDriver.cpp',
+    'arPPTDriver.cpp',
+    'arReactionTimerDriver.cpp',
+    'arSharedMemDriver.cpp',
+    'arSharedMemSinkDriver.cpp',
+    'arUSBDriver.cpp',
+    'arVRPNDriver.cpp',
+    'arParallelSwitchDriver.cpp'
+  )    
+
+# Unsupported drivers (with MinGW):
+#    'arIntersenseDriver.cpp',
+#    'arWiimoteDriver.cpp',
+#    'ar5DTGloveDriver.cpp',
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
+# Each call to SharedLibrary() returns a (.dll,.a,.def) tuple.
+pluginStuff = [progEnv.SharedLibrary( s ) for s in pluginSrc]
+plugins = [p[0] for p in pluginStuff]
+
+# Driver plugins with external dependencies
+
+# Flock of Birds, using Ascension dll.
+birdEnv = progEnv.Clone()
+if not birdEnv.GetOption('clean'):
+  birdEnv.MergeFlags( externalFlags['bird'] )
+birdPluginStuff = birdEnv.SharedLibrary( 'arBirdWinDriver.cpp' )
+Depends( birdPluginStuff, priorLibs )
+plugins.append( birdPluginStuff[0] )
+
+# EVaRT, using macrtcom library.
+evartEnv = progEnv.Clone()
+if not birdEnv.GetOption('clean'):
+  evartEnv.MergeFlags( externalFlags['evart'] )
+evartPluginStuff = evartEnv.SharedLibrary( 'arEVaRTDriver.cpp' )
+Depends( evartPluginStuff, priorLibs )
+plugins.append( evartPluginStuff[0] )
+
+# NOTE: does arIntersenseDriver work with MinGW?
+progEnv.Install( pathDict['binPath'], plugins )

@@ -354,7 +354,7 @@ int main() {
      cout << "Double->float test 2 failed.\n";
      exit(0);
   }
-  cout << "*** PASSED.\n";
+  cout << "*** PASSED (some error messages expected).\n";
 
   cout << "Beginning unit test 4: XML file I/O.\n";
   // now, we will test speed of reading and writing..

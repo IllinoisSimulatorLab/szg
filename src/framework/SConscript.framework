@@ -1,0 +1,33 @@
+import os
+import sys
+import shutil
+import subprocess
+
+Import('buildEnv','pathDict','priorLibs','externalFlags')
+
+dirName = 'framework'
+
+libSrc = ( \
+    'arInputSimulatorFactory.cpp',
+    'arInputSimulator.cpp',
+    'arInteractableThing.cpp',
+    'arFrameworkEventFilter.cpp',
+    'arSZGAppFramework.cpp',
+    'arMasterSlaveFramework.cpp',
+    'arDistSceneGraphFramework.cpp',
+    'arRoutableTemplate.cpp',
+    'arMasterSlaveDataRouter.cpp',
+    'arAppLauncher.cpp',
+    'arController.cpp',
+    'arFlyingGravisController.cpp'
+  )
+
+progNames = (
+    'inputsimulator',
+    )
+
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+

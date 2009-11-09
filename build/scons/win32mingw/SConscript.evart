@@ -1,0 +1,36 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/'+sys.platform+'/'
+
+
+# parameters specific to this library
+name = 'evart'
+includePath = extPath+'evart-mingw/include'
+libPath = extPath+'evart-mingw/lib'
+ccFlag = '-D EnableEVART'
+libName = 'macrtcom'
+headerName = 'EVaRT.h'
+checkFailMessage = "Didn't find optional EVaRT (macrtcom) library or header; EVaRTDriver disabled."
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'CPPPATH':[includePath], 'LIBPATH':[libPath], 'LIBS':[libName]
+    }
+
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
+

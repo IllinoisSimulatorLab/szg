@@ -1,0 +1,50 @@
+import os
+import sys
+import shutil
+import subprocess
+
+Import('buildEnv','pathDict','priorLibs','externalFlags')
+
+dirName = 'phleet'
+
+libSrc = ( \
+    'arSZGClient.cpp',
+    'arPhleetConfigLanguage.cpp',
+    'arPhleetConfig.cpp',
+    'arPhleetConnectionBroker.cpp',
+    'arPhleetOSLanguage.cpp',
+    'arPhleetTemplate.cpp'
+  )
+
+progNames = (
+    'szgd',
+    'szgserver',
+    'dbatch',
+    'dex',
+    'dget',
+    'dhunt',
+    'dkill',
+    'dlogin',
+    'dlogout',
+    'dps',
+    'dset',
+    'dtop',
+    'dwho',
+    'dname',
+    'dconfig',
+    'daddinterface',
+    'ddelinterface',
+    'dports',
+    'testservice',
+    'testserviceclient',
+    'dservices',
+    'dpending',
+    'dlocks',
+    'testlock',
+    'phleettest'
+    )
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
