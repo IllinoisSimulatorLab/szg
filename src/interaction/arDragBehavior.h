@@ -17,11 +17,11 @@ class arInteractable;
 class SZG_CALL arDragBehavior {
   public:
     virtual ~arDragBehavior() {}
-    virtual void init( const arEffector* const effector,
-                       const arInteractable* const object ) {}
-    virtual void update( const arEffector* const effector,
-                         arInteractable* const object,
-                         const arGrabCondition* const grabCondition ) {}
+    virtual void init( const arEffector* const /*effector*/,
+                       const arInteractable* const /*object*/ ) {}
+    virtual void update( const arEffector* const /*effector*/,
+                         arInteractable* const /*object*/,
+                         const arGrabCondition* const /*grabCondition*/ ) {}
     virtual arDragBehavior* copy() const { return new arDragBehavior(); }
 };
 

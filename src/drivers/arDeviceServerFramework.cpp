@@ -175,15 +175,20 @@ int arDeviceServerFramework::messageLoop() {
     const int sendID = _szgClient.receiveMessage(&messageType, &messageBody);
     if (!sendID) {
       // Shutdown "forced."
+      ar_log_critical() << "receiveMessage() failed.\n";
       _inputNode.stop();
-      ar_log_debug() << "shutdown.\n";
+      ar_log_critical() << "shutdown.\n";
       return 0;
+    } else {
+      ar_log_remark() << "Received message of type '" << messageType
+                     << "' with body:\n'" << messageBody
+                     << "'\n----------------------------------------\n";
     }
 
     if (messageType=="quit") {
-      ar_log_debug() << "shutting down...\n";
+      ar_log_critical() << "shutting down...\n";
       _inputNode.stop();
-      ar_log_debug() << "shutdown.\n";
+      ar_log_critical() << "shutdown.\n";
       return 0;
     }
 
