@@ -1,0 +1,29 @@
+import sys
+import os
+
+Import('envDict')
+
+if sys.platform == 'win32':
+  if os.environ['SZG_COMPILER'] == 'MINGW':
+    scriptDir = 'win32mingw'
+  else:
+    scriptDir = 'win32msvc'
+else:
+  raise ValueError, 'No support for SCons on '+sys.platform+' yet.'
+
+# Set up the build and install paths.
+szgPath = os.environ['SZGHOME']
+pathDict = {}
+pathDict['buildPath'] = szgPath+'/build/'+sys.platform
+pathDict['includePath'] = szgPath+'/include/'+sys.platform
+pathDict['libPath'] = szgPath+'/lib/'+sys.platform
+pathDict['binPath'] = szgPath+'/bin/'+sys.platform
+pathDict['libs'] = []
+
+if 'SZGBIN' in os.environ:
+  pathDict['binPath'] = os.environ['SZGBIN']
+
+envDict['paths'] = pathDict
+
+# Run the appropriate platform-specific script.
+SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )

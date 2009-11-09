@@ -5,21 +5,19 @@
  * SchprelScene.h
  */
 
-#include "SpecialRelativityMath.h"
 #include "arGraphicsAPI.h"
+#include "SpecialRelativityMath.h"
 
 /** basic scene file object for schprel
  * to allow them to be changed on the fly
  * (C++ abstraction and all...)
 */
-class SchprelScene
-{
+class SchprelScene {
   public:
     virtual ~SchprelScene() {}
 
     /// get ready for drawing
-    virtual void initTheGL(void)
-    {
+    virtual void initTheGL(void) {
       // This stuff is no longer necessary since it is taken care of
       // by the framework itself. In fact, including it here compromises
       // passive stereo display from a single window (where we want two views)
@@ -28,7 +26,7 @@ class SchprelScene
     }
 
     /// draw everything
-    virtual void drawAll(void) = 0;
+    virtual void drawAll() = 0;
 
     /// update functions
     /// @param updateValues struct containing all relevent information
