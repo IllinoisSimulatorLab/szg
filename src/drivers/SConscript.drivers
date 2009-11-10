@@ -71,21 +71,23 @@ plugins = [p[0] for p in pluginStuff]
 
 # Driver plugins with external dependencies
 
-# Flock of Birds, using Ascension dll.
-birdEnv = progEnv.Clone()
-if not birdEnv.GetOption('clean'):
-  birdEnv.MergeFlags( externalFlags['bird'] )
-birdPluginStuff = birdEnv.SharedLibrary( 'arBirdWinDriver.cpp' )
-Depends( birdPluginStuff, priorLibs )
-plugins.append( birdPluginStuff[0] )
+if 'bird' in externalFlags:
+  # Flock of Birds, using Ascension dll.
+  birdEnv = progEnv.Clone()
+  if not birdEnv.GetOption('clean'):
+    birdEnv.MergeFlags( externalFlags['bird'] )
+  birdPluginStuff = birdEnv.SharedLibrary( 'arBirdWinDriver.cpp' )
+  Depends( birdPluginStuff, priorLibs )
+  plugins.append( birdPluginStuff[0] )
 
-# EVaRT, using macrtcom library.
-evartEnv = progEnv.Clone()
-if not birdEnv.GetOption('clean'):
-  evartEnv.MergeFlags( externalFlags['evart'] )
-evartPluginStuff = evartEnv.SharedLibrary( 'arEVaRTDriver.cpp' )
-Depends( evartPluginStuff, priorLibs )
-plugins.append( evartPluginStuff[0] )
+if 'evart' in externalFlags:
+  # EVaRT, using macrtcom library.
+  evartEnv = progEnv.Clone()
+  if not birdEnv.GetOption('clean'):
+    evartEnv.MergeFlags( externalFlags['evart'] )
+  evartPluginStuff = evartEnv.SharedLibrary( 'arEVaRTDriver.cpp' )
+  Depends( evartPluginStuff, priorLibs )
+  plugins.append( evartPluginStuff[0] )
 
 # NOTE: does arIntersenseDriver work with MinGW?
 progEnv.Install( pathDict['binPath'], plugins )

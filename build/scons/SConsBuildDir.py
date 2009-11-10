@@ -46,6 +46,9 @@ headers = [f for f in os.listdir(srcPath) if os.path.splitext(f)[1]=='.h']
 buildEnv.Install( pathDict['includePath'], headers )
 
 # Install the programs in $SZGBIN or szg/bin/<platform>
+#print 'installing in',pathDict['binPath']
+#for p in progs:
+#  print str(p)
 buildEnv.Install( pathDict['binPath'], progs )
 
 

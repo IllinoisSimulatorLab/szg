@@ -24,6 +24,7 @@ for d in envDict['subdirs']:
   buildEnv = envDict[d+'Env']
   # NOTE: priorLibs gets modified by each directories' SConscript
   exports = ['buildEnv','pathDict','priorLibs','externalFlags']
+  print 'SConscript(',sourcePath,')'
   SConscript( sourcePath, \
       variant_dir=variantDir, \
       exports=exports, \

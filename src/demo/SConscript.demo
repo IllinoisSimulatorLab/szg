@@ -29,7 +29,7 @@ for d in demos:
   progEnv.Prepend( CPPPATH=[demoPath] )
   src = getSources( demoPath )
   objs = [progEnv.Object( source=s ) for s in src]
-  prog = progEnv.Program( target=d, source=objs )
+  prog = progEnv.Program( target=d+'/'+d, source=objs )
   Depends( prog, priorLibs )
   progs.append( prog )
 

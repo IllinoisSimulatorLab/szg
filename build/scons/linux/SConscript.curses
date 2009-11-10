@@ -1,0 +1,28 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+# parameters specific to this library
+name = 'curses'
+headerName = 'curses.h'
+checkFailMessage = """Didn't find curses library, 'dtop' won't build.
+On Ubuntu try 'sudo apt-get install libncurses5-dev'."""
+
+libName = 'ncurses'
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'LIBS':[libName]
+    }
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
