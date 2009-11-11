@@ -82,7 +82,7 @@ subdirs = {
       'internal':['language','math','phleet','barrier'],
       'external':['glut','jpeg']
       },
-    'obj'  :{
+    'model'  :{
       'internal':['language','math','phleet','barrier','graphics'],
       'external':['glut','jpeg','3ds']
       },
@@ -95,15 +95,15 @@ subdirs = {
       'external':[]
       },
     'framework'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','obj','sound','interaction'],
+      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction'],
       'external':['glut','jpeg','3ds','fmod']
       },
     'utilities'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','obj','sound','interaction','framework'],
+      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
       'external':['glut','jpeg','3ds','fmod']
       },
     'demo'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','obj','sound','interaction','framework'],
+      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
       'external':['glut','jpeg','3ds','fmod']
       },
     }

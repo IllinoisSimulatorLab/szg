@@ -1,7 +1,7 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-VPATH = ../../../src/obj
+VPATH = ../../../src/model
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
@@ -39,7 +39,7 @@ SZG_LIBRARY_DEPS = \
   $(MATH_DEP_STRING) \
   $(PHLEET_DEP_STRING) \
   $(LANGUAGE_DEP_STRING)
-SZG_CURRENT_LIB_SHORT_NAME = arObject
+SZG_CURRENT_LIB_SHORT_NAME = arModel
 ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_OBJ"
 endif

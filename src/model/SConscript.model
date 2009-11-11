@@ -5,7 +5,7 @@ import subprocess
 
 Import('buildEnv','pathDict','priorLibs','externalFlags')
 
-dirName = 'obj'
+dirName = 'model'
 
 libSrc = ( \
     'arObject.cpp',
