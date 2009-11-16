@@ -1,6 +1,21 @@
 import os
 import sys
 
+
+# If the user types e.g. 'scons all'...
+if 'all' in COMMAND_LINE_TARGETS:
+  # remove 'all' from the targets, because there isn't
+  # any such directory (SCons targets are files or
+  # directories)...
+  BUILD_TARGETS.remove('all')
+  # Add '#' (this directory, szg, which is the default
+  # target & gets built if you just type 'scons') and
+  # doc/txt2tags to build targets.
+  BUILD_TARGETS.extend(['#','doc/txt2tags'])
+
+
+# Do all the build environments and checks unless the user
+# just wants to build the docs.
 if COMMAND_LINE_TARGETS != ['doc']:
   # Set version compile flags
   versionFlags = {'CCFLAGS':[ 
@@ -17,8 +32,9 @@ if COMMAND_LINE_TARGETS != ['doc']:
   # Get the dictionary of build, include, lib, install paths.
   pathDict = envDict['paths']
   externalFlags = envDict['externalFlags']
-  priorLibs = []
 
+  # Loop through the specified subdirectories and build them.
+  priorLibs = []
   for srcDirname in envDict['subdirs']:
     sourcePath = 'src/'+srcDirname+'/SConscript.'+srcDirname
     variantDir = pathDict['buildPath']+'/'+srcDirname
@@ -31,5 +47,7 @@ if COMMAND_LINE_TARGETS != ['doc']:
         exports=exports, \
         duplicate=0 )
 
+# Don't build the docs by default.
 if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
-  SConscript( '#/doc/txt2tags/SConscript.doc' )
+  buildEnv = Environment()
+  SConscript( '#/doc/txt2tags/SConscript.doc', exports={'buildEnv':buildEnv} )

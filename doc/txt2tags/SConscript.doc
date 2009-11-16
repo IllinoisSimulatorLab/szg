@@ -11,12 +11,12 @@
 import os
 import sys
 
-# Create build environment
-env = Environment()
+# Import build environment from SConstruct script.
+Import('buildEnv')
 
 # txt2tags needs this...
 if sys.platform == 'win32':
-  env['ENV']['HOMEDRIVE'] = os.environ.get( 'HOMEDRIVE', 'C:' )
+  buildEnv['ENV']['HOMEDRIVE'] = os.environ.get( 'HOMEDRIVE', 'C:' )
 
 python = sys.executable
 
@@ -29,13 +29,13 @@ confFile = os.path.join( buildPath, 't2t.rc' )
 
 # Create a builder for t2t -> html conversion.
 bld = Builder( action=python+' '+txt2tags+' -t html -C '+confFile+' -o $TARGET $SOURCES', suffix='.html', src_suffix='.t2t' )
-env['BUILDERS']['HtmlTxt2tags'] = bld
+buildEnv['BUILDERS']['HtmlTxt2tags'] = bld
 
 # List all the .t2t source files.
 docSrc = [f for f in os.listdir('.') if os.path.splitext(f)[1] == '.t2t']
 
 # Create html files from them in the same directory.
-docHtml = [env.HtmlTxt2tags(s) for s in docSrc]
+docHtml = [buildEnv.HtmlTxt2tags(s) for s in docSrc]
 # Specify that t2t.rc is a dependency for each html file.
 for f in docHtml:
   Depends( f, confFile )
