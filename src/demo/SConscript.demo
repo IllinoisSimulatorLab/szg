@@ -3,7 +3,7 @@ import sys
 import shutil
 import subprocess
 
-Import('buildEnv','pathDict','priorLibs','externalFlags')
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 demos = (
     'atlantis',
@@ -15,7 +15,7 @@ demos = (
     'schprel'
     )
 
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', 'demo' )
+srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
 
 def getSources( demoPath ):
   return [os.path.join( demoPath, f ) for f in os.listdir( demoPath ) if os.path.splitext(f)[1] == '.cpp']

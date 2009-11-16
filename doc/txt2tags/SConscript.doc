@@ -1,0 +1,46 @@
+# This is a bit clumsy, as SCons has more limitations than Make w.r.t. where
+# things can be and I don't want to duplicate txt2tags and the rc file.
+# We have to build the html files in the source directory and then move them
+# to the directory above in a separate step.
+
+# NOTE: an SCons annoyance. When this script is executated, the current
+# directory--os.getcwd()--is this directory, i.e. szg/doc/txt2tags. When
+# the action of the Builder created below is invoked, the current directory
+# is the SConstruct directory, i.e. szg/. I think.
+
+import os
+import sys
+
+# Create build environment
+env = Environment()
+
+# txt2tags needs this...
+if sys.platform == 'win32':
+  env['ENV']['HOMEDRIVE'] = os.environ.get( 'HOMEDRIVE', 'C:' )
+
+python = sys.executable
+
+# Build into the directory above this one...
+buildPath = os.path.join( os.environ['SZGHOME'], 'doc' )
+
+# Paths to txt2tags.py and t2t.rc
+txt2tags = os.path.join( buildPath, 'txt2tags.py' )
+confFile = os.path.join( buildPath, 't2t.rc' )
+
+# Create a builder for t2t -> html conversion.
+bld = Builder( action=python+' '+txt2tags+' -t html -C '+confFile+' -o $TARGET $SOURCES', suffix='.html', src_suffix='.t2t' )
+env['BUILDERS']['HtmlTxt2tags'] = bld
+
+# List all the .t2t source files.
+docSrc = [f for f in os.listdir('.') if os.path.splitext(f)[1] == '.t2t']
+
+# Create html files from them in the same directory.
+docHtml = [env.HtmlTxt2tags(s) for s in docSrc]
+# Specify that t2t.rc is a dependency for each html file.
+for f in docHtml:
+  Depends( f, confFile )
+
+# Final target nodes are moved versions of HtmlTxt2tags nodes, moved
+# into the directory above.
+docFinal = [Command( os.path.join( buildPath, str(f[0]) ) , str(f[0]), Move("$TARGET", "$SOURCE")) for f in docHtml]
+
