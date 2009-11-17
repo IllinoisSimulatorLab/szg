@@ -10,9 +10,11 @@ import re
 
 # Add compiler and linker flags...
 sipFlags = {}
-sipFlags['CPPPATH'] = [os.environ['SZG_PYINCLUDE'], os.environ['SIP_INCLUDE']]
-sipFlags['LIBPATH'] = [os.path.dirname( os.environ['SZG_PYLIB_PATH'] )]
+sipFlags['CPPPATH'] = [os.environ['SZG_PYINCLUDE']]
 sipFlags['LIBS'] = [os.environ['SZG_PYLIB']]
+if sys.platform == 'win32':
+  sipFlags['CPPPATH'].append( os.environ['SIP_INCLUDE'] )
+  sipFlags['LIBPATH'] = [os.path.dirname( os.environ['SZG_PYLIB_PATH'] )]
 
 buildEnv.MergeFlags( sipFlags )
 
@@ -78,10 +80,14 @@ def sipFileScan( node, env, path ):
   contents = node.get_contents()
   # Python regex '^' and '$' don't work properly with win32 CR+LF endings.
   # So get rid of the CR.
-  if sys.platform == 'win32':
-    contents = contents.replace( '\r', '' )
+  contents = contents.replace( '\r', '' )
+  #print 'contents:'
+  #for c in contents:
+  #  print ord(c),c
   includes = sipIncludeRe.findall( contents )
-  print 'SIP Includes:',includes
+  print 'SIP Includes:'
+  for i in includes:
+    print '  ',i
   return includes
 
 # Instantiate scanner object...

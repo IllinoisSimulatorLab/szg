@@ -56,7 +56,7 @@ if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   buildEnv = Environment()
   SConscript( '#/doc/txt2tags/SConscript.doc', exports={'buildEnv':buildEnv} )
 
-if 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
+if 'src/python_sip' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   sourcePath = 'python_sip/src/'
   buildPath = 'python_sip/build/'+envDict['platform']
   buildEnv = envDict['demoEnv']
