@@ -1,11 +1,8 @@
 import os
 import sys
-import shutil
-import subprocess
 
-Import('buildEnv','pathDict','priorLibs','externalFlags')
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
-dirName = 'phleet'
 
 libSrc = ( \
     'arSZGClient.cpp',
@@ -16,7 +13,7 @@ libSrc = ( \
     'arPhleetTemplate.cpp'
   )
 
-progNames = (
+progNames = [
     'szgd',
     'szgserver',
     'dbatch',
@@ -28,7 +25,6 @@ progNames = (
     'dlogout',
     'dps',
     'dset',
-    'dtop',
     'dwho',
     'dname',
     'dconfig',
@@ -42,9 +38,22 @@ progNames = (
     'dlocks',
     'testlock',
     'phleettest'
-    )
+    ]
+
+if sys.platform == 'win32':
+  progNames.append('dtop')
+
 
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 
+if sys.platform != 'win32':
+  if 'curses' in externalFlags:
+    # Flock of Birds, using Ascension dll.
+    cursesEnv = progEnv.Clone()
+    if not cursesEnv.GetOption('clean'):
+      cursesEnv.MergeFlags( externalFlags['curses'] )
+    cursesProg = cursesEnv.Program( 'dtop.cpp' )
+    Depends( cursesProg, priorLibs )
+    cursesEnv.Install( pathDict['binPath'], cursesProg )

@@ -1,0 +1,41 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/linux/'
+
+# parameters specific to this library
+name = 'jpeg'
+includePath = extPath+'jpeg/include'
+libPath = extPath+'jpeg/lib'
+ccFlag = '-D EnableJPEG'
+libName = 'jpeg'
+headerName = 'jpeglib.h'
+#checkFailMessage = "Didn't find optional jpeg library or jpeglib.h header; jpeg support disabled."
+checkFailMessage = "Didn't find optional jpeg library; jpeg support disabled."
+
+# boilerplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'CPPPATH':[includePath], 'LIBPATH':[libPath], 'LIBS':[libName]
+    }
+
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
+
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+# The standard SCons check code fails incorrectly for no apparent
+# reason if we also look for the header. Works OK with just the
+# library, though.
+#if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+if not conf.CheckLib( libName ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
+

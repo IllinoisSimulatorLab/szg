@@ -8,22 +8,27 @@ if sys.platform == 'win32':
     scriptDir = 'win32mingw'
   else:
     scriptDir = 'win32msvc'
+  plat = 'win32'
+elif sys.platform == 'linux2':
+  scriptDir = 'linux'
+  plat = 'linux'
 else:
-  raise ValueError, 'No support for SCons on '+sys.platform+' yet.'
+  raise ValueError, 'No support for SCons on '+plat+' yet.'
 
 # Set up the build and install paths.
 szgPath = os.environ['SZGHOME']
 pathDict = {}
-pathDict['buildPath'] = szgPath+'/build/'+sys.platform
-pathDict['includePath'] = szgPath+'/include/'+sys.platform
-pathDict['libPath'] = szgPath+'/lib/'+sys.platform
-pathDict['binPath'] = szgPath+'/bin/'+sys.platform
+pathDict['buildPath'] = szgPath+'/build/'+plat
+pathDict['includePath'] = szgPath+'/include/'+plat
+pathDict['libPath'] = szgPath+'/lib/'+plat
+pathDict['binPath'] = szgPath+'/bin/'+plat
 pathDict['libs'] = []
 
-if 'SZGBIN' in os.environ:
+if os.environ.get('SZGBIN',''):
   pathDict['binPath'] = os.environ['SZGBIN']
 
 envDict['paths'] = pathDict
+envDict['platform'] = plat
 
 # Run the appropriate platform-specific script.
 SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )

@@ -3,17 +3,23 @@ import os
 Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
-libSrc = ( \
-    'arBarrierServer.cpp',
-    'arBarrierClient.cpp',
-    'arSyncDataClient.cpp',
-    'arSyncDataServer.cpp'
-  )
+libSrc = ()
 
 progNames = (
-    'BarrierServer',
-    'BarrierClient'
+    'calibrationdemo',
+    'DeskCalibrator',
+    'dmsg',
+    'dkillall',
+    'dkillapp',
+    'PictureViewer',
+    'restarttracker',
+    'screensaver',
+    'setdemomode',
+    'setstereo',
+    'StereoViewer',
+    'vrtest'
     )
+
 
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )

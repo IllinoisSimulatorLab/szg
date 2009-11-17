@@ -1,6 +1,5 @@
-Import('buildEnv','pathDict','priorLibs','externalFlags')
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
-dirName = 'language'
 
 libSrc = ( \
   'arVersion.cpp', \
@@ -45,7 +44,7 @@ import sys
 import shutil
 import subprocess
 
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', dirName )
+srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
 
 if not buildEnv.GetOption('clean'):
   if 'SZG_BZR_INFO' in os.environ and os.environ['SZG_BZR_INFO'] == 'FALSE':
