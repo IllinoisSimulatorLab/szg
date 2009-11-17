@@ -13,6 +13,10 @@ if 'all' in COMMAND_LINE_TARGETS:
   # doc/txt2tags to build targets.
   BUILD_TARGETS.extend(['#','doc/txt2tags'])
 
+if 'python' in COMMAND_LINE_TARGETS:
+  BUILD_TARGETS.remove('python')
+  BUILD_TARGETS.append('#')
+
 
 # Do all the build environments and checks unless the user
 # just wants to build the docs.
@@ -51,3 +55,14 @@ if COMMAND_LINE_TARGETS != ['doc']:
 if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   buildEnv = Environment()
   SConscript( '#/doc/txt2tags/SConscript.doc', exports={'buildEnv':buildEnv} )
+
+if 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
+  sourcePath = 'python_sip/src/'
+  buildPath = 'python_sip/build/'+envDict['platform']
+  buildEnv = envDict['demoEnv']
+  exports = ['buildEnv','pathDict','priorLibs','externalFlags']
+  SConscript( sourcePath+'SConscript.sip', \
+      variant_dir=buildPath, \
+      exports=exports,
+      duplicate=0 )
+

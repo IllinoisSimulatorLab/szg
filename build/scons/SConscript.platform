@@ -28,6 +28,7 @@ if os.environ.get('SZGBIN',''):
   pathDict['binPath'] = os.environ['SZGBIN']
 
 envDict['paths'] = pathDict
+envDict['platform'] = plat
 
 # Run the appropriate platform-specific script.
 SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )

@@ -1,7 +1,4 @@
 import os
-import sys
-import shutil
-import subprocess
 
 Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 

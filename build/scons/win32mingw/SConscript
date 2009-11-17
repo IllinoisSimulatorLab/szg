@@ -141,4 +141,4 @@ for subdir,depend in subdirs.iteritems():
     env.MergeFlags( externalFlags[flagGroup] )
   envDict[subdir+'Env'] = env
 
-envDict['subdirs'] = subdirs.keys()
+envDict['subdirs'] = subdirs
