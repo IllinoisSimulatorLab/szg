@@ -54,8 +54,8 @@ if COMMAND_LINE_TARGETS != ['doc']:
 # Don't build the docs by default.
 if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   buildEnv = Environment()
-  SConscript( '#/doc/SConscript.doc', \
-      src_dir='#/doc/txt2tags', \
+  SConscript( '#/docsrc/SConscript.doc', \
+      src_dir='#/docsrc', \
       variant_dir='#/doc', \
       exports={'buildEnv':buildEnv}, \
       duplicate=0 )
