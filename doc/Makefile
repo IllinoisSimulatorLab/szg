@@ -55,5 +55,5 @@ ifeq ($(strip $(PYTHONEXE)),)
   PYTHONEXE=python
 endif
 
-%.html : txt2tags/%.t2t t2t.rc
+%.html : ../docsrc/%.t2t t2t.rc
 	$(PYTHONEXE) txt2tags.py -t html -C t2t.rc -o $@ $<

@@ -22,6 +22,7 @@ python = sys.executable
 
 # Build into the directory above this one...
 buildPath = os.path.join( os.environ['SZGHOME'], 'doc' )
+srcPath = os.path.join( os.environ['SZGHOME'], 'docsrc' )
 
 # Paths to txt2tags.py and t2t.rc
 txt2tags = os.path.join( buildPath, 'txt2tags.py' )
@@ -32,15 +33,11 @@ bld = Builder( action=python+' '+txt2tags+' -t html -C '+confFile+' -o $TARGET $
 buildEnv['BUILDERS']['HtmlTxt2tags'] = bld
 
 # List all the .t2t source files.
-docSrc = [f for f in os.listdir('.') if os.path.splitext(f)[1] == '.t2t']
+docSrc = [f for f in os.listdir(srcPath) if os.path.splitext(f)[1] == '.t2t']
 
 # Create html files from them in the same directory.
 docHtml = [buildEnv.HtmlTxt2tags(s) for s in docSrc]
 # Specify that t2t.rc is a dependency for each html file.
 for f in docHtml:
   Depends( f, confFile )
-
-# Final target nodes are moved versions of HtmlTxt2tags nodes, moved
-# into the directory above.
-docFinal = [Command( os.path.join( buildPath, str(f[0]) ) , str(f[0]), Move("$TARGET", "$SOURCE")) for f in docHtml]
 
