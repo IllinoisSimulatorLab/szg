@@ -1,0 +1,40 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/linux/'
+
+
+# parameters specific to this library
+name = 'fmod'
+includePath = extPath+'fmod-4/include'
+libPath = extPath+'fmod-4/lib'
+ccFlag = '-D EnableSound'
+libName = 'fmodex'
+headerName = 'fmod.h'
+checkFailMessage = "Didn't find optional fmodex library or fmod.h header; sound disabled."
+
+# This is different: We have to pass the shared lib to the linker.
+libFilePath = libPath + '/libfmodex.so.4.03.06'
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'CPPPATH':[includePath],
+    'LINKFLAGS':[libFilePath]
+    }
+
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
+

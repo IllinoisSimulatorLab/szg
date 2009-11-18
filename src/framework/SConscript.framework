@@ -1,11 +1,7 @@
 import os
-import sys
-import shutil
-import subprocess
 
-Import('buildEnv','pathDict','priorLibs','externalFlags')
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
-dirName = 'framework'
 
 libSrc = ( \
     'arInputSimulatorFactory.cpp',

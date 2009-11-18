@@ -1,6 +1,8 @@
+# Horrible copypaste from Makefile.varslinux
+
 # Linux variables
 
-MACHINE_DIR = linux
+MACHINE_DIR = linux64
 
 # Whenever an exe or dll is built, it's automatically copied.
 # Avoid "cp -u", which suffers from clock drift across smb.
@@ -26,7 +28,8 @@ ifneq ($(strip $(SZGDEBUG)),TRUE)
 else
   COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
 endif
-COMPILE_FLAGS += -march=i686
+# On 64bit ubuntu ibex, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
+COMPILE_FLAGS += -m64
 
 COMPILE_FLAGS_SHARED = $(COMPILE_FLAGS)
 
@@ -52,7 +55,7 @@ GENERAL_LIBS = -ldl -lpthread -lm
 # NOTE: glut does not appear below but is instead dealt with in
 # Makefile.libscan (we might not want to install a glut, but instead
 # use one from SZGEXTERNAL)
-GRAPHICS_LIBS = -lGLU -lGL -L/usr/X11R6/lib -lX11 -lXext -lXmu -lXt -lXi -lSM -lICE
+GRAPHICS_LIBS = -lGLU -L/usr/X11R6/lib -lX11 -lXext -lXmu -lXt -lXi -lSM -lICE
 GAMEPAD_LIBS =
 
 # Flags for library search depend on if the build style is EASY.
@@ -94,7 +97,7 @@ MATH_LIB_STRING = -larMath$(SZG_STATIC_MOD)
 DRIVERS_LIB_STRING = -larDrivers$(SZG_STATIC_MOD)
 GRAPHICS_LIB_STRING = -larGraphics$(SZG_STATIC_MOD)
 SOUND_LIB_STRING = -larSound$(SZG_STATIC_MOD)
-OBJECT_LIB_STRING = -larModel$(SZG_STATIC_MOD)
+OBJECT_LIB_STRING = -larObject$(SZG_STATIC_MOD)
 INTERACT_LIB_STRING = -larInteraction$(SZG_STATIC_MOD)
 FRAMEWORK_LIB_STRING = -larFramework$(SZG_STATIC_MOD)
 

@@ -1,9 +1,3 @@
-# Aszgard/MinGW-specific build file for scons
-# Builds a basic Hello World using a vanilla
-# build environment, then creates an build
-# environment for building freeglut-based
-# programs
-
 import os
 import sys
 
@@ -12,33 +6,17 @@ Import('envDict')
 numCPU = int(os.environ.get( 'NUMBER_OF_PROCESSORS', 2 ))
 SetOption( 'num_jobs', numCPU )
 
-
-if 'ASZGARD' in os.environ:
-  def aszgardPath( relPath ):
-    return os.path.join( os.environ['ASZGARD'], relPath ).replace('\\','/')
-
-  # Exec path offsets from aszgard
-  relExecPaths = [
-    'bin/MinGW/bin',
-    'bin/msys/bin'
-  ]
-  # Construct absolute exec paths
-  execPaths = [aszgardPath( p ) for p in relExecPaths]
-
-  # Create MinGW build environment.
-  basicEnv = Environment( ENV={'PATH':execPaths}, tools=['mingw'] )
-else:
-  # Create MinGW build environment.
-  basicEnv = Environment( tools=['mingw'] )
+# Create standard Linux build environment.
+basicEnv = Environment()
 
 pathDict = envDict['paths']
 
 commonFlags = {
     'CPPPATH':[pathDict['includePath']],
     'LIBPATH':[pathDict['libPath']],
-    'LIBS':['glu32','opengl32','kernel32','user32','gdi32','winmm','wsock32'],
-    'CCFLAGS':['-O2','-Wall','-W','-Wpointer-arith','-march=i686','-D AR_USE_WIN_32','-D AR_USE_MINGW'],
-    'LINKFLAGS':['-Wl,-rpath,'+pathDict['binPath'],'-Wl,--enable-stdcall-fixup','--enable-runtime-pseudo-reloc','--compat-implib']
+    'LIBS':['dl','pthread','m'],
+    'CCFLAGS':['-fPIC','-O2','-Wall','-W','-Wpointer-arith','-march=i686','-D AR_USE_LINUX'],
+    'LINKFLAGS':['-Wl,-rpath,'+pathDict['binPath']]
     }
 
 if os.environ.get('SZG_LINKING','STATIC') != 'DYNAMIC':
@@ -61,13 +39,11 @@ szgEnv.Alias( 'install', pathDict['binPath'] )
 
 externalFlags = {}
 
-SConscript( 'SConscript.bird', exports=['szgEnv','externalFlags'] )
-SConscript( 'SConscript.evart', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.glut', exports=['szgEnv','externalFlags'] )
+SConscript( 'SConscript.curses', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.jpeg', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.3ds', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.fmod', exports=['szgEnv','externalFlags'] )
-SConscript( 'SConscript.sapi', exports=['szgEnv','externalFlags'] )
 
 envDict['externalFlags'] = externalFlags
 
@@ -112,7 +88,7 @@ subdirs = {
       },
     'sound'  :{
       'internal':['language','math','phleet','barrier'],
-      'external':['fmod','sapi']
+      'external':['fmod']
       },
     'interaction'  :{
       'internal':['language','math','phleet','drivers'],
@@ -120,15 +96,15 @@ subdirs = {
       },
     'framework'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['glut','jpeg','3ds','fmod']
       },
     'utilities'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['glut','jpeg','3ds','fmod']
       },
     'demo'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['glut','jpeg','3ds','fmod']
       },
     }
 

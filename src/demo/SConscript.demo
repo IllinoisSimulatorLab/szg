@@ -1,9 +1,6 @@
 import os
-import sys
-import shutil
-import subprocess
 
-Import('buildEnv','pathDict','priorLibs','externalFlags')
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 demos = (
     'atlantis',
@@ -15,7 +12,7 @@ demos = (
     'schprel'
     )
 
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', 'demo' )
+srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
 
 def getSources( demoPath ):
   return [os.path.join( demoPath, f ) for f in os.listdir( demoPath ) if os.path.splitext(f)[1] == '.cpp']
@@ -29,7 +26,7 @@ for d in demos:
   progEnv.Prepend( CPPPATH=[demoPath] )
   src = getSources( demoPath )
   objs = [progEnv.Object( source=s ) for s in src]
-  prog = progEnv.Program( target=d, source=objs )
+  prog = progEnv.Program( target=d+'/'+d, source=objs )
   Depends( prog, priorLibs )
   progs.append( prog )
 

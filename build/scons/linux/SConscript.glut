@@ -1,0 +1,37 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+# parameters specific to this library
+name = 'glut'
+headerName = 'GL/glut.h'
+checkFailMessage = """Didn't find required freeglut; You can't build past drivers directory.
+On Ubuntu try 'sudo apt-get install freeglut3-dev'."""
+
+# For use with freeglut.dll
+libName = 'glut'
+ccFlag = ''
+
+# For use with static freeglut library.
+#libName = 'freeglut_static'
+#ccFlag = '-F FREEGLUT_STATIC'
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'LIBS':[libName]
+    }
+
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLibWithHeader( libName, headerName, 'c' ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
