@@ -11,11 +11,9 @@ Header2 %%mtime(%m/%d/%Y)
 
 - [GettingSoftware.html GettingSoftware.html]: Downloading and compiling the source code.
   If using Microsoft Visual C++, also see
-  [VisualStudioBuildVars.html VisualStudioBuildVars.html]. Most of Syzygy can be compiled
-  on Windows using the [MinGW http://www.mingw.org/] GNU compiler; the exceptions are some
-  of the input device drivers, scene graph plugins, and the Python bindings, which
-  still require a Microsoft compiler.
-  Precompiled copies of these might be in the same place where you got this archive.
+  [VisualStudioBuildVars.html VisualStudioBuildVars.html]. Syzygy can be compiled
+  on Windows using the [MinGW http://www.mingw.org/] GNU compiler, and in fact the
+  newer SIP-based Python bindings have only been built with the GNU compiler.
 - [SupportingLibraries.html SupportingLibraries.html]: Installing and using
   libraries that add features to Syzygy.
 - [Standalone.html Standalone.html]: Running on a single, unclustered, PC.

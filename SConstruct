@@ -54,9 +54,13 @@ if COMMAND_LINE_TARGETS != ['doc']:
 # Don't build the docs by default.
 if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   buildEnv = Environment()
-  SConscript( '#/doc/txt2tags/SConscript.doc', exports={'buildEnv':buildEnv} )
+  SConscript( '#/doc/SConscript.doc', \
+      src_dir='#/doc/txt2tags', \
+      variant_dir='#/doc', \
+      exports={'buildEnv':buildEnv}, \
+      duplicate=0 )
 
-if 'src/python_sip' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
+if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
   sourcePath = 'python_sip/src/'
   buildPath = 'python_sip/build/'+envDict['platform']
   buildEnv = envDict['demoEnv']
