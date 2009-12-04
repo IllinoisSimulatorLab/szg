@@ -42,6 +42,7 @@
 #include "arCallbackInteractable.h"
 #include "arInteractionUtilities.h"
 #include "arMasterSlaveFramework.h"
+#include "arGlutRenderFuncs.h"
 
 #include "atlantis.h"
 
@@ -112,7 +113,7 @@ void drawTransparentSphere( const arVector3& offset, float radius ) {
     glColor4f( .5, .5, 0., 0.5 );
     glEnable( GL_BLEND );
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glutSolidSphere( radius, SPHERE_SLICES, SPHERE_STACKS );
+    ar_glutSolidSphere( radius, SPHERE_SLICES, SPHERE_STACKS );
     glDisable( GL_BLEND );
   glPopMatrix();
 }
@@ -127,13 +128,13 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
     glPushMatrix();
       glScalef( thin, thin, SPEAR_LENGTH );
       glColor3f(.4,.4,.4);
-      glutSolidCube(1.);
+      ar_glutSolidCube(1.);
     glPopMatrix();
     if (drawVerticalBar) {
       glPushMatrix();
        glTranslatef( 0, .5*ATLANTISUNITS_PER_FOOT, 0. );
        glScalef( thin, ATLANTISUNITS_PER_FOOT, thin );
-       glutSolidCube(1.);
+       ar_glutSolidCube(1.);
       glPopMatrix();
     }
     if (gDrawSpearTip)
@@ -637,6 +638,7 @@ int main(int argc, char** argv){
   fw.setUnitConversion(ATLANTISUNITS_PER_FOOT); // half-millimeter units
 
   fw.setDataBundlePath("SZG_DATA", "atlantis");
-  glutInit(&argc, argv);
+  // Only needed now because of glutStrokeCharacter in arInputSimulator...
+  arglutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

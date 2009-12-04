@@ -21,6 +21,8 @@ libSrc = ( \
     'arDrawableNode.cpp',
     'arFramerateGraph.cpp',
     'arFrameworkObject.cpp',
+    'arFreeGlutRenderFuncs.cpp',
+    'arFreeGlutTeapot.cpp',
     'arFrustumCamera.cpp',
     'arGUIEventManager.cpp',
     'arGUIInfo.cpp',

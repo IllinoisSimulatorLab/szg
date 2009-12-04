@@ -15,11 +15,11 @@ checkFailMessage = "Didn't find required freeglut; You can't build past drivers 
 
 # For use with freeglut.dll
 libName = 'freeglut'
-ccFlag = ''
+ccFlag = '-D FREEGLUT'
 
 # For use with static freeglut library.
 #libName = 'freeglut_static'
-#ccFlag = '-F FREEGLUT_STATIC'
+#ccFlag = '-D FREEGLUT_STATIC'
 
 # boileplate code that should be pretty much common to all libraries
 # (may factor it out later).
