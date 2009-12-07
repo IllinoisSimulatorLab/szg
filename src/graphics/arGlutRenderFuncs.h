@@ -63,5 +63,32 @@ void SZG_CALL ar_glutWireTeapot( GLdouble size );
  */
 void SZG_CALL ar_glutSolidTeapot( GLdouble size );
 
+/*
+ * GLUT API macro definitions -- fonts definitions
+ *
+ * Steve Baker suggested to make it binary compatible with GLUT:
+ */
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__)
+#   define  GLUT_STROKE_MONO_ROMAN          ((void *)0x0001)
+#else
+    /*
+     * I don't really know if it's a good idea... But here it goes:
+     */
+    extern void* glutStrokeMonoRoman;
+
+    /*
+     * Those pointers will be used by following definitions:
+     */
+#   define  GLUT_STROKE_MONO_ROMAN          ((void *) &glutStrokeMonoRoman)
+#endif
+
+void* SZG_CALL ar_fgStrokeMonoRoman();
+    
+void SZG_CALL ar_glutStrokeCharacter( void* fontID, int character );
+void SZG_CALL ar_glutStrokeString( void* fontID, const unsigned char *string );
+int SZG_CALL ar_glutStrokeWidth( void* fontID, int character );
+int SZG_CALL ar_glutStrokeLength( void* fontID, const unsigned char* string );
+GLfloat SZG_CALL ar_glutStrokeHeight( void* fontID );
+    
 #endif
 

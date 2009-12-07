@@ -639,6 +639,6 @@ int main(int argc, char** argv){
 
   fw.setDataBundlePath("SZG_DATA", "atlantis");
   // Only needed now because of glutStrokeCharacter in arInputSimulator...
-  arglutInit(&argc, argv);
+//  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

@@ -7,6 +7,8 @@ include $(SZGHOME)/build/make/Makefile.vars
 OBJS = \
   arFreeGlutRenderFuncs$(OBJ_SUFFIX) \
   arFreeGlutTeapot$(OBJ_SUFFIX) \
+  arFreeGlutMonoRoman$(OBJ_SUFFIX) \
+  arFreeGlutFont$(OBJ_SUFFIX) \
   arRay$(OBJ_SUFFIX) \
   arGraphicsPluginNode$(OBJ_SUFFIX) \
   arGraphicsClient$(OBJ_SUFFIX) \

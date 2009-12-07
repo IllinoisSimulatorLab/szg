@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "arMasterSlaveFramework.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #include "arLargeImage.h"
 #include "arTexture.h"
 

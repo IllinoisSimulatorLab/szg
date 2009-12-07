@@ -4,6 +4,10 @@ Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ( \
+    'arFreeGlutRenderFuncs.cpp',
+    'arFreeGlutTeapot.cpp',
+    'arFreeGlutMonoRoman.cpp',
+    'arFreeGlutFont.cpp',
     'arRay.cpp',
     'arGraphicsPluginNode.cpp',
     'arGraphicsClient.cpp',
@@ -66,12 +70,17 @@ libSrc = ( \
 
 progNames = (
     'TestGraphics',
-    'szgrender',
-    'szg-rp'
+    'szgrender'
     )
 
 
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
+
+glutProgEnv = progEnv.Clone()
+glutProgEnv.MergeFlags( externalFlags['glut'] )
+szgrp = glutProgEnv.Program( 'szg-rp.cpp' )
+Depends( szgrp, priorLibs )
+buildEnv.Install( pathDict['binPath'], szgrp )
 

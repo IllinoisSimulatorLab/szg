@@ -6,7 +6,6 @@
 #include "arPrecompiled.h"
 
 #include "arGlutRenderFuncs.h"
-#include "arGlut.h"
 #include "arGraphicsHeader.h"
 #include "arInputSimulator.h"
 #include "arLogStream.h"
@@ -531,7 +530,7 @@ void arInputSimulator::_drawGamepad() const {
           glPushMatrix();
             glTranslatef( -.25*BUTTON_SPACING, -.25*BUTTON_SPACING, 0. );
             glScalef( labelScale, labelScale, labelScale );
-            glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, _buttonLabels[i] );
+            ar_glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, _buttonLabels[i] );
           glPopMatrix();
           glEnable(GL_DEPTH_TEST);
         }
@@ -657,7 +656,7 @@ void arInputSimulator::_drawHint() const {
     glTranslatef(-0.95, 0.91, 0.000001);
     glScalef(0.0006, 0.0006, 0.0006);
     for (const char* pch=hint[_interfaceState + (_fDragNeedsButton ? 10 : 0)]; *pch; ++pch)
-      glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *pch);
+      ar_glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *pch);
   glPopMatrix();
   glEnable(GL_DEPTH_TEST);
 }

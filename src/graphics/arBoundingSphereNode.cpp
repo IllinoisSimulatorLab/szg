@@ -5,7 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 
 arBoundingSphereNode::arBoundingSphereNode() {
   _name = "bounding_sphere_node";
@@ -27,7 +27,7 @@ void arBoundingSphereNode::draw(arGraphicsContext*) {
   glColor3f(1, 1, 1);
   glPushMatrix();
   glTranslatef(p[0], p[1], p[2]);
-  glutWireSphere(r, 15, 15);
+  ar_glutWireSphere(r, 15, 15);
   glPopMatrix();
 }
 

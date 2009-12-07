@@ -7,7 +7,6 @@ libSrc = ()
 
 progNames = (
     'calibrationdemo',
-    'DeskCalibrator',
     'dmsg',
     'dkillall',
     'dkillapp',
@@ -16,12 +15,22 @@ progNames = (
     'screensaver',
     'setdemomode',
     'setstereo',
-    'StereoViewer',
-    'vrtest'
+    'StereoViewer'
     )
 
 
+glutProgs = (
+    'DeskCalibrator',
+    'vrtest'
+    )
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
+
+glutProgEnv = progEnv.Clone()
+glutProgEnv.MergeFlags( externalFlags['glut'] )
+glutProgs = [glutProgEnv.Program( p+'.cpp' ) for p in glutProgs]
+for p in glutProgs:
+  Depends( p, priorLibs )
+  buildEnv.Install( pathDict['binPath'], p )
 
