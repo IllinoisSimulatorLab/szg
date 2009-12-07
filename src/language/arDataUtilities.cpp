@@ -1415,7 +1415,11 @@ bool ar_growBuffer(ARchar*& buf, int& size, int newSize) {
 }
 
 void* ar_allocateBuffer( arDataType theType, unsigned int size ) {
-  return (void*) new ARchar[ size * arDataTypeSize( theType )];
+  void* buf = (void*) new ARchar[ size * arDataTypeSize( theType )];
+  if (!buf) {
+    ar_log_error() << "ar_allocateBuffer out of memory.\n";
+  }
+  return (void*) buf;
 }
 
 void ar_deallocateBuffer( void* ptr ) {
