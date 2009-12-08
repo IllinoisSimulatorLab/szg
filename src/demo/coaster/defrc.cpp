@@ -4,7 +4,7 @@
 
 #include "arDataUtilities.h"
 #include "arLogStream.h"
-#include "arGlut.h"
+#include "arGraphicsHeader.h"
 
 #include <math.h>
 #ifndef M_PI

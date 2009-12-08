@@ -11,7 +11,7 @@ if 'all' in COMMAND_LINE_TARGETS:
   # Add '#' (this directory, szg, which is the default
   # target & gets built if you just type 'scons') and
   # doc/txt2tags to build targets.
-  BUILD_TARGETS.extend(['#','doc/txt2tags'])
+  BUILD_TARGETS.extend(['#'])
 
 if 'python' in COMMAND_LINE_TARGETS:
   BUILD_TARGETS.remove('python')

@@ -104,11 +104,11 @@ subdirs = {
       },
     'graphics'  :{
       'internal':['language','math','phleet','barrier'],
-      'external':['glut','jpeg']
+      'external':['jpeg']
       },
     'model'  :{
       'internal':['language','math','phleet','barrier','graphics'],
-      'external':['glut','jpeg','3ds']
+      'external':['jpeg','3ds']
       },
     'sound'  :{
       'internal':['language','math','phleet','barrier'],
@@ -120,15 +120,15 @@ subdirs = {
       },
     'framework'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['jpeg','3ds','fmod','sapi']
       },
     'utilities'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['jpeg','3ds','fmod','sapi']
       },
     'demo'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['jpeg','3ds','fmod','sapi']
       },
     }
 

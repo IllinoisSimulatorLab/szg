@@ -55,6 +55,21 @@ LDie:
       f->getDatabase()->printStructure();
     }
 
+    else if ( messageType == "input" ) {
+      if ( messageBody == "on" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+" resuming input." );
+        f->getInputNode()->stop();
+      }
+      else if ( messageBody == "off" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+" ignoring input." );
+        f->getInputNode()->start();
+      }
+      else {
+        ar_log_error() << " ignoring unexpected input msg arg '" << messageBody << "'.\n";
+        f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
+            " ignoring unexpected input msg arg '"+messageBody+"'." );
+      }
+    }
 
     else if ( messageType == "use_nav_input_matrix" ) {
       if ( messageBody == "on" ) {

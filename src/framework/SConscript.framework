@@ -18,12 +18,15 @@ libSrc = ( \
     'arFlyingGravisController.cpp'
   )
 
-progNames = (
-    'inputsimulator',
-    )
-
+progNames = ()
 
 # Call the generic directory-builder script
 scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
+
+glutProgEnv = progEnv.Clone()
+glutProgEnv.MergeFlags( externalFlags['glut'] )
+inputsim = glutProgEnv.Program( 'inputsimulator.cpp' )
+Depends( inputsim, priorLibs )
+buildEnv.Install( pathDict['binPath'], inputsim )
 
