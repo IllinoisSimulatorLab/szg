@@ -1,0 +1,37 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+demos = (
+    'atlantis',
+    'coaster',
+    'cosmos',
+    'cubes',
+    'hspace',
+    'ribbons',
+    'schprel'
+    )
+
+srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
+
+def getSources( demoPath ):
+  return [os.path.join( demoPath, f ) for f in os.listdir( demoPath ) if os.path.splitext(f)[1] == '.cpp']
+
+progs = []
+
+# Build the programs.
+for d in demos:
+  demoPath = os.path.join( srcPath, d )
+  progEnv = buildEnv.Clone()
+  progEnv.Prepend( CPPPATH=[demoPath] )
+  src = getSources( demoPath )
+  objs = [progEnv.Object( source=s ) for s in src]
+  prog = progEnv.Program( target=d+'/'+d, source=objs )
+  Depends( prog, priorLibs )
+  progs.append( prog )
+
+# Install the programs in $SZGBIN or szg/bin/<platform>
+buildEnv.Install( pathDict['binPath'], progs )
+
+
+

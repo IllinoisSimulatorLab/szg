@@ -1,0 +1,32 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+    'arInputSimulatorFactory.cpp',
+    'arInputSimulator.cpp',
+    'arInteractableThing.cpp',
+    'arFrameworkEventFilter.cpp',
+    'arSZGAppFramework.cpp',
+    'arMasterSlaveFramework.cpp',
+    'arDistSceneGraphFramework.cpp',
+    'arRoutableTemplate.cpp',
+    'arMasterSlaveDataRouter.cpp',
+    'arAppLauncher.cpp',
+    'arController.cpp',
+    'arFlyingGravisController.cpp'
+  )
+
+progNames = ()
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
+glutProgEnv = progEnv.Clone()
+glutProgEnv.MergeFlags( externalFlags['glut'] )
+inputsim = glutProgEnv.Program( 'inputsimulator.cpp' )
+Depends( inputsim, priorLibs )
+buildEnv.Install( pathDict['binPath'], inputsim )
+

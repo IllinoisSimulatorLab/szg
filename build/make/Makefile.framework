@@ -28,7 +28,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/drivers \
   -I$(SZGHOME)/src/graphics \
   -I$(SZGHOME)/src/sound \
-  -I$(SZGHOME)/src/obj \
+  -I$(SZGHOME)/src/model \
   -I$(SZGHOME)/src/interaction \
   $(SZG_DLL_INCLUDE) \
   $(SZG_INCLUDE_GLUT) \

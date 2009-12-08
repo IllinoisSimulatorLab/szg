@@ -9,7 +9,7 @@
 #include "arPrecompiled.h"
 #include "arMesh.h"
 #include "arGraphicsAPI.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #ifndef AR_USE_WIN_32
   #include <sys/types.h>
   #include <signal.h>
@@ -289,7 +289,7 @@ void showRasterString(int x, int y, char* s){
   glRasterPos2f(x, y);
   char c;
   for (; (c=*s) != '\0'; ++s)
-    glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
+    ar_glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
 }
 
 void draw(arMasterSlaveFramework& fw) {
@@ -347,7 +347,6 @@ void draw(arMasterSlaveFramework& fw) {
 
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
-  glutInit(&argc, argv);
   if (!framework.init(argc, argv))
     return 1;
 

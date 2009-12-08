@@ -6,6 +6,7 @@
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 #include "arLogStream.h"
+#include <arSTLalgo.h>		// gcc 4.3.2 ubuntu64 needs this for find() on std::vector
 
 ostream& operator<<(ostream& os, const arLaunchInfo& x) {
   os <<"arLaunchInfo( "<<x.computer<<", "<< x.process<<", "
@@ -220,7 +221,7 @@ bool arAppLauncher::setParameters() {
     }
   }
 
-  _serviceList.clear();
+  _serviceLaunchList.clear();
   // Parse the list of "computer/device" pairs.
   for (i=0; i<numTokens; i+=2) {
     const string computer(inputDevs[i]);
@@ -345,7 +346,7 @@ bool arAppLauncher::restartServices() {
   // Kill the services by trading-key (by ID), not by name.
   iLaunch iter;
   list<int> killList;
-  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
+  for (iter = _serviceLaunchList.begin(); iter != _serviceLaunchList.end(); ++iter) {
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1) {
       killList.push_front(serviceID);
@@ -355,7 +356,7 @@ bool arAppLauncher::restartServices() {
 
   // Restart the services.
   list<arLaunchInfo> launchList;
-  for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
+  for (iter = _serviceLaunchList.begin(); iter != _serviceLaunchList.end(); ++iter) {
     const int serviceSzgdID = _szgClient->getProcessID(iter->computer, "szgd");
     if (serviceSzgdID != -1) {
       launchList.push_back(*iter);
@@ -376,7 +377,7 @@ bool arAppLauncher::killAll() {
   // Kill the services.
   list<int> killList;
   string namesKill;
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
+  for (iLaunch iter = _serviceLaunchList.begin(); iter != _serviceLaunchList.end(); ++iter) {
     namesKill += " " + iter->tradingTag;
     const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
     ar_log_debug() << "killAll() " << iter->tradingTag << " id = " << serviceID << ar_endl;
@@ -540,11 +541,14 @@ void arAppLauncher::_addService(const string& computerName,
                                 const string& context,
                                 const string& tradingTag,
                                 const string& info) {
+//  cout << "Adding service:\n  computer='" << computerName << "'\n  serviceName='"
+//       << serviceName << "'\n  context='" << context << "'\n  tradingTag='"
+//       << _location+"/"+tradingTag << "'\n  info='" << info << "'\n";
   arLaunchInfo l(computerName, serviceName, context, _location + "/" + tradingTag, info);
 
   // Trade with _location, not _vircomp, so multiple virtual computers
   // in the same location can share stuff.
-  _serviceList.push_back(l);
+  _serviceLaunchList.push_back(l);
   // TODO: Dump arLaunchInfo entry here.
 }
 
@@ -725,65 +729,175 @@ bool arAppLauncher::_demoKill() {
   return true;
 }
 
+
+// Find all running SZG_INPUT# (input devices) or SZG_WAVEFORM (sound) services.
+vector<string> arAppLauncher::findServices() {
+  vector<string> runningServices = _szgClient->findActiveServices();
+  vector<string> relevantServices;
+  for (vector<string>::const_iterator iter = runningServices.begin();
+      iter != runningServices.end(); ++iter) {
+    if (!((iter->find("SZG_INPUT") != string::npos) ||
+        (iter->find("SZG_WAVEFORM") != string::npos))) {
+      continue;
+    }
+    relevantServices.push_back( *iter );
+  }
+  return relevantServices;
+}
+
+
 void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
                                          list<int>& serviceKillList) {
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
-    const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
-    if (serviceID >= 0) {
-      serviceKillList.push_back(serviceID);
+  cout << "===========================================\n";
+  cout << "arAppLauncher::_relaunchAllServices()\n";
+  vector<string> runningServices = findServices();
+  long pid;
+  for (vector<string>::const_iterator iter = runningServices.begin();
+      iter != runningServices.end(); ++iter) {
+    arSemicolonString serviceLabel( *iter );
+    if (serviceLabel.size() != 3) {
+      ar_log_error() << "Malformed service label '" << serviceLabel << "'\n";
+      cout << "Malformed service label '" << serviceLabel << "'\n";
+      continue;
     }
-    appsToLaunch.push_back(*iter);
+    string pidString = serviceLabel[2];
+    if (!ar_stringToLongValid( pidString, pid )) {
+      ar_log_error() << "_relaunchAllServices: invalid pid string '" << pidString << "'.\n";
+      cout << "_relaunchAllServices: invalid pid string '" << pidString << "'.\n";
+      continue;
+    }
+    serviceKillList.push_back( static_cast<int>(pid) );
+    cout << "Service to kill: " << *iter << endl;
   }
+  for (iLaunch iter = _serviceLaunchList.begin(); iter != _serviceLaunchList.end(); ++iter) {
+    appsToLaunch.push_back(*iter);
+    cout << "Service to launch: " << *iter << endl;
+  }
+  cout << "END arAppLauncher::_relaunchAllServices()\n";
+  cout << "===========================================\n";
 }
+
 
 void arAppLauncher::_relaunchIncompatibleServices(
   list<arLaunchInfo>& appsToLaunch, list<int>& serviceKillList) {
 
-  for (iLaunch iter = _serviceList.begin(); iter != _serviceList.end(); ++iter) {
-    const int serviceID = _szgClient->getServiceComponentID(iter->tradingTag);
-    if (serviceID == -1) {
-      // No component offers this service.
-      ar_log_remark() << "host " << iter->computer << " starting service " <<
-        iter->tradingTag << ".\n";
-      appsToLaunch.push_back(*iter);
+  cout << "===========================================\n";
+  cout << "arAppLauncher::_relaunchIncompatibleServices()\n";
+  vector<string> runningServices = findServices();
+  long oldServicePIDLong;
+  int oldServicePID;
+  iLaunch newIter;
+  vector<arLaunchInfo*> appsToIgnore;
+
+  for (vector<string>::const_iterator oldIter = runningServices.begin();
+      oldIter != runningServices.end(); ++oldIter) {
+    arSemicolonString oldServiceString( *oldIter );
+    if (oldServiceString.size() != 3) {
+      cout << "Malformed service label '" << oldServiceString << "'\n";
       continue;
     }
-
-    // Found the service.  Is it running on the right computer, with the right info tag?
-    const arSlashString processLocation(_szgClient->getProcessLabel(serviceID));
-    if (processLocation.size() != 2) {
-      ar_log_remark() << "relaunching disappeared service " << iter->tradingTag << ".\n";
-      appsToLaunch.push_back(*iter);
+    string oldComputer = oldServiceString[0];
+    arSlashString oldServiceName = oldServiceString[1];
+    if (oldServiceName.size() != 2) {
+      cout << "Malformed service name '" << oldServiceName << "'\n";
       continue;
     }
-
-    // The process location must be computer/name.
-    // Check only the service's host, not its name.
-    if (processLocation[0] == iter->computer) {
-      // Service is running with the right process name and on the right host.
-      const string info(_szgClient->getServiceInfo(iter->tradingTag));
-      if (info != iter->info) {
-      // Perhaps a DeviceServer running the wrong driver.
-      ar_log_remark() << "host " << iter->computer << " restarting service " <<
-        iter->tradingTag << ", because of mismatched info '" << iter->info << "'.\n";
-      serviceKillList.push_back(serviceID);
-      appsToLaunch.push_back(*iter);
-      }
-      else {
-        // Service is already running.
-        ar_log_debug() << "host " << iter->computer << " keeping service " <<
-          iter->tradingTag << ".\n";
-      }
+    string oldLocation = oldServiceName[0];
+    string oldServiceLabel = oldServiceName[1];
+    string oldServiceType;
+    string oldServiceNumber;
+    if (oldServiceLabel == "SZG_WAVEFORM") {
+      oldServiceType = oldServiceLabel;
+      oldServiceNumber = "0";
+    } else {
+      oldServiceType = "SZG_INPUT";
+      oldServiceNumber = oldServiceLabel.substr(9);
     }
-    else {
-      // Service is running, but on the wrong host.
-      ar_log_remark() << "moving service " << iter->tradingTag << " from host " <<
-        iter->computer << " to " << processLocation[0] << ".\n";
-      serviceKillList.push_back(serviceID);
-      appsToLaunch.push_back(*iter);
+    string pidString = oldServiceString[2];
+    if (!ar_stringToLongValid( pidString, oldServicePIDLong )) {
+      cout << "_relaunchIncompatibleServices: invalid pid string '" << pidString << "'.\n";
+      continue;
+    }
+    oldServicePID = static_cast<int>( oldServicePIDLong );
+    string oldServiceInfo = _szgClient->getServiceInfo( oldServiceName );
+    bool killingOld = false;
+
+    for (newIter = _serviceLaunchList.begin(); (newIter != _serviceLaunchList.end()) && !killingOld; ++newIter) {
+//      cout << "Comparing old service:\n     " << *oldIter
+//           << "\n  with new:\n     " << *newIter << endl;
+      arSlashString newServiceName = newIter->tradingTag;
+      if (newServiceName.size() != 2) {
+        cout << "Malformed service name '" << newServiceName << "'\n";
+        continue;
+      }
+      string newLocation = newServiceName[0];
+      string newServiceLabel = newServiceName[1];
+      string newServiceType;
+      string newServiceNumber;
+      if (newServiceLabel == "SZG_WAVEFORM") {
+        newServiceType = newServiceLabel;
+        newServiceNumber = "0";
+      } else {
+        newServiceType = "SZG_INPUT";
+        newServiceNumber = newServiceLabel.substr(9);
+      }
+
+      cout << "\n\nComparing Services (old/running, new):\n";
+      cout << "  Computers: " << oldComputer << ", " << newIter->computer << endl;
+      cout << "  Service Names: " << oldServiceName << ", " << newServiceName << endl;
+      cout << "  Service Types: " << oldServiceType << ", " << newServiceType << endl;
+      cout << "  Service Slots: " << oldServiceNumber << ", " << newServiceNumber << endl;
+      cout << "  Driver Names: " << oldServiceInfo << ", " << newIter->info << endl;
+      
+      // The old service is incompatible with the new one if either:
+      // 1) They run on the same computer and have the same type but
+      //    not the same label _and_ driver name, or
+      bool incompatible1 = ((oldComputer == newIter->computer) &&
+          (oldServiceType == newServiceType) && ((oldServiceName != newServiceName)
+            || (oldServiceInfo != newIter->info)));
+      // 2) They have the same label but run on different computers.
+      bool incompatible2 = ((oldServiceName == newServiceName) &&
+          (oldComputer != newIter->computer));
+
+      // If incompatible service found, kill the old one.
+      if (incompatible1 || incompatible2) {
+        cout << "!!!Old service:\n     " << oldServiceString
+                       << "\n  is incompatible with new service:\n     "
+                       << *newIter << "\n  and will be terminated.\n";
+        serviceKillList.push_back( oldServicePID );
+        killingOld = true;
+        continue;
+      }
+
+      // The old service is _compatible_ with the new one if they are on
+      // the same computer and have the same service label _and_ the same
+      // driver name. 
+      bool compatible = ((oldComputer == newIter->computer) &&
+          (oldServiceName == newServiceName) &&
+          (oldServiceInfo == newIter->info));
+
+      // We don't care if we get duplicates in appsToIgnore
+      if (compatible) {
+        cout << "!!!New service:\n     " << *newIter
+                       << "\n  is compatible with old service:\n     "
+                       << oldServiceString << "\n  and will not be launched.\n";
+        appsToIgnore.push_back( const_cast<arLaunchInfo*>(&*newIter) );
+        continue;
+      }
+      cout << "!!!These services are irrelevant to one another.\n";
     }
   }
+
+  // Add any new services not in appsToIgnore to appsToLaunch
+  for (newIter = _serviceLaunchList.begin(); newIter != _serviceLaunchList.end(); ++newIter) {
+    if (find( appsToIgnore.begin(), appsToIgnore.end(), &*newIter ) == appsToIgnore.end()) {
+      appsToLaunch.push_back(*newIter);
+    }
+  }
+  cout << "END arAppLauncher::_relaunchIncompatibleServices()\n";
+  cout << "===========================================\n";
 }
+
 
 string arAppLauncher::_displayName(int i) const {
   return "SZG_DISPLAY" + ar_intToString(i);

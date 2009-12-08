@@ -1,0 +1,35 @@
+import os
+import sys
+
+Import('szgEnv','externalFlags')
+
+extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/linux/'
+
+
+# parameters specific to this library
+name = '3ds'
+includePath = extPath+'lib3ds/include'
+libPath = extPath+'lib3ds/lib'
+ccFlag = '-D Enable3DS'
+libName = '3ds'
+checkFailMessage = "Didn't find optional lib3ds library; 3ds support disabled."
+
+# boileplate code that should be pretty much common to all libraries
+# (may factor it out later).
+flags = {
+    'CPPPATH':[includePath], 'LIBPATH':[libPath], 'LIBS':[libName]
+    }
+
+if ccFlag:
+  flags['CCFLAGS'] = [ccFlag]
+
+testEnv = szgEnv.Clone()
+testEnv.MergeFlags( flags )
+conf = Configure( testEnv )
+if not conf.CheckLib( libName ):
+  print checkFailMessage
+  externalFlags[name] = {}
+else:
+  externalFlags[name] = flags
+conf.Finish()
+

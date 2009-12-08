@@ -55,9 +55,7 @@ class SZG_CALL arPhleetConfig {
   // size of block of ports, default 200.
   int getPortBlockSize() const
     { return _blockSize; }
-  // number of interfaces in the config.
-  int getNumberInterfaces() const
-    { return _numberInterfaces; }
+  // number of networks in the config.
   int getNumNetworks() const
     { return _numNetworks; }
   arSlashString getAddresses() const;
@@ -99,7 +97,6 @@ class SZG_CALL arPhleetConfig {
   string                           _loginFileLocation;
   // global computer info
   string                           _computerName;
-  int                              _numberInterfaces;
   list<pair<string, arInterfaceDescription> >      _networkList;
   int                              _numNetworks; // == size of _networkList
   int                              _firstPort;

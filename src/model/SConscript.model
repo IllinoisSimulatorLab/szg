@@ -1,0 +1,25 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+    'arObject.cpp',
+    'arOBJ.cpp',
+    'arOBJParsing.cpp',
+    'arOBJSmoothingGroup.cpp',
+    'arHTR.cpp',
+    'arHTRParsing.cpp',
+    'arObjectUtilities.cpp',
+    'ar3DS.cpp'
+  )
+
+progNames = (
+    'szgview',
+    )
+
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+

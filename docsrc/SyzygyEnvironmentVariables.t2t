@@ -1,0 +1,112 @@
+Header1 Environment Variables
+Header2 %%mtime(%m/%d/%Y)
+
+%!options: --headers --toc --toc-level=3
+
+Header3
+
+%%toc
+
+Syzygy's makefiles use a number of environment variables.
+Other environment variables can alter Syzygy's operation,
+and szgd will even alter, though not globally, some variables that are
+used by the system in general. This document briefly describes them all,
+and links to fuller explanations.
+
+
+=Environment variables affecting the Syzygy build process=
+
+- SZGHOME: Top-level directory of your Syzygy installation, whether
+ DEVELOPER (you are compiling the library yourself) or EASY (you are using
+ a prepackaged version). This must be set.
+
+- SZGBIN: Where executables and DLLs go.
+ Defaults to $(SZGHOME)/bin/$(MACHINE_DIR).
+
+- SZGEXTERNAL: Top-level directory for external libraries.
+
+- SZG_LINKING: By default, all the szg libraries are built as shared objects
+  (dlls). However, by setting this variable to STATIC, you can have them
+  built and linked as static objects. Note that this is the //only// mode
+  available when compiling with the MinGW g++ compiler on Windows. Note
+  also that you can't compile Python bindings and scene-graph plugins
+  with static linking.
+  //New in Syzygy 1.2//: You can now compile input device drivers and the
+  DeviceServer program with static linking. The device drivers are linked
+  directly into the DeviceServer executable instead of each comprising its
+  own shared library. There are a few important and unfortunate exceptions
+  when compiling with the MinGW g++ compiler:
+  you can't currently build the joystick, Intel gamepad, and SpacePad
+  drivers with this compiler.
+
+- SZG_STLPORT: For Windows.
+  Visual Studio 6's STL implementation is incompatible with
+  dynamically linking the szg libraries. To use Visual Studio 6
+  (on Windows), use the STLport implementation of STL. (Set this
+  to TRUE). By default, the native STL implementation will be used. This is
+  fine for Visual Studio .NET and above.
+
+- SZGDEBUG: By default, software is not built with debugging information.
+ By setting this to TRUE, debugging symbols will be built in.
+
+- SZG_BZR_INFO //New as of 06/09//: The current bazaar revision number and some other information
+  is inserted into a source file during a build (and printed by most components
+  on startup, at least if launched with ``-szg log=DEBUG``). This requires both
+  bzr and python. If one or the other is not available, set ``SZG_BZR_INFO=FALSE``
+  to skip this step.
+
+- SZG_USE_PCH: Again, only meaningful on Windows platforms. By default,
+  on these platforms, a pre-compiled header is used to (greatly) speed up
+  compilation. However, this can sometimes be a pain when working with code
+  produced by a variety of compiler patch levels. Consequently, setting this
+  to FALSE negates the use of precompiled headers.
+
+- SZG_MULTITEX: On some platforms, this must be set to false to allow
+the q33 demo to build. Consider running cubecake instead of q33 (another
+Quake3 level builder).
+
+
+=Environment variables affecting the operation of Syzygy components=
+
+- SZG_PARAM: In application standalone mode, if the parameter file
+(szg_parameters.xml or szg_parameters.txt by default) cannot be opened,
+try to open this file instead.
+
+- SZG_CONF: The directory storing the computer's config file.
+Only set this if the default is unworkable.
+
+- SZG_LOGIN: The directory storing user login (to szgservers) information.
+Only set this if the default is unworkable.
+
+- SZGUSER: Run as a different szg user. Overrides dlogin's settings.
+
+- SZGCONTEXT: The values of various options (like virtual computer identity)
+packed in a single string.
+
+- SZG_DEX_TIMEOUT: How many seconds szgd waits for an application to launch.
+"dex -t" overrides it.
+
+- SZG_DEX_LOCALTIMEOUT: How many seconds dex waits for a reply from szgd.
+"dex -lt" overrides it.
+
+
+=Environment variables altered locally by szgd=
+
+- PYTHONPATH: szgd manipulates this so that a particular user's Python
+modules will be loaded preferentially.
+
+- PATH, LD_LIBRARY_PATH, LD_LIBRARYN32_PATH, DYLD_LIBRARY_PATH: szgd
+manipulates these so that shared libraries on its executable path will be
+loaded preferentially.
+
+- SZGUSER: Allows running-as another szg user.
+
+- SZGCONTEXT: The values of various options (like virtual computer identity)
+packed in a single string.
+
+- SZGPIPEID: Used to communicate back from the launched process to the szgd.
+
+- SZGTRADINGNUM: Used to communicate back from the launched process to the
+szgd.
+
+

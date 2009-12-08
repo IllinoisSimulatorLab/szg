@@ -5,7 +5,7 @@
 
 #include "arPrecompiled.h"
 
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #include "arGraphicsHeader.h"
 #include "arInputSimulator.h"
 #include "arLogStream.h"
@@ -490,7 +490,7 @@ void arInputSimulator::_drawGamepad() const {
     glPushMatrix();
       glTranslatef(0.5*_axis0, -0.3 + 0.5*_axis1, zPad);
       glColor3f(0.3, 1, 0);
-      glutSolidSphere(0.25, 12, 12);
+      ar_glutSolidSphere(0.25, 12, 12);
     glPopMatrix();
 
     // Joystick's boundary.
@@ -507,7 +507,7 @@ void arInputSimulator::_drawGamepad() const {
     glPushMatrix();
       glTranslatef(-.5*padWidth, BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector, zPad);
       glColor3f(1, 1, 1);
-      glutSolidSphere(0.15, 8, 8);
+      ar_glutSolidSphere(0.15, 8, 8);
     glPopMatrix();
     const float xlo = (-.5*((float)_rowLength()) + .5) * BUTTON_SPACING;
     float x = xlo;
@@ -521,7 +521,7 @@ void arInputSimulator::_drawGamepad() const {
           glColor3f(0.8, 0, 0);
         else
           glColor3f(0, 0.6, 0);
-        glutSolidSphere(.4*BUTTON_SPACING, 12, 12);
+        ar_glutSolidSphere(.4*BUTTON_SPACING, 12, 12);
         if (i >= _buttonLabels.size()) {
           ar_log_error() << "arInputSimulator: too few button labels.\n";
         } else {
@@ -530,7 +530,7 @@ void arInputSimulator::_drawGamepad() const {
           glPushMatrix();
             glTranslatef( -.25*BUTTON_SPACING, -.25*BUTTON_SPACING, 0. );
             glScalef( labelScale, labelScale, labelScale );
-            glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, _buttonLabels[i] );
+            ar_glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, _buttonLabels[i] );
           glPopMatrix();
           glEnable(GL_DEPTH_TEST);
         }
@@ -550,22 +550,22 @@ void arInputSimulator::_drawHead() const {
   glColor3f(1, 1, 0);
   glPushMatrix();
     glMultMatrixf(arMatrix4(_head).v);
-    glutWireSphere(1, 10, 10);
+    ar_glutWireSphere(1, 10, 10);
     // two eyes
     glColor3f(0, 1, 1);
     glPushMatrix();
       glTranslatef(0.5, 0, -0.8);
-      glutSolidSphere(0.4, 8, 8);
+      ar_glutSolidSphere(0.4, 8, 8);
       glTranslatef(0, 0, -0.4);
       glColor3f(1, 0, 0);
-      glutSolidSphere(0.15, 5, 5);
+      ar_glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
     glTranslatef(-0.5, 0, -0.8);
     glColor3f(0, 1, 1);
-    glutSolidSphere(0.4, 8, 8);
+    ar_glutSolidSphere(0.4, 8, 8);
     glTranslatef(0, 0, -0.4);
     glColor3f(1, 0, 0);
-    glutSolidSphere(0.15, 5, 5);
+    ar_glutSolidSphere(0.15, 5, 5);
   glPopMatrix();
 }
 
@@ -579,35 +579,35 @@ void arInputSimulator::_drawWand() const {
     glColor3f(1, 0, 0);
     glPushMatrix();
       glScalef(0.17, 0.17, 2);
-      glutSolidCube(1);
+      ar_glutSolidCube(1);
     glPopMatrix();
 
     // ball at tip
     glColor3f(1, 0, 1);
     glPushMatrix();
       glTranslatef(0, 0, -1);
-      glutSolidSphere(0.4, 10, 10);
+      ar_glutSolidSphere(0.4, 10, 10);
     glPopMatrix();
 
     // up-down bar
     glColor3f(0, 1, .15);
     glPushMatrix();
       glScalef(0.17, 2, 0.17);
-      glutSolidCube(1);
+      ar_glutSolidCube(1);
     glPopMatrix();
 
     // ball at tip
     glColor3f(0, 1, .6);
     glPushMatrix();
       glTranslatef(0, 1, 0);
-      glutSolidSphere(0.2, 10, 10);
+      ar_glutSolidSphere(0.2, 10, 10);
     glPopMatrix();
 
     // left-right bar
     glColor3f(0, 0, .8);
     glPushMatrix();
       glScalef(2, 0.17, 0.17);
-      glutSolidCube(1);
+      ar_glutSolidCube(1);
     glPopMatrix();
 
   glPopMatrix();
@@ -656,7 +656,7 @@ void arInputSimulator::_drawHint() const {
     glTranslatef(-0.95, 0.91, 0.000001);
     glScalef(0.0006, 0.0006, 0.0006);
     for (const char* pch=hint[_interfaceState + (_fDragNeedsButton ? 10 : 0)]; *pch; ++pch)
-      glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *pch);
+      ar_glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *pch);
   glPopMatrix();
   glEnable(GL_DEPTH_TEST);
 }

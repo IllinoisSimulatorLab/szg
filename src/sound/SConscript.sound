@@ -1,0 +1,32 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+    'arSpeechNode.cpp',
+    'arStreamNode.cpp',
+    'arSoundAPI.cpp',
+    'arSoundClient.cpp',
+    'arSoundDatabase.cpp',
+    'arSoundLanguage.cpp',
+    'arSoundNode.cpp',
+    'arSoundServer.cpp',
+    'arSoundFileNode.cpp',
+    'arSoundFile.cpp',
+    'arSoundTransformNode.cpp',
+    'arPlayerNode.cpp',
+    'arSpeakerObject.cpp'
+  )
+
+progNames = (
+    'SoundRender',
+    'SoundTest',
+    'StreamTest'
+    )
+
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+

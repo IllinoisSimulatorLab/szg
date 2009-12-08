@@ -16,7 +16,7 @@ include make/Makefile.libscan
 
 PHLEETDIRS=language math phleet
 DRVDIRS=language math phleet barrier drivers
-LIBDIRS=$(DRVDIRS) graphics sound obj interaction framework
+LIBDIRS=$(DRVDIRS) graphics sound model interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 DEMODIRS=ribbons atlantis coaster hspace cosmos cubes parade schprel
 

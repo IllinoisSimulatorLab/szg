@@ -139,7 +139,7 @@ GENERAL_LIBS = advapi32.lib kernel32.lib user32.lib gdi32.lib Ws2_32.lib
 # NOTE: glut is now added in Makefile.libscan, so that we can do without
 # installing it (and make use of such in SZGEXTERNAL) if such is desired.
 GRAPHICS_LIBS = opengl32.lib glu32.lib
-GAMEPAD_LIBS = dinput.lib dxguid.lib
+GAMEPAD_LIBS = winmm.lib
 # We want to be able to NOT do a console-based app if necessary
 SZG_SUBSYSTEM = -subsystem:console
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
@@ -197,7 +197,7 @@ ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
   DRIVERS_LIB_STRING=$(SZGHOME)/lib/libarDrivers$(SZG_STATIC_MOD).lib
   GRAPHICS_LIB_STRING=$(SZGHOME)/lib/libarGraphics$(SZG_STATIC_MOD).lib
   SOUND_LIB_STRING=$(SZGHOME)/lib/libarSound$(SZG_STATIC_MOD).lib
-  OBJECT_LIB_STRING=$(SZGHOME)/lib/libarObject$(SZG_STATIC_MOD).lib
+  OBJECT_LIB_STRING=$(SZGHOME)/lib/libarModel$(SZG_STATIC_MOD).lib
   INTERACT_LIB_STRING=$(SZGHOME)/lib/libarInteraction$(SZG_STATIC_MOD).lib
   FRAMEWORK_LIB_STRING=$(SZGHOME)/lib/libarFramework$(SZG_STATIC_MOD).lib
 else
@@ -208,7 +208,7 @@ else
   DRIVERS_LIB_STRING=$(SZGHOME)/build/win32/drivers/libarDrivers$(SZG_STATIC_MOD).lib
   GRAPHICS_LIB_STRING=$(SZGHOME)/build/win32/graphics/libarGraphics$(SZG_STATIC_MOD).lib
   SOUND_LIB_STRING=$(SZGHOME)/build/win32/sound/libarSound$(SZG_STATIC_MOD).lib
-  OBJECT_LIB_STRING=$(SZGHOME)/build/win32/obj/libarObject$(SZG_STATIC_MOD).lib
+  OBJECT_LIB_STRING=$(SZGHOME)/build/win32/model/libarModel$(SZG_STATIC_MOD).lib
   INTERACT_LIB_STRING=$(SZGHOME)/build/win32/interaction/libarInteraction$(SZG_STATIC_MOD).lib
   FRAMEWORK_LIB_STRING=$(SZGHOME)/build/win32/framework/libarFramework$(SZG_STATIC_MOD).lib
 endif

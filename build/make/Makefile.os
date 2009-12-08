@@ -119,7 +119,7 @@ ifeq "$(PLATFORM)" "win32"
   MACHINE_DIR=win32
 endif
 ifeq "$(PLATFORM)" "linux"
-  MACHINE=LINUXbogus
+  MACHINE=LINUX
   MACHINE_DIR=linux
 endif
 ifeq "$(PLATFORM)" "linux64"

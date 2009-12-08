@@ -1,0 +1,289 @@
+Header1 Supported Input Devices
+Header2 %%mtime(%m/%d/%Y)
+
+%!options: --headers --toc --toc-level=2
+
+Header3
+
+%%toc
+
+=Background=
+
+Input devices usually transmit data to other
+Syzygy programs through the program DeviceServer, which
+loads device driver libraries (see [Input Devices InputDevices.html]).
+
+This chapter lists loadable device drivers included in Syzygy.
+Of course, you can write your own drivers too.
+
+Some devices are configured with extra database parameters.
+These parameters have a service name corresponding to a
+parameter group (e.g., SZG_JOYSTICK for joystick
+devices). They are associated with the computer running DeviceServer.
+
+
+=Device Drivers in the Base Distribution=
+
+The following device drivers interface with a single hardware device.
+For examples with parameters, replace <computer>
+with the name of the computer running DeviceServer.
+
+
+==Wiimote (experimental)==
+
+- Loadable module: arWiimoteDriver
+- Platform: Linux
+- Service: none
+
+Uses the open-source [Wiiuse http://www.wiiuse.net/] library (version 0.9 //only//).@@
+This driver has a number of different modes: Pointer, Head Tracker, and
+"Minority-Report-style Finger Tracker", the latter two from 
+[ideas by Johnny Chung Lee http://www.cs.cmu.edu/~johnny/projects/wii/].@@
+In Pointer mode for the wiimote it returns 11 button events, 3 axis events corresponding
+to estimated Euler angles as well as the corresponding rotation (orientation) matrix. If you have
+the nunchuk plugged in it will return 2 additional buttons, 2 axes for the joystick,
+3 axes for the nunchuk Euler angles, and a rotation matrix.@@
+Exploring the other two modes is left as an exercise for the reader.
+
+
+==5DT Data Glove (new)==
+
+- Loadable module: ar5DTGloveDriver
+- Platform: Windows
+- Service: none
+
+Uses the [5th Dimension Technologies http://www.5dt.com/] library.@@
+Returns an axis event corresponding to the scaled value for each joint
+This is a float between 0 and 1 corresponding to the scaled angle between
+0--unbent--and 1--the greatest degree of bending since the driver
+was started. Would probably be better to use the raw values and
+calibrate the angles manually. Also returns a set of button values
+based on the built-in gesture or (more accurately, hand pose) recognition;
+each button event indicates the presence or absence of the corresponding
+gesture, with only one being true at any given instant.
+
+
+==Joystick==
+
+- Loadable module: arJoystickDriver
+- Platform: Linux, Windows
+- Service: none
+
+For a host with a joystick.@@
+Linux uses /dev/js0.@@
+Windows uses the default DirectInput joystick if the driver was built
+using one of the Microsoft compilers. If built with MinGW g++, it
+detects //all// connected joysticks and amalgamates them into a single
+input device.@@
+Has 20 axes and 20 buttons.@@
+
+
+==Intel Wireless Gamepad==
+
+Sorry, no longer supported
+
+
+==Ascension MotionStar==
+
+- Loadable module: arMotionstarDriver
+- Platform: All
+- Service: SZG_TRACKER
+
+For a host networked to the base station PC of an Ascension Motionstar Wireless 6DOF Tracker.
+```
+<computer> SZG_TRACKER IPhost XXX.XXX.XXX.XXX
+XXX.XXX.XXX.XXX is the IP address of the Motionstar base station.
+```
+
+
+==FaroArm==
+
+- Loadable module: arFaroDriver
+- Platform: All
+- Service: none
+
+Runs on a host RS232'd to a [FaroArm http://www.faro.com] mechanical motion tracker.@@
+Reports one matrix which accounts for the probe dimensions,
+and two boolean-valued buttons.
+
+
+==Ascension SpacePad==[SpacePad]
+
+- Loadable module: arSpacepadDriver
+- Platform: Windows 98
+- Service: SZG_TRACKER
+
+For a host connected to an Ascension SpacePad motion tracker.
+
+
+```
+<computer> SZG_TRACKER transmitter_offset
+  0.97/0.20/0.12/0/-0.05/0.7/-0.72/0/-0.22/0.69/0.69/0/0.09/6.71/-2.72/1
+```
+  Matrix (16 floats in OpenGL order) by which we post-multiply the device's matrix.
+Corrects for angled transmitter antenna.
+
+```
+<computer> SZG_TRACKER sensor1_rot 0/0/1/-90
+```
+  A rotation by which we pre-multiply the device's matrix.
+Corrects for sensors mounted at an angle.  Here, sensor 1 (wand) has been
+rolled 90 degrees to the left about the vector (0,0,1), i.e., the z-axis.
+
+
+==Ascension Flock of Birds==[FOB]
+
+- Loadable module: arFOBDriver
+- Platform: Linux/Windows
+- Service: SZG_FOB
+
+For a host RS232'd to the master unit of a Flock of Birds motion tracker.  Supports the Flock's
+transmitters, extended-range transmitters (ERT's), and birds.  Calibrated like [SpacePad #SpacePad].
+
+``` <computer> SZG_FOB config 0/3/0/0
+  A list of codes, one per Flock unit, that configures each unit.
+Codes are listed in order of their internal
+Flock IDs. This example shows four units where the first,
+third, and four units have only a bird, while the second unit has
+an ERT.@@
+		0: Bird@@
+		1: Transmitter@@
+		2: Transmitter and bird@@
+		3: ERT@@
+		4: ERT and bird@@
+
+``` <computer> SZG_FOB com_port 4
+  Serial port to which the Flock-of-Birds is attached. The number is 1-based on
+  all platforms, which means that e.g. on Linux you need to add one
+  (/dev/xxxxx0 is Syzygy port 1).
+
+``` <computer> SZG_FOB baud_rate 38400
+Baud rate of the Flock, one of 2400, 4800, 9600, 19200, 38400, 57600, 115200.
+
+``` <computer> SZG_FOB hemisphere lower
+  Hemisphere of the transmitter in which the birds fly, one of
+front, rear, upper, lower, left, right.
+
+``` <computer> SZG_FOB transmitter_offset 1/0/0/0/0/1/0/0/0/0/1/0/0/0/0/1
+  Matrix by which we post-multiply the device's matrix.
+Corrects for angled transmitter, just like [SpacePad #SpacePad].
+
+``` <computer> SZG_TRACKER sensor1_rot 0/0/1/90
+  A rotation by which we pre-multiply the device's matrix, to correct for angled birds.
+Same as [SpacePad #SpacePad].
+
+
+==Ascension Flock of Birds (proprietary)==
+
+- Loadable module: arBirdWinDriver
+- Platform: Windows
+- Service: none
+
+For a host RS232'd to the master unit of a Flock of Birds.@@
+A [multiplatform FOB driver #FOB] is under development.
+
+
+==Motion Analysis EVaRT==
+
+- Loadable module: arEVaRTDriver
+- Platform: Windows
+- Service: SZG_EVART
+
+For a host networked to an EVaRT optical tracker.
+
+``` <computer> SZG_EVART IPhost XXX.XXX.XXX.XXX
+  Specifies the dotted-quad IP address of the EVaRT system.
+
+
+==Intersense Tracker==
+
+- Loadable module: arIntersenseDriver
+- Platform: Windows, Linux
+- Service: SZG_INTERSENSE
+
+For any Intersense tracker.  Needs Intersense's own DLL (or .so) installed.
+
+``` <computer> SZG_INTERSENSE sleep 10/0
+  Sleep for 10 msec after polling the tracker.
+``` <computer> SZG_INTERSENSE station0_1 0/0/0
+  The 0th tracker's 1st sensor has 0 buttons and 0 axes.  It's probably a head tracker.
+``` <computer> SZG_INTERSENSE station0_2 4/2/0
+  The 0th tracker's 2nd sensor has 4 buttons and 2 axes.  It's probably a wand.
+
+  The SZG_INTERSENSE/convert# parameters for re-mapping the coordinates are no longer
+  used. Use a [PForth filter PForth.html] to do the coordinate transformation.
+  See the [Tracker Coordinate Conversion TrackerCoordConversion.html] section for
+  more information.
+
+
+==VRPN==
+
+- Loadable module: arVRPNDriver
+- Platform: Linux
+- Service: SZG_VRPN
+
+For a host running a VRPN server that manages VRPN input devices.
+
+``` <computer> SZG_VRPN name
+Name of the VRPN device to connect to.
+
+
+==Serial-port Switch==
+
+- Loadable module: arSerialSwitchDriver
+- Platform: All
+- Service: SZG_SERIALSWITCH
+
+We use this one to get input from a treadmill, but it's fairly general. The idea
+is that you have a switch. One end of it is connected to the serial port's
+"Transmit Data" pin and the other to the "Receive Data" pin. The port is opened
+for reading and writing.
+A character that you specify is repeatedly written to the port and then a single
+character is read. If the switch is closed, then the the value read should be the
+same as the one written. An axis event is generated for each switch transition,
+with the absolute value of the event being equal to the time in seconds since the preceding
+event, with the value being negative if it's a 'open' event.
+
+The following database parameters defined on the computer running the DeviceServer
+affect behavior:
+```
+<computer> SZG_SERIALSWITCH com_port:
+    Which port to use. The number is 1-based on all platforms,
+    which means that e.g. on Linux you need to add one
+    (/dev/xxxxx0 is Syzygy port 1).
+
+<computer> SZG_SERIALSWITCH baud_rate:
+    Baud rate of the port, one of 2400, 4800, 9600, 19200, 38400,
+    57600, 115200.
+
+<computer> SZG_SERIALSWITCH signal_byte: Character to write,
+    defaults to 0x53.
+
+<computer> SZG_SERIALSWITCH event_type:
+    What types of switch events to measure, must be one of 'open',
+    'closed','both' (default='both').  In all cases the absolute
+    value of the transmitted axis event is the time in seconds
+    since the last event of the type specified.
+```
+
+
+==Record/Playback==
+
+- Loadable module: arFileSource
+- Platform: All
+- Service: none
+
+Plays back a previously recorded event stream, stored in the file inputdump.xml
+on SZG_DATA/path.
+Plays at about the same speed as the data file's internal timestamps.
+
+To record such a stream from a DeviceServer, send it the message ``dumpon``.
+Stop recording with ``dumpoff``.  The event stream will be saved in a file
+``inputdump.xml`` in SZG_DATA/path.  This is convenient for elaborate event streams such as full-body motion capture.
+
+
+=Transformation to Syzygy Coordinates=
+
+For a HowTo about getting your tracker data mapped in to Syzygy coordinates,
+see [Tracker Coordinate Conversion TrackerCoordConversion.html]
+

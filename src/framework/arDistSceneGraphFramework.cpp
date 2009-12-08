@@ -55,6 +55,21 @@ LDie:
       f->getDatabase()->printStructure();
     }
 
+    else if ( messageType == "input" ) {
+      if ( messageBody == "on" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+" resuming input." );
+        f->getInputNode()->stop();
+      }
+      else if ( messageBody == "off" ) {
+        f->_SZGClient.messageResponse( messageID, f->getLabel()+" ignoring input." );
+        f->getInputNode()->start();
+      }
+      else {
+        ar_log_error() << " ignoring unexpected input msg arg '" << messageBody << "'.\n";
+        f->_SZGClient.messageResponse( messageID, "ERROR: "+f->getLabel()+
+            " ignoring unexpected input msg arg '"+messageBody+"'." );
+      }
+    }
 
     else if ( messageType == "use_nav_input_matrix" ) {
       if ( messageBody == "on" ) {
@@ -391,7 +406,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
   if (!_SZGClient) {
     for (i=0; i<argc; ++i) {
       if (!strcmp( argv[i], "-szgtype" )) {
-         cout << "distgraphics" << endl;
+         cout << "distgraphics\n";
          exit(0);
       }
     }
@@ -401,17 +416,18 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv) {
     } else {
       ar_log_critical() << "Directory: " << currDir << ar_endl;
     }
+
     // Standalone.
     const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
-  } else {
-    for (i=0; i<argc; ++i) {
-      if (!strcmp( argv[i], "-szgtype" )) {
-         _SZGClient.initResponse() << "distapp" << ar_endl;
-         _SZGClient.sendInitResponse( true );
-         exit(0);
-      }
+  }
+
+  for (i=0; i<argc; ++i) {
+    if (!strcmp( argv[i], "-szgtype" )) {
+       _SZGClient.initResponse() << "distapp\n";
+       _SZGClient.sendInitResponse( true );
+       exit(0);
     }
   }
 

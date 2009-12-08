@@ -1,0 +1,18 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+  'arMath.cpp', \
+  'arNavigationUtilities.cpp', \
+  )
+
+progNames = (
+    'TestMath',
+    )
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+

@@ -1,0 +1,86 @@
+import os
+
+Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+    'arFreeGlutRenderFuncs.cpp',
+    'arFreeGlutTeapot.cpp',
+    'arFreeGlutRoman.cpp',
+    'arFreeGlutMonoRoman.cpp',
+    'arFreeGlutFontData.cpp',
+    'arFreeGlutFont.cpp',
+    'arRay.cpp',
+    'arGraphicsPluginNode.cpp',
+    'arGraphicsClient.cpp',
+    'arGraphicsContext.cpp',
+    'arGraphicsDatabase.cpp',
+    'arGraphicsLanguage.cpp',
+    'arBillboardNode.cpp',
+    'arBlendNode.cpp',
+    'arBoundingSphereNode.cpp',
+    'arBumpMap.cpp',
+    'arBumpMapNode.cpp',
+    'arCamera.cpp',
+    'arColor4Node.cpp',
+    'arCubeEnvironment.cpp',
+    'arDrawableNode.cpp',
+    'arFramerateGraph.cpp',
+    'arFrameworkObject.cpp',
+    'arFrustumCamera.cpp',
+    'arGUIEventManager.cpp',
+    'arGUIInfo.cpp',
+    'arGUIWindow.cpp',
+    'arGUIWindowManager.cpp',
+    'arGUIXMLParser.cpp',
+    'arGraphicsAPI.cpp',
+    'arGraphicsArrayNode.cpp',
+    'arGraphicsNode.cpp',
+    'arGraphicsPeer.cpp',
+    'arGraphicsPeerRPC.cpp',
+    'arGraphicsScreen.cpp',
+    'arGraphicsServer.cpp',
+    'arGraphicsStateNode.cpp',
+    'arGraphicsUtilities.cpp',
+    'arGraphicsWindow.cpp',
+    'arHead.cpp',
+    'arIndexNode.cpp',
+    'arLargeImage.cpp',
+    'arLight.cpp',
+    'arLightNode.cpp',
+    'arMaterial.cpp',
+    'arMaterialNode.cpp',
+    'arMesh.cpp',
+    'arNormal3Node.cpp',
+    'arOrthoCamera.cpp',
+    'arPerspectiveCamera.cpp',
+    'arPerspectiveCameraNode.cpp',
+    'arPointsNode.cpp',
+    'arTex2Node.cpp',
+    'arTexFont.cpp',
+    'arTexture.cpp',
+    'arTextureNode.cpp',
+    'arTransformNode.cpp',
+    'arVRCamera.cpp',
+    'arViewerNode.cpp',
+    'arViewport.cpp',
+    'arVisibilityNode.cpp',
+    'arFramelockUtilities.cpp'
+  )
+
+progNames = (
+    'TestGraphics',
+    'szgrender'
+    )
+
+
+# Call the generic directory-builder script
+scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+execfile( scriptPath )
+
+glutProgEnv = progEnv.Clone()
+glutProgEnv.MergeFlags( externalFlags['glut'] )
+szgrp = glutProgEnv.Program( 'szg-rp.cpp' )
+Depends( szgrp, priorLibs )
+buildEnv.Install( pathDict['binPath'], szgrp )
+

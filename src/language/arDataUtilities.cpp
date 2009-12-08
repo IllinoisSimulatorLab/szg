@@ -1011,6 +1011,12 @@ string ar_getenv(const string& variable) {
 }
 
 #ifndef AR_USE_DARWIN
+#ifdef _MSC_VER && (_MSC_VER >= 1400)
+bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
+  ar_log_warning() << "ar_getSzgEnv() does not work with Visual C++ 8 & 9.\n";
+  return false;
+}
+#else
 extern char **environ;
 
 bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
@@ -1038,6 +1044,7 @@ bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   }
   return true;
 }
+#endif
 #else
 bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   ar_log_warning() << "ar_getSzgEnv() does not work on MacOS.\n";
@@ -1408,7 +1415,11 @@ bool ar_growBuffer(ARchar*& buf, int& size, int newSize) {
 }
 
 void* ar_allocateBuffer( arDataType theType, unsigned int size ) {
-  return (void*) new ARchar[ size * arDataTypeSize( theType )];
+  void* buf = (void*) new ARchar[ size * arDataTypeSize( theType )];
+  if (!buf) {
+    ar_log_error() << "ar_allocateBuffer out of memory.\n";
+  }
+  return (void*) buf;
 }
 
 void ar_deallocateBuffer( void* ptr ) {

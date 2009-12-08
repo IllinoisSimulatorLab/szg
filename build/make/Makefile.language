@@ -55,15 +55,19 @@ ALL = \
 include $(SZGHOME)/build/make/Makefile.rules
 
 # On Windows, compile the precompiled header FIRST.
-$(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
+$(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS) $(SRCDIR)/arVersion.cpp
 	$(LINK_SZG_LIB)
 	$(COPY)
 
 # Version info functions.
 .PHONY: $(SRCDIR)/arVersion.cpp
+ifeq ($(strip $(SZG_BZR_INFO)),FALSE)
 $(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
 	$(CP) $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/arVersion.cpp
-	-python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+else
+$(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
+	python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+endif
 
 
 # For stability, heavily optimize only the raw-information-handling objects.
@@ -99,14 +103,14 @@ RS232SendTest$(EXE): $(SZG_CURRENT_DLL) RS232SendTest$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) RS232SendTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguageClient$(EXE): $(SZG_CURRENT_DLL) TestClient$(OBJ_SUFFIX)
-	$(SZG_EXE_FIRST) TestClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+TestLanguageClient$(EXE): $(SZG_CURRENT_DLL) TestLanguageClient$(OBJ_SUFFIX)
+	$(SZG_EXE_FIRST) TestLanguageClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguage$(EXE): $(SZG_CURRENT_DLL) Test$(OBJ_SUFFIX)
-	$(SZG_EXE_FIRST) Test$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+TestLanguage$(EXE): $(SZG_CURRENT_DLL) TestLanguage$(OBJ_SUFFIX)
+	$(SZG_EXE_FIRST) TestLanguage$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguageServer$(EXE): $(SZG_CURRENT_DLL) TestServer$(OBJ_SUFFIX)
-	$(SZG_EXE_FIRST) TestServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+TestLanguageServer$(EXE): $(SZG_CURRENT_DLL) TestLanguageServer$(OBJ_SUFFIX)
+	$(SZG_EXE_FIRST) TestLanguageServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
