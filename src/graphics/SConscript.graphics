@@ -6,7 +6,9 @@ Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 libSrc = ( \
     'arFreeGlutRenderFuncs.cpp',
     'arFreeGlutTeapot.cpp',
+    'arFreeGlutRoman.cpp',
     'arFreeGlutMonoRoman.cpp',
+    'arFreeGlutFontData.cpp',
     'arFreeGlutFont.cpp',
     'arRay.cpp',
     'arGraphicsPluginNode.cpp',
@@ -25,8 +27,6 @@ libSrc = ( \
     'arDrawableNode.cpp',
     'arFramerateGraph.cpp',
     'arFrameworkObject.cpp',
-    'arFreeGlutRenderFuncs.cpp',
-    'arFreeGlutTeapot.cpp',
     'arFrustumCamera.cpp',
     'arGUIEventManager.cpp',
     'arGUIInfo.cpp',

@@ -128,7 +128,7 @@ subdirs = {
       },
     'demo'  :{
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['glut','jpeg','3ds','fmod','sapi']
+      'external':['jpeg','3ds','fmod','sapi']
       },
     }
 

@@ -95,11 +95,11 @@ void arPerformanceElement::draw() {
   glEnd();
 
   // Labels.  Drawn last, for readability.
-//  char buf[80];
-//  sprintf(buf, "%s %5d", _name.c_str(), int(_data[_numberEntries-1]));
-//  glRasterPos2f(-.8, .3 - _i * .17);
-//  for (const char* c = buf; *c; ++c)
-//    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
+  char buf[80];
+  sprintf(buf, "%s %5d", _name.c_str(), int(_data[_numberEntries-1]));
+  glRasterPos2f(-.8, .3 - _i * .17);
+  for (const char* c = buf; *c; ++c)
+    ar_glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
   glLineWidth(1.);
 }
 

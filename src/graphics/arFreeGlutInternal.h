@@ -120,6 +120,18 @@
  */
 typedef void (*SFG_Proc)();
 
+/* The bitmap font structure */
+typedef struct tagSFG_Font SFG_Font;
+struct tagSFG_Font
+{
+    char*           Name;         /* The source font name             */
+    int             Quantity;     /* Number of chars in font          */
+    int             Height;       /* Height of the characters         */
+    const GLubyte** Characters;   /* The characters mapping           */
+
+    float           xorig, yorig; /* Relative origin of the character */
+};
+
 
 /* The stroke font structures */
 
