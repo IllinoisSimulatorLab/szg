@@ -2349,6 +2349,22 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
 
+    else if ( messageType == "input" ) {
+      if ( messageBody == "on" ) {
+        _SZGClient.messageResponse( messageID, getLabel()+" resuming input." );
+        getInputNode()->stop();
+      }
+      else if ( messageBody == "off" ) {
+        _SZGClient.messageResponse( messageID, getLabel()+" ignoring input." );
+        getInputNode()->start();
+      }
+      else {
+        ar_log_error() << " ignoring unexpected input msg arg '" << messageBody << "'.\n";
+        _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
+            " ignoring unexpected input msg arg '"+messageBody+"'." );
+      }
+    }
+
     else if ( messageType == "use_nav_input_matrix" ) {
       if ( messageBody == "on" ) {
         _SZGClient.messageResponse( messageID, getLabel()+

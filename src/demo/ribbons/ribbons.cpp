@@ -5,7 +5,7 @@
 #include "arPrecompiled.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
 #include <signal.h>
@@ -468,7 +468,7 @@ void drawCursor(const arVector3& v)
     glColor3f(1,1,1);
     glPushMatrix();
       glTranslatef(v.v[0], v.v[1], v.v[2]);
-      glutWireSphere(.1,6,6);
+      ar_glutWireSphere(.1,6,6);
     glPopMatrix();
     break;
 
@@ -477,7 +477,7 @@ void drawCursor(const arVector3& v)
     glColor3f(.7,.7,.7);
     glPushMatrix();
       glTranslatef(v.v[0], v.v[1], v.v[2]);
-      glutWireSphere(.1,6,6);
+      ar_glutWireSphere(.1,6,6);
     glPopMatrix();
     // ...skewered by xyz axes.
     glColor3f(1,1,1);
@@ -499,7 +499,7 @@ void drawCursor(const arVector3& v)
     glColor3f(1,1,1);
     glPushMatrix();
       glTranslatef(v.v[0], v.v[1], v.v[2]);
-      glutWireSphere(eraserRadius*1.5,8,8);
+      ar_glutWireSphere(eraserRadius*1.5,8,8);
       // *1.5: compensate for split ribbons' truncated ends
     glPopMatrix();
     break;
@@ -686,6 +686,5 @@ int main(int argc, char** argv){
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);
-  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

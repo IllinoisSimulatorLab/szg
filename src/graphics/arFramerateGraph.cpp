@@ -5,7 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arFramerateGraph.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #include "arGraphicsHeader.h"
 
 arPerformanceElement::arPerformanceElement(
@@ -99,7 +99,7 @@ void arPerformanceElement::draw() {
   sprintf(buf, "%s %5d", _name.c_str(), int(_data[_numberEntries-1]));
   glRasterPos2f(-.8, .3 - _i * .17);
   for (const char* c = buf; *c; ++c)
-    glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
+    ar_glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
   glLineWidth(1.);
 }
 

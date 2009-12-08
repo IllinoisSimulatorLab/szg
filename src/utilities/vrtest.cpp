@@ -4,7 +4,7 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #include "arMasterSlaveFramework.h"
 
 void drawWand(const arMatrix4& m, const float large = 1.0) {
@@ -24,14 +24,14 @@ void drawWand(const arMatrix4& m, const float large = 1.0) {
       glTranslatef(0, 0, 1);
       glScalef(1, 1, -1);
       glColor3f(1, 0, 1);
-      glutWireCone(0.12, 2, 8, 2);
+      ar_glutWireCone(0.12, 2, 8, 2);
     glPopMatrix();
 
     // Up
     glPushMatrix();
       glTranslatef(0, .6, 0);
       glColor3f(.8, .8, .8);
-      glutWireSphere(0.07, 5, 5);
+      ar_glutWireSphere(0.07, 5, 5);
     glPopMatrix();
 
   glPopMatrix();
@@ -111,7 +111,7 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
 #ifdef using_bitmap_fonts
     glRasterPos3f(x, y, z);
     for (const char* c = sz; *c; ++c)
-      glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
+      ar_glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
 #else
     // Thick huge font for dim projectors.
     glLineWidth(3.);
@@ -120,7 +120,7 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
     glRotatef(rotY, 0, -1, 0);
     glRotatef(rotX, 1,  0, 0);
     for (const char* c = sz; *c; ++c)
-      glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+      ar_glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
 #endif
   glPopMatrix();
 }
@@ -130,30 +130,30 @@ void drawHead() {
   glPushMatrix();
     glScalef(1.5, 1.5, 1.5); // larger for visibility
     glColor3f(.8, .8, 0);
-    glutSolidSphere(1, 16, 16);
+    ar_glutSolidSphere(1, 16, 16);
     // two eyes
     glColor3f(0, 1, 1);
     glPushMatrix();
       glTranslatef(0.5, 0, -0.7);
-      glutSolidSphere(0.4, 8, 8);
+      ar_glutSolidSphere(0.4, 8, 8);
       glTranslatef(0, 0, -0.34);
       glColor3f(1, 0, 0);
-      glutSolidSphere(0.15, 5, 5);
+      ar_glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
     glPushMatrix();
       glTranslatef(-0.5, 0, -0.7);
       glColor3f(0, 1, 1);
-      glutSolidSphere(0.4, 8, 8);
+      ar_glutSolidSphere(0.4, 8, 8);
       glTranslatef(0, 0, -0.34);
       glColor3f(1, 0, 0);
-      glutSolidSphere(0.15, 5, 5);
+      ar_glutSolidSphere(0.15, 5, 5);
     glPopMatrix();
     // cap
     glColor3f( 1, 1, 0 );
     glPushMatrix();
       glTranslatef(-0., 1., -0.);
       glScalef( 2., .1, 2. );
-      glutSolidCube(0.4);
+      ar_glutSolidCube(0.4);
     glPopMatrix();
   glPopMatrix();
 }
@@ -322,9 +322,9 @@ void headwands() {
 }
 
 inline void drawSliderCube() {
-  glutSolidCube(0.37);
+  ar_glutSolidCube(0.37);
   glColor3f(0, 0, 0);
-  glutWireCube(0.42);
+  ar_glutWireCube(0.42);
 }
 
 void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
@@ -340,11 +340,11 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
   glPushMatrix();
     glTranslatef(0, 5, 0);
     glColor3f(.9, .9, .9);
-    glutWireCube( 9.8);
+    ar_glutWireCube( 9.8);
     glColor3f(1, 1, 1);
-    glutWireCube(10.0);
+    ar_glutWireCube(10.0);
     glColor3f(.9, .9, .9);
-    glutWireCube(10.2);
+    ar_glutWireCube(10.2);
   glPopMatrix();
 
   // Labels on walls.
@@ -423,7 +423,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       glTranslatef(0, 0, -3); // in front of your eyes
       glColor3f(.6, .3, .9);
       glScalef(4., 1., 9.); // ratios of the Monolith
-      glutWireCube(.3);
+      ar_glutWireCube(.3);
     glPopMatrix();
 
     // Head, projected onto all walls except front.
@@ -499,15 +499,15 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
         glTranslatef(step, 0, 0);
         if (rgButton[i] == 0) {
           glColor3f(1, .3, .2);
-          glutSolidCube(0.5 / cb);
+          ar_glutSolidCube(0.5 / cb);
           glColor3f(0, 0, 0);
-          glutWireCube(0.52 / cb);
+          ar_glutWireCube(0.52 / cb);
         }
         else {
           glColor3f(.3, 1, .6);
-          glutSolidCube(0.7 / cb);
+          ar_glutSolidCube(0.7 / cb);
           glColor3f(0, 0, 0);
-          glutWireCube(0.72 / cb);
+          ar_glutWireCube(0.72 / cb);
         }
         // 5 buttons per line
         const int buttonsPerLine = 5;
@@ -590,6 +590,5 @@ int main(int argc, char** argv) {
   fw.setDrawCallback(callbackDraw);
   fw.setPreExchangeCallback(callbackPreEx);
   fw.setClipPlanes(.15, 20.);
-  glutInit(&argc, argv);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

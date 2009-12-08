@@ -4,7 +4,7 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arGlut.h"
+#include "arGlutRenderFuncs.h"
 #include "arGraphicsPlugin.h"
 #include "arSTLalgo.h"
 
@@ -50,7 +50,7 @@ void arTeapotGraphicsPlugin::draw( arGraphicsWindow&, arViewport& ) {
     glDisable( GL_TEXTURE_2D );
 
     glColor4fv( _color );
-    glutSolidTeapot( 1. );
+    ar_glutSolidTeapot( 1. );
   glPopAttrib();
 }
 
