@@ -2165,7 +2165,11 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   // Set window-wide attributes based on the display name, like
   // stereo, window size, window position, framelock.
 
-  _guiXMLParser->setConfig(_SZGClient.getDisplayName(_SZGClient.getMode("graphics")));
+  const string mode = _SZGClient.getMode("graphics");
+  const string displayName = _SZGClient.getDisplayName( mode );
+  ar_log_debug() << "Graphics mode = " << mode << ", display name = "
+                 << displayName << ar_endl;
+  _guiXMLParser->setConfig( displayName );
   if (!_guiXMLParser->parse()) {
     return false;
   }

@@ -7,6 +7,7 @@
 #define AR_FREEGLUT_H
 
 #include "arGraphicsHeader.h"
+#include "arFreeGlutInternal.h"
 #include "arGraphicsCalling.h"
 
 void SZG_CALL ar_glutWireCube( GLdouble dSize );
@@ -106,15 +107,15 @@ void SZG_CALL ar_glutSolidTeapot( GLdouble size );
 #   define  GLUT_BITMAP_HELVETICA_18        ((void *) &glutBitmapHelvetica18)
 #endif
 
-void* SZG_CALL ar_fgStrokeRoman();
-void* SZG_CALL ar_fgStrokeMonoRoman();
-void* SZG_CALL ar_fgFontFixed8x13();
-void* SZG_CALL ar_fgFontFixed9x15();
-void* SZG_CALL ar_fgFontHelvetica10();
-void* SZG_CALL ar_fgFontHelvetica12();
-void* SZG_CALL ar_fgFontHelvetica18();
-void* SZG_CALL ar_fgFontTimesRoman10();
-void* SZG_CALL ar_fgFontTimesRoman24();
+SZG_CALL SFG_StrokeFont* ar_fgStrokeRoman();
+SZG_CALL SFG_StrokeFont* ar_fgStrokeMonoRoman();
+SZG_CALL SFG_Font* ar_fgFontFixed8x13();
+SZG_CALL SFG_Font* ar_fgFontFixed9x15();
+SZG_CALL SFG_Font* ar_fgFontHelvetica10();
+SZG_CALL SFG_Font* ar_fgFontHelvetica12();
+SZG_CALL SFG_Font* ar_fgFontHelvetica18();
+SZG_CALL SFG_Font* ar_fgFontTimesRoman10();
+SZG_CALL SFG_Font* ar_fgFontTimesRoman24();
     
 void SZG_CALL ar_glutBitmapCharacter( void* fontID, int character );
 void SZG_CALL ar_glutBitmapString( void* fontID, const unsigned char *string );
