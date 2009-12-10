@@ -116,12 +116,6 @@ SZG_CALL SFG_Font* ar_fgFontHelvetica12();
 SZG_CALL SFG_Font* ar_fgFontHelvetica18();
 SZG_CALL SFG_Font* ar_fgFontTimesRoman10();
 SZG_CALL SFG_Font* ar_fgFontTimesRoman24();
-    
-void SZG_CALL ar_glutBitmapCharacter( void* fontID, int character );
-void SZG_CALL ar_glutBitmapString( void* fontID, const unsigned char *string );
-int SZG_CALL ar_glutBitmapWidth( void* fontID, int character );
-int SZG_CALL ar_glutBitmapLength( void* fontID, const unsigned char* string );
-int SZG_CALL ar_glutBitmapHeight( void* fontID );
 
 void SZG_CALL ar_glutStrokeCharacter( void* fontID, int character );
 void SZG_CALL ar_glutStrokeString( void* fontID, const unsigned char *string );
