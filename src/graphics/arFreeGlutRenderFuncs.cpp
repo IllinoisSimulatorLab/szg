@@ -28,6 +28,7 @@
 #include "arPrecompiled.h"
 #include "arGlutRenderFuncs.h"
 #include "arLogStream.h"
+#include "arMath.h"
 #include <math.h>
 #include <cstdlib> // for abs()
  
