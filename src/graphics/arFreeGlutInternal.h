@@ -100,7 +100,7 @@
 
 /* Microsoft VisualC++ 5.0's <math.h> does not define the PI */
 #ifndef M_PI
-#    define  M_PI  3.14159265358979323846
+#    define  M_PI  (3.14159265358979323846)
 #endif
 
 #ifndef TRUE
@@ -124,7 +124,7 @@ typedef void (*SFG_Proc)();
 typedef struct tagSFG_Font SFG_Font;
 struct tagSFG_Font
 {
-    char*           Name;         /* The source font name             */
+    const char*           Name;   /* The source font name             */
     int             Quantity;     /* Number of chars in font          */
     int             Height;       /* Height of the characters         */
     const GLubyte** Characters;   /* The characters mapping           */

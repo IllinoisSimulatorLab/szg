@@ -29,7 +29,8 @@
 #include "arGlutRenderFuncs.h"
 #include "arLogStream.h"
 #include <math.h>
-
+#include <cstdlib> // for abs()
+ 
 /* -- INTERFACE FUNCTIONS -------------------------------------------------- */
 
 /*
