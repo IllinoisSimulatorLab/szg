@@ -122,6 +122,8 @@ LAbort:
   ar_log_remark() << "using slot " << slot << ".\n";
 
   // "netinput" doesn't mean input.  It means "output on the next slot."  I think.
+  // It means 'receive input from the next device in the chain (i.e. the next
+  // slot)' -Jim
   const bool fNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
 
   arNetInputSink netInputSink;

@@ -7,61 +7,62 @@
 #define AR_FREEGLUT_H
 
 #include "arGraphicsHeader.h"
+#include "arFreeGlutInternal.h"
 #include "arGraphicsCalling.h"
 
-void SZG_CALL ar_glutWireCube( GLdouble dSize );
+SZG_CALL void ar_glutWireCube( GLdouble dSize );
 
-void SZG_CALL ar_glutSolidCube( GLdouble dSize );
+SZG_CALL void ar_glutSolidCube( GLdouble dSize );
 
-void SZG_CALL ar_glutSolidSphere(GLdouble radius, GLint slices, GLint stacks);
+SZG_CALL void ar_glutSolidSphere(GLdouble radius, GLint slices, GLint stacks);
 
-void SZG_CALL ar_glutWireSphere(GLdouble radius, GLint slices, GLint stacks);
+SZG_CALL void ar_glutWireSphere(GLdouble radius, GLint slices, GLint stacks);
 
-void SZG_CALL ar_glutSolidCone( GLdouble base, GLdouble height, GLint slices, GLint stacks );
+SZG_CALL void ar_glutSolidCone( GLdouble base, GLdouble height, GLint slices, GLint stacks );
 
-void SZG_CALL ar_glutWireCone( GLdouble base, GLdouble height, GLint slices, GLint stacks);
+SZG_CALL void ar_glutWireCone( GLdouble base, GLdouble height, GLint slices, GLint stacks);
 
-void SZG_CALL ar_glutSolidCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
+SZG_CALL void ar_glutSolidCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
 
-void SZG_CALL ar_glutWireCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
+SZG_CALL void ar_glutWireCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
 
-void SZG_CALL ar_glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
+SZG_CALL void ar_glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
 
-void SZG_CALL ar_glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
+SZG_CALL void ar_glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
 
-void SZG_CALL ar_glutWireDodecahedron( void );
+SZG_CALL void ar_glutWireDodecahedron( void );
 
-void SZG_CALL ar_glutSolidDodecahedron( void );
+SZG_CALL void ar_glutSolidDodecahedron( void );
 
-void SZG_CALL ar_glutWireOctahedron( void );
+SZG_CALL void ar_glutWireOctahedron( void );
 
-void SZG_CALL ar_glutSolidOctahedron( void );
+SZG_CALL void ar_glutSolidOctahedron( void );
 
-void SZG_CALL ar_glutWireTetrahedron( void );
+SZG_CALL void ar_glutWireTetrahedron( void );
 
-void SZG_CALL ar_glutSolidTetrahedron( void );
+SZG_CALL void ar_glutSolidTetrahedron( void );
 
-void SZG_CALL ar_glutWireIcosahedron( void );
+SZG_CALL void ar_glutWireIcosahedron( void );
 
-void SZG_CALL ar_glutSolidIcosahedron( void );
+SZG_CALL void ar_glutSolidIcosahedron( void );
 
-void SZG_CALL ar_glutWireRhombicDodecahedron( void );
+SZG_CALL void ar_glutWireRhombicDodecahedron( void );
 
-void SZG_CALL ar_glutSolidRhombicDodecahedron( void );
+SZG_CALL void ar_glutSolidRhombicDodecahedron( void );
 
-void SZG_CALL ar_glutWireSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
+SZG_CALL void ar_glutWireSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
 
-void SZG_CALL ar_glutSolidSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
+SZG_CALL void ar_glutSolidSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
 
 /*
  * Renders a beautiful wired teapot...
  */
-void SZG_CALL ar_glutWireTeapot( GLdouble size );
+SZG_CALL void ar_glutWireTeapot( GLdouble size );
 
 /*
  * Renders a beautiful filled teapot...
  */
-void SZG_CALL ar_glutSolidTeapot( GLdouble size );
+SZG_CALL void ar_glutSolidTeapot( GLdouble size );
 
 /*
  * GLUT API macro definitions -- fonts definitions
@@ -106,27 +107,27 @@ void SZG_CALL ar_glutSolidTeapot( GLdouble size );
 #   define  GLUT_BITMAP_HELVETICA_18        ((void *) &glutBitmapHelvetica18)
 #endif
 
-void* SZG_CALL ar_fgStrokeRoman();
-void* SZG_CALL ar_fgStrokeMonoRoman();
-void* SZG_CALL ar_fgFontFixed8x13();
-void* SZG_CALL ar_fgFontFixed9x15();
-void* SZG_CALL ar_fgFontHelvetica10();
-void* SZG_CALL ar_fgFontHelvetica12();
-void* SZG_CALL ar_fgFontHelvetica18();
-void* SZG_CALL ar_fgFontTimesRoman10();
-void* SZG_CALL ar_fgFontTimesRoman24();
-    
-void SZG_CALL ar_glutBitmapCharacter( void* fontID, int character );
-void SZG_CALL ar_glutBitmapString( void* fontID, const unsigned char *string );
-int SZG_CALL ar_glutBitmapWidth( void* fontID, int character );
-int SZG_CALL ar_glutBitmapLength( void* fontID, const unsigned char* string );
-int SZG_CALL ar_glutBitmapHeight( void* fontID );
+SZG_CALL SFG_StrokeFont* ar_fgStrokeRoman();
+SZG_CALL SFG_StrokeFont* ar_fgStrokeMonoRoman();
+SZG_CALL SFG_Font* ar_fgFontFixed8x13();
+SZG_CALL SFG_Font* ar_fgFontFixed9x15();
+SZG_CALL SFG_Font* ar_fgFontHelvetica10();
+SZG_CALL SFG_Font* ar_fgFontHelvetica12();
+SZG_CALL SFG_Font* ar_fgFontHelvetica18();
+SZG_CALL SFG_Font* ar_fgFontTimesRoman10();
+SZG_CALL SFG_Font* ar_fgFontTimesRoman24();
 
-void SZG_CALL ar_glutStrokeCharacter( void* fontID, int character );
-void SZG_CALL ar_glutStrokeString( void* fontID, const unsigned char *string );
-int SZG_CALL ar_glutStrokeWidth( void* fontID, int character );
-int SZG_CALL ar_glutStrokeLength( void* fontID, const unsigned char* string );
-GLfloat SZG_CALL ar_glutStrokeHeight( void* fontID );
+SZG_CALL void ar_glutBitmapCharacter( void* fontID, int character );
+SZG_CALL void ar_glutBitmapString( void* fontID, const unsigned char *string );
+SZG_CALL int ar_glutBitmapWidth( void* fontID, int character );
+SZG_CALL int ar_glutBitmapLength( void* fontID, const unsigned char* string );
+SZG_CALL int ar_glutBitmapHeight( void* fontID );
+
+SZG_CALL void ar_glutStrokeCharacter( void* fontID, int character );
+SZG_CALL void ar_glutStrokeString( void* fontID, const unsigned char *string );
+SZG_CALL int ar_glutStrokeWidth( void* fontID, int character );
+SZG_CALL int ar_glutStrokeLength( void* fontID, const unsigned char* string );
+SZG_CALL GLfloat ar_glutStrokeHeight( void* fontID );
     
 #endif
 
