@@ -14,24 +14,17 @@ from OpenGL.GLUT import *
 import sys
 import thread
 
+HEAD_MATRIX = szg.ar_translationMatrix(0,5.5,0)
+WAND_MATRIX =  szg.ar_translationMatrix(1,3.5,-1)
+
 
 class JoystickSimulator( szg.arPyDeviceServerFramework ):
   def __init__(self):
     szg.arPyDeviceServerFramework.__init__(self)
-
     self.axes = [0.,0.]
     self.width = 0
     self.height = 0
     self.running = True
-
-    glutInit(sys.argv)
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-    window = glutCreateWindow('glutjoystick.py')
-    glutDisplayFunc( self.onDisplay )
-    glutIdleFunc( self.onIdle )
-    glutReshapeFunc( self.onReshape )
-    glutKeyboardFunc( self.onKey )
-    glutMotionFunc( self.onMotion )
 
   def configureInputNode(self):
     self.driver = szg.arGenericDriver()
@@ -46,7 +39,6 @@ class JoystickSimulator( szg.arPyDeviceServerFramework ):
 
   def start(self):
     thread.start_new_thread( self.messageLoop, () )
-    glutMainLoop()
 
   def messageLoop( self ):
     while self.running:
@@ -90,8 +82,8 @@ class JoystickSimulator( szg.arPyDeviceServerFramework ):
     if not self.running:
       sys.exit(0)
     # send static head and wand matrices.
-    self.driver.queueMatrix( 0, szg.ar_translationMatrix(0,5.5,0) )
-    self.driver.queueMatrix( 1, szg.ar_translationMatrix(1,3.5,-1) )
+    self.driver.queueMatrix( 0, HEAD_MATRIX )
+    self.driver.queueMatrix( 1, WAND_MATRIX )
     self.driver.sendQueue()
     glutPostRedisplay()
 
@@ -99,6 +91,7 @@ class JoystickSimulator( szg.arPyDeviceServerFramework ):
     self.width = width
     self.height = height
     glViewport(0, 0, width, height)
+    glutPostRedisplay()
 
   def onMotion( self, x, y ):
     def _clipem( coord ):
@@ -108,19 +101,33 @@ class JoystickSimulator( szg.arPyDeviceServerFramework ):
         return 1.
       return coord
     self.axes = map( _clipem, [2.*x/float(self.width)-1. , 1.-2.*y/float(self.height)] )
-    glutPostRedisplay()
-    self.driver.queueAxis( 0, self.axes[0] )
-    self.driver.queueAxis( 1, self.axes[1] )
+    for i in (0,1):
+      self.driver.queueAxis( i, self.axes[i] )
     self.driver.sendQueue()
+    glutPostRedisplay()
 
 
 def main():
-  app = JoystickSimulator()
-  if not app.init( sys.argv ):
+  sim = JoystickSimulator()
+
+  glutInit( sys.argv )
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
+
+  glutDisplayFunc(  sim.onDisplay )
+  glutIdleFunc(     sim.onIdle    )
+  glutReshapeFunc(  sim.onReshape )
+  glutKeyboardFunc( sim.onKey     )
+  glutMotionFunc(   sim.onMotion  )
+
+  window = glutCreateWindow('glutjoystick.py')
+
+  if not sim.init( sys.argv ):
     print sys.argv[0], "failed to init framework."
-    app.getSZGClient().failStandalone(False)
+    sim.getSZGClient().failStandalone(False)
     sys.exit(1)
-  app.start()
+  sim.start()
+
+  glutMainLoop()
 
 
 if __name__ == '__main__':

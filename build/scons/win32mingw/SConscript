@@ -1,8 +1,4 @@
 # Aszgard/MinGW-specific build file for scons
-# Builds a basic Hello World using a vanilla
-# build environment, then creates an build
-# environment for building freeglut-based
-# programs
 
 import os
 import sys

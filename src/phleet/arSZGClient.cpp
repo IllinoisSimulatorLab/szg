@@ -2405,8 +2405,21 @@ const string& arSZGClient::getMode(const string& channel) {
   if (channel == "graphics")
     return _graphicsMode;
 
-  ar_log_error() << "unknown channel for getMode().\n";
+  ar_log_error() << "unknown channel '" << channel << "' for getMode().\n";
   return _mode;
+}
+
+void arSZGClient::setMode( const string& channel, const string& value ) {
+  if (channel == "default") {
+    _mode = value;
+    return;
+  }
+  if (channel == "graphics") {
+    _graphicsMode = value;
+    return;
+  }
+
+  ar_log_error() << "unknown channel '" << channel << "' for setMode().\n";
 }
 
 // Queries the szgserver to determine the computer designated as the
