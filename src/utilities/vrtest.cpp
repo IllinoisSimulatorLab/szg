@@ -7,36 +7,6 @@
 #include "arGlutRenderFuncs.h"
 #include "arMasterSlaveFramework.h"
 
-void drawWand(const arMatrix4& m, const float large = 1.0) {
-  glPushMatrix();
-    glScalef(large, large, large);
-    glMultMatrixf(m.v);
-    glBegin(GL_LINES);
-      glColor3f(0, 1, 1);
-        glVertex3f(.25, 0, 0);
-        glVertex3f(-.25, 0, 0);
-        glVertex3f(0, .5, 0);
-        glVertex3f(0, -.25, 0);
-    glEnd();
-
-    // Forward
-    glPushMatrix();
-      glTranslatef(0, 0, 1);
-      glScalef(1, 1, -1);
-      glColor3f(1, 0, 1);
-      ar_glutWireCone(0.12, 2, 8, 2);
-    glPopMatrix();
-
-    // Up
-    glPushMatrix();
-      glTranslatef(0, .6, 0);
-      glColor3f(.8, .8, .8);
-      ar_glutWireSphere(0.07, 5, 5);
-    glPopMatrix();
-
-  glPopMatrix();
-}
-
 void glArc(const float y, const float z, const float r) {
   glBegin(GL_LINE_STRIP);
   const float cStep = 60;
@@ -300,6 +270,39 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   doSounds(iPing, fPing, fPong, vSaber);
 }
 
+void drawWand(const arMatrix4& m, const float large = 1.0) {
+  glPushMatrix();
+    glScalef(large, large, large);
+    glMultMatrixf(m.v);
+    glBegin(GL_LINES);
+      glColor3f(0, 1, 1);
+        glVertex3f(.25, 0, 0);
+        glVertex3f(-.25, 0, 0);
+        glVertex3f(0, .5, 0);
+        glVertex3f(0, -.25, 0);
+    glEnd();
+
+    // Forward
+    glPushMatrix();
+      glTranslatef(0, 0, 1);
+      glScalef(1, 1, -1);
+      glColor3f(1, 0, 1);
+      ar_glutWireCone(0.12, 2, 8, 2);
+    glPopMatrix();
+
+    // Up
+    glPushMatrix();
+      glTranslatef(0, .6, 0);
+      if (fWhitewalls)
+	glColor3f(.0, .0, .0);
+      else
+	glColor3f(.8, .8, .8);
+      ar_glutWireSphere(0.07, 5, 5);
+    glPopMatrix();
+
+  glPopMatrix();
+}
+
 void bluesquare() {
   glColor3f(.1, .1, .4);
   glBegin(GL_POLYGON);
@@ -341,7 +344,10 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glTranslatef(0, 5, 0);
     glColor3f(.9, .9, .9);
     ar_glutWireCube( 9.8);
-    glColor3f(1, 1, 1);
+    if (fWhitewalls)
+      glColor3f(.0, .0, .0);
+    else
+      glColor3f(1, 1, 1);
     ar_glutWireCube(10.0);
     glColor3f(.9, .9, .9);
     ar_glutWireCube(10.2);
