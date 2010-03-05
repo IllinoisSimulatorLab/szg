@@ -599,10 +599,10 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
                          const string& path) {
 
   FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb", "arTexture write ppm");
-  if (fp == NULL) {
+  if (!fp) {
     return false;
   }
-  fprintf(fp, "P6\n%i %i\n255\n", _width, _height);
+  fprintf(fp, "P6 %d %d 255\n", _width, _height); // see http://netpbm.sourceforge.net/doc/ppm.html
   char* buffer = _packPixels(); // Possibly convert RGBA array to RGB.
   if (!buffer) {
     ar_log_error() << "arTexture writePPM _packPixels failed.\n";
@@ -970,7 +970,7 @@ void arTexture::_assignAlpha(int alpha) {
   _textureFunc = GL_MODULATE; // for texture blending
 }
 
-// Return an RGB array of pixels suitable for writing to a file.
+// Return an array of RGB pixels suitable for writing to a file.
 // Maybe work around the pixels' internal RGBA packing.
 // Also account for the pixels' internal storage
 // in OpenGL format (as returned form glReadPixels or as in texture
@@ -979,19 +979,27 @@ void arTexture::_assignAlpha(int alpha) {
 // is stored in a file, where the 1st line in the file is the top line of
 // the image. So reverse that as well.
 char* arTexture::_packPixels() const {
+  // ar_log_debug() << "_packPixels " << _width << "x" << _height << "\n";
   char* buffer = new char[_width*_height*3];
   if (!buffer) {
     ar_log_error() << "arTexture _packPixels out of memory.\n";
     return NULL;
   }
   const int depth = getDepth();
+  // ar_log_debug() << "_packPixels src depth = " << depth << "\n";
   for (int i = 0; i < _height; ++i) {
-    for (int j=0; j < _width; ++j) {
-      // Reverse the scanlines' order.
-      // todo: use memcpy instead of the j-loops.
-      buffer[3*((_height-i-1)*_width + j)] = _pixels[depth*(i*_width + j)];
-      buffer[3*((_height-i-1)*_width + j)+1] = _pixels[depth*(i*_width + j)+1];
-      buffer[3*((_height-i-1)*_width + j)+2] = _pixels[depth*(i*_width + j)+2];
+    for (int j = 0; j < _width; ++j) {
+      // Reverse the scanlines.
+      const int iDst = 3     * ((_height-1-i)*_width + j);
+      const int iSrc = depth * (i            *_width + j);
+
+//    if (iDst<0 || iDst+2 >= _width*_height*3 || iSrc<0 || iSrc+2 >= _width*_height*depth)
+//	ar_log_error() << "arTexture::_packPixels internal error.\n";
+
+      // One pixel.  One byte each of R, then G, then B.
+      buffer[iDst  ] = _pixels[iSrc  ];
+      buffer[iDst+1] = _pixels[iSrc+1];
+      buffer[iDst+2] = _pixels[iSrc+2];
     }
   }
   return buffer;

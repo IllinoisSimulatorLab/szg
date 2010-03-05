@@ -300,7 +300,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   arInputEventQueue _inputEventQueue;
 
-  // Time variables
+  // Time
   ar_timeval _startTime;
   double     _time;
   double     _lastFrameTime; // msec
@@ -317,16 +317,12 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int   _randSynchError;
   int   _firstTransfer;
 
-  // Variable related to the "delay" message. Artificial slowdown.
-  // the framerate.
+  // Related to the "delay" message. Artificial slowdown.
   bool  _framerateThrottle;
 
   // Responding to screenshot message.
   bool _screenshotFlag;
-  int  _screenshotStartX;
-  int  _screenshotStartY;
-  int  _screenshotWidth;
-  int  _screenshotHeight;
+  bool _screenshotJPG; // pnm or jpg
   int  _whichScreenshot;
 
   // Respond to pause message.
@@ -340,29 +336,29 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // another color. (in response to the color message)
   arVector3 _noDrawFillColor;
 
-  // It turns out that reloading parameters must occur in the main event
-  // thread. This is because we allow the window manager to be single
-  // threaded... and, in this case, all window manager calls should occur
-  // in one thread only. (in response to the reload message)
+  // Reloading parameters must occur in the main event
+  // thread, because we let the window manager be single
+  // threaded, and because, in this case, all window manager calls
+  // must occur in only one thread (in response to the reload message).
   bool _requestReload;
 
-  // Small utility functions.
+  // Utilities.
   void _setMaster( bool );
   void _stop( void );
   bool _sync( void );
 
-  // Graphics utility functions.
+  // Graphics utilities.
   bool _createWindowing( bool useWindowing );
-  void _handleScreenshot( bool stereo );
+  void _handleScreenshot( bool stereo, int w, int h );
 
-  // Data transfer functions.
+  // Data transfer.
   bool _sendData( void );
   bool _getData( void );
   void _pollInputData( void );
   void _packInputData( void );
   void _unpackInputData( void );
 
-  // Functions pertaining to initing/starting services.
+  // Initing/starting services.
   bool _determineMaster( void );
   bool _initStandaloneObjects( void );
   bool _startStandaloneObjects( void );
@@ -378,15 +374,14 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // stop() when a callback has an error.
   void _stop(const char*, const arCallbackException&);
 
-  // Systems level functions.
+  // Systems level.
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
 
-  // User-message functions
   void _processUserMessages();
 
-  // Draw-related utility functions.
+  // Draw utility.
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 
  private:
