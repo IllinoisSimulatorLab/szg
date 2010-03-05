@@ -1132,6 +1132,7 @@ void printUsage() {
 }
 
 int main(int argc, char** argv) {
+  int i;
 #ifndef AR_USE_WIN_32
   // If $DISPLAY is not 0:0, szgd creates a window on an unexpected screen.
   // Should we test for this?
@@ -1151,8 +1152,12 @@ int main(int argc, char** argv) {
   }
 
   bool fRetry(false);
+  cout << argc << " arguments:\n";
+  for (i=0; i<argc; ++i) {
+    cout << argv[i] << endl;
+  }
   if (argc > 2) {
-    for (int i=2; i<argc; ++i) {
+    for (i=2; i<argc; ++i) {
       if (!strcmp(argv[i], "-r")) {
         fRetry = true;
       }
@@ -1160,16 +1165,20 @@ int main(int argc, char** argv) {
   }
   ar_log().setTimestamp(true);
   ar_log().setHeader("szgd"); // No need to append getProcessID: only 1 szgd per host.
-  ar_log_critical() << ar_versionInfo() << ar_versionString();
+  ar_log_critical() << ar_versionInfo() << ar_versionString() << ar_endl;
+  if (fRetry) {
+    cout << "Reconnect enabled.\n";
+  } else {
+    cout << "Reconnect not enabled.\n";
+  }
+  
   const int argcOriginal = argc;
   // No argvOriginal, because argv isn't modified.
-
 LRetry:
   argc = argcOriginal;
   SZGClient = new arSZGClient;
   // Force the component's name, because win98 can't provide it.
   const bool fInit = SZGClient->init(argc, argv, "szgd");
-  ar_log_debug() << "szgd " << ar_versionInfo() << "szgd " << ar_versionString();
   if (!SZGClient->connected()) {
     if (fRetry) {
 LGonnaRetry:
