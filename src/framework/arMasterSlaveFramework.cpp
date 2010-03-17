@@ -279,10 +279,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // User messages.
   _framerateThrottle( false ),
   _screenshotFlag( false ),
-  _screenshotStartX( 0 ),
-  _screenshotStartY( 0 ),
-  _screenshotWidth( 640 ),
-  _screenshotHeight( 480 ),
+  _screenshotJPG( false ),
   _whichScreenshot( 0 ),
   _pauseFlag( false ),
   _pauseVar( "arMasterSlaveFramework-pause" ),
@@ -1418,17 +1415,16 @@ void arMasterSlaveFramework::_setMaster( bool master ) {
 }
 
 bool arMasterSlaveFramework::_sync( void ) {
-  if ( _master ) {
-    // localSync() has a cpu-throttle in case no one is connected.
-    // So don't call it if nobody's connected: this would throttle
-    // the common case of only one application instance.
+  if ( !_master )
+    return !_stateClientConnected || _barrierClient->sync();
 
-    if ( _stateServer->getNumberConnectedActive() > 0 )
-      _barrierServer->localSync();
-    return true;
-  }
+  // localSync() has a cpu-throttle in case no one is connected.
+  // So don't call it if nobody's connected: this would throttle
+  // the common case of only one application instance.
+  if ( _stateServer->getNumberConnectedActive() > 0 )
+    _barrierServer->localSync();
 
-  return !_stateClientConnected || _barrierClient->sync();
+  return true;
 }
 
 //************************************************************************
@@ -1437,25 +1433,27 @@ bool arMasterSlaveFramework::_sync( void ) {
 
 // Take a screenshot if it's been requested.
 // copypaste with arGraphicsClient::takeScreenshot
-void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
+void arMasterSlaveFramework::_handleScreenshot( bool stereo, const int w, const int h ) {
   if (!_screenshotFlag)
     return;
-
   _screenshotFlag = false;
-  const string screenshotName =
-    "screenshot" + ar_intToString(_whichScreenshot++) + ".jpg";
-  char* buf = new char[ _screenshotWidth * _screenshotHeight * 3];
+
+  char filename[80];
+  sprintf(filename, "szg_screenshot%03d.%s", _whichScreenshot++, (_screenshotJPG ? "jpg" : "ppm"));
+  ar_log_debug() << "writing screenshot " << w << "x" << h << " to " << filename << ".\n";
+
+  char* buf = new char[ w * h * 3 ];
   glReadBuffer( stereo ? GL_FRONT_LEFT : GL_FRONT );
-  glReadPixels( _screenshotStartX, _screenshotStartY,
-                _screenshotWidth, _screenshotHeight,
-                GL_RGB, GL_UNSIGNED_BYTE, buf );
+  // Origin is at bottom left.
+  glPixelStorei(GL_PACK_ALIGNMENT, 1); // Don't pad the end of a pixel row to the next 2-, 4-, or 8-byte boundary.
+  glReadPixels( 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buf );
 
   // todo: constructor next two lines
   arTexture texture;
-  texture.setPixels( buf, _screenshotWidth, _screenshotHeight );
+  texture.setPixels( buf, w, h );
   delete [] buf;
-  if ( !texture.writeJPEG( screenshotName.c_str(), _dataPath ) ) {
-    ar_log_error() << "failed to write screenshot.\n";
+  if ( !(_screenshotJPG ? texture.writeJPEG(filename, _dataPath) : texture.writePPM(filename, _dataPath))) {
+    ar_log_error() << "failed to write screenshot " << filename << ".\n";
   }
 }
 
@@ -2289,23 +2287,20 @@ void arMasterSlaveFramework::_messageTask( void ) {
       if ( _dataPath == "NULL" ) {
         ar_log_error() << "screenshot failed: no SZG_DATA/path.\n";
         _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
-            " screenshot failed: undefined SZG_DATA/path." );
+            " screenshot failed: no SZG_DATA/path." );
       } else {
         _screenshotFlag = true;
-        if ( messageBody != "NULL" ) {
-          int tmp[ 4 ];
-          ar_parseIntString( messageBody, tmp, 4 );
-          // todo: error checking
-          _screenshotStartX = tmp[ 0 ];
-                _screenshotStartY = tmp[ 1 ];
-                _screenshotWidth  = tmp[ 2 ];
-                _screenshotHeight = tmp[ 3 ];
-        }
+	if ( messageBody != "NULL" ) {
+	  // pass a nonzero int to indicate jpg instead of pnm.
+	  int tmp;
+	  ar_parseIntString( messageBody, &tmp, 1 );
+	  _screenshotJPG = tmp;
+	}
         _SZGClient.messageResponse( messageID, getLabel()+" took screenshot." );
       }
     }
     else if (( messageType == "demo" )||(messageType == "fixedhead")) {
-      bool useFixedHead((messageBody=="on")||(messageBody=="true"));
+      const bool useFixedHead = messageBody=="on" || messageBody=="true";
       setFixedHeadMode(useFixedHead);
       if (useFixedHead) {
         _SZGClient.messageResponse( messageID, getLabel()+" enabled fixed-head mode." );
@@ -2563,6 +2558,8 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
 
   // Take a screenshot if we should.  If there are multiple GUI windows,
   // only the "first" one is captured.
-  if ( _wm->isFirstWindow( currentWinID ) )
-    _handleScreenshot( _wm->isStereo( currentWinID ) );
+  if ( _wm->isFirstWindow( currentWinID ) ) {
+    arVector3 v(_wm->getWindowSize(currentWinID));
+    _handleScreenshot( _wm->isStereo( currentWinID ), int(v[0]), int(v[1])); // window's current width and height.
+  }
 }
