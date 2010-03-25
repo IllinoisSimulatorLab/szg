@@ -165,6 +165,9 @@ void arInputSimulator::registerInputNode(arInputNode* node) {
 
 // Possibly an overlay on a standalone app's window.
 void arInputSimulator::draw() {
+  float widthSave = 1.0;
+  glGetFloatv(GL_LINE_WIDTH, &widthSave);
+
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-0.1, 0.1, -0.1, 0.1, 0.3, 1000);
@@ -185,6 +188,8 @@ void arInputSimulator::draw() {
   _drawWand();
   _drawGamepad();
   _drawHint();
+
+  glLineWidth(widthSave);
 }
 
 // Overlay the display.  Not const because pre,postComposition can't be.

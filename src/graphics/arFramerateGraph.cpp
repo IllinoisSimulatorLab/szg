@@ -76,6 +76,9 @@ void arPerformanceElement::draw() {
   float x;
   const float dx = 2. / (_numberEntries-1);
 
+  float widthSave = 1.0;
+  glGetFloatv(GL_LINE_WIDTH, &widthSave);
+
   // Black border around squiggle, for contrast.
   glLineWidth(9.);
   glColor3f(0,0,0);
@@ -100,7 +103,7 @@ void arPerformanceElement::draw() {
   glRasterPos2f(-.8, .3 - _i * .17);
   for (const char* c = buf; *c; ++c)
     ar_glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
-  glLineWidth(1.);
+  glLineWidth(widthSave);
 }
 
 arFramerateGraph::arFramerateGraph() {
