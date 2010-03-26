@@ -106,6 +106,23 @@ def ar_doPythonPrompt():
   __szg_python_prompt_lock.acquire()
 
 
+def delPhleetArgs( argv ):
+  while '-szg' in argv:
+    ind = argv.index('-szg')
+    del argv[ind]
+    try:
+      del argv[ind]
+    except IndexError:
+      print 'WARNING: -szg not followed by <var>=<value> in argv'
+
+
+cpparSZGClient = arSZGClient
+class arSZGClient(cpparSZGClient):
+  def init( argv, forcedName='NULL' ):
+    stat = cpparSZGClient.init( self, argv, forcedName )
+    delPhleetArgs( argv )
+    return stat
+
 
 class arPyMasterSlaveFramework(arMasterSlaveFramework):
   unitsPerFoot = 1.   # default to feet
@@ -118,6 +135,10 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     self.setUnitConversion( self.unitsPerFoot )
     # Near & far clipping planes.
     self.setClipPlanes( self.nearClipDistance, self.farClipDistance )
+  def init( self, argv ):
+    stat = arMasterSlaveFramework.init( self, argv )
+    delPhleetArgs( argv )
+    return stat
   def onStart( self, client ):
     if self.__usePrompt:
       if self.getMaster():
