@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 
+// Yes, a pure-GLUT app.
 #include "arGlut.h"
 #include "arGraphicsHeader.h"
 #include "arInputEvent.h"
