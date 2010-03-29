@@ -2269,6 +2269,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
     else if ( messageType == "display_name" ) {
       _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );
     }
+    else if ( messageType == "context" ) {
+      const string context = _SZGClient.createContext();
+      const string userName = _SZGClient.getUserName();
+      _SZGClient.messageResponse( messageID, context+";user="+userName );
+    }
     else if ( messageType == "user" ) {
       _appendUserMessage( messageID, messageBody );
     }
