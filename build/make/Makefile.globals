@@ -6,7 +6,7 @@
 
 ifeq ($(strip $(SZGBIN)),)
   ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-    SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
+    SZG_BINDIR=$(SZGHOME)/bin/$(PLATFORM)
   else
     SZG_BINDIR=$(SZGHOME)/bin
   endif
