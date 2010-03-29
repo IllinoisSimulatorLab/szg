@@ -1,4 +1,3 @@
-MACHINE_DIR = darwin
 CP = cp
 
 # suffixes

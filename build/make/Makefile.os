@@ -55,13 +55,6 @@ ifeq "$(OSTYPE)" "linux-gnu"
   PLATFORM=linux
 endif
 
-# Upgrade to 64-bit.
-ifeq "$(PLATFORM)" "linux"
-  ifeq ($(shell uname -m), x86_64)
-    PLATFORM=linux64
-  endif
-endif
-
 # Fallback: OS environment variable
 
 ifeq "$(OS)" "Windows_NT"
@@ -80,11 +73,11 @@ ifeq "$(PLATFORM)" "win32"
 		JOBS = 1
 	endif
 else
-ifeq "$(PLATFORM)" "linux64"
-  JOBS = 8
-else
 ifeq "$(PLATFORM)" "linux"
   JOBS = 2
+  ifeq ($(shell uname -m), x86_64)
+    JOBS = 8
+  endif
 else
 ifeq "$(PLATFORM)" "mips3"
   JOBS = 4
@@ -101,7 +94,6 @@ endif
 endif
 endif
 endif
-endif
 
 # A stub Makefile sets $MACHINE
 # and then includes the regular Makefile (for the particular 
@@ -112,31 +104,20 @@ endif
 # (via the Makefile.machine files) encodes what kind of build occurs.
 # A future permutation would have to pass the information down the recursive make.
 
-# MACHINE_DIR is used for top-level makefile operations depending on SZG_BINDIR.
-
 ifeq "$(PLATFORM)" "win32"
   MACHINE=WIN32
-  MACHINE_DIR=win32
 endif
 ifeq "$(PLATFORM)" "linux"
   MACHINE=LINUX
-  MACHINE_DIR=linux
-endif
-ifeq "$(PLATFORM)" "linux64"
-  MACHINE=LINUX64
-  MACHINE_DIR=linux64
 endif
 ifeq "$(PLATFORM)" "darwin"
   MACHINE=DARWIN
-  MACHINE_DIR=darwin
 endif
 ifeq "$(PLATFORM)" "mips3"
   MACHINE=SGI
-  MACHINE_DIR=mips3
 endif
 ifeq "$(PLATFORM)" "mips4"
   MACHINE=SGI
-  MACHINE_DIR=mips4
 endif
 
 # Try to keep SZG_BINDIR and INSTALLDIR consistent (in Makefile.globals).

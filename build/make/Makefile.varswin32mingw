@@ -1,11 +1,7 @@
-MACHINE_DIR = win32
-# NOTE: The copy-to-bin-directory now occurs either automatically when
-# an executable (or the library) is recompiled (for each such individually).
-# It can also occur upon a manually given copy request (in which case
-# everything is rebuilt (if necessary as determined by make) then copied.
+# Copy-to-bin-directory occurs either automatically when an exe or lib is rebuilt,
+# or when manually requested (in which case make may first rebuild subtargets).
 CP = cp
 
-# suffixes
 OBJ_SUFFIX = .o
 DLL_SUFFIX = .dll
 LIB_SUFFIX = .a
