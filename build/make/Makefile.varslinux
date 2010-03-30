@@ -1,9 +1,3 @@
-# Linux variables
-
-MACHINE_DIR = linux
-
-# Whenever an exe or dll is built, it's automatically copied.
-# Avoid "cp -u", which suffers from clock drift across smb.
 CP = cp
 
 # Suffixes unique to the platform.
@@ -17,28 +11,37 @@ EXE =
 # General info regarding compiling such as flags for the various build styles.
 # -fPIC because we build DLLs.
 COMPILER = g++
+
+HACK64=FALSE
+ifeq ($(shell uname -m), x86_64)
+  HACK64=TRUE
+endif
+
 COMPILE_FLAGS_NDEBUG = -DAR_USE_LINUX -c -fPIC -Wall -W -Wpointer-arith -O2 $(SZG_OPT_FLAGS)
 COMPILE_FLAGS_DEBUG  = -DAR_USE_LINUX -c -fPIC -Wall -W -Wpointer-arith -DAR_USE_DEBUG -g $(SZG_OPT_FLAGS)
 # Do NOT use ":=" in defining COMPILE_FLAGS,
 # for flexibility in where SZG_OPT_FLAGS is defined.
 ifneq ($(strip $(SZGDEBUG)),TRUE)
-  COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
+COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
 else
-  COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
 endif
-COMPILE_FLAGS += -march=i686
-
+ifeq ($(strip $(HACK64)),TRUE)
+  COMPILE_FLAGS += -m64
+else
+  COMPILE_FLAGS += -march=i686
+endif
 COMPILE_FLAGS_SHARED = $(COMPILE_FLAGS)
 
 ifneq ($(strip $(SZGDEBUG)),TRUE)
-  OPTIMIZE_FLAG = -O3
+OPTIMIZE_FLAG = -O3
 else
-  OPTIMIZE_FLAG = 
+OPTIMIZE_FLAG = 
 endif
 
 # Hide the fact that unix needs no precompiled headers.
 PRECOMPILED_HEADER_LINE := \
-  $(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
+$(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
 
 # General settings regarding linking, such as flags and libraries.
 LINKER = g++
@@ -52,7 +55,13 @@ GENERAL_LIBS = -ldl -lpthread -lm
 # NOTE: glut does not appear below but is instead dealt with in
 # Makefile.libscan (we might not want to install a glut, but instead
 # use one from SZGEXTERNAL)
-GRAPHICS_LIBS = -lGLU -lGL -L/usr/X11R6/lib -lX11 -lXext -lXmu -lXt -lXi -lSM -lICE
+GRAPHICS_LIBS := -lGLU
+ifeq ($(strip $(HACK64)),FALSE)
+  # On 64bit ubuntu 8.x, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
+  GRAPHICS_LIBS += -lGL
+endif
+GRAPHICS_LIBS += -L/usr/X11R6/lib -lX11 -lXext -lXmu -lXt -lXi -lSM -lICE
+
 GAMEPAD_LIBS =
 
 # Flags for library search depend on if the build style is EASY.
@@ -62,15 +71,15 @@ GAMEPAD_LIBS =
 # location for the developer who compiled the libraries), it is no extra
 # burden to make the user set LD_LIBRARY_PATH, N32_LIBRARY_PATH, etc.
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-  LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
+LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
 else
-  LIB_SEARCH_FLAGS=-L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR)
+LIB_SEARCH_FLAGS=-L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR)
 endif
 
 # These link the libs (i.e. libarLanguage$(DLL_SUFFIX), etc.)
 PRE_LINK_LINE_LIB= 
 POST_LINK_LINE_LIB=$(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
-  $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 
 # FOr exes that only depend on intermediate stages of the build.
 # (for instance szgserver, szgrender). Since these are built out
@@ -79,12 +88,12 @@ POST_LINK_LINE_LIB=$(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
 # cumulative libs that it depends upon.
 PRE_LINK_LINE_EXE= 
 POST_LINK_LINE_EXE= $(LIB_SEARCH_FLAGS) -l$(SZG_CURRENT_LIB_MOD_NAME) \
-  $(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 
 # For "user"-built exes that use all Syzygy's shared libraries.
 PRE_LINK_LINE_USR= 
 POST_LINK_LINE_USR= $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
-  $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 
 # Libs are referenced differently in windows and unix.
 LANGUAGE_LIB_STRING = -larLanguage$(SZG_STATIC_MOD)

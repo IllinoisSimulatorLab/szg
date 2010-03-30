@@ -1,11 +1,4 @@
-MACHINE_DIR = win32
-# Copy-to-bin-directory occurs either automatically when
-# an exe or lib is individually recompiled,
-# or when explicitly requested (in which case make first rebuilds
-# subtargets as needed).
 CP = cp
-
-# Suffixes.
 
 OBJ_SUFFIX = .obj
 DLL_SUFFIX = .dll

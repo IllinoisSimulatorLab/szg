@@ -1,2 +1,0 @@
-
-This file keeps the darwin directory from disappearing in CVS!

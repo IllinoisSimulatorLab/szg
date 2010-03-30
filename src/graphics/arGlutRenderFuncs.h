@@ -10,58 +10,40 @@
 #include "arFreeGlutInternal.h"
 #include "arGraphicsCalling.h"
 
-SZG_CALL void ar_glutWireCube( GLdouble dSize );
-
+SZG_CALL void ar_glutWireCube ( GLdouble dSize );
 SZG_CALL void ar_glutSolidCube( GLdouble dSize );
 
+SZG_CALL void ar_glutWireSphere (GLdouble radius, GLint slices, GLint stacks);
 SZG_CALL void ar_glutSolidSphere(GLdouble radius, GLint slices, GLint stacks);
 
-SZG_CALL void ar_glutWireSphere(GLdouble radius, GLint slices, GLint stacks);
-
 SZG_CALL void ar_glutSolidCone( GLdouble base, GLdouble height, GLint slices, GLint stacks );
-
-SZG_CALL void ar_glutWireCone( GLdouble base, GLdouble height, GLint slices, GLint stacks);
+SZG_CALL void ar_glutWireCone ( GLdouble base, GLdouble height, GLint slices, GLint stacks);
 
 SZG_CALL void ar_glutSolidCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
+SZG_CALL void ar_glutWireCylinder (GLdouble radius, GLdouble height, GLint slices, GLint stacks);
 
-SZG_CALL void ar_glutWireCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks);
-
-SZG_CALL void ar_glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
-
+SZG_CALL void ar_glutWireTorus ( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
 SZG_CALL void ar_glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius, GLint nSides, GLint nRings );
 
-SZG_CALL void ar_glutWireDodecahedron( void );
-
+SZG_CALL void ar_glutWireDodecahedron ( void );
 SZG_CALL void ar_glutSolidDodecahedron( void );
 
-SZG_CALL void ar_glutWireOctahedron( void );
-
+SZG_CALL void ar_glutWireOctahedron ( void );
 SZG_CALL void ar_glutSolidOctahedron( void );
 
-SZG_CALL void ar_glutWireTetrahedron( void );
-
+SZG_CALL void ar_glutWireTetrahedron ( void );
 SZG_CALL void ar_glutSolidTetrahedron( void );
 
-SZG_CALL void ar_glutWireIcosahedron( void );
-
+SZG_CALL void ar_glutWireIcosahedron ( void );
 SZG_CALL void ar_glutSolidIcosahedron( void );
 
-SZG_CALL void ar_glutWireRhombicDodecahedron( void );
-
+SZG_CALL void ar_glutWireRhombicDodecahedron ( void );
 SZG_CALL void ar_glutSolidRhombicDodecahedron( void );
 
-SZG_CALL void ar_glutWireSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
-
+SZG_CALL void ar_glutWireSierpinskiSponge  ( int num_levels, GLdouble offset[3], GLdouble scale );
 SZG_CALL void ar_glutSolidSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
 
-/*
- * Renders a beautiful wired teapot...
- */
-SZG_CALL void ar_glutWireTeapot( GLdouble size );
-
-/*
- * Renders a beautiful filled teapot...
- */
+SZG_CALL void ar_glutWireTeapot ( GLdouble size );
 SZG_CALL void ar_glutSolidTeapot( GLdouble size );
 
 /*

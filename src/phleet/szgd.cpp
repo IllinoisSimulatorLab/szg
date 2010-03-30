@@ -1151,26 +1151,20 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  bool fRetry(false);
-  cout << argc << " arguments:\n";
-  for (i=0; i<argc; ++i) {
-    cout << argv[i] << endl;
-  }
-  if (argc > 2) {
-    for (i=2; i<argc; ++i) {
-      if (!strcmp(argv[i], "-r")) {
-        fRetry = true;
-      }
-    }
-  }
   ar_log().setTimestamp(true);
   ar_log().setHeader("szgd"); // No need to append getProcessID: only 1 szgd per host.
-  ar_log_critical() << ar_versionInfo() << ar_versionString() << ar_endl;
-  if (fRetry) {
-    cout << "Reconnect enabled.\n";
-  } else {
-    cout << "Reconnect not enabled.\n";
+
+  bool fRetry = false;
+  cout << argv[0] << " got " << argc-1 << " arguments:\n";
+  for (i=1; i<argc; ++i) {
+    cout << "  " << argv[i] << "\n";
   }
+  for (i=2; i<argc; ++i) {
+    fRetry |= !strcmp(argv[i], "-r");
+  }
+
+  ar_log_critical() << ar_versionInfo() << ar_versionString();
+  ar_log_critical() << (fRetry ? "Reconnect enabled.\n" : "Reconnect disabled.\n");
   
   const int argcOriginal = argc;
   // No argvOriginal, because argv isn't modified.
@@ -1223,7 +1217,7 @@ LGonnaRetry:
       if (fRetry) {
         goto LGonnaRetry;
       }
-      cout << "exiting...\n";
+      cout << "szgd exiting.\n";
       exit(0);
     }
 

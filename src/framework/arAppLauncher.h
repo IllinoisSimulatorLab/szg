@@ -74,6 +74,8 @@ class SZG_CALL arAppLauncher {
 
   bool isMaster() const;
   int getNumberDisplays() const { return _pipes.size(); }
+  int getCurrentDisplayNumber();
+  int getMasterDisplayNumber();
   string getMasterName() const;
   string getTriggerName() const;
   string getDisplayName(const int) const;
