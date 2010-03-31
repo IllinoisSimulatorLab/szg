@@ -284,7 +284,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _pauseFlag( false ),
   _pauseVar( "arMasterSlaveFramework-pause" ),
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
-  _requestReload( false ) {
+  _requestReloadMsg( -1 ) {
 
   // Where input events are buffered for transfer to slaves.
   _callbackFilter.saveEventQueue( true );
@@ -686,11 +686,12 @@ void arMasterSlaveFramework::preDraw( void ) {
   // since the arGUIWindowManager might be single threaded,
   // in which case all calls to it must be in that single thread.
 
-  if (_requestReload) {
+  if (_requestReloadMsg >= 0) {
     (void) _loadParameters();
     // Assume reasonably that the windows will be recreated.
     (void) createWindows(_useWindowing);
-    _requestReload = false;
+    _SZGClient.messageResponse( _requestReloadMsg, getLabel()+" reloaded rendering parameters." );
+    _requestReloadMsg = -1;
   }
 
   const ar_timeval preDrawStart = ar_time();
@@ -2260,12 +2261,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         getLabel() + (_showPerformance ? " show" : " hid") + "ing performance graph" );
     }
     else if ( messageType == "reload" ) {
-      // Hack: set _requestReload here, to make the
-      // event loop reload over there and then reset _requestReload.
-      // Side effect: only the last of several reload messages, when
-      // sent in quick succession, will work.
-      _requestReload = true;
-      _SZGClient.messageResponse( messageID, getLabel()+" reloading rendering parameters." );
+      _requestReloadMsg = messageID;
     }
     else if ( messageType == "display_name" ) {
       _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );

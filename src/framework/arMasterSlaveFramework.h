@@ -340,7 +340,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // thread, because we let the window manager be single
   // threaded, and because, in this case, all window manager calls
   // must occur in only one thread (in response to the reload message).
-  bool _requestReload;
+  int _requestReloadMsg;
 
   // Utilities.
   void _setMaster( bool );
