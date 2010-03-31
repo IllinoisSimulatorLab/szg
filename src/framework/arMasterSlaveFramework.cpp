@@ -278,13 +278,13 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   // User messages.
   _framerateThrottle( false ),
-  _screenshotFlag( false ),
+  _screenshotMsg( -1 ),
   _screenshotJPG( false ),
   _whichScreenshot( 0 ),
   _pauseFlag( false ),
   _pauseVar( "arMasterSlaveFramework-pause" ),
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
-  _requestReload( false ) {
+  _requestReloadMsg( -1 ) {
 
   // Where input events are buffered for transfer to slaves.
   _callbackFilter.saveEventQueue( true );
@@ -686,11 +686,12 @@ void arMasterSlaveFramework::preDraw( void ) {
   // since the arGUIWindowManager might be single threaded,
   // in which case all calls to it must be in that single thread.
 
-  if (_requestReload) {
+  if (_requestReloadMsg >= 0) {
     (void) _loadParameters();
     // Assume reasonably that the windows will be recreated.
     (void) createWindows(_useWindowing);
-    _requestReload = false;
+    _SZGClient.messageResponse( _requestReloadMsg, getLabel()+" reloaded rendering parameters." );
+    _requestReloadMsg = -1;
   }
 
   const ar_timeval preDrawStart = ar_time();
@@ -1434,12 +1435,11 @@ bool arMasterSlaveFramework::_sync( void ) {
 // Take a screenshot if it's been requested.
 // copypaste with arGraphicsClient::takeScreenshot
 void arMasterSlaveFramework::_handleScreenshot( bool stereo, const int w, const int h ) {
-  if (!_screenshotFlag)
+  if (_screenshotMsg < 0)
     return;
-  _screenshotFlag = false;
 
   char filename[80];
-  sprintf(filename, "szg_screenshot%03d.%s", _whichScreenshot++, (_screenshotJPG ? "jpg" : "ppm"));
+  sprintf(filename, "/tmp/szg_screenshot%03d.%s", _whichScreenshot++, (_screenshotJPG ? "jpg" : "ppm")); //;;;;; camille only
   ar_log_debug() << "writing screenshot " << w << "x" << h << " to " << filename << ".\n";
 
   char* buf = new char[ w * h * 3 ];
@@ -1455,6 +1455,8 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo, const int w, const 
   if ( !(_screenshotJPG ? texture.writeJPEG(filename, _dataPath) : texture.writePPM(filename, _dataPath))) {
     ar_log_error() << "failed to write screenshot " << filename << ".\n";
   }
+  _SZGClient.messageResponse( _screenshotMsg, getLabel()+" took screenshot." );
+  _screenshotMsg = -1;
 }
 
 //************************************************************************
@@ -2259,12 +2261,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         getLabel() + (_showPerformance ? " show" : " hid") + "ing performance graph" );
     }
     else if ( messageType == "reload" ) {
-      // Hack: set _requestReload here, to make the
-      // event loop reload over there and then reset _requestReload.
-      // Side effect: only the last of several reload messages, when
-      // sent in quick succession, will work.
-      _requestReload = true;
-      _SZGClient.messageResponse( messageID, getLabel()+" reloading rendering parameters." );
+      _requestReloadMsg = messageID;
     }
     else if ( messageType == "display_name" ) {
       _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );
@@ -2294,14 +2291,13 @@ void arMasterSlaveFramework::_messageTask( void ) {
         _SZGClient.messageResponse( messageID, "ERROR: "+getLabel()+
             " screenshot failed: no SZG_DATA/path." );
       } else {
-        _screenshotFlag = true;
+        _screenshotMsg = messageID;
 	if ( messageBody != "NULL" ) {
 	  // pass a nonzero int to indicate jpg instead of pnm.
 	  int tmp;
 	  ar_parseIntString( messageBody, &tmp, 1 );
 	  _screenshotJPG = tmp;
 	}
-        _SZGClient.messageResponse( messageID, getLabel()+" took screenshot." );
       }
     }
     else if (( messageType == "demo" )||(messageType == "fixedhead")) {
@@ -2320,11 +2316,10 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
 
-    //*********************************************************
     // There's quite a bit of copy-pasting between the
     // messages accepted by szgrender and here... how can we
     // reuse messaging functionality?????
-    //*********************************************************
+    // (Moot point -- when scenegraph is deprecated, so is szgrender.)
     else if ( messageType == "delay" ) {
       _framerateThrottle = messageBody == "on";
       if (_framerateThrottle) {
