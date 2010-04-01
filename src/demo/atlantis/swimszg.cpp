@@ -41,8 +41,7 @@
 #include <stdlib.h>  /* For rand(). */
 
 void
-FishTransform(fishRec * fish)
-{
+FishTransform(fishRec * fish) {
     glTranslatef(fish->y, fish->z, -fish->x);
     glRotatef(-fish->psi, 0.0, 1.0, 0.0);
     glRotatef(fish->theta, 1.0, 0.0, 0.0);
@@ -50,21 +49,19 @@ FishTransform(fishRec * fish)
 }
 
 void
-WhalePilot(fishRec * fish)
-{
-
+WhalePilot(fishRec * fish, double timeDiff) {
     fish->phi = -20.0;
     fish->theta = 0.0;
     //    fish->psi -= 0.5;
     fish->psi -= 0.1;
 
-    fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += WHALESPEED * fish->v * sin(fish->theta / RAD);
+    fish->x += WHALESPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += WHALESPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += WHALESPEED * timeDiff * fish->v * sin(fish->theta / RAD);
 }
 
 void
-DolphinPilot(fishRec * fish)
+DolphinPilot(fishRec * fish, double timeDiff)
 {
 
     fish->phi = -20.0;
@@ -72,12 +69,12 @@ DolphinPilot(fishRec * fish)
     //    fish->psi -= 0.5;
     fish->psi -= 0.25;
 
-    fish->x += DOLPHINSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += DOLPHINSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += DOLPHINSPEED * fish->v * sin(fish->theta / RAD);
+    fish->x += DOLPHINSPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += DOLPHINSPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += DOLPHINSPEED * timeDiff * fish->v * sin(fish->theta / RAD);
 }
 
-void SharkPilot(fishRec * fish, const arVector3* attractor )
+void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
 {
     static int sign = 1;
     float X, Y, Z, tpsi, ttheta, thetal;
@@ -174,9 +171,9 @@ void SharkPilot(fishRec * fish, const arVector3* attractor )
         }
     }
 
-    fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
+    fish->x += SHARKSPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += SHARKSPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += SHARKSPEED * timeDiff * fish->v * sin(fish->theta / RAD);
 }
 
 void SharkMiss( fishRec* s1, fishRec* s2 ) {

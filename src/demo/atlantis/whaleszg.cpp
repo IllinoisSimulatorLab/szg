@@ -1669,9 +1669,9 @@ Whale016(void)
 }
 
 void
-UpdateWhale( fishRec * fish )
+UpdateWhale( fishRec * fish, double timeDiff )
 {
-    fish->htail = float(int(fish->htail - 5.0 * fish->v) % 360);
+    fish->htail = float(int(fish->htail - 5.0 * fish->v * timeDiff) % 360);
 }
 
 void
