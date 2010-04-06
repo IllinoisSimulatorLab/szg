@@ -246,16 +246,28 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     pass
   def _onKey( self, keyInfo ):
     try:
-      self.onKey( keyInfo )
+      self.onKey( keyInfo.getKey(), keyInfo.getState(), keyInfo.getCtrl(), keyInfo.getAlt() )
+    except TypeError, msg:
+      traceback.print_exc()
+      print "NOTE: You may be getting this error because you're using the"
+      print 'old signature for the onKey method:'
+      print '  def onKey( self, keyInfo )'
+      print 'The new signature is:'
+      print '  def onKey( self, key, state, ctrl, alt )'
+      print 'key = key value (int)'
+      print 'state = AR_KEY_UP, AR_KEY_DOWN, or AR_KEY_REPEAT'
+      print 'ctrl, alt are bools indicating states of modifier keys.'
+      self._stop( 'Key', arCallbackException(str(msg)) )
+      self.stop( False )
     except Exception, msg:
       traceback.print_exc()
       self._stop( 'Key', arCallbackException(str(msg)) )
       self.stop( False )
-  def onKey( self, keyInfo ):
-    if keyInfo.getState() == AR_KEY_DOWN:
-      self.onKeyDown( keyInfo.getKey(), keyInfo.getCtrl(), keyInfo.getAlt() )
-    elif keyInfo.getState() == AR_KEY_UP:
-      self.onKeyUp( keyInfo.getKey(), keyInfo.getCtrl(), keyInfo.getAlt() )
+  def onKey( self, key, state, ctrl, alt ):
+    if state == AR_KEY_DOWN:
+      self.onKeyDown( key, ctrl, alt )
+    elif state == AR_KEY_UP:
+      self.onKeyUp( key, ctrl, alt )
   def onKeyDown( self, key, ctrl, alt ):
     pass
   def onKeyUp( self, key, ctrl, alt ):

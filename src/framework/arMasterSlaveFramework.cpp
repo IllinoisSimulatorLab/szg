@@ -1170,7 +1170,7 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   ar_log_debug() << "set bundle path to " << bundlePathName << "/" << bundleSubDirectory << ar_endl;
 }
 
-void arMasterSlaveFramework::loadNavMatrix(void ) {
+void arMasterSlaveFramework::loadNavMatrix( void ) {
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   glMultMatrixf( navMatrix.v );
   if (getMaster()) {

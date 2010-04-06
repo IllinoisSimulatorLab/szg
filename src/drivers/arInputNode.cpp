@@ -171,6 +171,27 @@ LAbort:
   }
 }
 
+
+// Allow app to post input events for normal processing.
+// NOTE: events do not get forwarded to input sinks.
+void arInputNode::postEventQueue( arInputEventQueue& queue ) {
+  arGuard _(_dataSerializationLock, "arInputNode::postEventQueue");
+  _eventQueue.clear();
+  _eventQueue = queue;
+
+  if (_bufferInputEvents) {
+    _eventBuffer.appendQueue( _eventQueue );
+    _eventQueue.clear();
+    return;
+  }
+
+  _filterEventQueue( _eventQueue );
+
+  // Update node's arInputState, and empty queue.
+  _updateState( _eventQueue );
+}
+
+
 void arInputNode::processBufferedEvents() {
   arGuard _(_dataSerializationLock, "arInputNode::processBufferedEvents");
   _filterEventQueue( _eventBuffer );
