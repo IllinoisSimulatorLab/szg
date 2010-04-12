@@ -1157,10 +1157,10 @@ Fish_8(void)
 
 
 void
-UpdateShark( fishRec * fish )
+UpdateShark( fishRec * fish, double timeDiff )
 {
-    fish->htail = float(int(fish->htail - 5.0 * fish->v) % 360);
-    fish->vtail += (fish->dtheta - fish->vtail) * 0.1;
+    fish->htail = float(int(fish->htail - 5.0 * fish->v * timeDiff) % 360);
+    fish->vtail += (fish->dtheta - fish->vtail) * timeDiff * 0.1;
 
     if (fish->vtail > 0.5) {
         fish->vtail = 0.5;

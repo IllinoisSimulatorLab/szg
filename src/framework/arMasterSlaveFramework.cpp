@@ -1170,7 +1170,7 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   ar_log_debug() << "set bundle path to " << bundlePathName << "/" << bundleSubDirectory << ar_endl;
 }
 
-void arMasterSlaveFramework::loadNavMatrix(void ) {
+void arMasterSlaveFramework::loadNavMatrix( void ) {
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   glMultMatrixf( navMatrix.v );
   if (getMaster()) {
@@ -2265,6 +2265,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "display_name" ) {
       _SZGClient.messageResponse( messageID, _SZGClient.getMode("graphics")  );
+    }
+    else if ( messageType == "context" ) {
+      const string context = _SZGClient.createContext();
+      const string userName = _SZGClient.getUserName();
+      _SZGClient.messageResponse( messageID, context+";user="+userName );
     }
     else if ( messageType == "user" ) {
       _appendUserMessage( messageID, messageBody );

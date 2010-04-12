@@ -33,6 +33,9 @@ class SZG_CALL arInputNode: public arInputSink {
     void receiveData(int, arStructuredData*);
     bool sourceReconfig(int);
 
+    // Allow apps to post input events.
+    void postEventQueue( arInputEventQueue& queue );
+    
     // iOwnIt iff the input node owns it & should delete it.
     void addInputSource( arInputSource*, bool iOwnIt );
     int addFilter( arIOFilter*, bool iOwnIt );

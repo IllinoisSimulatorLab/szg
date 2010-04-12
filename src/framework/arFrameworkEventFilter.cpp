@@ -31,7 +31,7 @@ void arFrameworkEventFilter::flushEventQueue() {
 
 bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {
   if (_framework) {
-    if (!_framework->onInputEvent( inputEvent, *this )) {
+    if (!_framework->_onInputEvent( inputEvent, *this )) {
       return false;
     }
   }
