@@ -424,6 +424,53 @@ bool arAppLauncher::isMaster() const {
     _szgClient->getComputerName() + "/" + _szgClient->getMode("graphics");
 }
 
+
+/// Returns the display ID for the screen upon which this component runs.
+/// Returns -1 if such does not exist.
+///  NOTE: Assumes displays are of the form SZG_DISPLAY#, where
+///  #s are consecutive starting from 0.
+int arAppLauncher::getCurrentDisplayNumber(){
+  if (!_szgClient){
+    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    return -1;
+  }
+  vector< arPipe >::const_iterator iter;
+  int i(0);
+  for (iter = _pipes.begin(); iter != _pipes.end(); ++iter) {
+    if (iter->hostname == _szgClient->getComputerName()
+        && iter->displayname == _szgClient->getMode("graphics")) {
+      // This is the current display number
+      return i;
+    }
+    ++i;
+  }
+  // failed to find a match
+  return -1;
+}
+
+
+/// Sometimes, we might want to do something for each display, BUT NOT ON
+/// THE MASTER (which can be any display). Consequently, we'll need to know
+/// the master's display ID. Returns -1 on failure.
+int arAppLauncher::getMasterDisplayNumber(){
+  if (!_szgClient){
+    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    return -1;
+  }
+  string masterName = getMasterName();
+  int numberDisplays = getNumberDisplays();
+  for (int i=0; i<numberDisplays; ++i){
+    if (getDisplayName(i) == masterName) {
+      // We've found the master
+      return i;
+    }
+  }
+  // failed to find a match
+  return -1;
+}
+
+
+
 // Return the pipe (i.e., computer+display) running the app's master instance.
 string arAppLauncher::getMasterName() const {
   if (!_szgClientOK() || !_vircompDefined)

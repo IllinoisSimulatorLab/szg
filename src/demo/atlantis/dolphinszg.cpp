@@ -1805,10 +1805,10 @@ Dolphin016(void)
 
 
 void
-UpdateDolphin( fishRec * fish )
+UpdateDolphin( fishRec * fish, double timeDiff )
 {
   //    fish->htail = (int) (fish->htail - (int) (10.0 * fish->v)) % 360;
-    fish->htail = float(int(fish->htail - 5.0 * fish->v) % 360);
+    fish->htail = float(int(fish->htail - 5.0 * fish->v * timeDiff) % 360);
 }
 
 

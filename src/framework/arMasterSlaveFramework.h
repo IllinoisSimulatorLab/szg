@@ -320,8 +320,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Related to the "delay" message. Artificial slowdown.
   bool  _framerateThrottle;
 
-  // Responding to screenshot message.
-  bool _screenshotFlag;
+  // Respond to screenshot message.
+  int _screenshotMsg;  // -1 iff no message to respond to, that requested a screenshot.
   bool _screenshotJPG; // pnm or jpg
   int  _whichScreenshot;
 
@@ -340,7 +340,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // thread, because we let the window manager be single
   // threaded, and because, in this case, all window manager calls
   // must occur in only one thread (in response to the reload message).
-  bool _requestReload;
+  int _requestReloadMsg;
 
   // Utilities.
   void _setMaster( bool );

@@ -64,13 +64,13 @@ typedef struct _fishRec {
 } fishRec;
 
 extern void FishTransform(fishRec *);
-extern void WhalePilot(fishRec *);
-extern void DolphinPilot(fishRec *);
-extern void SharkPilot( fishRec* fish, const arVector3* attractor=NULL );
+extern void WhalePilot(fishRec *, double timeDiff);
+extern void DolphinPilot(fishRec *, double timeDiff);
+extern void SharkPilot( fishRec* fish, double timeDiff, const arVector3* attractor=NULL );
 extern void SharkMiss( fishRec* s1, fishRec* s2 );
 extern void DrawWhale(fishRec *);
 extern void DrawShark(fishRec *);
 extern void DrawDolphin(fishRec *);
-extern void UpdateWhale(fishRec *);
-extern void UpdateShark(fishRec *);
-extern void UpdateDolphin(fishRec *);
+extern void UpdateWhale(fishRec *, double timeDiff);
+extern void UpdateShark(fishRec *, double timeDiff);
+extern void UpdateDolphin(fishRec *, double timeDiff);

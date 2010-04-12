@@ -27,6 +27,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _callbackFilter(this),
   _defaultUserFilter(this),
   _userEventFilter(NULL),
+  _inOnInputEvent(false),
   _dataBundlePathSet(false),
   _speechNodeID(-1),
   _useNavInputMatrix(false),
@@ -90,6 +91,7 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
     ar_log_remark() << "default input simulator.\n";
   }
   _simPtr = sim;
+  ar_log_remark() << "installed new input simulator.\n";
   return true;
 }
 
@@ -354,6 +356,20 @@ void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& q ) {
   if (_eventQueueCallback) {
     _eventQueueCallback( *this, q );
   }
+}
+
+void arSZGAppFramework::postInputEventQueue( arInputEventQueue& q ) {
+  if (_inOnInputEvent) {
+    ar_log_error() << "FATAL: postInputEventQueue() called in event-handling code\n";
+    stop(false);
+  }
+  _inputNode->postEventQueue( q );
+}
+
+void arSZGAppFramework::postInputEvent( arInputEvent& event ) {
+  arInputEventQueue q;
+  q.appendEvent( event );
+  postInputEventQueue( q );
 }
 
 void arSZGAppFramework::_installFilters() {

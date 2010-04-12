@@ -755,7 +755,7 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
   }
 
   unsigned char* pb = (unsigned char*)_dataBuffer;
-  if (*pb & 0x80 == 0)
+  if ((*pb & 0x80) == 0)
     ar_log_error() << "FoB phasing error at start of frame.\n";
   *pb &= 0x7f; // clear phasing bit
 

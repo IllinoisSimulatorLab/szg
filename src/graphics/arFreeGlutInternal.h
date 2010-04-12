@@ -159,7 +159,7 @@ struct tagSFG_StrokeChar
 typedef struct tagSFG_StrokeFont SFG_StrokeFont;
 struct tagSFG_StrokeFont
 {
-    char*           Name;                       /* The source font name      */
+    const char*           Name;                       /* The source font name      */
     int             Quantity;                   /* Number of chars in font   */
     GLfloat         Height;                     /* Height of the characters  */
     const SFG_StrokeChar** Characters;          /* The characters mapping    */

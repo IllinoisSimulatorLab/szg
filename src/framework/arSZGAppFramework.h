@@ -162,7 +162,10 @@ class SZG_CALL arSZGAppFramework {
     arAppLauncher* getAppLauncher() { return &_launcher; }
     // For nonstandard use of the input node.
     arInputNode* getInputNode() { return _inputNode; }
-    arInputNode* getInputDevice() { return getInputNode(); } // Deprecated version of getInputNode()
+    arInputNode* getInputDevice() { 
+      ar_log_warning() << "getInputDevice() deprecated, please use getInputNode().\n";
+      return getInputNode();  // Deprecated version of getInputNode()
+    }
     // Allowing the user access to the window manager increases the flexibility
     // of the framework. Lots of info about the GUI becomes available.
     arGUIWindowManager* getWindowManager( void ) const { return _wm; }
@@ -174,6 +177,17 @@ class SZG_CALL arSZGAppFramework {
     // locate sounds for both types of apps in cluster mode).
     virtual void addDataBundlePathMap(const string& /*bundlePathName*/,
                             const string& /*bundlePath*/) {}
+
+    bool _onInputEvent( arInputEvent& event, arFrameworkEventFilter& filter ) {
+      _inOnInputEvent = true;
+      bool stat = onInputEvent( event, filter );
+      _inOnInputEvent = false;
+      return stat;
+    }
+
+    void postInputEventQueue( arInputEventQueue& q );
+    void postInputEvent( arInputEvent& event );
+
 
   protected:
     arSZGClient _SZGClient;
@@ -203,6 +217,7 @@ class SZG_CALL arSZGAppFramework {
     arFrameworkEventQueueCallback _eventQueueCallback;
     arFrameworkEventFilter _defaultUserFilter;
     arFrameworkEventFilter* _userEventFilter;
+    bool _inOnInputEvent;
 
     std::deque< arUserMessageInfo > _userMessageQueue;
     arLock _userMessageLock;

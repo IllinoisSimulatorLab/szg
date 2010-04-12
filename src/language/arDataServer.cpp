@@ -11,7 +11,7 @@
 // arDataServer from being declared as a global in win32.  Sigh.
 arDataServer::arDataServer(int dataBufferSize) :
   arDataPoint(dataBufferSize),
-  _interfaceIP(string("INADDR_ANY")), // the default
+  _interfaceIP(string("INADDR_ANY")),
   _portNumber(-1),
   _listeningSocket(NULL),
   _numberConnected(0),
@@ -33,11 +33,10 @@ arDataServer::~arDataServer() {
   if (_numberConnected > 0) {
     ar_log_remark() << "arDataServer destructor closing sockets.\n";
     for (list<arSocket*>::iterator i(_connectionSockets.begin());
-         i != (_connectionSockets.end());
-         i++) {
-      arSocket* theSocket = *i;
-      theSocket->ar_close();
-      delete theSocket;
+         i != _connectionSockets.end();
+         ++i) {
+      (*i)->ar_close();
+      delete *i;
       --_numberConnected;
     }
   }
@@ -55,11 +54,11 @@ void arDataServer::_readDataTask() {
   arSocket* newFD = _nextConsumer;
 
   // Determine the formatting used by this client's remote thread.
-  map<int, arStreamConfig, less<int> >::iterator iter =
+  map<int, arStreamConfig, less<int> >::const_iterator iter =
     _connectionConfigs.find(newFD->getID());
   if (iter == _connectionConfigs.end()) {
     ar_log_error() <<
-      "arDataServer: read thread launched without stream config (socket ID = " <<
+      "arDataServer: read thread launched without stream config, socket ID = " <<
       newFD->getID() << ".\n";
     _threadLaunchSignal.sendSignal();
     return;
@@ -234,7 +233,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive) {
   // But how can we distinguish this case from the general multiple-client case?
   // Caching a single addr as a member variable is too simplistic.
 
-  ar_log_remark() << "arDataServer got connection from " << addr.getRepresentation() << ".\n";
+  ar_log_debug() << "arDataServer got connection from " << addr.getRepresentation() << ".\n";
 
   arGuard _(_lockTransfer, "arDataServer::_acceptConnection");
   _addSocketToDatabase(sockNew);

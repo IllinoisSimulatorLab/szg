@@ -354,7 +354,7 @@ class arSZGAppFramework {
                                     const string& /*bundleSubDir*/ );
     virtual void loadNavMatrix();
     void speak( const string& message );
-    bool setInputSimulator( arInputSimulator* sim );
+    bool setInputSimulator( arInputSimulator* sim /TransferBack/ );
     string getLabel() const;
     bool getStandalone() const;
     const string getDataPath() const;
@@ -459,6 +459,9 @@ class arSZGAppFramework {
     // locate sounds for both types of apps in cluster mode).
     virtual void addDataBundlePathMap(const string& /*bundlePathName*/, 
                             const string& /*bundlePath*/);
+
+    void postInputEvent( arInputEvent& event );
+
  private:
     arSZGAppFramework();
     arSZGAppFramework( const arSZGAppFramework& );

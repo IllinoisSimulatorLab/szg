@@ -373,6 +373,8 @@ static bool sharkAttack = false;
 void preExchange(arMasterSlaveFramework& fw) {
   int i, j;
   static bool firstAttack = true;
+  static ar_timeval lastTime = ar_time();
+
   fw.navUpdate();
   if (fw.getOnButton(0)) {
     drawVerticalBar = !drawVerticalBar;
@@ -395,22 +397,27 @@ void preExchange(arMasterSlaveFramework& fw) {
   // Animate
   arVector3 headPos = ar_extractTranslation( ar_matrixToNavCoords( fw.getMatrix(0) ) );
   headPos.v[1] -= 2*ATLANTISUNITS_PER_FOOT;
+  ar_timeval currentTime = ar_time();
+  double timeDiff = ar_difftimeSafe( currentTime, lastTime )*60./1.e6;
+
   for (i = 0; i < NUM_SHARKS; i++) {
-    SharkPilot( &sharks[i], (sharkAttack)?(&headPos):(NULL) );
+    SharkPilot( &sharks[i], timeDiff, (sharkAttack)?(&headPos):(NULL) );
     for (j = 0; j < NUM_SHARKS; j++) {
       SharkMiss( &sharks[i], &sharks[j] );
     }
-    UpdateShark(&sharks[i]);
+    UpdateShark(&sharks[i], timeDiff);
   }
-  DolphinPilot(&dolph);
+  DolphinPilot(&dolph, timeDiff);
   dolph.phi++;
-  UpdateDolphin(&dolph);
-  WhalePilot(&momWhale);
+  UpdateDolphin(&dolph, timeDiff);
+  WhalePilot(&momWhale, timeDiff);
   momWhale.phi++;
-  UpdateWhale(&momWhale);
-  WhalePilot(&babyWhale);
+  UpdateWhale(&momWhale, timeDiff);
+  WhalePilot(&babyWhale, timeDiff);
   babyWhale.phi++;
-  UpdateWhale(&babyWhale);
+  UpdateWhale(&babyWhale, timeDiff);
+
+  lastTime = currentTime;
 
   if (fw.getOnButton(2)) {
     spearTipIndex = (spearTipIndex > 1)?(0):(spearTipIndex+1);
