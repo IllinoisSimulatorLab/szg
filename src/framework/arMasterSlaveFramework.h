@@ -12,7 +12,8 @@
 #include "arBarrierClient.h"
 #include "arBarrierServer.h"
 #include "arDataUtilities.h"
-#include "arGraphicsAPI.h"
+//#include "arGraphicsAPI.h"
+#include "arGraphicsDatabase.h"
 #include "arGraphicsWindow.h"
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
@@ -79,7 +80,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void preDraw( void );
   // Different than onDraw (and the corresponding draw callbacks).
   // Essentially causes the window manager to draw all the windows.
-  void draw( int windowID = -1 );
+  void draw( const bool drawLeftBuffer, int windowID = -1 );
   virtual void postDraw( void );
   void swap( int windowID = -1 );
 
@@ -382,7 +383,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _processUserMessages();
 
   // Draw utility.
-  void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
+  void _drawWindow( int guiWinID,
+                    arGraphicsWindow* graphicsWindow,
+                    const bool drawLeftBuffer );
 
  private:
   bool _addTransferField( const string&, void*, const arDataType, const int, arTransferFieldData&);

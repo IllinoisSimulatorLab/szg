@@ -11,12 +11,14 @@ OBJS = \
   arFrameworkEventFilter$(OBJ_SUFFIX) \
   arSZGAppFramework$(OBJ_SUFFIX) \
   arMasterSlaveFramework$(OBJ_SUFFIX) \
-  arDistSceneGraphFramework$(OBJ_SUFFIX) \
   arRoutableTemplate$(OBJ_SUFFIX) \
   arMasterSlaveDataRouter$(OBJ_SUFFIX) \
   arAppLauncher$(OBJ_SUFFIX) \
   arController$(OBJ_SUFFIX) \
   arFlyingGravisController$(OBJ_SUFFIX)
+
+SCENEGRAPH_OBJS = \
+  arDistSceneGraphFramework$(OBJ_SUFFIX)
 
 # Explicit definitions, replacing the otherwise generic ones in Makefile.defines
 

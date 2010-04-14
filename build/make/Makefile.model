@@ -46,6 +46,8 @@ endif
 
 ALL = \
   $(SZG_CURRENT_DLL) \
+
+SCENEGRAPH_APPS = \
   szgview$(EXE)
 
 include $(SZGHOME)/build/make/Makefile.rules

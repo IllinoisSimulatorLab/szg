@@ -1,3 +1,9 @@
+//@+leo-ver=4-thin
+//@+node:jimc.20100409112755.285:@thin framework\arSZGAppFramework.cpp
+//@@language c++
+//@@tabwidth -2
+//@+others
+//@+node:jimc.20100409112755.286:arSZGAppFramework::arSZGAppFramework
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
@@ -46,11 +52,15 @@ arSZGAppFramework::arSZGAppFramework() :
   _stopped(false) {
   setEventQueueCallback(NULL);
 }
+//@-node:jimc.20100409112755.286:arSZGAppFramework::arSZGAppFramework
+//@+node:jimc.20100409112755.287:arSZGAppFramework
 
 arSZGAppFramework::~arSZGAppFramework() {
   if (_inputNode != 0)
     delete _inputNode;
 }
+//@-node:jimc.20100409112755.287:arSZGAppFramework
+//@+node:jimc.20100409112755.288:arSZGAppFramework::speak
 
 void arSZGAppFramework::speak( const std::string& message ) {
   if (_speechNodeID == -1) {
@@ -59,6 +69,8 @@ void arSZGAppFramework::speak( const std::string& message ) {
     dsSpeak( _speechNodeID, message );
   }
 }
+//@-node:jimc.20100409112755.288:arSZGAppFramework::speak
+//@+node:jimc.20100409112755.289:arSZGAppFramework::autoDataBundlePath
 
 void arSZGAppFramework::autoDataBundlePath() {
   if (_dataBundlePathSet) {
@@ -78,6 +90,8 @@ void arSZGAppFramework::autoDataBundlePath() {
     setDataBundlePath( "SZG_EXEC", _label );
   }
 }
+//@-node:jimc.20100409112755.289:arSZGAppFramework::autoDataBundlePath
+//@+node:jimc.20100409112755.290:arSZGAppFramework::setInputSimulator
 
 
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
@@ -94,11 +108,15 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   ar_log_remark() << "installed new input simulator.\n";
   return true;
 }
+//@-node:jimc.20100409112755.290:arSZGAppFramework::setInputSimulator
+//@+node:jimc.20100409112755.291:arSZGAppFramework::_appendUserMessage
 
 void arSZGAppFramework::_appendUserMessage( int messageID, const std::string& messageBody ) {
   arGuard _( _userMessageLock, "arSZGAppFramework::_appendUserMessage" );
   _userMessageQueue.push_back( arUserMessageInfo( messageID, messageBody ) );
 }
+//@-node:jimc.20100409112755.291:arSZGAppFramework::_appendUserMessage
+//@+node:jimc.20100409112755.292:arSZGAppFramework::_handleStandaloneInput
 
 void arSZGAppFramework::_handleStandaloneInput() {
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_STANDALONE", "input_config" );
@@ -126,6 +144,8 @@ void arSZGAppFramework::_handleStandaloneInput() {
     _simPtr->registerInputNode( _inputNode );
   }
 }
+//@-node:jimc.20100409112755.292:arSZGAppFramework::_handleStandaloneInput
+//@+node:jimc.20100409112755.293:arSZGAppFramework::_loadInputDrivers
 
 bool arSZGAppFramework::_loadInputDrivers() {
 #if defined( AR_USE_WIN_32 ) && !defined( AR_USE_MINGW )
@@ -166,6 +186,8 @@ bool arSZGAppFramework::_loadInputDrivers() {
   return true;
 #endif
 }
+//@-node:jimc.20100409112755.293:arSZGAppFramework::_loadInputDrivers
+//@+node:jimc.20100409112755.294:arSZGAppFramework::setEyeSpacing
 
 void arSZGAppFramework::setEyeSpacing( float feet) {
   if (!_initCalled) {
@@ -174,10 +196,14 @@ void arSZGAppFramework::setEyeSpacing( float feet) {
   _head.setEyeSpacing( feet );
   ar_log_remark() << "eyeSpacing " << feet << " feet.\n";
 }
+//@-node:jimc.20100409112755.294:arSZGAppFramework::setEyeSpacing
+//@+node:jimc.20100409112755.295:arSZGAppFramework::setClipPlanes
 
 void arSZGAppFramework::setClipPlanes( float nearClip, float farClip ) {
   _head.setClipPlanes( nearClip, farClip );
 }
+//@-node:jimc.20100409112755.295:arSZGAppFramework::setClipPlanes
+//@+node:jimc.20100409112755.296:arSZGAppFramework::setUnitConversion
 
 void arSZGAppFramework::setUnitConversion( float unitConv ) {
   if (_initCalled) {
@@ -185,10 +211,14 @@ void arSZGAppFramework::setUnitConversion( float unitConv ) {
   }
   _head.setUnitConversion( unitConv );
 }
+//@-node:jimc.20100409112755.296:arSZGAppFramework::setUnitConversion
+//@+node:jimc.20100409112755.297:arSZGAppFramework::getUnitConversion
 
 float arSZGAppFramework::getUnitConversion() {
   return _head.getUnitConversion();
 }
+//@-node:jimc.20100409112755.297:arSZGAppFramework::getUnitConversion
+//@+node:jimc.20100409112755.298:arSZGAppFramework::_checkInput
 
 bool arSZGAppFramework::_checkInput() const {
   if (_inputState)
@@ -197,14 +227,20 @@ bool arSZGAppFramework::_checkInput() const {
   ar_log_warning() << "no input state.\n";
   return false;
 }
+//@-node:jimc.20100409112755.298:arSZGAppFramework::_checkInput
+//@+node:jimc.20100409112755.299:arSZGAppFramework::getButton
 
 int arSZGAppFramework::getButton( const unsigned i ) const {
   return _checkInput() ? _inputState->getButton( i ) : 0;
 }
+//@-node:jimc.20100409112755.299:arSZGAppFramework::getButton
+//@+node:jimc.20100409112755.300:arSZGAppFramework::getAxis
 
 float arSZGAppFramework::getAxis( const unsigned i ) const {
   return _checkInput() ? _inputState->getAxis( i ) : 0.;
 }
+//@-node:jimc.20100409112755.300:arSZGAppFramework::getAxis
+//@+node:jimc.20100409112755.301:arSZGAppFramework::getMatrix
 
 // Scale translation by _unitConversion.
 arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion ) const {
@@ -218,26 +254,38 @@ arMatrix4 arSZGAppFramework::getMatrix( const unsigned i, bool doUnitConversion 
     }
   return m;
 }
+//@-node:jimc.20100409112755.301:arSZGAppFramework::getMatrix
+//@+node:jimc.20100409112755.302:arSZGAppFramework::getOnButton
 
 bool arSZGAppFramework::getOnButton( const unsigned i ) const {
   return _checkInput() && _inputState->getOnButton( i );
 }
+//@-node:jimc.20100409112755.302:arSZGAppFramework::getOnButton
+//@+node:jimc.20100409112755.303:arSZGAppFramework::getOffButton
 
 bool arSZGAppFramework::getOffButton( const unsigned i ) const {
   return _checkInput() && _inputState->getOffButton( i );
 }
+//@-node:jimc.20100409112755.303:arSZGAppFramework::getOffButton
+//@+node:jimc.20100409112755.304:arSZGAppFramework::getNumberButtons
 
 unsigned arSZGAppFramework::getNumberButtons() const {
   return _checkInput() ? _inputState->getNumberButtons() : 0;
 }
+//@-node:jimc.20100409112755.304:arSZGAppFramework::getNumberButtons
+//@+node:jimc.20100409112755.305:arSZGAppFramework::getNumberAxes
 
 unsigned arSZGAppFramework::getNumberAxes() const {
   return _checkInput() ? _inputState->getNumberAxes() : 0;
 }
+//@-node:jimc.20100409112755.305:arSZGAppFramework::getNumberAxes
+//@+node:jimc.20100409112755.306:arSZGAppFramework::getNumberMatrices
 
 unsigned arSZGAppFramework::getNumberMatrices() const {
   return _checkInput() ? _inputState->getNumberMatrices() : 0;
 }
+//@-node:jimc.20100409112755.306:arSZGAppFramework::getNumberMatrices
+//@+node:jimc.20100409112755.307:arSZGAppFramework::setNavTransCondition
 
 bool arSZGAppFramework::setNavTransCondition( char axis,
                                               arInputEventType type,
@@ -245,6 +293,8 @@ bool arSZGAppFramework::setNavTransCondition( char axis,
                                               float threshold ) {
   return _navManager.setTransCondition( axis, type, i, threshold );
 }
+//@-node:jimc.20100409112755.307:arSZGAppFramework::setNavTransCondition
+//@+node:jimc.20100409112755.308:arSZGAppFramework::setNavRotCondition
 
 bool arSZGAppFramework::setNavRotCondition( char axis,
                                             arInputEventType type,
@@ -252,6 +302,8 @@ bool arSZGAppFramework::setNavRotCondition( char axis,
                                             float threshold ) {
   return _navManager.setRotCondition( axis, type, i, threshold );
 }
+//@-node:jimc.20100409112755.308:arSZGAppFramework::setNavRotCondition
+//@+node:jimc.20100409112755.309:arSZGAppFramework::setNavTransSpeed
 
 void arSZGAppFramework::setNavTransSpeed( float speed ) {
   if (!_initCalled) {
@@ -260,6 +312,8 @@ void arSZGAppFramework::setNavTransSpeed( float speed ) {
   }
   _setNavTransSpeed( speed );
 }
+//@-node:jimc.20100409112755.309:arSZGAppFramework::setNavTransSpeed
+//@+node:jimc.20100409112755.310:arSZGAppFramework::setNavRotSpeed
 
 void arSZGAppFramework::setNavRotSpeed( float speed ) {
   if (!_initCalled) {
@@ -268,6 +322,8 @@ void arSZGAppFramework::setNavRotSpeed( float speed ) {
   }
   _setNavRotSpeed( speed );
 }
+//@-node:jimc.20100409112755.310:arSZGAppFramework::setNavRotSpeed
+//@+node:jimc.20100409112755.311:arSZGAppFramework::setNavEffector
 
 void arSZGAppFramework::setNavEffector( const arEffector& effector ) {
   if (!_initCalled) {
@@ -276,24 +332,34 @@ void arSZGAppFramework::setNavEffector( const arEffector& effector ) {
   }
   _setNavEffector( effector );
 }
+//@-node:jimc.20100409112755.311:arSZGAppFramework::setNavEffector
+//@+node:jimc.20100409112755.312:arSZGAppFramework::_setNavTransSpeed
 
 void arSZGAppFramework::_setNavTransSpeed( float speed ) {
   _navManager.setTransSpeed( speed );
   ar_log_remark() << "translation speed is " << speed << ".\n";
 }
+//@-node:jimc.20100409112755.312:arSZGAppFramework::_setNavTransSpeed
+//@+node:jimc.20100409112755.313:arSZGAppFramework::_setNavRotSpeed
 
 void arSZGAppFramework::_setNavRotSpeed( float speed ) {
   _navManager.setRotSpeed( speed );
   ar_log_remark() << "rotation speed is " << speed << ".\n";
 }
+//@-node:jimc.20100409112755.313:arSZGAppFramework::_setNavRotSpeed
+//@+node:jimc.20100409112755.314:arSZGAppFramework::_setNavEffector
 
 void arSZGAppFramework::_setNavEffector( const arEffector& effector ) {
   _navManager.setEffector( effector );
 }
+//@-node:jimc.20100409112755.314:arSZGAppFramework::_setNavEffector
+//@+node:jimc.20100409112755.315:arSZGAppFramework::ownNavParam
 
 void arSZGAppFramework::ownNavParam( const std::string& paramName ) {
   _ownedParams.insert( paramName );
 }
+//@-node:jimc.20100409112755.315:arSZGAppFramework::ownNavParam
+//@+node:jimc.20100409112755.316:arSZGAppFramework::navUpdate
 
 void arSZGAppFramework::navUpdate() {
   if (_useNavInputMatrix) {
@@ -302,6 +368,8 @@ void arSZGAppFramework::navUpdate() {
   }
   _navManager.update( getInputState() );
 }
+//@-node:jimc.20100409112755.316:arSZGAppFramework::navUpdate
+//@+node:jimc.20100409112755.317:arSZGAppFramework::navUpdate
 
 void arSZGAppFramework::navUpdate( const arInputEvent& event ) {
   if (_useNavInputMatrix) {
@@ -310,6 +378,8 @@ void arSZGAppFramework::navUpdate( const arInputEvent& event ) {
   }
   _navManager.update( event );
 }
+//@-node:jimc.20100409112755.317:arSZGAppFramework::navUpdate
+//@+node:jimc.20100409112755.318:arSZGAppFramework::navUpdate
 
 void arSZGAppFramework::navUpdate( const arMatrix4& navMatrix ) {
   if (_useNavInputMatrix) {
@@ -318,6 +388,8 @@ void arSZGAppFramework::navUpdate( const arMatrix4& navMatrix ) {
   }
   ar_setNavMatrix( navMatrix );
 }
+//@-node:jimc.20100409112755.318:arSZGAppFramework::navUpdate
+//@+node:jimc.20100409112755.319:arSZGAppFramework::setEventFilter
 
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
   if (!_inputNode) {
@@ -336,27 +408,37 @@ bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
   }
   return ok;
 }
+//@-node:jimc.20100409112755.319:arSZGAppFramework::setEventFilter
+//@+node:jimc.20100409112755.320:arSZGAppFramework::setEventCallback
 
 void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
   _callbackFilter.setCallback( callback );
 }
+//@-node:jimc.20100409112755.320:arSZGAppFramework::setEventCallback
+//@+node:jimc.20100409112755.321:arSZGAppFramework::setEventQueueCallback
 
 void arSZGAppFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
   _eventQueueCallback = callback;
   _callbackFilter.saveEventQueue( callback != NULL );
 }
+//@-node:jimc.20100409112755.321:arSZGAppFramework::setEventQueueCallback
+//@+node:jimc.20100409112755.322:arSZGAppFramework::processEventQueue
 
 void arSZGAppFramework::processEventQueue() {
   // Get AND clear buffered events.
   arInputEventQueue q = _callbackFilter.getEventQueue();
   onProcessEventQueue( q );
 }
+//@-node:jimc.20100409112755.322:arSZGAppFramework::processEventQueue
+//@+node:jimc.20100409112755.323:arSZGAppFramework::onProcessEventQueue
 
 void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& q ) {
   if (_eventQueueCallback) {
     _eventQueueCallback( *this, q );
   }
 }
+//@-node:jimc.20100409112755.323:arSZGAppFramework::onProcessEventQueue
+//@+node:jimc.20100409112755.324:arSZGAppFramework::postInputEventQueue
 
 void arSZGAppFramework::postInputEventQueue( arInputEventQueue& q ) {
   if (_inOnInputEvent) {
@@ -365,17 +447,23 @@ void arSZGAppFramework::postInputEventQueue( arInputEventQueue& q ) {
   }
   _inputNode->postEventQueue( q );
 }
+//@-node:jimc.20100409112755.324:arSZGAppFramework::postInputEventQueue
+//@+node:jimc.20100409112755.325:arSZGAppFramework::postInputEvent
 
 void arSZGAppFramework::postInputEvent( arInputEvent& event ) {
   arInputEventQueue q;
   q.appendEvent( event );
   postInputEventQueue( q );
 }
+//@-node:jimc.20100409112755.325:arSZGAppFramework::postInputEvent
+//@+node:jimc.20100409112755.326:arSZGAppFramework::_installFilters
 
 void arSZGAppFramework::_installFilters() {
   setEventFilter( &_defaultUserFilter );
   _inputNode->addFilter( (arIOFilter*)&_callbackFilter, false );
 }
+//@-node:jimc.20100409112755.326:arSZGAppFramework::_installFilters
+//@+node:jimc.20100409112755.327:arSZGAppFramework::_loadNavParameters
 
 static bool ___firstNavLoad = true; // todo: make this a member of arSZGAppFramework
 
@@ -516,6 +604,8 @@ void arSZGAppFramework::_loadNavParameters() {
 
   ___firstNavLoad = false;
 }
+//@-node:jimc.20100409112755.327:arSZGAppFramework::_loadNavParameters
+//@+node:jimc.20100409112755.328:arSZGAppFramework::_parseNavParamString
 
 bool arSZGAppFramework::_parseNavParamString( const string& theString,
                                               arInputEventType& theType,
@@ -557,11 +647,15 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
   index = unsigned(ind);
   return true;
 }
+//@-node:jimc.20100409112755.328:arSZGAppFramework::_parseNavParamString
+//@+node:jimc.20100409112755.329:arSZGAppFramework::_paramNotOwned
 
 // todo: negate the sense of this, for clarity
 bool arSZGAppFramework::_paramNotOwned( const std::string& theString ) {
   return _ownedParams.find( theString ) == _ownedParams.end();
 }
+//@-node:jimc.20100409112755.329:arSZGAppFramework::_paramNotOwned
+//@+node:jimc.20100409112755.330:arSZGAppFramework::_okToInit
 
 bool arSZGAppFramework::_okToInit(const char* exename) {
   if (_initCalled) {
@@ -575,6 +669,8 @@ bool arSZGAppFramework::_okToInit(const char* exename) {
   _label = ar_stripExeName( exename );
   return true;
 }
+//@-node:jimc.20100409112755.330:arSZGAppFramework::_okToInit
+//@+node:jimc.20100409112755.331:arSZGAppFramework::_okToStart
 
 bool arSZGAppFramework::_okToStart() const {
   if (!_initCalled) {
@@ -589,3 +685,7 @@ bool arSZGAppFramework::_okToStart() const {
 
   return true;
 }
+//@-node:jimc.20100409112755.331:arSZGAppFramework::_okToStart
+//@-others
+//@-node:jimc.20100409112755.285:@thin framework\arSZGAppFramework.cpp
+//@-leo

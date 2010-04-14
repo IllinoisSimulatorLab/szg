@@ -67,7 +67,7 @@ extern void FishTransform(fishRec *);
 extern void WhalePilot(fishRec *, double timeDiff);
 extern void DolphinPilot(fishRec *, double timeDiff);
 extern void SharkPilot( fishRec* fish, double timeDiff, const arVector3* attractor=NULL );
-extern void SharkMiss( fishRec* s1, fishRec* s2 );
+extern void SharkMiss( fishRec* s1, fishRec* s2, double timeDiff );
 extern void DrawWhale(fishRec *);
 extern void DrawShark(fishRec *);
 extern void DrawDolphin(fishRec *);

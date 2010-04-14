@@ -1,3 +1,9 @@
+//@+leo-ver=4-thin
+//@+node:jimc.20100409112755.4:@thin framework\arMasterSlaveFramework.cpp
+//@@language c++
+//@@tabwidth -2
+//@<<includes, defines, constants>>
+//@+node:jimc.20100409112755.280:<<includes, defines, constants>>
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for detils
@@ -12,36 +18,53 @@
 #include "arGUIWindow.h"
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
+#include "arTexture.h"
+#include "arGraphicsAPI.h"
 #include "arLogStream.h"
 
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
 #include <signal.h>
 #endif
-
-//***********************************************************************
-// arGUI callbacks
-//***********************************************************************
+//@-node:jimc.20100409112755.280:<<includes, defines, constants>>
+//@nl
+//@+others
+//@+node:jimc.20100409112755.282:Other threads
+//@+node:jimc.20100409112755.5:ar_masterSlaveFrameworkMessageTask
 
 void ar_masterSlaveFrameworkMessageTask( void* p ) {
   ((arMasterSlaveFramework*) p)->_messageTask();
 }
+//@-node:jimc.20100409112755.5:ar_masterSlaveFrameworkMessageTask
+//@+node:jimc.20100409112755.6:ar_masterSlaveFrameworkConnectionTask
 
 void ar_masterSlaveFrameworkConnectionTask( void* p ) {
   ((arMasterSlaveFramework*) p)->_connectionTask();
 }
+//@-node:jimc.20100409112755.6:ar_masterSlaveFrameworkConnectionTask
+//@-node:jimc.20100409112755.282:Other threads
+//@+node:jimc.20100409112755.283:arGUI callbacks
+//@+node:jimc.20100409112755.7:ar_masterSlaveFrameworkWindowEventFunction
+
+//***********************************************************************
+// arGUI callbacks
+//***********************************************************************
 
 void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* windowInfo ) {
   if ( windowInfo && windowInfo->getUserData() ) {
     ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowEvent( windowInfo );
   }
 }
+//@-node:jimc.20100409112755.7:ar_masterSlaveFrameworkWindowEventFunction
+//@+node:jimc.20100409112755.8:ar_masterSlaveFrameworkWindowInitGLFunction
 
 void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) {
   if ( windowInfo && windowInfo->getUserData() ) {
     ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowStartGL( windowInfo );
   }
 }
+//@-node:jimc.20100409112755.8:ar_masterSlaveFrameworkWindowInitGLFunction
+//@+node:jimc.20100409112755.9:ar_masterSlaveFrameworkKeyboardFunction
 
 void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
   if ( !keyInfo || !keyInfo->getUserData() )
@@ -90,6 +113,8 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
     fw->onKey( keyInfo );
   }
 }
+//@-node:jimc.20100409112755.9:ar_masterSlaveFrameworkKeyboardFunction
+//@+node:jimc.20100409112755.10:ar_masterSlaveFrameworkMouseFunction
 
 void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
   if ( !mouseInfo || !mouseInfo->getUserData() )
@@ -116,6 +141,8 @@ void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
     fw->onMouse( mouseInfo );
   }
 }
+//@-node:jimc.20100409112755.10:ar_masterSlaveFrameworkMouseFunction
+//@+node:jimc.20100409112755.11:arMasterSlaveWindowInitCallback
 
 //***********************************************************************
 // arGraphicsWindow callback classes
@@ -135,7 +162,8 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
     _framework->onWindowInit();
   }
 }
-
+//@-node:jimc.20100409112755.11:arMasterSlaveWindowInitCallback
+//@+node:jimc.20100409112755.284:arMasterSlaveRenderCallback
 //****************************************************************************
 // Drawing the master/slave framework is complex. At the top level, the arGUI
 // window manager (_wm) draws all of the application's arGUI windows, each of
@@ -184,27 +212,45 @@ class arMasterSlaveRenderCallback : public arGUIRenderCallback {
       _framework( fw ) {}
     ~arMasterSlaveRenderCallback( void ) {}
 
-    void operator()( arGraphicsWindow&, arViewport& );
     void operator()( arGUIWindowInfo* ) { }
-    void operator()( arGUIWindowInfo* windowInfo,
-                     arGraphicsWindow* graphicsWindow );
+    void operator()( int guiWinID,
+                     arGraphicsWindow* graphicsWindow,
+                     const bool drawLeftBuffer );
+    void operator()( arGraphicsWindow&, arViewport& );
 
   private:
     arMasterSlaveFramework* _framework;
 };
-
+//@nonl
+//@+node:jimc.20100409112755.13:1: operator()(  int guiWinID, arGraphicsWindow*, bool drawLeft )                                        arGraphicsWindow* graphicsWindow )
+//@+at 
+//@nonl
+// First callback from arGUIWindow, called from _drawHandler()
+//@-at
+//@@c
+void arMasterSlaveRenderCallback::operator()( int guiWinID,
+                                              arGraphicsWindow* graphicsWindow,
+                                              const bool drawLeftBuffer ) {
+  if (_framework) {
+    _framework->_drawWindow( guiWinID, graphicsWindow, drawLeftBuffer );
+  }
+}
+//@-node:jimc.20100409112755.13:1: operator()(  int guiWinID, arGraphicsWindow*, bool drawLeft )                                        arGraphicsWindow* graphicsWindow )
+//@+node:jimc.20100409112755.12:2: operator()( arGraphicsWindow&, arViewport& )
+//@+at 
+//@nonl
+// Second callback from arGraphicsWindow, called from _renderPass()
+//@-at
+//@@c
 void arMasterSlaveRenderCallback::operator()( arGraphicsWindow& win, arViewport& vp ) {
   if ( _framework ) {
     _framework->onDraw( win, vp );
   }
 }
-
-void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
-                                              arGraphicsWindow* graphicsWindow ) {
-  if (_framework) {
-    _framework->_drawWindow( windowInfo, graphicsWindow );
-  }
-}
+//@-node:jimc.20100409112755.12:2: operator()( arGraphicsWindow&, arViewport& )
+//@-node:jimc.20100409112755.284:arMasterSlaveRenderCallback
+//@-node:jimc.20100409112755.283:arGUI callbacks
+//@+node:jimc.20100409112755.14:arMasterSlaveFramework::arMasterSlaveFramework
 
 //***********************************************************************
 // arMasterSlaveFramework public methods
@@ -335,6 +381,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   _guiXMLParser = new arGUIXMLParser( &_SZGClient );
 }
+//@-node:jimc.20100409112755.14:arMasterSlaveFramework::arMasterSlaveFramework
+//@+node:jimc.20100409112755.15:~arMasterSlaveFramework
 
 // \bug memory leak for several pointer members
 arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
@@ -356,6 +404,8 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   delete _guiXMLParser;
   // Don't delete _screenObject, since we might not own it.
 }
+//@-node:jimc.20100409112755.15:~arMasterSlaveFramework
+//@+node:jimc.20100409112755.16:arMasterSlaveFramework::init
 
 // Initialize the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
@@ -557,6 +607,8 @@ fail:
   }
   return true;
 }
+//@-node:jimc.20100409112755.16:arMasterSlaveFramework::init
+//@+node:jimc.20100409112755.17:arMasterSlaveFramework::stop
 
 // Begins halting many significant parts of the object and blocks until
 // they have, indeed, halted. The parameter will be false if we have been
@@ -603,6 +655,8 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   ar_log_remark() << "stopped.\n";
   _stopped = true;
 }
+//@-node:jimc.20100409112755.17:arMasterSlaveFramework::stop
+//@+node:jimc.20100409112755.18:arMasterSlaveFramework::createWindows
 
 bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
@@ -642,11 +696,14 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
   _wm->setAllTitles( _label, false );
   return true;
 }
+//@-node:jimc.20100409112755.18:arMasterSlaveFramework::createWindows
+//@+node:jimc.20100409112755.19:arMasterSlaveFramework::loopQuantum
 
 void arMasterSlaveFramework::loopQuantum() {
   // Exchange data. Connect slaves to master and activate framelock.
   preDraw();
-  draw();
+  draw( true );    // render GL_BACK_LEFT viewports
+  draw( false );   // render GL_BACK_RIGHT viewports
   postDraw();
 
   // Synchronize.
@@ -655,6 +712,8 @@ void arMasterSlaveFramework::loopQuantum() {
   // Process events from keyboard, window manager, etc.
   _wm->processWindowEvents();
 }
+//@-node:jimc.20100409112755.19:arMasterSlaveFramework::loopQuantum
+//@+node:jimc.20100409112755.20:arMasterSlaveFramework::exitFunction
 
 void arMasterSlaveFramework::exitFunction() {
   // Wildcat framelock is only deactivated if this makes sense;
@@ -675,6 +734,8 @@ void arMasterSlaveFramework::exitFunction() {
   while (_blockUntilDisplayExit)
     a.sleep();
 }
+//@-node:jimc.20100409112755.20:arMasterSlaveFramework::exitFunction
+//@+node:jimc.20100409112755.21:arMasterSlaveFramework::preDraw
 
 // The sequence of events that should occur before the window is drawn.
 // Public, so apps can create custom event loops.
@@ -768,17 +829,21 @@ void arMasterSlaveFramework::preDraw( void ) {
   // Get performance metrics.
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
+//@-node:jimc.20100409112755.21:arMasterSlaveFramework::preDraw
+//@+node:jimc.20100409112755.22:arMasterSlaveFramework::draw
 
 // Public, so apps can make custom event loops.
-void arMasterSlaveFramework::draw( int windowID ) {
+void arMasterSlaveFramework::draw( const bool drawLeftBuffer, int windowID ) {
   if ( stopping() || !_wm )
     return;
 
   if ( windowID < 0 )
-    _wm->drawAllWindows( true );
+    _wm->drawAllWindows( drawLeftBuffer, true );
   else
-    _wm->drawWindow( windowID, true );
+    _wm->drawWindow( windowID, drawLeftBuffer, true );
 }
+//@-node:jimc.20100409112755.22:arMasterSlaveFramework::draw
+//@+node:jimc.20100409112755.23:arMasterSlaveFramework::postDraw
 
 // After the window is drawn, and before synchronizing.
 void arMasterSlaveFramework::postDraw( void ) {
@@ -796,6 +861,8 @@ void arMasterSlaveFramework::postDraw( void ) {
   }
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
 }
+//@-node:jimc.20100409112755.23:arMasterSlaveFramework::postDraw
+//@+node:jimc.20100409112755.24:arMasterSlaveFramework::swap
 
 // Public, so apps can make custom event loops.
 void arMasterSlaveFramework::swap( int windowID ) {
@@ -807,6 +874,8 @@ void arMasterSlaveFramework::swap( int windowID ) {
   else
     _wm->swapAllWindowBuffers(true);
 }
+//@-node:jimc.20100409112755.24:arMasterSlaveFramework::swap
+//@+node:jimc.20100409112755.25:arMasterSlaveFramework::onStart
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if ( _startCallback && !_startCallback( *this, SZGClient ) ) {
@@ -816,12 +885,16 @@ bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
 
   return true;
 }
+//@-node:jimc.20100409112755.25:arMasterSlaveFramework::onStart
+//@+node:jimc.20100409112755.26:arMasterSlaveFramework::_stop
 
 void arMasterSlaveFramework::_stop(const char* name, const arCallbackException& exc) {
   ar_log_error() << "arMasterSlaveFramework " << name << " callback:\n\t" <<
     exc.message << "\n";
   stop(false);
 }
+//@-node:jimc.20100409112755.26:arMasterSlaveFramework::_stop
+//@+node:jimc.20100409112755.27:arMasterSlaveFramework::onPreExchange
 
 void arMasterSlaveFramework::onPreExchange( void ) {
   if ( _preExchange ) {
@@ -833,6 +906,8 @@ void arMasterSlaveFramework::onPreExchange( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.27:arMasterSlaveFramework::onPreExchange
+//@+node:jimc.20100409112755.28:arMasterSlaveFramework::onPostExchange
 
 void arMasterSlaveFramework::onPostExchange( void ) {
   if ( _postExchange ) {
@@ -843,6 +918,8 @@ void arMasterSlaveFramework::onPostExchange( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.28:arMasterSlaveFramework::onPostExchange
+//@+node:jimc.20100409112755.29:arMasterSlaveFramework::onWindowInit
 
 void arMasterSlaveFramework::onWindowInit( void ) {
   if ( _windowInitCallback ) {
@@ -856,6 +933,8 @@ void arMasterSlaveFramework::onWindowInit( void ) {
     ar_defaultWindowInitCallback();
   }
 }
+//@-node:jimc.20100409112755.29:arMasterSlaveFramework::onWindowInit
+//@+node:jimc.20100409112755.30:arMasterSlaveFramework::onWindowEvent
 
 // Only events that are actually generated by the GUI itself actually reach
 // here, not for instance events that we post to the window manager ourselves.
@@ -895,6 +974,8 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* wI ) {
     }
   }
 }
+//@-node:jimc.20100409112755.30:arMasterSlaveFramework::onWindowEvent
+//@+node:jimc.20100409112755.31:arMasterSlaveFramework::onWindowStartGL
 
 void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
   if ( windowInfo && _windowStartGLCallback ) {
@@ -905,6 +986,8 @@ void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
     }
   }
 }
+//@-node:jimc.20100409112755.31:arMasterSlaveFramework::onWindowStartGL
+//@+node:jimc.20100409112755.32:arMasterSlaveFramework::onDraw
 
 // Yes, this is really the application-provided draw function. It is
 // called once per viewport of each arGraphicsWindow (arGUIWindow).
@@ -930,6 +1013,8 @@ void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
     _stop("draw", exc);
   }
 }
+//@-node:jimc.20100409112755.32:arMasterSlaveFramework::onDraw
+//@+node:jimc.20100409112755.33:arMasterSlaveFramework::onDisconnectDraw
 
 void arMasterSlaveFramework::onDisconnectDraw( void ) {
   if ( _disconnectDrawCallback ) {
@@ -957,6 +1042,8 @@ void arMasterSlaveFramework::onDisconnectDraw( void ) {
     glPopAttrib();
   }
 }
+//@-node:jimc.20100409112755.33:arMasterSlaveFramework::onDisconnectDraw
+//@+node:jimc.20100409112755.34:arMasterSlaveFramework::onPlay
 
 void arMasterSlaveFramework::onPlay( void ) {
   setPlayTransform();
@@ -968,6 +1055,8 @@ void arMasterSlaveFramework::onPlay( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.34:arMasterSlaveFramework::onPlay
+//@+node:jimc.20100409112755.35:arMasterSlaveFramework::onCleanup
 
 void arMasterSlaveFramework::onCleanup( void ) {
   if ( _cleanup ) {
@@ -978,6 +1067,8 @@ void arMasterSlaveFramework::onCleanup( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.35:arMasterSlaveFramework::onCleanup
+//@+node:jimc.20100409112755.36:arMasterSlaveFramework::onUserMessage
 
 void arMasterSlaveFramework::onUserMessage( const int messageID, const string& messageBody ) {
   if (_userMessageCallback) {
@@ -994,6 +1085,8 @@ void arMasterSlaveFramework::onUserMessage( const int messageID, const string& m
     }
   }
 }
+//@-node:jimc.20100409112755.36:arMasterSlaveFramework::onUserMessage
+//@+node:jimc.20100409112755.37:arMasterSlaveFramework::onOverlay
 
 void arMasterSlaveFramework::onOverlay( void ) {
   if ( _overlay ) {
@@ -1004,6 +1097,8 @@ void arMasterSlaveFramework::onOverlay( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.37:arMasterSlaveFramework::onOverlay
+//@+node:jimc.20100409112755.38:arMasterSlaveFramework::onKey
 
 void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
   if ( !keyInfo ) {
@@ -1022,6 +1117,8 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
     onKey( keyInfo->getKey(), 0, 0 );
   }
 }
+//@-node:jimc.20100409112755.38:arMasterSlaveFramework::onKey
+//@+node:jimc.20100409112755.39:arMasterSlaveFramework::onKey
 
 void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
   if ( _keyboardCallback ) {
@@ -1032,6 +1129,8 @@ void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
     }
   }
 }
+//@-node:jimc.20100409112755.39:arMasterSlaveFramework::onKey
+//@+node:jimc.20100409112755.40:arMasterSlaveFramework::onMouse
 
 void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
   if ( mouseInfo && _mouseCallback ) {
@@ -1042,21 +1141,29 @@ void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
     }
   }
 }
+//@-node:jimc.20100409112755.40:arMasterSlaveFramework::onMouse
+//@+node:jimc.20100409112755.41:arMasterSlaveFramework::setStartCallback
 
 void arMasterSlaveFramework::setStartCallback
   ( bool (*startCallback)( arMasterSlaveFramework&, arSZGClient& ) ) {
   _startCallback = startCallback;
 }
+//@-node:jimc.20100409112755.41:arMasterSlaveFramework::setStartCallback
+//@+node:jimc.20100409112755.42:arMasterSlaveFramework::setPreExchangeCallback
 
 void arMasterSlaveFramework::setPreExchangeCallback
   ( void (*preExchangeCallback)( arMasterSlaveFramework& ) ) {
   _preExchange = preExchangeCallback;
 }
+//@-node:jimc.20100409112755.42:arMasterSlaveFramework::setPreExchangeCallback
+//@+node:jimc.20100409112755.43:arMasterSlaveFramework::setPostExchangeCallback
 
 void arMasterSlaveFramework::setPostExchangeCallback
   ( void (*postExchange)( arMasterSlaveFramework& ) ) {
   _postExchange = postExchange;
 }
+//@-node:jimc.20100409112755.43:arMasterSlaveFramework::setPostExchangeCallback
+//@+node:jimc.20100409112755.44:arMasterSlaveFramework::setWindowCallback
 
 // The window callback is called once per window, per frame, if set.
 // Otherwise the _drawSetUp method is called. This callback
@@ -1069,41 +1176,57 @@ void arMasterSlaveFramework::setWindowCallback
   ( void (*windowCallback)( arMasterSlaveFramework& ) ) {
   _windowInitCallback = windowCallback;
 }
+//@-node:jimc.20100409112755.44:arMasterSlaveFramework::setWindowCallback
+//@+node:jimc.20100409112755.45:arMasterSlaveFramework::setWindowEventCallback
 
 void arMasterSlaveFramework::setWindowEventCallback
   ( void (*windowEvent)( arMasterSlaveFramework&, arGUIWindowInfo* ) ) {
   _windowEventCallback = windowEvent;
 }
+//@-node:jimc.20100409112755.45:arMasterSlaveFramework::setWindowEventCallback
+//@+node:jimc.20100409112755.46:arMasterSlaveFramework::setWindowStartGLCallback
 
 void arMasterSlaveFramework::setWindowStartGLCallback
   ( void (*windowStartGL)( arMasterSlaveFramework&, arGUIWindowInfo* ) ) {
   _windowStartGLCallback = windowStartGL;
 }
+//@-node:jimc.20100409112755.46:arMasterSlaveFramework::setWindowStartGLCallback
+//@+node:jimc.20100409112755.47:arMasterSlaveFramework::setDrawCallback
 
 void arMasterSlaveFramework::setDrawCallback(
               void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) ) {
   ar_log_remark() << "set draw callback.\n";
   _drawCallback = draw;
 }
+//@-node:jimc.20100409112755.47:arMasterSlaveFramework::setDrawCallback
+//@+node:jimc.20100409112755.48:arMasterSlaveFramework::setDrawCallback
 
 void arMasterSlaveFramework::setDrawCallback( void (*draw)( arMasterSlaveFramework& ) ) {
   ar_log_remark() << "set old-style draw callback.\n";
   _oldDrawCallback = draw;
 }
+//@-node:jimc.20100409112755.48:arMasterSlaveFramework::setDrawCallback
+//@+node:jimc.20100409112755.49:arMasterSlaveFramework::setDisconnectDrawCallback
 
 void arMasterSlaveFramework::setDisconnectDrawCallback( void (*disConnDraw)( arMasterSlaveFramework& ) ) {
   _disconnectDrawCallback = disConnDraw;
 }
+//@-node:jimc.20100409112755.49:arMasterSlaveFramework::setDisconnectDrawCallback
+//@+node:jimc.20100409112755.50:arMasterSlaveFramework::setPlayCallback
 
 void arMasterSlaveFramework::setPlayCallback
   ( void (*play)( arMasterSlaveFramework& ) ) {
   _playCallback = play;
 }
+//@-node:jimc.20100409112755.50:arMasterSlaveFramework::setPlayCallback
+//@+node:jimc.20100409112755.51:arMasterSlaveFramework::setExitCallback
 
 void arMasterSlaveFramework::setExitCallback
   ( void (*cleanup)( arMasterSlaveFramework& ) ) {
   _cleanup = cleanup;
 }
+//@-node:jimc.20100409112755.51:arMasterSlaveFramework::setExitCallback
+//@+node:jimc.20100409112755.52:arMasterSlaveFramework::setUserMessageCallback
 
 // Syzygy messages currently consist of two strings, the first being
 // a type and the second being a value. The user can send messages
@@ -1117,12 +1240,16 @@ void arMasterSlaveFramework::setUserMessageCallback
   _userMessageCallback = userMessageCallback;
   _oldUserMessageCallback = NULL;
 }
+//@-node:jimc.20100409112755.52:arMasterSlaveFramework::setUserMessageCallback
+//@+node:jimc.20100409112755.53:arMasterSlaveFramework::setUserMessageCallback
 void arMasterSlaveFramework::setUserMessageCallback
   ( void (*userMessageCallback)(arMasterSlaveFramework&,
                                 const string& messageBody )) {
   _oldUserMessageCallback = userMessageCallback;
   _userMessageCallback = NULL;
 }
+//@-node:jimc.20100409112755.53:arMasterSlaveFramework::setUserMessageCallback
+//@+node:jimc.20100409112755.54:arMasterSlaveFramework::setOverlayCallback
 
 // In general, the graphics window can be a complicated sequence of
 // viewports (as is necessary for simulating a CAVE or Cube). Sometimes
@@ -1132,6 +1259,8 @@ void arMasterSlaveFramework::setOverlayCallback
   ( void (*overlay)( arMasterSlaveFramework& ) ) {
   _overlay = overlay;
 }
+//@-node:jimc.20100409112755.54:arMasterSlaveFramework::setOverlayCallback
+//@+node:jimc.20100409112755.55:arMasterSlaveFramework::setKeyboardCallback
 
 // A master instance will also take keyboard input via this callback,
 // if defined.
@@ -1139,21 +1268,29 @@ void arMasterSlaveFramework::setKeyboardCallback
   ( void (*keyboard)( arMasterSlaveFramework&, unsigned char, int, int ) ) {
   _keyboardCallback = keyboard;
 }
+//@-node:jimc.20100409112755.55:arMasterSlaveFramework::setKeyboardCallback
+//@+node:jimc.20100409112755.56:arMasterSlaveFramework::setKeyboardCallback
 
 void arMasterSlaveFramework::setKeyboardCallback
   ( void (*keyboard)( arMasterSlaveFramework&, arGUIKeyInfo* ) ) {
   _arGUIKeyboardCallback = keyboard;
 }
+//@-node:jimc.20100409112755.56:arMasterSlaveFramework::setKeyboardCallback
+//@+node:jimc.20100409112755.57:arMasterSlaveFramework::setMouseCallback
 
 void arMasterSlaveFramework::setMouseCallback
   ( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) ) {
   _mouseCallback = mouse;
 }
+//@-node:jimc.20100409112755.57:arMasterSlaveFramework::setMouseCallback
+//@+node:jimc.20100409112755.58:arMasterSlaveFramework::setEventQueueCallback
 
 void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
   _eventQueueCallback = callback;
   ar_log_remark() << "set event queue callback.\n";
 }
+//@-node:jimc.20100409112755.58:arMasterSlaveFramework::setEventQueueCallback
+//@+node:jimc.20100409112755.59:arMasterSlaveFramework::setDataBundlePath
 
 // The sound server should be able to find its files in the application
 // directory. If this function is called between init() and start(),
@@ -1169,6 +1306,8 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   }
   ar_log_debug() << "set bundle path to " << bundlePathName << "/" << bundleSubDirectory << ar_endl;
 }
+//@-node:jimc.20100409112755.59:arMasterSlaveFramework::setDataBundlePath
+//@+node:jimc.20100409112755.60:arMasterSlaveFramework::loadNavMatrix
 
 void arMasterSlaveFramework::loadNavMatrix( void ) {
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
@@ -1179,6 +1318,8 @@ void arMasterSlaveFramework::loadNavMatrix( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.60:arMasterSlaveFramework::loadNavMatrix
+//@+node:jimc.20100409112755.61:arMasterSlaveFramework::setPlayTransform
 
 void arMasterSlaveFramework::setPlayTransform( void ) {
   static arVector3 dummy(0,0,0);
@@ -1193,10 +1334,15 @@ void arMasterSlaveFramework::setPlayTransform( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.61:arMasterSlaveFramework::setPlayTransform
+//@+node:jimc.20100409112755.62:arMasterSlaveFramework::drawGraphicsDatabase
 
 void arMasterSlaveFramework::drawGraphicsDatabase( void ) {
   _graphicsDatabase.draw();
 }
+
+//@-node:jimc.20100409112755.62:arMasterSlaveFramework::drawGraphicsDatabase
+//@+node:jimc.20100409112755.63:arMasterSlaveFramework::usePredeterminedHarmony
 
 void arMasterSlaveFramework::usePredeterminedHarmony() {
   if (_startCalled) {
@@ -1208,6 +1354,8 @@ void arMasterSlaveFramework::usePredeterminedHarmony() {
     "using predetermined harmony.  Don't compute in pre-exchange, which slaves ignore.\n";
   _harmonyInUse = true;
 }
+//@-node:jimc.20100409112755.63:arMasterSlaveFramework::usePredeterminedHarmony
+//@+node:jimc.20100409112755.64:arMasterSlaveFramework::getNumberSlavesExpected
 
 int arMasterSlaveFramework::getNumberSlavesExpected() {
   if (getStandalone())
@@ -1225,10 +1373,14 @@ int arMasterSlaveFramework::getNumberSlavesExpected() {
   }
   return totalSlaves;
 }
+//@-node:jimc.20100409112755.64:arMasterSlaveFramework::getNumberSlavesExpected
+//@+node:jimc.20100409112755.65:arMasterSlaveFramework::allSlavesReady
 
 bool arMasterSlaveFramework::allSlavesReady() {
   return _harmonyReady || (_numSlavesConnected >= getNumberSlavesExpected());
 }
+//@-node:jimc.20100409112755.65:arMasterSlaveFramework::allSlavesReady
+//@+node:jimc.20100409112755.66:arMasterSlaveFramework::getNumberSlavesConnected
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
   if ( !getMaster() ) {
@@ -1238,6 +1390,8 @@ int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
 
   return _numSlavesConnected;
 }
+//@-node:jimc.20100409112755.66:arMasterSlaveFramework::getNumberSlavesConnected
+//@+node:jimc.20100409112755.67:arMasterSlaveFramework::sendMasterMessage
 
 bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
   const string lockName = _launcher.getMasterName();
@@ -1257,6 +1411,8 @@ bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
 
   return true;
 }
+//@-node:jimc.20100409112755.67:arMasterSlaveFramework::sendMasterMessage
+//@+node:jimc.20100409112755.68:arMasterSlaveFramework::_addTransferField
 
 
 bool arMasterSlaveFramework::_addTransferField( const string& fieldName,
@@ -1290,6 +1446,8 @@ bool arMasterSlaveFramework::_addTransferField( const string& fieldName,
   fields.insert( arTransferFieldData::value_type( realName, descriptor ) );
   return true;
 }
+//@-node:jimc.20100409112755.68:arMasterSlaveFramework::_addTransferField
+//@+node:jimc.20100409112755.69:arMasterSlaveFramework::addTransferField
 
 bool arMasterSlaveFramework::addTransferField( const string& fieldName,
                                                void* data,
@@ -1297,6 +1455,8 @@ bool arMasterSlaveFramework::addTransferField( const string& fieldName,
                                                const unsigned size ) {
   return _addTransferField(fieldName, data, dataType, size, _transferFieldData);
 }
+//@-node:jimc.20100409112755.69:arMasterSlaveFramework::addTransferField
+//@+node:jimc.20100409112755.70:arMasterSlaveFramework::addInternalTransferField
 
 bool arMasterSlaveFramework::addInternalTransferField( const string& fieldName,
                                                        const arDataType dataType,
@@ -1305,6 +1465,8 @@ bool arMasterSlaveFramework::addInternalTransferField( const string& fieldName,
   return _addTransferField(fieldName, ar_allocateBuffer(dataType, size), dataType,
     size, _internalTransferFieldData);
 }
+//@-node:jimc.20100409112755.70:arMasterSlaveFramework::addInternalTransferField
+//@+node:jimc.20100409112755.71:arMasterSlaveFramework::setInternalTransferFieldSize
 
 bool arMasterSlaveFramework::setInternalTransferFieldSize( const string& fieldName,
                                                            arDataType dataType, unsigned newSize ) {
@@ -1341,6 +1503,8 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( const string& fieldNa
   p.size = int(newSize);
   return true;
 }
+//@-node:jimc.20100409112755.71:arMasterSlaveFramework::setInternalTransferFieldSize
+//@+node:jimc.20100409112755.72:arMasterSlaveFramework::getTransferField
 
 void* arMasterSlaveFramework::getTransferField( const string& fieldName,
                                                 arDataType dataType, int& size ) {
@@ -1365,6 +1529,8 @@ void* arMasterSlaveFramework::getTransferField( const string& fieldName,
   size = p.size; // int not unsigned, to permit uninitialized value -1.
   return p.data;
 }
+//@-node:jimc.20100409112755.72:arMasterSlaveFramework::getTransferField
+//@+node:jimc.20100409112755.73:arMasterSlaveFramework::setRandomSeed
 
 //********************************************************************************************
 // Random number functions, useful for predetermined harmony.
@@ -1383,6 +1549,8 @@ void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
 
   _randSeedSet = 1;
 }
+//@-node:jimc.20100409112755.73:arMasterSlaveFramework::setRandomSeed
+//@+node:jimc.20100409112755.74:arMasterSlaveFramework::randUniformFloat
 
 bool arMasterSlaveFramework::randUniformFloat( float& value ) {
   value = ar_randUniformFloat( &_randomSeed );
@@ -1405,6 +1573,8 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
   _randSynchError = 0;
   return ok;
 }
+//@-node:jimc.20100409112755.74:arMasterSlaveFramework::randUniformFloat
+//@+node:jimc.20100409112755.75:arMasterSlaveFramework::_setMaster
 
 
 //************************************************************************
@@ -1414,6 +1584,8 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
 void arMasterSlaveFramework::_setMaster( bool master ) {
   _master = master;
 }
+//@-node:jimc.20100409112755.75:arMasterSlaveFramework::_setMaster
+//@+node:jimc.20100409112755.76:arMasterSlaveFramework::_sync
 
 bool arMasterSlaveFramework::_sync( void ) {
   if ( !_master )
@@ -1427,6 +1599,8 @@ bool arMasterSlaveFramework::_sync( void ) {
 
   return true;
 }
+//@-node:jimc.20100409112755.76:arMasterSlaveFramework::_sync
+//@+node:jimc.20100409112755.77:arMasterSlaveFramework::_handleScreenshot
 
 //************************************************************************
 // utility functions for graphics
@@ -1458,6 +1632,8 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo, const int w, const 
   _SZGClient.messageResponse( _screenshotMsg, getLabel()+" took screenshot." );
   _screenshotMsg = -1;
 }
+//@-node:jimc.20100409112755.77:arMasterSlaveFramework::_handleScreenshot
+//@+node:jimc.20100409112755.78:arMasterSlaveFramework::_sendData
 
 //************************************************************************
 // Functions for data transfer
@@ -1538,6 +1714,8 @@ bool arMasterSlaveFramework::_sendData( void ) {
 
   return true;
 }
+//@-node:jimc.20100409112755.78:arMasterSlaveFramework::_sendData
+//@+node:jimc.20100409112755.79:arMasterSlaveFramework::_getData
 
 bool arMasterSlaveFramework::_getData( void ) {
   if ( _master ) {
@@ -1615,6 +1793,8 @@ bool arMasterSlaveFramework::_getData( void ) {
   _unpackInputData();
   return true;
 }
+//@-node:jimc.20100409112755.79:arMasterSlaveFramework::_getData
+//@+node:jimc.20100409112755.80:arMasterSlaveFramework::_pollInputData
 
 void arMasterSlaveFramework::_pollInputData( void ) {
   if ( !_startCalled ) {
@@ -1657,6 +1837,8 @@ void arMasterSlaveFramework::_pollInputData( void ) {
 
   _head.setMatrix( getMatrix( AR_VR_HEAD_MATRIX_ID, false ) );
 }
+//@-node:jimc.20100409112755.80:arMasterSlaveFramework::_pollInputData
+//@+node:jimc.20100409112755.81:arMasterSlaveFramework::_packInputData
 
 void arMasterSlaveFramework::_packInputData( void ) {
   if ( _randSeedSet ) {
@@ -1689,6 +1871,8 @@ void arMasterSlaveFramework::_packInputData( void ) {
   _randSeedSet = 0;
   _firstTransfer = 0;
 }
+//@-node:jimc.20100409112755.81:arMasterSlaveFramework::_packInputData
+//@+node:jimc.20100409112755.82:arMasterSlaveFramework::_unpackInputData
 
 void arMasterSlaveFramework::_unpackInputData( void ) {
   _transferData->dataOut( "time",            &_time,                 AR_DOUBLE, 1 );
@@ -1749,6 +1933,8 @@ void arMasterSlaveFramework::_unpackInputData( void ) {
 
   _numRandCalls = 0;
 }
+//@-node:jimc.20100409112755.82:arMasterSlaveFramework::_unpackInputData
+//@+node:jimc.20100409112755.83:arMasterSlaveFramework::_processUserMessages
 
 //************************************************************************
 // functions pertaining to user messages
@@ -1761,6 +1947,8 @@ void arMasterSlaveFramework::_processUserMessages() {
   }
   _userMessageQueue.clear();
 }
+//@-node:jimc.20100409112755.83:arMasterSlaveFramework::_processUserMessages
+//@+node:jimc.20100409112755.84:arMasterSlaveFramework::_determineMaster
 
 //************************************************************************
 // functions pertaining to starting the application
@@ -1801,6 +1989,8 @@ bool arMasterSlaveFramework::_determineMaster() {
 
   return true;
 }
+//@-node:jimc.20100409112755.84:arMasterSlaveFramework::_determineMaster
+//@+node:jimc.20100409112755.85:arMasterSlaveFramework::_initStandaloneObjects
 
 // Run the program by itself, without connecting to the distributed system.
 bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
@@ -1843,6 +2033,8 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   }
   return true;
 }
+//@-node:jimc.20100409112755.85:arMasterSlaveFramework::_initStandaloneObjects
+//@+node:jimc.20100409112755.86:arMasterSlaveFramework::_startStandaloneObjects
 
 // Lousy factoring. Should combine start and init?
 bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
@@ -1850,6 +2042,8 @@ bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
   _soundActive = true;
   return true;
 }
+//@-node:jimc.20100409112755.86:arMasterSlaveFramework::_startStandaloneObjects
+//@+node:jimc.20100409112755.87:arMasterSlaveFramework::_initMasterObjects
 
 bool arMasterSlaveFramework::_initMasterObjects() {
   _barrierServer = new arBarrierServer();
@@ -1898,6 +2092,8 @@ LAbort:
   ar_log_debug() << "master's objects inited.\n";
   return true;
 }
+//@-node:jimc.20100409112755.87:arMasterSlaveFramework::_initMasterObjects
+//@+node:jimc.20100409112755.88:arMasterSlaveFramework::_startMasterObjects
 
 bool arMasterSlaveFramework::_startMasterObjects() {
   // Start the master's service.
@@ -1961,6 +2157,8 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   ar_log_debug() << "master's objects started.\n";
   return true;
 }
+//@-node:jimc.20100409112755.88:arMasterSlaveFramework::_startMasterObjects
+//@+node:jimc.20100409112755.89:arMasterSlaveFramework::_startInput
 
 bool arMasterSlaveFramework::_startInput() {
   if (!_inputNode) {
@@ -1978,6 +2176,8 @@ bool arMasterSlaveFramework::_startInput() {
   _inputActive = true;
   return true;
 }
+//@-node:jimc.20100409112755.89:arMasterSlaveFramework::_startInput
+//@+node:jimc.20100409112755.90:arMasterSlaveFramework::_initSlaveObjects
 
 bool arMasterSlaveFramework::_initSlaveObjects() {
   // Slave not master.
@@ -2011,6 +2211,8 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   ar_log_debug() << "slave's objects inited.\n";
   return true;
 }
+//@-node:jimc.20100409112755.90:arMasterSlaveFramework::_initSlaveObjects
+//@+node:jimc.20100409112755.91:arMasterSlaveFramework::_startSlaveObjects
 
 bool arMasterSlaveFramework::_startSlaveObjects() {
   if ( !_barrierClient->start() ) {
@@ -2021,6 +2223,8 @@ bool arMasterSlaveFramework::_startSlaveObjects() {
   ar_log_debug() << "slave's objects started.\n";
   return true;
 }
+//@-node:jimc.20100409112755.91:arMasterSlaveFramework::_startSlaveObjects
+//@+node:jimc.20100409112755.92:arMasterSlaveFramework::_startObjects
 
 bool arMasterSlaveFramework::_startObjects( void ) {
   // User-defined init is complete.
@@ -2059,10 +2263,14 @@ bool arMasterSlaveFramework::_startObjects( void ) {
   _graphicsDatabase.setTexturePath( _texturePath );
   return true;
 }
+//@-node:jimc.20100409112755.92:arMasterSlaveFramework::_startObjects
+//@+node:jimc.20100409112755.93:arMasterSlaveFramework::start
 
 bool arMasterSlaveFramework::start() {
   return start(true, true);
 }
+//@-node:jimc.20100409112755.93:arMasterSlaveFramework::start
+//@+node:jimc.20100409112755.94:arMasterSlaveFramework::start
 
 bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   if (!_okToStart())
@@ -2140,6 +2348,8 @@ bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   // External event loop.  Caller should now repeatedly call e.g. loopQuantum().
   return true;
 }
+//@-node:jimc.20100409112755.94:arMasterSlaveFramework::start
+//@+node:jimc.20100409112755.95:arMasterSlaveFramework::_startrespond
 
 bool arMasterSlaveFramework::_startrespond( const string& s ) {
   ar_log_error() << "" << s << ar_endl;
@@ -2150,6 +2360,8 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
 
   return false;
 }
+//@-node:jimc.20100409112755.95:arMasterSlaveFramework::_startrespond
+//@+node:jimc.20100409112755.96:arMasterSlaveFramework::_loadParameters
 
 //**************************************************************************
 // Other system-level functions
@@ -2189,7 +2401,6 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   _loadNavParameters();
 
   const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC", "path"); // for dll's
-  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
 
   // Ensure everybody gets the right bundle map, standalone or not.
   _dataPath = _SZGClient.getDataPath();
@@ -2199,6 +2410,8 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   addDataBundlePathMap( "SZG_PYTHON", pythonPath );
   return true;
 }
+//@-node:jimc.20100409112755.96:arMasterSlaveFramework::_loadParameters
+//@+node:jimc.20100409112755.97:arMasterSlaveFramework::addDataBundlePathMap
 
 
 void arMasterSlaveFramework::addDataBundlePathMap(
@@ -2208,6 +2421,8 @@ void arMasterSlaveFramework::addDataBundlePathMap(
   if (_soundClient)
     _soundClient->addDataBundlePathMap( bundlePathName, bundlePath );
 }
+//@-node:jimc.20100409112755.97:arMasterSlaveFramework::addDataBundlePathMap
+//@+node:jimc.20100409112755.98:arMasterSlaveFramework::_messageTask
 
 
 void arMasterSlaveFramework::_messageTask( void ) {
@@ -2292,12 +2507,12 @@ void arMasterSlaveFramework::_messageTask( void ) {
             " screenshot failed: no SZG_DATA/path." );
       } else {
         _screenshotMsg = messageID;
-	if ( messageBody != "NULL" ) {
-	  // pass a nonzero int to indicate jpg instead of pnm.
-	  int tmp;
-	  ar_parseIntString( messageBody, &tmp, 1 );
-	  _screenshotJPG = tmp;
-	}
+        if ( messageBody != "NULL" ) {
+          // pass a nonzero int to indicate jpg instead of pnm.
+          int tmp;
+          ar_parseIntString( messageBody, &tmp, 1 );
+          _screenshotJPG = tmp;
+        }
       }
     }
     else if (( messageType == "demo" )||(messageType == "fixedhead")) {
@@ -2403,6 +2618,8 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
   }
 }
+//@-node:jimc.20100409112755.98:arMasterSlaveFramework::_messageTask
+//@+node:jimc.20100409112755.99:arMasterSlaveFramework::_connectionTask
 
 // Handle connections.
 void arMasterSlaveFramework::_connectionTask( void ) {
@@ -2483,6 +2700,8 @@ void arMasterSlaveFramework::_connectionTask( void ) {
   }
   _connectionThreadRunning = false;
 }
+//@-node:jimc.20100409112755.99:arMasterSlaveFramework::_connectionTask
+//@+node:jimc.20100409112755.100:arMasterSlaveFramework::_drawWindow
 
 //**************************************************************************
 // Functions directly pertaining to drawing
@@ -2490,16 +2709,16 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 
 // Display a whole arGUIWindow.
 // The definition of arMasterSlaveRenderCallback explains how arGUIWindow calls this.
-void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
-                                          arGraphicsWindow* graphicsWindow ) {
-  if ( !windowInfo || !graphicsWindow ) {
+void arMasterSlaveFramework::_drawWindow( int guiWinID,
+                                          arGraphicsWindow* graphicsWindow,
+                                          const bool drawLeftBuffer ) {
+  if (!graphicsWindow) {
     ar_log_error() << "_drawWindow ignoring NULL pointer.\n";
     return;
   }
 
-  int currentWinID = windowInfo->getWindowID();
-  if ( !_wm->windowExists( currentWinID ) ) {
-    ar_log_error() << "_drawWindow: no arGraphicsWindow with ID " << currentWinID << ".\n";
+  if ( !_wm->windowExists( guiWinID ) ) {
+    ar_log_error() << "_drawWindow: no arGUIWindow with ID " << guiWinID << ".\n";
     return;
   }
 
@@ -2507,9 +2726,10 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   if (!stopping() ) {
     if ( _noDrawFillColor[ 0 ] == -1 ) {
       if ( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
-        graphicsWindow->draw();
+        GLenum oglDrawBuffer = (drawLeftBuffer)?(GL_BACK_LEFT):(GL_BACK_RIGHT);
+        graphicsWindow->draw( oglDrawBuffer );
 
-        if ( _wm->isFirstWindow( currentWinID ) ) {
+        if ( _wm->isFirstWindow( guiWinID ) ) {
           if ( _standalone && _standaloneControlMode == "simulator"
               && _showSimulator) {
             _simPtr->drawWithComposition();
@@ -2520,7 +2740,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
           }
 
           if ( getMaster() ) {
-	    // Draw the application's overlay last, if such exists.
+            // Draw the application's overlay last, if such exists.
             onOverlay();
           }
         }
@@ -2558,8 +2778,12 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
 
   // Take a screenshot if we should.  If there are multiple GUI windows,
   // only the "first" one is captured.
-  if ( _wm->isFirstWindow( currentWinID ) ) {
-    arVector3 v(_wm->getWindowSize(currentWinID));
-    _handleScreenshot( _wm->isStereo( currentWinID ), int(v[0]), int(v[1])); // window's current width and height.
+  if ( _wm->isFirstWindow( guiWinID ) ) {
+    arVector3 v(_wm->getWindowSize(guiWinID));
+    _handleScreenshot( _wm->isStereo( guiWinID ), int(v[0]), int(v[1])); // window's current width and height.
   }
 }
+//@-node:jimc.20100409112755.100:arMasterSlaveFramework::_drawWindow
+//@-others
+//@-node:jimc.20100409112755.4:@thin framework\arMasterSlaveFramework.cpp
+//@-leo

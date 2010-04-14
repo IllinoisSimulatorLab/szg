@@ -1,3 +1,9 @@
+//@+leo-ver=4-thin
+//@+node:jimc.20100409112755.102:@thin graphics\arGUIWindowManager.cpp
+//@@language c++
+//@@tabwidth -2
+//@+others
+//@+node:jimc.20100409112755.103:ar_windowManagerDefaultKeyboardFunction
 #include "arPrecompiled.h"
 
 #include "arStructuredData.h"
@@ -23,6 +29,8 @@ void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki) {
       wm->deleteWindow(ki->getWindowID());
   }
 }
+//@-node:jimc.20100409112755.103:ar_windowManagerDefaultKeyboardFunction
+//@+node:jimc.20100409112755.104:ar_windowManagerDefaultWindowFunction
 
 void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ) {
   if (!wi)
@@ -43,6 +51,8 @@ void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ) {
     break;
   }
 }
+//@-node:jimc.20100409112755.104:ar_windowManagerDefaultWindowFunction
+//@+node:jimc.20100409112755.105:arGUIWindowManager::arGUIWindowManager
 
 arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
                                         void (*keyboardCB)( arGUIKeyInfo* ),
@@ -65,6 +75,8 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   }
 #endif
 }
+//@-node:jimc.20100409112755.105:arGUIWindowManager::arGUIWindowManager
+//@+node:jimc.20100409112755.106:Destructor
 
 arGUIWindowManager::~arGUIWindowManager( void )
 {
@@ -72,6 +84,8 @@ arGUIWindowManager::~arGUIWindowManager( void )
     delete witr->second;
   }
 }
+//@-node:jimc.20100409112755.106:Destructor
+//@+node:jimc.20100409112755.107:arGUIWindowManager::_keyboardHandler
 
 void arGUIWindowManager::_keyboardHandler( arGUIKeyInfo* keyInfo )
 {
@@ -79,6 +93,8 @@ void arGUIWindowManager::_keyboardHandler( arGUIKeyInfo* keyInfo )
     _keyboardCallback( keyInfo );
   }
 }
+//@-node:jimc.20100409112755.107:arGUIWindowManager::_keyboardHandler
+//@+node:jimc.20100409112755.108:arGUIWindowManager::_mouseHandler
 
 void arGUIWindowManager::_mouseHandler( arGUIMouseInfo* mouseInfo )
 {
@@ -86,6 +102,8 @@ void arGUIWindowManager::_mouseHandler( arGUIMouseInfo* mouseInfo )
     _mouseCallback( mouseInfo );
   }
 }
+//@-node:jimc.20100409112755.108:arGUIWindowManager::_mouseHandler
+//@+node:jimc.20100409112755.109:arGUIWindowManager::_windowHandler
 
 void arGUIWindowManager::_windowHandler( arGUIWindowInfo* windowInfo )
 {
@@ -93,6 +111,8 @@ void arGUIWindowManager::_windowHandler( arGUIWindowInfo* windowInfo )
     _windowCallback( windowInfo );
   }
 }
+//@-node:jimc.20100409112755.109:arGUIWindowManager::_windowHandler
+//@+node:jimc.20100409112755.110:arGUIWindowManager::registerWindowCallback
 
 void arGUIWindowManager::registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) )
 {
@@ -101,6 +121,8 @@ void arGUIWindowManager::registerWindowCallback( void (*windowCallback) ( arGUIW
   }
   _windowCallback = windowCallback;
 }
+//@-node:jimc.20100409112755.110:arGUIWindowManager::registerWindowCallback
+//@+node:jimc.20100409112755.111:arGUIWindowManager::registerKeyboardCallback
 
 void arGUIWindowManager::registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) )
 {
@@ -109,6 +131,8 @@ void arGUIWindowManager::registerKeyboardCallback( void (*keyboardCallback) ( ar
   }
   _keyboardCallback = keyboardCallback;
 }
+//@-node:jimc.20100409112755.111:arGUIWindowManager::registerKeyboardCallback
+//@+node:jimc.20100409112755.112:arGUIWindowManager::registerMouseCallback
 
 void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMouseInfo* ) )
 {
@@ -117,6 +141,8 @@ void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMou
   }
   _mouseCallback = mouseCallback;
 }
+//@-node:jimc.20100409112755.112:arGUIWindowManager::registerMouseCallback
+//@+node:jimc.20100409112755.113:arGUIWindowManager::registerWindowInitGLCallback
 
 void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) )
 {
@@ -125,6 +151,8 @@ void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallba
   }
   _windowInitGLCallback = windowInitGLCallback;
 }
+//@-node:jimc.20100409112755.113:arGUIWindowManager::registerWindowInitGLCallback
+//@+node:jimc.20100409112755.114:arGUIWindowManager::startWithSwap
 
 // todo: merge these two.
 
@@ -137,6 +165,8 @@ int arGUIWindowManager::startWithSwap( void )
   }
   return 0;
 }
+//@-node:jimc.20100409112755.114:arGUIWindowManager::startWithSwap
+//@+node:jimc.20100409112755.115:arGUIWindowManager::startWithoutSwap
 
 int arGUIWindowManager::startWithoutSwap( void )
 {
@@ -146,6 +176,8 @@ int arGUIWindowManager::startWithoutSwap( void )
   }
   return 0;
 }
+//@-node:jimc.20100409112755.115:arGUIWindowManager::startWithoutSwap
+//@+node:jimc.20100409112755.116:arGUIWindowManager::addWindow
 
 int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
                                    bool useWindowing )
@@ -181,6 +213,8 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
 
   return _maxID++;
 }
+//@-node:jimc.20100409112755.116:arGUIWindowManager::addWindow
+//@+node:jimc.20100409112755.117:arGUIWindowManager::registerDrawCallback
 
 int arGUIWindowManager::registerDrawCallback( const int ID, arGUIRenderCallback* drawCallback )
 {
@@ -190,6 +224,8 @@ int arGUIWindowManager::registerDrawCallback( const int ID, arGUIRenderCallback*
   _windows[ ID ]->registerDrawCallback( drawCallback );
   return 0;
 }
+//@-node:jimc.20100409112755.117:arGUIWindowManager::registerDrawCallback
+//@+node:jimc.20100409112755.118:arGUIWindowManager::processWindowEvents
 
 int arGUIWindowManager::processWindowEvents( void )
 {
@@ -259,11 +295,15 @@ int arGUIWindowManager::processWindowEvents( void )
 
   return 0;
 }
+//@-node:jimc.20100409112755.118:arGUIWindowManager::processWindowEvents
+//@+node:jimc.20100409112755.119:arGUIWindowManager::getNextWindowEvent
 
 arGUIInfo* arGUIWindowManager::getNextWindowEvent( const int ID )
 {
   return windowExists(ID) ?  _windows[ ID ]->getNextGUIEvent() : NULL;
 }
+//@-node:jimc.20100409112755.119:arGUIWindowManager::getNextWindowEvent
+//@+node:jimc.20100409112755.120:arGUIWindowManager::addWMEvent
 
 arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
 {
@@ -286,8 +326,12 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
         w->swap();
       break;
 
-      case AR_WINDOW_DRAW:
-        w->_drawHandler();
+      case AR_WINDOW_DRAW_LEFT:
+        w->_drawHandler( true );
+      break;
+
+      case AR_WINDOW_DRAW_RIGHT:
+        w->_drawHandler( false );
       break;
 
       case AR_WINDOW_RESIZE:
@@ -334,6 +378,8 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
   // Do not wait on the eventHandle.  The caller decides if this request blocks.
   return eventHandle;
 }
+//@-node:jimc.20100409112755.120:arGUIWindowManager::addWMEvent
+//@+node:jimc.20100409112755.121:arGUIWindowManager::addAllWMEvent
 
 int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ) {
   static bool warn = false;
@@ -361,6 +407,8 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking ) 
     (*eitr)->wait( blocking );
   return 0;
 }
+//@-node:jimc.20100409112755.121:arGUIWindowManager::addAllWMEvent
+//@+node:jimc.20100409112755.122:arGUIWindowManager::swapWindowBuffer
 
 int arGUIWindowManager::swapWindowBuffer( const int ID, bool blocking )
 {
@@ -370,31 +418,43 @@ int arGUIWindowManager::swapWindowBuffer( const int ID, bool blocking )
     eventHandle->wait( blocking );
   return 0;
 }
+//@-node:jimc.20100409112755.122:arGUIWindowManager::swapWindowBuffer
+//@+node:jimc.20100409112755.123:arGUIWindowManager::drawWindow
 
-int arGUIWindowManager::drawWindow( const int ID, bool blocking )
+int arGUIWindowManager::drawWindow( const int ID, const bool drawLeftBuffer, bool blocking )
 {
+  arGUIState winInfoState = (drawLeftBuffer)?(AR_WINDOW_DRAW_LEFT):(AR_WINDOW_DRAW_RIGHT);
   arWMEvent* eventHandle = addWMEvent(
-    ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ) );
+    ID, arGUIWindowInfo( AR_WINDOW_EVENT, winInfoState ) );
   if ( eventHandle )
     eventHandle->wait( blocking );
   return 0;
 }
+//@-node:jimc.20100409112755.123:arGUIWindowManager::drawWindow
+//@+node:jimc.20100409112755.124:arGUIWindowManager::swapAllWindowBuffers
 
 int arGUIWindowManager::swapAllWindowBuffers( bool blocking )
 {
   return addAllWMEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_SWAP ), blocking );
 }
+//@-node:jimc.20100409112755.124:arGUIWindowManager::swapAllWindowBuffers
+//@+node:jimc.20100409112755.125:arGUIWindowManager::drawAllWindows
 
-int arGUIWindowManager::drawAllWindows( bool blocking )
+int arGUIWindowManager::drawAllWindows( const bool drawLeftBuffer, bool blocking )
 {
-  return addAllWMEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ), blocking );
+  arGUIState winInfoState = (drawLeftBuffer)?(AR_WINDOW_DRAW_LEFT):(AR_WINDOW_DRAW_RIGHT);
+  return addAllWMEvent( arGUIWindowInfo( AR_WINDOW_EVENT, winInfoState ), blocking );
 }
+//@-node:jimc.20100409112755.125:arGUIWindowManager::drawAllWindows
+//@+node:jimc.20100409112755.126:arGUIWindowManager::consumeWindowEvents
 
 int arGUIWindowManager::consumeWindowEvents( const int ID, bool /*blocking*/ )
 {
   return (_threaded || !windowExists(ID)) ? -1 :
     _windows[ ID ]->_consumeWindowEvents();
 }
+//@-node:jimc.20100409112755.126:arGUIWindowManager::consumeWindowEvents
+//@+node:jimc.20100409112755.127:arGUIWindowManager::consumeAllWindowEvents
 
 int arGUIWindowManager::consumeAllWindowEvents( bool /*blocking*/ )
 {
@@ -407,6 +467,8 @@ int arGUIWindowManager::consumeAllWindowEvents( bool /*blocking*/ )
   }
   return ok ? 0 : -1;
 }
+//@-node:jimc.20100409112755.127:arGUIWindowManager::consumeAllWindowEvents
+//@+node:jimc.20100409112755.128:arGUIWindowManager::_doEvent
 
 int arGUIWindowManager::_doEvent(const int ID, const arGUIWindowInfo& event) {
   arWMEvent* eventHandle = addWMEvent( ID, event );
@@ -414,6 +476,8 @@ int arGUIWindowManager::_doEvent(const int ID, const arGUIWindowInfo& event) {
     eventHandle->wait(false);
   return 0;
 }
+//@-node:jimc.20100409112755.128:arGUIWindowManager::_doEvent
+//@+node:jimc.20100409112755.129:arGUIWindowManager::resizeWindow
 
 int arGUIWindowManager::resizeWindow( const int ID, int width, int height )
 {
@@ -421,6 +485,8 @@ int arGUIWindowManager::resizeWindow( const int ID, int width, int height )
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, -1, 0, -1, -1, width, height ));
 }
+//@-node:jimc.20100409112755.129:arGUIWindowManager::resizeWindow
+//@+node:jimc.20100409112755.130:arGUIWindowManager::moveWindow
 
 int arGUIWindowManager::moveWindow( const int ID, int x, int y )
 {
@@ -428,56 +494,76 @@ int arGUIWindowManager::moveWindow( const int ID, int x, int y )
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, -1, 0, x, y ));
 }
+//@-node:jimc.20100409112755.130:arGUIWindowManager::moveWindow
+//@+node:jimc.20100409112755.131:arGUIWindowManager::setWindowViewport
 
 int arGUIWindowManager::setWindowViewport( const int ID, int x, int y, int width, int height )
 {
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT, -1, 0, x, y, width, height));
 }
+//@-node:jimc.20100409112755.131:arGUIWindowManager::setWindowViewport
+//@+node:jimc.20100409112755.132:arGUIWindowManager::fullscreenWindow
 
 int arGUIWindowManager::fullscreenWindow( const int ID )
 {
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_FULLSCREEN ));
 }
+//@-node:jimc.20100409112755.132:arGUIWindowManager::fullscreenWindow
+//@+node:jimc.20100409112755.133:arGUIWindowManager::decorateWindow
 
 int arGUIWindowManager::decorateWindow( const int ID, bool decorate )
 {
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DECORATE, -1, decorate?1:0 ));
 }
+//@-node:jimc.20100409112755.133:arGUIWindowManager::decorateWindow
+//@+node:jimc.20100409112755.134:arGUIWindowManager::raiseWindow
 
 int arGUIWindowManager::raiseWindow( const int ID, arZOrder zorder )
 {
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RAISE, -1, int(zorder) ));
 }
+//@-node:jimc.20100409112755.134:arGUIWindowManager::raiseWindow
+//@+node:jimc.20100409112755.135:arGUIWindowManager::setWindowCursor
 
 int arGUIWindowManager::setWindowCursor( const int ID, arCursor cursor )
 {
   return _doEvent(ID,
     arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CURSOR, -1, int(cursor) ));
 }
+//@-node:jimc.20100409112755.135:arGUIWindowManager::setWindowCursor
+//@+node:jimc.20100409112755.136:arGUIWindowManager::getBpp
 
 int arGUIWindowManager::getBpp( const int ID )
 {
   return windowExists(ID) ? _windows[ ID ]->getBpp() : 0;
 }
+//@-node:jimc.20100409112755.136:arGUIWindowManager::getBpp
+//@+node:jimc.20100409112755.137:arGUIWindowManager::getTitle
 
 std::string arGUIWindowManager::getTitle( const int ID )
 {
   return windowExists(ID) ? _windows[ ID ]->getTitle() : std::string( "" );
 }
+//@-node:jimc.20100409112755.137:arGUIWindowManager::getTitle
+//@+node:jimc.20100409112755.138:arGUIWindowManager::getXDisplay
 
 std::string arGUIWindowManager::getXDisplay( const int ID ) {
   return windowExists(ID) ? _windows[ ID ]->getXDisplay() : std::string( "" );
 }
+//@-node:jimc.20100409112755.138:arGUIWindowManager::getXDisplay
+//@+node:jimc.20100409112755.139:arGUIWindowManager::setTitle
 
 void arGUIWindowManager::setTitle( const int ID, const std::string& title )
 {
   if (windowExists(ID))
     _windows[ ID ]->setTitle( title );
 }
+//@-node:jimc.20100409112755.139:arGUIWindowManager::setTitle
+//@+node:jimc.20100409112755.140:arGUIWindowManager::setAllTitles
 
 void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwrite )
 {
@@ -498,6 +584,8 @@ void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwr
     win->setTitle( title );
   }
 }
+//@-node:jimc.20100409112755.140:arGUIWindowManager::setAllTitles
+//@+node:jimc.20100409112755.141:arGUIWindowManager::getWindowSize
 
 arVector3 arGUIWindowManager::getWindowSize( const int ID )
 {
@@ -505,6 +593,8 @@ arVector3 arGUIWindowManager::getWindowSize( const int ID )
     arVector3( _windows[ ID ]->getWidth(), _windows[ ID ]->getHeight(), 0.0f ) :
     arVector3( -1.0f, -1.0f, -1.0f );
 }
+//@-node:jimc.20100409112755.141:arGUIWindowManager::getWindowSize
+//@+node:jimc.20100409112755.142:arGUIWindowManager::getWindowPos
 
 arVector3 arGUIWindowManager::getWindowPos( const int ID )
 {
@@ -512,60 +602,82 @@ arVector3 arGUIWindowManager::getWindowPos( const int ID )
     arVector3( _windows[ ID ]->getPosX(), _windows[ ID ]->getPosY(), 0.0f ) :
     arVector3( -1.0f, -1.0f, -1.0f );
 }
+//@-node:jimc.20100409112755.142:arGUIWindowManager::getWindowPos
+//@+node:jimc.20100409112755.143:arGUIWindowManager::isStereo
 
 bool arGUIWindowManager::isStereo( const int ID )
 {
   return windowExists(ID) && _windows[ ID ]->isStereo();
 }
+//@-node:jimc.20100409112755.143:arGUIWindowManager::isStereo
+//@+node:jimc.20100409112755.144:arGUIWindowManager::isFullscreen
 bool arGUIWindowManager::isFullscreen( const int ID )
 {
   return windowExists(ID) && _windows[ ID ]->isFullscreen();
 }
+//@-node:jimc.20100409112755.144:arGUIWindowManager::isFullscreen
+//@+node:jimc.20100409112755.145:arGUIWindowManager::isDecorated
 
 bool arGUIWindowManager::isDecorated( const int ID )
 {
   return windowExists(ID) && _windows[ ID ]->isDecorated();
 }
+//@-node:jimc.20100409112755.145:arGUIWindowManager::isDecorated
+//@+node:jimc.20100409112755.146:arGUIWindowManager::getZOrder
 
 arZOrder arGUIWindowManager::getZOrder( const int ID )
 {
   return windowExists(ID) ?
     _windows[ ID ]->getZOrder() : AR_ZORDER_TOP /* default - no nil value? */;
 }
+//@-node:jimc.20100409112755.146:arGUIWindowManager::getZOrder
+//@+node:jimc.20100409112755.147:arGUIWindowManager::getUserData
 
 void* arGUIWindowManager::getUserData( const int ID )
 {
   return windowExists(ID) ?  _windows[ ID ]->getUserData() : NULL;
 }
+//@-node:jimc.20100409112755.147:arGUIWindowManager::getUserData
+//@+node:jimc.20100409112755.148:arGUIWindowManager::setUserData
 
 void arGUIWindowManager::setUserData( const int ID, void* userData )
 {
   if (windowExists(ID))
     _windows[ ID ]->setUserData( userData );
 }
+//@-node:jimc.20100409112755.148:arGUIWindowManager::setUserData
+//@+node:jimc.20100409112755.149:arGUIWindowManager::getGraphicsWindow
 
 arGraphicsWindow* arGUIWindowManager::getGraphicsWindow( const int ID )
 {
   return windowExists(ID) ? _windows[ ID ]->getGraphicsWindow() : NULL;
 }
+//@-node:jimc.20100409112755.149:arGUIWindowManager::getGraphicsWindow
+//@+node:jimc.20100409112755.150:arGUIWindowManager::returnGraphicsWindow
 
 void arGUIWindowManager::returnGraphicsWindow( const int ID )
 {
   if (windowExists(ID))
     _windows[ ID ]->returnGraphicsWindow();
 }
+//@-node:jimc.20100409112755.150:arGUIWindowManager::returnGraphicsWindow
+//@+node:jimc.20100409112755.151:arGUIWindowManager::setGraphicsWindow
 
 void arGUIWindowManager::setGraphicsWindow( const int ID, arGraphicsWindow* graphicsWindow )
 {
   if (windowExists(ID))
     _windows[ ID ]->setGraphicsWindow( graphicsWindow );
 }
+//@-node:jimc.20100409112755.151:arGUIWindowManager::setGraphicsWindow
+//@+node:jimc.20100409112755.152:arGUIWindowManager::getWindowCursor
 
 arCursor arGUIWindowManager::getWindowCursor( const int ID )
 {
   return windowExists(ID) ?
     _windows[ ID ]->getCursor() : AR_CURSOR_NONE;
 }
+//@-node:jimc.20100409112755.152:arGUIWindowManager::getWindowCursor
+//@+node:jimc.20100409112755.153:arGUIWindowManager::getMousePos
 
 arVector3 arGUIWindowManager::getMousePos( const int ID )
 {
@@ -575,6 +687,8 @@ arVector3 arGUIWindowManager::getMousePos( const int ID )
   const arGUIMouseInfo mouseState = _windows[ ID ]->getGUIEventManager()->getMouseState();
   return arVector3( float( mouseState.getPosX() ), float( mouseState.getPosY() ), 0.0f );
 }
+//@-node:jimc.20100409112755.153:arGUIWindowManager::getMousePos
+//@+node:jimc.20100409112755.154:arGUIWindowManager::getKeyState
 
 arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey /*key*/ )
 {
@@ -583,11 +697,15 @@ arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey /*key*/ )
 #endif
   return arGUIKeyInfo();
 }
+//@-node:jimc.20100409112755.154:arGUIWindowManager::getKeyState
+//@+node:jimc.20100409112755.155:arGUIWindowManager::setThreaded
 
 void arGUIWindowManager::setThreaded( bool threaded ) {
   if (!hasActiveWindows())
     _threaded = threaded;
 }
+//@-node:jimc.20100409112755.155:arGUIWindowManager::setThreaded
+//@+node:jimc.20100409112755.156:arGUIWindowManager::_sendDeleteEvent
 
 void arGUIWindowManager::_sendDeleteEvent( const int ID )
 {
@@ -597,6 +715,8 @@ void arGUIWindowManager::_sendDeleteEvent( const int ID )
     eventHandle->wait( true );
   }
 }
+//@-node:jimc.20100409112755.156:arGUIWindowManager::_sendDeleteEvent
+//@+node:jimc.20100409112755.157:arGUIWindowManager::deleteWindow
 
 int arGUIWindowManager::deleteWindow( const int ID )
 {
@@ -613,6 +733,8 @@ int arGUIWindowManager::deleteWindow( const int ID )
   // the callback is most likely how we got here in the first place)
   return 0;
 }
+//@-node:jimc.20100409112755.157:arGUIWindowManager::deleteWindow
+//@+node:jimc.20100409112755.158:arGUIWindowManager::deleteAllWindows
 
 int arGUIWindowManager::deleteAllWindows( void )
 {
@@ -624,6 +746,8 @@ int arGUIWindowManager::deleteAllWindows( void )
   }
   return 0;
 }
+//@-node:jimc.20100409112755.158:arGUIWindowManager::deleteAllWindows
+//@+node:jimc.20100409112755.159:arGUIWindowManager::createWindows
 
 int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct, bool useWindowing )
 {
@@ -735,6 +859,8 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
   return 0;
 }
+//@-node:jimc.20100409112755.159:arGUIWindowManager::createWindows
+//@+node:jimc.20100409112755.160:arGUIWindowManager::useFramelock
 
 // useFramelock and findFramelock should work from createWindows(),
 // for the the checks in activateFramelock and deactivateFramelock.
@@ -743,11 +869,15 @@ void arGUIWindowManager::useFramelock( bool fUse )
 {
   ar_useFramelock( fUse );
 }
+//@-node:jimc.20100409112755.160:arGUIWindowManager::useFramelock
+//@+node:jimc.20100409112755.161:arGUIWindowManager::findFramelock
 
 void arGUIWindowManager::findFramelock( void )
 {
   ar_findFramelock();
 }
+//@-node:jimc.20100409112755.161:arGUIWindowManager::findFramelock
+//@+node:jimc.20100409112755.162:arGUIWindowManager::activateFramelock
 
 // Hack for Framelock graphics cards.
 void arGUIWindowManager::activateFramelock( void )
@@ -768,6 +898,8 @@ void arGUIWindowManager::activateFramelock( void )
   ar_activateFramelock();
   ar_log_debug() << "arGUIWindowManager activated framelock.\n";
 }
+//@-node:jimc.20100409112755.162:arGUIWindowManager::activateFramelock
+//@+node:jimc.20100409112755.163:arGUIWindowManager::deactivateFramelock
 
 void arGUIWindowManager::deactivateFramelock( void )
 {
@@ -787,3 +919,7 @@ void arGUIWindowManager::deactivateFramelock( void )
   ar_deactivateFramelock();
   ar_log_debug() << "arGUIWindowManager deactivated framelock.\n";
 }
+//@-node:jimc.20100409112755.163:arGUIWindowManager::deactivateFramelock
+//@-others
+//@-node:jimc.20100409112755.102:@thin graphics\arGUIWindowManager.cpp
+//@-leo
