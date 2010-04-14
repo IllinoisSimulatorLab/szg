@@ -92,6 +92,7 @@ arGraphicsWindow::~arGraphicsWindow() {
 bool arGraphicsWindow::configure( arSZGClient& client ) {
   const string screenName(client.getMode("graphics"));
   float colorFilterParams[7];
+  cout << "!!!!!!!!screenName!!!! " << screenName << endl;
   _useColorFilter = client.getAttributeFloats( screenName, "color_filter", colorFilterParams, 7 );
   if (_useColorFilter) {
     _contrastFilterParameters = arVector4( colorFilterParams );
@@ -401,9 +402,7 @@ void arGraphicsWindow::draw( GLenum oglDrawBuffer ) {
 //  GLint drawBuffer;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
 //  cerr << "arGraphicsWindow::draw() start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
-  if (oglDrawBuffer == GL_BACK_LEFT) {
-    (*_initCallback)( *this );
-  }
+  (*_initCallback)( *this );
 
   // Save viewport's extent.
   int viewportExtent[4];

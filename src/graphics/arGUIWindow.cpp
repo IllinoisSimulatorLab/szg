@@ -268,6 +268,8 @@ void arGUIWindow::_drawHandler( const bool drawLeftBuffer )
   arGuard _(_creationMutex, "arGUIWindow::_drawHandler");
   if ( !_running || !_drawCallback )
     return;
+  if ( !drawLeftBuffer && !isStereo() )
+    return;
 
   // ensure (in non-threaded mode) that this window's opengl context is current
   if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
