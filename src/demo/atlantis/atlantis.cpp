@@ -42,6 +42,7 @@
 #include "arCallbackInteractable.h"
 #include "arInteractionUtilities.h"
 #include "arMasterSlaveFramework.h"
+#include "arTexture.h"
 #include "arGlutRenderFuncs.h"
 
 #include "atlantis.h"
@@ -403,7 +404,7 @@ void preExchange(arMasterSlaveFramework& fw) {
   for (i = 0; i < NUM_SHARKS; i++) {
     SharkPilot( &sharks[i], timeDiff, (sharkAttack)?(&headPos):(NULL) );
     for (j = 0; j < NUM_SHARKS; j++) {
-      SharkMiss( &sharks[i], &sharks[j] );
+      SharkMiss( &sharks[i], &sharks[j], timeDiff );
     }
     UpdateShark(&sharks[i], timeDiff);
   }
@@ -597,8 +598,7 @@ void drawFishies()
   glPopMatrix();
 }
 
-void display(arMasterSlaveFramework& fw)
-{
+void display( arMasterSlaveFramework& fw, arGraphicsWindow& win, arViewport& vp) {
   if (anaglyphMode) {
     glClearColor(0.8, 0.8, 0.8, 1.0);
   } else {

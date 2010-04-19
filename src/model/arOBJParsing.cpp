@@ -5,7 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arMath.h"
-#include "arGraphicsDatabase.h"
+//#include "arGraphicsDatabase.h"
 #include "arDataUtilities.h"
 #include "arOBJ.h"
 

@@ -261,7 +261,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see addWMEvent
      */
-    int drawWindow( const int ID, bool blocking = false );
+    int drawWindow( const int ID, const bool drawLeftBuffer, bool blocking = false );
 
     /**
      * Issue a draw request to every window.
@@ -280,7 +280,7 @@ class SZG_CALL arGUIWindowManager
      *
      * @see addAllWMEvent
      */
-    int drawAllWindows( bool blocking = false );
+    int drawAllWindows( const bool drawLeftBuffer, bool blocking = false );
 
     /**
      * Consume a window's pending OS events.

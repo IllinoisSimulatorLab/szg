@@ -100,13 +100,12 @@ class SZG_CALL arGraphicsWindow {
     float getCurrentEyeSign() const { return _currentEyeSign; }
     void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
     void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const;
-    bool draw();
+    void draw( GLenum oglDrawBuf );
   protected:
   private:
     // not safe to copy yet.
     arGraphicsWindow( const arGraphicsWindow& x );
     arGraphicsWindow& operator=( const arGraphicsWindow& x );
-    void _renderPass( GLenum oglDrawBuf );
     void _applyColorFilter();
     bool _configureCustomViewport( const std::string& screenName, arSZGClient& client, bool masterViewport=false );
     void _addViewportNoLock( const arViewport& );

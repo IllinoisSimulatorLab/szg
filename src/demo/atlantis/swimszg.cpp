@@ -53,11 +53,11 @@ WhalePilot(fishRec * fish, double timeDiff) {
     fish->phi = -20.0;
     fish->theta = 0.0;
     //    fish->psi -= 0.5;
-    fish->psi -= 0.1;
+    fish->psi -= 0.1 * timeDiff;
 
-    fish->x += WHALESPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += WHALESPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += WHALESPEED * timeDiff * fish->v * sin(fish->theta / RAD);
+    fish->x += WHALESPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += WHALESPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += WHALESPEED * fish->v * sin(fish->theta / RAD);
 }
 
 void
@@ -67,11 +67,11 @@ DolphinPilot(fishRec * fish, double timeDiff)
     fish->phi = -20.0;
     fish->theta = 0.0;
     //    fish->psi -= 0.5;
-    fish->psi -= 0.25;
+    fish->psi -= 0.25 * timeDiff;
 
-    fish->x += DOLPHINSPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += DOLPHINSPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += DOLPHINSPEED * timeDiff * fish->v * sin(fish->theta / RAD);
+    fish->x += DOLPHINSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += DOLPHINSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += DOLPHINSPEED * fish->v * sin(fish->theta / RAD);
 }
 
 void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
@@ -98,9 +98,9 @@ void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
     ttheta = RAD * atan(Z / (sqrt(X * X + Y * Y)));
 
     if (ttheta > fish->theta + 0.25) {
-        fish->theta += 0.5;
+        fish->theta += 0.5 * timeDiff;
     } else if (ttheta < fish->theta - 0.25) {
-        fish->theta -= 0.5;
+        fish->theta -= 0.5 * timeDiff;
     }
     if (fish->theta > 90.0) {
         fish->theta = 90.0;
@@ -119,13 +119,13 @@ void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
     } else if (fabs(tpsi - fish->psi) < 45.0) {
         if (fish->psi > tpsi) {
           //            fish->psi -= 0.5;
-            fish->psi -= 0.1;
+            fish->psi -= 0.1 * timeDiff;
             if (fish->psi < -180.0) {
                 fish->psi += 360.0;
             }
         } else if (fish->psi < tpsi) {
           //            fish->psi += 0.5;
-            fish->psi += 0.1;
+            fish->psi += 0.1 * timeDiff;
             if (fish->psi > 180.0) {
                 fish->psi -= 360.0;
             }
@@ -134,7 +134,7 @@ void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
         if (rand() % 100 > 98) {
             sign = 1 - sign;
         }
-        fish->psi += sign;
+        fish->psi += sign * timeDiff;
         if (fish->psi > 180.0) {
             fish->psi -= 360.0;
         }
@@ -148,35 +148,35 @@ void SharkPilot(fishRec * fish, double timeDiff, const arVector3* attractor )
             fish->spurt = 1;
         }
         if (fish->spurt) {
-            fish->v += 0.2;
+            fish->v += 0.2 * timeDiff;
         }
         if (fish->v > 5.0) {
             fish->spurt = 0;
         }
         if ((fish->v > 1.0) && (!fish->spurt)) {
-            fish->v -= 0.2;
+            fish->v -= 0.2 * timeDiff;
         }
     } else {
         if (!(rand() % 400) && (!fish->spurt)) {
             fish->spurt = 1;
         }
         if (fish->spurt) {
-            fish->v += 0.05;
+            fish->v += 0.05 * timeDiff;
         }
         if (fish->v > 3.0) {
             fish->spurt = 0;
         }
         if ((fish->v > 1.0) && (!fish->spurt)) {
-            fish->v -= 0.05;
+            fish->v -= 0.05 * timeDiff;
         }
     }
 
-    fish->x += SHARKSPEED * timeDiff * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->y += SHARKSPEED * timeDiff * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
-    fish->z += SHARKSPEED * timeDiff * fish->v * sin(fish->theta / RAD);
+    fish->x += SHARKSPEED * fish->v * cos(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->y += SHARKSPEED * fish->v * sin(fish->psi / RAD) * cos(fish->theta / RAD);
+    fish->z += SHARKSPEED * fish->v * sin(fish->theta / RAD);
 }
 
-void SharkMiss( fishRec* s1, fishRec* s2 ) {
+void SharkMiss( fishRec* s1, fishRec* s2, double timeDiff ) {
     float avoid, thetal;
     float X, Y, Z, R;
 
@@ -198,9 +198,9 @@ void SharkMiss( fishRec* s1, fishRec* s2 ) {
 
     if (R < SHARKSIZE) {
         if (Z > 0.0) {
-            s1->theta -= avoid;
+            s1->theta -= avoid * timeDiff;
         } else {
-            s1->theta += avoid;
+            s1->theta += avoid * timeDiff;
         }
     }
     s1->dtheta += (s1->theta - thetal);
