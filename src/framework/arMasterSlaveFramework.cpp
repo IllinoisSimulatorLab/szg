@@ -694,6 +694,7 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
   }
 
   _wm->setAllTitles( _label, false );
+
   return true;
 }
 //@-node:jimc.20100409112755.18:arMasterSlaveFramework::createWindows
@@ -703,6 +704,10 @@ void arMasterSlaveFramework::loopQuantum() {
   // Exchange data. Connect slaves to master and activate framelock.
   preDraw();
   draw( true );    // render GL_BACK_LEFT viewports
+  //  _If stereo_ and ..., then insert extra buffer-swap.
+//  if (_wm->getWindowingConstruct()->getUseExtraStereoBufferSwap()) {
+//    swap();
+//  }
   draw( false );   // render GL_BACK_RIGHT viewports
   postDraw();
 
@@ -2377,11 +2382,11 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   // Set window-wide attributes based on the display name, like
   // stereo, window size, window position, framelock.
 
-  const string mode = _SZGClient.getMode("graphics");
-  const string displayName = _SZGClient.getDisplayName( mode );
-  ar_log_debug() << "Graphics mode = " << mode << ", display name = "
+  const string szgDisplayString = _SZGClient.getMode("graphics");
+  const string displayName = _SZGClient.getDisplayName( szgDisplayString );
+  ar_log_debug() << "Graphics SZG_DISPLAY = " << szgDisplayString << ", display name = "
                  << displayName << ar_endl;
-  _guiXMLParser->setConfig( displayName );
+  _guiXMLParser->setDisplayName( displayName );
   if (!_guiXMLParser->parse()) {
     return false;
   }

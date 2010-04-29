@@ -523,7 +523,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   virtual void onDisconnectDraw() /PyName=_onDisconnectDraw/;
   virtual void onPlay() /PyName=_onPlay/;
   virtual void onWindowEvent( arGUIWindowInfo* ) /PyName=_onWindowEvent/;
-  //virtual void onCleanup() /PyName=_onCleanup/;
+  virtual void onCleanup() /PyName=_onCleanup/;
   virtual void onOverlay() /PyName=_onOverlay/;
   virtual void onKey( arGUIKeyInfo* ) /PyName=_onKey/;
 //  virtual void onMouse( arGUIMouseInfo* ) /PyName=_onMouse/;

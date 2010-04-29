@@ -64,7 +64,7 @@ Usage:
   }
   if (componentID != -1) {
     const int match = szgClient.sendMessage(
-      "demo", (paramVal == "true")? "on" : "off", componentID, false);
+      "fixedhead", (paramVal == "true")? "on" : "off", componentID, false);
     if ( match < 0 ) {
       // sendMessage() already complained.
       return 1;

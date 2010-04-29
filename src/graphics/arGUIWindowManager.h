@@ -625,6 +625,8 @@ class SZG_CALL arGUIWindowManager
     void deactivateFramelock( void );
     //@}
 
+    arGUIWindowingConstruct* getWindowingConstruct() const { return _windowingConstruct; }
+
   private:
 
     /**
@@ -698,6 +700,8 @@ class SZG_CALL arGUIWindowManager
     void (*_windowCallback)( arGUIWindowInfo* windowInfo );          // window events
     void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    // opengl init
     int _doEvent(const int ID, const arGUIWindowInfo& event);
+
+    arGUIWindowingConstruct* _windowingConstruct;
 
     WindowMap _windows;       // A map of all the managed windows and their id's.
     int _maxID;         // The maximum window ID, used in creating new windows.

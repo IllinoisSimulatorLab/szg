@@ -2,29 +2,48 @@ import sys
 import os
 import traceback
 from StringIO import StringIO
+import traceback
 
 print 'make_arVersion:',__file__
 
-TEMPLATE = "revno          : {revno}\\ndate           : {date}\\nrevision id    : {revision_id}\\nbranch nickname: {branch_nick}"
+TEMPLATE = '"revno          : {revno}\\ndate           : {date}\\nrevision id    : {revision_id}\\nbranch nickname: {branch_nick}"'
 
 def getBzrVersion():
   try:
     import bzrlib.commands
+    from bzrlib.errors import BzrCommandError
     saveout = sys.stdout
     myOut = StringIO()    
     sys.stdout = myOut
+    sys.stderr.write( 'About to invoke bzr version-info using bzrlib\n' )
+    #try:
     exit_val = bzrlib.commands.run_bzr(['version-info','--custom','--template=%s'%TEMPLATE])
+    #except Exception:
+    #  sys.stdout = saveout
+    #  print 'Error calling bzr.'
+    #  traceback.print_exc()
+    #  sys.exit(1)
     sys.stdout = saveout
     versionString = myOut.getvalue()
     myOut.close()
+  except BzrCommandError:
+    sys.stdout = saveout
+    import subprocess
+    sys.stderr.write( 'bzrlib failed, trying subprocess module.\n' )
+    pipe = subprocess.Popen( 'bzr version-info --custom --template=%s' % TEMPLATE, shell=True, \
+                stdout=subprocess.PIPE).stdout
+    versionString = pipe.read()
+    pipe.close()
   except ImportError:
     try:
       import subprocess
+      sys.stderr.write( 'No bzrlib module, trying subprocess module.\n' )
       pipe = subprocess.Popen( 'bzr version-info --custom --template=%s' % TEMPLATE, shell=True, \
                   stdout=subprocess.PIPE).stdout
       versionString = pipe.read()
       pipe.close()
     except ImportError:
+      sys.stderr.write( 'No subprocess module, trying older os.popen().\n' )
       pipe = os.popen( 'bzr version-info  --custom --template=%s' % TEMPLATE )
       versionString = pipe.read()
       pipe.close()

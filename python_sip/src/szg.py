@@ -103,6 +103,7 @@ def ar_initPythonPrompt( framework ):
 
 def ar_doPythonPrompt():
   __szg_python_prompt_lock.release()
+  # Let prompt handling happen
   __szg_python_prompt_lock.acquire()
 
 
@@ -118,7 +119,7 @@ def delPhleetArgs( argv ):
 
 cpparSZGClient = arSZGClient
 class arSZGClient(cpparSZGClient):
-  def init( argv, forcedName='NULL' ):
+  def init( self, argv, forcedName='NULL' ):
     stat = cpparSZGClient.init( self, argv, forcedName )
     delPhleetArgs( argv )
     return stat

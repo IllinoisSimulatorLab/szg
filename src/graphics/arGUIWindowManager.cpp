@@ -63,6 +63,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   _mouseCallback( mouseCB ),
   _windowCallback( windowCB ? windowCB : ar_windowManagerDefaultWindowFunction),
   _windowInitGLCallback( windowInitGLCB ),
+  _windowingConstruct( NULL ),
   _maxID( 0 ),
   _threaded( threaded ),
   _fActivatedFramelock( false )
@@ -753,6 +754,8 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 {
   if (!windowingConstruct)
     return -1;
+
+  _windowingConstruct = const_cast<arGUIWindowingConstruct*>(windowingConstruct);
 
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     windowingConstruct->getWindowConstructs();

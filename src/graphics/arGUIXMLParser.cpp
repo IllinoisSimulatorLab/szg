@@ -122,7 +122,7 @@ class arGUIXMLDisplayValidator: public arGUIXMLValidator {
 };
 arGUIXMLDisplayValidator::arGUIXMLDisplayValidator() :
   arGUIXMLValidator("display") {
-  addAttributes( "threaded/framelock" );
+  addAttributes( "threaded/framelock/use_extra_stereo_buffer_swap" );
   addChildren( "szg_window" );
 }
 //@-node:jimc.20100409112755.223:arGUIXMLDisplayValidator::arGUIXMLDisplayValidator
@@ -348,9 +348,11 @@ arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
 //@+node:jimc.20100409112755.240:arGUIWindowingConstruct::arGUIWindowingConstruct
 
 arGUIWindowingConstruct::arGUIWindowingConstruct( int threaded, int useFramelock,
+                                                  int useExtraBufSwap,
                                                   vector< arGUIXMLWindowConstruct* >* windowConstructs ) :
   _threaded( threaded ),
   _useFramelock( useFramelock ),
+  _useExtraStereoBufferSwap( useExtraBufSwap ),
   _windowConstructs( windowConstructs )
 {
 }
@@ -364,11 +366,11 @@ arGUIWindowingConstruct::~arGUIWindowingConstruct( void )
 //@+node:jimc.20100409112755.242:arGUIXMLParser::arGUIXMLParser
 
 arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
-                                const string& config ) :
+                                const string& displayName ) :
   _SZGClient( SZGClient ),
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
-  setConfig( config );
+  setDisplayName( displayName );
   _windowingConstruct = new arGUIWindowingConstruct();
 }
 //@-node:jimc.20100409112755.242:arGUIXMLParser::arGUIXMLParser
@@ -379,32 +381,32 @@ arGUIXMLParser::~arGUIXMLParser( void )
   _doc.Clear();
 }
 //@-node:jimc.20100409112755.243:arGUIXMLParser
-//@+node:jimc.20100409112755.244:arGUIXMLParser::setConfig
+//@+node:jimc.20100409112755.244:arGUIXMLParser::setDisplayName
 
-void arGUIXMLParser::setConfig( const string& config )
+void arGUIXMLParser::setDisplayName( const string& displayName )
 {
   ar_setTextureAllowNotPowOf2( 
     _SZGClient->getAttribute("SZG_RENDER", "allow_texture_not_pow2") != string("false") );
 
-  if ( config == _config )
+  if ( displayName == _displayName )
     return;
 
-  if ( config.empty() || config == "NULL" ) {
-    ar_log_remark() << "arGUIXML using default config.\n";
-    _config = _mininumConfig;
+  if ( displayName.empty() || displayName == "NULL" ) {
+    ar_log_remark() << "arGUIXML using default displayName.\n";
+    _displayName = _mininumConfig;
   }
   else
-    _config = config;
+    _displayName = displayName;
 
-  // Delete any old config strings.
+  // Delete any old displayName strings.
   _doc.Clear();
 
-  // Append the new config string.
-  _doc.Parse( _config.c_str() );
+  // Append the new displayName string.
+  _doc.Parse( _displayName.c_str() );
   if (_doc.Error())
-    _reportParseError( &_doc, _config );
+    _reportParseError( &_doc, _displayName );
 }
-//@-node:jimc.20100409112755.244:arGUIXMLParser::setConfig
+//@-node:jimc.20100409112755.244:arGUIXMLParser::setDisplayName
 //@+node:jimc.20100409112755.245:arGUIXMLParser::_getNamedNode
 
 /*
@@ -542,12 +544,17 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
 bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
                                      const string& value )
 {
-  if ( !node || !node->ToElement() )
+  if ( !node || !node->ToElement() ) {
+    ar_log_debug() << "_attributeBool() invalide node.\n";
     return false;
+  }
 
   const char* pch = node->ToElement()->Attribute( value.c_str() );
-  if (!pch)
+  if (!pch) {
+    ar_log_debug() << "_attributeBool() failed to get attribute value string for '"
+                   << value << "'.\n";
     return false;
+  }
 
   const string attrVal( pch );
   if ((attrVal != "yes")&&(attrVal != "no")&&(attrVal != "true")&&(attrVal != "false")) {
@@ -555,6 +562,8 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
       "' to be one of yes/no/true/false, not '" << attrVal << "'.  Defaulting to 'no'.\n";
     return false;
   }
+  ar_log_debug() << "_attributeBool() value for attribute '" << value
+                 << "' = '" << attrVal << "'\n";
 
   return attrVal == "true" || attrVal == "yes";
 }
@@ -842,7 +851,12 @@ bool arGUIXMLParser::parse( void )
 
   // <threaded value="true|false|yes|no" />
   if ( szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
-    _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "display 'threaded'" ) ? 1 : 0 );
+    _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) ? 1 : 0 );
+  }
+
+  // <use_extra_stereo_buffer_swap value="true|false|yes|no" />
+  if ( szgDisplayNode->ToElement()->Attribute( "use_extra_stereo_buffer_swap" ) ) {
+    _windowingConstruct->setUseExtraStereoBufferSwap( _attributeBool( szgDisplayNode->ToElement(), "use_extra_stereo_buffer_swap" ) ? 1 : 0 );
   }
 
   // <framelock value="wildcat" /> <framelock value="wgl" />
