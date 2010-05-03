@@ -26,7 +26,7 @@ enum arHeadWandSimState {
   AR_SIM_WAND_ROTATE,
   AR_SIM_USE_JOYSTICK,
   AR_SIM_HEAD_ROLL,
-  AR_SIM_WAND_ROLL,
+  AR_SIM_WAND_ROLL
 };
 // AR_SIM_BOX_ROLL deliberately unimplemented.
 
