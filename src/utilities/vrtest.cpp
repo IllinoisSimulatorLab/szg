@@ -156,7 +156,6 @@ void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
   static int idPing = -1;
   static int idPong = -1;
   static int idSaber = -1;
-  static bool fInit = false;
   static float amplSaberPrev = 0.;
 
   const float xyz[5][3] = // left, front, right, default, saber
@@ -166,6 +165,8 @@ void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
   if (iPing < 0 || iPing > 2) {
     iPing = iPingDefault;
   }
+
+  static bool fInit = false;
   if (!fInit) {
     fInit = true;
     idPing = dsLoop("ping", "root", "q33beep.wav", 0, 0.0, xyz[iPingDefault]);
@@ -238,8 +239,8 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   int iPing = -1;
   int cOn = 0;
   for (i=0; i < cb; ++i) {
-    rgButton[i]    = fw.getButton(i);
-    rgOnbutton[i]  = fw.getOnButton(i);
+    rgButton   [i] = fw.getButton(i);
+    rgOnbutton [i] = fw.getOnButton(i);
     rgOffbutton[i] = fw.getOffButton(i);
     if (rgOnbutton[i]) {
       iPing = int(i);
@@ -265,7 +266,7 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   static arVector3 tipPosPrev(0, 5, -5);
   const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0, 0, -wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
-  clamp(vSaber, 0., 1.3);
+  clamp(vSaber, 0.0, 1.3);
   tipPosPrev = tipPos;
   doSounds(iPing, fPing, fPong, vSaber);
 }
