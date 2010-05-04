@@ -25,11 +25,19 @@ ifeq ($(strip $(MACHINE)), LINUX)
   LINK_GLUT := -lglut
   OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.so.3.7)
 
-	FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-4
-	INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-	LIB_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+	FMOD_DIR  := $(SZGEXTERNAL)/linux/fmod-4
+	INC_FMOD  := $(wildcard $(FMOD_DIR)/include)
+	LIB_FMOD  := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
 	LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
-	OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+	OBJ_FMOD  := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+	INC_FMOD64  := $(wildcard $(FMOD_DIR)/include)
+	LIB_FMOD64  := $(wildcard $(FMOD_DIR)/lib/libfmodex64.so)
+	LINK_FMOD64 := $(wildcard $(FMOD_DIR)/lib/libfmodex64.so)
+	OBJ_FMOD64  := $(wildcard $(FMOD_DIR)/lib/libfmodex64.so)
+  
+  JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
+  INC_JPEG := $(wildcard $(JPEG_DIR)/include)
+  LIB_JPEG := $(wildcard $(JPEG_DIR)/lib/libjpeg.a)
   
   JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
@@ -88,17 +96,27 @@ ifeq ($(strip $(MACHINE)), LINUX)
     SZG_LINK_GLUT = -lglut
     SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
   endif
- 
+
   ifneq ($(strip $(INC_FMOD)),)
   ifneq ($(strip $(OBJ_FMOD)),)
     SZG_OPT_FLAGS += -DEnableSound
     SZG_SHARED_COPY += $(OBJ_FMOD)
-    SZG_SHARED_COPY_ACTION += 
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
     # -rpath lets shared libs be only in their compiled-in directories,
     # or in the local bin directory as well.
     SZG_LINK_FMOD = -L$(FMOD_DIR)/lib -Wl,-rpath,$(FMOD_DIR)/lib $(LINK_FMOD)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_FMOD64)),)
+  ifneq ($(strip $(OBJ_FMOD64)),)
+    SZG_OPT_FLAGS += -DEnableSound
+    SZG_SHARED_COPY += $(OBJ_FMOD64)
+    SZG_INCLUDE_FMOD = -I$(INC_FMOD64)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD64)
+    SZG_LINK_FMOD = -L$(FMOD_DIR)/lib -Wl,-rpath,$(FMOD_DIR)/lib $(LINK_FMOD64)
     SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
   endif
   endif
