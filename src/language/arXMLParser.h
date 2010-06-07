@@ -875,14 +875,14 @@ public:
                 an integer, it returns TIXML_WRONG_TYPE. If the attribute
                 does not exist, then TIXML_NO_ATTRIBUTE is returned.
         */
-        int QueryIntAttribute( const char* name, int* value ) const;
+        int QueryIntAttribute( const char* name, int* valueNotMemberVariable ) const;
         // QueryDoubleAttribute examines the attribute - see QueryIntAttribute().
-        int QueryDoubleAttribute( const char* name, double* value ) const;
+        int QueryDoubleAttribute( const char* name, double* valueNotMemberVariable ) const;
         // QueryFloatAttribute examines the attribute - see QueryIntAttribute().
-        int QueryDoubleAttribute( const char* name, float* value ) const {
+        int QueryDoubleAttribute( const char* name, float* valueNotMemberVariable ) const {
                 double d;
                 int result = QueryDoubleAttribute( name, &d );
-                *value = (float)d;
+                *valueNotMemberVariable = (float)d;
                 return result;
         }
 
@@ -895,8 +895,8 @@ public:
         const char* Attribute( const std::string& name ) const                                { return Attribute( name.c_str() ); }
         const char* Attribute( const std::string& name, int* i ) const                { return Attribute( name.c_str(), i ); }
         const char* Attribute( const std::string& name, double* d ) const        { return Attribute( name.c_str(), d ); }
-        int QueryIntAttribute( const std::string& name, int* value ) const        { return QueryIntAttribute( name.c_str(), value ); }
-        int QueryDoubleAttribute( const std::string& name, double* value ) const { return QueryDoubleAttribute( name.c_str(), value ); }
+        int QueryIntAttribute( const std::string& name, int* valueNotMemberVariable ) const        { return QueryIntAttribute( name.c_str(), valueNotMemberVariable ); }
+        int QueryDoubleAttribute( const std::string& name, double* valueNotMemberVariable ) const { return QueryDoubleAttribute( name.c_str(), valueNotMemberVariable ); }
 
         // STL std::string form.
         void SetAttribute( const std::string& name, const std::string& _value )
@@ -1383,7 +1383,7 @@ class SZG_CALL TiXmlHandle
 {
 public:
         // Create a handle from any node (at any depth of the tree.) This can be a null pointer.
-        TiXmlHandle( TiXmlNode* node )                                        { this->node = node; }
+        TiXmlHandle( TiXmlNode* nodeNotMemberVariable ) { this->node = nodeNotMemberVariable; }
         // Copy constructor
         TiXmlHandle( const TiXmlHandle& ref )                        { this->node = ref.node; }
         TiXmlHandle operator=( const TiXmlHandle& ref ) { this->node = ref.node; return *this; }

@@ -59,7 +59,7 @@ class SZG_CALL arSyncDataServer{
   arDatabaseNode* receiveMessage(arStructuredData*);
 
   arDataServer* dataServer() const
-    { return (arDataServer*)&_dataServer; }
+    { return (arDataServer*)&_dataServer; } // Hey! This casts away constness.  Explain this.
 
  private:
   arSZGClient* _client;

@@ -8,7 +8,7 @@
 
 #include "arMath.h"
 static inline FMOD_VECTOR FmodvectorFromArvector(const arVector3& rhs) {
-  // could just use a cast, but this is safer
+  // safer than a cast
   FMOD_VECTOR lhs;
   lhs.x = rhs.v[0];
   lhs.y = rhs.v[1];
@@ -25,7 +25,7 @@ extern SZG_CALL bool ar_fmodcheck3(const FMOD_RESULT, const char*, int);
 #ifdef AR_USE_WIN_32
 #define FMOD_VERSION 0x00040305 /* 4.03.05 */
 #else
-#define FMOD_VERSION 0x00040306 /* 4.03.06 */
+#define FMOD_VERSION 0x00040306 /* 4.03.06 (incorrect for 64-bit fmod 4.30.02, but it still runs) */
 #endif
 
 namespace FMOD
