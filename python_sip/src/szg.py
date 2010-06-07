@@ -149,7 +149,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onWindowStartGL( winInfo )
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'WindowStartGL', arCallbackException(str(msg)) )
       self.stop( False )
   def onWindowStartGL( self, winInfo ):
@@ -160,7 +161,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
         ar_doPythonPrompt()
       self.onPreExchange()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'PreExchange', arCallbackException(str(msg)) )
       self.stop( False )
   def onPreExchange( self ):
@@ -169,7 +171,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onPostExchange()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'PostExchange', arCallbackException(str(msg)) )
       self.stop( False )
   def onPostExchange( self ):
@@ -178,7 +181,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onWindowInit()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'WindowInit', arCallbackException(str(msg)) )
       self.stop( False )
   def onWindowInit( self ):
@@ -187,7 +191,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onDraw( win, vp )
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'Draw', arCallbackException(str(msg)) )
       self.stop( False )
   def onDraw( self, win, vp ):
@@ -196,7 +201,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onDisconnectDraw()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'DisconnectDraw', arCallbackException(str(msg)) )
       self.stop( False )
   def onDisconnectDraw( self ):
@@ -206,7 +212,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onPlay()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'Play', arCallbackException(str(msg)) )
       self.stop( False )
   def onPlay( self ):
@@ -215,7 +222,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onWindowEvent( winInfo )
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'WindowEvent', arCallbackException(str(msg)) )
       self.stop( False )
   def onWindowEvent( self, winInfo ):
@@ -231,7 +239,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onCleanup()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'Cleanup', arCallbackException(str(msg)) )
       self.stop( False )
   def onCleanup( self ):
@@ -240,7 +249,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onOverlay()
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'Overlay', arCallbackException(str(msg)) )
       self.stop( False )
   def onOverlay( self ):
@@ -249,7 +259,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     try:
       self.onKey( keyInfo.getKey(), keyInfo.getState(), keyInfo.getCtrl(), keyInfo.getAlt() )
     except TypeError, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       print "NOTE: You may be getting this error because you're using the"
       print 'old signature for the onKey method:'
       print '  def onKey( self, keyInfo )'
@@ -261,7 +272,8 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
       self._stop( 'Key', arCallbackException(str(msg)) )
       self.stop( False )
     except Exception, msg:
-      traceback.print_exc()
+      msg = str(msg) + '\n'+traceback.format_exc()
+      print msg
       self._stop( 'Key', arCallbackException(str(msg)) )
       self.stop( False )
   def onKey( self, key, state, ctrl, alt ):
