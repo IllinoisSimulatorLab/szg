@@ -900,7 +900,7 @@ class arInteractableThing : arInteractable {
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& );
 };
 
-
+/*
 class arDistSceneGraphFramework : arSZGAppFramework {
 %TypeHeaderCode
 #include "arDistSceneGraphFramework.h"
@@ -937,4 +937,4 @@ class arDistSceneGraphFramework : arSZGAppFramework {
   void setViewer();
   void setPlayer();
 };
-
+*/
