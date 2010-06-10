@@ -86,6 +86,16 @@ arGUIWindowManager::~arGUIWindowManager( void )
   }
 }
 //@-node:jimc.20100409112755.106:Destructor
+//@+node:jimc.20100609152149.1:arGUIWindowManager::hasStereoWindows
+bool arGUIWindowManager::hasStereoWindows( void ) {
+  for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
+    if (it->second->isStereo()) {
+      return true;
+    }
+  }
+  return false;
+}
+//@-node:jimc.20100609152149.1:arGUIWindowManager::hasStereoWindows
 //@+node:jimc.20100409112755.107:arGUIWindowManager::_keyboardHandler
 
 void arGUIWindowManager::_keyboardHandler( arGUIKeyInfo* keyInfo )

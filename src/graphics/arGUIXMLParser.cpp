@@ -122,7 +122,7 @@ class arGUIXMLDisplayValidator: public arGUIXMLValidator {
 };
 arGUIXMLDisplayValidator::arGUIXMLDisplayValidator() :
   arGUIXMLValidator("display") {
-  addAttributes( "threaded/framelock/use_extra_stereo_buffer_swap" );
+  addAttributes( "threaded/framelock/extra_stereo_bufferswap" );
   addChildren( "szg_window" );
 }
 //@-node:jimc.20100409112755.223:arGUIXMLDisplayValidator::arGUIXMLDisplayValidator
@@ -854,9 +854,9 @@ bool arGUIXMLParser::parse( void )
     _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) ? 1 : 0 );
   }
 
-  // <use_extra_stereo_buffer_swap value="true|false|yes|no" />
-  if ( szgDisplayNode->ToElement()->Attribute( "use_extra_stereo_buffer_swap" ) ) {
-    _windowingConstruct->setUseExtraStereoBufferSwap( _attributeBool( szgDisplayNode->ToElement(), "use_extra_stereo_buffer_swap" ) ? 1 : 0 );
+  // <extra_stereo_bufferswap value="true|false|yes|no" />
+  if ( szgDisplayNode->ToElement()->Attribute( "extra_stereo_bufferswap" ) ) {
+    _windowingConstruct->setUseExtraStereoBufferSwap( _attributeBool( szgDisplayNode->ToElement(), "extra_stereo_bufferswap" ) ? 1 : 0 );
   }
 
   // <framelock value="wildcat" /> <framelock value="wgl" />

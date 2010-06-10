@@ -705,13 +705,16 @@ void arMasterSlaveFramework::loopQuantum() {
   preDraw();
   draw( true );    // render GL_BACK_LEFT viewports
   //  _If stereo_ and ..., then insert extra buffer-swap.
-//  if (_wm->getWindowingConstruct()->getUseExtraStereoBufferSwap()) {
-//    swap();
-//  }
-  draw( false );   // render GL_BACK_RIGHT viewports
-  postDraw();
+  //  (needed to workaround stupid nVidia quad-buffer bug,
+  //  which they insist isn't a bug...)
+  if (_wm->hasStereoWindows()) {
+    if (_wm->getWindowingConstruct()->getUseExtraStereoBufferSwap()) {
+      swap();
+    }
 
-  // Synchronize.
+    draw( false );   // render GL_BACK_RIGHT viewports
+  }
+  sync();
   swap();
 
   // Process events from keyboard, window manager, etc.
@@ -848,25 +851,25 @@ void arMasterSlaveFramework::draw( const bool drawLeftBuffer, int windowID ) {
     _wm->drawWindow( windowID, drawLeftBuffer, true );
 }
 //@-node:jimc.20100409112755.22:arMasterSlaveFramework::draw
-//@+node:jimc.20100409112755.23:arMasterSlaveFramework::postDraw
+//@+node:jimc.20100409112755.23:arMasterSlaveFramework::sync
 
 // After the window is drawn, and before synchronizing.
-void arMasterSlaveFramework::postDraw( void ) {
+void arMasterSlaveFramework::sync( void ) {
   if ( stopping() || _standalone )
     return;
 
-  const ar_timeval postDrawStart = ar_time();
+  const ar_timeval syncStart = ar_time();
   if ( _framerateThrottle ) {
     // Test sync.
     ar_usleep( 200000 );
   }
 
   if ( !_sync() ) {
-    ar_log_error() << "sync failed in postDraw().\n";
+    ar_log_error() << "_sync failed in sync().\n";
   }
-  _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
+  _lastSyncTime = ar_difftime( ar_time(), syncStart );
 }
-//@-node:jimc.20100409112755.23:arMasterSlaveFramework::postDraw
+//@-node:jimc.20100409112755.23:arMasterSlaveFramework::sync
 //@+node:jimc.20100409112755.24:arMasterSlaveFramework::swap
 
 // Public, so apps can make custom event loops.
