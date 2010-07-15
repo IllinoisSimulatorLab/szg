@@ -15,21 +15,8 @@ def getBzrVersion():
     saveout = sys.stdout
     myOut = StringIO()    
     sys.stdout = myOut
-    sys.stderr.write( 'About to invoke bzr version-info using bzrlib\n' )
-    #try:
-    exit_val = bzrlib.commands.run_bzr(['version-info','--custom','--template=%s'%TEMPLATE])
-    #except Exception:
-    #  sys.stdout = saveout
-    #  print 'Error calling bzr.'
-    #  traceback.print_exc()
-    #  sys.exit(1)
-    sys.stdout = saveout
-    versionString = myOut.getvalue()
-    myOut.close()
-  except BzrCommandError:
     sys.stdout = saveout
     import subprocess
-    sys.stderr.write( 'bzrlib failed, trying subprocess module.\n' )
     pipe = subprocess.Popen( 'bzr version-info --custom --template=%s' % TEMPLATE, shell=True, \
                 stdout=subprocess.PIPE).stdout
     versionString = pipe.read().strip().split('\n')
