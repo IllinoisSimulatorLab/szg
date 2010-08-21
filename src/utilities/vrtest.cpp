@@ -337,7 +337,6 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glClearColor(1, 1, 1, 0);
   else
     glClearColor(0, 0, 0, 0);
-  glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
