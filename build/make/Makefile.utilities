@@ -4,6 +4,7 @@ VPATH = ../../../src/utilities
 include $(SZGHOME)/build/make/Makefile.vars
 
 ALL = \
+  screensaver$(EXE) \
   calibrationdemo$(EXE) \
   DeskCalibrator$(EXE) \
   dmsg$(EXE) \
@@ -20,6 +21,10 @@ ALL = \
 SZG_INCLUDE += $(SZG_INCLUDE_GLUT)
 
 include $(SZGHOME)/build/make/Makefile.rules
+
+screensaver$(EXE): screensaver$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) screensaver$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
 
 calibrationdemo$(EXE): calibrationdemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) calibrationdemo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
