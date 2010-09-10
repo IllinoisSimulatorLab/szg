@@ -4,6 +4,7 @@ print ar_versionString(True)
 print ar_versionInfo(True)
 import sys
 import traceback
+import cPickle
 
 # Simple embedded multiline python interpreter built around raw_input().
 # Interrupts the control flow at any given location with 'exec prompt'
