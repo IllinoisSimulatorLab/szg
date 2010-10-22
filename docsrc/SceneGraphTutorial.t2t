@@ -592,8 +592,8 @@ time.sleep(5)
 =Scene Graph: Saving and Reloading Your Work=
 
 You should be certain that your Syzygy parameters are set as in
-[this #Database] section, especially the SZG_PEER/path. We
-assume you have worked through the section on [loading #Objects]
+[this SystemConfiguration.html#Database] section, especially the SZG_PEER/path. We
+assume you have worked through the section on loading
 objects.
 
 First, save your database. You are writing it in binary format (which is
