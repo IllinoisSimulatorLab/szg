@@ -14,6 +14,9 @@
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
+static int textColorInited(false);
+static int usingTextColors(false);
+
 #ifdef AR_USE_WIN_32
 
 #include <winbase.h>
@@ -22,8 +25,6 @@ const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 static HANDLE hStdout; 
 static CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
 static WORD wOldColorAttrs;
-static int textColorInited(false);
-static int usingTextColors(false);
 
 static void ar_textColorInit() {
   if (textColorInited) {
@@ -71,6 +72,7 @@ static void ar_textRestore() {
 
 static void ar_textColorInit() {}
 static void ar_textYellow() {}
+static void ar_textCyan() {}
 static void ar_textRestore() {}
 
 #endif // AR_USE_WIN_32
