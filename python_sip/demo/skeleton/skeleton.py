@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import sys
+import os
 
 firstFrame = True
 
@@ -15,6 +16,10 @@ firstFrame = True
 # See szg/doc/Interaction.html for a discussion of user/object interaction
 # concepts & classes
 
+# Look for textures in a 'textures' subdirectory of the directory containing
+# this program
+TEXTURE_PATH = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'textures' )
+
 
 #### Class definitions & implementations. ####
 
@@ -22,10 +27,25 @@ firstFrame = True
 # can be grabbed & dragged around. We'll also have an effector class for doing the grabbing
 #
 
-# ColoredSquare: a yellow square that changes green when 'touched'
+# TexturedSquare: a yellow square that changes green when 'touched'
 # (i.e. when the effector tip is within 1 ft.) and can be dragged around.
 # See szg/src/interaction/arInteractableThing.h.
-class ColoredSquare(arInteractableThing):
+class TexturedSquare(arInteractableThing):
+  def __init__( self, fw ):
+    arInteractableThing.__init__( self )
+    self.fw = fw
+    self.texture = None
+    
+  def loadTexture( self, filePath ):
+    self.texture = arTexture()
+    if not self.texture.readImage( filePath, '', '' ):
+      print 'Failed to load TexturedSquare texture'
+      self.texture = None
+      return
+    self.texture.setTextureFunc( GL_MODULATE )
+    self.texture.mipmap(True)
+    self.texture.repeating(True)
+
   def onTouch( self, effector ):
     self.setHighlight( True )
     return True
@@ -38,22 +58,37 @@ class ColoredSquare(arInteractableThing):
   # interaction ('touched')
   def onInteraction( self, effector ):
     # button 3 toggles visibility (actually solid/wireframe)
+    # ...and makes the object speak
     if effector.getOnButton(3):
       self.setVisible( not self.getVisible() )
+      self.fw.speak('ouch!')
     return True
 
   def draw(self):
     glPushMatrix()
     glMultMatrixf( self.getMatrix().toTuple() )
-    glScalef( 2., 2., 1./12. )
+    glScalef( 2., 2., .01 )
     if self.getVisible():
       # set one of two colors depending on if this object has been selected for interaction
       if self.getHighlight():
         glColor3f( 0,1,0 )
       else:
         glColor3f( 1,1,0 )
-      # draw rectangular solid 2'x2'x1'
-      glutSolidCube(1.)
+      if self.texture is not None:
+        self.texture.activate()
+      # draw rectangle 2'x2'
+      glBegin( GL_QUADS )
+      glTexCoord2f( 0., 0. )
+      glVertex3f( -.5, -.5, 0. )
+      glTexCoord2f( 1., 0. )
+      glVertex3f( .5, -.5, 0. )
+      glTexCoord2f( 1., 1. )
+      glVertex3f( .5, .5, 0. )
+      glTexCoord2f( 0., 1. )
+      glVertex3f( -.5, .5, 0. )
+      glEnd()
+      if self.texture is None:
+        self.texture.deactivate()
     # superimpose slightly larger white wireframe
     glColor3f(1,1,1)
     glutWireCube(1.03)
@@ -81,7 +116,7 @@ class RodEffector( arEffector ):
     # The arGrabCondition specifies that a grab will occur whenever the value
     # of the specified button event # is > 0.5.
     self.setDrag( arGrabCondition( AR_EVENT_BUTTON, 0, 0.5 ), arWandRelativeDrag() )
-    self.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ), arWandTranslationDrag() )
+    self.setDrag( arGrabCondition( AR_EVENT_BUTTON, 1, 0.5 ), arWandTranslationDrag() )
 
   def draw(self):
     glPushMatrix()
@@ -113,7 +148,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     arPyMasterSlaveFramework.__init__(self)
 
     # Our single object and effector
-    self.theSquare = ColoredSquare()
+    self.theSquare = TexturedSquare( self )
     self.theWand = RodEffector()
 
     # List of objects to interact with
@@ -149,6 +184,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # set square's initial position
     self.theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
+    
+    # Load square texture
+    self.theSquare.loadTexture( os.path.join( TEXTURE_PATH, 'spiral.jpg' ) )
 
     return True
     
@@ -175,6 +213,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # Handle any interaction with the squares (see interaction docs).
     # Any grabbing/dragging/deletion of squares happens in here.
     ar_pollingInteraction( self.theWand, self.interactionList )
+
+    if self.getOnButton(2):
+      self.speak( "You've pressed button 2" )
 
     # Pack data we have to transfer to slaves into appropriate variables
     # What we end up with here is a tuple containing two Ints and a nested tuple
