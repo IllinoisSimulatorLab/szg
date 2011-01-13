@@ -192,8 +192,8 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     }
     g->relayWaveform(); // Forward buffer to the next DSP in the chain.
     return FMOD_OK;
-    break;
   }
+  return FMOD_OK;
 }
 #endif
 
@@ -409,12 +409,14 @@ bool arSoundClient::startDSP() {
 //  try FMOD_HARDWARE instead of FMOD_SOFTWARE ?
     return false;
   }
+#ifdef Busted_on_zx81
   // Allow playing from the mic.
   // (Mic comes from setRecordDriver and windows' audio control panel.)
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
     ar_log_error() << "failed to start recording.\n";
     // Don't abort.  Let the DSP start.
   }
+#endif
 
   // Start playing (and recording) paused,
   // to reduce delay between sound and visualizations thereof.
@@ -425,12 +427,16 @@ bool arSoundClient::startDSP() {
     return false;
   }
 
+#ifdef Busted_on_zx81
   // Start the DSP, which taps into the sample stream to e.g. compute its FFT.
   FMOD_DSP_DESCRIPTION d = {0};
   d.read = ar_soundClientDSPCallback;
   return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &_DSPunit )) &&
          ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), _DSPunit )) &&
          ar_fmodcheck( FMOD_DSP_SetActive( _DSPunit, true ));
+#else
+  return true;
+#endif
 #endif
 }
 

@@ -43,3 +43,10 @@ typedef int Sound;
 
 #endif
 #endif
+
+#if FMOD_VERSION == 0x00043002
+  #undef Busted_on_zx81
+#else
+  #define Busted_on_zx81
+#endif
+

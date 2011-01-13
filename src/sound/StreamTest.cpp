@@ -146,9 +146,13 @@ bool SetupExample() {
   d.version = 42;
   d.channels = 0; // default (use another value to generate a particular number of channels)
   d.read = DSP_ExampleCallback;
+#ifdef Busted_on_zx81
   return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &Unit )) &&
            ar_fmodcheck( FMOD_DSP_SetActive( Unit, true ) ) &&
            ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), Unit ));
+#else
+  return false;
+#endif
 }
 
 bool CloseExample() {
@@ -205,6 +209,7 @@ int main(int argc, char** argv) {
     iDriver = 0;
   }
 
+#ifdef Busted_on_zx81
   if (cDriverPlay > 1) {
     int i = 0;
     printf("Soundcards:\n");
@@ -231,16 +236,19 @@ int main(int argc, char** argv) {
         i, sz);
     }
   }
+#endif
 
   // Select sound cards (0 = default)
   if (!ar_fmodcheck( FMOD_System_SetDriver( ar_fmod(), iDriver ))) {
     cerr << "Failed to set driver.\n";
     return 1;
   }
+#ifdef Busted_on_zx81
   if (!ar_fmodcheck( FMOD_System_SetRecordDriver( ar_fmod(), iDriver ))) {
     cerr << "Failed to set record driver.\n";
     return 1;
   }
+#endif
 
   if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
            int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
@@ -276,6 +284,7 @@ LAbort:
     return 1;
   }
 
+#ifdef Busted_on_zx81
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
     ar_log_critical() << "FMOD failed to record.\n";
     goto LAbort;
@@ -293,6 +302,9 @@ LAbort:
     }
     while (t == 0);
   }
+#else
+  goto LAbort;
+#endif
 
   if (!SetupExample())
     return 1;
@@ -312,6 +324,7 @@ LAbort:
   unsigned recordposPrev = 0;
   unsigned playposPrev = 0;
   float freq = originalFreq;
+#ifdef Busted_on_zx81
   while (!fQuit && szgClient.running()) {
     unsigned playpos;
     unsigned recordpos;
@@ -372,12 +385,15 @@ LAbort:
     ar_usleep(10000);
   }
 #endif
+#endif
 
   szgClient.messageTaskStop();
 
 #ifdef EnableSound
   (void)ar_fmodcheck( FMOD_Sound_Release( samp1 ));
+#ifdef Busted_on_zx81
   (void)ar_fmodcheck( FMOD_System_RecordStop( ar_fmod() ));
+#endif
   (void)CloseExample();
   (void)ar_fmodcheck( FMOD_System_Release( ar_fmod() ));
 #endif
