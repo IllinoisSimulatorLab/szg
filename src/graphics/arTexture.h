@@ -33,6 +33,7 @@ bool SZG_CALL ar_warnTextureAllowNotPowOf2();
 // Texture map loaded from a file or from memory.
 
 class SZG_CALL arTexture {
+  friend void arTexture_setThreaded(bool);
  public:
   arTexture();
   virtual ~arTexture();
@@ -135,6 +136,8 @@ class SZG_CALL arTexture {
   arLock _lock; // guards _texNameMap
 
   // Handles to OpenGL textures, one per graphics context.
+  static bool _threaded;
+  GLuint _texName;
   map<ARint64, GLuint, less<ARint64> > _texNameMap;
 
   GLuint _sharedTextureID;
@@ -146,5 +149,7 @@ class SZG_CALL arTexture {
   char* _packPixels() const;
   virtual bool _loadIntoOpenGL();
 };
+
+extern void arTexture_setThreaded(bool f = false);
 
 #endif

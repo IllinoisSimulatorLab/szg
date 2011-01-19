@@ -15,6 +15,7 @@
 #include "arGUIWindow.h"
 #include "arGUIXMLParser.h"
 #include "arFramelockUtilities.h"
+#include "arTexture.h"
 
 // Default callbacks for window and keyboard events.
 
@@ -75,6 +76,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
     ar_log_error() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
   }
 #endif
+  arTexture_setThreaded(_threaded); // Wherever _threaded is set, propagate that to arTexture.
 }
 //@-node:jimc.20100409112755.105:arGUIWindowManager::arGUIWindowManager
 //@+node:jimc.20100409112755.106:Destructor
@@ -712,8 +714,10 @@ arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey /*key*/ )
 //@+node:jimc.20100409112755.155:arGUIWindowManager::setThreaded
 
 void arGUIWindowManager::setThreaded( bool threaded ) {
-  if (!hasActiveWindows())
+  if (!hasActiveWindows()) {
     _threaded = threaded;
+    arTexture_setThreaded(_threaded); // Wherever _threaded is set, propagate that to arTexture.
+  }
 }
 //@-node:jimc.20100409112755.155:arGUIWindowManager::setThreaded
 //@+node:jimc.20100409112755.156:arGUIWindowManager::_sendDeleteEvent

@@ -63,6 +63,7 @@ arTexture::arTexture() :
   _mipmap(true),
   _textureFunc( GL_DECAL ),
   _pixels(NULL),
+  _texName(0),
   _sharedTextureID(0),
   _refs(1)
 {
@@ -76,8 +77,8 @@ arTexture::~arTexture() {
 #ifdef DISABLED
   // This segfaults when called from arGraphicsDatabase::reset(),
   // when the geometry server is dkill'd and szgrender is still running here.
-  if (_texName != 0)
-    glDeleteTextures( 1, &_texName );
+  if (...)
+    glDeleteTextures( 1, ... );
 #endif
 }
 
@@ -184,32 +185,42 @@ void arTexture::unref(bool fDebug) {
 }
 
 bool arTexture::activate(bool forceReload) {
+  GLuint temp = 0;
   glEnable(GL_TEXTURE_2D);
-  _lock.lock("arTexture::activate");
-  const ARint64 threadID =
+  if (_threaded) {
+    const ARint64 threadID =
 #ifdef AR_USE_WIN_32
-    GetCurrentThreadId();
+      GetCurrentThreadId();
 #else
-    ARint64(pthread_self());
+      ARint64(pthread_self());
 #endif
-  // Has it been used so far?
-  map<ARint64, GLuint, less<ARint64> >::const_iterator i = _texNameMap.find(threadID);
-  GLuint temp;
-  if (i == _texNameMap.end()) {
-    glGenTextures(1, &temp);
-    if (temp == 0) {
-      ar_log_error() << "arTexture glGenTextures() failed in activate().\n";
-      _lock.unlock();
-      return false;
+    arGuard _(_lock, "arTexture::activate");
+    // Has it been used so far?
+    const map<ARint64, GLuint, less<ARint64> >::const_iterator i = _texNameMap.find(threadID);
+    if (i == _texNameMap.end()) {
+      glGenTextures(1, &temp);
+      if (temp == 0) {
+	ar_log_error() << "arTexture glGenTextures() failed in activate(), multi-threaded.\n";
+	return false;
+      }
+      _texNameMap.insert(map<ARint64, GLuint, less<ARint64> >::value_type (threadID, temp));
+      // Load the bitmap on the graphics card, anyways.
+      forceReload = true;
+    } else {
+      temp = i->second;
     }
-    _texNameMap.insert(map<ARint64, GLuint, less<ARint64> >::value_type
-                       (threadID, temp));
-    // Load the bitmap on the graphics card, anyways.
-    forceReload = true;
   } else {
-    temp = i->second;
+    if (_texName <= 0) {
+      glGenTextures(1, &_texName);
+      if (_texName == 0) {
+	ar_log_error() << "arTexture glGenTextures() failed in activate(), single-threaded.\n";
+	return false;
+      }
+      // Load the bitmap on the graphics card, anyways.
+      forceReload = true;
+    }
+    temp = _texName;
   }
-  _lock.unlock();
 
   glBindTexture(GL_TEXTURE_2D, temp);
   // Make the scene graph use the right GL_TEXTURE_ENV_MODE to draw textures.
@@ -1061,3 +1072,6 @@ bool arTexture::_loadIntoOpenGL() {
   _fDirty = false;
   return true;
 }
+
+bool arTexture::_threaded = true;
+void arTexture_setThreaded(bool f) { arTexture::_threaded = f; }
