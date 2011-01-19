@@ -54,10 +54,6 @@ restarttracker$(EXE): restarttracker$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) restarttracker$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
 
-screensaver$(EXE): screensaver$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
-	$(SZG_USR_FIRST) screensaver$(OBJ_SUFFIX) $(SZG_USR_SECOND)
-	$(COPY)
-
 setdemomode$(EXE): setdemomode$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) setdemomode$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
