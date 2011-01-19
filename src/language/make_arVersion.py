@@ -2,32 +2,45 @@ import sys
 import os
 import traceback
 from StringIO import StringIO
+import traceback
 
 print 'make_arVersion:',__file__
 
-TEMPLATE = "revno          : {revno}\\ndate           : {date}\\nrevision id    : {revision_id}\\nbranch nickname: {branch_nick}"
+TEMPLATE = '"revno          : {revno}\\ndate           : {date}\\nrevision id    : {revision_id}\\nbranch nickname: {branch_nick}"'
 
 def getBzrVersion():
   try:
     import bzrlib.commands
+    from bzrlib.errors import BzrCommandError
     saveout = sys.stdout
     myOut = StringIO()    
     sys.stdout = myOut
-    exit_val = bzrlib.commands.run_bzr(['version-info','--custom','--template=%s'%TEMPLATE])
     sys.stdout = saveout
-    versionString = myOut.getvalue()
-    myOut.close()
+    import subprocess
+    pipe = subprocess.Popen( 'bzr version-info --custom --template=%s' % TEMPLATE, shell=True, \
+                stdout=subprocess.PIPE).stdout
+    versionString = pipe.read().strip().split('\n')
+    print versionString
+    print '============================================='
+    pipe.close()
+    versionString = '\n'.join( versionString[-4:] )
   except ImportError:
     try:
       import subprocess
+      sys.stderr.write( 'No bzrlib module, trying subprocess module.\n' )
       pipe = subprocess.Popen( 'bzr version-info --custom --template=%s' % TEMPLATE, shell=True, \
                   stdout=subprocess.PIPE).stdout
-      versionString = pipe.read()
+      versionString = pipe.read().split('\n')
+      print versionString
+      print '============================================='
       pipe.close()
+      versionString = '\n'.join( versionString[-4:] )
     except ImportError:
+      sys.stderr.write( 'No subprocess module, trying older os.popen().\n' )
       pipe = os.popen( 'bzr version-info  --custom --template=%s' % TEMPLATE )
-      versionString = pipe.read()
+      versionString = pipe.read().split('\n')
       pipe.close()
+      versionString = '\n'.join( versionString[-4:] )
   versionString = versionString.replace('\n',r'\n')
   return versionString
 
@@ -68,6 +81,7 @@ if __name__ == '__main__':
     srcDir = sys.argv[1]
     versionString = getBzrVersion()
     print 'version info:',versionString
+    print '==========================================='
     makeFile( srcDir, versionString )
     print 'make_arVersion.py succeeded'
   except:

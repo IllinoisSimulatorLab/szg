@@ -3,26 +3,40 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
+// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arAppLauncher.h"
+// MUST come before other szg includes. See arCallingConventions.h for details.
+#define SZG_DO_NOT_EXPORT
+#include <stdio.h>
+#include <stdlib.h>
+#include "arMasterSlaveFramework.h"
 
-// copypaste restarttracker.cpp
+class ScreensaverFramework: public arMasterSlaveFramework {
+  public:
+    virtual void onWindowStartGL( arGUIWindowInfo* );
+    virtual void onDraw( arGraphicsWindow& win, arViewport& vp );
+};
+
+
+// Method to initialize each window (because now a Syzygy app can
+// have more than one).
+void ScreensaverFramework::onWindowStartGL( arGUIWindowInfo* ) {
+//   OpenGL initialization
+  glClearColor(0,0,0,0);
+}
+
+
+void ScreensaverFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
+}
 
 int main(int argc, char** argv) {
-  arSZGClient szgClient;
-  const bool fInit = szgClient.init(argc, argv);
-  if (!szgClient)
-    return szgClient.failStandalone(fInit);
 
-  if (argc > 2) {
-    ar_log_critical() << "usage: screensaver [virtual_computer]\n";
+  ScreensaverFramework framework;
+
+  if (!framework.init(argc, argv)) {
     return 1;
   }
 
-  arAppLauncher launcher("screensaver", &szgClient);
-  if (argc == 2) {
-    launcher.setVircomp(argv[1]);
-  }
-
-  return launcher.screenSaver() ? 0 : 1;
+  // Never returns unless something goes wrong
+  return framework.start() ? 0 : 1;
 }

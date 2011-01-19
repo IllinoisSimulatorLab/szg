@@ -80,18 +80,22 @@ class SZG_CALL arGUIWindowingConstruct {
      * @param windowConstructs windowConstructs to be created.
      */
     arGUIWindowingConstruct( int threaded = -1, int useFramelock = -1,
+                             int useExtraBufSwap = -1,
                              std::vector< arGUIXMLWindowConstruct* >* windowConstructs = NULL );
 
     ~arGUIWindowingConstruct( void );
 
     // Accessors.
     void setThreaded( int threaded ) { _threaded = threaded; }
-    void setUseFramelock( int useFramelock ) { _useFramelock = useFramelock; }
-    void setWindowConstructs( std::vector< arGUIXMLWindowConstruct* >* windowConstructs ) { _windowConstructs = windowConstructs; }
-
     int getThreaded( void ) const { return _threaded; }
+
+    void setUseFramelock( int useFramelock ) { _useFramelock = useFramelock; }
     int getUseFramelock( void ) const { return _useFramelock; }
 
+    void setUseExtraStereoBufferSwap( int useExtraBufSwap ) { _useExtraStereoBufferSwap = useExtraBufSwap; }
+    int getUseExtraStereoBufferSwap( void ) const { return _useExtraStereoBufferSwap; }
+
+    void setWindowConstructs( std::vector< arGUIXMLWindowConstruct* >* windowConstructs ) { _windowConstructs = windowConstructs; }
     // conceptually, should probably be returned const however there are places
     // it's used where this is not possible
     std::vector< arGUIXMLWindowConstruct* >* getWindowConstructs( void ) const { return _windowConstructs; }
@@ -99,6 +103,8 @@ class SZG_CALL arGUIWindowingConstruct {
   private:
     int _threaded;        // Whether or not to use threading, -1 if not explicitly set from the XML.
     int _useFramelock;    // Whether or not to use framelocking, -1 if not explicitly set from the XML.
+    int _useExtraStereoBufferSwap; // Workaround for nVidia active stereo swap bug;
+            // buffer swap required between right and left eye buffer rendering.
 
     std::vector< arGUIXMLWindowConstruct* >* _windowConstructs;   // A collection of windows to be created.
 };
@@ -121,7 +127,7 @@ class SZG_CALL arGUIXMLParser {
      *                  additional XML strings.
      * @param config    An initial XML configuration string.
      */
-    arGUIXMLParser( arSZGClient* SZGClient = NULL, const std::string& config = "" );
+    arGUIXMLParser( arSZGClient* SZGClient = NULL, const std::string& displayName = "" );
 
     ~arGUIXMLParser( void );
 
@@ -140,8 +146,8 @@ class SZG_CALL arGUIXMLParser {
     bool parse( void );
 
     // Accessors.
-    void setConfig( const std::string& config );
-    std::string getConfig( void ) const { return _config; }
+    void setDisplayName( const std::string& displayName );
+    std::string getDisplayName( void ) const { return _displayName; }
     void setSZGClient( arSZGClient* SZGClient ) { _SZGClient = SZGClient; }
     bool error( void ) const { return _doc.Error(); }
     arGUIWindowingConstruct* getWindowingConstruct( void ) const { return _windowingConstruct; }
@@ -246,7 +252,7 @@ class SZG_CALL arGUIXMLParser {
     arSZGClient* _SZGClient;
     arGUIWindowingConstruct* _windowingConstruct;     // Set up by parse()
     std::vector< arGUIXMLWindowConstruct* > _parsedWindowConstructs;
-    std::string _config, _mininumConfig;              // XML configuration strings.
+    std::string _displayName, _mininumConfig;              // XML configuration strings.
     TiXmlDocument _doc;
 
 };

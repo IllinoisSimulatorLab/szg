@@ -1009,20 +1009,23 @@ bool arTexture::_loadIntoOpenGL() {
   if (!_pixels) {
     return false;
   }
-  if (!ar_getTextureAllowNotPowOf2()) {
-    if (!ar_isPowerOfTwo( getWidth() ) || !ar_isPowerOfTwo( getHeight() )) {
-      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two; aborting.\n"
+  if (!ar_isPowerOfTwo( getWidth() ) || !ar_isPowerOfTwo( getHeight() )) {
+    if (!ar_getTextureAllowNotPowOf2()) {
+      ar_log_error() << "arTexture::_loadIntoOpenGL() image width (" << getWidth() << ") or height ("
+                     << getHeight() << ") not power of two; aborting.\n"
                      << "      You can allow these dimensions in master/slave and distributed scene graph\n"
                      << "      programs by setting the database variable SZG_RENDER/allow_texture_not_pow2\n"
                      << "      to 'true' for each rendering computer--but your program may crash).\n";
       _fDirty = false; // So we hopefully only get one error message.
       return false;
-    }
-  } else if (!ar_warnTextureAllowNotPowOf2()) {
-      ar_log_warning() << "arTexture::_loadIntoOpenGL() image width or height not power of two.\n"
+    } else if (!ar_warnTextureAllowNotPowOf2()) {
+      ar_log_warning() << "arTexture::_loadIntoOpenGL() image width (" << getWidth() << ") or height ("
+                     << getHeight() << ") not power of two.\n"
                      << "      If this causes crashes, set the database variable\n"
                      << "      SZG_RENDER/allow_texture_not_pow2 to 'false' for each rendering computer.\n";
+    }
   }
+
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                   _repeating ? GL_REPEAT : GL_CLAMP);

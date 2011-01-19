@@ -221,6 +221,16 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     if (devcnt != _numDevices) {
       ar_log_error() << "Found " << devcnt <<
         " devices, mismatching number specified, " << _numDevices << ".\n";
+      for (i=1; i<=_numDevices; i++) {
+        if (!birdGetDeviceConfig(_groupID, i, &_devConfig[i])) {
+          ar_log_error() << "    failed to get config for device " << i << "\n";
+        } else {
+          ar_log_error() << "    Device " << i << ": ID="
+            << (unsigned int)_devConfig[i].byID << ", status="
+            << (unsigned int)_devConfig[i].byStatus << ", error code="
+            << (unsigned int)_devConfig[i].byError << ar_endl;
+        }
+      }
       return false;
     }
 

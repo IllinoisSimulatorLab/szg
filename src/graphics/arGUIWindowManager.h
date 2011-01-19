@@ -567,6 +567,7 @@ class SZG_CALL arGUIWindowManager
     int getNumWindows( void ) const { return _windows.size(); }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
 
+    bool hasStereoWindows( void );
     bool isFirstWindow( const int ID ) const { return( _windows.find( ID ) == _windows.begin() ); }
     int getFirstWindowID( void ) const { return _windows.begin()->first; }
 
@@ -624,6 +625,8 @@ class SZG_CALL arGUIWindowManager
     void activateFramelock( void );
     void deactivateFramelock( void );
     //@}
+
+    arGUIWindowingConstruct* getWindowingConstruct() const { return _windowingConstruct; }
 
   private:
 
@@ -698,6 +701,8 @@ class SZG_CALL arGUIWindowManager
     void (*_windowCallback)( arGUIWindowInfo* windowInfo );          // window events
     void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    // opengl init
     int _doEvent(const int ID, const arGUIWindowInfo& event);
+
+    arGUIWindowingConstruct* _windowingConstruct;
 
     WindowMap _windows;       // A map of all the managed windows and their id's.
     int _maxID;         // The maximum window ID, used in creating new windows.

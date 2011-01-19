@@ -369,6 +369,7 @@ bool start( arMasterSlaveFramework& fw, arSZGClient& ) {
 static int spearTipIndex = 0;
 float distances[3] = {2*ATLANTISUNITS_PER_FOOT,1*ATLANTISUNITS_PER_FOOT,.5*ATLANTISUNITS_PER_FOOT};
 static bool sharkAttack = false;
+static bool firstFrame(true);
 
 // Pack data into the networked shared memory to send to slaves
 void preExchange(arMasterSlaveFramework& fw) {
@@ -598,7 +599,7 @@ void drawFishies()
   glPopMatrix();
 }
 
-void display( arMasterSlaveFramework& fw, arGraphicsWindow& win, arViewport& vp) {
+void display( arMasterSlaveFramework& fw, arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   if (anaglyphMode) {
     glClearColor(0.8, 0.8, 0.8, 1.0);
   } else {

@@ -84,11 +84,11 @@ class SZG_CALL arBoolAtom {
  public:
   arBoolAtom(bool x=false) : _x(x), _l("arBoolAtom") {}
   arBoolAtom& operator=(const bool x)
-    { arGuard _(_l, "operator="); _x = x; return *this; }
+    { arGuard g(_l, "operator="); _x = x; return *this; }
   operator bool() const
-    { arGuard _(_l, "bool()"); const bool x = _x; return x; }
+    { arGuard g(_l, "bool()"); const bool x = _x; return x; }
   bool set(bool x)
-    { arGuard _(_l, "set"); _x = x; return x; }
+    { arGuard g(_l, "set"); _x = x; return x; }
  private:
   bool _x;
   mutable arLock _l;
@@ -98,15 +98,15 @@ class SZG_CALL arIntAtom {
  public:
   arIntAtom(int x=0) : _x(x), _l("arIntAtom") {}
   arIntAtom& operator=(const int x)
-    { arGuard _(_l, "operator="); _x = x; return *this; }
+    { arGuard g(_l, "operator="); _x = x; return *this; }
   operator int() const
-    { arGuard _(_l, "int()"); const int x = _x; return x; }
+    { arGuard g(_l, "int()"); const int x = _x; return x; }
   int set(int x)
-    { arGuard _(_l, "set"); _x = x; return x; }
+    { arGuard g(_l, "set"); _x = x; return x; }
   friend int operator++(arIntAtom& a) // prefix operator only
-    { arGuard _(a._l, "++"); const int x = ++(a._x); return x; }
+    { arGuard g(a._l, "++"); const int x = ++(a._x); return x; }
   friend int operator--(arIntAtom& a) // prefix operator only
-    { arGuard _(a._l, "--"); const int x = --(a._x); return x; }
+    { arGuard g(a._l, "--"); const int x = --(a._x); return x; }
  private:
   int _x;
   mutable arLock _l;

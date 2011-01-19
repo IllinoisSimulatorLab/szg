@@ -121,7 +121,6 @@ void PictureApp::onWindowEvent( arGUIWindowInfo* winInfo ) {
 }
 
 void PictureApp::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
-  glClear(GL_COLOR_BUFFER_BIT);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0, _screenWidth, 0, _screenHeight, -1, 1);

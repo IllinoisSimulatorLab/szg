@@ -134,6 +134,9 @@ static PyObject* _msUnpackSequenceData( int** typePtrPtr, long** intPtrPtr, doub
   }
   int stringLength;
   PyObject* nestedSequence;
+  ostringstream os;
+  string errMsg;
+
   for(int i=0; i<size; ++i) {
     switch (*typePtr++) {
       case AR_LONG:
@@ -155,18 +158,24 @@ static PyObject* _msUnpackSequenceData( int** typePtrPtr, long** intPtrPtr, doub
       case -1:  // my arbitrary "seqeuence" type
         nestedSequence = _msUnpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr, &charSizePtr );
         if (!nestedSequence) {
-          cerr << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n";
-          cerr << "  size = " << size << endl;
-          PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: ar_unpackSequenceData() failed.");
+          os.str();
+          os << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n"
+             << " Item " << i << " of " << size;
+          string errMsg = os.str();
+          cerr << errMsg << endl;
+          PyErr_SetString(PyExc_TypeError, errMsg.c_str() );
           Py_DECREF( seq );
           return NULL;
         }
         PyTuple_SetItem( seq, i, nestedSequence );
         break;
       default:
-        cerr << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n";
-        cerr << "  size = " << size << endl;
-        PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().");
+        os.str();
+        os << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n"
+                   << " Item " << i << " of " << size;
+        string errMsg = os.str();
+        cerr << errMsg << endl;
+        PyErr_SetString(PyExc_TypeError, errMsg.c_str() );
         Py_DECREF( seq );
         return NULL;
     }
@@ -487,7 +496,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   // Start services, maybe windowing, and maybe an internal event loop.
   // Returns only if useEventLoop is false, or on error.
   // If useEventLoop is false, caller should run the event loop either
-  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
+  // coarsely via loopQuantum() or finely via preDraw(), sync(), etc.
   // Two functions, because default args don't jive with virtual arSZGAppFramework::start().
   bool start();
   bool start(bool useWindowing, bool useEventLoop);
@@ -503,7 +512,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   // Different than onDraw (and the corresponding draw callbacks). 
   // Essentially causes the window manager to draw all the windows.
   void draw( int windowID = -1 );
-  virtual void postDraw();
+  virtual void sync();
   void swap( int windowID = -1 );
 
   // Another layer of indirection to promote object-orientedness. 
@@ -523,7 +532,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   virtual void onDisconnectDraw() /PyName=_onDisconnectDraw/;
   virtual void onPlay() /PyName=_onPlay/;
   virtual void onWindowEvent( arGUIWindowInfo* ) /PyName=_onWindowEvent/;
-  //virtual void onCleanup() /PyName=_onCleanup/;
+  virtual void onCleanup() /PyName=_onCleanup/;
   virtual void onOverlay() /PyName=_onOverlay/;
   virtual void onKey( arGUIKeyInfo* ) /PyName=_onKey/;
 //  virtual void onMouse( arGUIMouseInfo* ) /PyName=_onMouse/;
@@ -900,7 +909,7 @@ class arInteractableThing : arInteractable {
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& );
 };
 
-
+/*
 class arDistSceneGraphFramework : arSZGAppFramework {
 %TypeHeaderCode
 #include "arDistSceneGraphFramework.h"
@@ -937,4 +946,4 @@ class arDistSceneGraphFramework : arSZGAppFramework {
   void setViewer();
   void setPlayer();
 };
-
+*/

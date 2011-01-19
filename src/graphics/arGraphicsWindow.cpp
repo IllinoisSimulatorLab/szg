@@ -89,6 +89,7 @@ arGraphicsWindow::~arGraphicsWindow() {
 //@-node:jimc.20100409112755.258:arGraphicsWindow
 //@+node:jimc.20100409112755.259:arGraphicsWindow::configure
 
+// I don't think this code is ever called anymore. --JAC
 bool arGraphicsWindow::configure( arSZGClient& client ) {
   const string screenName(client.getMode("graphics"));
   float colorFilterParams[7];

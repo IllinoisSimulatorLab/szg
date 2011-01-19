@@ -14,6 +14,69 @@
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
+static int textColorInited(false);
+static int usingTextColors(false);
+
+#ifdef AR_USE_WIN_32
+
+#include <winbase.h>
+#include <wincon.h>
+
+static HANDLE hStdout; 
+static CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
+static WORD wOldColorAttrs;
+
+static void ar_textColorInit() {
+  if (textColorInited) {
+    ar_log_error() << "Multiple calls to ar_textColorInit()\n";
+    return;
+  }
+  textColorInited = true;
+  hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
+  if (hStdout == INVALID_HANDLE_VALUE) {
+    ar_log_error() << "ar_textColorInit() failed to get standard output handle\n";
+    return;
+  }
+
+  // Save the current text colors. 
+  if (! GetConsoleScreenBufferInfo(hStdout, &csbiInfo)) {
+    ar_log_warning() << "ar_textColorInit() failed to save stdout text color\n";
+    return;
+  }
+  wOldColorAttrs = csbiInfo.wAttributes;
+  usingTextColors = true;
+}
+
+static void ar_textCyan() {
+  if (!usingTextColors) {
+    return;
+  }
+  SetConsoleTextAttribute(hStdout, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+}
+
+static void ar_textYellow() {
+  if (!usingTextColors) {
+    return;
+  }
+  SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+}
+
+static void ar_textRestore() {
+  if (!usingTextColors) {
+    return;
+  }
+  SetConsoleTextAttribute(hStdout, wOldColorAttrs);
+}
+
+#else
+
+static void ar_textColorInit() {}
+static void ar_textYellow() {}
+static void ar_textCyan() {}
+static void ar_textRestore() {}
+
+#endif // AR_USE_WIN_32
+
 bool ar_setLogLevel( const string& level, const bool fVerbose ) {
   const bool ok = ar_log().setLogLevel( ar_stringToLogLevel( level ) );
   if (fVerbose) {
@@ -352,7 +415,20 @@ LDone:
     if (addNewline) {
       s += "\n";
     }
+    if (_level <= AR_LOG_ERROR) {
+      if (!textColorInited) {
+        ar_textColorInit();
+      }
+      if (_level == AR_LOG_CRITICAL) {
+        ar_textCyan();
+      } else {
+        ar_textYellow();
+      }
+    }
     cout << s;
+    if (_level <= AR_LOG_ERROR) {
+      ar_textRestore();
+    }
     if (_output && (*_output != cout)) {
       *_output << s;
     }

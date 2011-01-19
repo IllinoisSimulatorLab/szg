@@ -2866,15 +2866,19 @@ void TiXmlAttributeSet::Remove( TiXmlAttribute* removeMe )
         assert( 0 );                // we tried to remove a non-linked attribute.
 }
 
+#include <iostream>
+
 const TiXmlAttribute* TiXmlAttributeSet::Find( const char * name ) const
 {
         const TiXmlAttribute* node;
 
         for( node = sentinel.next; node != &sentinel; node = node->next )
         {
+//          std::cout << "attr: '" << node->name << "'\n";
                 if ( node->name == name )
                         return node;
         }
+//        std::cout << "FAIL '" << name << "'\n";
         return 0;
 }
 

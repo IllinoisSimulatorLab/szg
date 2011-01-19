@@ -63,6 +63,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
   _mouseCallback( mouseCB ),
   _windowCallback( windowCB ? windowCB : ar_windowManagerDefaultWindowFunction),
   _windowInitGLCallback( windowInitGLCB ),
+  _windowingConstruct( NULL ),
   _maxID( 0 ),
   _threaded( threaded ),
   _fActivatedFramelock( false )
@@ -85,6 +86,16 @@ arGUIWindowManager::~arGUIWindowManager( void )
   }
 }
 //@-node:jimc.20100409112755.106:Destructor
+//@+node:jimc.20100609152149.1:arGUIWindowManager::hasStereoWindows
+bool arGUIWindowManager::hasStereoWindows( void ) {
+  for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
+    if (it->second->isStereo()) {
+      return true;
+    }
+  }
+  return false;
+}
+//@-node:jimc.20100609152149.1:arGUIWindowManager::hasStereoWindows
 //@+node:jimc.20100409112755.107:arGUIWindowManager::_keyboardHandler
 
 void arGUIWindowManager::_keyboardHandler( arGUIKeyInfo* keyInfo )
@@ -753,6 +764,8 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 {
   if (!windowingConstruct)
     return -1;
+
+  _windowingConstruct = const_cast<arGUIWindowingConstruct*>(windowingConstruct);
 
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     windowingConstruct->getWindowConstructs();

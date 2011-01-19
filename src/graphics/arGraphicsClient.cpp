@@ -242,7 +242,7 @@ bool arGraphicsClient::configure(arSZGClient* szgClient) {
     _guiParser = new arGUIXMLParser(szgClient);
 
   const string screenName( szgClient->getMode( "graphics" ) );
-  _guiParser->setConfig( szgClient->getDisplayName(
+  _guiParser->setDisplayName( szgClient->getDisplayName(
     "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 )));
   (void)_guiParser->parse();
 
