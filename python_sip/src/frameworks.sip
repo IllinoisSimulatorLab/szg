@@ -134,6 +134,9 @@ static PyObject* _msUnpackSequenceData( int** typePtrPtr, long** intPtrPtr, doub
   }
   int stringLength;
   PyObject* nestedSequence;
+  ostringstream os;
+  string errMsg;
+
   for(int i=0; i<size; ++i) {
     switch (*typePtr++) {
       case AR_LONG:
@@ -155,18 +158,24 @@ static PyObject* _msUnpackSequenceData( int** typePtrPtr, long** intPtrPtr, doub
       case -1:  // my arbitrary "seqeuence" type
         nestedSequence = _msUnpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr, &charSizePtr );
         if (!nestedSequence) {
-          cerr << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n";
-          cerr << "  size = " << size << endl;
-          PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: ar_unpackSequenceData() failed.");
+          os.str();
+          os << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n"
+             << " Item " << i << " of " << size;
+          string errMsg = os.str();
+          cerr << errMsg << endl;
+          PyErr_SetString(PyExc_TypeError, errMsg.c_str() );
           Py_DECREF( seq );
           return NULL;
         }
         PyTuple_SetItem( seq, i, nestedSequence );
         break;
       default:
-        cerr << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n";
-        cerr << "  size = " << size << endl;
-        PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().");
+        os.str();
+        os << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n"
+                   << " Item " << i << " of " << size;
+        string errMsg = os.str();
+        cerr << errMsg << endl;
+        PyErr_SetString(PyExc_TypeError, errMsg.c_str() );
         Py_DECREF( seq );
         return NULL;
     }

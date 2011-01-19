@@ -36,12 +36,17 @@ class TexturedSquare(arInteractableThing):
     self.fw = fw
     self.texture = None
     
-  def loadTexture( self, filePath ):
+  def loadTexture( self, filePath, alphaFilePath=None ):
     self.texture = arTexture()
     if not self.texture.readImage( filePath, '', '' ):
       print 'Failed to load TexturedSquare texture'
       self.texture = None
       return
+    if alphaFilePath is not None:
+      if not self.texture.readImage( alphaFilePath, '', '', 1 ):
+        print 'Failed to load TexturedSquare texture'
+        self.texture = None
+        return
     self.texture.setTextureFunc( GL_MODULATE )
     self.texture.mipmap(True)
     self.texture.repeating(True)
@@ -69,6 +74,9 @@ class TexturedSquare(arInteractableThing):
     glMultMatrixf( self.getMatrix().toTuple() )
     glScalef( 2., 2., .01 )
     if self.getVisible():
+      glEnable( GL_TEXTURE_2D )
+      glEnable( GL_BLEND )
+      glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
       # set one of two colors depending on if this object has been selected for interaction
       if self.getHighlight():
         glColor3f( 0,1,0 )
@@ -89,6 +97,8 @@ class TexturedSquare(arInteractableThing):
       glEnd()
       if self.texture is None:
         self.texture.deactivate()
+      glDisable( GL_BLEND )
+      glDisable( GL_TEXTURE_2D )
     # superimpose slightly larger white wireframe
     glColor3f(1,1,1)
     glutWireCube(1.03)
@@ -186,7 +196,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
     
     # Load square texture
-    self.theSquare.loadTexture( os.path.join( TEXTURE_PATH, 'spiral.jpg' ) )
+    self.theSquare.loadTexture( os.path.join( TEXTURE_PATH, 'spiral.jpg' ), \
+        os.path.join( TEXTURE_PATH, 'spiral_alpha.jpg' ) )
 
     return True
     
