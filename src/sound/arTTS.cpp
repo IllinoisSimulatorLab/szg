@@ -7,8 +7,11 @@
 #include "arTTS.h"
 #include "arLogStream.h"
 
-arTTS::arTTS() : 
-  _voice(NULL) {
+arTTS::arTTS()
+#ifdef EnableSpeech
+  : _voice(NULL)
+#endif
+{
 }
 
 arTTS::~arTTS() {
