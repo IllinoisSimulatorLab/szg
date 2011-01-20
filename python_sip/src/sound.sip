@@ -29,3 +29,17 @@ int ar_speak( const string& message );
 %MethodCode
   sipRes = dsSpeak( "messages", "root", *a0 );
 %End
+
+
+class arTTS {
+%TypeHeaderCode
+#include "arTTS.h"
+%End
+  public:
+    arTTS();
+    ~arTTS();
+    
+    void init();
+    void speak( const string& text );
+};
+
