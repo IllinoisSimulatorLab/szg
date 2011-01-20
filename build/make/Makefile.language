@@ -67,6 +67,7 @@ $(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersio
 else
 $(SRCDIR)/arVersion.cpp: $(SRCDIR)/arVersionTemplate.cpp $(SRCDIR)/make_arVersion.py
 	python $(SRCDIR)/make_arVersion.py $(SRCDIR)
+# If this fails (Python 2.6.5 ubuntu 10.04 amd-64?), export SZG_BZR_INFO=FALSE and remake.
 endif
 
 
