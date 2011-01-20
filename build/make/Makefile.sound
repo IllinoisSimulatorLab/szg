@@ -5,6 +5,7 @@ VPATH = ../../../src/sound
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
+  arTTS$(OBJ_SUFFIX) \
   arSpeechNode$(OBJ_SUFFIX) \
   arStreamNode$(OBJ_SUFFIX) \
   arSoundAPI$(OBJ_SUFFIX) \
