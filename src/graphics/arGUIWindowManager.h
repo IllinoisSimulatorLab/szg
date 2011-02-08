@@ -567,6 +567,7 @@ class SZG_CALL arGUIWindowManager
     int getNumWindows( void ) const { return _windows.size(); }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
 
+    bool hasStereoWindows( void );
     bool isFirstWindow( const int ID ) const { return( _windows.find( ID ) == _windows.begin() ); }
     int getFirstWindowID( void ) const { return _windows.begin()->first; }
 
