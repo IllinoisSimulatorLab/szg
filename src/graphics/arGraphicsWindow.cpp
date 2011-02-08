@@ -392,8 +392,16 @@ void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int
 //@-node:jimc.20100409112755.276:arGraphicsWindow::getPixelDimensions
 //@+node:jimc.20100409112755.277:arGraphicsWindow::draw
 
-// Not const because _renderPass can't be.
-void arGraphicsWindow::draw( GLenum oglDrawBuffer ) {
+// Not const because renderBuffer can't be.
+bool arGraphicsWindow::draw() {
+  renderPass( GL_BACK_LEFT );
+  if (_useOGLStereo)
+    renderPass( GL_BACK_RIGHT );
+  return true;
+}
+
+
+void arGraphicsWindow::renderBuffer( GLenum oglDrawBuffer ) {
   // Lock, because another thread might call configure().
   lockViewports();
 
@@ -402,7 +410,7 @@ void arGraphicsWindow::draw( GLenum oglDrawBuffer ) {
   glDrawBuffer( oglDrawBuffer );
 //  GLint drawBuffer;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
-//  cerr << "arGraphicsWindow::draw() start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
+//  cerr << "_renderPass start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
   (*_initCallback)( *this );
 
   // Save viewport's extent.
@@ -425,7 +433,7 @@ void arGraphicsWindow::draw( GLenum oglDrawBuffer ) {
   }
 
 //  glGetIntegerv( GL_DRAW_BUFFER, (GLint*)&drawBuffer );
-//  cerr << "arGraphicsWindow::draw() end: drawBuffer = " << drawBuffer << endl;
+//  cerr << "_renderPass end: drawBuffer = " << drawBuffer << endl;
   _currentEyeSign = 0.;
 
   // It's a good idea to set this back to normal. What if the user-defined
@@ -434,6 +442,7 @@ void arGraphicsWindow::draw( GLenum oglDrawBuffer ) {
 
   unlockViewports();
 }
+
 //@-node:jimc.20100409112755.277:arGraphicsWindow::draw
 //@+node:jimc.20100409112755.278:arGraphicsWindow::_applyColorFilter
 

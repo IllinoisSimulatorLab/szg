@@ -263,6 +263,48 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 //@-node:jimc.20100409112755.178:arGUIWindow::registerDrawCallback
 //@+node:jimc.20100409112755.179:arGUIWindow::_drawHandler
 
+void arGUIWindow::_drawHandler( void )
+{
+  arGuard _(_creationMutex, "arGUIWindow::_drawHandler");
+  if ( !_running || !_drawCallback )
+    return;
+
+  // ensure (in non-threaded mode) that this window's opengl context is current
+  if ( !_threaded && ( makeCurrent( false ) < 0 ) ) {
+    ar_log_error() << "_drawHandler failed to make context current.\n";
+  }
+
+  // locking the display here brings up some issues in single threaded mode,
+  // the user could call something like wm->swapall at the end of the display
+  // callback and then we'd be deadlocked as the swap call needs to lock
+  // the display as well...
+  // NOTE: in fact we won't lock here, we can't control what the user will
+  // call and there may well be a valid need to call something like swap or
+  // resize in the draw callback, just make sure everything else that touches
+  // the display properly locks and unlocks
+
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+  XLockDisplay( _windowHandle._dpy );
+#endif
+
+  arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
+  windowInfo->setWindowID( _ID );
+
+  // always try to pass through the graphicswindow, if the user has
+  // registered a callback that does not take it, the callback class will
+  // handle letting that fall through
+  if (_graphicsWindow) {
+    _graphicsWindow->setPixelDimensions( getPosX(), getPosY(), getWidth(), getHeight() );
+  }
+  (*_drawCallback)( _ID, _graphicsWindow );
+
+  delete windowInfo;
+
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+  XUnlockDisplay( _windowHandle._dpy );
+#endif
+}
+
 void arGUIWindow::_drawHandler( const bool drawLeftBuffer )
 {
   arGuard _(_creationMutex, "arGUIWindow::_drawHandler");

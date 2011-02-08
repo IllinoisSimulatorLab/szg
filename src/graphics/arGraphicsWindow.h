@@ -100,7 +100,8 @@ class SZG_CALL arGraphicsWindow {
     float getCurrentEyeSign() const { return _currentEyeSign; }
     void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
     void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const;
-    void draw( GLenum oglDrawBuf );
+    bool draw();
+    void renderBuffer( GLenum oglDrawBuf );
   protected:
   private:
     // not safe to copy yet.

@@ -162,13 +162,16 @@ class SZG_CALL arGUIRenderCallback : public arRenderCallback
      *
      * @note All pure virtual so that they must be implemented by a subclass.
      */
-    virtual void operator()( int guiWinID,
+    virtual void draw( int guiWinID,
                              arGraphicsWindow* graphicsWindow,
                              const bool drawLeftBuffer ) = 0;
 
-    virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
+    virtual void draw( int guiWinID,
+                             arGraphicsWindow* graphicsWindow ) = 0;
 
-    virtual void operator()( arGraphicsWindow&, arViewport& ) = 0;
+    virtual void processInfo( arGUIWindowInfo* windowInfo ) = 0;
+
+    virtual void drawViewport( arGraphicsWindow&, arViewport& ) = 0;
     //@}
 
   private:
@@ -906,6 +909,7 @@ class SZG_CALL arGUIWindow
      *
      * @see makeCurrent
      */
+    virtual void _drawHandler( void );
     virtual void _drawHandler( const bool drawLeftBuffer );
 
     int _ID;                                    // A unique identifier for this window.

@@ -339,6 +339,10 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int ID, arGUIWindowInfo e )
         w->swap();
       break;
 
+      case AR_WINDOW_DRAW:
+        w->_drawHandler();
+      break;
+
       case AR_WINDOW_DRAW_LEFT:
         w->_drawHandler( true );
       break;
@@ -434,6 +438,15 @@ int arGUIWindowManager::swapWindowBuffer( const int ID, bool blocking )
 //@-node:jimc.20100409112755.122:arGUIWindowManager::swapWindowBuffer
 //@+node:jimc.20100409112755.123:arGUIWindowManager::drawWindow
 
+int arGUIWindowManager::drawWindow( const int ID, bool blocking )
+{
+  arWMEvent* eventHandle = addWMEvent(
+    ID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ) );
+  if ( eventHandle )
+    eventHandle->wait( blocking );
+  return 0;
+}
+
 int arGUIWindowManager::drawWindow( const int ID, const bool drawLeftBuffer, bool blocking )
 {
   arGUIState winInfoState = (drawLeftBuffer)?(AR_WINDOW_DRAW_LEFT):(AR_WINDOW_DRAW_RIGHT);
@@ -452,6 +465,11 @@ int arGUIWindowManager::swapAllWindowBuffers( bool blocking )
 }
 //@-node:jimc.20100409112755.124:arGUIWindowManager::swapAllWindowBuffers
 //@+node:jimc.20100409112755.125:arGUIWindowManager::drawAllWindows
+
+int arGUIWindowManager::drawAllWindows( bool blocking )
+{
+  return addAllWMEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW ), blocking );
+}
 
 int arGUIWindowManager::drawAllWindows( const bool drawLeftBuffer, bool blocking )
 {

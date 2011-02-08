@@ -44,6 +44,7 @@ SZG_CALL enum arGUIState
   AR_WINDOW_DECORATE,       // Change the window's decoration state.
   AR_WINDOW_RAISE,          // Change the window's z order.
   AR_WINDOW_CURSOR,         // Change the window's cursor.
+  AR_WINDOW_DRAW,           // Draw the window (left and right as appropriate)
   AR_WINDOW_DRAW_LEFT,           // Draw the window (GL_BACK_LEFT)
   AR_WINDOW_DRAW_RIGHT,           // Draw the window (GL_BACK_RIGHT).
   AR_WINDOW_SWAP,           // Swap the window's buffers.
