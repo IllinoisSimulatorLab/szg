@@ -433,7 +433,7 @@ class arGraphicsWindow {
     float getCurrentEyeSign() const;
     void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
     void getPixelDimensions( int& posX /Out/, int& posY /Out/, int& sizeX /Out/, int& sizeY /Out/ ) const;
-    void draw( GLenum oglDrawBuf );
+    bool draw();
   private:
     arGraphicsWindow( const arGraphicsWindow& x );
 };

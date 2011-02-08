@@ -1,9 +1,3 @@
-//@+leo-ver=4-thin
-//@+node:jimc.20100409112755.253:@thin graphics\arGraphicsWindow.cpp
-//@@language c++
-//@@tabwidth -2
-//@+others
-//@+node:jimc.20100409112755.254:ar_defaultWindowInitCallback
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for detils
@@ -20,20 +14,14 @@ void ar_defaultWindowInitCallback() {
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-//@-node:jimc.20100409112755.254:ar_defaultWindowInitCallback
-//@+node:jimc.20100409112755.255:arDefaultWindowInitCallback::operator
 
 void arDefaultWindowInitCallback::operator()( arGraphicsWindow& ) {
   ar_defaultWindowInitCallback();
 }
-//@-node:jimc.20100409112755.255:arDefaultWindowInitCallback::operator
-//@+node:jimc.20100409112755.256:arDefaultRenderCallback::operator
 
 void arDefaultRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
   glClearColor( 0, 0, 0, 1 );
 }
-//@-node:jimc.20100409112755.256:arDefaultRenderCallback::operator
-//@+node:jimc.20100409112755.257:arGraphicsWindow::arGraphicsWindow
 
 arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _useOGLStereo(false),
@@ -58,8 +46,6 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   // created configurations (i.e. from configure(...)). It is still
   // possible to put an arGraphicsWindow together in an arbitrary fashion.
 }
-//@-node:jimc.20100409112755.257:arGraphicsWindow::arGraphicsWindow
-//@+node:jimc.20100409112755.258:arGraphicsWindow
 
 //arGraphicsWindow::arGraphicsWindow( const arGraphicsWindow& x ) :
 //  _useOGLStereo( x._useOGLStereo ),
@@ -86,14 +72,10 @@ arGraphicsWindow::~arGraphicsWindow() {
     delete _defaultCamera;
   }
 }
-//@-node:jimc.20100409112755.258:arGraphicsWindow
-//@+node:jimc.20100409112755.259:arGraphicsWindow::configure
 
-// I don't think this code is ever called anymore. --JAC
 bool arGraphicsWindow::configure( arSZGClient& client ) {
   const string screenName(client.getMode("graphics"));
   float colorFilterParams[7];
-  cout << "!!!!!!!!screenName!!!! " << screenName << endl;
   _useColorFilter = client.getAttributeFloats( screenName, "color_filter", colorFilterParams, 7 );
   if (_useColorFilter) {
     _contrastFilterParameters = arVector4( colorFilterParams );
@@ -144,8 +126,6 @@ bool arGraphicsWindow::configure( arSZGClient& client ) {
   unlockViewports();
   return true;
 }
-//@-node:jimc.20100409112755.259:arGraphicsWindow::configure
-//@+node:jimc.20100409112755.260:arGraphicsWindow::setCamera
 
 arCamera* arGraphicsWindow::setCamera( arCamera* cam ) {
   lockViewports();
@@ -153,8 +133,6 @@ arCamera* arGraphicsWindow::setCamera( arCamera* cam ) {
   unlockViewports();
   return camout;
 }
-//@-node:jimc.20100409112755.260:arGraphicsWindow::setCamera
-//@+node:jimc.20100409112755.261:arGraphicsWindow::_setCameraNoLock
 
 // Make a local copy of the passed-in pointer.
 // Some places in szg, a TEMPORARY pointer passes in a camera!
@@ -171,8 +149,6 @@ arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
   }
   return _defaultCamera;
 }
-//@-node:jimc.20100409112755.261:arGraphicsWindow::_setCameraNoLock
-//@+node:jimc.20100409112755.262:arGraphicsWindow::setInitCallback
 
 void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
   if (_initCallback != 0) {
@@ -185,8 +161,6 @@ void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
     _initCallback = new arDefaultWindowInitCallback;
   }
 }
-//@-node:jimc.20100409112755.262:arGraphicsWindow::setInitCallback
-//@+node:jimc.20100409112755.263:arGraphicsWindow::setDrawCallback
 
 void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {
   if (_drawCallback) {
@@ -194,8 +168,6 @@ void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {
   }
   _drawCallback = callback ? callback : new arDefaultRenderCallback;
 }
-//@-node:jimc.20100409112755.263:arGraphicsWindow::setDrawCallback
-//@+node:jimc.20100409112755.264:arGraphicsWindow::setViewMode
 
 bool arGraphicsWindow::setViewMode( const std::string& viewModeString ) {
   lockViewports();
@@ -203,8 +175,6 @@ bool arGraphicsWindow::setViewMode( const std::string& viewModeString ) {
   unlockViewports();
   return stat;
 }
-//@-node:jimc.20100409112755.264:arGraphicsWindow::setViewMode
-//@+node:jimc.20100409112755.265:arGraphicsWindow::_setViewModeNoLock
 
 bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
   // Use a "default camera". The only thing that might change
@@ -290,42 +260,30 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
 
   return true;
 }
-//@-node:jimc.20100409112755.265:arGraphicsWindow::_setViewModeNoLock
-//@+node:jimc.20100409112755.266:arGraphicsWindow::addViewport
 
 void arGraphicsWindow::addViewport(const arViewport& v) {
   lockViewports();
   _addViewportNoLock(v);
   unlockViewports();
 }
-//@-node:jimc.20100409112755.266:arGraphicsWindow::addViewport
-//@+node:jimc.20100409112755.267:arGraphicsWindow::_addViewportNoLock
 
 void arGraphicsWindow::_addViewportNoLock(const arViewport& v) {
   _viewportVector.push_back(v);
 }
-//@-node:jimc.20100409112755.267:arGraphicsWindow::_addViewportNoLock
-//@+node:jimc.20100409112755.268:arGraphicsWindow::clearViewportList
 
 void arGraphicsWindow::clearViewportList() {
   lockViewports();
   _clearViewportListNoLock();
   unlockViewports();
 }
-//@-node:jimc.20100409112755.268:arGraphicsWindow::clearViewportList
-//@+node:jimc.20100409112755.269:arGraphicsWindow::_clearViewportListNoLock
 
 void arGraphicsWindow::_clearViewportListNoLock() {
   _viewportVector.clear();
 }
-//@-node:jimc.20100409112755.269:arGraphicsWindow::_clearViewportListNoLock
-//@+node:jimc.20100409112755.270:arGraphicsWindow::getViewports
 
 std::vector<arViewport>* arGraphicsWindow::getViewports() {
   return &_viewportVector;
 }
-//@-node:jimc.20100409112755.270:arGraphicsWindow::getViewports
-//@+node:jimc.20100409112755.271:arGraphicsWindow::setViewportCamera
 
 arCamera* arGraphicsWindow::setViewportCamera( unsigned int vpindex, arCamera* cam ) {
   if (vpindex >= _viewportVector.size()) {
@@ -335,8 +293,6 @@ arCamera* arGraphicsWindow::setViewportCamera( unsigned int vpindex, arCamera* c
   }
   return _viewportVector[vpindex].setCamera( cam );
 }
-//@-node:jimc.20100409112755.271:arGraphicsWindow::setViewportCamera
-//@+node:jimc.20100409112755.272:arGraphicsWindow::setStereoViewportsCamera
 
 arCamera* arGraphicsWindow::setStereoViewportsCamera( unsigned int startVPIndex, arCamera* cam ) {
   if (startVPIndex >= _viewportVector.size()-1) {
@@ -352,8 +308,6 @@ arCamera* arGraphicsWindow::setStereoViewportsCamera( unsigned int startVPIndex,
   }
   return cam1;
 }
-//@-node:jimc.20100409112755.272:arGraphicsWindow::setStereoViewportsCamera
-//@+node:jimc.20100409112755.273:arGraphicsWindow::getViewportCamera
 
 arCamera* arGraphicsWindow::getViewportCamera( unsigned int vpindex ) {
   if (vpindex >= _viewportVector.size()) {
@@ -363,8 +317,6 @@ arCamera* arGraphicsWindow::getViewportCamera( unsigned int vpindex ) {
   }
   return _viewportVector[vpindex].getCamera();
 }
-//@-node:jimc.20100409112755.273:arGraphicsWindow::getViewportCamera
-//@+node:jimc.20100409112755.274:arGraphicsWindow::getViewport
 
 arViewport* arGraphicsWindow::getViewport( unsigned int vpindex ) {
   if (vpindex >= _viewportVector.size()) {
@@ -374,8 +326,6 @@ arViewport* arGraphicsWindow::getViewport( unsigned int vpindex ) {
   }
   return &_viewportVector[vpindex];
 }
-//@-node:jimc.20100409112755.274:arGraphicsWindow::getViewport
-//@+node:jimc.20100409112755.275:arGraphicsWindow::setPixelDimensions
 
 void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int sizeY ) {
   _posX = posX;
@@ -383,25 +333,20 @@ void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int si
   _sizeX = sizeX;
   _sizeY = sizeY;
 }
-//@-node:jimc.20100409112755.275:arGraphicsWindow::setPixelDimensions
-//@+node:jimc.20100409112755.276:arGraphicsWindow::getPixelDimensions
 
 void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const {
   posX = _posX; posY = _posY; sizeX = _sizeX; sizeY = _sizeY;
 }
-//@-node:jimc.20100409112755.276:arGraphicsWindow::getPixelDimensions
-//@+node:jimc.20100409112755.277:arGraphicsWindow::draw
 
-// Not const because renderBuffer can't be.
+// Not const because _renderPass can't be.
 bool arGraphicsWindow::draw() {
-  renderPass( GL_BACK_LEFT );
+  _renderPass( GL_BACK_LEFT );
   if (_useOGLStereo)
-    renderPass( GL_BACK_RIGHT );
+    _renderPass( GL_BACK_RIGHT );
   return true;
 }
 
-
-void arGraphicsWindow::renderBuffer( GLenum oglDrawBuffer ) {
+void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
   // Lock, because another thread might call configure().
   lockViewports();
 
@@ -443,9 +388,6 @@ void arGraphicsWindow::renderBuffer( GLenum oglDrawBuffer ) {
   unlockViewports();
 }
 
-//@-node:jimc.20100409112755.277:arGraphicsWindow::draw
-//@+node:jimc.20100409112755.278:arGraphicsWindow::_applyColorFilter
-
 void arGraphicsWindow::_applyColorFilter() {
   glPushAttrib( GL_ALL_ATTRIB_BITS );
   glDisable( GL_TEXTURE_1D );
@@ -478,8 +420,6 @@ void arGraphicsWindow::_applyColorFilter() {
   glEnd();
   glPopAttrib();
 }
-//@-node:jimc.20100409112755.278:arGraphicsWindow::_applyColorFilter
-//@+node:jimc.20100409112755.279:arGraphicsWindow::_configureCustomViewport
 
 bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
                                                  arSZGClient& client,
@@ -575,10 +515,6 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   }
   return true;
 }
-//@-node:jimc.20100409112755.279:arGraphicsWindow::_configureCustomViewport
-//@-others
 
 
 
-//@-node:jimc.20100409112755.253:@thin graphics\arGraphicsWindow.cpp
-//@-leo
