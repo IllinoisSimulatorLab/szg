@@ -132,7 +132,7 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
   farClipDistance = 200.
   def __init__(self):
     arMasterSlaveFramework.__init__(self)
-    self.__usePrompt = '--prompt' in sys.argv
+    self._usePrompt = '--prompt' in sys.argv
     # Tell the framework what units we're using.
     self.setUnitConversion( self.unitsPerFoot )
     # Near & far clipping planes.
@@ -142,7 +142,7 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     delPhleetArgs( argv )
     return stat
   def onStart( self, client ):
-    if self.__usePrompt:
+    if self._usePrompt:
       if self.getMaster():
         ar_initPythonPrompt( self )
     return True
@@ -158,7 +158,7 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     pass
   def _onPreExchange( self ):
     try:
-      if self.__usePrompt:
+      if self._usePrompt:
         ar_doPythonPrompt()
       self.onPreExchange()
     except Exception, msg:
@@ -638,9 +638,9 @@ class arPySzgApp(arPyMasterSlaveFramework):
   def __init__(self):
     arPyMasterSlaveFramework.__init__(self)
     self.__dict = arMasterSlaveDict( '__app_dict' )
-    self.__usePrompt = '--prompt' in sys.argv
+    self._usePrompt = '--prompt' in sys.argv
   def startCallback( self, framework, client ):
-    if self.__usePrompt:
+    if self._usePrompt:
       if self.getMaster():
         ar_initPythonPrompt( self )
     # Register the dictionary of objects to be shared between master & slaves
@@ -649,7 +649,7 @@ class arPySzgApp(arPyMasterSlaveFramework):
   def onStart( self, client ):
     return True
   def preExchangeCallback( self, framework ):
-    if self.__usePrompt:
+    if self._usePrompt:
       ar_doPythonPrompt()
     self.onPreExchange()
     self.__dict.packState( self )

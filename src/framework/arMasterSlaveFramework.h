@@ -12,8 +12,7 @@
 #include "arBarrierClient.h"
 #include "arBarrierServer.h"
 #include "arDataUtilities.h"
-//#include "arGraphicsAPI.h"
-#include "arGraphicsDatabase.h"
+#include "arGraphicsAPI.h"
 #include "arGraphicsWindow.h"
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
@@ -65,7 +64,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Start services, maybe windowing, and maybe an internal event loop.
   // Returns only if useEventLoop is false, or on error.
   // If useEventLoop is false, caller should run the event loop either
-  // coarsely via loopQuantum() or finely via preDraw(), sync(), etc.
+  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
   // Two functions, because default args don't jive with virtual arSZGAppFramework::start(void).
   bool start();
   bool start(bool useWindowing, bool useEventLoop);
@@ -80,8 +79,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void preDraw( void );
   // Different than onDraw (and the corresponding draw callbacks).
   // Essentially causes the window manager to draw all the windows.
-  void draw( const bool drawLeftBuffer, int windowID = -1 );
-  virtual void sync( void );
+  void draw( int windowID = -1 );
+  virtual void postDraw( void );
   void swap( int windowID = -1 );
 
   // Another layer of indirection to promote object-orientedness.
@@ -383,9 +382,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _processUserMessages();
 
   // Draw utility.
-  void _drawWindow( int guiWinID,
-                    arGraphicsWindow* graphicsWindow,
-                    const bool drawLeftBuffer );
+  void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 
  private:
   bool _addTransferField( const string&, void*, const arDataType, const int, arTransferFieldData&);

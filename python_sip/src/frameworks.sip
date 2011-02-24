@@ -496,7 +496,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   // Start services, maybe windowing, and maybe an internal event loop.
   // Returns only if useEventLoop is false, or on error.
   // If useEventLoop is false, caller should run the event loop either
-  // coarsely via loopQuantum() or finely via preDraw(), sync(), etc.
+  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
   // Two functions, because default args don't jive with virtual arSZGAppFramework::start().
   bool start();
   bool start(bool useWindowing, bool useEventLoop);
@@ -512,7 +512,7 @@ class arMasterSlaveFramework : arSZGAppFramework {
   // Different than onDraw (and the corresponding draw callbacks). 
   // Essentially causes the window manager to draw all the windows.
   void draw( int windowID = -1 );
-  virtual void sync();
+  virtual void postDraw();
   void swap( int windowID = -1 );
 
   // Another layer of indirection to promote object-orientedness. 
