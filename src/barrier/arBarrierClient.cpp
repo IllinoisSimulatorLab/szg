@@ -43,7 +43,7 @@ void arBarrierClient::_connectionTask() {
     if (!_connected) {
       ar_log_error() << getLabel() << " failed to connect to brokered address '"
            << result.address << "' for service '"
-           << _serviceName << "' on network '" << _networks << "'.\n";
+           << _serviceName << "' on network '" << _networks << "', port " << result.portIDs[0] << ".\n";
     }
 
     if (_connected && !_handshakeData) {
