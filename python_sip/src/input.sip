@@ -328,6 +328,9 @@ class arSharedLibInputDriver {
 %TypeHeaderCode
 #include "arSharedLib.h"
 #include "arGenericDriver.h"
+#ifndef arSharedLibInputDriver_bugfix
+#define arSharedLibInputDriver_bugfix
+// sip 4.10 and 4.12 duplicate this block into sip_szgpart0.cpp.
 class arSharedLibInputDriver : public arSharedLib {
  public:
   bool createFactory(const string& sharedLibName,
@@ -339,6 +342,7 @@ class arSharedLibInputDriver : public arSharedLib {
     return (arGenericDriver*) arSharedLib::createObject();
   }
 };
+#endif
 %End
   public:
     bool createFactory(const string& sharedLibName,
