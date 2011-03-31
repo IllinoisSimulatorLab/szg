@@ -40,7 +40,9 @@ LPrintUsage:
        << "  Send to the component hosting a service:\n"
        << "    dmsg [-r] -s service_name message_type [message_body]\n"
        << "  Send to the component holding a lock:\n"
-       << "    dmsg [-r] -l lock_name message_type [message_body]\n";
+       << "    dmsg [-r] -l lock_name message_type [message_body]\n\n"
+       << "NOTE: if [message body] is more than one word, you must\n"
+       << "  enclose it in quotation marks\n";
     return 1;
   }
 
