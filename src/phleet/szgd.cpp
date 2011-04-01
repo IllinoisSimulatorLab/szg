@@ -1163,7 +1163,7 @@ int main(int argc, char** argv) {
     fRetry |= !strcmp(argv[i], "-r");
   }
 
-  ar_log_critical() << ar_versionInfo() << ar_versionString();
+  ar_log_critical() << ar_versionInfo() << ar_endl << ar_versionString();
   ar_log_critical() << (fRetry ? "Reconnect enabled.\n" : "Reconnect disabled.\n");
   
   const int argcOriginal = argc;

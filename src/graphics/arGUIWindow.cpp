@@ -1,9 +1,3 @@
-//@+leo-ver=4-thin
-//@+node:jimc.20100409112755.164:@thin graphics\arGUIWindow.cpp
-//@@language c++
-//@@tabwidth -2
-//@+others
-//@+node:jimc.20100409112755.165:arGUIWindow declarations
 /**
  * @file arGUIWindow.cpp
  * Implementation of the arGUIWindowConfig, arWMEvent,
@@ -27,8 +21,6 @@
 // convenience define
 const double USEC = 1000000.0;
 
-//@-node:jimc.20100409112755.165:arGUIWindow declarations
-//@+node:jimc.20100409112755.166:arDefaultGUIRenderCallback::operator
 // the fall-throughs in these operators /might/ be 'dangerous' (e.g. a
 // drawcallback expecting a windowinfo and/or a graphicsWindow gets passed
 // NULL(s)), but they *should* be robust to deal with such a situation.  This
@@ -41,8 +33,6 @@ void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo, arGrap
     _drawCallback1( windowInfo );
   }
 }
-//@-node:jimc.20100409112755.166:arDefaultGUIRenderCallback::operator
-//@+node:jimc.20100409112755.167:arDefaultGUIRenderCallback::operator
 
 void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
   if ( _drawCallback1 ) {
@@ -52,8 +42,6 @@ void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
     _drawCallback0( windowInfo, NULL );
   }
 }
-//@-node:jimc.20100409112755.167:arDefaultGUIRenderCallback::operator
-//@+node:jimc.20100409112755.168:arDefaultGUIRenderCallback::operator
 
 void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, arViewport& viewport ) {
   if ( _drawCallback2 ) {
@@ -66,8 +54,6 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, a
     _drawCallback1( NULL );
   }
 }
-//@-node:jimc.20100409112755.168:arDefaultGUIRenderCallback::operator
-//@+node:jimc.20100409112755.169:arGUIWindowConfig::arGUIWindowConfig
 
 // The following causes the linker to barf (VC++6, anyway) on the Python bindings.
 //const std::string arGUIWindowConfig::_titleDefault("SyzygyWindow");
@@ -94,16 +80,12 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _cursor( cursor )
 {
 }
-//@-node:jimc.20100409112755.169:arGUIWindowConfig::arGUIWindowConfig
-//@+node:jimc.20100409112755.170:arWMEvent::arWMEvent
 
 arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
   _eventCond("arWMEvent type " + ar_intToString(event.getEventType()) + ", state " + ar_intToString(event.getState()))
 {
   reset(event);
 }
-//@-node:jimc.20100409112755.170:arWMEvent::arWMEvent
-//@+node:jimc.20100409112755.171:arWMEvent::reset
 
 void arWMEvent::reset( const arGUIWindowInfo& event )
 {
@@ -112,8 +94,6 @@ void arWMEvent::reset( const arGUIWindowInfo& event )
   arGuard _(_eventMutex, "arWMEvent::reset");
   _conditionFlag = false;
 }
-//@-node:jimc.20100409112755.171:arWMEvent::reset
-//@+node:jimc.20100409112755.172:arWMEvent::wait
 
 void arWMEvent::wait( const bool blocking )
 {
@@ -129,8 +109,6 @@ void arWMEvent::wait( const bool blocking )
   // Let this event be reused.
   ++_done;
 }
-//@-node:jimc.20100409112755.172:arWMEvent::wait
-//@+node:jimc.20100409112755.173:arWMEvent::signal
 
 void arWMEvent::signal( void )
 {
@@ -140,15 +118,11 @@ void arWMEvent::signal( void )
   _eventMutex.unlock();
   ++_done;
 }
-//@-node:jimc.20100409112755.173:arWMEvent::signal
-//@+node:jimc.20100409112755.174:arGUIWindowBuffer::arGUIWindowBuffer
 
 arGUIWindowBuffer::arGUIWindowBuffer( bool dblBuf ) :
   _dblBuf( dblBuf )
 {
 }
-//@-node:jimc.20100409112755.174:arGUIWindowBuffer::arGUIWindowBuffer
-//@+node:jimc.20100409112755.175:arGUIWindowBuffer::swapBuffer
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& h, const bool stereo ) const
 {
@@ -184,8 +158,6 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& h, const bool stereo
 
   return 0;
 }
-//@-node:jimc.20100409112755.175:arGUIWindowBuffer::swapBuffer
-//@+node:jimc.20100409112755.176:arGUIWindow::arGUIWindow
 
 arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
                           void (*windowInitGLCallback)( arGUIWindowInfo* ),
@@ -215,8 +187,6 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _WMEventsVar("arGUIWindow-events, ID = " + ar_intToString(_ID))
 {
 }
-//@-node:jimc.20100409112755.176:arGUIWindow::arGUIWindow
-//@+node:jimc.20100409112755.177:arGUIWindow
 
 arGUIWindow::~arGUIWindow( void )
 {
@@ -241,8 +211,6 @@ arGUIWindow::~arGUIWindow( void )
     delete _drawCallback;
   }
 }
-//@-node:jimc.20100409112755.177:arGUIWindow
-//@+node:jimc.20100409112755.178:arGUIWindow::registerDrawCallback
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
@@ -260,15 +228,11 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
     _drawCallback = drawCallback;
   }
 }
-//@-node:jimc.20100409112755.178:arGUIWindow::registerDrawCallback
-//@+node:jimc.20100409112755.179:arGUIWindow::_drawHandler
 
-void arGUIWindow::_drawHandler( const bool drawLeftBuffer )
+void arGUIWindow::_drawHandler( void )
 {
   arGuard _(_creationMutex, "arGUIWindow::_drawHandler");
   if ( !_running || !_drawCallback )
-    return;
-  if ( !drawLeftBuffer && !isStereo() )
     return;
 
   // ensure (in non-threaded mode) that this window's opengl context is current
@@ -289,20 +253,23 @@ void arGUIWindow::_drawHandler( const bool drawLeftBuffer )
   XLockDisplay( _windowHandle._dpy );
 #endif
 
+  arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
+  windowInfo->setWindowID( _ID );
+
   // always try to pass through the graphicswindow, if the user has
   // registered a callback that does not take it, the callback class will
   // handle letting that fall through
   if (_graphicsWindow) {
     _graphicsWindow->setPixelDimensions( getPosX(), getPosY(), getWidth(), getHeight() );
   }
-  (*_drawCallback)( _ID, _graphicsWindow, drawLeftBuffer );
+  (*_drawCallback)( windowInfo, _graphicsWindow );
+
+  delete windowInfo;
 
 #if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
   XUnlockDisplay( _windowHandle._dpy );
 #endif
 }
-//@-node:jimc.20100409112755.179:arGUIWindow::_drawHandler
-//@+node:jimc.20100409112755.180:InitGL
 
 // the most vanilla opengl setup possible
 void InitGL( int width, int height )
@@ -324,8 +291,6 @@ void InitGL( int width, int height )
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
 }
-//@-node:jimc.20100409112755.180:InitGL
-//@+node:jimc.20100409112755.181:arGUIWindow::beginEventThread
 
 int arGUIWindow::beginEventThread( void )
 {
@@ -347,8 +312,6 @@ int arGUIWindow::beginEventThread( void )
   _creationMutex.unlock();
   return 0;
 }
-//@-node:jimc.20100409112755.181:arGUIWindow::beginEventThread
-//@+node:jimc.20100409112755.182:arGUIWindow::mainLoop
 
 void arGUIWindow::mainLoop( void* data )
 {
@@ -356,8 +319,6 @@ void arGUIWindow::mainLoop( void* data )
   if (w)
     w->_mainLoop();
 }
-//@-node:jimc.20100409112755.182:arGUIWindow::mainLoop
-//@+node:jimc.20100409112755.183:arGUIWindow::_mainLoop
 
 void arGUIWindow::_mainLoop( void )
 {
@@ -372,8 +333,6 @@ void arGUIWindow::_mainLoop( void )
     }
   }
 }
-//@-node:jimc.20100409112755.183:arGUIWindow::_mainLoop
-//@+node:jimc.20100409112755.184:arGUIWindow::_consumeWindowEvents
 
 int arGUIWindow::_consumeWindowEvents( void )
 {
@@ -392,8 +351,6 @@ int arGUIWindow::_consumeWindowEvents( void )
   // Queue may be empty, if the timeout was short.  That's OK.
   return _processWMEvents()<0 ? -1 : 0;
 }
-//@-node:jimc.20100409112755.184:arGUIWindow::_consumeWindowEvents
-//@+node:jimc.20100409112755.185:arGUIWindow::getNextGUIEvent
 
 arGUIInfo* arGUIWindow::getNextGUIEvent( void )
 {
@@ -406,30 +363,22 @@ arGUIInfo* arGUIWindow::getNextGUIEvent( void )
   result->setUserData(_userData);
   return result;
 }
-//@-node:jimc.20100409112755.185:arGUIWindow::getNextGUIEvent
-//@+node:jimc.20100409112755.186:arGUIWindow::eventsPending
 
 bool arGUIWindow::eventsPending( void ) const
 {
   return _running && _GUIEventManager->eventsPending();
 }
-//@-node:jimc.20100409112755.186:arGUIWindow::eventsPending
-//@+node:jimc.20100409112755.187:arGUIWindow::getGraphicsWindow
 
 arGraphicsWindow* arGUIWindow::getGraphicsWindow( void )
 {
   _graphicsWindowMutex.lock("arGUIWindow::getGraphicsWindow");
   return _graphicsWindow;
 }
-//@-node:jimc.20100409112755.187:arGUIWindow::getGraphicsWindow
-//@+node:jimc.20100409112755.188:arGUIWindow::returnGraphicsWindow
 
 void arGUIWindow::returnGraphicsWindow( void )
 {
   _graphicsWindowMutex.unlock();
 }
-//@-node:jimc.20100409112755.188:arGUIWindow::returnGraphicsWindow
-//@+node:jimc.20100409112755.189:arGUIWindow::setGraphicsWindow
 
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
@@ -440,8 +389,6 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
   }
   _graphicsWindow = graphicsWindow;
 }
-//@-node:jimc.20100409112755.189:arGUIWindow::setGraphicsWindow
-//@+node:jimc.20100409112755.190:arGUIWindow::addWMEvent
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 {
@@ -477,8 +424,6 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
   _WMEventsVar.signal();
   return event;
 }
-//@-node:jimc.20100409112755.190:arGUIWindow::addWMEvent
-//@+node:jimc.20100409112755.191:arGUIWindow::_processWMEvents
 
 int arGUIWindow::_processWMEvents( void )
 {
@@ -494,16 +439,44 @@ int arGUIWindow::_processWMEvents( void )
     arWMEvent* wmEvent = _WMEvents.front();
 
     switch( wmEvent->getEvent().getState() ) {
-      case AR_WINDOW_DRAW_LEFT:
+      case AR_WINDOW_DRAW:
 
-        _drawHandler( true );
+#if 0
+        // Ignore _Hz. It complicates control flow in different modes and may be unimportant.
+        // Revisit it when arGUI is successfully integrated into syzygy.
+        if ( 0 /* _windowConfig._Hz > 0 */ ) {
+          ar_timeval currentTime = ar_time();
 
-        _lastFrameTime = ar_time();
-      break;
+          // assumes at least 1 fps
+          int uSec = int( USEC / double( _windowConfig.getHz() ) );
+          ar_timeval nextFrameTime(
+            _lastFrameTime.sec,
+            _lastFrameTime.usec + ( uSec > int(USEC) ? int(USEC) : uSec ) );
 
-      case AR_WINDOW_DRAW_RIGHT:
+          // carry the microseconds
+          if ( nextFrameTime.usec > 1000000 ) {
+            nextFrameTime.usec -= 1000000;
+            nextFrameTime.sec++;
+          }
 
-        _drawHandler( false );
+          // relinquish the cpu until it's time to draw the next frame
+          while ( ar_difftime( nextFrameTime, currentTime ) > 0.0 ) {
+            // without actually returning from this function all windows are kept
+            // to the window with the lowest Hz as the wm will have to wait to
+            // add events to the 'slow' window until it is done sleeping in
+            // this function, by returning we give the wm a chance to add the
+            // event to this 'slow' window and move on to 'faster' windows (the
+            // wm will wait if either its in singlethreaded mode or the swaps
+            // are blocking {both fairly 'normal' modes of operation})
+            _WMEventsMutex.unlock();
+            return 0;
+            // ar_usleep( 0 );
+            // currentTime = ar_time();
+          }
+        }
+#endif
+
+        _drawHandler();
 
         _lastFrameTime = ar_time();
       break;
@@ -570,8 +543,6 @@ int arGUIWindow::_processWMEvents( void )
 
   return 0;
 }
-//@-node:jimc.20100409112755.191:arGUIWindow::_processWMEvents
-//@+node:jimc.20100409112755.192:arGUIWindow::_performWindowCreation
 
 int arGUIWindow::_performWindowCreation( void )
 {
@@ -599,8 +570,6 @@ int arGUIWindow::_performWindowCreation( void )
   _creationCond.signal();
   return 0;
 }
-//@-node:jimc.20100409112755.192:arGUIWindow::_performWindowCreation
-//@+node:jimc.20100409112755.193:arGUIWindow::_windowCreation
 
 int arGUIWindow::_windowCreation( void )
 {
@@ -985,8 +954,6 @@ int arGUIWindow::_windowCreation( void )
 
   return 0;
 }
-//@-node:jimc.20100409112755.193:arGUIWindow::_windowCreation
-//@+node:jimc.20100409112755.194:arGUIWindow::_setupWindowCreation
 
 int arGUIWindow::_setupWindowCreation( void )
 {
@@ -1017,8 +984,6 @@ int arGUIWindow::_setupWindowCreation( void )
 
   return 0;
 }
-//@-node:jimc.20100409112755.194:arGUIWindow::_setupWindowCreation
-//@+node:jimc.20100409112755.195:arGUIWindow::_tearDownWindowCreation
 
 int arGUIWindow::_tearDownWindowCreation( void )
 {
@@ -1034,8 +999,6 @@ int arGUIWindow::_tearDownWindowCreation( void )
   }
   return 0;
 }
-//@-node:jimc.20100409112755.195:arGUIWindow::_tearDownWindowCreation
-//@+node:jimc.20100409112755.196:arGUIWindow::swap
 
 int arGUIWindow::swap( void )
 {
@@ -1049,8 +1012,6 @@ int arGUIWindow::swap( void )
 
   return _windowBuffer->swapBuffer( _windowHandle, _windowConfig.getStereo() );
 }
-//@-node:jimc.20100409112755.196:arGUIWindow::swap
-//@+node:jimc.20100409112755.197:arGUIWindow::resize
 
 int arGUIWindow::resize( int newWidth, int newHeight )
 {
@@ -1138,8 +1099,6 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
   return 0;
 }
-//@-node:jimc.20100409112755.197:arGUIWindow::resize
-//@+node:jimc.20100409112755.198:arGUIWindow::fullscreen
 
 int arGUIWindow::fullscreen( void )
 {
@@ -1252,8 +1211,6 @@ int arGUIWindow::fullscreen( void )
 
   return 0;
 }
-//@-node:jimc.20100409112755.198:arGUIWindow::fullscreen
-//@+node:jimc.20100409112755.199:arGUIWindow::setViewport
 
 int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
 {
@@ -1268,8 +1225,6 @@ int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
   glViewport( newX, newY, newWidth, newHeight );
   return 0;
 }
-//@-node:jimc.20100409112755.199:arGUIWindow::setViewport
-//@+node:jimc.20100409112755.200:arGUIWindow::decorate
 
 void arGUIWindow::decorate( const bool decorate )
 {
@@ -1382,8 +1337,6 @@ void arGUIWindow::decorate( const bool decorate )
 
   _decorate = decorate;
 }
-//@-node:jimc.20100409112755.200:arGUIWindow::decorate
-//@+node:jimc.20100409112755.201:arGUIWindow::raise
 
 void arGUIWindow::raise( const arZOrder zorder )
 {
@@ -1423,8 +1376,6 @@ void arGUIWindow::raise( const arZOrder zorder )
 
   _visible = true;
 }
-//@-node:jimc.20100409112755.201:arGUIWindow::raise
-//@+node:jimc.20100409112755.202:arGUIWindow::lower
 
 void arGUIWindow::lower( void )
 {
@@ -1456,8 +1407,6 @@ void arGUIWindow::lower( void )
 
   _visible = false;
 }
-//@-node:jimc.20100409112755.202:arGUIWindow::lower
-//@+node:jimc.20100409112755.203:arGUIWindow::minimize
 
 void arGUIWindow::minimize( void )
 {
@@ -1487,8 +1436,6 @@ void arGUIWindow::minimize( void )
 
   _visible = false;
 }
-//@-node:jimc.20100409112755.203:arGUIWindow::minimize
-//@+node:jimc.20100409112755.204:arGUIWindow::restore
 
 void arGUIWindow::restore( void )
 {
@@ -1518,8 +1465,6 @@ void arGUIWindow::restore( void )
 
   _visible = true;
 }
-//@-node:jimc.20100409112755.204:arGUIWindow::restore
-//@+node:jimc.20100409112755.205:arGUIWindow::move
 
 int arGUIWindow::move( int newX, int newY )
 {
@@ -1566,8 +1511,6 @@ int arGUIWindow::move( int newX, int newY )
 
   return 0;
 }
-//@-node:jimc.20100409112755.205:arGUIWindow::move
-//@+node:jimc.20100409112755.206:arGUIWindow::setCursor
 
 arCursor arGUIWindow::setCursor( arCursor cursor )
 {
@@ -1678,8 +1621,6 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
   return _cursor;
 }
-//@-node:jimc.20100409112755.206:arGUIWindow::setCursor
-//@+node:jimc.20100409112755.207:arGUIWindow::setTitle
 
 void arGUIWindow::setTitle( const std::string& title )
 {
@@ -1702,8 +1643,6 @@ void arGUIWindow::setTitle( const std::string& title )
 
 #endif
 }
-//@-node:jimc.20100409112755.207:arGUIWindow::setTitle
-//@+node:jimc.20100409112755.208:arGUIWindow::getWidth
 
 int arGUIWindow::getWidth( void ) const
 {
@@ -1738,8 +1677,6 @@ int arGUIWindow::getWidth( void ) const
 
 #endif
 }
-//@-node:jimc.20100409112755.208:arGUIWindow::getWidth
-//@+node:jimc.20100409112755.209:arGUIWindow::getHeight
 
 int arGUIWindow::getHeight( void ) const
 {
@@ -1771,8 +1708,6 @@ int arGUIWindow::getHeight( void ) const
 
 #endif
 }
-//@-node:jimc.20100409112755.209:arGUIWindow::getHeight
-//@+node:jimc.20100409112755.210:arGUIWindow::getPosX
 
 int arGUIWindow::getPosX( void ) const
 {
@@ -1814,8 +1749,6 @@ int arGUIWindow::getPosX( void ) const
 
 #endif
 }
-//@-node:jimc.20100409112755.210:arGUIWindow::getPosX
-//@+node:jimc.20100409112755.211:arGUIWindow::getPosY
 
 int arGUIWindow::getPosY( void ) const
 {
@@ -1859,8 +1792,6 @@ int arGUIWindow::getPosY( void ) const
 
 #endif
 }
-//@-node:jimc.20100409112755.211:arGUIWindow::getPosY
-//@+node:jimc.20100409112755.212:arGUIWindow::_changeScreenResolution
 
 int arGUIWindow::_changeScreenResolution( void )
 {
@@ -1887,8 +1818,6 @@ int arGUIWindow::_changeScreenResolution( void )
 
   return 0;
 }
-//@-node:jimc.20100409112755.212:arGUIWindow::_changeScreenResolution
-//@+node:jimc.20100409112755.213:arGUIWindow::_killWindow
 
 // if this function is called when the window is not running there will be a
 // whole bunch of errors and probably some segfaults, but we can't check for
@@ -1976,8 +1905,6 @@ int arGUIWindow::_killWindow( void )
   _destructionCond.signal();
   return 0;
 }
-//@-node:jimc.20100409112755.213:arGUIWindow::_killWindow
-//@+node:jimc.20100409112755.214:arGUIWindow::makeCurrent
 
 int arGUIWindow::makeCurrent( bool release )
 {
@@ -2030,8 +1957,4 @@ int arGUIWindow::makeCurrent( bool release )
 
   return 0;
 }
-//@-node:jimc.20100409112755.214:arGUIWindow::makeCurrent
-//@-others
 
-//@-node:jimc.20100409112755.164:@thin graphics\arGUIWindow.cpp
-//@-leo

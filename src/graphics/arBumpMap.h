@@ -18,7 +18,9 @@ class SZG_CALL arBumpMap : public arTexture {
   arBumpMap();
   virtual ~arBumpMap();
   arBumpMap( const arBumpMap& rhs );
+#if 0
   arBumpMap& operator=( const arBumpMap& rhs );
+#endif
   bool operator!();
   void activate();        // initializes bump map in OpenGL (called once at start)
   void reactivate();        // enables in OpenGL -- NOTE: Unused; deprecated???

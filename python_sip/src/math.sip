@@ -202,6 +202,7 @@ class arVector2 {
   //v1!=v2
   bool operator!=(const arVector2& rhs) const;
 
+  // sip 4.10 bug: generated code for operator?= has an extra close paren.  Fixed in sip 4.12.
   const arVector2& operator+=(const arVector2& rhs);
   const arVector2& operator-=(const arVector2& rhs);
   const arVector2& operator*=(float scalar);
@@ -280,6 +281,7 @@ class arVector3 {
   //v1!=v2
   bool operator!=(const arVector3& rhs) const;
 
+  // sip 4.10 bug: generated code for operator?= has an extra close paren.  Fixed in sip 4.12.
   const arVector3& operator+=(const arVector3& rhs);
   const arVector3& operator-=(const arVector3& rhs);
   const arVector3& operator*=(float scalar);

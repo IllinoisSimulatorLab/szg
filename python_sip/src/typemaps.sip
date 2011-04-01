@@ -449,7 +449,7 @@ using namespace std;
 %ModuleCode
 template<class T> class _NumberArray {
   public:
-    _NumberArray( int numVals ) :
+    _NumberArray( int numVals=0 ) :	// =0: bugfix for sip 4.12 compile error, no default constructor for array of arrays in e.g. array_arLongArray and array_arDoubleArray, "return new arDoubleArray[sipNrElem];".
       size(numVals) {
       data = new T[numVals];
     }

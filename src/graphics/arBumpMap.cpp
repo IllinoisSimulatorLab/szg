@@ -65,12 +65,13 @@ arBumpMap::arBumpMap( const arBumpMap& rhs ) : arTexture(rhs) {
     _tangents = _binormals = _normals = NULL;
 }
 
-// @todo Verify this copy constructor; I don't remember exactly how they work
-//  with derived classes...
-/*arBumpMap::arBumpMap& operator=( const arBumpMap& rhs ) {
-  Texture t = rhs;
-  return arBumpMap(t);
-}*/
+#if 0
+arBumpMap::arBumpMap& operator=( const arBumpMap& rhs ) {
+  // ;;;;;;;; THIS IS BUGGY.  Do a deep copy, like the copy constructor.
+  arBumpMap t = arBumpMap(rhs);
+  _tangents = t.tangents; //;;;; etc.
+}
+#endif
 
 void arBumpMap::activate() {
 }
