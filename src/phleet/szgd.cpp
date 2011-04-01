@@ -118,7 +118,7 @@ bool getBasePaths( const char* const arg ) {
     bool dirExists = false;
     bool isDir = false;
     if (!ar_directoryExists( pathTmp, dirExists, isDir )) {
-      ar_log_error() << "ar_directoryExists() failed.\n";
+      ar_log_error() << "ar_directoryExists() failed for '" << pathTmp << "'.\n";
       return false;
     }
     if (!dirExists) {
@@ -1163,7 +1163,7 @@ int main(int argc, char** argv) {
     fRetry |= !strcmp(argv[i], "-r");
   }
 
-  ar_log_critical() << ar_versionInfo() << ar_versionString();
+  ar_log_critical() << ar_versionInfo() << ar_endl << ar_versionString();
   ar_log_critical() << (fRetry ? "Reconnect enabled.\n" : "Reconnect disabled.\n");
   
   const int argcOriginal = argc;
