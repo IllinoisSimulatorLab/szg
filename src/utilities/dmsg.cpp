@@ -14,6 +14,17 @@ void striparg(int which, int& argc, char** argv) {
   --argc;
 }
 
+string joinArgs( int argc, char **argv, int startIndex ) {
+  ostringstream os;
+  for (int i=startIndex; i<argc; ++i) {
+    if (i>startIndex) {
+      os << " ";
+    }
+    os << argv[i];
+  }
+  return os.str();
+}
+
 // Use cout not cerr in main(), so we can build RPC scripts.
 
 int main(int argc, char** argv) {
@@ -40,9 +51,7 @@ LPrintUsage:
        << "  Send to the component hosting a service:\n"
        << "    dmsg [-r] -s service_name message_type [message_body]\n"
        << "  Send to the component holding a lock:\n"
-       << "    dmsg [-r] -l lock_name message_type [message_body]\n\n"
-       << "NOTE: if [message body] is more than one word, you must\n"
-       << "  enclose it in quotation marks\n";
+       << "    dmsg [-r] -l lock_name message_type [message_body]\n\n";
     return 1;
   }
 
@@ -59,41 +68,41 @@ LPrintUsage:
   // -m: send to the component operating on the Master screen.
   // -g: send to the component operating on a Display.
   // -c: send to the Control component (holding the "demo" lock).
-  // If multiple flags are given, only the last one takes effect.
+  // -l: send to the component holding the named lock.
+  // -s: send to the component providing the named service.
 
   // Parse the args.
   enum { modeDefault, modeProcess, modeMaster, modeDisplay, modeControl, modeService, modeLock };
   int mode = modeDefault;
-  for (int i=0; i<argc; i++) {
-    if (!strcmp(argv[i], "-p")) {
-      mode = modeProcess;
-      striparg(i--, argc, argv);
-      // i-- counteracts the end-of-loop increment
-    }
-    else if (!strcmp(argv[i], "-m")) {
-      mode = modeMaster;
-      striparg(i--, argc, argv);
-    }
-    else if (!strcmp(argv[i], "-g")) {
-      mode = modeDisplay;
-      striparg(i--, argc, argv);
-    }
-    else if (!strcmp(argv[i], "-c")) {
-      mode = modeControl;
-      striparg(i--, argc, argv);
-    }
-    else if (!strcmp(argv[i], "-s")) {
-      mode = modeService;
-      striparg(i--, argc, argv);
-    }
-    else if (!strcmp(argv[i], "-l")) {
-      mode = modeLock;
-      striparg(i--, argc, argv);
-    }
+  if (!strcmp(argv[1], "-p")) {
+    mode = modeProcess;
+    striparg(1, argc, argv);
+    // i-- counteracts the end-of-loop increment
+  }
+  else if (!strcmp(argv[1], "-m")) {
+    mode = modeMaster;
+    striparg(1, argc, argv);
+  }
+  else if (!strcmp(argv[1], "-g")) {
+    mode = modeDisplay;
+    striparg(1, argc, argv);
+  }
+  else if (!strcmp(argv[1], "-c")) {
+    mode = modeControl;
+    striparg(1, argc, argv);
+  }
+  else if (!strcmp(argv[1], "-s")) {
+    mode = modeService;
+    striparg(1, argc, argv);
+  }
+  else if (!strcmp(argv[1], "-l")) {
+    mode = modeLock;
+    striparg(1, argc, argv);
   }
 
   string messageType;
   string messageBody;
+  int typeIndex;
   int componentID = -1;
 
   switch (mode) {
@@ -101,13 +110,15 @@ LPrintUsage:
     goto LPrintUsage;
 
   case modeDefault:
-    if (argc != 3 && argc != 4)
+    typeIndex = 2;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     componentID = atoi(argv[1]);
     goto LLocked;
 
   case modeProcess:
-    if (argc != 4 && argc != 5)
+    typeIndex = 3;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     componentID = szgClient.getProcessID(argv[1], argv[2]);
     if (componentID == -1) {
@@ -115,12 +126,14 @@ LPrintUsage:
       return 1;
     }
 LProcess:
-    messageType = string(argv[3]);
-    messageBody = string(argc == 5 ? argv[4]: "NULL");
+    messageType = string(argv[typeIndex]);
+    messageBody = joinArgs( argc, argv, typeIndex+1 );
+    cout << "TYPE: '" << messageType << "', BODY: '" << messageBody << "'\n";
     break;
 
   case modeMaster:
-    if (argc != 3 && argc != 4)
+    typeIndex = 2;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     {
       // Virtual computer
@@ -144,7 +157,8 @@ LProcess:
     }
 
   case modeDisplay:
-    if (argc != 4 && argc != 5)
+    typeIndex = 3;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     {
       // Virtual computer
@@ -153,14 +167,17 @@ LProcess:
         return 1;
       }
       if (!launcher.setParameters()) {
-        cout << "dmsg error: invalid virtual computer definition.\n";
+        cout << "dmsg error: invalid virtual computer definition '"
+             << argv[1] << "'.\n";
         return 1;
       }
       const string lockName = launcher.getDisplayName(atoi(argv[2]));
       if (szgClient.getLock(lockName, componentID)) {
         // nobody else was holding the lock
         szgClient.releaseLock(lockName);
-        cout << "dmsg error: no component running on specified screen.\n";
+        cout << "dmsg error: no component running on display #"
+             << atoi(argv[2]) << " of virtual computer '"
+             << argv[1] << "'.\n";
         return 1;
       }
       // That screen is running something.
@@ -168,7 +185,8 @@ LProcess:
     }
 
   case modeControl:
-    if (argc != 3 && argc != 4)
+    typeIndex = 2;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     // Directly target the app lock, so don't mess with virtual computers.
     // Use the location instead of a virtual computer name.
@@ -178,14 +196,16 @@ LProcess:
       if (szgClient.getLock(lockName, componentID)) {
         // nobody was holding the lock
         szgClient.releaseLock(lockName);
-        cout << "dmsg error: no trigger component running.\n";
+        cout << "dmsg error: no trigger component running in location '"
+             << argv[1] <<"'.\n";
         return 1;
       }
       goto LLocked;
     }
 
   case modeService:
-    if (argc != 3 && argc != 4)
+    typeIndex = 2;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     // Previously, arSZGClient::createComplexServiceName()
     // modified the service name given by the command line args.
@@ -198,7 +218,8 @@ LProcess:
     goto LLocked;
 
   case modeLock:
-    if (argc != 3 && argc != 4)
+    typeIndex = 2;
+    if (argc < typeIndex+1)
       goto LPrintUsage;
     if (szgClient.getLock(argv[1], componentID)) {
       // Nobody held the lock, because we got it.
@@ -207,8 +228,9 @@ LProcess:
       return 1;
     }
 LLocked:
-    messageType = string(argv[2]);
-    messageBody = string(argc == 4 ? argv[3]: "NULL");
+    messageType = string(argv[typeIndex]);
+    messageBody = joinArgs( argc, argv, typeIndex+1 );
+    cout << "TYPE: '" << messageType << "', BODY: '" << messageBody << "'\n";
     break;
   }
 
