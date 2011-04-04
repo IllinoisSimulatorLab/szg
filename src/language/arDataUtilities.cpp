@@ -1011,7 +1011,7 @@ string ar_getenv(const string& variable) {
 }
 
 #ifndef AR_USE_DARWIN
-#ifdef _MSC_VER && (_MSC_VER >= 1400)
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
 bool ar_getSzgEnv( map< string,string, less<string> >& envMap ) {
   ar_log_warning() << "ar_getSzgEnv() does not work with Visual C++ 8 & 9.\n";
   return false;
@@ -1103,7 +1103,12 @@ bool ar_fileItemExists( const string name, bool& exists ) {
     exists = false;
     return true;
   }
-  ar_log_error() << "ar_fileItemExists: stat() failed.\n";
+  if (errno == EOVERFLOW) {
+    // 32-bit app queries a file longer than 2<<31 bits
+    exists = true;
+    return true;
+  }
+  ar_log_error() << "ar_fileItemExists: stat() failed for " << name << ".\n";
   return false;
 }
 
@@ -1133,30 +1138,32 @@ bool ar_isDirectory(const char* name) {
 
 // todo: copy-paste from ar_fileOpen
 // Returns the first file name of a file that can be opened on
-// <path component>/<subdirectory>/<name>
+// <path>/<subdirectory>/<name>
 string ar_fileFind(const string& name,
                    const string& subdirectory,
                    const string& path) {
-  // First, search the explicitly given path
   FILE* result = NULL;
-  int location = 0;
   string possiblePath("junk");
-  while (!result && possiblePath != "") {
-    possiblePath = ar_pathToken(path, location);
-    if (possiblePath == "")
-      continue;
-    if (subdirectory != "")
-      possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
-    possiblePath = ar_pathAddSlash(possiblePath)+name;
-    // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
-    // as required by platform. This is necessary to allow the subdirectory
-    // to have multiple levels in a cross-platform sort of way.
-    ar_fixPathDelimiter(possiblePath);
-    result = fopen(possiblePath.c_str(), "r");
-    if (result && ar_isDirectory(possiblePath.c_str())) {
-      // Reject this directory.
-      fclose(result);
-      result = NULL;
+  if (name[0] != '/' && path != "NULL") { //;;;;;;;; copypaste this elsewhere
+    // First, search the explicitly given path
+    int location = 0;
+    while (!result && possiblePath != "") {
+      possiblePath = ar_pathToken(path, location);
+      if (possiblePath == "")
+	continue;
+      if (subdirectory != "")
+	possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
+      possiblePath = ar_pathAddSlash(possiblePath)+name;
+      // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
+      // as required by platform. This is necessary to allow the subdirectory
+      // to have multiple levels in a cross-platform sort of way.
+      ar_fixPathDelimiter(possiblePath);
+      result = fopen(possiblePath.c_str(), "r");
+      if (result && ar_isDirectory(possiblePath.c_str())) {
+	// Reject this directory.
+	fclose(result);
+	result = NULL;
+      }
     }
   }
 
