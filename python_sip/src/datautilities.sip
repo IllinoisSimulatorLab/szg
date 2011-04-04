@@ -15,3 +15,19 @@ string ar_directoryFind(const string& name,
 		                 const string& subdirectory,
 		                 const string& path);
 
+
+class ar_timeval {
+ public:
+  int sec;
+  int usec;
+  ar_timeval();
+  ar_timeval(int s, int u);
+  bool zero() const;
+};
+
+ar_timeval ar_time();
+double ar_difftime(const ar_timeval& end, const ar_timeval& start);
+double ar_difftimeSafe(const ar_timeval& end, const ar_timeval& start);
+ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend); // returns "result"
+string ar_currentTimeString();
+

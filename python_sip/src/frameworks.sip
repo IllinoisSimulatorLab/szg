@@ -216,11 +216,6 @@ void ar_defaultDisconnectDraw() {
 
 %End
 
-enum arDataType {
-  AR_GARBAGE=0, AR_CHAR=1, AR_INT=2, AR_LONG=3, AR_FLOAT=4, AR_DOUBLE=5, AR_INT64=6
-};
-
-
 class arCallbackException {
   public:
     string message;

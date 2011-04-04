@@ -33,29 +33,6 @@
 using namespace std;
 %End
 
-// A specific way a client can connect to a service. The result of when
-// a client asks the broker about a service
-class arPhleetAddress {
-  public:
-  arPhleetAddress();
-  bool valid;
-  string address; // IP address
-  int numberPorts; // how many ports
-  int* portIDs; // the actual port IDs
-%GetCode
-  if ((sipPy = PyList_New(sipCpp->numberPorts)) == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "unable to allocate list for arPhleetAddress.portIDs");
-  } else {
-    for (int i=0; i<sipCpp->numberPorts; ++i) {
-      PyList_SET_ITEM(sipPy, i, PyInt_FromLong( static_cast<long>(sipCpp->portIDs[i]) ) );
-    }
-  }
-%End
-%SetCode
-  PyErr_SetString(PyExc_RuntimeError, "Can't set arPhleetAddress.portIDs");
-%End
-};
-
 
 /// Used for parsing/storing/writing the szg.conf config file and
 /// the szg_<username>.conf login files

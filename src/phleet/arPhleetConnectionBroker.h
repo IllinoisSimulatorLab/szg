@@ -19,7 +19,7 @@ using namespace std;
 // event has occured: the ID of the component along with the "match"
 // tag that the arSZGClient will use to determine which notifivation
 // requests this answers.
-class SZG_CALL arPhleetNotification{
+class SZG_CALL arPhleetNotification {
  public:
   arPhleetNotification() : componentID(-1), match(-1) {}
   arPhleetNotification(int a, int b) : componentID(a), match(b) {}
@@ -31,7 +31,7 @@ class SZG_CALL arPhleetNotification{
 // A description of a service, including where it exists, what networks
 // it can communicate upon, the ports it uses, the components that must
 // be notified when it is deleted, etc.
-class SZG_CALL arPhleetService{
+class SZG_CALL arPhleetService {
  public:
   arPhleetService() : valid(false), componentID(-1), numberPorts(0) {}
 
@@ -50,7 +50,7 @@ class SZG_CALL arPhleetService{
 
 // A specific way a client can connect to a service. The result of when
 // a client asks the broker about a service
-class SZG_CALL arPhleetAddress{
+class SZG_CALL arPhleetAddress {
  public:
   arPhleetAddress() : valid(false), address("NULL"), numberPorts(0) {}
 
@@ -61,7 +61,7 @@ class SZG_CALL arPhleetAddress{
 };
 
 // A request for connection to a phleet service that has yet to be fulfilled
-class SZG_CALL arPhleetServiceRequest{
+class SZG_CALL arPhleetServiceRequest {
  public:
   arPhleetServiceRequest() : componentID(-1), match(-1) {}
 
@@ -76,7 +76,7 @@ class SZG_CALL arPhleetServiceRequest{
 
 // the connection broker must keep track of which ports have what status on
 // each computer being managed by the szgserver
-class SZG_CALL arBrokerComputerData{
+class SZG_CALL arBrokerComputerData {
  public:
   arBrokerComputerData() : firstPort(-1), blockSize(-1) {}
 
@@ -91,7 +91,7 @@ class SZG_CALL arBrokerComputerData{
 
 // Store info for each active component which has come to the attention of the connection
 // broker.  Especially when a component exits and global lists need to be adjusted.
-class SZG_CALL arBrokerComponentData{
+class SZG_CALL arBrokerComponentData {
  public:
   arBrokerComponentData() : computer("NULL") {}
 
@@ -118,7 +118,7 @@ typedef list<arPhleetServiceRequest>                   SZGRequestList;
 // complicated. An important long term strategy would be to create more
 // managers like this one (for instance for messages, locks, and the
 // database)
-class SZG_CALL arPhleetConnectionBroker{
+class SZG_CALL arPhleetConnectionBroker {
  public:
   arPhleetConnectionBroker();
 

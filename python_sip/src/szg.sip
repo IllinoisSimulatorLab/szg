@@ -12,10 +12,12 @@ typedef int Py_ssize_t;
 %Include typemaps.sip
 %Include sockets.sip
 %Include datautilities.sip
+%Include data.sip
 %Include logstream.sip
 %Include database.sip
 %Include math.sip
 %Include navigation.sip
+%Include phleet.sip
 %Include szgclient.sip
 %Include input.sip
 %Include graphics.sip
