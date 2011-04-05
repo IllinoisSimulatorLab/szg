@@ -275,7 +275,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       print '      up:',screen.getUp()
       print '    size:',screen.getWidth(), 'x', screen.getHeight()
       firstFrame = False
-      glutInit()
     # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     
