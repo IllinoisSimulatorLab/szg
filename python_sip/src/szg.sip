@@ -21,6 +21,7 @@ typedef int Py_ssize_t;
 %Include szgclient.sip
 %Include input.sip
 %Include graphics.sip
+%Include arfreeglut.sip
 %Include mesh.sip
 %Include scenegraphapi.sip
 %Include view.sip
