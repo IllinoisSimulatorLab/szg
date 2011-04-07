@@ -1099,17 +1099,17 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
         first.replace(slash, 1, " ");
         localAttrs.push_back( "  " + first + "  " + i->second + "\n" );
       }
-      vector<string>::iterator iter;
-      value = "<szg_config>\n";
-      for (iter=globalAttrs.begin(); iter != globalAttrs.end(); ++iter) {
-        value += *iter;
-      }
-      value += "<assign>\n";
-      for (iter=localAttrs.begin(); iter != localAttrs.end(); ++iter) {
-        value += *iter;
-      }
-      value += "</assign>\n</szg_config>\n";
     }
+    vector<string>::iterator iter;
+    value = "<szg_config>\n";
+    for (iter=globalAttrs.begin(); iter != globalAttrs.end(); ++iter) {
+      value += *iter;
+    }
+    value += "<assign>\n";
+    for (iter=localAttrs.begin(); iter != localAttrs.end(); ++iter) {
+      value += *iter;
+    }
+    value += "</assign>\n</szg_config>\n";
     (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }
 
