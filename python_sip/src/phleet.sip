@@ -271,6 +271,21 @@ class arPhleetService {
 };
 
 
+// A request for connection to a phleet service that has yet to be fulfilled
+class arPhleetServiceRequest {
+ public:
+  arPhleetServiceRequest();
+
+  int    componentID;  // phleet ID of component requesting the service
+  string computer;     // host running requested component
+                       // (nice to list locations of pending service requests)
+  int    match;        // "async rpc" message matcher
+  string serviceName;  // requested service's name
+  string networks;     // networks on which the requester
+                       // can communicate, slash-delimited list
+};
+
+
 // A specific way a client can connect to a service. The result of when
 // a client asks the broker about a service
 class arPhleetAddress {
@@ -295,16 +310,32 @@ class arPhleetAddress {
 };
 
 
+// All the information required to notify a component that a specified
+// event has occured: the ID of the component along with the "match"
+// tag that the arSZGClient will use to determine which notifivation
+// requests this answers.
+class arPhleetNotification {
+ public:
+  arPhleetNotification();
+  arPhleetNotification(int a, int b);
+
+  int componentID; // Component requesting the notification.
+  int match;       // Tag of the original request.
+};
+
 // Manages connection brokering services for the szgserver. This code
 // could actually go in szgserver.cpp, but that file is getting too
 // complicated. An important long term strategy would be to create more
 // managers like this one (for instance for messages, locks, and the
 // database)
 class arPhleetConnectionBroker {
+%TypeHeaderCode
+#include "arPhleetConnectionBroker.h"
+%End
  public:
   arPhleetConnectionBroker();
 
-//  void setReleaseNotificationCallback(void(*callback)(int, int, const string&));
+  virtual void onServiceRelease( int componentID, int match, const string& serviceName );
   arPhleetService requestPorts(int componentID, const string& serviceName,
                                const string& computer, const string& networks,
                                const string& addresses, int size,
@@ -320,11 +351,49 @@ class arPhleetConnectionBroker {
                                  int match,
                                  const string& serviceName,
                                  const string& networks, bool async);
-//  SZGRequestList  getPendingRequests(const string& serviceName);
-//  SZGRequestList  getPendingRequests() const;
+// SZGRequestList = list(arPhleetServiceRequest)
+  SIP_PYTUPLE getPendingRequests( const string& serviceName="" );
+%MethodCode
+    list<arPhleetServiceRequest> reqList = sipCpp->getPendingRequests( *a0 );
+    sipRes = PyTuple_New( reqList.size() );
+    if (sipRes == NULL) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to allocate tuple for arPhleetConnectionBroker.getPendingRequests()");
+      sipIsErr = 1;
+    } else {
+      int i=0;
+      list<arPhleetServiceRequest>::iterator iter;
+      for (iter=reqList.begin(); iter!=reqList.end(); ++iter) {
+        PyObject* o = sipConvertFromInstance( &*iter, sipClass_arPhleetConnectionBroker, Py_None );
+        if (o==NULL) {
+          Py_DECREF( sipRes );
+          PyErr_SetString( PyExc_TypeError, "arPhleetConnectionBroker.getPendingRequests() failed to convert result" );
+          sipIsErr = true;
+          break;
+        }
+        PyTuple_SetItem( sipRes, i++, o );
+      }
+    }
+%End
+
   string getServiceNames() const;
   string getServiceComputers() const;
-//  int    getServiceComponents(int*& IDs) const;
+
+  SIP_PYTUPLE getServiceComponents() const;
+%MethodCode
+    int* ids = NULL;
+    int numIds = sipCpp->getServiceComponents( ids );
+    sipRes = PyTuple_New( numIds );
+    if (sipRes == NULL) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to allocate tuple for arPhleetConnectionBroker.getServiceComponents()");
+      sipIsErr = 1;
+    } else {
+      for (int i=0; i<numIds; ++i) {
+        PyTuple_SetItem( sipRes, i, PyInt_FromLong( static_cast<long>(ids[i]) ) );
+      }
+    }
+    delete[] ids;
+%End
+
   int    getServiceComponentID(const string& serviceName) const;
   void   registerReleaseNotification(int componentID,
                                      int match,

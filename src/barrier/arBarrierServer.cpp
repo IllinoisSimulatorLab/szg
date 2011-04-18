@@ -140,9 +140,9 @@ arBarrierServer::arBarrierServer():
   _exitProgram(false),
   _channel("NULL") {
 
-  _dataServer.setConsumerFunction(ar_barrierDataFunction);
+  _dataServer.setConsumerCallback(ar_barrierDataFunction);
   _dataServer.setConsumerObject(this);
-  _dataServer.setDisconnectFunction(ar_barrierDisconnectFunction);
+  _dataServer.setDisconnectCallback(ar_barrierDisconnectFunction);
   _dataServer.setDisconnectObject(this);
   _dataServer.smallPacketOptimize(true);
 

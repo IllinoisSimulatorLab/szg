@@ -24,6 +24,8 @@
 // Defines mappings from python to C++ types.
 %Include typemaps.sip
 
+enum { SZG_VERSION_NUMBER = 2 };
+
 class arLanguage {
 %TypeHeaderCode
 #include "arTemplateDictionary.h"
@@ -154,7 +156,20 @@ class arStructuredData {
    int numberDataItems() const;
 
    // for manipulating data in a fine-grained way
-   void* getDataPtr(int i, arDataType a);
+//   void* getDataPtr(int i, arDataType a);
+   // Need analogs of this for other data types...
+   vector<int>* getDataIntList( int id );
+%MethodCode
+      int* dataPtr = static_cast<int*>(sipCpp->getDataPtr( a0, AR_INT ));
+      if (!dataPtr) {
+        PyErr_SetString( PyExc_RuntimeError, "arStructuredData::getDataPtr() failed." );
+        sipIsErr = true;
+      } else {
+        int size = sipCpp->getDataDimension( a0 );
+        sipRes = new vector<int>( dataPtr, dataPtr+size );
+      }
+%End
+
    const void* getConstDataPtr(int, arDataType) const;
    int getDataDimension(const int) const;      // called by xxxClient
    bool setDataDimension(int, int); // called by xxxServer
@@ -169,13 +184,30 @@ class arStructuredData {
    arDataType getDataType(const string& fieldName) const;
 
    // for manipulating data one chunk at a time
-   bool dataIn(int field, const void* data, arDataType type, int dim); // called by xxxServer
-   bool dataOut(int, void*, arDataType, int) const; // called by xxxClient
+   bool dataInInt( int field, vector<int>* data );
+%MethodCode
+     int* tmp = new int[a1->size()];
+     if (!tmp) {
+       PyErr_SetString( PyExc_RuntimeError, "dataInInt() failed to allocate buffer" );
+       sipIsErr = 1;
+     } else {
+       int* it = tmp;
+       vector<int>::iterator iter;
+       for (iter = a1->begin(); iter != a1->end(); ++iter) {
+         *it++ = *iter;
+       }
+       sipRes = sipCpp->dataIn( a0, (const void*)tmp, AR_INT, a1->size() );
+       delete[] tmp;
+     }
+%End
+
+//   bool dataIn(int field, const void* data, arDataType type, int dim); // called by xxxServer
+//   bool dataOut(int, void*, arDataType, int) const; // called by xxxClient
 
    // some less efficient methods for data manipulation
-   bool dataIn(const string&, const void*,
-               arDataType theType=AR_GARBAGE, int dimension=0);
-   bool dataOut(const string&, void*, arDataType, int) const;
+//   bool dataIn(const string&, const void*,
+//               arDataType theType=AR_GARBAGE, int dimension=0);
+//   bool dataOut(const string&, void*, arDataType, int) const;
 
    int getDataFieldIndex( const string& fieldName ) const;
    bool getDataFieldName( const int index, string& fieldName ) const;
@@ -184,8 +216,6 @@ class arStructuredData {
    // Abbreviations.
    bool dataInString(int id, const string& s);
    bool dataInString(const string& fieldName, const string& s);
-   bool dataInString(int id, const char* s);
-   bool dataInString(const string& fieldName, const char* s);
    string getDataString(int field);
    string getDataString(const string& fieldName);
    int getDataInt(int id) const;
@@ -196,7 +226,7 @@ class arStructuredData {
    // For manipulating big chunks of data with fewer mem copies.
    // Experimenting here with not requiring data type.
    // Called only by xxxClient, I think.
-   bool ptrIn(int, void*, int);
+//   bool ptrIn(int, void*, int);
 
    // byte stream representation
    int size() const;           // # of bytes when packed
@@ -274,11 +304,14 @@ class arDataServer /*: public arDataPoint*/ {
 
 //   void setConsumerFunction
 //     (void (*consumerFunction)(arStructuredData*, void*, arSocket*));
+   void setConsume( bool onoff );
+   virtual void onConsumeData( arStructuredData* data, arSocket* socket );
    void setConsumerObject(void*);
 
    int getNumberConnected() const;       // passive and active connections
    int getNumberConnectedActive() const; // exclude passive connections
 
+   virtual void onDisconnect( arSocket* theSocket );
 //   void setDisconnectFunction
 //     (void (*disconnectFunction)(void*, arSocket*));
    void setDisconnectObject(void*);

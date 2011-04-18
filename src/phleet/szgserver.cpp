@@ -2007,7 +2007,7 @@ int main(int argc, char** argv) {
   dataServer = new arDataServer(1000);
   // we might want to do TCP-wrappers style filtering on the connections
   dataServer->setAcceptMask(serverAcceptMask);
-  dataServer->setDisconnectFunction(SZGdisconnectFunction);
+  dataServer->setDisconnectCallback(SZGdisconnectFunction);
 
   // Start the data parser.
   dataParser = new arStructuredDataParser(lang.getDictionary());
@@ -2018,7 +2018,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  dataServer->setConsumerFunction(dataConsumptionFunction);
+  dataServer->setConsumerCallback(dataConsumptionFunction);
   dataServer->setConsumerObject(NULL);
   dataServer->smallPacketOptimize(true);
   if (!dataServer->beginListening(lang.getDictionary()))

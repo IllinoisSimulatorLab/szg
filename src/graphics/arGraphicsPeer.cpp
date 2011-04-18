@@ -522,9 +522,9 @@ bool arGraphicsPeer::start() {
     return false;
   }
 
-  _dataServer->setConsumerFunction(ar_graphicsPeerConsumptionFunction);
+  _dataServer->setConsumerCallback(ar_graphicsPeerConsumptionFunction);
   _dataServer->setConsumerObject(this);
-  _dataServer->setDisconnectFunction(ar_graphicsPeerDisconnectFunction);
+  _dataServer->setDisconnectCallback(ar_graphicsPeerDisconnectFunction);
   _dataServer->setDisconnectObject(this);
   // Definitely want have finer-grained locks then over the processing
   // of each admin message. This makes message operations that take

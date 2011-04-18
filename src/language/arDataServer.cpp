@@ -20,9 +20,10 @@ arDataServer::arDataServer(int dataBufferSize) :
   _lockTransfer("DSERVE_TRANSFER"),
   _dataParser(NULL),
   _lockConsume("DSERVE_CONSUME"),
-  _consumerFunction(NULL),
+  _consumeData(false),
+  _consumerCallback(NULL),
   _consumerObject(NULL),
-  _disconnectFunction(NULL),
+  _disconnectCallback(NULL),
   _disconnectObject(NULL),
   _atomicReceive(true)
 {
@@ -101,7 +102,7 @@ void arDataServer::_readDataTask() {
     }
     arStructuredData* inData = _dataParser->parse(dest, theSize);
     if (inData) {
-      _consumerFunction(inData, _consumerObject, newFD);
+      onConsumeData( inData, newFD );
       _dataParser->recycle(inData);
     }
     if (_atomicReceive) {
@@ -306,7 +307,7 @@ LAbort:
   if (addToActive)
     _numberConnectedActive++;
 
-  if (_consumerFunction) {
+  if (_consumeData) {
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = sockNew;
     arThread* dummy = new arThread; // memory leak?
@@ -484,18 +485,37 @@ bool arDataServer::sendDataQueue(arQueuedData* theData, list<arSocket*>* socketL
   return ok;
 }
 
-void arDataServer::setConsumerFunction(void (*consumerFunction)
+void arDataServer::onConsumeData( arStructuredData* data, arSocket* socket ) {
+  if (_consumerCallback == NULL) {
+    return;
+  }
+  _consumerCallback( data, _consumerObject, socket );
+}
+
+void arDataServer::setConsumerCallback(void (*consumerCallback)
                                        (arStructuredData*, void*, arSocket*)) {
-  _consumerFunction = consumerFunction;
+  _consumerCallback = consumerCallback;
+  if (_consumerCallback == NULL) {
+    setConsume(false);
+  } else {
+    setConsume(true);
+  }
 }
 
 void arDataServer::setConsumerObject(void* consumerObject) {
   _consumerObject = consumerObject;
 }
 
-void arDataServer::setDisconnectFunction
-  (void (*disconnectFunction)(void*, arSocket*)) {
-  _disconnectFunction = disconnectFunction;
+void arDataServer::onDisconnect( arSocket* theSocket ) {
+  if (_disconnectCallback) {
+    // Call the user-supplied disconnect function.
+    _disconnectCallback(_disconnectObject, theSocket);
+  }
+}
+
+void arDataServer::setDisconnectCallback
+  (void (*disconnectCallback)(void*, arSocket*)) {
+  _disconnectCallback = disconnectCallback;
 }
 
 void arDataServer::setDisconnectObject(void* disconnectObject) {
@@ -622,15 +642,12 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket) {
       break; // Stop looking.
     }
   }
-  if (_disconnectFunction) {
-    // Call the user-supplied disconnect function.
-    _disconnectFunction(_disconnectObject, theSocket);
-  }
+  onDisconnect( theSocket );
 
   // Memory leak, about 20 bytes per connection:
   // theSocket isn't deleted, because multiple threads might
   // be using it at once.  If we could delete it, we'd do so here
-  // after _disconnectFunction has used it, of course.
+  // after onDisconnect() has used it, of course.
 }
 
 void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
@@ -729,7 +746,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port) {
   //if (addToActive)
   //  _numberConnectedActive++;
 
-  if (_consumerFunction) {
+  if (_consumeData) {
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = socket;
     arThread* dummy = new arThread; // \bug memory leak?

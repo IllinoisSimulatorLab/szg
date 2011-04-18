@@ -268,7 +268,11 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr) {
     ar_log_error() << "arSocket can't accept on null socket.\n";
     return -1;
   }
+#ifdef AR_USE_WIN_32
+  communicationSocket->_socketFD = INVALID_SOCKET;
+#else
   communicationSocket->_socketFD = -1;
+#endif
 
   // must be called by a listening socket and operate on a standard socket
   if (_type != AR_LISTENING_SOCKET ||
@@ -277,7 +281,11 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr) {
     return -1;
   }
 
+#ifdef AR_USE_WIN_32
+  if (_socketFD == INVALID_SOCKET) {
+#else
   if (_socketFD < 0) {
+#endif
     ar_log_error() << "arSocket: ar_accept() got a bad _socketFD.\n" <<
       "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
     return -1;
@@ -291,7 +299,11 @@ int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr) {
         (socklen_t*)
 #endif
             socketAddress.getAddressLengthPtr());
+#ifdef AR_USE_WIN_32
+    if (communicationSocket->_socketFD == INVALID_SOCKET) {
+#else
     if (communicationSocket->_socketFD < 0) {
+#endif
       ar_log_error() << "arSocket: accept() failed: ";
       perror("");
       return -1;

@@ -23,7 +23,7 @@ class SZG_CALL arDataServer : public arDataPoint {
  friend void ar_readDataThread(void*);
  public:
    arDataServer(int dataBufferSize);
-   ~arDataServer();
+   virtual ~arDataServer();
 
    // If incoming packets are processed by a consumption callback,
    // packets consumed in different threads (coming from different sockets)
@@ -68,8 +68,13 @@ class SZG_CALL arDataServer : public arDataPoint {
    // Send data to a group of someone's in particular.
    bool sendDataQueue(arQueuedData*, list<arSocket*>*);
 
-   void setConsumerFunction
-     (void (*consumerFunction)(arStructuredData*, void*, arSocket*));
+   // NOTE: setConsumerCallback calls setConsume(true)
+   // subclasses that override onConsume() will need to
+   // explicitly call this.
+   void setConsume( bool onoff ) { _consumeData = onoff; }
+   virtual void onConsumeData( arStructuredData* data, arSocket* socket );
+   void setConsumerCallback
+     (void (*consumerCallback)(arStructuredData*, void*, arSocket*));
    void setConsumerObject(void*);
 
    int getNumberConnected() const       // passive and active connections
@@ -77,8 +82,9 @@ class SZG_CALL arDataServer : public arDataPoint {
    int getNumberConnectedActive() const // exclude passive connections
      { return _numberConnectedActive; }
 
-   void setDisconnectFunction
-     (void (*disconnectFunction)(void*, arSocket*));
+   virtual void onDisconnect( arSocket* theSocket );
+   void setDisconnectCallback
+     (void (*disconnectCallback)(void*, arSocket*));
    void setDisconnectObject(void*);
 
    // For the database of labels, and choosing a connection based on a given ID
@@ -131,9 +137,10 @@ class SZG_CALL arDataServer : public arDataPoint {
    list<arSocket*> _pendingConsumers;
    arLock _lockConsume; // Serialize data consumption.
 
-   void (*_consumerFunction)(arStructuredData*, void*, arSocket*);
+   bool _consumeData;
+   void (*_consumerCallback)(arStructuredData*, void*, arSocket*);
    void* _consumerObject;
-   void (*_disconnectFunction)(void*, arSocket*);
+   void (*_disconnectCallback)(void*, arSocket*);
    void* _disconnectObject;
 
    bool _atomicReceive;
