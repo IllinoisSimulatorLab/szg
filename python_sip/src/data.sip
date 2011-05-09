@@ -37,7 +37,7 @@ class arLanguage {
   virtual ~arLanguage();
 
   arTemplateDictionary* getDictionary();
-  arStructuredData* makeDataRecord(int);
+  arStructuredData* makeDataRecord(int) /TransferBack/;
   arDataTemplate* find(const char* name);
   arDataTemplate* find(const string& name);
   arDataTemplate* find(int);
@@ -158,7 +158,7 @@ class arStructuredData {
    // for manipulating data in a fine-grained way
 //   void* getDataPtr(int i, arDataType a);
    // Need analogs of this for other data types...
-   vector<int>* getDataIntList( int id );
+   vector<int>* getDataIntList( int id ) /TransferBack/;
 %MethodCode
       int* dataPtr = static_cast<int*>(sipCpp->getDataPtr( a0, AR_INT ));
       if (!dataPtr) {
@@ -245,6 +245,47 @@ class arStructuredData {
 };
 
 
+// This class converts a byte-stream or text-stream into a sequence of
+// arStructuredData objects. It encapsulates some commonly used parsing
+// functions. For instance, one can read data from a source in a
+// dedicated thread, which goes into internal storage. A response handler in
+// another thread can then block until a record of a certain type is read
+// (and receive that record). Furthermore, records can be stored internally
+// via an application-defined tag (instead of via record type), e.g. for
+// building asynchronous rpc type calls.
+// Memory management lets arStructuredData records be reused.
+
+class arStructuredDataParser {
+ // Needs assignment operator and copy constructor,
+ // for pointer member _dictionary (unless that's fine, in which case
+ // make that explicit).
+
+ public:
+  arStructuredDataParser(arTemplateDictionary*);
+  ~arStructuredDataParser();
+
+  arStructuredData* getStorage(int ID) /TransferBack/; // I think...
+//  arBuffer<char>*   getTranslationBuffer();
+//  void recycleTranslationBuffer(arBuffer<char>*);
+
+  // AARGH! THIS IS ALL A MESS! The parse command needs a better model...
+  // To be provided eventually...
+//  arStructuredData* parse(ARchar*, int&);
+//  arStructuredData* parse(ARchar*, int&, const arStreamConfig&);
+//  arStructuredData* parse(arTextStream*);
+//  arStructuredData* parse(arTextStream*, const string&);
+//  arStructuredData* parseBinary(FILE*);
+//  bool parseIntoInternal(ARchar*, int&);
+//  bool parseIntoInternal(arTextStream*);
+  bool pushIntoInternalTagged(arStructuredData* /TransferThis/, int);
+  arStructuredData* getNextInternal(int ID) /TransferBack/;
+//  int getNextTaggedMessage(arStructuredData*&, list<int>, int dataID=-1, int timeout=-1);
+  void recycle(arStructuredData* /TransferThis/ );
+  void clearQueues();
+  void activateQueues();
+};
+
+
 // Send data to arDataClient objects.
 
 class arDataServer /*: public arDataPoint*/ {
@@ -262,6 +303,10 @@ class arDataServer /*: public arDataPoint*/ {
  public:
    arDataServer(int dataBufferSize);
    ~arDataServer();
+
+   // inherited from arDataPoint
+   void smallPacketOptimize(bool flag);
+   void setBufferSize(int numBytes); // Set size of socket buffer.
 
    // If incoming packets are processed by a consumption callback,
    // packets consumed in different threads (coming from different sockets)
