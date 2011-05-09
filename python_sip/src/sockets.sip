@@ -26,9 +26,9 @@ class arSocketAddress {
 
   void setPort(int port);
 //  sockaddr_in* getAddress();
-  string mask(const char* maskAddress);
-  string broadcastAddress(const char* maskAddress);
-  string getRepresentation();
+  string mask(const char* maskAddress) /TransferBack/;
+  string broadcastAddress(const char* maskAddress) /TransferBack/;
+  string getRepresentation() /TransferBack/;
   bool checkMask(list<string>& criteria);
  private:
   arSocketAddress( const arSocketAddress& );
@@ -63,7 +63,8 @@ public:
   bool reuseAddress(bool flag);
   int ar_bind(const char* IPaddress, int port);
   int ar_listen(int queueSize);
-  int ar_accept(arSocket*, arSocketAddress* addr = NULL);
+//  int ar_accept(arSocket*, arSocketAddress* addr = NULL);
+  int ar_accept(arSocket*);
   bool readable(const ar_timeval& timeout) const;
   bool writable(const ar_timeval& timeout) const;
   bool readable() const; // poll with no timeout
@@ -106,8 +107,8 @@ public:
 
   // "Safe" versions keep usage counts, and are guaranteed to return
   // the number of bytes requested, or an error.
-  int ar_safeRead(char* theData, int howMuch, const double usecTimeout = 0.);
-  int ar_safeWrite(const char* theData, int howMuch, const double usecTimeout = 0.);
+//  int ar_safeRead(char* theData, int howMuch, const double usecTimeout = 0.);
+//  int ar_safeWrite(const char* theData, int howMuch, const double usecTimeout = 0.);
 
   int getUsageCount();
   void ar_close();
