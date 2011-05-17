@@ -182,6 +182,7 @@ parameters:
 - **depthclear** (value=yes/no): whether or not the Z-buffer is cleared before rendering
   into this viewport. Default is no; the Z-buffer for the entire window is cleared
   at the beginning of each frame. Setting this is necessary for e.g. anaglyph mode.
+  It incurs a performance hit, as each viewport that sets this invokes a glClear().
 - **colormask** (R/G/B/A, all yes/no): which color channels to draw into.
 - **eyesign** (value=a float): Whether this viewport is a right(1.)- or left(-1.)-eye
   view, or for monocular viewing (0.). This information is used by a Syzygy VR camera
@@ -190,6 +191,17 @@ parameters:
 - **ogldrawbuf**: many possible values (GL_BACK_LEFT is safe).
   See the OpenGL Programming Guide ("red book"), chapter 10,
   "Selecting Color Buffers for Writing."
+- **colorclear** (value=yes/no): whether or not the color buffer is cleared before rendering
+  into this viewport. Default is no; the color buffer for the entire window is cleared
+  at the beginning of each frame. Setting this is necessary for overlapping viewports,
+  e.g. if you want a rear-view mirror viewport a bit below the top of a windshield viewport
+  you would set colorclear=yes in the mirror viewport definition. Otherwise, the content
+  from the windshield viewport would be visible underneath the mirror content.
+  It incurs a performance hit, as each viewport that sets this invokes a glClear().
+  //The colorclear feature is new as of 5/17/2011 and is _not_ backwards compatible//, i.e.
+  programs linked against older versions of Syzygy will refuse to run if presented with
+  a viewport that has a colorclear parameter. If you need to run older programs, they'll
+  have to provided with separate viewports, windows, displays, and virtual computers.
 
 
 Note that you can specify more than one viewport in the same part of the window, in
