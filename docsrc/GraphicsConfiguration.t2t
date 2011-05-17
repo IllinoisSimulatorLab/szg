@@ -233,8 +233,10 @@ They can be specified in a couple of different ways:
   one set has **eyesign** set to -1 and **ogldrawbuf** set to GL_BACK_LEFT,
   while the other has **eyesign** set to +1 and **ogldrawbuf** set to GL_BACK_RIGHT.
   Each set is as described below. If active
-  stereo is not in use, all viewports have **eyesign** set to 0 and **ogldrawbuf**
-  set to GL_BACK_LEFT.
+  stereo is not in use, all viewports have **ogldrawbuf** set to GL_BACK_LEFT.
+  In most of the viewing modes, pairs of viewports are generated with eyesign equal
+  to 1 and -1.
+
   The predefined viewing modes are:
   - **normal**: A single viewport that fills the window, i.e.:
 ```

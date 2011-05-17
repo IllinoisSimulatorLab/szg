@@ -610,6 +610,10 @@ bool arUSBDriver::init(arSZGClient&) {
 #endif
 }
 
+void ar_USBDriverDataTask(void* pv) {
+  ((arUSBDriver*)pv)->_dataThread();
+}
+
 bool arUSBDriver::start() {
 #ifndef AR_USE_WIN_32
   ar_log_error() << "arUSBDriver requres Windows, sorry.\n";
@@ -634,10 +638,6 @@ bool arUSBDriver::stop() {
     a.sleep();
 #endif
   return true;
-}
-
-void ar_USBDriverDataTask(void* pv) {
-  ((arUSBDriver*)pv)->_dataThread();
 }
 
 void BlinkLED(bool on = true) {
