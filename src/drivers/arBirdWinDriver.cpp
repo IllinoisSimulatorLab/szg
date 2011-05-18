@@ -36,22 +36,6 @@ arBirdWinDriver::arBirdWinDriver() :
   _writeTimeout( 2000 )
 {}
 
-bool arBirdWinDriver::start() {
-  return _eventThread.beginThread(ar_WinBirdDriverEventTask, this);
-}
-
-bool arBirdWinDriver::stop() {
-  if (_flockWoken) {
-    if (_streamingStarted) {
-        birdStopFrameStream(_groupID);
-        // ar_log_debug() << "arBirdWinDriver stopped data stream.\n";
-    }
-    birdShutDown(_groupID);
-    // ar_log_debug() << "arBirdWinDriver shut down Flock.\n";
-  }
-  return true;
-}
-
 void ar_WinBirdDriverEventTask(void* FOBDriver) {
   arBirdWinDriver* fobDriver = (arBirdWinDriver*) FOBDriver;
   if (!birdStartFrameStream( fobDriver->_groupID )) {
@@ -119,6 +103,23 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
     }
     fobDriver->sendQueue();
   }
+}
+
+
+bool arBirdWinDriver::start() {
+  return _eventThread.beginThread(ar_WinBirdDriverEventTask, this);
+}
+
+bool arBirdWinDriver::stop() {
+  if (_flockWoken) {
+    if (_streamingStarted) {
+        birdStopFrameStream(_groupID);
+        // ar_log_debug() << "arBirdWinDriver stopped data stream.\n";
+    }
+    birdShutDown(_groupID);
+    // ar_log_debug() << "arBirdWinDriver shut down Flock.\n";
+  }
+  return true;
 }
 
 bool arBirdWinDriver::init(arSZGClient& SZGClient) {

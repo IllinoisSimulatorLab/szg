@@ -47,7 +47,7 @@ sip_szgpart0$(OBJ_SUFFIX): sip_szgpart0.cpp
 	$(COMPILER) $(COMPILE_FLAGS_SHARED) $< $(SZG_INCLUDE)
 
 sip_szgpart0.cpp: $(INTERFACE_DIR)/szg.sip $(SIPFILES)
-	sip -c . -j 1 $(INTERFACE_DIR)/szg.sip
+	sip -c . -j 1 -w $(INTERFACE_DIR)/szg.sip
 
 szgopengl$(PYSHAREDLIB_SUFFIX): sipszgopenglpart0$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \

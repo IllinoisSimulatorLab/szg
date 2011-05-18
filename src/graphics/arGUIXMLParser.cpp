@@ -161,7 +161,7 @@ class arGUIXMLViewportValidator: public arGUIXMLValidator {
 arGUIXMLViewportValidator::arGUIXMLViewportValidator() :
   arGUIXMLValidator("viewport") {
   addAttributes( "usenamed" );
-  addChildren( "szg_camera/coords/depthclear/colormask/eyesign/ogldrawbuf" );
+  addChildren( "szg_camera/coords/depthclear/colormask/eyesign/ogldrawbuf/colorclear" );
 }
 //@-node:jimc.20100409112755.226:arGUIXMLViewportValidator::arGUIXMLViewportValidator
 //@+node:jimc.20100409112755.227:arGUIXMLScreenValidator::arGUIXMLScreenValidator
@@ -1122,6 +1122,11 @@ bool arGUIXMLParser::parse( void )
         // <depthclear value="true|false|yes|no" />
         if ( (viewportElement = viewportNode->FirstChild( "depthclear" )) ) {
           viewport.clearDepthBuffer( _attributeBool( viewportElement ) );
+        }
+
+        // <colorclear value="true|false|yes|no" />
+        if ( (viewportElement = viewportNode->FirstChild( "colorclear" )) ) {
+          viewport.clearColorBuffer( _attributeBool( viewportElement ) );
         }
 
         // <colormask R="true|false|yes|no" G="true|false|yes|no" B="true|false|yes|no" A="true|false|yes|no" />

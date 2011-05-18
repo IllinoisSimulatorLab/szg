@@ -25,7 +25,7 @@ class ar_timeval {
   bool zero() const;
 };
 
-ar_timeval ar_time();
+ar_timeval ar_time() /TransferBack/;
 double ar_difftime(const ar_timeval& end, const ar_timeval& start);
 double ar_difftimeSafe(const ar_timeval& end, const ar_timeval& start);
 ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend); // returns "result"

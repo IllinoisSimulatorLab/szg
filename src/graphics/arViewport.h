@@ -20,14 +20,16 @@ class SZG_CALL arViewport {
               float eyeSign,
               GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha,
               GLenum oglDrawBuf,
-              bool clearZBuf );
+              bool clearZBuf,
+              bool clearColBuf=false );
   arViewport( const float* lbwh,
               const arGraphicsScreen& screen,
               arCamera* cam,
               float eyeSign,
               const GLboolean* rgba,
               GLenum oglDrawBuf,
-              bool clearZBuf );
+              bool clearZBuf,
+              bool clearColBuf=false );
   arViewport( const arViewport& x );
   arViewport& operator=( const arViewport& x );
   virtual ~arViewport();
@@ -45,10 +47,12 @@ class SZG_CALL arViewport {
   void setColorMask(GLboolean red, GLboolean green,
                     GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
+  void clearColorBuffer(bool flag);
   // e.g. GL_BACK_LEFT
   void setDrawBuffer( GLenum buf ) { _oglDrawBuffer = buf; }
   GLenum getDrawBuffer() const { return _oglDrawBuffer; }
   void activate();
+  void deactivate();
 
  private:
   // Viewport in normalized coordinates.
@@ -74,6 +78,9 @@ class SZG_CALL arViewport {
   // this is needed for anaglyph (where the depth buffer must be cleared
   // between drawing the red and the blue image)
   bool _clearDepthBuffer;
+  // If we have one viewport superimposed on a larger one, we need to be able
+  // to clear the color buffer in the area of that viewport.
+  bool _clearColorBuffer;
 };
 
 #endif        //  #ifndefARVIEWPORT_H

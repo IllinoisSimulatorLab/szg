@@ -19,7 +19,8 @@ arViewport::arViewport() :
   _blue(GL_TRUE),
   _alpha(GL_TRUE),
   _oglDrawBuffer(GL_BACK_LEFT),
-  _clearDepthBuffer(false) {
+  _clearDepthBuffer(false),
+  _clearColorBuffer(false) {
 }
 
 arViewport::arViewport( float left, float bottom, float width, float height,
@@ -28,7 +29,8 @@ arViewport::arViewport( float left, float bottom, float width, float height,
                         float eyeSign,
                         GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha,
                         GLenum oglDrawBuf,
-                        bool clearZBuf ) :
+                        bool clearZBuf,
+                        bool clearColBuf ) :
   _left(left),
   _bottom(bottom),
   _width(width),
@@ -41,7 +43,8 @@ arViewport::arViewport( float left, float bottom, float width, float height,
   _blue(blue),
   _alpha(alpha),
   _oglDrawBuffer(oglDrawBuf),
-  _clearDepthBuffer(clearZBuf) {
+  _clearDepthBuffer(clearZBuf),
+  _clearColorBuffer(clearColBuf) {
   if (cam) {
     _camera = cam->clone();
   }
@@ -53,7 +56,8 @@ arViewport::arViewport( const float* lbwh,
                         float eyeSign,
                         const GLboolean* rgba,
                         GLenum oglDrawBuf,
-                        bool clearZBuf ) :
+                        bool clearZBuf,
+                        bool clearColBuf ) :
   _left(lbwh[0]),
   _bottom(lbwh[1]),
   _width(lbwh[2]),
@@ -66,7 +70,8 @@ arViewport::arViewport( const float* lbwh,
   _blue(rgba[2]),
   _alpha(rgba[3]),
   _oglDrawBuffer(oglDrawBuf),
-  _clearDepthBuffer(clearZBuf) {
+  _clearDepthBuffer(clearZBuf),
+  _clearColorBuffer(clearColBuf) {
   if (cam) {
     _camera = cam->clone();
   }
@@ -85,7 +90,8 @@ arViewport::arViewport( const arViewport& v ) :
   _blue( v._blue ),
   _alpha( v._alpha ),
   _oglDrawBuffer( v._oglDrawBuffer ),
-  _clearDepthBuffer( v._clearDepthBuffer) {
+  _clearDepthBuffer( v._clearDepthBuffer),
+  _clearColorBuffer( v._clearColorBuffer) {
   if (v._camera) {
     _camera = v._camera->clone();
   }
@@ -116,6 +122,7 @@ arViewport& arViewport::operator=( const arViewport& v ) {
   _alpha = v._alpha;
   _oglDrawBuffer = v._oglDrawBuffer;
   _clearDepthBuffer = v._clearDepthBuffer;
+  _clearColorBuffer = v._clearColorBuffer;
 
   return *this;
 }
@@ -179,6 +186,10 @@ void arViewport::clearDepthBuffer(bool flag) {
   _clearDepthBuffer = flag;
 }
 
+void arViewport::clearColorBuffer(bool flag) {
+  _clearColorBuffer = flag;
+}
+
 void arViewport::activate() {
   // The viewport does not call glDrawBuffer(). The arGraphicsWindow performs
   // rendering passes in which it clears the appropriate buffer & the queries
@@ -197,6 +208,9 @@ void arViewport::activate() {
   const GLsizei width = int(params[2]*_width);
   const GLsizei height = int(params[3]*_height);
 
+  // Save OpenGL state to be restored in deactivate()
+  glPushAttrib( GL_VIEWPORT_BIT | GL_SCISSOR_BIT );
+
   glViewport( left, bottom, width, height );
 
   if (_camera) {
@@ -208,9 +222,21 @@ void arViewport::activate() {
   // set the follow mask
   glColorMask(_red, _green, _blue, _alpha);
 
-  if (_clearDepthBuffer) {
-    // clear the depth buffer
-    glClear(GL_DEPTH_BUFFER_BIT);
+  if (_clearColorBuffer) {
+    glScissor( left, bottom, width, height );
+    glEnable( GL_SCISSOR_TEST );
   }
+  if (_clearDepthBuffer && _clearColorBuffer) {
+    // clear color and depth buffers
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  } else if (_clearColorBuffer) {
+    glClear( GL_COLOR_BUFFER_BIT );
+  } else if (_clearDepthBuffer) {
+    glClear( GL_DEPTH_BUFFER_BIT );
+  }
+}
+
+void arViewport::deactivate() {
+  glPopAttrib();
 }
 

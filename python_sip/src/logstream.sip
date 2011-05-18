@@ -57,6 +57,7 @@ class arLogStream {
 };
 
 // Accessors (singleton).
+arLogStream& ar_log();
 arLogStream& ar_log_critical();
 arLogStream& ar_log_error();
 arLogStream& ar_log_warning();

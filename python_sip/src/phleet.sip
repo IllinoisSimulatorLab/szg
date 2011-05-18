@@ -334,13 +334,17 @@ class arPhleetConnectionBroker {
 %End
  public:
   arPhleetConnectionBroker();
+  virtual ~arPhleetConnectionBroker();
 
   virtual void onServiceRelease( int componentID, int match, const string& serviceName );
+
+  // I _think_ the caller of the next two methods owns the result...
   arPhleetService requestPorts(int componentID, const string& serviceName,
                                const string& computer, const string& networks,
                                const string& addresses, int size,
-                               int firstPort, int blockSize);
-  arPhleetService retryPorts(int componentID, const string& serviceName);
+                               int firstPort, int blockSize) /TransferBack/;
+  arPhleetService retryPorts(int componentID, const string& serviceName) /TransferBack/;
+
   bool confirmPorts(int componentID, const string& serviceName);
   string getServiceInfo(const string& serviceName) const;
   bool setServiceInfo(const int componentID,
@@ -350,9 +354,9 @@ class arPhleetConnectionBroker {
   arPhleetAddress requestService(int componentID, const string& computer,
                                  int match,
                                  const string& serviceName,
-                                 const string& networks, bool async);
+                                 const string& networks, bool async) /TransferBack/;
 // SZGRequestList = list(arPhleetServiceRequest)
-  SIP_PYTUPLE getPendingRequests( const string& serviceName="" );
+  SIP_PYTUPLE getPendingRequests( const string& serviceName="" ) /TransferBack/;
 %MethodCode
     list<arPhleetServiceRequest> reqList = sipCpp->getPendingRequests( *a0 );
     sipRes = PyTuple_New( reqList.size() );
@@ -378,7 +382,7 @@ class arPhleetConnectionBroker {
   string getServiceNames() const;
   string getServiceComputers() const;
 
-  SIP_PYTUPLE getServiceComponents() const;
+  SIP_PYTUPLE getServiceComponents() const /TransferBack/;
 %MethodCode
     int* ids = NULL;
     int numIds = sipCpp->getServiceComponents( ids );
