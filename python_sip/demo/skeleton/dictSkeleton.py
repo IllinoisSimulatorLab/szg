@@ -3,7 +3,6 @@
 from szg import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.GLUT import *
 import random
 
 #### More complex master/slave framework skeleton example. Demonstrates
@@ -64,10 +63,10 @@ class ColoredSquare(arInteractableThing):
       else:
         glColor3f( 1,1,0 )
       # draw rectangular solid 2'x2'x1'
-      glutSolidCube(1.)
+      ar_glutSolidCube(1.)
     # superimpose slightly larger white wireframe
     glColor3f(1,1,1)
-    glutWireCube(1.03)
+    ar_glutWireCube(1.03)
     glPopMatrix()
 
   # These two routines are required by the arMasterSlaveDict. All
@@ -110,10 +109,10 @@ class RodEffector( arEffector ):
     # draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. )
     glColor3fv( (.5,.5,.5) )
-    glutSolidCube(1.)
+    ar_glutSolidCube(1.)
     # superimpose slightly larger black wireframe (makes it easier to see shape)
     glColor3fv( (0.,0.,0.) )
-    glutWireCube(1.03)
+    ar_glutWireCube(1.03)
     glPopMatrix()
 
 

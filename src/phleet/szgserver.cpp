@@ -1099,17 +1099,17 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
         first.replace(slash, 1, " ");
         localAttrs.push_back( "  " + first + "  " + i->second + "\n" );
       }
-      vector<string>::iterator iter;
-      value = "<szg_config>\n";
-      for (iter=globalAttrs.begin(); iter != globalAttrs.end(); ++iter) {
-        value += *iter;
-      }
-      value += "<assign>\n";
-      for (iter=localAttrs.begin(); iter != localAttrs.end(); ++iter) {
-        value += *iter;
-      }
-      value += "</assign>\n</szg_config>\n";
     }
+    vector<string>::iterator iter;
+    value = "<szg_config>\n";
+    for (iter=globalAttrs.begin(); iter != globalAttrs.end(); ++iter) {
+      value += *iter;
+    }
+    value += "<assign>\n";
+    for (iter=localAttrs.begin(); iter != localAttrs.end(); ++iter) {
+      value += *iter;
+    }
+    value += "</assign>\n</szg_config>\n";
     (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }
 
@@ -2007,7 +2007,7 @@ int main(int argc, char** argv) {
   dataServer = new arDataServer(1000);
   // we might want to do TCP-wrappers style filtering on the connections
   dataServer->setAcceptMask(serverAcceptMask);
-  dataServer->setDisconnectFunction(SZGdisconnectFunction);
+  dataServer->setDisconnectCallback(SZGdisconnectFunction);
 
   // Start the data parser.
   dataParser = new arStructuredDataParser(lang.getDictionary());
@@ -2018,7 +2018,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  dataServer->setConsumerFunction(dataConsumptionFunction);
+  dataServer->setConsumerCallback(dataConsumptionFunction);
   dataServer->setConsumerObject(NULL);
   dataServer->smallPacketOptimize(true);
   if (!dataServer->beginListening(lang.getDictionary()))

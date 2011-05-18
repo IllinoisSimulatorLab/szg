@@ -1103,11 +1103,13 @@ bool ar_fileItemExists( const string name, bool& exists ) {
     exists = false;
     return true;
   }
+#ifndef AR_USE_WIN_32
   if (errno == EOVERFLOW) {
     // 32-bit app queries a file longer than 2<<31 bits
     exists = true;
     return true;
   }
+#endif
   ar_log_error() << "ar_fileItemExists: stat() failed for " << name << ".\n";
   return false;
 }

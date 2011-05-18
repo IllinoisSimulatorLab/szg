@@ -2,7 +2,6 @@
 from szg import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.GLUT import *
 import sys
 import os
 
@@ -101,7 +100,7 @@ class TexturedSquare(arInteractableThing):
       glDisable( GL_TEXTURE_2D )
     # superimpose slightly larger white wireframe
     glColor3f(1,1,1)
-    glutWireCube(1.03)
+    ar_glutWireCube(1.03)
     glPopMatrix()
     
 
@@ -134,10 +133,10 @@ class RodEffector( arEffector ):
     # draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. )
     glColor3f( .5,.5,.5 )
-    glutSolidCube(1.)
+    ar_glutSolidCube(1.)
     # superimpose slightly larger black wireframe (makes it easier to see shape)
     glColor3f(0,0,0)
-    glutWireCube(1.03)
+    ar_glutWireCube(1.03)
     glPopMatrix()
 
 
@@ -275,7 +274,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       print '      up:',screen.getUp()
       print '    size:',screen.getWidth(), 'x', screen.getHeight()
       firstFrame = False
-      glutInit()
     # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     

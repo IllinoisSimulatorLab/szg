@@ -477,11 +477,6 @@ void postExchange(arMasterSlaveFramework& fw){
   // to increase z-buffer precision.
   const arMatrix4 vt = ar_getNavInvMatrix();
   fw.setClipPlanes(nearClipDistance, farClipDistance-vt.v[14]);
-  // Ack! No longer legal to have OpenGL commands in postExchange!!!!
-  if (useTexture)
-    glEnable( GL_TEXTURE_2D );
-  else
-    glDisable( GL_TEXTURE_2D );
   //setAnaglyphMode(fw, anaglyphMode);
 }
 
@@ -600,6 +595,11 @@ void drawFishies()
 }
 
 void display( arMasterSlaveFramework& fw, arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
+  if (useTexture)
+    glEnable( GL_TEXTURE_2D );
+  else
+    glDisable( GL_TEXTURE_2D );
+
   if (anaglyphMode) {
     glClearColor(0.8, 0.8, 0.8, 1.0);
   } else {

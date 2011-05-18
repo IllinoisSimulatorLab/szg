@@ -411,8 +411,15 @@ LFound:
 // @param serviceName the name of the service whose pending requests we want
 SZGRequestList arPhleetConnectionBroker::getPendingRequests
                                            (const string& serviceName) {
-  SZGRequestList result;
   arGuard _(_l, "arPhleetConnectionBroker::getPendingRequests servicename");
+
+  if (serviceName == "") {
+    SZGRequestList result(_requestedServices.size());
+    // std::copy doesn't insert, it overwrites.
+    std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
+    return result;
+  }
+  SZGRequestList result;
   // push service requests that match the service name onto the queue to
   // be returned
   SZGRequestList::iterator i = _requestedServices.begin();
@@ -429,15 +436,6 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
   return result;
 }
 
-SZGRequestList arPhleetConnectionBroker::getPendingRequests() const {
-  // TODO TODO TODO TODO TODO TODO TODO TODO
-  // Boy, there sure is ALOT of unnecessary copying here
-  arGuard _(_l, "arPhleetConnectionBroker::getPendingRequests");
-  SZGRequestList result(_requestedServices.size());
-  // std::copy doesn't insert, it overwrites.
-  std::copy(_requestedServices.begin(), _requestedServices.end(), result.begin());
-  return result;
-}
 
 // Returns a ;-delimited list containing all service names
 // (because service names may contain '/').
@@ -552,9 +550,8 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName) {
   for (list<arPhleetNotification>::iterator j
          = i->second.notifications.begin();
        j != i->second.notifications.end(); ++j) {
-    if (_releaseNotificationCallback) {
-      _releaseNotificationCallback(j->componentID, j->match, serviceName);
-    }
+    onServiceRelease( j->componentID, j->match, serviceName );
+    
     // we must find the relevant component and remove the service from its
     // release tags
     // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
@@ -568,6 +565,13 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName) {
   // and used services (it'll only be on one of them)
   _temporaryServices.erase(serviceName);
   _usedServices.erase(serviceName);
+}
+
+
+void arPhleetConnectionBroker::onServiceRelease( int componentID, int match, const string& serviceName ) {
+  if (_releaseNotificationCallback) {
+    _releaseNotificationCallback( componentID, match, serviceName );
+  }
 }
 
 // Used when a component exits the system, for clean-up. Necessary since,

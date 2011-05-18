@@ -431,7 +431,7 @@ bool arAppLauncher::isMaster() const {
 ///  #s are consecutive starting from 0.
 int arAppLauncher::getCurrentDisplayNumber(){
   if (!_szgClient){
-    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    ar_log_warning() << _exeName << " no arSZGClient.\n";
     return -1;
   }
   vector< arPipe >::const_iterator iter;
@@ -454,7 +454,7 @@ int arAppLauncher::getCurrentDisplayNumber(){
 /// the master's display ID. Returns -1 on failure.
 int arAppLauncher::getMasterDisplayNumber(){
   if (!_szgClient){
-    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    ar_log_warning() << _exeName << " no arSZGClient.\n";
     return -1;
   }
   string masterName = getMasterName();
@@ -795,8 +795,7 @@ vector<string> arAppLauncher::findServices() {
 
 void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
                                          list<int>& serviceKillList) {
-  cout << "===========================================\n";
-  cout << "arAppLauncher::_relaunchAllServices()\n";
+  cout << "\nBGN arAppLauncher::_relaunchAllServices()\n";
   vector<string> runningServices = findServices();
   long pid;
   for (vector<string>::const_iterator iter = runningServices.begin();
@@ -820,16 +819,14 @@ void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
     appsToLaunch.push_back(*iter);
     cout << "Service to launch: " << *iter << endl;
   }
-  cout << "END arAppLauncher::_relaunchAllServices()\n";
-  cout << "===========================================\n";
+  cout << "END arAppLauncher::_relaunchAllServices()\n\n";
 }
 
 
 void arAppLauncher::_relaunchIncompatibleServices(
   list<arLaunchInfo>& appsToLaunch, list<int>& serviceKillList) {
 
-  cout << "===========================================\n";
-  cout << "arAppLauncher::_relaunchIncompatibleServices()\n";
+  //cout << "\nBGN arAppLauncher::_relaunchIncompatibleServices()\n";
   vector<string> runningServices = findServices();
   long oldServicePIDLong;
   int oldServicePID;
@@ -941,10 +938,8 @@ void arAppLauncher::_relaunchIncompatibleServices(
       appsToLaunch.push_back(*newIter);
     }
   }
-  cout << "END arAppLauncher::_relaunchIncompatibleServices()\n";
-  cout << "===========================================\n";
+  //cout << "END arAppLauncher::_relaunchIncompatibleServices()\n\n";
 }
-
 
 string arAppLauncher::_displayName(int i) const {
   return "SZG_DISPLAY" + ar_intToString(i);
@@ -969,4 +964,3 @@ string arAppLauncher::_getSoundContext() const {
 bool arAppLauncher::_isSpecialDeviceName( const string& deviceName ) {
   return ((deviceName == "inputsimulator") || (deviceName.substr(deviceName.length()-3, 3) == ".py"));
 }
-

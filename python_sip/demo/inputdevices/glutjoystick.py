@@ -113,13 +113,13 @@ def main():
   glutInit( sys.argv )
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 
+  window = glutCreateWindow('glutjoystick.py')
+
   glutDisplayFunc(  sim.onDisplay )
   glutIdleFunc(     sim.onIdle    )
   glutReshapeFunc(  sim.onReshape )
   glutKeyboardFunc( sim.onKey     )
   glutMotionFunc(   sim.onMotion  )
-
-  window = glutCreateWindow('glutjoystick.py')
 
   if not sim.init( sys.argv ):
     print sys.argv[0], "failed to init framework."
