@@ -372,10 +372,6 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
     if (_useColorFilter)
       _applyColorFilter();
     i->deactivate();
-    // Restore viewport's extent, lest the viewports shrink
-    // and disappear in modes like walleyed.
-//    glViewport( (GLint)viewportExtent[0], (GLint)viewportExtent[1],
-//                (GLsizei)viewportExtent[2], (GLsizei)viewportExtent[3] );
   }
 
 //  glGetIntegerv( GL_DRAW_BUFFER, (GLint*)&drawBuffer );

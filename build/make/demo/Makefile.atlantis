@@ -3,7 +3,7 @@ VPATH = ../../../../src/demo/atlantis
 
 include $(SZGHOME)/build/make/Makefile.vars
 
-OBJSRAW = dolphinszg whaleszg sharkszg swimszg atlantis
+OBJSRAW = dolphin whale shark swim atlantis
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 ALL = atlantis$(EXE)
