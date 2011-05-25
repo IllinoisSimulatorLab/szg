@@ -106,7 +106,10 @@ bool arSZGClient::_connect() {
     ar_log_debug() << ar_versionInfo() << ar_versionString();
     return false;
   }
-  ar_setLogLabel( _exeName + " " + ar_intToString(getProcessID()));
+  // "%03d" hack to align messages, by enforcing minimum width of 3 digits.
+  const std::string id(ar_intToString(getProcessID()));
+  const std::string pad = id.size()==1 ? "  " : id.size()==2 ? " " : "";
+  ar_setLogLabel( _exeName + " " + pad + id);
   ar_log_debug() << "connected to szgserver.\n";
   return true;
 }
