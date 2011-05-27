@@ -826,7 +826,7 @@ void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
 void arAppLauncher::_relaunchIncompatibleServices(
   list<arLaunchInfo>& appsToLaunch, list<int>& serviceKillList) {
 
-  //cout << "\nBGN arAppLauncher::_relaunchIncompatibleServices()\n";
+  cout << "\nBGN arAppLauncher::_relaunchIncompatibleServices()\n";
   vector<string> runningServices = findServices();
   long oldServicePIDLong;
   int oldServicePID;
@@ -938,7 +938,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
       appsToLaunch.push_back(*newIter);
     }
   }
-  //cout << "END arAppLauncher::_relaunchIncompatibleServices()\n\n";
+  cout << "END arAppLauncher::_relaunchIncompatibleServices()\n\n";
 }
 
 string arAppLauncher::_displayName(int i) const {

@@ -18,30 +18,16 @@ have changed. Please read the linked section.
 
 =Background=
 
-The Syzygy Python bindings are in flux now. We're switching binding-generation
-tools from [SWIG http://www.swig.org] to
+The Syzygy Python bindings are built with
 [SIP http://www.riverbankcomputing.co.uk/software/sip/download].
+We used to use [SWIG http://www.swig.org], but
 SIP generates C++ code that's much easier to read, debug, and maintain, and
 in many instances it also runs faster.
 
-On the minus side, the new bindings can only be compiled at the moment with g++;
-they've been built using SIP 4.7.3, MinGW g++ 3.4.2, and Python 2.4 on Windows,
-and SIP 4.7.6, g++ 4.1.3, and Python 2.5 on Ubuntu.
-
-They're also not complete. The more 
-[advanced interface to the Distributed Scene Graph SceneGraphTutorial.html] isn't
-supported yet, although the older, undocumented [functional API ../src/graphics/arGraphicsAPI.h] is
-(see [Blobby Man ../python_sip/demo/blobby/blobby.py] for an example).
-Supporting the newer interface requires figuring out some object ownership issues
-(that are undocumented and written by Ben Schaeffer, who is no longer with the
-Illinois Simulator Lab).
-The Master/Slave Framework is pretty much completely supported and runs faster with the new
-bindings.
-
-The old bindings will remain until the new ones are complete and can be built with all supported
-compilers. If you prefer the old bindings, see the [old documentation PySZGold.html] (you should
-still read this page, as procedural clarifications relevant to both will probably only be
-added here).
+On the minus side, the new bindings can only be compiled at the moment with g++,
+which means MinGW on Win32.
+They've been built using SIP 4.7.3 and 4.12.2, MinGW g++ 3.4.2 and 4.5.2, and
+Python 2.4 on Windows, and multiple versions of each on Ubuntu.
 
 
 =Building the Bindings=[BuildBindings]
@@ -76,7 +62,7 @@ added here).
   on Windows it should //not// include the decimal point, e.g. ``python24``. I know, it's ugly. 
   This is the value for the -l linker argument.
 
-+ For all compilers on Windows set the SZG_PYLIB_PATH environment variable to the location of
++ On Windows set the SZG_PYLIB_PATH environment variable to the location of
   the Python link library: For example, with Python 2.4 in C:\python24 this would be
   ``C:/Python24/libs/python24.lib`` (also forward slashes).
 
@@ -93,16 +79,16 @@ added here).
 =Before Using the Bindings=
 
 ...You'll also need to install the Python OpenGL bindings package,
-[PyOpenGL http://pyopengl.sourceforge.net/]. We haven't tested things with
-PyOpenGL 3, we generally use version 2.0.1.09 (follow the "View older releases"
-link on the SourceForge download page).
+[PyOpenGL http://pyopengl.sourceforge.net/]. We've tried PyOpenGL 2.0.1.09
+and 3.0.1. For old-style OpenGL programs PyOpenGL 2 is much faster
+(follow the "View older releases" link on the SourceForge download page).
 
 
 =Figuring Out How to Write Syzygy Python Programs=
 
 Um. Sorry, no Python API reference yet. Working on it.
 
-There are a few demos in szg/python_sip/demos. Please ignore the 'myriad' folder for now.
+There are a few demos in szg/python_sip/demos.
 
 You can look at a webpage on
 [Syzygy Python Programming https://netfiles.uiuc.edu/jimc/www/SyzygyPythonProgramming/].
@@ -136,7 +122,7 @@ variable.  You must set this variable to the path to the directory containing sz
 _szg.pyd (or add the path to the variable if it already exists). Of course, it will
 also look in the same directory as a program for modules imported by that particular program.
 
-For master/slave programs, we suggest putting data, textures, and sounds used
+We suggest putting data, textures, and sounds used
 by an application in the same directory (or a subdirectory) and opening them
 using relative paths.
 
@@ -193,9 +179,6 @@ For sound files, you need to either (1) Copy them into a directory that's listed
 Syzygy database variable ``SZG_SOUND/path``, or (2) Tell SoundRender where to find them
 by calling the framework method ``setDataBundlePath()`` as described in the
 [Programming Programming.html#ClusterData] chapter.
-
-For [distributed scene graph Programming.html#SceneGraph] programs, follow the instructions
-in the [Programming Programming.html#ClusterData] chapter.
 
 
 ==Using ``dex`` With Python Programs==

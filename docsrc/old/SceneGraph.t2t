@@ -11,6 +11,11 @@ An example of a scene graph application.
 %%toc
 
 
+=WARNING=
+
+The Myriad scene graph is no longer supported. This file will be removed.
+
+
 =Background=
 
 This section introduces the Myriad scene graph and explains its C++ API.

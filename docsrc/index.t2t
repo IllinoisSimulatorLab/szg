@@ -39,8 +39,7 @@ Header2 %%mtime(%m/%d/%Y)
 - [CompileCPP.html CompileCPP.html]: Compiling and linking C++ programs.
 - If you're planning on modifying the libraries, see also
   [Compiler Idiosyncrasies CompilerIdiosyncrasies.html]
-- [PythonBindings.html PythonBindings.html] and [PySZGold.html PySZGold.html]: Writing Python programs.
-- [SceneGraph.html SceneGraph.html]: The distributed scene graph API.
+- [PythonBindings.html PythonBindings.html]: Writing Python programs.
 - [Sound.html Sound.html]: The spatial sound system.
 - [3DObjectFiles.html 3DObjectFiles.html]: External meshes (.obj or .3ds) and animations in.
 - [Navigation.html Navigation.html]: Navigating a 3D world in an application.
@@ -48,9 +47,6 @@ Header2 %%mtime(%m/%d/%Y)
   grabbing, and interacting with objects in a 3D world.
 - [PortabilityLayer.html PortabilityLayer.html]: OS-independent classes and
   functions for sockets, serial ports, time, threads, mutexes, etc.
-- [SceneGraphTutorial.html SceneGraphTutorial.html]: Manipulating scene graphs
-  from a Python prompt and from Python programs.
-  See also [SceneGraph.html SceneGraph.html].
 - [RandomNumbers.html RandomNumbers.html]: Generating shared sequences
   of pseudo-random numbers in all running instances of a master/slave application
   (described in [Programming.html Programming.html]).
@@ -85,9 +81,6 @@ Header2 %%mtime(%m/%d/%Y)
 
 =Advanced Topics=
 
-- [SharedWorldTutorial.html SharedWorldTutorial.html]: Sharing peer-to-peer
-  scene graphs between clusters, with an //experimental// extension
-  to the distributed scene graph.
 - [InputClasses.html InputClasses.html]: Arcane details about the code
   objects that handle input data.
 - [InputFilters.html InputFilters.html]: Writing an input-event filter in C++.

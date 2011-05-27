@@ -228,17 +228,19 @@ systems:
   libraries), the static libraries have different names, such as libarLanguage_static.lib
   on Win32.
 
-  **IMPORTANT NOTE**: On Win32, there is a problem with
+  **IMPORTANT NOTE**: Using Visual C++ on Win32, there is a problem with
   static linking. Because DLL's cannot link to a static libc, loadable
   DLLs cannot be built with this option.
-  The Python bindings and scene-graph plugins must be built as a DLL and cannot be built with
+  The Python bindings must be built as a DLL and cannot be built with
   SZG_LINKING set to STATIC. The supported Unix-like platforms do not suffer from
-  this problem. 
+  this problem.
   //New in Syzygy 1.2//: You can now compile input device drivers and the
   DeviceServer program with static linking. The device drivers are linked
   directly into the DeviceServer executable instead of each comprising its
   own shared library. Building the Python bindings with static linking enabled
-  appears to work with the MinGW g++ compiler, but scene graph plugins don't.
+  appears to work with the MinGW g++ compiler.
+  //New in Syzygy 1.3//: The device drivers are built as dll's using MinGW
+  g++ on Win32.
 
 
 The following environment variables only have meaning on
@@ -395,10 +397,7 @@ Many [example applications ExampleCode.html] are included with the Syzygy code
 
   - atlantis
   - coaster
-  - cosmos
-  - cubes
   - hspace
-  - parade
   - ribbons
   - schprel
 
@@ -414,8 +413,8 @@ Many [example applications ExampleCode.html] are included with the Syzygy code
   next. You can clean the demo directories with "make demo-clean".
 
   You can also build demos individually. For
-  example, to build the ``cosmos`` demo on Linux,
-  ``cd szg/build/linux/demo/cosmos; make``. As above, for
+  example, to build the ``atlantis`` demo on Linux,
+  ``cd szg/build/linux/demo/atlantis; make``. As above, for
   this to work properly, the build environment variables must be set
   appropriately.
 

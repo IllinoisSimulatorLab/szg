@@ -8,79 +8,21 @@ Header3
 %%toc
 
 The two [tables of demos #DemoTables]
-below list many example Syzygy
+below list a few example Syzygy
 progams, along with a few important bits of information about each:
-+ The type of program, either distributed scene graph or
-master/slave.
 + The source code location; programs in szg/src/demo are part of the
 base distribution, whereas those in szgdemo are part of a separate
 package.
-+ A brief description. (3) Whether or not additional data not
-included in
-the base distribution is required to run it.
++ A brief description.
 
 
-=Installing the Optional Data Distribution=
-
-Many of the example programs
-require additonal data files to run (the [tables #DemoTables]
-below will help you determine which ones you can run with only the data
-in the base distribution).
-Previous versions of Syzygy have included an optional data distribution
-as a gzip-ed
-tar file. This file has grown too large to be useful. Instead, the data
-for the
-demos is now distributed on the Syzygy DVD, which can be obtained from the
-[Illinois Simulator Lab www.isl.uiuc.edu]
-(just follow the links to Syzygy
-from the lab's main page). To install the data, you will simply copy
-the 'data'
-folder from the top level of the DVD to your desired location.
-
-Once the data is installed, set the following parameter in
-the [Syzygy database SystemConfiguration.html]
-(discussed below) for each computer that will be accessing the data.
-Of course, you will point to the actual location of the 'data'
-directory, instead of
-'/szg/data'.
-```
- <computer> SZG_DATA path /szg/data
-```
-This sets the "path" parameter of the SZG_DATA parameter group
-on the machine named <computer> to /szg/data. Now, the
-programs will be able to find their data.
-
-
-=Demo Tables=[DemoTables]
-
-==Master/Slave==
-
-An easy way to construct
-an application that runs synchronizedly across multiple computers.
-Multiple copies of the application run on the cluster, one per
-rendering computer. One copy is the master and the others are slaves.
+=Demo Table=[DemoTables]
 
 || Name | Source Code Location | Description | Data distribution required |
-| atlantis [images/atlantis.gif] | src/demo/atlantis | A port of the GLUT demo to our system. A school of dolphins, sharks, and whales swims around in a clustered formation. | Base |
-| coaster [images/coaster.gif] | src/demo/coaster | A port of the GLUT demo. Ride a roller coaster. | Base |
-| hspace [images/hspace.gif] | src/demo/hspace | A visualization of hyperbolic geometry, non-Euclidean three-space tiled with dodecahedra. The projection into Euclidean space is controlled by the joystick (backwards/fowards plus what looks like a rotate). | Base |
-| schprel [images/schprel.gif] | src/demo/schprel | A visualization of the warping effects caused by travelling near the speed of light. | Base |
-
-
-==Distributed Scene Graph==
-
-An arGraphicsServer object runs on a control computer which does no
-rendering. It distributes geometry data to arGraphicsClient objects
-running on the rendering computers, which display the graphics. The
-SZG_RENDER/geometry_IP parameter specifies the IP address of the
-server. The following demos use this method:
-
-% OK, so big tables are about the only things that are harder to edit in txt2tabs than html...
-|| Name                                | Source Code Location     | Description | Data distribution required |
-| cosmos [images/cosmos.gif]           | src/demo/cosmos          | Four nested tori spinning about different axes. | Base |
-| parade [images/parade.gif]           | src/demo/parade          | Icosahedral marching "blobbymen". Reference: Jim Blinn, "Nested Transformations and Blobby Man", IEEE Trans. Graphics Oct. 1987, 59-65. | Base |
-| cubes [images/cubes.gif]             | src/demo/cubes           | 300 cubes hang in space. They drift slowly, spin furiously, and change textures. A good stress test for your network. | Base |
-| danceparty [images/danceparty.gif]   | szgdemo/danceparty/src   | A stage floating in space hosts five motion-captured dancers who move in short looping motions. | Optional |
+| atlantis [images/atlantis.gif] | src/demo/atlantis | A port of the GLUT demo to our system. A school of dolphins, sharks, and whales swims around in a clustered formation. |
+| coaster [images/coaster.gif] | src/demo/coaster | A port of the GLUT demo. Ride a roller coaster. |
+| hspace [images/hspace.gif] | src/demo/hspace | A visualization of hyperbolic geometry, non-Euclidean three-space tiled with dodecahedra. The projection into Euclidean space is controlled by the joystick (backwards/fowards plus what looks like a rotate). |
+| schprel [images/schprel.gif] | src/demo/schprel | A visualization of the warping effects caused by travelling near the speed of light. |
 
 
 =Running Example Programs=
@@ -88,46 +30,3 @@ server. The following demos use this method:
 There are two basic ways to interact with the demos: in Cluster Mode using
 a [6DOF-tracked input device InputDevices.html] with buttons and joysticks, or in
 [Standalone Mode Standalone.html] using the [Input Simulator InputSimulator.html].
-
-cosmos, parade, timetunnel, cubes:
-Push forward on the joystick to move in the direction pointed
-to by the sensor attached to the joystick; push back to go backwards.
-While grabbing the object with button 0, rotate the joystick to rotate
-the object.
-
-avn: only navigation is implemented, not
-grabbing.
-
-volume: in addition to navigation, press
-button 0 to
-step to the next data volume. Grab the data volume with button 2 to
-rotate it.
-
-q33: move the joystick sideways to rotate
-the POV;
-conventional navigation works as well.
-
-salamiman:
-Grab the cut plane with button 0 to rotate and translate it.
-Grab the data volume (and the cut plane, implicitly) with button 1 to
-rotate and translate it.
-Button 2 toggles the size of the data volume.
-
-skyfly:
-Hold the wand away from your head to fly in that direction.
-Tilt the wand up or down to rise or fall.
-
-szglorenz:
-See szgdemo/szglorenz/README for an explanation of the controls.
-
-
-=Performance Tuning=
-
-Many of the demos, especially the master/slave programs,
-do not require high performance. However,
-some of the distributed scene graph demos (e.g. cubes)
-can move more data on high-end hardware. To get the most performance
-out of such programs, try the following: In szg/src/barrier/arSyncDataServer.cpp, in the
-constructor, change the initial value of _sendLimit to 200000 and recompile. This
-value determines how much information the server will accumulate before sending
-a frame. It can be increased for better networks.

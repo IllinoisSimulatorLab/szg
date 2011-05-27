@@ -28,41 +28,27 @@ diagnostics listed, please see
 %%toc
 
 
-=A Simple Distributed Graphics Test=[SimpleTest]
+=A Simple Test=[SimpleTest]
 
-One can run some simple distributed graphics tests without any
-configuration at all (beyond szg.conf). A distributed scene graph application,
-in its simplest form, consists of 3 seperate executable
-components: the application itself, a renderer, and an input program.
-These can can be run in arbitrary locations in the cluster you prepared in
-the [Cluster Mode ClusterMode.html] chapter. Concretely, on any computer in
-the distributed system, type:
+One can run some simple tests without any
+configuration at all (beyond szg.conf).  
+On any computer in the distributed system, type:
+
 ```
-  cosmos
+  hspace
 ```
 
-The "cosmos" executable will not return, though no window will appear,
-if all goes well (to exit you can ctrl-c). If this is not the case,
-the only possibility is that the servers embedded in cosmos could not bind to
-their ports, as determined by the szgserver. Try changing
-the ports block on this computer using ``dports``, as explained
-in [Cluster Mode ClusterMode.html].
-
-Next, on any computer in the system, type:
-```
-  szgrender
-```
-
-On the computer where you typed "szgrender", a window will pop up and display
-4 solid blue rotating torii, from which emerge a shimmering halo of lines.
-If this doesn't happen, either the Syzyg config file on this computer has
-incorrect network information (check using dconfig)
-or the computer running cosmos is not reachable via the first network listed
-in this computer's Syzygy config file.
-In the later case, reorder the addresses in the config file using ddelinterface
-and daddinterface (it is assumed that it is possible to reach cosmos over the
-network from this computer). Quit szgrender and run it again. Everything
-should now work. NOTE: to quit szgrender, type ESC in its window.
+A window should appear with a green spiderweb on a black background.
+If the window fails to launch, the
+only possibility is that the ports were misconfigured on the machine on
+which it executed. Attempt adjusting the ports block of the computer on
+which you ran it via dports. The first successfully launched instance of
+hspace is the "master".
+Subsequently launched instances will be "slaves", depending upon the
+master for information about navigation
+and the state of the world. Go ahead and launch hspace on other computers
+in the distributed system.
+You can quit the program by typing ESC in its window.
 
 Next, on any computer in the system, type:
 
@@ -72,69 +58,7 @@ Next, on any computer in the system, type:
 
 On that computer, a window will appear with some geometrical objects, the
 meaning of which is described in [Input Simulator InputSimulator.html].
-Move the mouse in that window with the left button down. The wireframe sphere
-should move and, furthermore, the torii in the szgrender window should move as
-well. The inputsimulator program has a server (for input device information)
-embedded in it, just like the cosmos program has a server embedded in it
-(for geometry). Consequently, the potential faults are similar. If it fails to
-launch, attempt adjusting the ports block of the computer on which you ran it
-via dports. If it launches, but the torii in the szgrender window do not move
-when the wireframe sphere moves, this is because the input device client
-embedded in cosmos could not connect. Make sure the Syzygy config file on the
-computer running cosmos has correct information and that the computer
-running inputsimulator is reachable via the first address listed in the Syzygy
-config file on the computer running cosmos. If the later is false,
-use daddinterface and ddelinterface to manipulate the config file on the
-computer running cosmos. Then, upon killing and then restarting cosmos,
-everything should work. NOTE: to quit inputsimulator,
-type ESC in its window.
-
-One can have fun exploring different possible configurations.
-On any computer in the distributed
-system, run another copy of szgrender. Kill a currently running copy of
-szgrender. Repeat in
-an arbitrary fashion. Note that only one copy of inputsimulator or cosmos
-will run at a given time.
-Each offers a service (like SZG_INPUT0 in the case of inputsimulator), and
-the szgserver enforces that only a single component can offer a particular
-service. Try running mulitple copies of each and
-observe the failure. On the other hand, try killing inputsimulator and
-restarting it on another computer in the distributed system. This will work,
-assuming that the computers in question are configured correctly, as discussed
-above. Similarly, cosmos can be  killed and restarted
-on another computer. In each case, the components automatically reconnect
-and recreate a working total application.
-
-One can also run a simple master/slave application test without
-any further configuration. Go ahead
-and kill any instances of cosmos, szgrender, and inputsimulator that
-you still have running from previous experiments. Next, on any computer
-in the distributed system, type:
-
-```
-  hspace
-```
-
-A window should appear with a green spiderweb on a black background.
-If the window fails to launch, the
-only possibility is that the ports were misconfigured on the machine on
-which it executed. The
-remedy is the same as above. The first successfully launched instance of
-hspace is the "master".
-Subsequently launched instances will be "slaves", depending upon the
-master for information about navigation
-and the state of the world. Go ahead and launch hspace on other computers
-in the distributed system.
-You can quit the program by typing ESC in its window.
-
-Next, type:
-
-```
-  inputsimulator
-```
-
-on one of the computers in the distributed system. Move the mouse in the
-resulting window with a button
+Move the mouse in the resulting window with a button
 held down. The green spiderwebs should move in unison. If they do not move,
 the configuration of the
 computer on which the FIRST instance of hspace (the master) ran must be
@@ -144,10 +68,30 @@ Furthermore, make sure that that
 computer can communicate with the computer running inputsimulator over one of
 those addresses.
 
-As before, experiment with freely killing and restarting hspace and
-inputsimulator on the various computers
-in the distributed system. Note that when you kill the master instance of h
-space, no motion of the
+The inputsimulator program has a server (for input device information)
+embedded in it. If it fails to
+launch, attempt adjusting the ports block of the computer on which you ran it
+via dports. If it launches, but the green lines in the hspace window do not move
+when the wireframe sphere moves, this is because the input device client
+embedded in hspace could not connect. Make sure the Syzygy config file on the
+computer running hspace has correct information and that the computer
+running inputsimulator is reachable via the first address listed in the Syzygy
+config file on the computer running hspace. If the latter is false,
+use daddinterface and ddelinterface to manipulate the config file on the
+computer running hspace. Then, upon killing and then restarting hspace,
+everything should work. NOTE: to quit inputsimulator,
+type ESC in its window.
+
+Note that only one copy of inputsimulator will run at a given time.
+It offers a service (SZG_INPUT0), and
+the szgserver enforces that only a single component can offer a particular
+service. Try running multiple copies of it and
+observe the failure. On the other hand, try killing inputsimulator and
+restarting it on another computer in the distributed system. This will work,
+assuming that the computers in question are configured correctly, as discussed
+above. The components automatically reconnect and recreate a working application.
+
+Note that when you kill the master instance of hspace, no motion of the
 inputsimulator will cause the slaves to move. This is because there now exists
 no master instance. However,
 the next hspace instance you launch will become the new master and everything
@@ -162,15 +106,10 @@ files and constructing tiled displays require configuration. Here are some
 example parameters, in a format readable by the
 dbatch command. We made the following assumptions in creating this list:
 
-- Syzygy contains two frameworks for constructing user applications. In a
-distributed scene graph application, the main application runs on a
-single cluster node, while
-rendering programs (in this case szgrender) create the graphics on the display
-nodes. In the case of a master/slave application, on the other hand,
-seperate copies
+- Syzygy contains a framework for constructing user applications. In 
+a master/slave application, seperate copies
 of the application run on each render node, with one application, the master,
-controlling the execution of the others. This first example will demonstrate
-how to set the parameters for a distributed scene graph application ("cosmos").
+controlling the execution of the others.
 - In the parameters below, we've assumed that /szg is the location where
 you unpacked the code. This'll be easy to change to the actual location.
  Also, the value of the SZG_EXEC/path parameter assumes you are
@@ -179,8 +118,8 @@ instead of forward slashes and appropriate drive letters.
 - The parameters used to configure the view are appropriate for a
 2x1 tiled wall placed in front of the observer's position in tracked
 coordinates.
-- The machine running the main program is named "control", while two machines
-running szgrender are named "slave1" and "slave2". These will need to be
+- The machine running the master program is named "control", while two machines
+running slaves are named "slave1" and "slave2". These will need to be
 replaced with the names of your computers, as determined when you set up the
 computers in your cluster (see [Cluster Mode ClusterMode.html]).
 
@@ -290,14 +229,12 @@ Descriptions of parameters:
 - The XML global parameters left_side, right_side, and whole_view are
 examples of screen configurations. For more information, see
 [System Configuration SystemConfiguration.html].
-- SZG_RENDER/texture_path and SZG_RENDER/text_path specify base paths to
+
+- SZG_RENDER/texture_path specifies base paths to
 use in locating texture and font data.  For example,
-textures for the cosmos demo are located in szg/rsc/Texture
-(the donut textures)
-and szg/rsc/Texture/Text (the textured font). Note that these paths are defined
-on a per-computer basis.
-
-
+textures for the atlantis demo are located in szg/rsc/Texture
+(there's only one, actually, creating the rippling shading on the tops of
+the sea creatures).
 
 - SZG_EXEC/path is the path to search for executables to be run by the
 dex command.  If "control" runs Windows instead of Linux, you might
@@ -306,8 +243,6 @@ see something more like this...
 ```
 control SZG_EXEC path c:\szg\bin\win32
 ```
-
-
 
 - SZG_DATA/path is the path that some executables search for data files.
     This should be wherever you installed the optional data distribution
@@ -318,8 +253,6 @@ You'll have to alter the following for your setup:
 
 - SZG_RENDER/texture_path should be XXX/szg/rsc (where XXX is the directory
     in which szg was installed).
-- SZG_RENDER/text_path should be set to XXX/szg/rsc/Text
-(where XXX is the directory in which szg was installed).
 - SZG_EXEC/path should be set to the location of the installed binaries.
 Look at the discussion of SZGBIN in the chapter on
 [Getting the Software GettingSoftware.html] for more information.
@@ -331,6 +264,13 @@ left half and "slave2" is displaying the right half. You can easily reverse
 this by swapping the SZG_DISPLAY0/name parameter values. Or you can set up a
 completely different type of display
 by changing the XML of the global parameters left_side and right_side.
+
+
+=WARNING=
+
+This file is being re-written. Information in the following section is
+out-of-date. In particular, the Syzygy Distributed Scene Graph is no
+longer supported.
 
 
 =Running the Distributed Graphics Confidence Test=[ConfidenceTest]
