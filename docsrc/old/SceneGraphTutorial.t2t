@@ -8,6 +8,11 @@ Header3
 %%toc
 
 
+=WARNING=
+
+The Syzygy scene graph is no longer supported. This file will be removed.
+
+
 =Introduction=
 
 //NOTE: This functionality is only in the older SWIG-based Python bindings, see the [Python Bindings PythonBindings.html] chapter)//.

@@ -30,12 +30,8 @@ ALL = \
   PortabilityLayer.html \
   Programming.html \
   PythonBindings.html \
-  PySZGold.html \
   QuickPort.html \
   RandomNumbers.html \
-  SceneGraph.html \
-  SceneGraphTutorial.html \
-  SharedWorldTutorial.html \
   Sound.html \
   Standalone.html \
   SupportingLibraries.html \

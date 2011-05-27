@@ -81,6 +81,16 @@ camera, rotating the head 90 degrees will rotate the field of view 90 degrees.
 But with fixed-screen cameras (as used in a CAVE), the displays
 change almost imperceptibly.
 
+Note 3: If you move the mouse outside the window containing the inputsimulator, a
+variety of things can happen. If you don't have any buttons held down, whatever you're
+manipulating will just freeze. If you do have a button held down, however, different
+things happen on different platforms. On Linux, the object being manipulated will
+continue to move smoothly as though you were still inside the window. On Win32,
+on the other hand, the X-coordinate will jump and the Y-coordinate reverses in
+sign, so whetever you're dragging will probably disappear (if it's the head,
+something funky will happen to the viewpoint). We plan on changing the Win32
+behavior.
+
 
 =Alternate Input Simulators=[alternate_sims]
 

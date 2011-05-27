@@ -183,8 +183,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # line isn't necessary.
     self.setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 )      
 
-    # Tilting joystick left or right (axis 0) will rotate left/right around vertical axis (default is left/right
-    # translation)
+    # Tilting joystick left or right (axis 0) will rotate left/right
+    # around vertical axis (default is left/right translation)
     self.setNavRotCondition( 'y', AR_EVENT_AXIS, 0, 0.2 )      
 
     # Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
