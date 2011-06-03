@@ -78,16 +78,38 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
    *
    * Pass in argc and argv from main().
    *
-   * @return  true/false indicating success/failure. If false, app should exit.
+   * @return  true/false indicating success/failure. If false (usually
+   * indicating the the szgserver specified in szg_<user>.conf--by
+   * dlogin--could not be found), app must exit.
    */
   bool init( int& argc, char** argv );
 
-  // Start services, maybe windowing, and maybe an internal event loop.
-  // Returns only if useEventLoop is false, or on error.
-  // If useEventLoop is false, caller should run the event loop either
-  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
-  // Two functions, because default args don't jive with virtual arSZGAppFramework::start(void).
+  /**
+   * @brief  Starts the application event loop.
+   *
+   * Calls the user-supplied startCallback or onStart() method,
+   * creates windows, and starts the event loop. Note that onStart()
+   * is called <i>before</i> window creation, so no OpenGL initialization
+   * may happen there.
+   *
+   * @return false on failure to start, otherwise never returns. 
+   */
   bool start();
+
+  /**
+   * @brief   Variant of start() that optionally does not create windows or start event loop.
+   * @param[in]   useWindowing  bool, whether or not the framework should create windows.
+   * @param[in]   useEventLoop  bool, whether or not the framework should start/manage the event loop.
+   *
+   * Calls the user-supplied onStart() method/start callback. This happens <i>before</i> window
+   * creation, so no OpenGL initialization may happen there.
+   *
+   * Advanced: If useEventLoop is false, caller should run the event loop either
+   * coarsely by calling loopQuantum() or finely using functions it calls, preDraw(), postDraw(), etc.
+   *
+   * @return false on failure to start <i>or</i> if useEventLoop is false,
+   * otherwise never returns. 
+   */
   bool start(bool useWindowing, bool useEventLoop);
 
   // Shutdown for many arMasterSlaveFramework services.

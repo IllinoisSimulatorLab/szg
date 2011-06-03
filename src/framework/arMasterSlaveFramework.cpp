@@ -2310,8 +2310,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "key" ) {
       string::const_iterator siter;
+      arGUIKeyInfo keyInfo( AR_KEY_EVENT, AR_GENERIC_STATE, -1, 0, 0, 0, 0 );
       for (siter = messageBody.begin(); siter != messageBody.end(); ++siter) {
-        onKey( *siter, 0, 0 );
+        keyInfo.setKey( static_cast<arGUIKey>( *siter ) );
+        
+        onKey( &keyInfo );
       }
     }
 
