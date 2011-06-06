@@ -42,7 +42,22 @@ class arTransferFieldDescriptor {
 
 typedef map<string, arTransferFieldDescriptor > arTransferFieldData;
 
-// Framework for cluster applications using one master and several slaves.
+/**
+ * @class arMasterSlaveFramework
+ * @brief Framework for cluster applications using one master and several slaves.
+ *
+ * This is the core of a Syzygy program. It coordinates all aspects of the
+ * application: Contacting the Syzygy server for cluster configuration
+ * info, connecting to other instances of the program, window creation,
+ * and so on. It also runs the programs event loop.
+ *
+ * You create a program by instantiating one of these and then either
+ * installing callback functions a la GLUT or by creating a subclass
+ * and overriding the callback methods. Callback method names begin
+ * with "on". For example, to render the contents of a viewport you
+ * can either create a function and install it using
+ * setDrawCallback() or you can override the onDraw() method. 
+ */
 class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_masterSlaveFrameworkConnectionTask( void* );
@@ -58,15 +73,43 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveFramework( void );
   virtual ~arMasterSlaveFramework( void );
 
-  // Initializes the various objects but does not start the event loop.
-  bool init( int&, char** );
+  /**
+   * @brief   Initializes the framework. Does NOT start the event loop.
+   *
+   * Pass in argc and argv from main().
+   *
+   * @return  true/false indicating success/failure. If false (usually
+   * indicating the the szgserver specified in szg_<user>.conf--by
+   * dlogin--could not be found), app must exit.
+   */
+  bool init( int& argc, char** argv );
 
-  // Start services, maybe windowing, and maybe an internal event loop.
-  // Returns only if useEventLoop is false, or on error.
-  // If useEventLoop is false, caller should run the event loop either
-  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
-  // Two functions, because default args don't jive with virtual arSZGAppFramework::start(void).
+  /**
+   * @brief  Starts the application event loop.
+   *
+   * Calls the user-supplied startCallback or onStart() method,
+   * creates windows, and starts the event loop. Note that onStart()
+   * is called <i>before</i> window creation, so no OpenGL initialization
+   * may happen there.
+   *
+   * @return false on failure to start, otherwise never returns. 
+   */
   bool start();
+
+  /**
+   * @brief   Variant of start() that optionally does not create windows or start event loop.
+   * @param[in]   useWindowing  bool, whether or not the framework should create windows.
+   * @param[in]   useEventLoop  bool, whether or not the framework should start/manage the event loop.
+   *
+   * Calls the user-supplied onStart() method/start callback. This happens <i>before</i> window
+   * creation, so no OpenGL initialization may happen there.
+   *
+   * Advanced: If useEventLoop is false, caller should run the event loop either
+   * coarsely by calling loopQuantum() or finely using functions it calls, preDraw(), postDraw(), etc.
+   *
+   * @return false on failure to start <i>or</i> if useEventLoop is false,
+   * otherwise never returns. 
+   */
   bool start(bool useWindowing, bool useEventLoop);
 
   // Shutdown for many arMasterSlaveFramework services.

@@ -41,7 +41,10 @@ COMPILE_FLAGS_SHARED = $(COMPILE_FLAGS)
 LINKER = g++
 STATIC_LINKER = ar -r
 LINK_PREFIX = 
-LINK_FLAGS = -o
+# New link flags to remove dependency on libgcc_s_dw2-1.dll
+# and libstdc++-6.dll with MinGW 4.5. No idea if this is
+# backwards compatible...
+LINK_FLAGS = -static-libgcc -static-libstdc++ -o
 LINK_FLAGS_DEBUG = $(LINK_FLAGS)
 LINK_FLAGS_SHARED = -shared -o
 LINK_FLAGS_PLUGIN = -shared -o
