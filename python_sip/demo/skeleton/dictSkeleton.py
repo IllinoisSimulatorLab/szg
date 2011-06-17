@@ -27,18 +27,20 @@ import random
 
 # ColoredSquare: a yellow square that changes green when 'touched'
 # (i.e. when the effector tip is within 1 ft.) and can be dragged around.
-# See szg/src/interaction/arInteractable.h.
-class ColoredSquare(arInteractableThing):
+# See szg/src/interaction/arInteractable.h. Note that any class that's to
+# be shared using an arMasterSlaveDict should have an an __init__() that
+# can be called with no parameters.
+class ColoredSquare(arPyInteractable):
   def __init__(self, container=None):
-    arInteractableThing.__init__(self)
+    arPyInteractable.__init__(self)
     self._container = container
 
   def onTouch( self, effector ):
-    self.setHighlight( True )
+    self.highlight = True
     return True
 
   def onUntouch( self, effector ):
-    self.setHighlight( False )
+    self.highlight = False
     return True
 
   # This will get called on each frame in which this object is selected for
@@ -49,16 +51,16 @@ class ColoredSquare(arInteractableThing):
       self._container.delValue(self)
     # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
-      self.setVisible( not self.getVisible() )
+      self.visible = not self.visible
     return True
 
   def draw(self):
     glPushMatrix()
-    glMultMatrixf( self.getMatrix().toTuple() )
+    glMultMatrixf( self.matrix.toTuple() )
     glScalef( 2., 2., 1./12. )
-    if self.getVisible():
+    if self.visible:
       # set one of two colors depending on if this object has been selected for interaction
-      if self.getHighlight():
+      if self.highlight:
         glColor3f( 0,1,0 )
       else:
         glColor3f( 1,1,0 )
@@ -71,15 +73,14 @@ class ColoredSquare(arInteractableThing):
 
   # These two routines are required by the arMasterSlaveDict. All
   # state that must be shared between master and slaves has to be packed
-  # into a tuple for each object. Note that the __init__ _MUST_ be able
-  # to accept the same tuple as an argument.
+  # into a tuple for each object.
   def getState(self):
-    return (self.getHighlight(),self.getVisible(),self.getMatrix().toTuple())
+    return (self.highlight,self.visible,self.matrix.toTuple())
 
   def setState( self, stateTuple ):
-    self.setHighlight( stateTuple[0] )
-    self.setVisible( stateTuple[1] )
-    self.setMatrix( arMatrix4(stateTuple[2]) )
+    self.highlight = stateTuple[0]
+    self.visible = stateTuple[1]
+    self.matrix = arMatrix4(stateTuple[2])
 
 
 # RodEffector: an effector that uses input matrix 1 for its position/orientatin
@@ -237,7 +238,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   def onPostExchange( self ):
     # Do stuff after slaves got data and are again in sync with the master.
     if not self.getMaster():
-      
       # Update effector's input state. On the slaves we only need the matrix
       # to be updated, for rendering purposes.
       self.theWand.updateState( self.getInputState() )

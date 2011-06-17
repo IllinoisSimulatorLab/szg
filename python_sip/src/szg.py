@@ -304,6 +304,37 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     return struct.unpack( format, data )
 
 
+# More pythonic arInteractable wrapper
+# I have no idea why I need to re-implement these methods here,
+# but I do...
+class arPyInteractable(arInteractableThing):
+  def getVisible( self ):
+    return arInteractableThing.getVisible( self )
+  def setVisible( self, val ):
+    arInteractableThing.setVisible( self, val )
+  visible = property( getVisible, setVisible )
+  def getHighlight( self ):
+    return arInteractableThing.getHighlight( self )
+  def setHighlight( self, val ):
+    arInteractableThing.setHighlight( self, val )
+  highlight = property( getHighlight, setHighlight )
+  def getAlpha( self ):
+    return arInteractableThing.getAlpha( self )
+  def setAlpha( self, val ):
+    arInteractableThing.setAlpha( self, val )
+  alpha = property( getAlpha, setAlpha )
+  def getTexture( self ):
+    return arInteractableThing.getTexture( self )
+  def setTexture( self, val ):
+    arInteractableThing.setTexture( self, val )
+  texture = property( getTexture, setTexture )
+  def getMatrix( self ):
+    return arInteractableThing.getMatrix( self )
+  def setMatrix( self, val ):
+    arInteractableThing.setMatrix( self, val )
+  matrix = property( getMatrix, setMatrix )
+
+
 # Utility classes
 
 import UserDict

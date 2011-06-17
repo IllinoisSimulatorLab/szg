@@ -75,6 +75,7 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   //
   // NULL: Get the process table.
   // ALL:  Get all parameters in a format suitable for dbatch-ing
+  // USERS: Get list of users.
   // substring: Return only those parameters whose names match the substring.
   // value: Return the value corresponding to the attribute name in
   //   AR_ATTR_GET_REQ_ATTR

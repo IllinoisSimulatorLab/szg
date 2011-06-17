@@ -140,6 +140,7 @@ class SZG_CALL arSZGClient{
 
   // Cluster administration.
   string getProcessList();
+  string getUserList();
   bool killProcessID(int id);
   bool killProcessID(const string& computer, const string& processLabel);
   void killIDs(list<int>*);

@@ -5,6 +5,12 @@ VPATH = ../../../src/graphics
 include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
+  arGluQuadric$(OBJ_SUFFIX) \
+  arGluQuadric$(OBJ_SUFFIX) \
+  arGluSphere$(OBJ_SUFFIX) \
+  arGluDisk$(OBJ_SUFFIX) \
+  arGluCylinder$(OBJ_SUFFIX) \
+  arGluTessObject$(OBJ_SUFFIX) \
   arFreeGlutRenderFuncs$(OBJ_SUFFIX) \
   arFreeGlutTeapot$(OBJ_SUFFIX) \
   arFreeGlutRoman$(OBJ_SUFFIX) \

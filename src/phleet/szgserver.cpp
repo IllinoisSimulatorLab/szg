@@ -1075,6 +1075,21 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
                 lang.AR_ATTR_GET_RES_VAL, dataServer->dumpConnectionLabels());
   }
 
+  else if (type=="USERS") {
+    // Send the process table.
+    (void)dataResponse->dataInString(
+                lang.AR_ATTR_GET_RES_ATTR, attribute);
+    SZGuserDB::const_iterator iter;
+    string users;
+    for (iter = userDB.begin(); iter != userDB.end(); ++iter) {
+      if (iter != userDB.begin()) {
+        users += "/";
+      }
+      users += iter->first;
+    }
+    (void)dataResponse->dataInString( lang.AR_ATTR_GET_RES_VAL, users);
+  }
+
   else if (type=="ALL") {
     vector<string> globalAttrs;
     vector<string> localAttrs;

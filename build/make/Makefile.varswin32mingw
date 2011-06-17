@@ -46,8 +46,8 @@ LINK_PREFIX =
 # backwards compatible...
 LINK_FLAGS = -static-libgcc -static-libstdc++ -o
 LINK_FLAGS_DEBUG = $(LINK_FLAGS)
-LINK_FLAGS_SHARED = -shared -o
-LINK_FLAGS_PLUGIN = -shared -o
+LINK_FLAGS_SHARED = -static-libgcc -static-libstdc++ -shared -o
+LINK_FLAGS_PLUGIN = -static-libgcc -static-libstdc++ -shared -o
 GENERAL_LIBS = -ladvapi32 -lkernel32 -luser32 -lgdi32 -lwsock32 -lwinmm
 # NOTE: glut does not appear below but is instead dealt with in
 # Makefile.libscan (we might not want to install a glut, but instead

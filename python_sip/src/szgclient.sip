@@ -239,6 +239,7 @@ class arSZGClient {
 
   // general administration functions
   string getProcessList();
+  string getUserList();
   bool killProcessID(const string& computer, const string& processLabel);
   string getProcessLabel(int processID);
   int getProcessID(const string& computer, const string& processLabel);
