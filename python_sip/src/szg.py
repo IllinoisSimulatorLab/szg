@@ -1,4 +1,25 @@
-print 'szg module:',__file__
+REQUIRED_SIP_VERSION = '4.12.2'
+
+import os
+print 'szg module:',os.path.abspath(__file__)
+import sip
+if sip.SIP_VERSION_STR != REQUIRED_SIP_VERSION:
+  err = '''This copy of szg.py was built using SIP version %s,
+  and requires the corresponding version of the SIP module
+  (sip.pyd on Windows, sip.so on Unixes). The version of this
+  module that is first on sys.path is found at:
+
+  %s
+
+  and has version: %s.
+  You should find a copy of version %s and put it in
+
+  %s.
+  ''' \
+      % (REQUIRED_SIP_VERSION,sip.__file__,sip.SIP_VERSION_STR, \
+      REQUIRED_SIP_VERSION,os.path.dirname(os.path.abspath(__file__)))
+  raise ImportError, err
+
 from _szg import *
 print ar_versionString(True)
 print ar_versionInfo(True)
