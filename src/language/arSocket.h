@@ -34,6 +34,10 @@ using namespace std;
 
 class ar_timeval; // forward reference into arDataUtilities.h
 
+#ifdef AR_USE_WIN_32
+SZG_CALL bool ar_winSockInit();
+#endif
+
 // Helper: ensure that win32 initializes before the first arSocket is constructed.
 class SZG_CALL arCommunicator {
 public:

@@ -43,34 +43,6 @@ string ar_getLastWin32ErrorString() {
   return result;
 }
 
-// todo: call WSACleanup somewhere!
-
-bool ar_winSockInit() {
-  WSADATA wsaData;
-  switch(WSAStartup(MAKEWORD(2, 0), &wsaData))
-    {
-  case 0:
-    return true;
-  case WSASYSNOTREADY:
-    ar_log_error() << "initializing network: not ready.\n";
-    break;
-  case WSAVERNOTSUPPORTED:
-    ar_log_error() << "initializing network: wrong winsock version, expected 2.0.\n";
-    break;
-  case WSAEINPROGRESS:
-    ar_log_error() << "initializing network: blocking winsock operation in progress.\n";
-    break;
-  case WSAEPROCLIM:
-    ar_log_error() << "initializing network: winsock startup failed: too many tasks.\n";
-    break;
-  case WSAEFAULT:
-  default:
-    ar_log_error() << "initializing network: ar_winSockInit internal error.\n";
-    break;
-    }
-  return false;
-}
-
 #else
 
 #include <dirent.h>
