@@ -1,4 +1,25 @@
-print 'szg module:',__file__
+REQUIRED_SIP_VERSION = '4.12.2'
+
+import os
+print 'szg module:',os.path.abspath(__file__)
+import sip
+if sip.SIP_VERSION_STR != REQUIRED_SIP_VERSION:
+  err = '''This copy of szg.py was built using SIP version %s,
+  and requires the corresponding version of the SIP module
+  (sip.pyd on Windows, sip.so on Unixes). The version of this
+  module that is first on sys.path is found at:
+
+  %s
+
+  and has version: %s.
+  You should find a copy of version %s and put it in
+
+  %s.
+  ''' \
+      % (REQUIRED_SIP_VERSION,sip.__file__,sip.SIP_VERSION_STR, \
+      REQUIRED_SIP_VERSION,os.path.dirname(os.path.abspath(__file__)))
+  raise ImportError, err
+
 from _szg import *
 print ar_versionString(True)
 print ar_versionInfo(True)
@@ -302,6 +323,37 @@ class arPyMasterSlaveFramework(arMasterSlaveFramework):
     format = self.getString( name+'_FORMAT' )
     data = self.getString( name+'_DATA' )
     return struct.unpack( format, data )
+
+
+# More pythonic arInteractable wrapper
+# I have no idea why I need to re-implement these methods here,
+# but I do...
+class arPyInteractable(arInteractableThing):
+  def getVisible( self ):
+    return arInteractableThing.getVisible( self )
+  def setVisible( self, val ):
+    arInteractableThing.setVisible( self, val )
+  visible = property( getVisible, setVisible )
+  def getHighlight( self ):
+    return arInteractableThing.getHighlight( self )
+  def setHighlight( self, val ):
+    arInteractableThing.setHighlight( self, val )
+  highlight = property( getHighlight, setHighlight )
+  def getAlpha( self ):
+    return arInteractableThing.getAlpha( self )
+  def setAlpha( self, val ):
+    arInteractableThing.setAlpha( self, val )
+  alpha = property( getAlpha, setAlpha )
+  def getTexture( self ):
+    return arInteractableThing.getTexture( self )
+  def setTexture( self, val ):
+    arInteractableThing.setTexture( self, val )
+  texture = property( getTexture, setTexture )
+  def getMatrix( self ):
+    return arInteractableThing.getMatrix( self )
+  def setMatrix( self, val ):
+    arInteractableThing.setMatrix( self, val )
+  matrix = property( getMatrix, setMatrix )
 
 
 # Utility classes

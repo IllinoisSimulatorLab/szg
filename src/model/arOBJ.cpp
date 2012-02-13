@@ -865,6 +865,7 @@ bool arOBJRenderer::readOBJ(const string& fileName,
   _searchPath = path;
   FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r", "arOBJRenderer readOBJ");
   if (!theFile) {
+    ar_log_error() << "ar_fileOpen() failed.\n";
     return false;
   }
   ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') beginning.\n";

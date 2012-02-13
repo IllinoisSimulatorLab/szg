@@ -1737,7 +1737,7 @@ int arGUIWindow::getPosX( void ) const
   // typically returns true
 
   if (w == None) {
-    ar_log_warning() << "getPosX: XTranslateCoordinates problem.\n";
+    ar_log_remark() << "getPosX: XTranslateCoordinates problem.\n";
     // avoid *next* XTranslateCoords failing with BadWindow
     x = -1;
   } else {
@@ -1780,7 +1780,7 @@ int arGUIWindow::getPosY( void ) const
   // typically returns true
 
   if (w == None) {
-    ar_log_warning() << "getPosY: XTranslateCoordinates problem.\n";
+    ar_log_remark() << "getPosY: XTranslateCoordinates problem.\n";
     // avoid *next* XTranslateCoords failing with BadWindow
     y = -1;
   } else {

@@ -81,8 +81,9 @@ void arWandTranslationDrag::init( const arEffector* const effector,
   const arMatrix4 mEff = effector->getMatrix();
   const arMatrix4 mObj = object->getMatrix();
   _positionOffsetMatrix = _allowOffset ?
-    ar_TM( ar_extractTranslation( mObj ) - ar_ET( mEff ) ) : arMatrix4();
-  _objectOrientationMatrix = ar_ERM( mObj );
+    (ar_translationMatrix( ar_extractTranslation( mObj ) - ar_extractTranslation( mEff ) ))
+    : arMatrix4();
+  _objectOrientationMatrix = ar_extractRotationMatrix( mObj );
 }
 
 void arWandTranslationDrag::update( const arEffector* const effector,

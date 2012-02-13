@@ -1266,6 +1266,31 @@ string arSZGClient::getProcessList() {
   return result;
 }
 
+string arSZGClient::getUserList() {
+  if (!_connected)
+    return string("NULL");
+
+  // Get storage for the message.
+  arStructuredData* getRequestData
+    = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+  string result;
+  // "NULL" asks the server for the process table
+  int match = _fillMatchField(getRequestData);
+  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR, "NULL") ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE, "USERS") ||
+      !getRequestData->dataInString(_l.AR_PHLEET_USER, _userName) ||
+      !_dataClient.sendData(getRequestData)) {
+    ar_log_error() << "failed to send getUserList command.\n";
+    result = string("NULL");
+  }
+  else {
+    result = _getAttributeResponse(match);
+  }
+  // Must recycle the storage
+  _dataParser->recycle(getRequestData);
+  return result;
+}
+
 // Kill (or remove from the szgserver table, really) by component ID.
 bool arSZGClient::killProcessID(int id) {
   if (!_connected)
