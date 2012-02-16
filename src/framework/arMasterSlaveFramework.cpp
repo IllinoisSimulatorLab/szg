@@ -255,6 +255,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _windowStartGLCallback( NULL ),
   _cleanup( NULL ),
   _userMessageCallback( NULL ),
+  _oldUserMessageCallback( NULL ),
   _overlay( NULL ),
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
