@@ -233,7 +233,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     // No dex, so redirect pending and future output to cout.
     cout << _initResponseStream.str();
     ar_log().setStream(cout);
-    ar_log_critical() << "standalone.\n";
+    if (ar_getenv("USERNAME") != "camilleg")
+      ar_log_critical() << "standalone.\n";
     _connected = false;
 
     const bool gotParams =
@@ -3286,7 +3287,8 @@ void arSZGClient::killIDs(list<int>* IDList) {
 string arSZGClient::getDisplayName(const string& whichDisplay) {
   const string displayName = getAttribute( whichDisplay, "name" );
   if (displayName == "NULL") {
-    ar_log_warning() << "default " << whichDisplay << "/name.\n";
+    if (ar_getenv("USERNAME") != "camilleg")
+      ar_log_warning() << "default " << whichDisplay << "/name.\n";
   } else {
     ar_log_remark() << "displaying on " << whichDisplay << "/name = " << displayName << ".\n";
   }
