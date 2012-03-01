@@ -44,7 +44,8 @@ arInputSimulator::arInputSimulator() :
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
   if (mouseButtonString == "NULL") {
-    ar_log_warning() << "arInputSimulator: default SZG_INPUTSIM/mouse_buttons.\n";
+    if (ar_getenv("USERNAME") != "camilleg")
+      ar_log_warning() << "arInputSimulator: default SZG_INPUTSIM/mouse_buttons.\n";
   } else {
     const int numItems = mouseButtonString.size();
     int* mouseButtons = new int[numItems];
@@ -54,7 +55,8 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     }
     const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
     if (numValues != numItems) {
-      ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
+      if (ar_getenv("USERNAME") != "camilleg")
+	ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
     } else {
       vector<unsigned> v(mouseButtons, mouseButtons+numValues);
       if (!setMouseButtons( v )) {

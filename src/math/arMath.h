@@ -250,6 +250,10 @@ class SZG_CALL arQuaternion{
   float dot(const arQuaternion& rhs) const {
     return real*rhs.real + pure.dot(rhs.pure);
   }
+  bool operator==(const arQuaternion& rhs) const
+    { return real==rhs.real && pure==rhs.pure; }
+  bool operator!=(const arQuaternion& rhs) const
+    { return real!=rhs.real || pure!=rhs.pure; }
 
   // Not inline, only because operators they use aren't yet declared.
   arQuaternion normalize() const;

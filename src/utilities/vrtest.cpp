@@ -128,22 +128,16 @@ void drawHead() {
   glPopMatrix();
 }
 
-const unsigned cmMax = 8;        // IS-900 reports this many tracked sensors.
-const unsigned caMax = 20;
-const unsigned cbMax = 30;
+unsigned cButton = 0;
+unsigned cAxis = 0;
+unsigned cMatrix = 0;
 
-unsigned cSig[3] = {0};
-unsigned& cb = cSig[0];
-unsigned& ca = cSig[1];
-unsigned& cm = cSig[2];
-
-ARint rgButton   [cbMax+1] = {0};
-ARint rgOnbutton [cbMax+1] = {0}; // technically unused, while rendered only as sound
-ARint rgOffbutton[cbMax+1] = {0}; // technically unused, while rendered only as sound
-ARfloat rgAxis[caMax] = {0};
-bool rgfjoy32k[caMax] = {0};
+vector<ARint> rgButton(1);
+vector<ARfloat> rgAxis(1);
+vector<ARint> rgfjoy32k(1);
+vector<arMatrix4> rgMatrix(1); // [0] is head, rest are wands.
+// Without either the (1) or rgMatrix.reserve(1), rgMatrix[0] = ...; crashes.
 bool fWhitewalls = false;
-arMatrix4 rgm[cmMax]; // rgm[0] is head, rest are wands.
 
 inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
   if (a > aMax)
@@ -212,63 +206,97 @@ void doSounds(int iPing, bool fPing, bool fPong, float amplSaber) {
 const float wandConeLength = 1.5;
 
 void callbackPreEx(arMasterSlaveFramework& fw) {
-  cb = fw.getNumberButtons();
-  ca = fw.getNumberAxes();
-  cm = fw.getNumberMatrices();
-
-  static bool fComplained = false;
-  if (!fComplained) {
-    fComplained = true;
-    if (cb > cbMax) {
-      ar_log_error() << cb << " is too many buttons. Truncating to " << cbMax << ".\n";
-      cb = cbMax;
-    }
-    if (ca > caMax) {
-      ar_log_error() << ca << " is too many axes. Truncating to " << caMax << ".\n";
-      ca = caMax;
-    }
-    if (cm > cmMax) {
-      ar_log_error() << cm << " is too many matrices. Truncating to " << cmMax << ".\n";
-      cm = cmMax;
-    }
-  }
+  cButton = fw.getNumberButtons();
+  cAxis = fw.getNumberAxes();
+  cMatrix = fw.getNumberMatrices();
 
   bool fPing = false;
   bool fPong = false;
   unsigned i;
   int iPing = -1;
   int cOn = 0;
-  for (i=0; i < cb; ++i) {
-    rgButton   [i] = fw.getButton(i);
-    rgOnbutton [i] = fw.getOnButton(i);
-    rgOffbutton[i] = fw.getOffButton(i);
-    if (rgOnbutton[i]) {
+  rgButton.resize(cButton);
+  for (i=0; i < cButton; ++i) {
+    rgButton[i] = fw.getButton(i);
+    const bool onButton = fw.getOnButton(i);
+    fPing |= onButton;
+    fPong |= fw.getOffButton(i);
+    if (onButton) {
       iPing = int(i);
       ++cOn;
     }
-    fPing |= rgOnbutton[i];
-    fPong |= rgOffbutton[i];
   }
   // Mash several buttons *at once* to toggle white walls.
   if (cOn > 1) {
     fWhitewalls = !fWhitewalls;
   }
+  assert(fw.setInternalTransferFieldSize("a", AR_INT, cButton));
+  int unused;
+  ARint* pIntDst = (ARint*)fw.getTransferField("a", AR_INT, unused);
+  assert(pIntDst != NULL);
+  std::copy(rgButton.begin(), rgButton.end(), pIntDst);
 
-  for (i=0; i<ca; ++i) {
+  rgAxis.resize(cAxis);
+  rgfjoy32k.resize(cAxis);
+  for (i=0; i<cAxis; ++i) {
     if (rgfjoy32k[i] |= fabs(rgAxis[i] = fw.getAxis(i)) > 16400.)
       rgAxis[i] /= 32768.;
     clamp(rgAxis[i], -M_PI, M_PI);
   }
-  rgm[0] = fw.getMidEyeMatrix();
-  for (i=1; i<cm; ++i)
-    rgm[i] = fw.getMatrix(i);
+  assert(fw.setInternalTransferFieldSize("b", AR_FLOAT, cAxis));
+  assert(fw.setInternalTransferFieldSize("d", AR_INT, cAxis));
+  ARfloat* pFloatDst = (ARfloat*)fw.getTransferField("b", AR_FLOAT, unused);
+  assert(pFloatDst != NULL);
+  std::copy(rgAxis.begin(), rgAxis.end(), pFloatDst);
+  pIntDst = (ARint*)fw.getTransferField("d", AR_INT, unused);
+  assert(pIntDst != NULL);
+  std::copy(rgfjoy32k.begin(), rgfjoy32k.end(), pIntDst);
+
+  rgMatrix.resize(cMatrix);
+  assert(fw.setInternalTransferFieldSize("c", AR_FLOAT, cMatrix*16));
+  assert(sizeof(rgMatrix[0]) == 16 * sizeof(AR_FLOAT)); // so contiguity works for std::copy
+  rgMatrix[0] = fw.getMidEyeMatrix();
+  for (i=1; i<cMatrix; ++i) rgMatrix[i] = fw.getMatrix(i);
+  arMatrix4* pMatrixDst = (arMatrix4*)fw.getTransferField("c", AR_FLOAT, unused);
+  assert(pMatrixDst != NULL);
+  std::copy(rgMatrix.begin(), rgMatrix.end(), pMatrixDst);
 
   static arVector3 tipPosPrev(0, 5, -5);
-  const arVector3 tipPos(ar_ET(rgm[1]) + (ar_ERM(rgm[1]) * arVector3(0, 0, -wandConeLength)));
+  const arVector3 tipPos(ar_ET(rgMatrix[1]) + (ar_ERM(rgMatrix[1]) * arVector3(0, 0, -wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
   clamp(vSaber, 0.0, 1.3);
   tipPosPrev = tipPos;
   doSounds(iPing, fPing, fPong, vSaber);
+}
+
+void callbackPostEx(arMasterSlaveFramework& fw) {
+  if (fw.getMaster())
+    return;
+  int size;
+
+  // update rgButton
+  ARint* pIntSrc = (ARint*)fw.getTransferField("a", AR_INT, size);
+  std::copy(pIntSrc, pIntSrc+size, rgButton.begin());
+  cButton = size;
+
+  // update rgAxis
+  ARfloat* pFloatSrc = (ARfloat*)fw.getTransferField("b", AR_FLOAT, size);
+  assert(pFloatSrc != NULL);
+  rgAxis.resize(size);
+  std::copy(pFloatSrc, pFloatSrc+size, rgAxis.begin());
+  pIntSrc = (ARint*)fw.getTransferField("d", AR_INT, size);
+  assert(pIntSrc != NULL);
+  rgfjoy32k.resize(size);
+  std::copy(pIntSrc, pIntSrc+size, rgfjoy32k.begin());
+  cAxis = size;
+
+  // update rgMatrix
+  arMatrix4* pMatrixSrc = (arMatrix4*)fw.getTransferField("c", AR_FLOAT, size);
+  assert(size % 16 == 0);
+  size /= 16;
+  rgMatrix.resize(size);
+  std::copy(pMatrixSrc, pMatrixSrc+size, rgMatrix.begin());
+  cMatrix = size;
 }
 
 void drawWand(const arMatrix4& m, const float large = 1.0) {
@@ -317,10 +345,10 @@ void bluesquare() {
 
 void headwands() {
   glTranslatef(0, -5, 0); // correct y coord
-  for (unsigned i=1; i<cm; ++i)
-    drawWand(rgm[i], wandConeLength);
-  if (cm > 0) {
-    glMultMatrixf(rgm[0].v);
+  for (unsigned i=1; i<cMatrix; ++i)
+    drawWand(rgMatrix[i], wandConeLength);
+  if (cMatrix > 0) {
+    glMultMatrixf(rgMatrix[0].v);
     drawHead();
   }
 }
@@ -374,7 +402,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
   glutEyeglasses( .7, 10,   -1-.5, iEye, 0, 90);
   glutEyeglasses( .7, 0,     1+.5, iEye, 0, -90);
 
-  if (cm == 0 && ca == 0 && cb == 0) {
+  if (cMatrix == 0 && cButton == 0) {
     // Uninitialized.
     return;
   }
@@ -421,11 +449,11 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   glDisable(GL_LIGHTING);
 
-  if (cm > 0) {
+  if (cMatrix > 0) {
     // Reticle to show head orientation.
     glLineWidth(2.);
     glPushMatrix();
-      glMultMatrixf(rgm[0].v);
+      glMultMatrixf(rgMatrix[0].v);
       glTranslatef(0, 0, -3); // in front of your eyes
       glColor3f(.6, .3, .9);
       glScalef(4., 1., 9.); // ratios of the Monolith
@@ -434,8 +462,8 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
     // Head, projected onto all walls except front.
     // x.1 draws it behind other stuff, since it's opaque.
-    arVector3 xyz(ar_ET(rgm[0]));
-    const arMatrix4 mRot(ar_ERM(rgm[0]));
+    arVector3 xyz(ar_ET(rgMatrix[0]));
+    const arMatrix4 mRot(ar_ERM(rgMatrix[0]));
 
     // floor
     glPushMatrix();
@@ -485,14 +513,14 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 
   glLineWidth(3.);
   unsigned i;
-  for (i=1; i<cm; ++i)
-    drawWand(rgm[i]);
+  for (i=1; i<cMatrix; ++i)
+    drawWand(rgMatrix[i]);
 
   glLineWidth(1.);
 
   // Axes and buttons near first wand.
-  if (cm > 1)
-    glMultMatrixf(ar_ETM(rgm[1]).v);
+  if (cMatrix > 1)
+    glMultMatrixf(ar_ETM(rgMatrix[1]).v);
 
   glPushMatrix();
     glTranslatef(0.7, -.2, -1.5);
@@ -500,20 +528,20 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     glPushMatrix();
       glTranslatef(-.7, -.2, 0);
       // Box for each wand button, released or depressed.
-      const float step = (1.0 / (cb-1));
-      for (i=0; i<cb; ++i) {
+      const float step = (1.0 / (cButton-1));
+      for (i=0; i<cButton; ++i) {
         glTranslatef(step, 0, 0);
         if (rgButton[i] == 0) {
           glColor3f(1, .3, .2);
-          ar_glutSolidCube(0.5 / cb);
+          ar_glutSolidCube(0.5 / cButton);
           glColor3f(0, 0, 0);
-          ar_glutWireCube(0.52 / cb);
+          ar_glutWireCube(0.52 / cButton);
         }
         else {
           glColor3f(.3, 1, .6);
-          ar_glutSolidCube(0.7 / cb);
+          ar_glutSolidCube(0.7 / cButton);
           glColor3f(0, 0, 0);
-          ar_glutWireCube(0.72 / cb);
+          ar_glutWireCube(0.72 / cButton);
         }
         // 5 buttons per line
         const int buttonsPerLine = 5;
@@ -524,7 +552,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
       }
     glPopMatrix();
 
-    if (ca >= 2) {
+    if (cAxis >= 2) {
       // Box for the wand's joystick, in a square.
       const float joy=0.28;
       glLineWidth(3.);
@@ -553,7 +581,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     // Slider for each axis.
     glTranslatef(1.5, 0, 0);
     glLineWidth(2.);
-    for (i=0; i<ca; ++i) {
+    for (i=0; i<cAxis; ++i) {
       if (rgfjoy32k[i]) {
         glColor3f(1, .7, 0);
         glutPrintf(0, 1.1, 0, "32K" );
@@ -577,14 +605,11 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
 }
 
 bool callbackStart(arMasterSlaveFramework& fw, arSZGClient&) {
-  fw.addTransferField("a", cSig, AR_INT, 3);
-  fw.addTransferField("b", rgButton, AR_INT, sizeof(rgButton)/sizeof(ARint));
-//fw.addTransferField("c", rgOnbutton, AR_INT, sizeof(rgOnbutton)/sizeof(ARint));
-//fw.addTransferField("d", rgOffbutton, AR_INT, sizeof(rgOffbutton)/sizeof(ARint));
-  fw.addTransferField("e", rgAxis, AR_FLOAT, sizeof(rgAxis)/sizeof(ARfloat));
-  fw.addTransferField("f", rgm, AR_FLOAT, sizeof(rgm)/sizeof(ARfloat));
-  fw.addTransferField("g", rgfjoy32k, AR_INT, sizeof(rgfjoy32k)/sizeof(ARint));
-  fw.addTransferField("h", &fWhitewalls, AR_INT, 1);
+  assert(fw.addInternalTransferField("a", AR_INT, 1));
+  assert(fw.addInternalTransferField("b", AR_FLOAT, 1));
+  assert(fw.addInternalTransferField("c", AR_FLOAT, 1));
+  assert(fw.addInternalTransferField("d", AR_INT, 1));
+  assert(fw.addTransferField("e", &fWhitewalls, AR_INT, 1));
 
   dsSpeak("_", "root", "Welcome to V R test.\n");
   return true;
@@ -595,6 +620,7 @@ int main(int argc, char** argv) {
   fw.setStartCallback(callbackStart);
   fw.setDrawCallback(callbackDraw);
   fw.setPreExchangeCallback(callbackPreEx);
+  fw.setPostExchangeCallback(callbackPostEx);
   fw.setClipPlanes(.15, 20.);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
