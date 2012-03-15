@@ -1,8 +1,13 @@
+# This script computes platform-specific variables, using
+# other scripts in the platform-named subdirectories.
+
 import sys
 import os
 
+# Dictionary for stuffing global variables into.
 Import('envDict')
 
+# Select a platform-specific script subdirectory.
 if sys.platform == 'win32':
   if os.environ['SZG_COMPILER'] == 'MINGW':
     scriptDir = 'win32mingw'
@@ -18,17 +23,33 @@ else:
 # Set up the build and install paths.
 szgPath = os.environ['SZGHOME']
 pathDict = {}
+
+# Build in e.g. szg/bin/win32
 pathDict['buildPath'] = szgPath+'/build/'+plat
+
+# Copy headers to e.g. szg/include/win32
+# (for ease of building apps outside of szg).
 pathDict['includePath'] = szgPath+'/include/'+plat
+
+# Copy build libraries to e.g. szg/lib/win32
+# (for ease of building apps outside of szg).
 pathDict['libPath'] = szgPath+'/lib/'+plat
+
+# Copy executables to e.g. szg/bin/win32
 pathDict['binPath'] = szgPath+'/bin/'+plat
 pathDict['libs'] = []
 
+# ...unless SZGBIN is set, in which case executables
+# go there.
 if os.environ.get('SZGBIN',''):
   pathDict['binPath'] = os.environ['SZGBIN']
 
+# Stuff our computed variables into envDict.
 envDict['paths'] = pathDict
 envDict['platform'] = plat
 
-# Run the appropriate platform-specific script.
+# Run the appropriate platform-specific script (in the
+# appropriately-named subdirectory), passing envDict.
+# envDict will be modified therein & then passed back
+# up to the script that calls this one (szg/SConstruct).
 SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )

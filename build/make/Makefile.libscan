@@ -300,7 +300,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
 		OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
 	endif
 
-  ISENSE_DIR := $(SZGEXTERNmacrtcom)/win32/isense
+  ISENSE_DIR := $(SZGEXTERNAL)/win32/isense
   OBJ_ISENSE := $(wildcard $(ISENSE_DIR)/lib/isense.dll)
 
   # If the isense dll is available, copy its objects to SZG_BINDIR

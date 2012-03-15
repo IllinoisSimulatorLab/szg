@@ -1,11 +1,22 @@
-# SCons script for building a python extension with SIP, meant to be
-# execfile()d rather than SConscript()ed. It's messy because SCons
-# doesn't support SIP yet.
+Import('sipEnv')
 
 import os
 import sys
 import shutil
 import re
+
+
+sipEnv['no_import_lib'] = True
+# We'd like to be able to suppress creation of .def files for 
+# driver plugins, but a bug in SCons causes the dll's to be
+# re-linked every time if we do this.
+#sipEnv['WINDOWS_INSERT_DEF'] = False
+#
+# For now, in order to get things to work properly, we have to tell
+# SCons to generate a .def file for the driver plugins, even though
+# we don't need it, because otherwise a bug in SCons causes the
+# plugins to be re-linked whether needed or not.
+sipEnv['WINDOWS_INSERT_DEF'] = True
 
 
 # Add compiler and linker flags...
@@ -16,7 +27,7 @@ if sys.platform == 'win32':
   sipFlags['CPPPATH'].append( os.environ['SIP_INCLUDE'] )
   sipFlags['LIBPATH'] = [os.path.dirname( os.environ['SZG_PYLIB_PATH'] )]
 
-buildEnv.MergeFlags( sipFlags )
+sipEnv.MergeFlags( sipFlags )
 
 # Done adding flags. Now setup the SIP builder...
 
@@ -67,7 +78,7 @@ def sipBuildFunc( target, source, env ):
 bld = Builder( action=sipBuildFunc,  suffix='_sip.cpp', src_suffix='.sip' )
 
 # Install the builder.
-buildEnv['BUILDERS']['SipPythonExtensionSrc'] = bld
+sipEnv['BUILDERS']['SipPythonExtensionSrc'] = bld
 
 # Define a 'scanner' to scan the source file for any %Include's...
 
@@ -85,34 +96,11 @@ def sipFileScan( node, env, path ):
   #for c in contents:
   #  print ord(c),c
   includes = sipIncludeRe.findall( contents )
-  print 'SIP Includes:'
-  for i in includes:
-    print '  ',i
+  print 'SIP Includes: %s' % str( includes )
   return includes
 
 # Instantiate scanner object...
 sipScan = Scanner( function=sipFileScan, skeys = ['.sip'] )
 # ...and install it in the build environment.
-buildEnv.Append( SCANNERS=sipScan )
+sipEnv.Append( SCANNERS=sipScan )
 
-# Build the SIP bindings cpp and header file.
-sipCpp = buildEnv.SipPythonExtensionSrc( os.path.join( buildPath, targetName ) )
-
-# Tell SCons about the header file, so it knows to clean it up.
-Clean( sipCpp, os.path.join( buildPath, 'sipAPI_'+targetName+'.h' ) )
-
-# Build the Python extension as a shared library with a name
-# beginning with '_'.
-targetDll = buildEnv.SharedLibrary( target=os.path.join( buildPath, '_'+targetName ), source=[sipCpp] )
-targetPyExt = targetDll
-
-# On windows, rename the .dll -> .pyd
-if sys.platform == 'win32':
-  # This involved syntax creates a new node in the build tree and removes or
-  # hides the source (.dll) one, so that 'scons -c' removes the .pyd file
-  # and not the missing .dll.
-  targetPyExt = Command( os.path.join( buildPath, '_'+targetName+'.pyd' ), \
-      os.path.join( buildPath, '_'+targetName+'.dll' ), Move("$TARGET", "$SOURCE"))
-
-buildEnv.Install( pathDict['binPath'], targetPyExt )
-buildEnv.Install( pathDict['binPath'], targetName+'.py' )

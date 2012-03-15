@@ -16,7 +16,8 @@ libSrc = ( \
     'arSoundFile.cpp',
     'arSoundTransformNode.cpp',
     'arPlayerNode.cpp',
-    'arSpeakerObject.cpp'
+    'arSpeakerObject.cpp',
+    'arTTS.cpp'
   )
 
 progNames = (

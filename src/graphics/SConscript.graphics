@@ -23,7 +23,6 @@ libSrc = ( \
     'arBumpMapNode.cpp',
     'arCamera.cpp',
     'arColor4Node.cpp',
-    'arCubeEnvironment.cpp',
     'arDrawableNode.cpp',
     'arFramerateGraph.cpp',
     'arFrameworkObject.cpp',
