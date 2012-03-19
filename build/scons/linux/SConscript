@@ -2,9 +2,13 @@
 
 import os
 import sys
+import platform
 from szgscons import makeLibName
 
 Import('envDict')
+
+64_BIT = platform.architecture()[0] != '32bit'
+envDict['64_BIT'] = 64_BIT
 
 numCPU = int(os.environ.get( 'NUMBER_OF_PROCESSORS', 2 ))
 SetOption( 'num_jobs', numCPU )
@@ -62,9 +66,15 @@ for d,ed in externalDependencies.iteritems():
 commonFlags = {
     'LIBPATH':[pathDict['libPath']],
     'LIBS':['dl','pthread','m'],
-    'CCFLAGS':['-fPIC','-O2','-Wall','-W','-Wpointer-arith','-march=i686','-D AR_USE_LINUX'],
+    'CCFLAGS':['-fPIC','-O2','-Wall','-W','-Wpointer-arith',-D AR_USE_LINUX'],
     'LINKFLAGS':['-Wl,-rpath,'+pathDict['binPath']]
     }
+
+if 64_BIT:
+  commonFlags['CCFLAGS'].append('-m64')
+else:
+  commonFlags['CCFLAGS'].append('-march=i686')
+
 
 if os.environ.get('SZG_LINKING','STATIC') != 'DYNAMIC':
   commonFlags['CCFLAGS'].append('-D AR_LINKING_STATIC')
