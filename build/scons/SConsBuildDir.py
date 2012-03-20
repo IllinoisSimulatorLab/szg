@@ -9,6 +9,7 @@ import sys
 flags = {'LIBPATH':[pathDict['buildPath']+'/'+srcDirname]}
 if sys.platform == 'win32':
   flags['CCFLAGS'] = ['-D SZG_COMPILING_'+srcDirname.upper()]
+
 buildEnv.MergeFlags( flags )
 
 # libSrc gets passed from the calling script & is a list of
@@ -55,8 +56,7 @@ if len( libSrc ) > 0:
   progs.append( sharedLib )
 
 #Install the headers in szg/include/<platform>.
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
-headers = [f for f in os.listdir(srcPath) if os.path.splitext(f)[1]=='.h']
+headers = Glob( '#/src/%s/*.h' % srcDirname )
 buildEnv.Install( pathDict['includePath'], headers )
 
 # Install the programs in $SZGBIN or szg/bin/<platform>

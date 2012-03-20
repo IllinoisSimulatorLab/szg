@@ -8,35 +8,37 @@ import os
 Import('envDict')
 
 # Select a platform-specific script subdirectory.
+# TODO: 64-bit builds on Windows.
 if sys.platform == 'win32':
   if os.environ['SZG_COMPILER'] == 'MINGW':
     scriptDir = 'win32mingw'
   else:
     scriptDir = 'win32msvc'
   plat = 'win32'
-elif sys.platform == 'linux2':
+elif 'linux' in sys.platform:
   scriptDir = 'linux'
   plat = 'linux'
 else:
   raise ValueError, 'No support for SCons on '+plat+' yet.'
 
 # Set up the build and install paths.
-szgPath = os.environ['SZGHOME']
 pathDict = {}
 
 # Build in e.g. szg/bin/win32
-pathDict['buildPath'] = szgPath+'/build/'+plat
+# NOTE: '#' means 'the directory containing SConstruct',
+# i.e. szg.
+pathDict['buildPath'] = '#/build/'+plat
 
 # Copy headers to e.g. szg/include/win32
 # (for ease of building apps outside of szg).
-pathDict['includePath'] = szgPath+'/include/'+plat
+pathDict['includePath'] = '#/include/'+plat
 
 # Copy build libraries to e.g. szg/lib/win32
 # (for ease of building apps outside of szg).
-pathDict['libPath'] = szgPath+'/lib/'+plat
+pathDict['libPath'] = '#/lib/'+plat
 
 # Copy executables to e.g. szg/bin/win32
-pathDict['binPath'] = szgPath+'/bin/'+plat
+pathDict['binPath'] = '#/bin/'+plat
 pathDict['libs'] = []
 
 # ...unless SZGBIN is set, in which case executables

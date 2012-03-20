@@ -7,11 +7,14 @@ from szgscons import makeLibName
 
 Import('envDict')
 
-64_BIT = platform.architecture()[0] != '32bit'
+64_BIT = '64' in platform.architecture()[0]
 envDict['64_BIT'] = 64_BIT
 
-numCPU = int(os.environ.get( 'NUMBER_OF_PROCESSORS', 2 ))
-SetOption( 'num_jobs', numCPU )
+# Use multiple jobs. Can be overridden from command line
+# by using e.g. 'scons -j 1' for a single job.
+# TODO: for linux need to parse /proc/cpuinfo to set
+# this better.
+SetOption( 'num_jobs', 2 )
 
 # Create standard Linux build environment.
 basicEnv = Environment()
@@ -66,9 +69,18 @@ for d,ed in externalDependencies.iteritems():
 commonFlags = {
     'LIBPATH':[pathDict['libPath']],
     'LIBS':['dl','pthread','m'],
-    'CCFLAGS':['-fPIC','-O2','-Wall','-W','-Wpointer-arith',-D AR_USE_LINUX'],
+    'CCFLAGS':['-fPIC','-O2','-Wall','-W','-Wpointer-arith','-D AR_USE_LINUX'],
     'LINKFLAGS':['-Wl,-rpath,'+pathDict['binPath']]
     }
+
+# TODO: this is the order the libs are added in the original Makefile
+# check whether that matters.
+graphicsLibs = {'LIBPATH':['/usr/X11R6/lib'],'LIBS':['-lGLU']}
+if 64_BIT:
+  # On 64bit ubuntu 8.x, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
+  graphicsLibs['LIBS'] += ['-lGL']
+
+graphicsLibs['LIBS'] += ['-lX11','-lXext','-lXmu','-lXt','-lXi','-lSM','-lICE']
 
 if 64_BIT:
   commonFlags['CCFLAGS'].append('-m64')
@@ -90,8 +102,6 @@ szgEnv.MergeFlags( commonFlags )
 # Create and install target for locations outside of szg.
 szgEnv.Alias( 'install', pathDict['binPath'] )
 
-envDict['szgEnv'] = szgEnv
-
 
 ############# Detecting libraries ##########################
 
@@ -109,15 +119,32 @@ envDict['externalFlags'] = externalFlags
 
 ######## Detecting libraries end ############################
 
+szgNoGLEnv = szgEnv.Clone()
+szgEnv.MergeFlags( graphicsLibs )
+
+envDict['szgEnv'] = szgEnv
+envDict['szgNoGLEnv'] = szgNoGLEnv
+
 # Construct build & dependency tree, adding appropriate
 # compile and link flags for prior directories' headers
 # and libraries.
+useGL = False
 for subdir,depend in subdirs.iteritems():
   print 'Adding build environment for',subdir
-  env = szgEnv.Clone()
+
+  # Link against graphics libraries for graphics and later directories.
+  if subdir == 'graphics':
+    useGL = True
+  if useGL:
+    env = szgEnv.Clone()
+  else:
+    env = szgNoGLEnv.Clone()
+
   for d in depend['internal']:
     env.Prepend( LIBS=makeLibName(d) )
     env.Prepend( CPPPATH=['#/src/'+d] )
+
   for flagGroup in depend['external']:
     env.MergeFlags( externalFlags[flagGroup] )
+
   envDict[subdir+'Env'] = env
