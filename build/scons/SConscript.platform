@@ -44,6 +44,7 @@ pathDict['libs'] = []
 # ...unless SZGBIN is set, in which case executables
 # go there.
 if os.environ.get('SZGBIN',''):
+  print "Setting binPath to $SZGBIN='%s'" % os.environ['SZGBIN']
   pathDict['binPath'] = os.environ['SZGBIN']
 
 # Stuff our computed variables into envDict.
@@ -55,3 +56,6 @@ envDict['platform'] = plat
 # envDict will be modified therein & then passed back
 # up to the script that calls this one (szg/SConstruct).
 SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )
+
+envDict['szgEnv'].Alias( 'install', pathDict['binPath'] )
+envDict['szgNoGLEnv'].Alias( 'install', pathDict['binPath'] )

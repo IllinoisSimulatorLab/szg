@@ -170,3 +170,4 @@ if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS 
       exports=exports,
       duplicate=0 )
 
+BUILD_TARGETS.append('install')

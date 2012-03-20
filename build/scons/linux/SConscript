@@ -7,8 +7,8 @@ from szgscons import makeLibName
 
 Import('envDict')
 
-64_BIT = '64' in platform.architecture()[0]
-envDict['64_BIT'] = 64_BIT
+BITS64 = '64' in platform.architecture()[0]
+envDict['BITS64'] = BITS64
 
 # Use multiple jobs. Can be overridden from command line
 # by using e.g. 'scons -j 1' for a single job.
@@ -76,13 +76,13 @@ commonFlags = {
 # TODO: this is the order the libs are added in the original Makefile
 # check whether that matters.
 graphicsLibs = {'LIBPATH':['/usr/X11R6/lib'],'LIBS':['-lGLU']}
-if 64_BIT:
+if BITS64:
   # On 64bit ubuntu 8.x, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
   graphicsLibs['LIBS'] += ['-lGL']
 
 graphicsLibs['LIBS'] += ['-lX11','-lXext','-lXmu','-lXt','-lXi','-lSM','-lICE']
 
-if 64_BIT:
+if BITS64:
   commonFlags['CCFLAGS'].append('-m64')
 else:
   commonFlags['CCFLAGS'].append('-march=i686')
