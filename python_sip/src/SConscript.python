@@ -4,36 +4,30 @@ import sys
 Import('buildEnv','pathDict')
 sipEnv = buildEnv.Clone()
 
-sipSConsPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConscript.sip' )
-
-# Get the sip-builder environment
-SConscript( sipSConsPath, exports=['sipEnv'] )
-
-buildPath = os.getcwd()
+# Populate the sip-builder environment
+SConscript( '#/build/scons/SConscript.sip', exports=['sipEnv'] )
 
 # szg.sip
-targetName = 'szg'
+TARGET_NAME = 'szg'
+
+# Compute src and build paths
+buildPath = os.path.abspath( os.getcwd() )
+srcPath = os.path.join( os.path.dirname( os.path.dirname(buildPath) ), 'src' )
+
+# Copy the .py file from src to build.
+pySrc = Command( os.path.join( buildPath, TARGET_NAME+'.py' ), os.path.join( srcPath, TARGET_NAME+'.py' ), \
+    Copy("$TARGET", "$SOURCE") )
 
 # Build the SIP bindings cpp and header file.
-sipCpp = sipEnv.SipPythonExtensionSrc( os.path.join( buildPath, targetName ) )
+sipCpp = sipEnv.SipPythonExtensionSrc( os.path.join( buildPath, TARGET_NAME ) )
 
-# Tell SCons about the header file, so it knows to clean it up.
-Clean( sipCpp, os.path.join( buildPath, 'sipAPI_'+targetName+'.h' ) )
+# Tell SCons about the sip-generated header file, so it knows to clean it up.
+Clean( sipCpp, os.path.join( buildPath, 'sipAPI_'+TARGET_NAME+'.h' ) )
 
 # Build the Python extension as a shared library with a name
 # beginning with '_'.
-targetDll = sipEnv.SharedLibrary( target=os.path.join( buildPath, '_'+targetName ), source=[sipCpp] )
-targetPyExt = targetDll
+targetPyExt = sipEnv.SharedLibrary( target=os.path.join( buildPath, '_'+TARGET_NAME ), source=[sipCpp] )
 
-# On windows, copy the .dll -> .pyd
-if sys.platform == 'win32':
-  # This involved syntax creates a new .pyd node in the build tree that is a copy
-  # of the .dll one (hence, the pyd depends on the dll). We copy rather than move
-  # it because if we moved it (removing the dll) it would be rebuilt on each
-  # invocation whether or not the source had changed.
-  dllPath = os.path.join( buildPath, '_%s.dll' % targetName )
-  pydPath = os.path.join( buildPath, '_%s.pyd' % targetName )
-  targetPyExt = Command( pydPath, dllPath, Copy("$TARGET", "$SOURCE") )
-
+# Copy python extension and <TARGET_NAME>.py from build to $SZGBIN.
 sipEnv.Install( pathDict['binPath'], targetPyExt )
-sipEnv.Install( pathDict['binPath'], targetName+'.py' )
+sipEnv.Install( pathDict['binPath'], TARGET_NAME+'.py' )

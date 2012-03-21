@@ -44,7 +44,8 @@ import sys
 import shutil
 import subprocess
 
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
+srcPath = os.path.join( szgHome, 'src', srcDirname )
 
 if not buildEnv.GetOption('clean'):
   if 'SZG_BZR_INFO' in os.environ and os.environ['SZG_BZR_INFO'] == 'FALSE':
@@ -55,6 +56,6 @@ if not buildEnv.GetOption('clean'):
 
 
 # Call the generic directory-builder script
-scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 

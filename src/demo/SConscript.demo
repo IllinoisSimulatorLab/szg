@@ -10,7 +10,9 @@ demos = (
     'schprel'
     )
 
-srcPath = os.path.join( os.environ['SZGHOME'], 'src', srcDirname )
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
+
+srcPath = os.path.join( szgHome, 'src', srcDirname )
 
 def getSources( demoPath ):
   return [os.path.join( demoPath, f ) for f in os.listdir( demoPath ) if os.path.splitext(f)[1] == '.cpp']

@@ -72,11 +72,13 @@ progNames = (
     'szgrender'
     )
 
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
 
 # Call the generic directory-builder script
-scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 
+# Build szg-rp separately, as it depends on glut
 glutProgEnv = progEnv.Clone()
 glutProgEnv.MergeFlags( externalFlags['glut'] )
 szgrp = glutProgEnv.Program( 'szg-rp.cpp' )

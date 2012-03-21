@@ -44,13 +44,15 @@ if sys.platform == 'win32':
   progNames.append('dtop')
 
 
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
+
 # Call the generic directory-builder script
-scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 
 if sys.platform != 'win32':
+  # build dtop
   if 'curses' in externalFlags:
-    # Flock of Birds, using Ascension dll.
     cursesEnv = progEnv.Clone()
     if not cursesEnv.GetOption('clean'):
       cursesEnv.MergeFlags( externalFlags['curses'] )
