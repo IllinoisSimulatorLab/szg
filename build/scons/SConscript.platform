@@ -57,5 +57,9 @@ envDict['platform'] = plat
 # up to the script that calls this one (szg/SConstruct).
 SConscript( os.path.join( scriptDir, 'SConscript' ), exports=['envDict'] )
 
+# This rigamarole (along with adding 'install' to the build targets
+# in SConstruct) is necessary if we want libraries and executables
+# to be automatically copied to an SZGBIN directory that is
+# _outside_ of szg.
 envDict['szgEnv'].Alias( 'install', pathDict['binPath'] )
 envDict['szgNoGLEnv'].Alias( 'install', pathDict['binPath'] )

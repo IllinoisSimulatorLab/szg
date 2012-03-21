@@ -175,4 +175,11 @@ if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS 
         exports=exports,
         duplicate=0 )
 
+# This rigamarole (along with creating and alias named 'install'
+# for $SZGBIN in build/scons/SConscript.platform) is necessary
+# if we want libraries and executables to be automatically copied
+# to an SZGBIN directory that is _outside_ of szg.
+# Alternatively, we could remove this line and manually issue
+# the command 'scons install' to do the copy (building the
+# stuff to be copied if necessary).
 BUILD_TARGETS.append('install')
