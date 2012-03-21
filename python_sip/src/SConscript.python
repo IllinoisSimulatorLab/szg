@@ -1,11 +1,7 @@
 import os
 import sys
 
-Import('buildEnv','pathDict')
-sipEnv = buildEnv.Clone()
-
-# Populate the sip-builder environment
-SConscript( '#/build/scons/SConscript.sip', exports=['sipEnv'] )
+Import('sipEnv','pathDict')
 
 # szg.sip
 TARGET_NAME = 'szg'

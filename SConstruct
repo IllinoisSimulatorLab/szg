@@ -161,13 +161,18 @@ if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
 # Build python bindings if 'python' or 'all' is passed on
 # command line.
 if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
-  sourcePath = 'python_sip/src/'
-  buildPath = 'python_sip/build/'+envDict['platform']
-  buildEnv = envDict['demoEnv']
-  exports = ['buildEnv','pathDict','priorLibs','externalFlags']
-  SConscript( sourcePath+'SConscript.python', \
-      variant_dir=buildPath, \
-      exports=exports,
-      duplicate=0 )
+  sipEnv = envDict['demoEnv'].Clone()
+  # Populate the sip-builder environment
+  SConscript( 'build/scons/SConscript.sip', exports=['sipEnv'] )
+  if sipEnv is None:
+    print 'SKIPPING PYTHON BINDINGS BUILD!'
+  else:
+    sourcePath = 'python_sip/src/'
+    buildPath = 'python_sip/build/'+envDict['platform']
+    exports = ['sipEnv','pathDict','priorLibs','externalFlags']
+    SConscript( sourcePath+'SConscript.python', \
+        variant_dir=buildPath, \
+        exports=exports,
+        duplicate=0 )
 
 BUILD_TARGETS.append('install')

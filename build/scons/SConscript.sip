@@ -113,3 +113,20 @@ sipScan = Scanner( function=sipFileScan, skeys = ['.sip'] )
 # ...and install it in the build environment.
 sipEnv.Append( SCANNERS=sipScan )
 
+checkFailMessage = "Didn't find sip executable; You can't build the Python bindings."
+testEnv = sipEnv.Clone()
+conf = Configure( testEnv )
+# note that the full command path or none is returned, which can serve as True or False.
+def CheckCommand( context, cmd ):
+       context.Message('Checking for %s command... ' % cmd)
+       result = WhereIs(cmd)
+       context.Result(result is not None)
+       return result
+conf.AddTest( 'CheckCommand', CheckCommand )
+
+if not conf.CheckCommand( 'sip' ):
+  print checkFailMessage
+  sipEnv = None
+
+conf.Finish()
+
