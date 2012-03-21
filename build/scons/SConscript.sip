@@ -6,17 +6,20 @@ import shutil
 import re
 
 
-sipEnv['no_import_lib'] = True
-# We'd like to be able to suppress creation of .def files for 
-# driver plugins, but a bug in SCons causes the dll's to be
-# re-linked every time if we do this.
-#sipEnv['WINDOWS_INSERT_DEF'] = False
-#
-# For now, in order to get things to work properly, we have to tell
-# SCons to generate a .def file for the driver plugins, even though
-# we don't need it, because otherwise a bug in SCons causes the
-# plugins to be re-linked whether needed or not.
-sipEnv['WINDOWS_INSERT_DEF'] = True
+if sys.platform == 'win32':
+  sipEnv['no_import_lib'] = True
+  # We'd like to be able to suppress creation of .def files for 
+  # driver plugins, but a bug in SCons causes the dll's to be
+  # re-linked every time if we do this.
+  #sipEnv['WINDOWS_INSERT_DEF'] = False
+  #
+  # For now, in order to get things to work properly, we have to tell
+  # SCons to generate a .def file for the driver plugins, even though
+  # we don't need it, because otherwise a bug in SCons causes the
+  # plugins to be re-linked whether needed or not.
+  sipEnv['WINDOWS_INSERT_DEF'] = True
+elif 'linux' in sys.platform:
+  sipEnv['SHLIBPREFIX'] = ''
 
 
 # Add compiler and linker flags...
