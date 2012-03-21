@@ -19,7 +19,11 @@ if sys.platform == 'win32':
   # plugins to be re-linked whether needed or not.
   sipEnv['WINDOWS_INSERT_DEF'] = True
 elif 'linux' in sys.platform:
+  # By default on linux, scons (at least version 1.2) assumes
+  # that you want to prepend 'lib' to all your shared library
+  # names. We don't want that for the _szg python extension.
   sipEnv['SHLIBPREFIX'] = ''
+
 
 
 # Add compiler and linker flags...

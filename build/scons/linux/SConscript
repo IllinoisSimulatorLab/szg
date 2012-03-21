@@ -94,6 +94,7 @@ else:
   commonFlags['CCFLAGS'].append('-D AR_LINKING_DYNAMIC')
 
 szgEnv = basicEnv.Clone()
+
 bld = Builder( action='ar -r $TARGET $SOURCES', prefix='lib', suffix='.a', src_suffix='.o' )
 szgEnv['BUILDERS']['StaticLibrary'] = bld
 szgEnv.MergeFlags( envDict['versionFlags'] )
