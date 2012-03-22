@@ -4,8 +4,8 @@ def getVersionFlags():
   """Return compiler flags specifying current Syzygy version."""
   return {'CCFLAGS':[ 
       '-D SZG_MAJOR_VERSION=1',
-      '-D SZG_MINOR_VERSION=3',
-      '-D SZG_PATCH_VERSION=1'
+      '-D SZG_MINOR_VERSION=4',
+      '-D SZG_PATCH_VERSION=0'
       ]}
 
 
