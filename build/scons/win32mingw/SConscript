@@ -74,8 +74,8 @@ externalDependencies = {
 pathDict = envDict['paths']
 subdirs = envDict['subdirs']
 
-for d,ed in externalDependencies.iteritems():
-  subdirs[d].update( ed )
+for dirName,subdir in subdirs.iteritems():
+  subdir.update( externalDependencies[dirName] )
 
 commonFlags = {
     'LIBPATH':[pathDict['libPath']],
@@ -125,28 +125,4 @@ szgEnv.MergeFlags( graphicsLibs )
 
 envDict['szgEnv'] = szgEnv
 envDict['szgNoGLEnv'] = szgNoGLEnv
-
-# Construct build & dependency tree, adding appropriate
-# compile and link flags for prior directories' headers
-# and libraries.
-useGL = False
-for subdir,depend in subdirs.iteritems():
-  print 'Adding build environment for',subdir
-
-  # Link against opengl and glu for graphics and later directories.
-  if subdir == 'graphics':
-    useGL = True
-  if useGL:
-    env = szgEnv.Clone()
-  else:
-    env = szgNoGLEnv.Clone()
-
-  for d in depend['internal']:
-    env.Prepend( LIBS=makeLibName(d) )
-    env.Prepend( CPPPATH=['#/src/'+d] ) # '#'==szg
-
-  for flagGroup in depend['external']:
-    env.MergeFlags( externalFlags[flagGroup] )
-
-  envDict[subdir+'Env'] = env
 

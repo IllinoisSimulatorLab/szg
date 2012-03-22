@@ -18,20 +18,40 @@
 # szg/lib/, and header files are copied to szg/include.
 
 # Usage: in the szg directory, typing 'scons' will build the syzygy
-# libraries and demos.
+# libraries and demos (equivalent to typing 'scons #').
 # Typing 'scons -c' will delete them.
 # Typing 'scons python' will build the python bindings, building
-#    the main libraries and demos if needed.
+#    the main libraries and demos if needed (equivalent to
+#    'scons python_sip/src').
 # Typing 'scons doc' will build the html documentation.
 # Typing 'scons all' will do all of the above.
 # 'scons -c all' will delete everything built.
+# Typing 'scons phleet' will build the subdirectories thru phleet.
+#    (equivalent to 'scons src/phleet').
+# Typing 'scons drivers' will build thru drivers.
+#    (equivalent to 'scons src/drivers').
 # In a source directory (e.g. src/math), typing 'scons -u .'
 #    will build the current directory and any it depends on.
 #    Typing 'scons -u -c .' will delete all built targets
 #    in the current directory and any that it depends on.
-
+#
+# NOTE: passing multiple targets doesn't work, it seems
+# only the first one gets built, e.g. 'scons phleet drivers'
+# only builds phleet.
+#
+# NOTE: as indicated above, the 'clean' option ('scons -c <target>')
+# works rather differently from make's. E.g., 'scons -c phleet' will
+# delete everything built in language, math, and phleet (the target
+# and all internal dependencies).
+# On the upside, scons seems to be pretty good about scanning for
+# header file dependencies (i.e. if you modify a header file it
+# should recompile files that include it), so hopefully cleaning
+# won't be necessary as often.
+#
 # NOTE: if you need to read the SCons output, I suggest 'scons -j 1'
-# (i.e. tell it to use only one concurrent job).
+# (i.e. tell it to use only one job, it defaults to at least 2 depending
+# on the platform. On windows it uses the NUMBER_OF_PROCESSORS env var).
+
 
 import os
 import sys
@@ -48,27 +68,33 @@ if 'all' in COMMAND_LINE_TARGETS:
   # doc/txt2tags to build targets.
   BUILD_TARGETS.extend(['#'])
 
+
 # Ditto for 'scons python' (we'll handle it later)
 if 'python' in COMMAND_LINE_TARGETS:
   BUILD_TARGETS.remove('python')
   BUILD_TARGETS.append('#')
 
 
+# Build only thru phleet
+if 'phleet' in COMMAND_LINE_TARGETS:
+  BUILD_TARGETS.remove('phleet')
+  BUILD_TARGETS.append('#/src/phleet')
+
+# Build only thru drivers
+if 'drivers' in COMMAND_LINE_TARGETS:
+  BUILD_TARGETS.remove('drivers')
+  BUILD_TARGETS.append('#/src/drivers')
+
 # Do all the build environments and checks unless the user
 # just wants to build the docs.
 if COMMAND_LINE_TARGETS != ['doc']:
-  # Set version compile flags
-  versionFlags = {'CCFLAGS':[ 
-      '-D SZG_MAJOR_VERSION=1',
-      '-D SZG_MINOR_VERSION=3',
-      '-D SZG_PATCH_VERSION=1'
-      ]}
-
-  envDict = {'versionFlags':versionFlags}
-
   import sys
-  sys.path.append( os.path.join( os.environ['SZGHOME'], 'build', 'scons' ) )
+  sys.path.append( os.path.join( os.getcwd(), 'build', 'scons' ) )
   import odict
+  import szgscons
+
+  # get version compile flags
+  envDict = {'versionFlags':szgscons.getVersionFlags()}
 
   # Set up dictionary of sub-directories, specifying which other
   # directories each depends on (these are the 'internal'
@@ -116,6 +142,12 @@ if COMMAND_LINE_TARGETS != ['doc']:
       'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
       }),
     ))
+
+  if 'phleet' in COMMAND_LINE_TARGETS:
+    subdirs = subdirs[:(subdirs.index('phleet')+1)]
+  elif 'drivers' in COMMAND_LINE_TARGETS:
+    subdirs = subdirs[:(subdirs.index('drivers')+1)]
+
   envDict['subdirs'] = subdirs
 
   # Populate envDict with build environments and other configuration parameters.
@@ -130,38 +162,42 @@ if COMMAND_LINE_TARGETS != ['doc']:
 
   # Loop through the specified subdirectories and build them.
   priorLibs = []
-  for srcDirname in envDict['subdirs']:
-    # Use VariantDir() function instead?
+  useGL = False
+  for srcDirname,dependencies in envDict['subdirs'].iteritems():
+
     # Path to SConscript file in source subdirectory.
     sourceScriptPath = 'src/'+srcDirname+'/SConscript.'+srcDirname
+
     # 'variantDir' is the platform-specific build directory, e.g. build/win32.
     variantDir = pathDict['buildPath']+'/'+srcDirname
-    buildEnv = envDict[srcDirname+'Env']
+
+  # Link against graphics libraries for graphics and later directories.
+    if srcDirname == 'graphics':
+      useGL = True
+    if useGL:
+      buildEnv = envDict['szgEnv'].Clone()
+    else:
+      buildEnv = envDict['szgNoGLEnv'].Clone()
+    
+    # Call a utility function to fill in some build parameters
+    szgscons.updateSzgParams( buildEnv, dependencies, externalFlags )
+
     # NOTE: priorLibs gets modified by each source directory's SConscript
+    # It's a list of the already-built subdirectories.
     variables = ['srcDirname','buildEnv','pathDict','priorLibs','externalFlags']
-    print 'SConscript(',sourceScriptPath,')'
+
+    print 'SConscript( %s )' % sourceScriptPath
     # Execute a directory-specific scons build script (contained in file sourceScriptPath)
     SConscript( sourceScriptPath, \
         variant_dir=variantDir, \
         exports=variables, \
         duplicate=0 )
 
-# Don't build the docs by default, only if 'doc' or 'all' is
-# passed to the 'scons' command on the command line.
-# NOTE: '#' always refers to the directory containing the
-# SConstruct script, i.e. the root szg directory.
-if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
-  buildEnv = Environment()
-  SConscript( '#/docsrc/SConscript.doc', \
-      src_dir='#/docsrc', \
-      variant_dir='#/doc', \
-      exports={'buildEnv':buildEnv}, \
-      duplicate=0 )
 
 # Build python bindings if 'python' or 'all' is passed on
 # command line.
 if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
-  sipEnv = envDict['demoEnv'].Clone()
+  sipEnv = buildEnv.Clone()
   # Populate the sip-builder environment
   SConscript( 'build/scons/SConscript.sip', exports=['sipEnv'] )
   if sipEnv is None:
@@ -175,6 +211,20 @@ if 'python_sip/src' in COMMAND_LINE_TARGETS or 'python' in COMMAND_LINE_TARGETS 
         exports=exports,
         duplicate=0 )
 
+
+# Don't build the docs by default, only if 'doc' or 'all' is
+# passed to the 'scons' command on the command line.
+# NOTE: '#' always refers to the directory containing the
+# SConstruct script, i.e. the root szg directory.
+if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
+  buildEnv = Environment()
+  SConscript( '#/docsrc/SConscript.doc', \
+      src_dir='#/docsrc', \
+      variant_dir='#/doc', \
+      exports={'buildEnv':buildEnv}, \
+      duplicate=0 )
+
+    
 # This rigamarole (along with creating and alias named 'install'
 # for $SZGBIN in build/scons/SConscript.platform) is necessary
 # if we want libraries and executables to be automatically copied
