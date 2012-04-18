@@ -1,0 +1,29 @@
+import os
+import sys
+
+Import('sipEnv','pathDict')
+
+# szg.sip
+TARGET_NAME = 'szg'
+
+# Compute src and build paths
+buildPath = os.path.abspath( os.getcwd() )
+srcPath = os.path.join( os.path.dirname( os.path.dirname(buildPath) ), 'src' )
+
+# Copy the .py file from src to build.
+pySrc = Command( os.path.join( buildPath, TARGET_NAME+'.py' ), os.path.join( srcPath, TARGET_NAME+'.py' ), \
+    Copy("$TARGET", "$SOURCE") )
+
+# Build the SIP bindings cpp and header file.
+sipCpp = sipEnv.SipPythonExtensionSrc( os.path.join( buildPath, TARGET_NAME ) )
+
+# Tell SCons about the sip-generated header file, so it knows to clean it up.
+Clean( sipCpp, os.path.join( buildPath, 'sipAPI_'+TARGET_NAME+'.h' ) )
+
+# Build the Python extension as a shared library with a name
+# beginning with '_'.
+targetPyExt = sipEnv.SharedLibrary( target=os.path.join( buildPath, '_'+TARGET_NAME ), source=[sipCpp] )
+
+# Copy python extension and <TARGET_NAME>.py from build to $SZGBIN.
+sipEnv.Install( pathDict['binPath'], targetPyExt )
+sipEnv.Install( pathDict['binPath'], TARGET_NAME+'.py' )

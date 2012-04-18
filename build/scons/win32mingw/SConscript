@@ -2,9 +2,12 @@
 
 import os
 import sys
+from szgscons import makeLibName
 
 Import('envDict')
 
+# Use multiple jobs. Can be overridden from command line
+# by using e.g. 'scons -j 1' for a single job.
 numCPU = int(os.environ.get( 'NUMBER_OF_PROCESSORS', 2 ))
 SetOption( 'num_jobs', numCPU )
 
@@ -27,15 +30,61 @@ else:
   # Create MinGW build environment.
   basicEnv = Environment( tools=['mingw'] )
 
+
+externalDependencies = {
+    'language':{
+      'external':[]
+      },
+    'math'    :{
+      'external':[]
+      },
+    'phleet'  :{
+      'external':[]
+      },
+    'barrier'  :{
+      'external':[]
+      },
+    'drivers'  :{
+      'external':[]
+      },
+    'graphics'  :{
+      'external':['jpeg']
+      },
+    'model'  :{
+      'external':['jpeg','3ds']
+      },
+    'sound'  :{
+      'external':['fmod','sapi']
+      },
+    'interaction'  :{
+      'external':[]
+      },
+    'framework'  :{
+      'external':['jpeg','3ds','fmod','sapi']
+      },
+    'utilities'  :{
+      'external':['jpeg','3ds','fmod','sapi']
+      },
+    'demo'  :{
+      'external':['jpeg','3ds','fmod','sapi']
+      },
+    }
+
+
 pathDict = envDict['paths']
+subdirs = envDict['subdirs']
+
+for dirName,subdir in subdirs.iteritems():
+  subdir.update( externalDependencies[dirName] )
 
 commonFlags = {
-    'CPPPATH':[pathDict['includePath']],
     'LIBPATH':[pathDict['libPath']],
-    'LIBS':['glu32','opengl32','kernel32','user32','gdi32','winmm','wsock32'],
+    'LIBS':['kernel32','user32','gdi32','winmm','wsock32'],
     'CCFLAGS':['-O2','-Wall','-W','-Wpointer-arith','-march=i686','-D AR_USE_WIN_32','-D AR_USE_MINGW'],
-    'LINKFLAGS':['-Wl,-rpath,'+pathDict['binPath'],'-Wl,--enable-stdcall-fixup','--enable-runtime-pseudo-reloc','--compat-implib']
+    'LINKFLAGS':['-static-libgcc','-static-libstdc++','-Wl,-rpath,'+pathDict['binPath'],'-Wl,--enable-stdcall-fixup']
     }
+
+graphicsLibs = {'LIBS':['glu32','opengl32']}
 
 if os.environ.get('SZG_LINKING','STATIC') != 'DYNAMIC':
   commonFlags['CCFLAGS'].append('-D AR_LINKING_STATIC')
@@ -51,6 +100,7 @@ szgEnv.MergeFlags( commonFlags )
 # Create and install target for locations outside of szg.
 szgEnv.Alias( 'install', pathDict['binPath'] )
 
+
 ############# Detecting libraries ##########################
 
 ######## Check and get flags for external dependencies ######
@@ -59,6 +109,7 @@ externalFlags = {}
 
 SConscript( 'SConscript.bird', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.evart', exports=['szgEnv','externalFlags'] )
+SConscript( 'SConscript.5dt', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.glut', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.jpeg', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.3ds', exports=['szgEnv','externalFlags'] )
@@ -69,72 +120,9 @@ envDict['externalFlags'] = externalFlags
 
 ######## Detecting libraries end ############################
 
-def makeLibName( libName ):
-  libName = 'ar'+libName.capitalize()
-  if os.environ.get( 'SZG_LINKING', 'STATIC' ) != 'DYNAMIC':
-    libName += '_static'
-  return libName
-    
+szgNoGLEnv = szgEnv.Clone()
+szgEnv.MergeFlags( graphicsLibs )
+
 envDict['szgEnv'] = szgEnv
+envDict['szgNoGLEnv'] = szgNoGLEnv
 
-subdirs = {
-    'language':{
-      'internal':[],
-      'external':[]
-      },
-    'math'    :{
-      'internal':['language'],
-      'external':[]
-      },
-    'phleet'  :{
-      'internal':['language','math'],
-      'external':[]
-      },
-    'barrier'  :{
-      'internal':['language','math','phleet'],
-      'external':[]
-      },
-    'drivers'  :{
-      'internal':['language','math','phleet','barrier'],
-      'external':[]
-      },
-    'graphics'  :{
-      'internal':['language','math','phleet','barrier'],
-      'external':['jpeg']
-      },
-    'model'  :{
-      'internal':['language','math','phleet','barrier','graphics'],
-      'external':['jpeg','3ds']
-      },
-    'sound'  :{
-      'internal':['language','math','phleet','barrier'],
-      'external':['fmod','sapi']
-      },
-    'interaction'  :{
-      'internal':['language','math','phleet','drivers'],
-      'external':[]
-      },
-    'framework'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction'],
-      'external':['jpeg','3ds','fmod','sapi']
-      },
-    'utilities'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['jpeg','3ds','fmod','sapi']
-      },
-    'demo'  :{
-      'internal':['language','math','phleet','barrier','drivers','graphics','model','sound','interaction','framework'],
-      'external':['jpeg','3ds','fmod','sapi']
-      },
-    }
-
-for subdir,depend in subdirs.iteritems():
-  print 'Adding build environment for',subdir
-  env = szgEnv.Clone()
-  for d in depend['internal']:
-    env.Prepend( LIBS=makeLibName(d) )
-  for flagGroup in depend['external']:
-    env.MergeFlags( externalFlags[flagGroup] )
-  envDict[subdir+'Env'] = env
-
-envDict['subdirs'] = subdirs

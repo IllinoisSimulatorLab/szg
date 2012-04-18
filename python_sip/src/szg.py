@@ -18,7 +18,7 @@ if sip.SIP_VERSION_STR != REQUIRED_SIP_VERSION:
   ''' \
       % (REQUIRED_SIP_VERSION,sip.__file__,sip.SIP_VERSION_STR, \
       REQUIRED_SIP_VERSION,os.path.dirname(os.path.abspath(__file__)))
-  raise ImportError, err
+  #raise ImportError, err
 
 from _szg import *
 print ar_versionString(True)

@@ -26,8 +26,9 @@ in many instances it also runs faster.
 
 On the minus side, the new bindings can only be compiled at the moment with g++,
 which means MinGW on Win32.
-They've been built using SIP 4.7.3 and 4.12.2, MinGW g++ 3.4.2 and 4.5.2, and
-Python 2.4 on Windows, and multiple versions of each on Ubuntu.
+They've been built using SIP 4.7.3, 4.12.2, and 4.13.2 (4.10, on the other hand,
+has a bug that prevents the build from working); MinGW g++ 3.4.2 and 4.5.2 (and
+various other versions on Linux); and Python 2.4-2.7.
 
 
 =Building the Bindings=[BuildBindings]
@@ -38,8 +39,6 @@ Python 2.4 on Windows, and multiple versions of each on Ubuntu.
   cygwin's Python and Syzygy use incompatible object-file formats (cygwin gcc vs. Visual
   C++). Install the native Windows version of Python from
   [python.org www.python.org].
-
-+ Get a //very// recent version of SIP. I doubt that any version before 4.7 will work.
 
 + Set the environment variables SZGHOME, SZGBIN, SZGEXTERNAL, PATH, and any dynamic linker variables
   as described in [Getting the Software GettingSoftware.html].

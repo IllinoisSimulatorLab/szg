@@ -53,37 +53,66 @@ pluginSrc = (
   )    
 
 # Unsupported drivers (with MinGW):
-#    'arIntersenseDriver.cpp',
-#    'arWiimoteDriver.cpp',
+#    'arWiimoteDriver.cpp', (linux only so far).
 #    'ar5DTGloveDriver.cpp',
 
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
+
 # Call the generic directory-builder script
-scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 
+# Create a new environment for building plugins.
+pluginEnv = progEnv.Clone()
+if sys.platform == 'win32':
+  pluginEnv['no_import_lib'] = True
+  # We'd like to be able to suppress creation of .def files for 
+  # driver plugins, but a bug in SCons causes the dll's to be
+  # re-linked every time if we do this.
+  #pluginEnv['WINDOWS_INSERT_DEF'] = False
+  #
+  # For now, in order to get things to work properly, we have to tell
+  # SCons to generate a .def file for the driver plugins, even though
+  # we don't need it, because otherwise a bug in SCons causes the
+  # plugins to be re-linked whether needed or not.
+  pluginEnv['WINDOWS_INSERT_DEF'] = True
+elif 'linux' in sys.platform:
+  # By default on linux, scons (at least version 1.2) assumes
+  # that you want to prepend 'lib' to all your shared library
+  # names. We don't want that for the _szg python extension.
+  pluginEnv['SHLIBPREFIX'] = ''
+
+
+# Build all the 'normal' driver plugins.
 # Each call to SharedLibrary() returns a (.dll,.a,.def) tuple.
-pluginStuff = [progEnv.SharedLibrary( s ) for s in pluginSrc]
+pluginStuff = [pluginEnv.SharedLibrary( s ) for s in pluginSrc]
+
+# Intersense doesn't require external dependencies during build
+# but does have a second source file.
+isensePlugin = pluginEnv.SharedLibrary( ['arIntersenseDriver.cpp','isense.cpp'] )
+pluginStuff.append( isensePlugin )
+
+# Grab the .dll file from each result.
 plugins = [p[0] for p in pluginStuff]
 
-# Driver plugins with external dependencies
 
-if 'bird' in externalFlags:
-  # Flock of Birds, using Ascension dll.
-  birdEnv = progEnv.Clone()
-  if not birdEnv.GetOption('clean'):
-    birdEnv.MergeFlags( externalFlags['bird'] )
-  birdPluginStuff = birdEnv.SharedLibrary( 'arBirdWinDriver.cpp' )
-  Depends( birdPluginStuff, priorLibs )
-  plugins.append( birdPluginStuff[0] )
+# Driver plugins with external dependencies (determined
+# by scripts called from szg/build/scons/<platform>/SConscript).
 
-if 'evart' in externalFlags:
-  # EVaRT, using macrtcom library.
-  evartEnv = progEnv.Clone()
-  if not birdEnv.GetOption('clean'):
-    evartEnv.MergeFlags( externalFlags['evart'] )
-  evartPluginStuff = evartEnv.SharedLibrary( 'arEVaRTDriver.cpp' )
-  Depends( evartPluginStuff, priorLibs )
-  plugins.append( evartPluginStuff[0] )
+def specialPlugin( name, src ):
+  plugEnv = pluginEnv.Clone()
+  if not plugEnv.GetOption('clean'):
+    plugEnv.MergeFlags( externalFlags[name] )
+  pluginStuff = plugEnv.SharedLibrary( src )
+  Depends( pluginStuff, priorLibs )
+  plugins.append( pluginStuff[0] )
 
-# NOTE: does arIntersenseDriver work with MinGW?
-progEnv.Install( pathDict['binPath'], plugins )
+for name, src in (( 'bird', 'arBirdWinDriver.cpp' ), \
+    ( 'evart', 'arEVaRTDriver.cpp' ), \
+    ( '5DT', 'ar5DTGloveDriver.cpp' )):
+  if externalFlags.get( name, None ):
+    specialPlugin( name, src )
+
+
+# Copy driver plugins to SZGBIN
+pluginEnv.Install( pathDict['binPath'], plugins )
