@@ -200,8 +200,8 @@ bool arTexture::activate(bool forceReload) {
     if (i == _texNameMap.end()) {
       glGenTextures(1, &temp);
       if (temp == 0) {
-	ar_log_error() << "arTexture glGenTextures() failed in activate(), multi-threaded.\n";
-	return false;
+        ar_log_error() << "arTexture glGenTextures() failed in activate(), multi-threaded.\n";
+        return false;
       }
       _texNameMap.insert(map<ARint64, GLuint, less<ARint64> >::value_type (threadID, temp));
       // Load the bitmap on the graphics card, anyways.
@@ -213,8 +213,8 @@ bool arTexture::activate(bool forceReload) {
     if (_texName <= 0) {
       glGenTextures(1, &_texName);
       if (_texName == 0) {
-	ar_log_error() << "arTexture glGenTextures() failed in activate(), single-threaded.\n";
-	return false;
+        ar_log_error() << "arTexture glGenTextures() failed in activate(), single-threaded.\n";
+        return false;
       }
       // Load the bitmap on the graphics card, anyways.
       forceReload = true;
@@ -235,7 +235,7 @@ bool arTexture::activate(bool forceReload) {
 }
 
 void arTexture::deactivate() const {
- glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_2D);
 }
 
 
@@ -1005,7 +1005,7 @@ char* arTexture::_packPixels() const {
       const int iSrc = depth * (i            *_width + j);
 
 //    if (iDst<0 || iDst+2 >= _width*_height*3 || iSrc<0 || iSrc+2 >= _width*_height*depth)
-//	ar_log_error() << "arTexture::_packPixels internal error.\n";
+//  ar_log_error() << "arTexture::_packPixels internal error.\n";
 
       // One pixel.  One byte each of R, then G, then B.
       buffer[iDst  ] = _pixels[iSrc  ];
