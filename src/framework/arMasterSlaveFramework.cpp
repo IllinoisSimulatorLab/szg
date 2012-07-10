@@ -255,6 +255,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _windowStartGLCallback( NULL ),
   _cleanup( NULL ),
   _userMessageCallback( NULL ),
+  _oldUserMessageCallback( NULL ),
   _overlay( NULL ),
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
@@ -395,7 +396,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     if (!ar_getWorkingDirectory( currDir )) {
       ar_log_critical() << "Failed to get working directory.\n";
     } else {
-      ar_log_critical() << "Directory: " << currDir << ar_endl;
+      if (ar_getenv("USERNAME") != "camilleg")
+	ar_log_critical() << "Directory: " << currDir << ar_endl;
     }
     // copypaste
     dgSetGraphicsDatabase( &_graphicsDatabase );
@@ -430,7 +432,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   if (!ar_getWorkingDirectory( currDir )) {
     ar_log_critical() << "Failed to get working directory.\n";
   } else {
-    ar_log_critical() << "Directory: " << currDir << ar_endl;
+    if (ar_getenv("USERNAME") != "camilleg")
+      ar_log_critical() << "Directory: " << currDir << ar_endl;
   }
 
   // Connected to szgserver.  Not standalone.

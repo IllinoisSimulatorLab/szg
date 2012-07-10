@@ -222,7 +222,7 @@ class arVector2 {
     PyErr_SetString( PyExc_ValueError, "arVector2 error: can't normalize zero-length vector." );
     sipIsErr = 1;
   } else {
-    float* v = sipCpp->v;
+    float* v = const_cast<float *>(sipCpp->v);
     sipRes = new arVector2( v[0]/mag, v[1]/mag );
   }
 %End
@@ -301,7 +301,7 @@ class arVector3 {
     PyErr_SetString( PyExc_ValueError, "arVector3 error: can't normalize zero-length vector." );
     sipIsErr = 1;
   } else {
-    float* v = sipCpp->v;
+    float* v = const_cast<float *>(sipCpp->v);
     sipRes = new arVector3( v[0]/mag, v[1]/mag, v[2]/mag );
   }
 %End
@@ -421,7 +421,7 @@ class arVector4 {
     PyErr_SetString( PyExc_ValueError, "arVector4 error: can't normalize zero-length vector." );
     sipIsErr = 1;
   } else {
-    float* v = sipCpp->v;
+    float* v = const_cast<float *>(sipCpp->v);
     sipRes = new arVector4( v[0]/mag, v[1]/mag, v[2]/mag, v[3]/mag );
   }
 %End

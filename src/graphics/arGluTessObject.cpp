@@ -2,6 +2,7 @@
 #include "arGraphicsHeader.h"
 #include "arGluTessObject.h"
 #include "arLogStream.h"
+#include "stdlib.h" // for malloc
 
 //****************************************************
 // gluTess callbacks

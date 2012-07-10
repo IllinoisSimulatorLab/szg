@@ -60,7 +60,8 @@ PRE_LIB_SEARCH_FLAGS =
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
   LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
 else
-  LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup --enable-runtime-pseudo-reloc --compat-implib
+#   LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup --enable-runtime-pseudo-reloc --compat-implib
+  LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup
 endif
 
 PRE_LINK_LINE_LIB= 

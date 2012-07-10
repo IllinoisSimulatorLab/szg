@@ -16,7 +16,8 @@ libSrc = ( \
     'arSoundFile.cpp',
     'arSoundTransformNode.cpp',
     'arPlayerNode.cpp',
-    'arSpeakerObject.cpp'
+    'arSpeakerObject.cpp',
+    'arTTS.cpp'
   )
 
 progNames = (
@@ -26,7 +27,9 @@ progNames = (
     )
 
 
+szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
+
 # Call the generic directory-builder script
-scriptPath = os.path.join( os.environ['SZGHOME'], 'build', 'scons', 'SConsBuildDir.py' )
+scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
 execfile( scriptPath )
 

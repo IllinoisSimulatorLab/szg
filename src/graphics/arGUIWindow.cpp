@@ -991,7 +991,7 @@ int arGUIWindow::_tearDownWindowCreation( void )
   // initialization.
   if ( _windowInitGLCallback ) {
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
-    windowInfo->setPos( getPosX(), getPosY() );
+    windowInfo->setPos( getPosX(), getPosY() ); // sometimes fails harmlessly in tiling window managers like awesome
     windowInfo->setSize( getWidth(), getHeight() );
     windowInfo->setUserData( _userData );
     _windowInitGLCallback( windowInfo );
@@ -1731,17 +1731,20 @@ int arGUIWindow::getPosX( void ) const
 #elif defined( AR_USE_LINUX )  || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   int x, y, bx, by;
   Window w;
+  (void) XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root, 0, 0, &x, &y, &w );
+  // typically returns true
 
-  XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
-                         0, 0, &x, &y, &w );
-
-  if ( _windowConfig.getDecorate() ) {
-    XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
-                           w, 0, 0, &bx, &by, &w );
-    x -= bx;
+  if (w == None) {
+    ar_log_remark() << "getPosX: XTranslateCoordinates problem.\n";
+    // avoid *next* XTranslateCoords failing with BadWindow
+    x = -1;
+  } else {
+    if ( _windowConfig.getDecorate() ) {
+      XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, w, 0, 0, &bx, &by, &w );
+      x -= bx;
+    }
   }
 
   XUnlockDisplay( _windowHandle._dpy );
@@ -1757,9 +1760,7 @@ int arGUIWindow::getPosY( void ) const
   }
 
 #if defined( AR_USE_WIN_32 )
-
   RECT rect;
-
   if ( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     ar_log_error() << "getPosY: GetWindowRect failed.\n";
     return -1;
@@ -1768,25 +1769,26 @@ int arGUIWindow::getPosY( void ) const
   if ( 0 /*_windowConfig._decorate*/ ) {
     rect.top += GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
   }
-
   return rect.top;
 
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   int x, y, bx, by;
   Window w;
+  (void) XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root, 0, 0, &x, &y, &w );
+  // typically returns true
 
-  XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
-                         0, 0, &x, &y, &w );
-
-  if ( _windowConfig.getDecorate() ) {
-    XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
-                           w, 0, 0, &bx, &by, &w );
-    y -= by;
+  if (w == None) {
+    ar_log_remark() << "getPosY: XTranslateCoordinates problem.\n";
+    // avoid *next* XTranslateCoords failing with BadWindow
+    y = -1;
+  } else {
+    if ( _windowConfig.getDecorate() ) {
+      XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, w, 0, 0, &bx, &by, &w );
+      y -= by;
+    }
   }
-
   XUnlockDisplay( _windowHandle._dpy );
   return y;
 

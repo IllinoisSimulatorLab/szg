@@ -1,11 +1,39 @@
-# SCons script for building a python extension with SIP, meant to be
-# execfile()d rather than SConscript()ed. It's messy because SCons
-# doesn't support SIP yet.
+#
+# Hackish SCons tool for creating Python bindings using sip.
+#
+
+# sipEnv is created (as a copy of the standard syzygy build
+# environment) in the calling script and populated here.
+Import('sipEnv')
 
 import os
 import sys
 import shutil
 import re
+
+
+if sys.platform == 'win32':
+  sipEnv['no_import_lib'] = True
+  # We'd like to be able to suppress creation of .def files for 
+  # driver plugins, but a bug in SCons causes the dll's to be
+  # re-linked every time if we do this.
+  #sipEnv['WINDOWS_INSERT_DEF'] = False
+  #
+  # For now, in order to get things to work properly, we have to tell
+  # SCons to generate a .def file for the driver plugins, even though
+  # we don't need it, because otherwise a bug in SCons causes the
+  # plugins to be re-linked whether needed or not.
+  sipEnv['WINDOWS_INSERT_DEF'] = True
+
+  # Python extensions on win32 are shared libraries with .pyd suffix...
+  sipEnv['SHLIBSUFFIX'] = '.pyd'
+
+elif 'linux' in sys.platform:
+  # By default on linux, scons (at least version 1.2) assumes
+  # that you want to prepend 'lib' to all your shared library
+  # names. We don't want that for the _szg python extension.
+  sipEnv['SHLIBPREFIX'] = ''
+
 
 
 # Add compiler and linker flags...
@@ -16,20 +44,17 @@ if sys.platform == 'win32':
   sipFlags['CPPPATH'].append( os.environ['SIP_INCLUDE'] )
   sipFlags['LIBPATH'] = [os.path.dirname( os.environ['SZG_PYLIB_PATH'] )]
 
-buildEnv.MergeFlags( sipFlags )
+sipEnv.MergeFlags( sipFlags )
 
 # Done adding flags. Now setup the SIP builder...
 
-# We'll use a Python function to call SIP. There must be two files:
+# We'll use a Python function to call SIP. There must be one source file:
 #   <targetName>.sip
-#   <targetName>.py
-# The .py file gets copied to the build directory and then Install()ed
-# to binPath. Sip generates two intermediate files in the build
+# Sip generates two intermediate files in the build
 # directory, sipAPI_<targetName>.h and sip_<targetName>part0.cpp; the
 # build function renames the latter to sip_<targetName>.cpp. These
-# are compiled and linked into: (win32) _<targetName>.dll, which gets
-# moved to _<targetName>.pyd; or (other) _<targetName>.so. This also
-# gets installed to binPath.
+# are compiled and linked into: (win32) _<targetName>.pyd;
+# or (other) _<targetName>.so. This gets installed to binPath.
 def sipBuildFunc( target, source, env ):
   # SIP only accepts a single source file (I think); ignore any additional
   # sources.
@@ -49,12 +74,6 @@ def sipBuildFunc( target, source, env ):
   os.system( sipCommand )
   # Move the output cpp file to <target dir>/<source>_sip.cpp.
   shutil.move( sipOutputFile, targetFilePath )
-  # Copy the .py file.
-  pyName = sourceFileBase + '.py'
-  pyFile = os.path.join( sourceDirectory, pyName )
-  dest = os.path.join( targetDirectory, pyName )
-  print 'Copy(',pyFile,',',dest,')'
-  shutil.copyfile( pyFile, dest )
   # success.
   return None
 
@@ -67,9 +86,10 @@ def sipBuildFunc( target, source, env ):
 bld = Builder( action=sipBuildFunc,  suffix='_sip.cpp', src_suffix='.sip' )
 
 # Install the builder.
-buildEnv['BUILDERS']['SipPythonExtensionSrc'] = bld
+sipEnv['BUILDERS']['SipPythonExtensionSrc'] = bld
 
 # Define a 'scanner' to scan the source file for any %Include's...
+# (which should then be recognized by scons as dependencies...)
 
 # Define a regex to detect '%Include <file>.sip'
 sipIncludeRe = re.compile(r'^%Include\s+(\S+\.sip)$', re.MULTILINE)
@@ -85,34 +105,28 @@ def sipFileScan( node, env, path ):
   #for c in contents:
   #  print ord(c),c
   includes = sipIncludeRe.findall( contents )
-  print 'SIP Includes:'
-  for i in includes:
-    print '  ',i
+  print 'SIP Includes: %s' % str( includes )
   return includes
 
 # Instantiate scanner object...
 sipScan = Scanner( function=sipFileScan, skeys = ['.sip'] )
 # ...and install it in the build environment.
-buildEnv.Append( SCANNERS=sipScan )
+sipEnv.Append( SCANNERS=sipScan )
 
-# Build the SIP bindings cpp and header file.
-sipCpp = buildEnv.SipPythonExtensionSrc( os.path.join( buildPath, targetName ) )
+checkFailMessage = "Didn't find sip executable; You can't build the Python bindings."
+testEnv = sipEnv.Clone()
+conf = Configure( testEnv )
+# note that the full command path or none is returned, which can serve as True or False.
+def CheckCommand( context, cmd ):
+       context.Message('Checking for %s command... ' % cmd)
+       result = WhereIs(cmd)
+       context.Result(result is not None)
+       return result
+conf.AddTest( 'CheckCommand', CheckCommand )
 
-# Tell SCons about the header file, so it knows to clean it up.
-Clean( sipCpp, os.path.join( buildPath, 'sipAPI_'+targetName+'.h' ) )
+if not conf.CheckCommand( 'sip' ):
+  print checkFailMessage
+  sipEnv = None
 
-# Build the Python extension as a shared library with a name
-# beginning with '_'.
-targetDll = buildEnv.SharedLibrary( target=os.path.join( buildPath, '_'+targetName ), source=[sipCpp] )
-targetPyExt = targetDll
+conf.Finish()
 
-# On windows, rename the .dll -> .pyd
-if sys.platform == 'win32':
-  # This involved syntax creates a new node in the build tree and removes or
-  # hides the source (.dll) one, so that 'scons -c' removes the .pyd file
-  # and not the missing .dll.
-  targetPyExt = Command( os.path.join( buildPath, '_'+targetName+'.pyd' ), \
-      os.path.join( buildPath, '_'+targetName+'.dll' ), Move("$TARGET", "$SOURCE"))
-
-buildEnv.Install( pathDict['binPath'], targetPyExt )
-buildEnv.Install( pathDict['binPath'], targetName+'.py' )
