@@ -233,3 +233,4 @@ if 'doc' in COMMAND_LINE_TARGETS or 'all' in COMMAND_LINE_TARGETS:
 # the command 'scons install' to do the copy (building the
 # stuff to be copied if necessary).
 BUILD_TARGETS.append('install')
+BUILD_TARGETS.append('headers')
