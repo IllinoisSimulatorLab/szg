@@ -235,7 +235,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _numSlavesConnected( 0 ),
   _harmonyInUse(false),
   _harmonyReady(0),
-  _syncMessageSent( false ),
   _numSlavesSynced( 0 ),
   _connectionThreadRunning( false ),
   _useWindowing( false ),
@@ -656,12 +655,6 @@ void arMasterSlaveFramework::loopQuantum() {
 
   // Synchronize.
   swap();
-
-  if (!getMaster()) {
-    if (!_syncMessageSent) {
-      _syncMessageSent = sendMasterMessage( _SZGClient.getComputerName(), "sync" );
-    }
-  }
 
   // Process events from keyboard, window manager, etc.
   _wm->processWindowEvents();
@@ -1259,11 +1252,7 @@ int arMasterSlaveFramework::getNumberSlavesSynced( void ) {
     return -1;
   }
 
-  _numSyncedLock.lock("arMasterSlaveFramework::getNumberSlavesSynced");
-  numSynced = _numSlavesSynced;
-  _numSyncedLock.unlock(); 
-
-  return numSynced;
+  return _numSlavesSynced;
 }
 
 bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody, const string& messageType ) {
@@ -1450,9 +1439,10 @@ bool arMasterSlaveFramework::_sync( void ) {
   // localSync() has a cpu-throttle in case no one is connected.
   // So don't call it if nobody's connected: this would throttle
   // the common case of only one application instance.
-  if ( _stateServer->getNumberConnectedActive() > 0 )
+  _numSlavesSynced = _stateServer->getNumberConnectedActive();
+  if ( _numSlavesSynced > 0 ) {
     _barrierServer->localSync();
-
+  }
   return true;
 }
 
@@ -2300,12 +2290,6 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "user" ) {
       _appendUserMessage( messageID, messageBody );
-    }
-    else if ( messageType == "sync" ) {
-      ar_log_remark() << "Received sync message from computer '" << messageBody << "'.\n";
-      _numSyncedLock.lock("arMasterSlaveFramework::_messageTask");
-      _numSlavesSynced += 1;
-      _numSyncedLock.unlock();
     }
     else if ( messageType == "color" ) {
       if ( messageBody == "NULL" || messageBody == "off") {

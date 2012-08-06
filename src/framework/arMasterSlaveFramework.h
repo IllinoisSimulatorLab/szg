@@ -301,8 +301,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int  _numSlavesConnected;      // Updated only once/frame, before preExchange.
   bool _harmonyInUse;
   int  _harmonyReady;
-  arLock _numSyncedLock;
-  bool _syncMessageSent;
   int  _numSlavesSynced;      // Updated in postDraw()
   // For arGraphicsDatabase.
   std::string _texturePath;
