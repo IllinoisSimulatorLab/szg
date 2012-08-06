@@ -187,7 +187,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // How many slaves are currently connected?
   int getNumberSlavesConnected( void ) const;
 
-  bool sendMasterMessage( const string& messageBody );
+  // How many slaves were involved in the last rendering sync?
+  int getNumberSlavesSynced( void );
+
+  bool sendMasterMessage( const string& messageBody, const string& messageType="user" );
 
   // Three ways to share data from the master to the slaves.
 
@@ -298,6 +301,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int  _numSlavesConnected;      // Updated only once/frame, before preExchange.
   bool _harmonyInUse;
   int  _harmonyReady;
+  arLock _numSyncedLock;
+  bool _syncMessageSent;
+  int  _numSlavesSynced;      // Updated in postDraw()
   // For arGraphicsDatabase.
   std::string _texturePath;
   char   _textPath[ 256 ];          // bug: buffer overflow
