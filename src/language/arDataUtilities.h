@@ -261,6 +261,8 @@ SZG_CALL string ar_packParameters(int, char**);
 
 // strip pathname and .EXE from win32 exe's
 SZG_CALL string ar_stripExeName(const string&);
+// return path of current executable
+SZG_CALL string ar_currentExePath();
 // get the path only from a fully qualified executable name.
 SZG_CALL string ar_exePath(const string&);
 // find the extension of a particular file name (i.e. jpg or ppm or obj)

@@ -587,11 +587,12 @@ bool arFOBDriver::_setPositionScale( bool longRange, unsigned char addr ) {
 
 bool arFOBDriver::_getPositionScale( bool& longRange, unsigned char addr ) {
   unsigned char outdata[2];
+  unsigned short* bigPtr = (unsigned short *)&outdata[0];
   if (_getFOBParam( 3, outdata, 2, addr ) != 2) {
     ar_log_error() << "arFOBDriver failed to _getFOBParam(position scale).\n";
     return false;
   }
-  const unsigned short bigScale = *((unsigned short*)outdata);
+  const unsigned short bigScale = *bigPtr;
   switch (bigScale) {
     case 0:
       _positionScale = 3./32768.0; // convert to feet.

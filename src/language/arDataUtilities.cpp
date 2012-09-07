@@ -896,6 +896,57 @@ string ar_stripExeName(const string& name) {
   return name.substr(position, length);
 }
 
+
+// Return the path to the currently-running executable.
+string ar_currentExePath() {
+#ifndef AR_USE_WIN_32
+  string fullFileName("");
+  // Code taken from: http://www.gamedev.net/community/forums/topic.asp?topic_id=459511
+  string path("");
+  pid_t pid = getpid();
+  ostringstream os;
+  os << "/proc/" << pid << "/exe"; 
+  char proc[512];
+  int ch = readlink( os.str().c_str(), proc, 512 );
+  if (ch != -1) {
+    proc[ch] = 0;
+    path = proc;
+    string::size_type t = path.find_last_of("/");
+    path = path.substr(0,t);
+  }
+  fullFileName = path + string("/");
+  
+  return fullFileName;
+#else
+
+  std::vector<char> executablePath(MAX_PATH);
+
+  // Try to get the executable path with a buffer of MAX_PATH characters.
+  DWORD result = ::GetModuleFileNameA(
+    NULL, &executablePath[0], static_cast<DWORD>(executablePath.size())
+  );
+
+  // As long the function returns the buffer size, it is indicating that the buffer
+  // was too small. Keep enlarging the buffer by a factor of 2 until it fits.
+  while(result == executablePath.size()) {
+    executablePath.resize(executablePath.size() * 2);
+    result = ::GetModuleFileNameA(
+      NULL, &executablePath[0], static_cast<DWORD>(executablePath.size())
+    );
+  }
+
+  // If the function returned 0, something went wrong
+  if(result == 0) {
+    ar_log_error() << "GetModuleFileNameA() failed.\n";
+    return "NULL";
+  }
+
+  // We've got the path, construct a standard string from it
+  return std::string( executablePath.begin(), executablePath.begin() + result );
+  
+#endif
+}
+
 // Given a full path executable name, return just the path. For example,
 // if the executable is:
 //   /home/public/schaeffr/bin/linux/atlantis

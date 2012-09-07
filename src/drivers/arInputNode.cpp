@@ -64,17 +64,21 @@ bool arInputNode::init(arSZGClient& szgClient) {
 
   // Initialize the registered input sources.
   for (iterSrc i = _sources.begin(); i != _sources.end(); ++i) {
+    ar_log_debug() << "About to init input source(" << *i << ").\n";
     // If one fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
       ar_log_error() << _label << " failed to init input source.\n";
       return false;
     }
+    ar_log_debug() << "About to arInputState.addInputDevice().\n";
     _inputState.addInputDevice(
       (*i)->getNumberButtons(), (*i)->getNumberAxes(), (*i)->getNumberMatrices());
+    ar_log_debug() << "Done with input source.\n";
   }
 
   // Initialize the registered input sinks.
   for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j) {
+    ar_log_debug() << "About to init input sink.\n";
     // If one fails, the whole thing fails.
     if (!(*j)->init(szgClient)) {
       ar_log_error() << _label << " failed to init input sink.\n";

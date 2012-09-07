@@ -15,6 +15,7 @@ string ar_directoryFind(const string& name,
 		                 const string& subdirectory,
 		                 const string& path);
 
+string ar_currentExePath();
 
 class ar_timeval {
  public:

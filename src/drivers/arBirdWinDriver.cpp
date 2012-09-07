@@ -127,11 +127,13 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   ar_log_error() << "arBirdWinDriver implemented only for win32.\n  (Try arFOBDriver instead.)";
   return false;
 #else
+  ar_log_debug() << "arBirdWinDriver.init().\n";
   // do lots of complicated stuff to wake up the flock.
   const unsigned baudRates[] = {2400, 4800, 9600, 19200, 38400, 57600, 115200};
   const BYTE hemiNums[] = {BHC_FRONT, BHC_REAR, BHC_UPPER, BHC_LOWER, BHC_LEFT, BHC_RIGHT};
   const string hemispheres[] = {"front", "rear", "upper", "lower", "left", "right"};
   string received = SZGClient.getAttribute("SZG_FOB", "com_ports");
+  ar_log_debug() << "SZG_FOB/com_ports: '" << received << "'\n";
   char receivedBuffer[512];
   int intComPorts[_FOB_MAX_DEVICES];
   ar_stringToBuffer( received, receivedBuffer, sizeof(receivedBuffer) );
