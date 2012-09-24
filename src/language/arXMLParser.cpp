@@ -29,6 +29,7 @@ must not be misrepresented as being the original software.
 #ifdef TIXML_USE_STL
 #include <sstream>
 #endif
+#include <cstddef> // for ptrdiff_t
 
 const char* TiXmlBase::errorString[ TIXML_ERROR_STRING_COUNT ] =
 {
