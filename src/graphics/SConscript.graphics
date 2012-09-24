@@ -1,4 +1,5 @@
 import os
+import copy
 
 Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
@@ -80,7 +81,14 @@ execfile( scriptPath )
 
 # Build szg-rp separately, as it depends on glut
 glutProgEnv = progEnv.Clone()
-glutProgEnv.MergeFlags( externalFlags['glut'] )
+
+# Hack to make sure that freeglut appears before other libraries
+glutFlags = copy.copy( externalFlags['glut'] )
+glutLibs = glutFlags['LIBS']
+del glutFlags['LIBS']
+glutProgEnv.MergeFlags( glutFlags )
+glutProgEnv.Prepend( LIBS=glutLibs )
+
 szgrp = glutProgEnv.Program( 'szg-rp.cpp' )
 Depends( szgrp, priorLibs )
 buildEnv.Install( pathDict['binPath'], szgrp )

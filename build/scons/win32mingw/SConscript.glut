@@ -1,21 +1,39 @@
 import os
 import sys
+import re
 
 Import('szgEnv','externalFlags')
 
 extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/'+sys.platform+'/'
 
-
 # parameters specific to this library
 name = 'glut'
-includePath = extPath+'freeglut-2.4.0-mingw/include'
-libPath = extPath+'freeglut-2.4.0-mingw/lib'
+
+# Find a freeglut library.
+glutRegex = re.compile('freeglut-[1-9]\.[0-9]\.[0-9]-mingw')
+fileList = os.listdir( extPath )
+glutPath = extPath+'freeglut-2.4.0-mingw/'
+for f in fileList:
+  mat = glutRegex.match( f )
+  if mat is not None:
+    dirPath = extPath + f + '/'
+    if os.path.isdir( dirPath ):
+      glutPath = dirPath
+
+includePath = glutPath + 'include'
+libPath = glutPath + 'lib'
 headerName = 'GL/glut.h'
 checkFailMessage = "Didn't find required freeglut; You can't build past drivers directory."
 
-# For use with freeglut.dll
-libName = 'freeglut'
-ccFlag = '-D FREEGLUT'
+# For use with freeglut.dll or libfreeglut_static.a
+
+fileList = os.listdir( libPath )
+if 'libfreeglut_static.a' in fileList:
+  libName = 'freeglut_static'
+  ccFlag = '-D FREEGLUT_STATIC'
+else:
+  libName = 'freeglut'
+  ccFlag = '-D FREEGLUT'
 
 # For use with static freeglut library.
 #libName = 'freeglut_static'

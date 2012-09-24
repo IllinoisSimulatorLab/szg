@@ -22,6 +22,10 @@ template <class eventDataType> class arInputDeviceMap {
       _deviceNumEvents.reserve(10);
       _deviceEventOffsets.reserve(10);
     }
+    arInputDeviceMap( const arInputDeviceMap& rhs ) :
+      _deviceNumEvents( rhs._deviceNumEvents ),
+      _deviceEventOffsets( rhs._deviceEventOffsets ) {
+    }
     ~arInputDeviceMap() {
       _deviceNumEvents.clear();
       _deviceEventOffsets.clear();

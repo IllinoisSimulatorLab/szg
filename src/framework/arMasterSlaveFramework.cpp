@@ -235,6 +235,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _numSlavesConnected( 0 ),
   _harmonyInUse(false),
   _harmonyReady(0),
+  _numSlavesSynced( 0 ),
   _connectionThreadRunning( false ),
   _useWindowing( false ),
 
@@ -1230,7 +1231,8 @@ int arMasterSlaveFramework::getNumberSlavesExpected() {
 }
 
 bool arMasterSlaveFramework::allSlavesReady() {
-  return _harmonyReady || (_numSlavesConnected >= getNumberSlavesExpected());
+  return getNumberSlavesSynced() >= getNumberSlavesExpected();
+//  return _harmonyReady || (getNumberSlavesSynced() >= getNumberSlavesExpected());
 }
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
@@ -1242,7 +1244,18 @@ int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
   return _numSlavesConnected;
 }
 
-bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
+int arMasterSlaveFramework::getNumberSlavesSynced( void ) {
+  int numSynced;
+
+  if ( !getMaster() ) {
+    ar_log_error() << "slave ignoring getNumberSlavesSynced().\n";
+    return -1;
+  }
+
+  return _numSlavesSynced;
+}
+
+bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody, const string& messageType ) {
   const string lockName = _launcher.getMasterName();
   int processID;
   if (_SZGClient.getLock( lockName, processID )) {
@@ -1252,7 +1265,7 @@ bool arMasterSlaveFramework::sendMasterMessage( const string& messageBody ) {
     return false;
   }
 
-  const int iResponseMatch = _SZGClient.sendMessage( "user", messageBody, processID, false );
+  const int iResponseMatch = _SZGClient.sendMessage( messageType, messageBody, processID, false );
   if (iResponseMatch == -1) {
     ar_log_error() << "sendMasterMessage() failed to send message.\n";
     return false;
@@ -1419,15 +1432,17 @@ void arMasterSlaveFramework::_setMaster( bool master ) {
 }
 
 bool arMasterSlaveFramework::_sync( void ) {
-  if ( !_master )
+  if ( !_master ) {
     return !_stateClientConnected || _barrierClient->sync();
+  }
 
   // localSync() has a cpu-throttle in case no one is connected.
   // So don't call it if nobody's connected: this would throttle
   // the common case of only one application instance.
-  if ( _stateServer->getNumberConnectedActive() > 0 )
+  _numSlavesSynced = _stateServer->getNumberConnectedActive();
+  if ( _numSlavesSynced > 0 ) {
     _barrierServer->localSync();
-
+  }
   return true;
 }
 

@@ -97,9 +97,6 @@ szgEnv['BUILDERS']['StaticLibrary'] = bld
 szgEnv.MergeFlags( envDict['versionFlags'] )
 szgEnv.MergeFlags( commonFlags )
 
-# Create and install target for locations outside of szg.
-szgEnv.Alias( 'install', pathDict['binPath'] )
-
 
 ############# Detecting libraries ##########################
 

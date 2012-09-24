@@ -258,7 +258,7 @@ class SZG_CALL arSZGAppFramework {
     bool _blockUntilDisplayExit;
     // Has stop() commenced, i.e. is the app exiting?
     bool _exitProgram;
-    // Is the GLUT display-loop running?
+    // Is the display loop running?
     bool _displayThreadRunning;
     // Has stop() completed?  Might be needed if the app-defined thread calls exit(0).
     bool _stopped;

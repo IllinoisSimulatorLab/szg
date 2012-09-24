@@ -222,8 +222,23 @@ class arInputState {
     void updateLastButton( const unsigned index );
 
     arIntInputDeviceMap getButtonDeviceMap() const /TransferBack/;
+// Necessary to get around "error: Taking address of a temporary" with g++ 4.7.0.
+%MethodCode
+  sipRes = new arIntInputDeviceMap( sipCpp->getButtonDeviceMap() );
+%End
+
     arFloatInputDeviceMap getAxisDeviceMap() const /TransferBack/;
+// Necessary to get around "error: Taking address of a temporary" with g++ 4.7.0.
+%MethodCode
+  sipRes = new arFloatInputDeviceMap( sipCpp->getAxisDeviceMap() );
+%End
+
     arMatrixInputDeviceMap getMatrixDeviceMap() const /TransferBack/;
+// Necessary to get around "error: Taking address of a temporary" with g++ 4.7.0.
+%MethodCode
+  sipRes = new arMatrixInputDeviceMap( sipCpp->getMatrixDeviceMap() );
+%End
+
 
 };  
 
