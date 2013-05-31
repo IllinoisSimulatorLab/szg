@@ -7,6 +7,7 @@
 #define AR_BUFFER_H
 
 #include <iostream>
+#include <string.h> // for 64bit Fedora 17
 using namespace std;
 
 // Utility template. A simple, resizeable array of elements,
