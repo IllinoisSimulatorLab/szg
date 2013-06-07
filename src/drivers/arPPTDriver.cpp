@@ -48,7 +48,7 @@ bool arPPTDriver::init(arSZGClient& SZGClient) {
     ar_log_error() << "arPPTDriver failed to allocate input buffer.\n";
     return false;
   }
-  _packetBuf = new char[BUF_SIZE];
+  _packetBuf = new unsigned char[BUF_SIZE];
   if (!_packetBuf) {
     ar_log_error() << "arPPTDriver failed to allocate packet buffer.\n";
     return false;

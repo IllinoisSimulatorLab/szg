@@ -75,7 +75,8 @@ pathDict = envDict['paths']
 subdirs = envDict['subdirs']
 
 for dirName,subdir in subdirs.iteritems():
-  subdir.update( externalDependencies[dirName] )
+  if not 'external' in subdir:
+    subdir.update( externalDependencies[dirName] )
 
 commonFlags = {
     'LIBPATH':[pathDict['libPath']],
@@ -112,6 +113,7 @@ SConscript( 'SConscript.jpeg', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.3ds', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.fmod', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.sapi', exports=['szgEnv','externalFlags'] )
+#SConscript( 'SConscript.wii', exports=['szgEnv','externalFlags'] )
 
 envDict['externalFlags'] = externalFlags
 

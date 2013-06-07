@@ -93,6 +93,10 @@ if COMMAND_LINE_TARGETS != ['doc']:
   import odict
   import szgscons
 
+  buildFunc = szgscons.buildSzgSubdirectory
+  
+
+
   # get version compile flags
   envDict = {'versionFlags':szgscons.getVersionFlags()}
 
@@ -184,7 +188,7 @@ if COMMAND_LINE_TARGETS != ['doc']:
 
     # NOTE: priorLibs gets modified by each source directory's SConscript
     # It's a list of the already-built subdirectories.
-    variables = ['srcDirname','buildEnv','pathDict','priorLibs','externalFlags']
+    variables = ['buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags']
 
     print 'SConscript( %s )' % sourceScriptPath
     # Execute a directory-specific scons build script (contained in file sourceScriptPath)

@@ -749,8 +749,8 @@ class SzgRunner(object):
     if not self.app.start():
       raise RuntimeError,'Unable to start application.'
 
-def szgrun( appClass ):
-  SzgRunner( app=appClass() )()
+def szgrun( appClass, **kwds ):
+  SzgRunner( app=appClass( **kwds ) )()
 
 
 #import rencode2

@@ -1,7 +1,7 @@
 import os
 import sys
 
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ( \
@@ -46,9 +46,10 @@ if sys.platform == 'win32':
 
 szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
 
-# Call the generic directory-builder script
-scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
-execfile( scriptPath )
+
+# Call the generic directory-builder function
+buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
+
 
 if sys.platform != 'win32':
   # build dtop

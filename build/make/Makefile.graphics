@@ -6,7 +6,6 @@ include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
   arGluQuadric$(OBJ_SUFFIX) \
-  arGluQuadric$(OBJ_SUFFIX) \
   arGluSphere$(OBJ_SUFFIX) \
   arGluDisk$(OBJ_SUFFIX) \
   arGluCylinder$(OBJ_SUFFIX) \

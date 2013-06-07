@@ -1,7 +1,7 @@
 import os
 import copy
 
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ( \
@@ -73,11 +73,10 @@ progNames = (
     'szgrender'
     )
 
-szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
 
-# Call the generic directory-builder script
-scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
-execfile( scriptPath )
+# Call the generic directory-builder function
+progEnv = buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
+
 
 # Build szg-rp separately, as it depends on glut
 glutProgEnv = progEnv.Clone()

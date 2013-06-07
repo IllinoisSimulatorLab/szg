@@ -1,4 +1,4 @@
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ( \
@@ -55,7 +55,6 @@ if not buildEnv.GetOption('clean'):
     subprocess.call([sys.executable,os.path.join( srcPath, 'make_arVersion.py' ),srcPath] )
 
 
-# Call the generic directory-builder script
-scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
-execfile( scriptPath )
+# Call the generic directory-builder function
+buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
 
