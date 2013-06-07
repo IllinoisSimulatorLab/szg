@@ -264,7 +264,7 @@ class SZG_CALL arGUIWindowConfig
      * @todo Test windows with XDisplay strings other than the default
      */
     arGUIWindowConfig( int x = 50, int y = 50,
-                       int width = 640, int height = 480,
+                       int width = 1280, int height = 960,
                        int bpp = 16, int Hz = 0, bool decorate = true,
                        arZOrder zorder = AR_ZORDER_TOP,
                        bool fullscreen = false, bool stereo = false,

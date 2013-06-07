@@ -12,6 +12,7 @@ EXE =
 # -fPIC because we build DLLs.
 COMPILER = g++
 
+# 64-bit fedora 17 should catch this too, to get -lGL after -lGLU.
 HACK64=FALSE
 ifeq ($(shell uname -m), x86_64)
   HACK64=TRUE
@@ -52,9 +53,7 @@ LINK_FLAGS_DEBUG = $(LINK_FLAGS)
 LINK_FLAGS_SHARED = -shared -o
 LINK_FLAGS_PLUGIN = -shared -o
 GENERAL_LIBS = -ldl -lpthread -lm
-# NOTE: glut does not appear below but is instead dealt with in
-# Makefile.libscan (we might not want to install a glut, but instead
-# use one from SZGEXTERNAL)
+# GLUT appears in Makefile.libscan, to allow for alternatives.
 GRAPHICS_LIBS := -lGLU
 ifeq ($(strip $(HACK64)),FALSE)
   # On 64bit ubuntu 8.x, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
