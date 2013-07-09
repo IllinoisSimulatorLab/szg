@@ -27,8 +27,8 @@ arDataPoint::arDataPoint(int dataBufferSize) :
   _dataBufferSize = dataBufferSize;
   _translationBufferSize = _dataBufferSize;
 
-  _dataBuffer = new char[_dataBufferSize];
-  _translationBuffer = new ARchar[_translationBufferSize];
+  _dataBuffer = new char[_dataBufferSize](); // () initializes it to zeros, so ar_safeWrite doesn't write garbage later.
+  _translationBuffer = new ARchar[_translationBufferSize]();
 
 #ifndef AR_USE_WIN_32
   // crashing clients shouldn't mess with us
