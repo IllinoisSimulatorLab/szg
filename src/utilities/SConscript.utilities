@@ -1,7 +1,7 @@
 import os
 import copy
 
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ()
@@ -25,11 +25,10 @@ glutProgs = (
     'vrtest',
     )
 
-szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
 
-# Call the generic directory-builder script
-scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
-execfile( scriptPath )
+# Call the generic directory-builder function
+progEnv = buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
+
 
 # Build DeskCalibrator and vrtest separately because the depend on glut.
 glutProgEnv = progEnv.Clone()

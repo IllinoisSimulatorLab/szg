@@ -15,6 +15,8 @@ DriverFactory(arWiimoteDriver, "arInputSource")
   #define WIIUSE_PATH "./wiiuse.so"
 #endif
 
+#define MAX_WIIMOTES				1
+
 const int WIIMOTE_ID_1    = 1;
 
 const int BUTTONS_WIIMOTE = 11;
@@ -37,23 +39,17 @@ arMatrix4 wiiAnglesToRotMatrix( const float yaw, const float pitch, const float 
 }
 
 #ifdef EnableWiimote
+#include "wiiuse.h"
+
 static arWiimoteDriver* __wiimoteDriver = NULL;
-static struct wiimote_t** __wiimotes = NULL;
+static wiimote** __wiimotes = NULL;
 
 void freeWiimotes() {
-  if (!__wiimotes) {
-    return;
-  }
-  for (int i=0; i<1; ++i) {
-    if (__wiimotes[i]) {
-      free( __wiimotes[i] );
-    }
-  }
-  free( __wiimotes );
-  __wiimotes = NULL;
+//  if (!__wiimotes) {
+//    return;
+//  }
+//  wiiuse_cleanup(__wiimotes, MAX_WIIMOTES);
 }
-
-#include "wiiuse.h"
 
 // button codes
 const int __buttonCodes[] = {
@@ -83,7 +79,7 @@ const int __buttonCodes[] = {
   if (IS_PRESSED( theStruct, code )) \
     __wiimoteDriver->resetIdleTimer();
 
-static void __pointerHandleEvent( struct wiimote_t* wm ) {
+static void __pointerHandleEvent( wiimote* wm ) {
   if (!__wiimoteDriver) {
     ar_log_error() << "Event callback ignoring NULL wiimote driver pointer.\n";
     return;
@@ -150,7 +146,7 @@ static void doBattery(struct wiimote_t* wm, const float battery_level) {
 }
 
 static void __pointerHandleCtrlStatus(
-  struct wiimote_t* wm,
+  wiimote* wm,
   int attachment,
   int /*speaker*/,
   int ir,
@@ -178,7 +174,7 @@ static void __pointerHandleCtrlStatus(
   __wiimoteDriver->updateSignature( numButtons, numAxes, numMatrices );
 }
 
-static void __pointerHandleDisconnect( struct wiimote_t* /*wm*/ ) {
+static void __pointerHandleDisconnect( wiimote* /*wm*/ ) {
   if (!__wiimoteDriver) {
     ar_log_error() << "Disconnect callback ignoring NULL wiimote driver pointer.\n";
     return;
@@ -371,10 +367,87 @@ void arWiimoteDriver::update() {
   if (!_connected && !_connect()) {
     return;
   }
-  wiiuse_poll( __wiimotes, 1 );
-  if (_statusTimer.done()) {
-    updateStatus();
+  if (wiiuse_poll( __wiimotes, MAX_WIIMOTES )) {
+			/*
+			 *	This happens if something happened on any wiimote.
+			 *	So go through each one and check if anything happened.
+			 */
+			int i = 0;
+			for (; i < MAX_WIIMOTES; ++i) {
+				switch (wiimotes[i]->event) {
+					case WIIUSE_EVENT:
+						/* a generic event occurred */
+            __pointerHandleEvent( __wiimotes[i] ) {
+						break;
+
+					case WIIUSE_STATUS:
+						/* a status event occurred */
+						handle_ctrl_status(wiimotes[i]);
+						break;
+
+					case WIIUSE_DISCONNECT:
+					case WIIUSE_UNEXPECTED_DISCONNECT:
+						/* the wiimote disconnected */
+						handle_disconnect(wiimotes[i]);
+						break;
+
+					case WIIUSE_READ_DATA:
+						/*
+						 *	Data we requested to read was returned.
+						 *	Take a look at wiimotes[i]->read_req
+						 *	for the data.
+						 */
+						break;
+
+					case WIIUSE_NUNCHUK_INSERTED:
+						/*
+						 *	a nunchuk was inserted
+						 *	This is a good place to set any nunchuk specific
+						 *	threshold values.  By default they are the same
+						 *	as the wiimote.
+						 */
+						 /* wiiuse_set_nunchuk_orient_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 90.0f); */
+						 /* wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 100); */
+						printf("Nunchuk inserted.\n");
+						break;
+
+					case WIIUSE_CLASSIC_CTRL_INSERTED:
+						printf("Classic controller inserted.\n");
+						break;
+
+					case WIIUSE_WII_BOARD_CTRL_INSERTED:
+						printf("Balance board controller inserted.\n");
+						break;
+
+					case WIIUSE_GUITAR_HERO_3_CTRL_INSERTED:
+						/* some expansion was inserted */
+						handle_ctrl_status(wiimotes[i]);
+						printf("Guitar Hero 3 controller inserted.\n");
+						break;
+
+        		    case WIIUSE_MOTION_PLUS_ACTIVATED:
+		            	printf("Motion+ was activated\n");
+            			break;
+
+					case WIIUSE_NUNCHUK_REMOVED:
+					case WIIUSE_CLASSIC_CTRL_REMOVED:
+					case WIIUSE_GUITAR_HERO_3_CTRL_REMOVED:
+					case WIIUSE_WII_BOARD_CTRL_REMOVED:
+          case WIIUSE_MOTION_PLUS_REMOVED:
+						/* some expansion was removed */
+						handle_ctrl_status(wiimotes[i]);
+						printf("An expansion was removed.\n");
+						break;
+
+					default:
+						break;
+				}
+			}
+		}
   }
+//  if (_statusTimer.done()) {
+//    updateStatus();
+//  }
 //  if (_idleTimer.done()) {
 //    _disconnect();
 //  }
@@ -386,34 +459,42 @@ bool arWiimoteDriver::_connect() {
   ar_log_error() << "Wiimote support not compiled.\n";
   return false;
 #else
-  //  Load the wiiuse library
-  _version = wiiuse_startup( WIIUSE_PATH );
-  if (!_version) {
-    ar_log_error() << "Failed to load wiiuse library " << WIIUSE_PATH << ".\n";
-    return false;
-  }
-  ar_log_remark() << "Wiiuse library version " << _version << ar_endl;
-
-  // Initialize an array of wiimote objects.
-  //
-  // handle_event gets called when a generic event occurs (button press, motion sensing, etc)
-  // handle_ctrl_status gets called when a response to a status request arrives (battery power, etc)
-  // handle_disconnect gets called when the wiimote disconnect (holding power button)
-  __wiimotes = wiiuse_init( 1, __wiimote_ids, __handleEvent, __handleCtrlStatus, __handleDisconnect );
+	/*
+	 *	Initialize an array of wiimote objects.
+	 *
+	 *	The parameter is the number of wiimotes I want to create.
+	 */
+	__wiimotes =  wiiuse_init( MAX_WIIMOTES );
 
   ar_log_critical() << "Connecting to wiimote. Press wiimote's buttons '1' and '2'.\n";
-  // Find wiimotes (only one?).
-  const int found = wiiuse_find( __wiimotes, 1, _findTimeoutSecs );
+	/*
+	 *	Find wiimote devices
+	 *
+	 *	Now we need to find some wiimotes.
+	 *	Give the function the wiimote array we created, and tell it there
+	 *	are MAX_WIIMOTES wiimotes we are interested in.
+	 *
+	 *	Set the timeout to be 5 seconds.
+	 *
+	 *	This will return the number of actual wiimotes that are in discovery mode.
+	 */
+	found = wiiuse_find( wiimotes, MAX_WIIMOTES, 5 );
   if (found == 0) {
     ar_log_error() << "Found no wiimote; timed out after " << _findTimeoutSecs << " seconds.\n";
     goto LAbort;
   }
   ar_log_remark() << "Found " << found << " wiimote(s).\n"; // that were in discovery mode
 
-  // Found some wiimotes. Connect to them.
-  // Give the function the wiimote array and the number of wiimote devices found.
-  // Return how many established connections to the found wiimotes.
-  _connected = wiiuse_connect( __wiimotes, 1 );
+	/*
+	 *	Connect to the wiimotes
+	 *
+	 *	Now that we found some wiimotes, connect to them.
+	 *	Give the function the wiimote array and the number
+	 *	of wiimote devices we found.
+	 *
+	 *	This will return the number of established connections to the found wiimotes.
+	 */
+  _connected = wiiuse_connect( __wiimotes, found );
   if (!_connected) {
     ar_log_error() << "Connected to no wiimote.\n";
     goto LAbort;
@@ -426,7 +507,6 @@ bool arWiimoteDriver::_connect() {
     ar_log_error() << "Internal error: connected to " << _connected << " of (only!) " <<
       found << " wiimotes.\n";
 LAbort:
-  wiiuse_shutdown();
   freeWiimotes();
   _connected = 0;
   return false;
@@ -435,15 +515,19 @@ LAbort:
   ar_log_remark() << "Connected to " << _connected << " wiimotes.\n";
 
   // Blink and rumble to show which wiimotes connected, just like the wii.
-  wiiuse_set_leds( __wiimotes[0], WIIMOTE_LED_1 | WIIMOTE_LED_4 );
-  wiiuse_rumble( __wiimotes[0], 1 );
+	/*
+	 *	Now set the LEDs and rumble for a second so it's easy
+	 *	to tell which wiimotes are connected (just like the wii does).
+	 */
+  unsigned int i;
+  wiiuse_set_leds( __wiimotes[0], WIIMOTE_LED_1 );
+  wiiuse_rumble( __wiimotes[0], 1);
   ar_usleep( 200000 );
   wiiuse_rumble( __wiimotes[0], 0 );
-  wiiuse_set_leds( __wiimotes[0], WIIMOTE_LED_NONE );
 
   wiiuse_motion_sensing( __wiimotes[0], _useMotion );
   wiiuse_set_ir( __wiimotes[0], _useIR );
-  updateStatus();
+//  updateStatus();
   resetIdleTimer();
   return true;
 #endif
@@ -479,11 +563,10 @@ void arWiimoteDriver::_disconnect() {
   ar_usleep( 100000 );
   wiiuse_rumble( __wiimotes[0], 0 );
   wiiuse_set_leds( __wiimotes[0], WIIMOTE_LED_NONE );
-  wiiuse_disconnect( __wiimotes[0] );
+	wiiuse_cleanup( __wiimotes, MAX_WIIMOTES );
   _connected = 0;
   ar_log_debug() << "Wiimote disconnected.\n";
   // Unload the wiiuse library
-  wiiuse_shutdown();
   freeWiimotes();
 #endif
 }

@@ -28,19 +28,29 @@ arPPTDriver::arPPTDriver() :
   _imAlive( false ),
   _stopped( true ),
   _eventThreadRunning( false ),
-  _inbuf(0) {
+  _inbuf(0),
+  _packetBuf(0),
+  _packetOffset(0),
+  _lastNumLights(0) {
 }
 
 arPPTDriver::~arPPTDriver() {
   _port.ar_close();  // OK even if not open.
   if (_inbuf)
     delete[] _inbuf;
+  if (_packetBuf)
+    delete[] _packetBuf;
 }
 
 bool arPPTDriver::init(arSZGClient& SZGClient) {
   _inbuf = new char[BUF_SIZE];
   if (!_inbuf) {
     ar_log_error() << "arPPTDriver failed to allocate input buffer.\n";
+    return false;
+  }
+  _packetBuf = new unsigned char[BUF_SIZE];
+  if (!_packetBuf) {
+    ar_log_error() << "arPPTDriver failed to allocate packet buffer.\n";
     return false;
   }
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PPT", "com_port"));
@@ -85,7 +95,7 @@ const float METERS_PER_FOOT = 12.0 * 0.0254;
 const float FEET_PER_METER = 1./METERS_PER_FOOT;
 
 bool arPPTDriver::_processInput() {
-  unsigned numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
+  unsigned int numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
   if (numRead == 0) {
     if (_statusTimer.done() && _imAlive) {
       ar_log_error() << "arPPTDriver lost PPT.\n";
@@ -101,30 +111,44 @@ bool arPPTDriver::_processInput() {
 
   // Begin code lifted from WorldViz' VizPPTStreamingCode.h
   unsigned char packet[BUF_SIZE];
-  memcpy( packet, _inbuf, numRead );
+  memcpy( _packetBuf+_packetOffset, _inbuf, numRead );
+  _packetOffset += numRead;
   int lastGoodIndex = -1;
-  for(int i = 0; i < (int)numRead; ++i) {
-    //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet
-    if (packet[i] == 'o' && i+PPT_PACKET_SIZE <= numRead && packet[i+PPT_PACKET_SIZE-1] == _checksum(&(packet[i]), PPT_PACKET_SIZE-1)
-      && (int)packet[i+1] > 0 && (int)packet[i+1] <= PPT_MAX_LIGHTS) {
-      lastGoodIndex = i;        
+  int i;
+  while (_packetOffset >= PPT_PACKET_SIZE) {
+    for(i=0; i<_packetOffset; ++i) {
+      //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet
+      if (_packetBuf[i] == 'o' && i+PPT_PACKET_SIZE <= _packetOffset && _packetBuf[i+PPT_PACKET_SIZE-1] == _checksum(&(_packetBuf[i]), PPT_PACKET_SIZE-1)
+        && (int)_packetBuf[i+1] > 0 && (int)_packetBuf[i+1] <= PPT_MAX_LIGHTS) {
+        lastGoodIndex = i;        
+      }
     }
-  }
 
-  if (lastGoodIndex != -1) {
-    // Found a fresh packet.  Unstuff data and return number of lights.
-    const int numlights = (int)packet[1+lastGoodIndex];
-    _setDeviceElements( 0, 0, numlights );
-    
-    for(int i = 0; i < numlights; i++) {
-      const float x = _unstuffBytes(10.0, &(packet[(i*6+2)+lastGoodIndex]) );
-      const float y = _unstuffBytes(10.0, &(packet[(i*6+4)+lastGoodIndex]) );
-      const float z = _unstuffBytes(10.0, &(packet[(i*6+6)+lastGoodIndex]) );
-      // End lifted code
+    if (lastGoodIndex == -1) {
+      ar_log_error() << "Bad PPT packet.\n";
+    } else {
+      // Found a fresh packet.  Unstuff data and return number of lights.
+      const int unsigned numlights = _packetBuf[1+lastGoodIndex];
+      if (numlights != _lastNumLights) {
+        _setDeviceElements( 0, 0, numlights );
+        _lastNumLights = numlights;
+      }
+      
+      for(i=0; i<numlights; ++i) {
+        const float x = _unstuffBytes(10.0, &(_packetBuf[(i*6+2)+lastGoodIndex]) );
+        const float y = _unstuffBytes(10.0, &(_packetBuf[(i*6+4)+lastGoodIndex]) );
+        const float z = _unstuffBytes(10.0, &(_packetBuf[(i*6+6)+lastGoodIndex]) );
+        // End lifted code
 
-      // change coordinate systems from PPT's left-handed to OpenGL's
-      // right-handed, and from PPT's meters to Syzygy's feet.
-      queueMatrix( i, ar_translationMatrix( x*FEET_PER_METER, y*FEET_PER_METER, -z*FEET_PER_METER ) );
+        // change coordinate systems from PPT's left-handed to OpenGL's
+        // right-handed, and from PPT's meters to Syzygy's feet.
+        queueMatrix( i, ar_translationMatrix( x*FEET_PER_METER, y*FEET_PER_METER, -z*FEET_PER_METER ) );
+      }
+
+      for (i=lastGoodIndex+PPT_PACKET_SIZE; i<_packetOffset; ++i) {
+        _packetBuf[i-(lastGoodIndex+PPT_PACKET_SIZE)] = _packetBuf[i];
+      }
+      _packetOffset -= (lastGoodIndex+PPT_PACKET_SIZE);
     }
 
     sendQueue();

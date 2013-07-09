@@ -36,6 +36,9 @@ class SZG_CALL arPPTDriver: public arInputSource {
     unsigned int _portNum;
     arRS232Port _port;
     char *_inbuf;
+    unsigned char *_packetBuf;
+    unsigned int _packetOffset;
+    unsigned int _lastNumLights;
     arTimer _statusTimer;
 };
 

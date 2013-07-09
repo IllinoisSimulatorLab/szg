@@ -1,6 +1,6 @@
 import os
 
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 demos = (
     'atlantis',

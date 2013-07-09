@@ -1,6 +1,7 @@
 import os
+import sys
 
-Import('srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
 
 
 libSrc = ( \
@@ -53,14 +54,14 @@ pluginSrc = (
   )    
 
 # Unsupported drivers (with MinGW):
-#    'arWiimoteDriver.cpp', (linux only so far).
 #    'ar5DTGloveDriver.cpp',
 
 szgHome = os.path.dirname( os.path.dirname( os.path.dirname( os.getcwd() ) ) )
 
-# Call the generic directory-builder script
-scriptPath = os.path.join( szgHome, 'build', 'scons', 'SConsBuildDir.py' )
-execfile( scriptPath )
+
+# Call the generic directory-builder function
+progEnv = buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
+
 
 # Create a new environment for building plugins.
 pluginEnv = progEnv.Clone()
@@ -108,6 +109,7 @@ def specialPlugin( name, src ):
   plugins.append( pluginStuff[0] )
 
 for name, src in (( 'bird', 'arBirdWinDriver.cpp' ), \
+    ( 'wii', 'arWiimoteDriver.cpp' ), \
     ( 'evart', 'arEVaRTDriver.cpp' ), \
     ( '5DT', 'ar5DTGloveDriver.cpp' )):
   if externalFlags.get( name, None ):

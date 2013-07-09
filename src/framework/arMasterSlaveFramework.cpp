@@ -1834,9 +1834,13 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // Ignore init()'s success.  (Failure might mean just that
   // no szgserver was found, vacuously true since standalone.)
   // But init() nevertheless, so arInputNode components also get init'ed.
+  ar_log_debug() << "About to init arInputNode(" << _inputNode << ")\n";
   (void)_inputNode->init( _SZGClient );
+  ar_log_debug() << "Inited arInputNode, about to start it.\n";
   _inputNode->start();
+  ar_log_debug() << "Started arInputNode, about to install filters.\n";
   _installFilters();
+  ar_log_debug() << "Installed filters.\n";
 
   // Init sound here (not in
   // startStandaloneObjects), so it's before the user-defined init.
