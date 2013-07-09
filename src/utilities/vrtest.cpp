@@ -261,8 +261,10 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   assert(pMatrixDst != NULL);
   std::copy(rgMatrix.begin(), rgMatrix.end(), pMatrixDst);
 
+  if (rgMatrix.size() < 2)
+    return;
   static arVector3 tipPosPrev(0, 5, -5);
-  const arVector3 tipPos(ar_ET(rgMatrix[1]) + (ar_ERM(rgMatrix[1]) * arVector3(0, 0, -wandConeLength)));
+  const  arVector3 tipPos(ar_ET(rgMatrix[1]) + (ar_ERM(rgMatrix[1]) * arVector3(0, 0, -wandConeLength)));
   float vSaber = (tipPos - tipPosPrev).magnitude() / 5.;
   clamp(vSaber, 0.0, 1.3);
   tipPosPrev = tipPos;
@@ -463,6 +465,7 @@ void callbackDraw(arMasterSlaveFramework&, arGraphicsWindow& gw, arViewport&) {
     // Head, projected onto all walls except front.
     // x.1 draws it behind other stuff, since it's opaque.
     arVector3 xyz(ar_ET(rgMatrix[0]));
+    assert(!rgMatrix.empty());
     const arMatrix4 mRot(ar_ERM(rgMatrix[0]));
 
     // floor
