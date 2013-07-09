@@ -404,7 +404,7 @@ bool arDataServer::sendDataQueue(arQueuedData* pData) {
 // Send data in a different thread from where we accept connections.
 // Call this only inside _lockTransfer.
 // Return true if any connections.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize) {
+bool arDataServer::_sendDataCore(const ARchar* theBuffer, const int theSize) {
   bool ok = false;
   list<arSocket*> removalList;
   list<arSocket*>::iterator iter;
@@ -454,7 +454,7 @@ bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd) {
 }
 
 // Call this only inside _lockTransfer.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd) {
+bool arDataServer::_sendDataCore(const ARchar* theBuffer, const int theSize, arSocket* fd) {
   // Caller ensures that fd != NULL.
   if (fd->ar_safeWrite(theBuffer, theSize))
     return true;
