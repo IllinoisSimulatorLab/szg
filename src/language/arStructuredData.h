@@ -121,8 +121,8 @@ class SZG_CALL arStructuredData {
                            // by this object or not
    ARint*   _dataDimension;  // dimension associated with each pointer
    ARint*   _storageDimension; // might have extra storage beyond the data
-   arDataType* _dataType;  // the data type associated with each pointer
-   string* _dataName;  // the name associated with each pointer
+   arDataType* _dataType;  // array: each pointer's data type
+   string* _dataName;  // array: each pointer's name
    typedef map< string, int, less<string> > arNameMap;
    arNameMap _dataNameMap;
    string _name; // name of arDataTemplate this was derived from

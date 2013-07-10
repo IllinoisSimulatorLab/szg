@@ -33,13 +33,21 @@ static const char* debugTypename(int i) {
 //**************************************************************************
 
 arStructuredData::arStructuredData(arDataTemplate* theTemplate) :
-  _fValid(false) {
+  _fValid(false),
+  _numberDataItems(0),
+  _dataPtr(NULL),
+  _owned(NULL),
+  _dataDimension(NULL),
+  _storageDimension(NULL),
+  _dataName(NULL),
+  _dataType(NULL)
+{
   _construct(theTemplate);
 }
 
 void arStructuredData::_construct(arDataTemplate* theTemplate) {
   if (!theTemplate) {
-    cerr << "arStructuredData warning: constructor got NULL template.\n";
+    ar_log_error() << "arStructuredData constructor got NULL template.\n";
     return;
     }
 
@@ -188,6 +196,8 @@ void arStructuredData::dump(bool verbosity)
 }
 
 void arStructuredData::copy(arStructuredData const& rhs) {
+  destroy();
+
   _dataID = rhs._dataID;
   _numberDataItems = rhs._numberDataItems;
   _name = rhs._name;
@@ -236,6 +246,12 @@ void arStructuredData::destroy()
   delete [] _storageDimension;
   delete [] _dataName;
   delete [] _dataType;
+  _dataPtr = NULL;
+  _owned = NULL;
+  _dataDimension = NULL;
+  _storageDimension = NULL;
+  _dataName = NULL;
+  _dataType = NULL;
 }
 
 arStructuredData const& arStructuredData::operator=(
@@ -247,7 +263,16 @@ arStructuredData const& arStructuredData::operator=(
   return *this;
 }
 
-arStructuredData::arStructuredData(arStructuredData const& rhs) {
+arStructuredData::arStructuredData(arStructuredData const& rhs) :
+  _fValid(false),
+  _numberDataItems(0),
+  _dataPtr(NULL),
+  _owned(NULL),
+  _dataDimension(NULL),
+  _storageDimension(NULL),
+  _dataName(NULL),
+  _dataType(NULL)
+{
   copy(rhs);
 }
 
