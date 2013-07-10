@@ -3071,7 +3071,7 @@ void arSZGClient::_dataThread() {
       // Disconnect?
       _keepRunning = false;
       if (_connected) {
-        ar_log_critical() << "no szgserver.\n";
+        ar_log_critical() << "szgserver disconnected.\n";
       }
       break;
     }

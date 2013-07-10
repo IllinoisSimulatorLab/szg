@@ -322,9 +322,9 @@ bool arAppLauncher::waitForKill() {
 
   while (true) {
     string messageType, messageBody;
-    int messageID = _szgClient->receiveMessage(&messageType, &messageBody);
+    const int messageID = _szgClient->receiveMessage(&messageType, &messageBody);
     if (!messageID) {
-      ar_log_critical() << "no szgserver.\n";
+      ar_log_critical() << "arAppLauncher got no response from szgserver.\n";
       // Don't killApp(), because szgserver is gone.
       break;
     }
