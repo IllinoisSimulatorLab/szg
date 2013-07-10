@@ -59,6 +59,7 @@ bool arPhleetConfig::read() {
     else
       ar_log_error() << "arPhleetConfig ignoring unexpected ID " << ID <<
         " in config file '" << _configFileLocation << "'.\n";
+    delete data; // new'd by arStructuredDataParser::getStorage()
   }
   configStream.ar_close();
 
