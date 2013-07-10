@@ -3027,7 +3027,7 @@ void arSZGClient::_serverResponseThread() {
           for (vector<string>::const_iterator i = _foundServers.begin();
           i != _foundServers.end(); ++i) {
             if (*i == serverInfo) {
-              // Found it already (someone else broadcast a response packet?).
+              // Found it already, maybe because another client broadcasted a response packet.
               found = true;
               break;
             }
@@ -3036,7 +3036,8 @@ void arSZGClient::_serverResponseThread() {
           if (_justPrinting) {
             cout << serverInfo << "\n";
           }
-          _foundServers.push_back(serverInfo);
+          if (!found)
+	    _foundServers.push_back(serverInfo);
         } else if (_requestedName == string(_responseBuffer+5)) {
           // Stop, discarding subsequent packets.
           _dataRequested = false;
