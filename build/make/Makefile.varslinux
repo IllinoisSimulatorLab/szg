@@ -19,7 +19,7 @@ ifeq ($(shell uname -m), x86_64)
 endif
 
 COMPILE_FLAGS_NDEBUG = -DAR_USE_LINUX -c -fPIC -Wall -W -Wpointer-arith -O2 $(SZG_OPT_FLAGS)
-COMPILE_FLAGS_DEBUG  = -DAR_USE_LINUX -c -fPIC -Wall -W -Wpointer-arith -DAR_USE_DEBUG -g $(SZG_OPT_FLAGS)
+COMPILE_FLAGS_DEBUG  = -DAR_USE_LINUX -c -fPIC -Wall -W -Wpointer-arith -DAR_USE_DEBUG -g $(SZG_OPT_FLAGS) -D_GLIBCXX_DEBUG
 # Do NOT use ":=" in defining COMPILE_FLAGS,
 # for flexibility in where SZG_OPT_FLAGS is defined.
 ifneq ($(strip $(SZGDEBUG)),TRUE)
