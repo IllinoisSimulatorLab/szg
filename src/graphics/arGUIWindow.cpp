@@ -886,8 +886,7 @@ int arGUIWindow::_windowCreation( void )
                 _windowHandle._attr.event_mask | FocusChangeMask |
                 PropertyChangeMask | KeymapStateMask );
 
-  // regardless of what is set in XCreateWindow, these hints are what the WM
-  // seems to honor
+  // Regardless of what is set in XCreateWindow, these hints are what the WM seems to honor.
   XSizeHints sizeHints;
   memset( &sizeHints, 0, sizeof( XSizeHints ) );
   sizeHints.flags       = USPosition | USSize;
@@ -902,17 +901,17 @@ int arGUIWindow::_windowCreation( void )
   wmHints.flags         = StateHint;
   wmHints.initial_state = NormalState;
 
-  const char* title = _windowConfig.getTitle().c_str();
+  {
+    const char* title = _windowConfig.getTitle().c_str();
+    XTextProperty textProperty;
+    XStringListToTextProperty( (char **)&title, 1, &textProperty );
+    XSetWMProperties( _windowHandle._dpy, _windowHandle._win,
+		      &textProperty, &textProperty, 0, 0,
+		      &sizeHints, &wmHints, NULL );
+    XFree(textProperty.value);
+  }
 
-  XTextProperty textProperty;
-  XStringListToTextProperty( (char **) &title, 1, &textProperty );
-
-  XSetWMProperties( _windowHandle._dpy, _windowHandle._win,
-                    &textProperty, &textProperty, 0, 0,
-                    &sizeHints, &wmHints, NULL );
-
-  // need this atom so we can properly check for window close events in
-  // arGUIEventManager::consumeEvents
+  // This atom lets arGUIEventManager::consumeEvents check for window close events.
   _windowHandle._wDelete = XInternAtom( _windowHandle._dpy, "WM_DELETE_WINDOW", True );
   XSetWMProtocols( _windowHandle._dpy, _windowHandle._win, &_windowHandle._wDelete, 1 );
 
