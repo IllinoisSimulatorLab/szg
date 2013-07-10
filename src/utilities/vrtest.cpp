@@ -132,11 +132,10 @@ unsigned cButton = 0;
 unsigned cAxis = 0;
 unsigned cMatrix = 0;
 
-vector<ARint> rgButton(1);
-vector<ARfloat> rgAxis(1);
-vector<ARint> rgfjoy32k(1);
-vector<arMatrix4> rgMatrix(1); // [0] is head, rest are wands.
-// Without either the (1) or rgMatrix.reserve(1), rgMatrix[0] = ...; crashes.
+vector<ARint> rgButton;
+vector<ARfloat> rgAxis;
+vector<ARint> rgfjoy32k;
+vector<arMatrix4> rgMatrix; // [0] is head, rest are wands.
 bool fWhitewalls = false;
 
 inline void clamp(ARfloat& a, const ARfloat aMin, const ARfloat aMax) {
@@ -253,6 +252,8 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   std::copy(rgfjoy32k.begin(), rgfjoy32k.end(), pIntDst);
 
   rgMatrix.resize(cMatrix);
+  if (cMatrix < 1)
+    return;
   assert(fw.setInternalTransferFieldSize("c", AR_FLOAT, cMatrix*16));
   assert(sizeof(rgMatrix[0]) == 16 * sizeof(AR_FLOAT)); // so contiguity works for std::copy
   rgMatrix[0] = fw.getMidEyeMatrix();
@@ -261,7 +262,7 @@ void callbackPreEx(arMasterSlaveFramework& fw) {
   assert(pMatrixDst != NULL);
   std::copy(rgMatrix.begin(), rgMatrix.end(), pMatrixDst);
 
-  if (rgMatrix.size() < 2)
+  if (cMatrix < 2)
     return;
   static arVector3 tipPosPrev(0, 5, -5);
   const  arVector3 tipPos(ar_ET(rgMatrix[1]) + (ar_ERM(rgMatrix[1]) * arVector3(0, 0, -wandConeLength)));
