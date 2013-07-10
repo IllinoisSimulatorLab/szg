@@ -29,7 +29,7 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   _serviceRelease("service_release"),
   _serviceInfo("service_info") {
 
-  // Don't forget to get the IDs of the fields shared by every record
+  // Get the IDs of the fields shared by every record.
   AR_PHLEET_USER = _connectionAck.getAttributeID("phleet_user");
   AR_PHLEET_CONTEXT = _connectionAck.getAttributeID("phleet_context");
   AR_PHLEET_AUTH = _connectionAck.getAttributeID("phleet_auth");
@@ -100,18 +100,12 @@ arPhleetOSLanguage::arPhleetOSLanguage():
 
   AR_SZG_REGISTER_SERVICE_STATUS = _registerService.add("Status", AR_CHAR);
   AR_SZG_REGISTER_SERVICE_TAG = _registerService.add("Tag", AR_CHAR);
-  AR_SZG_REGISTER_SERVICE_NETWORKS
-    = _registerService.add("Networks", AR_CHAR);
-  AR_SZG_REGISTER_SERVICE_ADDRESSES
-    = _registerService.add("Addresses", AR_CHAR);
-  AR_SZG_REGISTER_SERVICE_SIZE
-    = _registerService.add("Size", AR_INT);
-  AR_SZG_REGISTER_SERVICE_COMPUTER
-    = _registerService.add("Computer", AR_CHAR);
-  AR_SZG_REGISTER_SERVICE_BLOCK
-    = _registerService.add("Block", AR_INT);
-  AR_SZG_REGISTER_SERVICE_PORT
-    = _registerService.add("Port", AR_INT);
+  AR_SZG_REGISTER_SERVICE_NETWORKS = _registerService.add("Networks", AR_CHAR);
+  AR_SZG_REGISTER_SERVICE_ADDRESSES = _registerService.add("Addresses", AR_CHAR);
+  AR_SZG_REGISTER_SERVICE_SIZE = _registerService.add("Size", AR_INT);
+  AR_SZG_REGISTER_SERVICE_COMPUTER = _registerService.add("Computer", AR_CHAR);
+  AR_SZG_REGISTER_SERVICE_BLOCK = _registerService.add("Block", AR_INT);
+  AR_SZG_REGISTER_SERVICE_PORT = _registerService.add("Port", AR_INT);
   AR_SZG_REGISTER_SERVICE = _dictionary.add(&_registerService);
 
   AR_SZG_REQUEST_SERVICE_COMPUTER = _requestService.add("Computer", AR_CHAR);
@@ -142,5 +136,4 @@ arPhleetOSLanguage::arPhleetOSLanguage():
 }
 
 arPhleetOSLanguage::~arPhleetOSLanguage() {
-
 }
