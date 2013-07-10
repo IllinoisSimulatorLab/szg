@@ -440,7 +440,10 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const string& nodeTy
   if (!name || !_SZGClient)
     return NULL;
 
-  // caller will own this and should delete it
+  // Caller will own this and should delete it.
+  // MEMORY LEAK:  caller doesn't get nodeDoc, only a pointer to nodeDoc's child.
+  // Return nodeDoc itself, instead?
+  // "Delete it after getting a pointer to the child but before returning it? Does it do garbage collection?"
   TiXmlDocument* nodeDoc = new TiXmlDocument();
   const string nodeDesc = _SZGClient->getGlobalAttribute( name );
 

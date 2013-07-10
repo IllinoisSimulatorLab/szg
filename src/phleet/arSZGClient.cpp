@@ -3093,6 +3093,7 @@ void arSZGClient::_dataThread() {
     else {
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
       _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
+      // arStructuredDataParser::_taggedMessages's member's ->second owns this pointer.
     }
   }
 
