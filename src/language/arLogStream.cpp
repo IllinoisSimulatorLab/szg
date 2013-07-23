@@ -14,8 +14,7 @@
 
 const int AR_LOG_DEFAULT = AR_LOG_WARNING;
 
-static int textColorInited(false);
-static int usingTextColors(false);
+static int textColorInited = false;
 
 #ifdef AR_USE_WIN_32
 
@@ -25,10 +24,11 @@ static int usingTextColors(false);
 static HANDLE hStdout; 
 static CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
 static WORD wOldColorAttrs;
+static int usingTextColors = false;
 
 static void ar_textColorInit() {
   if (textColorInited) {
-    ar_log_error() << "Multiple calls to ar_textColorInit()\n";
+    ar_log_warning() << "Ignoring duplicate call to ar_textColorInit()\n";
     return;
   }
   textColorInited = true;
@@ -70,7 +70,7 @@ static void ar_textRestore() {
 
 #else
 
-static void ar_textColorInit() {}
+static void ar_textColorInit() { textColorInited = true; }
 static void ar_textYellow() {}
 static void ar_textCyan() {}
 static void ar_textRestore() {}

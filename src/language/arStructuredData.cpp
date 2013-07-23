@@ -39,8 +39,8 @@ arStructuredData::arStructuredData(arDataTemplate* theTemplate) :
   _owned(NULL),
   _dataDimension(NULL),
   _storageDimension(NULL),
-  _dataName(NULL),
-  _dataType(NULL)
+  _dataType(NULL),
+  _dataName(NULL)
 {
   _construct(theTemplate);
 }
@@ -270,8 +270,8 @@ arStructuredData::arStructuredData(arStructuredData const& rhs) :
   _owned(NULL),
   _dataDimension(NULL),
   _storageDimension(NULL),
-  _dataName(NULL),
-  _dataType(NULL)
+  _dataType(NULL),
+  _dataName(NULL)
 {
   copy(rhs);
 }

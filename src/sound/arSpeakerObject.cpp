@@ -34,18 +34,21 @@ extern arMatrix4 __globalSoundListener;
 
 const float FEET_PER_METER(3.28);
 
-void arSpeakerObject::setUnitConversion(const float unitConversion) {
+void arSpeakerObject::setUnitConversion(const float
+#ifdef EnableSound
+    unitConversion
+#endif
+    ) {
+#ifdef EnableSound
   float dopplerscale;
   float distancefactor;
   float rolloffscale;
-#ifdef EnableSound
   FMOD_System_Get3DSettings( ar_fmod(), &dopplerscale, &distancefactor, &rolloffscale );
   distancefactor = FEET_PER_METER*unitConversion;
 //  ar_log_debug() << "arSpeakerObject sound units: " << distancefactor << ar_endl;
   FMOD_System_Set3DSettings( ar_fmod(), dopplerscale, distancefactor, rolloffscale );
 #endif
 }
-
 
 bool arSpeakerObject::loadMatrices(const arMatrix4& mHead, const int mode) {
   arMatrix4 head(/*_demoMode ? demoHeadMatrix(mHead) :*/ mHead);
