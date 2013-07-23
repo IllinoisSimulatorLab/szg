@@ -34,6 +34,8 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _posY(-1),
   _sizeX(-1),
   _sizeY(-1) {
+  if (!_initCallback) // constructor sets it to non-NULL, as does this function
+    ar_log_warning() << "arGraphicsWindow: constructor set NULL _initCallback.\n";
 
   // By default, the graphics window contains a single "normal" viewport
   // in its list (the default viewport corresponds to normal).
@@ -150,16 +152,11 @@ arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
   return _defaultCamera;
 }
 
-void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
-  if (_initCallback != 0) {
-    delete _initCallback;
-  }
-
-  if (callback != 0) {
-    _initCallback = callback;
-  } else {
-    _initCallback = new arDefaultWindowInitCallback;
-  }
+void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback /* possibly NULL */) {
+  if (!_initCallback) // constructor sets it to non-NULL, as does this function
+    ar_log_warning() << "arGraphicsWindow: NULL _initCallback.\n";
+  delete _initCallback;
+  _initCallback = callback ? callback : new arDefaultWindowInitCallback;
 }
 
 void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {

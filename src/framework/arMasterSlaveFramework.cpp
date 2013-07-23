@@ -619,17 +619,17 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
 
   // Populate callbacks for the gui and graphics windows,
   // and the head for any vr cameras.
-  std::vector< arGUIXMLWindowConstruct*>::iterator itr;
-  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
-    (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
-    (*itr)->getGraphicsWindow()->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
-    (*itr)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
+  std::vector< arGUIXMLWindowConstruct*>::iterator iter;
+  for (iter = windowConstructs->begin(); iter != windowConstructs->end(); ++iter ) {
+    arGraphicsWindow* const w = (*iter)->getGraphicsWindow();
+    w->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
+    w->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
+    (*iter)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
 
-    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
-    std::vector<arViewport>::iterator vItr;
-    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
-      if ( vItr->getCamera()->type() == "arVRCamera" ) {
-        ((arVRCamera*) vItr->getCamera())->setHead( &_head );
+    std::vector<arViewport>* const viewports = (*iter)->getGraphicsWindow()->getViewports();
+    for (std::vector<arViewport>::iterator itView = viewports->begin(); itView != viewports->end(); ++itView ) {
+      if ( itView->getCamera()->type() == "arVRCamera" ) {
+        ((arVRCamera*)itView->getCamera())->setHead( &_head );
       }
     }
   }
@@ -1245,8 +1245,6 @@ int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
 }
 
 int arMasterSlaveFramework::getNumberSlavesSynced( void ) {
-  int numSynced;
-
   if ( !getMaster() ) {
     ar_log_error() << "slave ignoring getNumberSlavesSynced().\n";
     return -1;
