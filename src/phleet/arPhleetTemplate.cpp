@@ -8,11 +8,8 @@
 
 arPhleetTemplate::arPhleetTemplate(const string& name) {
   setName(name);
-  add("phleet_user", AR_CHAR);
-  add("phleet_context", AR_CHAR);
-  add("phleet_auth", AR_CHAR);
-  add("phleet_match", AR_INT);
-}
-
-arPhleetTemplate::~arPhleetTemplate() {
+  (void)add("phleet_user", AR_CHAR);
+  (void)add("phleet_context", AR_CHAR);
+  (void)add("phleet_auth", AR_CHAR);
+  (void)add("phleet_match", AR_INT);
 }

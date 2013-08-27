@@ -20,7 +20,7 @@ LIBDIRS=$(DRVDIRS) graphics sound model interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 DEMODIRS=ribbons atlantis coaster hspace schprel
 
-# For 8-cpu salami.isl.uiuc.edu and other multicore multi-cpu hyperthreaded.
+# For multicore multi-cpu hyperthreaded.
 ifeq "$(PLATFORM)" "win32"
 ifneq "$(NUMBER_OF_PROCESSORS)" ""
 ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)

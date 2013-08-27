@@ -409,38 +409,39 @@ void arGUIXMLParser::setDisplayName( const string& displayName )
 //@-node:jimc.20100409112755.244:arGUIXMLParser::setDisplayName
 //@+node:jimc.20100409112755.245:arGUIXMLParser::_getNamedNode
 
-/*
+#if 0
 int arGUIXMLParser::numberOfWindows( void )
 {
-  int count = 0;
-
   if ( _doc.Error() ) {
-    return count;
+    return 0;
   }
-
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
-
   if ( !szgDisplayNode ) {
-    return count;
+    return 0;
   }
 
   // iterate over all <szg_window> elements
+  int count = 0;
   for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode;
        windowNode = windowNode->NextSibling() ) {
     count++;
   }
-
   return count;
 }
-*/
+#endif
 
 TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const string& nodeType )
 {
   if (!name || !_SZGClient)
     return NULL;
 
-  // caller will own this and should delete it
+  // Caller will own this and should delete it.
+  // MEMORY LEAK:  caller doesn't get nodeDoc, only a pointer to nodeDoc's child.
+  //
+  // TODO: caller does NOT own the returned pointer.  Still return the child,
+  // but accumulate nodeDoc's into a private list of arGUIXMLParser;
+  // they're then all destroyed in ~arGUIXMLParser, or in something else after init and start are done.
   TiXmlDocument* nodeDoc = new TiXmlDocument();
   const string nodeDesc = _SZGClient->getGlobalAttribute( name );
 

@@ -21,49 +21,35 @@ SZG_CALL void ar_defaultWindowInitCallback();
 
 class arGraphicsWindow;
 
-// Why do these callback classes exist? They act as wrappers for the
-// actual draw callbacks. For instance, extra parameters can be passed-in
-// upon creation, etc. This allows arGraphicsWindow code to be used with
-// the arMasterSlaveFramework (which needs a arMasterSlaveFramework& passed
-// in to its draw callback), for instance.
+// These callback wrap the actual draw callbacks, so extra parameters
+// can be passed in upon creation. This lets arGraphicsWindow code
+// be used with arMasterSlaveFramework, whose draw callback needs
+// an arMasterSlaveFramework&.
 
 class SZG_CALL arWindowInitCallback {
   public:
-    arWindowInitCallback() {}
     virtual ~arWindowInitCallback() {}
     virtual void operator()( arGraphicsWindow& w ) = 0;
-  protected:
-  private:
+};
+class SZG_CALL arDefaultWindowInitCallback : public arWindowInitCallback {
+  public:
+    virtual ~arDefaultWindowInitCallback() {}
+    virtual void operator()( arGraphicsWindow& );
 };
 
 class SZG_CALL arRenderCallback {
   public:
-    arRenderCallback() {}
     virtual ~arRenderCallback() {}
     virtual void operator()( arGraphicsWindow& w, arViewport& v) = 0;
     void enable( bool onoff ) { _enabled = onoff; }
-    bool enabled() { return _enabled; }
-  protected:
+    bool enabled() const { return _enabled; }
   private:
     bool _enabled;
 };
-
-class SZG_CALL arDefaultWindowInitCallback : public arWindowInitCallback {
-  public:
-    arDefaultWindowInitCallback() {}
-    virtual ~arDefaultWindowInitCallback() {}
-    virtual void operator()( arGraphicsWindow& );
-  protected:
-  private:
-};
-
 class SZG_CALL arDefaultRenderCallback : public arRenderCallback {
   public:
-    arDefaultRenderCallback() {}
     virtual ~arDefaultRenderCallback() {}
     virtual void operator()( arGraphicsWindow&, arViewport& );
-  protected:
-  private:
 };
 
 class SZG_CALL arGraphicsWindow {
@@ -101,7 +87,7 @@ class SZG_CALL arGraphicsWindow {
     void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
     void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const;
     bool draw();
-  protected:
+
   private:
     // not safe to copy yet.
     arGraphicsWindow( const arGraphicsWindow& x );
@@ -134,4 +120,4 @@ class SZG_CALL arGraphicsWindow {
     int _sizeY;     // The height of the window.
 };
 
-#endif        //  #ifndefARGRAPHICSWINDOW_H
+#endif

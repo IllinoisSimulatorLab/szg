@@ -160,9 +160,8 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end) {
 // Also it might be better to fold translation
 // into arStructuredData, and not need to
 // double the storage for buffers in the case of translation.
-arStructuredData* arStructuredDataParser::parse
-                                    (ARchar* buffer, int& end,
-                                     const arStreamConfig& remoteStreamConfig) {
+arStructuredData* arStructuredDataParser::parse(
+    ARchar* buffer, int& end, const arStreamConfig& remoteStreamConfig) {
   if (remoteStreamConfig.endian == AR_ENDIAN_MODE) {
     return parse(buffer, end);
   }
@@ -248,8 +247,7 @@ std::istream& operator>>(std::istream& is, ARint64 &i ) {
 // If that is control-related, such as <szg_vtk_world>,
 // then the app changes behavior somehow.
 // Otherwise, read in the rest of the record, based on the tag's name.
-arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
-                                                const string& tagText) {
+arStructuredData* arStructuredDataParser::parse(arTextStream* textStream, const string& tagText) {
   // Get a resizable buffer for reading in text fields.
   arBuffer<char>* workingBuffer = getTranslationBuffer();
   arDataTemplate* theTemplate = _dictionary->find(tagText);
@@ -461,8 +459,7 @@ bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream) {
 // idea is that this can be used to implement async rpc.
 // NOTE: multiple records can be stored with a particular tag. This is
 // useful when, for instance, a syzygy message can get several responses.
-bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
-                                                    int tag) {
+bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data, int tag) {
   if (!data) {
     return false;
   }
@@ -522,10 +519,8 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID) {
 // Return the tag of the message actually retrieved (or -1 on
 // timeout or other failure). If dataID (optional, default -1) is nonnegative,
 // also check that the retrieved message has the proper ID.
-int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
-                                                 list<int> tags,
-                                                 int dataID,
-                                                 int timeout) {
+int arStructuredDataParser::getNextTaggedMessage(
+    arStructuredData*& message, list<int> tags, int dataID, int timeout) {
   _globalLock.lock("arStructuredDataParser::getNextTaggedMessage phase 1A");
 
   // As in getNextInternal(), allow falling through this call,

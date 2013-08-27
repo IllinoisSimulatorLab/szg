@@ -360,10 +360,10 @@ void arDataServer::activatePassiveSocket(int socketID) {
   }
 }
 
-//#define DEBUG
-
 bool arDataServer::sendData(arStructuredData* pData) {
+#ifdef DEBUG
   ar_timeval t0 = ar_time();
+#endif
   const int theSize = pData->size();
   arGuard _(_lockTransfer, "arDataServer::sendData");
   bool stat = ar_growBuffer(_dataBuffer, _dataBufferSize, theSize);
@@ -373,7 +373,6 @@ bool arDataServer::sendData(arStructuredData* pData) {
 #endif
     return false;
   }
-  ar_timeval t1 = ar_time();
   stat = pData->pack(_dataBuffer); 
   if (!stat) {
 #ifdef DEBUG
@@ -381,7 +380,6 @@ bool arDataServer::sendData(arStructuredData* pData) {
 #endif
     return false;
   }
-  ar_timeval t2 = ar_time();
   stat = _sendDataCore( _dataBuffer, theSize );
   if (!stat) {
 #ifdef DEBUG
@@ -389,9 +387,9 @@ bool arDataServer::sendData(arStructuredData* pData) {
 #endif
     return false;
   }
-  ar_timeval t3 = ar_time();
 #ifdef DEBUG
-  ar_log_remark() << "sendData() time: " << ar_difftime( t3, t0 ) << ar_endl;
+  ar_timeval t1 = ar_time();
+  ar_log_remark() << "sendData() time: " << ar_difftime( t1, t0 ) << ar_endl;
 #endif
   return true;
 }
@@ -404,7 +402,7 @@ bool arDataServer::sendDataQueue(arQueuedData* pData) {
 // Send data in a different thread from where we accept connections.
 // Call this only inside _lockTransfer.
 // Return true if any connections.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize) {
+bool arDataServer::_sendDataCore(const ARchar* theBuffer, const int theSize) {
   bool ok = false;
   list<arSocket*> removalList;
   list<arSocket*>::iterator iter;
@@ -454,7 +452,7 @@ bool arDataServer::sendDataQueue(arQueuedData* p, arSocket* fd) {
 }
 
 // Call this only inside _lockTransfer.
-bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd) {
+bool arDataServer::_sendDataCore(const ARchar* theBuffer, const int theSize, arSocket* fd) {
   // Caller ensures that fd != NULL.
   if (fd->ar_safeWrite(theBuffer, theSize))
     return true;

@@ -289,7 +289,11 @@ int arSpacepadDriver::_wait_tosend_word(unsigned short word) {
   return TRUE;
 }
 
-int arSpacepadDriver::_send_isa_word(unsigned short word) {
+int arSpacepadDriver::_send_isa_word(unsigned short
+#ifdef AR_USE_WIN_32
+    word
+#endif
+    ) {
 #ifdef AR_USE_WIN_32
   if (!(_read_isa_status() & ISAOKTOWRITE)) {
     return FALSE;
@@ -298,7 +302,6 @@ int arSpacepadDriver::_send_isa_word(unsigned short word) {
   _outpw(isa_base_addr, word);
   return TRUE;
 #else
-  word = 23; // avoid compiler warning
   return FALSE;
 #endif
 }

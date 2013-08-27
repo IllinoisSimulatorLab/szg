@@ -13,6 +13,7 @@ arPerformanceElement::arPerformanceElement(
     _scale(s>0. ? 2./s : 1.0),
     _color(c),
     _data(NULL),
+    _numberEntries(0), // setNumberEntries() *reads* this as well as writing it
     _fInit(false),
     _i(i),
     _name(name)
@@ -156,7 +157,7 @@ void arFramerateGraph::drawPlaced(const float startX,
 }
 
 void arFramerateGraph::addElement(const string& name,
-                                  int numberEntries,
+                                  const int numberEntries,
                                   const float scale,
                                   const arVector3& color) {
   arPerfElts::const_iterator i(_valueContainer.find(name));

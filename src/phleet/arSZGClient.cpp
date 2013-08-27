@@ -3027,7 +3027,7 @@ void arSZGClient::_serverResponseThread() {
           for (vector<string>::const_iterator i = _foundServers.begin();
           i != _foundServers.end(); ++i) {
             if (*i == serverInfo) {
-              // Found it already (someone else broadcast a response packet?).
+              // Found it already, maybe because another client broadcasted a response packet.
               found = true;
               break;
             }
@@ -3036,7 +3036,8 @@ void arSZGClient::_serverResponseThread() {
           if (_justPrinting) {
             cout << serverInfo << "\n";
           }
-          _foundServers.push_back(serverInfo);
+          if (!found)
+	    _foundServers.push_back(serverInfo);
         } else if (_requestedName == string(_responseBuffer+5)) {
           // Stop, discarding subsequent packets.
           _dataRequested = false;
@@ -3071,7 +3072,7 @@ void arSZGClient::_dataThread() {
       // Disconnect?
       _keepRunning = false;
       if (_connected) {
-        ar_log_critical() << "no szgserver.\n";
+        ar_log_critical() << "szgserver disconnected.\n";
       }
       break;
     }
@@ -3092,6 +3093,7 @@ void arSZGClient::_dataThread() {
     else {
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
       _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
+      // arStructuredDataParser::_taggedMessages's member's ->second owns this pointer.
     }
   }
 

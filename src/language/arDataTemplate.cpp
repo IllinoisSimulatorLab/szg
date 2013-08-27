@@ -30,9 +30,8 @@ arDataTemplate::arDataTemplate(const arDataTemplate& dataTemplate) {
   arAttribute::const_iterator i;
   for (i = dataTemplate._attributeContainer.begin();
        i != dataTemplate._attributeContainer.end();
-       i++) {
-    _attributeContainer.insert(arAttribute::value_type(i->first,
-                                                       i->second));
+       ++i) {
+    _attributeContainer.insert(arAttribute::value_type(i->first, i->second));
   }
 }
 
@@ -48,8 +47,7 @@ arDataTemplate& arDataTemplate::operator=( const arDataTemplate& dataTemplate ) 
   for (i = dataTemplate._attributeContainer.begin();
        i != dataTemplate._attributeContainer.end();
        ++i) {
-    _attributeContainer.insert(arAttribute::value_type(i->first,
-                                                       i->second));
+    _attributeContainer.insert(arAttribute::value_type(i->first, i->second));
   }
   return *this;
 }
@@ -61,10 +59,8 @@ int arDataTemplate::add(const string& attributeName, arDataType attributeType) {
   ++_numberAttributes;
 
   if (getAttributeID(attributeName) != _numberAttributes-1)
-    cerr << "\n\narDataTemplate internal error while adding "
-         << attributeName
-         << ",\npossibly because this attribute name "
-         << "is duplicated in the language.\n";
+    cerr << "\n\narDataTemplate internal error while adding " << attributeName
+         << ",\npossibly because this attribute name is duplicated in the language.\n";
 
   return _numberAttributes-1;
 }
@@ -78,31 +74,29 @@ void arDataTemplate::setName(const string& name) {
 }
 
 int arDataTemplate::getAttributeID(const string& attributeName) const {
-  for (arAttribute::const_iterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end(); ++iter) {
-    if (iter->first == attributeName)
-      return iter->second.second;
-      // This is the value of _numberAttributes when this field was added.
+  for (arAttribute::const_iterator i(_attributeContainer.begin());
+       i != _attributeContainer.end(); ++i) {
+    if (i->first == attributeName)
+      return i->second.second; // value of _numberAttributes when this was added
     }
   return -1;
 }
 
 arDataType arDataTemplate::getAttributeType(const string& attributeName) const {
-  for (arAttribute::const_iterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end(); ++iter) {
-    if (iter->first == attributeName)
-      return iter->second.first;
-      // This is the value of _numberAttributes when this field was added.
+  for (arAttribute::const_iterator i(_attributeContainer.begin());
+       i != _attributeContainer.end(); ++i) {
+    if (i->first == attributeName)
+      return i->second.first; // value of _numberAttributes when this was added
     }
   return AR_GARBAGE;
 }
 
 void arDataTemplate::dump() const {
   cout << "arDataTemplate: \"" << _templateName << "\"\n";
-  for (arAttribute::const_iterator iter(_attributeContainer.begin());
-       iter != _attributeContainer.end(); ++iter) {
-    cout << "  \"" << iter->first << "\":" << iter->second.second << ":"
-         << arDataTypeName(iter->second.first) << "\n";
+  for (arAttribute::const_iterator i(_attributeContainer.begin());
+       i != _attributeContainer.end(); ++i) {
+    cout << "  \"" << i->first << "\":" << i->second.second << ":"
+         << arDataTypeName(i->second.first) << "\n";
   }
 }
 
@@ -115,10 +109,8 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
   // data format includes so much info about the data
   // that arDataTemplate is almost redundant.
 
-  ARint positionDest; // = 0; // Irix compiler produces bad code with "= 0" here.
-  ARint positionSrc;  // = 0; // Irix compiler produces bad code with "= 0" here.
-  positionDest = 0;
-  positionSrc = 0;
+  ARint positionDest = 0;
+  ARint positionSrc = 0;
 
   // Translate the header.
   const ARint size =
@@ -130,13 +122,12 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
 
   // Translate each field.
   ARint iField = 0;
-  for (iField=0; positionSrc<size && iField<numberFields; ++iField) {
+  for (; positionSrc<size && iField<numberFields; ++iField) {
     const ARint dim =
       ar_translateInt(dest, positionDest, src, positionSrc, streamConfig);
     const ARint type =
       ar_translateInt(dest, positionDest, src, positionSrc, streamConfig);
-    ar_translateField(dest, positionDest, src, positionSrc, (arDataType)type,
-                      dim, streamConfig);
+    ar_translateField(dest, positionDest, src, positionSrc, (arDataType)type, dim, streamConfig);
   }
   if (iField != numberFields)
     return -1;

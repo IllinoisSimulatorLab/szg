@@ -153,9 +153,9 @@ class SZG_CALL arDataServer : public arDataPoint {
 
    void _readDataTask();
    // To a specific socket.
-   bool _sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd);
+   bool _sendDataCore(const ARchar* theBuffer, const int theSize, arSocket* fd);
    // To all active sockets.
-   bool _sendDataCore(ARchar* theBuffer, const int theSize);
+   bool _sendDataCore(const ARchar* theBuffer, const int theSize);
 };
 
 #endif

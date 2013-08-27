@@ -29,44 +29,44 @@ typedef map< string, arDataPair, less<string> > arAttribute;
 
 class SZG_CALL arDataTemplate{
  public:
-   friend class arTemplateDictionary;
+  friend class arTemplateDictionary;
 
-   arDataTemplate();
-   arDataTemplate(const string&, int templateID = -1);
-   arDataTemplate(const arDataTemplate&);
-   arDataTemplate& operator=( const arDataTemplate& dataTemplate );
-   ~arDataTemplate() {}
+  arDataTemplate();
+  arDataTemplate(const string&, int templateID = -1);
+  arDataTemplate(const arDataTemplate&);
+  arDataTemplate& operator=( const arDataTemplate& dataTemplate );
+  ~arDataTemplate() {}
 
-   int add(const string&, arDataType);
-   void addAttribute(const string& s, arDataType d); // backwards-compatible
-   void setName(const string&);
-   string getName() const
-     { return _templateName; }
-   int getID() const
-     { return _templateID; }
-   void setID(int ID)
-     { _templateID = ID; }
-   int getAttributeID(const string&) const;
-   arDataType getAttributeType(const string&) const;
-   int getNumberAttributes() const
-     { return _numberAttributes; }
-   void dump() const;
-   int translate(ARchar*, ARchar*, arStreamConfig);
+  int add(const string&, arDataType);
+  void addAttribute(const string& s, arDataType d); // backwards-compatible
+  void setName(const string&);
+  string getName() const
+    { return _templateName; }
+  int getID() const
+    { return _templateID; }
+  void setID(int ID)
+    { _templateID = ID; }
+  int getAttributeID(const string&) const;
+  arDataType getAttributeType(const string&) const;
+  int getNumberAttributes() const
+    { return _numberAttributes; }
+  void dump() const;
+  int translate(ARchar*, ARchar*, arStreamConfig);
 
-   arAttribute::iterator attributeBegin()
-     { return _attributeContainer.begin(); }
-   arAttribute::iterator attributeEnd()
-     { return _attributeContainer.end(); }
-   arAttribute::const_iterator attributeConstBegin() const
-     { return _attributeContainer.begin(); }
-   arAttribute::const_iterator attributeConstEnd() const
-     { return _attributeContainer.end(); }
+  arAttribute::iterator attributeBegin()
+    { return _attributeContainer.begin(); }
+  arAttribute::iterator attributeEnd()
+    { return _attributeContainer.end(); }
+  arAttribute::const_iterator attributeConstBegin() const
+    { return _attributeContainer.begin(); }
+  arAttribute::const_iterator attributeConstEnd() const
+    { return _attributeContainer.end(); }
 
  private:
-   string _templateName;
-   int    _templateID; // set by owning dictionary
-   int    _numberAttributes;
-   arAttribute _attributeContainer;
+  string _templateName;
+  int    _templateID; // set by owning dictionary
+  int    _numberAttributes;
+  arAttribute _attributeContainer;
 };
 
 SZG_CALL bool ar_addAttributesFromString( arDataTemplate& t,

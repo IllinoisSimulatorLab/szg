@@ -32,7 +32,11 @@ void ar_VRPNHandleAnalog(void* data, const vrpn_ANALOGCB event) {
 }
 #endif
 
-void ar_VRPNDriverEventTask(void* VRPNDriver) {
+void ar_VRPNDriverEventTask(void*
+#ifdef Enable_VRPN
+    VRPNDriver
+#endif
+    ) {
 #ifdef Enable_VRPN
   arVRPNDriver* vrpn = (arVRPNDriver*) VRPNDriver;
   while (true) {
@@ -44,8 +48,6 @@ void ar_VRPNDriverEventTask(void* VRPNDriver) {
       ar_usleep(5000);
     }
   }
-#else
-  VRPNDriver = NULL; // avoid compiler warning about unused parameter
 #endif
 }
 

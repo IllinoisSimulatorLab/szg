@@ -110,11 +110,10 @@ bool arPPTDriver::_processInput() {
   _resetStatusTimer();
 
   // Begin code lifted from WorldViz' VizPPTStreamingCode.h
-  unsigned char packet[BUF_SIZE];
   memcpy( _packetBuf+_packetOffset, _inbuf, numRead );
   _packetOffset += numRead;
   int lastGoodIndex = -1;
-  int i;
+  unsigned int i;
   while (_packetOffset >= PPT_PACKET_SIZE) {
     for(i=0; i<_packetOffset; ++i) {
       //If packet begins with 'o' and checksum matches and numlights is between 1 and 4 then assume it is a valid packet

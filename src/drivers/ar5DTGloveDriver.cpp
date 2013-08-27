@@ -102,7 +102,11 @@ void ar_5dtGloveDriverEventTask(void* gloveDriver) {
 }
 #endif
 
-bool ar5DTGloveDriver::init(arSZGClient& szgClient) {
+bool ar5DTGloveDriver::init(arSZGClient&
+#ifdef Enable5DT
+    szgClient
+#endif
+    ) {
 #ifndef Enable5DT
   ar_log_error() << "5DT dataglove support not compiled.\n";
   return false;
