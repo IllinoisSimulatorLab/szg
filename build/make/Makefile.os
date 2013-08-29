@@ -67,11 +67,8 @@ z:=$(PLATFORM)
 # Guess how many CPU's.
 
 ifeq "$(PLATFORM)" "win32"
-	ifeq "$(SZG_COMPILER)" "MINGW"
-		JOBS = 2
-	else
-		JOBS = 1
-	endif
+  JOBS = 1
+  # More than 1 may fail if SZG_COMPILER is "MINGW"
 else
 ifeq "$(PLATFORM)" "linux"
   JOBS = 2
