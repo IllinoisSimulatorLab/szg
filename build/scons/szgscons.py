@@ -68,6 +68,7 @@ def buildSzgSubdirectory( srcDirname, buildEnv, libSrc, progNames, priorLibs, pa
 
     # Install the library in (i.e. copy to) szg/lib/<platform>
     globalLinkLib = buildEnv.Install( pathDict['libPath'], linkLib )
+    buildEnv.Install( pathDict['binPath'], linkLib )
 
   progEnv = buildEnv.Clone()
 
