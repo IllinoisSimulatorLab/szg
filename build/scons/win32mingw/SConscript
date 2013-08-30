@@ -107,12 +107,12 @@ externalFlags = {}
 
 SConscript( 'SConscript.bird', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.evart', exports=['szgEnv','externalFlags'] )
-SConscript( 'SConscript.5dt', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.glut', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.jpeg', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.3ds', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.fmod', exports=['szgEnv','externalFlags'] )
 SConscript( 'SConscript.sapi', exports=['szgEnv','externalFlags'] )
+#SConscript( 'SConscript.5dt', exports=['szgEnv','externalFlags'] )
 #SConscript( 'SConscript.wii', exports=['szgEnv','externalFlags'] )
 
 envDict['externalFlags'] = externalFlags
