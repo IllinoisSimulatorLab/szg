@@ -19,11 +19,10 @@
 #include "arVRCamera.h"
 #include "arMasterSlaveDataRouter.h"
 #include "arGUIInfo.h"
+#include "arGUIXMLParser.h"
 #include "arFrameworkCalling.h"
 
 #include <vector>
-
-class arGUIXMLParser;
 
 // Helper for arMasterSlaveFramework.
 
@@ -256,6 +255,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void addDataBundlePathMap(const string& bundlePathName,
                           const string& bundlePath);
 
+  std::vector< arGUIXMLWindowConstruct* >* getGUIXMLWindowConstructs() {
+    return _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
+  }
+  
  protected:
   // Objects that provide services.
   // Must be pointers, so languages can initialize.  Really?

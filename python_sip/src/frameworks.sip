@@ -897,6 +897,29 @@ unpackdone:
   void setRandomSeed( const long newSeed );
   bool randUniformFloat( float& value /Out/ );
 
+  SIP_PYTUPLE getGUIXMLWindowConstructs();
+%MethodCode
+    vector< arGUIXMLWindowConstruct* >* constructs = sipCpp->getGUIXMLWindowConstructs();
+    sipRes = PyTuple_New( constructs->size() );
+    if (sipRes == NULL) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to allocate tuple for arMasterSlaveFramework.getGUIXMLWindowConstructs()");
+      sipIsErr = 1;
+    } else {
+      int i=0;
+      vector< arGUIXMLWindowConstruct* >::iterator iter;
+      for (iter=constructs->begin(); iter!=constructs->end(); ++iter) {
+        PyObject* o = sipConvertFromInstance( *iter, sipClass_arGUIXMLWindowConstruct, Py_None );
+        if (o==NULL) {
+          Py_DECREF( sipRes );
+          PyErr_SetString( PyExc_TypeError, "arGUIXMLWindowConstruct.getGUIXMLWindowConstructs() failed to convert result" );
+          sipIsErr = true;
+          break;
+        }
+        PyTuple_SetItem( sipRes, i++, o );
+      }
+    }
+%End
+
  protected:
   void _stop(const char*, const arCallbackException&);
 

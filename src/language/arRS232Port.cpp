@@ -218,10 +218,10 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       baudRate = CBR_256000;
       break;
     default:
-      ar_log_error() << "arRS232Port: baud rate must be one of the following:\n"
+      ar_log_warning() << "arRS232Port: You are using a custom baud rate. 'Official' baud rates are:\n"
         << "\t110\n\t300\n\t600\n\t1200\n\t2400\n\t4800\n\t9600\n"
         << "\t14400\n\t19200\n\t38400\n\t57600\n\t115200\n\t128000\n\t256000\n";
-      return false;
+      baudRate = baud;
   }
   if (dBits < 4 || dBits > 8) {
     ar_log_error() << "arRS232Port: data bits must be one of 4, 5, 6, 7, 8.\n";
