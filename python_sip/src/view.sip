@@ -220,6 +220,9 @@ class arVRCamera : arCamera {
     virtual string type() const;
     void setHead( arHead* head /TransferBack/ );
     arHead* getHead() const;
+    virtual arMatrix4 getProjectionMatrix() /TransferBack/;
+    virtual arMatrix4 getModelviewMatrix() /TransferBack/;
+    virtual void loadViewMatrices();
   private:
     arVRCamera( const arVRCamera& );
 };

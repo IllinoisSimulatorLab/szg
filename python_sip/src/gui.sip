@@ -232,6 +232,7 @@ class arGUIWindowInfo : arGUIInfo {
 //const unsigned int AR_ZORDER_TOP      = 0x0001;
 //const unsigned int AR_ZORDER_TOPMOST  = 0x0002;
 
+
 class arGUIWindowConfig {
 %TypeHeaderCode
 #include "arGUIWindow.h"
@@ -424,5 +425,28 @@ class arGUIWindowManager {
  private:
   arGUIWindowManager( const arGUIWindowManager& );
 };
+
+
+/**
+ * Window configuration object populated with state from parsed XML.
+ * Holds the associated arGraphicsWindow and a possible draw callback.
+ *
+ * @see arGUIWindowingConstruct::getWindowConstructs
+ * @see arGUIXMLParser::parse
+ */
+class arGUIXMLWindowConstruct {
+%TypeHeaderCode
+#include "arGUIXMLParser.h"
+%End
+  public:
+    arGUIXMLWindowConstruct();
+    virtual ~arGUIXMLWindowConstruct();
+
+    // Both of these pointers should probably be returned const,
+    // but there's places they're used where it's not currently possible to do so
+    arGUIWindowConfig* getWindowConfig() const;
+    arGraphicsWindow* getGraphicsWindow() const;
+};
+
 
 
