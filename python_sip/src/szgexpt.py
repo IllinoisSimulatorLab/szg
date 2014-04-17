@@ -1,15 +1,14 @@
 print 'szgexpt:',__file__
-from _szgexpt import *
 import szg
 import time
 import copy
 
 
-class arPyExptTrialGenerator(arTrialGenerator):
+class arPyExptTrialGenerator(szg.arTrialGenerator):
   'Override the trial generator docstring to set a comment.'
   def __init__( self ):
     if hasattr( self, '__doc__' ):
-      arTrialGenerator.__init__(self,self.__doc__)
+      szg.arTrialGenerator.__init__(self,self.__doc__)
     else:
       raise RuntimeError, "Trial generator _must_ have a __doc__ attribute (initial comment describing experiment)"
     self.trialNum = 0
@@ -101,7 +100,7 @@ class arPyExptException(RuntimeError):
 
 _expt = None
 
-class arPyExperiment(arExperiment):
+class arPyExperiment(szg.arExperiment):
   experimentName = ''               # String
   subjectParameters =  {'gender':'string'}
   factors = ()                      # Tuple of (name_string,type_string) tuples.
@@ -116,7 +115,7 @@ class arPyExperiment(arExperiment):
     if _expt is not None:
       raise RuntimeError, 'You can only have one experiment instance at a time, fool!'
     _expt = self
-    arExperiment.__init__(self)
+    szg.arExperiment.__init__(self)
     self.valid = True
     self.responseMessage = ''
     self.trialData = []
@@ -182,7 +181,7 @@ class arPyExperiment(arExperiment):
         raise arPyExptException, 'Failed to initialize experiment.'
       subjectLabel = self.getStringSubjectParameter( 'label' )
       self.trialGenerator.handleSpecialSubjects( subjectLabel )
-      if not arExperiment.start(self):
+      if not szg.arExperiment.start(self):
         raise arPyExptException, 'Failed to start() experiment.'
     except arPyExptException, msg:
       print msg

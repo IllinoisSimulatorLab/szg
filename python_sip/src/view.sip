@@ -235,7 +235,7 @@ class arGraphicsScreen {
  public:
   arGraphicsScreen();
   virtual ~arGraphicsScreen();
-  // These five functions are inherited from arCamera
+
   virtual bool configure( arSZGClient& client );
   virtual bool configure( const string& screenName, arSZGClient& client );
 

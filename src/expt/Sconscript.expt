@@ -1,0 +1,30 @@
+import os
+import copy
+
+Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags')
+
+
+libSrc = ( \
+    'arAngleThreshold.cpp',
+    'arDataSaver.cpp',
+    'arDataSaverBuilder.cpp',
+    'arEnumeratedTrialGenerator.cpp',
+    'arExperiment.cpp',
+    'arExperimentDataField.cpp',
+    'arExperimentDataRecord.cpp',
+    'arExperimentEventFilter.cpp',
+    'arExperimentUtilities.cpp',
+    'arExperimentXMLStream.cpp',
+    'arHumanSubject.cpp',
+    'arMouse2DInputSimulator.cpp',
+    'arTrialGenBuilder.cpp',
+    'arTrialGenerator.cpp',
+    'arXMLDataSaver.cpp'
+  )
+
+progNames = ()
+
+
+# Call the generic directory-builder function
+progEnv = buildFunc( srcDirname, buildEnv, libSrc, progNames, priorLibs, pathDict )
+

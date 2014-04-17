@@ -69,7 +69,11 @@ def sipBuildFunc( target, source, env ):
   # file, but we're not doing anything to that in here.
   sipOutputFile = os.path.join( targetDirectory, 'sip_' + os.path.splitext( sourceFile )[0] + 'part0.cpp' )
   # Run the SIP command.
-  sipCommand = 'sip -c '+targetDirectory+' -j 1 -I '+sourceDirectory+' '+sourceFilePath
+  sipCommandList = ['sip','-c',targetDirectory,'-x','EXPT','-j','1','-I',sourceDirectory,sourceFilePath]
+  if os.environ.get( 'SZG_USE_EXPT', 'FALSE' ) == 'TRUE':
+      sipCommandList.remove('-x')
+      sipCommandList.remove('EXPT')
+  sipCommand = ' '.join( sipCommandList )
   print 'SIP command:',sipCommand
   os.system( sipCommand )
   # Move the output cpp file to <target dir>/<source>_sip.cpp.

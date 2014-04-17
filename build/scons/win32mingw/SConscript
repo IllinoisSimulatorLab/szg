@@ -70,6 +70,12 @@ externalDependencies = {
       },
     }
 
+if os.environ.get( 'SZG_USE_EXPT', 'FALSE' ) == 'TRUE':
+    exptDict = {'expt':{
+      'external':['jpeg','3ds','fmod','sapi']
+        }}
+    externalDependencies.update( exptDict )
+
 
 pathDict = envDict['paths']
 subdirs = envDict['subdirs']
