@@ -1,5 +1,7 @@
 %Module _szg 0
 
+%Feature EXPT
+
 %ModuleHeaderCode
 #if PY_VERSION_HEX < 0x02050000
 typedef int Py_ssize_t;
@@ -30,3 +32,7 @@ typedef int Py_ssize_t;
 %Include sound.sip
 %Include interact.sip
 %Include frameworks.sip
+
+%If (EXPT)
+%Include szgexpt.sip
+%End
