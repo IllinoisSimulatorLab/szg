@@ -59,6 +59,25 @@ bool arIOFilter::filter( arInputEventQueue* inputQueue, arInputState* inputState
   return ok;
 }
 
+
+bool arIOFilter::_processEvent( arInputEvent& inputEvent ) {
+  arInputEventType typ( inputEvent.getType() );
+  if (typ == AR_EVENT_BUTTON) {
+    onButtonEvent( inputEvent, inputEvent.getIndex() );
+    return true;
+  }
+  if (typ == AR_EVENT_AXIS) {
+    onAxisEvent( inputEvent, inputEvent.getIndex() );
+    return true;
+  }
+  if (typ == AR_EVENT_MATRIX) {
+    onMatrixEvent( inputEvent, inputEvent.getIndex() );
+    return true;
+  }
+  return true;  
+}
+
+
 int arIOFilter::getButton( const unsigned int index ) const {
   return _valid() ? _inputState->getButton( index ) : 0;
 }

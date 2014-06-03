@@ -538,45 +538,12 @@ class arIOFilter {
     void insertNewEvent( const arInputEvent& newEvent );
     void setID( int id );
     int getID() const;
-    
-  protected:
-    virtual bool _processEvent( arInputEvent& inputEvent ) /PyName=onInputEvent/;
-    
-  private:
-    arIOFilter( const arIOFilter& );
-};
-
-
-class arPyIOFilter : arIOFilter {
-%TypeHeaderCode
-class arPyIOFilter : public arIOFilter {
-  public:
-    virtual void onButtonEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
-    virtual void onAxisEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
-    virtual void onMatrixEvent( arInputEvent& /*event*/, unsigned /*index*/ ) {}
-  protected:
-    virtual bool _processEvent( arInputEvent& inputEvent ) {
-      arInputEventType typ( inputEvent.getType() );
-      if (typ == AR_EVENT_BUTTON) {
-        onButtonEvent( inputEvent, inputEvent.getIndex() );
-        return true;
-      }
-      if (typ == AR_EVENT_AXIS) {
-        onAxisEvent( inputEvent, inputEvent.getIndex() );
-        return true;
-      }
-      if (typ == AR_EVENT_MATRIX) {
-        onMatrixEvent( inputEvent, inputEvent.getIndex() );
-        return true;
-      }
-      return true;  
-    }
-};
-%End
-  public:
     virtual void onButtonEvent( arInputEvent& event, unsigned index );
     virtual void onAxisEvent( arInputEvent& event, unsigned index );
     virtual void onMatrixEvent( arInputEvent& event, unsigned index );
+    
+  private:
+    arIOFilter( const arIOFilter& );
 };
 
 

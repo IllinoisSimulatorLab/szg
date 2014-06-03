@@ -24,7 +24,7 @@ import szg
 # new random event index. Note that it assumes that the button
 # release event comes immediately after the corresponding button-press
 # event in the input stream.
-class MyFilter( szg.arPyIOFilter ):
+class MyFilter( szg.arIOFilter ):
   def onButtonEvent( self, event, index ):
     szg.ar_log_warning().write( 'Before filter: ' + str(event) + '\n' )
     # Other get...() methods: getAxis(), getMatrix().
