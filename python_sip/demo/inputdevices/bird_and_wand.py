@@ -132,10 +132,10 @@ import szg
 #            11 setCurrentEventIndex
 #          enddef
 
-class MyFilter( szg.arPyIOFilter ):
+class MyFilter( szg.arIOFilter ):
   buttonMap = (3,0,1,4,8,9,6,7,2,5,10,11,10,11)
   def __init__( self ):
-    szg.arPyIOFilter.__init__( self )
+    szg.arIOFilter.__init__( self )
 
     axisSwap = szg.arMatrix4( 
           1, 0, 0, 0, \

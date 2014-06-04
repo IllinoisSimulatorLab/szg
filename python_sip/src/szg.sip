@@ -33,6 +33,6 @@ typedef int Py_ssize_t;
 %Include interact.sip
 %Include frameworks.sip
 
-%If (EXPT)
-%Include szgexpt.sip
-%End
+//%If (EXPT)
+//%Include szgexpt.sip
+//%End

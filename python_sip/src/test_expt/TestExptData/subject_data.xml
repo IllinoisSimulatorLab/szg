@@ -1,0 +1,13 @@
+<subject_record_description>
+  <field_names>age|eye_spacing_cm|gender|label|name</field_names>
+  <field_types>ARlong|ARfloat|ARchar|ARchar|ARchar</field_types>
+</subject_record_description>
+
+<subject_record>
+  <name>Test Subject</name>
+  <gender>M</gender>
+  <eye_spacing_cm>5.9</eye_spacing_cm>
+  <label>TEST</label>
+  <age>43</age>
+</subject_record>
+

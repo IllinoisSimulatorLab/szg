@@ -1,25 +1,32 @@
 print 'szgexpt:',__file__
-import szg
+from szg import *
 import time
 import copy
 
 
-class arPyExptTrialGenerator(szg.arTrialGenerator):
+class arPyExptTrialGenerator(arTrialGenerator):
   'Override the trial generator docstring to set a comment.'
+
   def __init__( self ):
     if hasattr( self, '__doc__' ):
-      szg.arTrialGenerator.__init__(self,self.__doc__)
+      arTrialGenerator.__init__(self,self.__doc__)
     else:
       raise RuntimeError, "Trial generator _must_ have a __doc__ attribute (initial comment describing experiment)"
     self.trialNum = 0
     self.totalTrials = -1
     self.completed = False
+
+
   def handleSpecialSubjects( self, subjectLabel ):
     raise NotImplementedError, 'The arPyExptTrialGenerator.handleSpecialSubjects() method has not been overridden!'
+
+
   def onNewTrial( self, factors ):
     # Should return True if new parameters have been generated, False if not (and should
     # set self.completed = True if returning False because experiment is over).
     raise NotImplementedError, 'The arPyExptTrialGenerator.onNewTrial() method has not been overridden!'
+
+
   def setFactors( self, factors, factorDict ):
     factDict = copy.copy( factorDict )
     for i in range(len(getExpt().__class__.factors)):
@@ -68,28 +75,41 @@ class arPyExptTrialGenerator(szg.arTrialGenerator):
     return True
 
 
+
 # Experiment classes
 class arPyExptTrialPhase(object):
+
   def __init__( self ):
     self.firstTrial = True
+
   def init(self):
     raise NotImplementedError, 'The arPyExptTrialPhase.init() method has not been overridden!'
+
   def update(self):
     raise NotImplementedError, 'The arPyExptTrialPhase.update() method has not been overridden!'
+
   def finish(self):
     pass
+
   def getName(self):
     return self.__class__.__name__
 
+
+
+
 class arPyTimedExptTrialPhase(arPyExptTrialPhase):
   duration = 0. # seconds
+
   def __init__( self ):
     arPyExptTrialPhase.__init__(self)
     self.startTime = 0.
+
   def start(self):
     self.startTime = time.clock()
+
   def time(self):
     return time.clock() - self.startTime
+
   def done(self):
     return time.clock() - self.startTime > self.duration
 
@@ -100,7 +120,7 @@ class arPyExptException(RuntimeError):
 
 _expt = None
 
-class arPyExperiment(szg.arExperiment):
+class arPyExperiment(arExperiment):
   experimentName = ''               # String
   subjectParameters =  {'gender':'string'}
   factors = ()                      # Tuple of (name_string,type_string) tuples.
@@ -115,7 +135,7 @@ class arPyExperiment(szg.arExperiment):
     if _expt is not None:
       raise RuntimeError, 'You can only have one experiment instance at a time, fool!'
     _expt = self
-    szg.arExperiment.__init__(self)
+    arExperiment.__init__(self)
     self.valid = True
     self.responseMessage = ''
     self.trialData = []
@@ -181,7 +201,7 @@ class arPyExperiment(szg.arExperiment):
         raise arPyExptException, 'Failed to initialize experiment.'
       subjectLabel = self.getStringSubjectParameter( 'label' )
       self.trialGenerator.handleSpecialSubjects( subjectLabel )
-      if not szg.arExperiment.start(self):
+      if not arExperiment.start(self):
         raise arPyExptException, 'Failed to start() experiment.'
     except arPyExptException, msg:
       print msg
@@ -309,7 +329,7 @@ def getExpt():
 
 _app = None
 
-class arPyExptApp(szg.arPyMasterSlaveFramework):
+class arPyExptApp(arPyMasterSlaveFramework):
   unitsPerFoot = 2.54*12./100.   # default to meters
   nearClipDistance = .1
   farClipDistance = 20.
@@ -319,7 +339,7 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
     if _app is not None:
       raise RuntimeError, 'You can only have one application instance at a time, fool!'
     _app = self
-    szg.arPyMasterSlaveFramework.__init__(self)
+    arPyMasterSlaveFramework.__init__(self)
     self.imASpy = False
     self.guiProcessID = None
     # Tell the framework what units we're using.
@@ -347,18 +367,18 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
     if szgClient.getAttribute( 'SZG_EXPT', 'im_a_spy' )=='true':
       print 'I AM A SPY!'
       self.imASpy = True
-    return szg.arPyMasterSlaveFramework.onStart( self, szgClient )
+    return arPyMasterSlaveFramework.onStart( self, szgClient )
 
   def onWindowStartGL( self, winInfo ):
-    szg.arPyMasterSlaveFramework.onWindowStartGL( self, winInfo )
+    arPyMasterSlaveFramework.onWindowStartGL( self, winInfo )
     self.viewportSize = (winInfo.getSizeX(),winInfo.getSizeY())
 
   def onWindowEvent( self, winInfo ):
-    szg.arPyMasterSlaveFramework.onWindowEvent( self, winInfo )
+    arPyMasterSlaveFramework.onWindowEvent( self, winInfo )
     self.viewportSize = (winInfo.getSizeX(),winInfo.getSizeY())
 
   def onPreExchange( self ):
-    szg.arPyMasterSlaveFramework.onPreExchange(self)
+    arPyMasterSlaveFramework.onPreExchange(self)
     if hasattr( self, 'experiment' ):
       if self.experiment:
         if not self.experiment.started():
@@ -371,7 +391,7 @@ class arPyExptApp(szg.arPyMasterSlaveFramework):
         self.experiment.update()
 
   def onPostExchange( self ):
-    szg.arPyMasterSlaveFramework.onPostExchange(self)
+    arPyMasterSlaveFramework.onPostExchange(self)
 
   # Draw callback
   def onDraw( self, win, viewport ):

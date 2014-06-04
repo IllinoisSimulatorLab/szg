@@ -27,11 +27,6 @@ SIPFILES = $(INTERFACE_DIR)/math.sip \
 
 SIP_ALL=_szg$(PYSHAREDLIB_SUFFIX) $(INTERFACE_DIR)/szg.py szgopengl$(PYSHAREDLIB_SUFFIX)
 
-ifeq ($(strip $(SWIG_SZGEXPT)),TRUE)
-	include $(SZGEXPT)/build/make/Makefile.szgexpt
-	SIP_ALL+= _szgexpt$(PYSHAREDLIB_SUFFIX) $(INTERFACE_DIR)/szgexpt.py
-endif
-
 sip_all: $(SIP_ALL)
 	$(CP) $(SIP_ALL) $(SZG_BINDIR)
 

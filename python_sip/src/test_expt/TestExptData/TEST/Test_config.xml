@@ -1,0 +1,14 @@
+<experiment_description>
+  <experiment_name>TestExpt</experiment_name>
+  <method>enumerated</method>
+  <subject>TEST</subject>
+  <num_trials>1</num_trials>
+  <comment>Test experiment</comment>
+  <factor_names>dummy</factor_names>
+  <factor_types>ARlong</factor_types>
+</experiment_description>
+  
+<trial_record>
+  <dummy>1</dummy>
+</trial_record>
+
