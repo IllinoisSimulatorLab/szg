@@ -13,7 +13,7 @@ You will also want to look at the chapter on
 [installing supporting libraries SupportingLibraries.html]
 for Syzygy compilation. If you want to write Syzygy
 programs in Python, then you will also need to read about compiling the
-[Python bindings PySZG.html].
+[Python bindings PythonBindings.html].
 
 % Insert automatic table of contents here.
 %%toc

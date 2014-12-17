@@ -8,28 +8,12 @@ Header3
 %%toc
 
 
-=Supported 3D File Formats=
-
-These formats are supported by the [Syzygy Scene Graph SceneGraph.html]:
-- OBJ - Wavefront .obj
-- 3DS - 3D Studio .3ds (versions 3 and 4)
-- HTR - Motion Analysis' .htr
-
-You can also attach OBJ meshes to HTR animation data.
-The commands arReadObjectFromFile() and attachOBJToHTRToNodeInDatabase()
-are defined in "$SZGHOME/obj/arObjectUtilities.h"
-
-Since the routines for reading these files currently depend on text
-formatting conventions, you might need tools like "dos2unix" to port
-htr or obj files from Windows to Unix.
-
-
 =Objects in Master/slave Programs=
 
 The Syzygy object-importing code was originally written to work only using
-the scene graph. This means that while you can use most of these objects in
+the no-longer supported scene graph. This means that while you can use most of these objects in
 master/slave applications via the scene graph owned by each master/slave
-framework, it is a pain in the behind.
+framework, it can be a pain in the behind.
 
 We are gradually factoring the code to allow it to be used more simply
 without using the scene graph. So far only the OBJ-format objects have
@@ -114,48 +98,6 @@ Note that getBoundingSphere() is an expensive operation, so normally you would c
 cache it, and use its ``transform()`` method to apply any constant transformations.
 
 
-=Scene Graph arObjects=
-
-Objects in Syzygy interact directly with the scene graph. To
-use objects in your program, you must either define a scene graph
-or use a framework with one provided.
-
-All Syzygy objects derive from the arObject class, which encapsulates the
-functions needed to animate, name, and get various properties from an
-objects (such as number of Triangles, if it supports animation, etc.). In
-most cases, you shouldn't need to deal with any of arObject's subclasses
-directly.
-
-To read in and attach an arObject to your scenegraph, call
-arReadObjectFromFile():
-```
-  arObject* myObject = arReadObjectFromFile("myFile.ext", "");
-```
-This will return a pointer to an instantiated arObject subclass,
-based on the extension of the file given (.3ds, .obj, etc.).,
-or a NULL pointer if Syzygy failed to read in the file (an error
-message with additional information will also be printed). At
-this point, the object is not yet bound to the scenegraph. (A
-scenegraph doesn't even need to exist yet). You can optionally
-normalize the object's size by transforming it to the origin and forcing
-it to fit in a sphere of radius 1 unit:
-```
-  myObject->normalizeModelSize();
-```
-Once the scenegraph is initialized, you can attach the object to it:
-```
-  theObject->attachMesh("MyObjectName", "parentNode");
-```
-The first argument to attachMesh() is an optional name for the object.
-The second argument is the name of the scenegraph node to which you
-want to attach the object. This will add multiple nodes to the scenegraph
-to accomodate the data in the object in an efficient manner.
-
-That's it! The object is now contained in the scenegraph, and will be
-displayed when the database is drawn. The arObject itself still contains
-information about the node, and in some cases can be used to alter
-corresponding nodes in the database (animation, for example).
-
 
 =Supported Object Formats=
 
@@ -216,20 +158,3 @@ file doesn't display or you see an error message when trying to read in the file
 is probably the reason. Simply convert it to version 3 or 4 (there are several free
 utilities out there), and the new .3ds should load into Syzygy. Basic materials and
 normals are supported.
-
-
-=Attaching OBJ meshes to HTR animations=
-
-Syzygy allows you to easily attach an OBJ mesh to an HTR animation with one command:
-```
-  attachOBJToHTRToNodeInDatabase((arOBJ*)myMesh,(arHTR*)myAnim,"myParent");
-```
-Where "myParent" is the parent node in the database. There are two steps for setup:
-Make sure that the HTR's Base Position is aligned and scaled correctly
-with the OBJ's mesh. Define groups in the OBJ to attach to HTR segments, and make sure each
-corresponding segment and group have the same name. (To export an OBJ with groups from Maya,
-use polygon edit mode and define a Set of faces. Maya's built-in OBJ exporter exports Sets
-as OBJ groups.)
-
-
-

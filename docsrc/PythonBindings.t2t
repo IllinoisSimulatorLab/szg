@@ -65,6 +65,9 @@ various other versions on Linux); and Python 2.4-2.7.
   the Python link library: For example, with Python 2.4 in C:\python24 this would be
   ``C:/Python24/libs/python24.lib`` (also forward slashes).
 
++ Check that the directory containing the sip executable is on your command search path and
+  add its directory if it isn't already there.
+
 + ``cd`` to szg/python_sip and type ``make``. ``make clean`` cleans (deletes) things up.
   A number of files are generated/moved.
 

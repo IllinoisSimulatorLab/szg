@@ -14,17 +14,13 @@ Syzygy programs are based on a framework or application object
 that manages the many tasks of a networked VR application. The
 framework object is responsible for program launching and shutdown.
 It also handles communications, rendering synchronization, graphics, sound, and
-input-event handling.
-This chapter describes the two types of application frameworks provided by Syzygy:
-the master/slave framework and the distributed scene graph framework.
-
-Both types of framework support communication across different computer
+input-event handling. The framework supports communication across different computer
 architectures and operating systems, so you can mix and match computers
 at will in your cluster. For example, a cluster could be composed of both big-endian and
 little-endian machines.
 
-The //master/slave// framework gives the programmer greater flexiblity,
-but the programmer is in charge of
+The only currently-supported application framework is the //master/slave//.
+In this framework the programmer is in charge of
 sharing data between instances of the application so it requires some care to produce an
 application that displays consistently on all cluster render nodes. On the
 In a program based on the ``arMasterSlaveFramework`` class,
@@ -42,41 +38,16 @@ existing applications to cluster-based operation; two of the included
 were easily ported to Syzygy from the GLUT distribution using
 the master/slave framework.
 
-The second type of application is based on the //distributed scene graph//
-framework, the ``arDistSceneGraphFramework`` class. The application programmer
-writes a "controller" program that runs on a single computer. This program
-doesn't do any rendering; instead, it constructs and manipulates a scene
-graph database representation of a virtual scene. A special-purpose
-rendering program called ``szgrender`` runs on each rendering computer; 
-the scene-graph database
-is automatically synchronized between the controller and the szgrenders.
-The distributed scene graph framework provides provably synchronized
-graphics on the render nodes; even without hardware genlocking, the
-buffer-swaps on all rendering computers should happen within less than
-one video-frame duration of one another. However, the application developer
-is limited to the set of primitives supported by the [scene graph API SceneGraph.html].
-Applications that only require objects supported by the scene graph API may be easier
-to construct using this framework, but they are constrained as to content.
-Furthermore, in a distributed
-scene graph application the controller program (i.e. the program that you
-write) is not yoked in any way to the updating of the rendering nodes,
-which may or may not be an issue.
+The master/slave framework class is a subclass of ``arSZGAppFramework``.
 
-NOTE: Ben Schaeffer, the only programmer really familiar with this
-framework, has left the Illinois Simulator Lab. If you have questions about it,
-we may or may not be able to answer them.
-
-Both of these framework classes are subclasses of ``arSZGAppFramework``,
-which contains the common aspects of the two frameworks.
-
-Samples of both programming styles can be found under szg/src/demo.
+Samples can be found under szg/src/demo.
 Please see the [examples ExampleCode.html] chapter of this
 documentation for more information.
 
 
-=Common Features of Both Frameworks=[CommonFeatures]
+=Framework Features=[FrameworkFeatures]
 
-Both frameworks have routines for setting the unit conversion
+The framework has routines for setting the unit conversion
 factors for both rendering and sound production (both default to
 1, i.e. default units are __feet__:
 ```
@@ -154,7 +125,7 @@ Two examples:
 
 ==Input Events==[InputEvents]
 
-The frameworks provide methods for polling the current state
+The framework provides methods for polling the current state
 of the various [input events InputDevices.html]. Input events are distinguished
 by //type// (``button``,``axis``, or ``matrix``) and //index// (a non-negative
 or unsigned integer). By convention,
@@ -183,21 +154,21 @@ arMatrix4 arSZGAppFramework::getMatrix( unsigned int index );
   Returns the value of the named matrix.
   Information about the arMatrix4 object can be found by examining szg/src/math/arMath.h.
 
-Both frameworks are capable of handling unlimited event
-indices, and also have methods for determining the number of event
+The framework is capable of handling unlimited event
+indices, and also has methods for determining the number of event
 indices available:
 ```
 unsigned int arSZGAppFramework::getNumberButtons();
 unsigned int arSZGAppFramework::getNumberAxes();
 unsigned int arSZGAppFramework::getNumberMatrices();
 ```
-Both frameworks provide a pointer to the current input state, which
+The framework provides a pointer to the current input state, which
 is not commonly used but provides more complete access to input state:
 ```
 const arInputState* getInputState();
 ```
 
-Both frameworks support installation of a single-event callback or filter:
+The framework supports installation of a single-event callback or filter:
 ```
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter );
 void arSZGAppFramework::setEventCallback( 
@@ -209,15 +180,13 @@ They're functionally equivalent, the first is just a bit more object-oriented.
 Note that they run in a separate thread from the rest of your application, so
 only use if you're familiar with multi-threaded programming.
 
-Both frameworks support the [Syzygy navigation utilities Navigation.html].
-Although the interface is the same, the way it is used is slightly
-different under the two frameworks, so we'll discuss that below.
+The framework supports the [Syzygy navigation utilities Navigation.html].
 
 
 ==Other Stuff==
 
 Speech (Windows only). If the Microsoft Speech API (SAPI) was present
-during compilation, both frameworks support text-to-speech using the
+during compilation, the framework supports text-to-speech using the
 following method:
 ```
 void arSZGAppFramework::speak( const std::string& message );
@@ -294,7 +263,7 @@ chapter.
 
 =Master/Slave Framework=[MasterSlave]
 
-The master/slave framework is the more flexible of the two. Writing a
+Writing a
 master/slave program is conceptually similar to writing an OpenGL/GLUT
 program: Rendering is done by OpenGL calls that you write, and the
 application framework controls an event loop that calls callback functions
@@ -768,110 +737,4 @@ arMatrix4 arMasterSlaveFramework::getModelviewMatrix()
   Returns the modelview matrix calculated by the framework based on
   screen characteristics, head position, and head orientation.
 ```
-
-
-=Distributed Scene Graph Framework=[SceneGraph]
-
-Syzygy facilitates programming VR applications using the distributed
-scene graph paradigm with the arDistSceneGraphFramework object. This
-object manages connections to the render nodes, sound sources, and input
-devices. The programmer manipulates the scene graph using the API
-outlined in the [Scene Graph SceneGraph.html] chapter. Note
-that there is no need to use the "dgSetGraphicsDatabase" method as that
-detail is handled internally by the framework object.
-As with the arMasterSlaveFramework, the first thing a distributed
-scene graph application should do is initialize its
-arDistSceneGraphFramework object, passing it the command line arguments.
-Note that the app should quit if this method returns false.
-```
-if (!framework.init(argc, argv))
-  return 1;
-```
-
-After the program has successfully called init(), it can perform
-application-specific initializations like populating the database with
-an initial scene.
-
-A distributed scene graph program can operate in two ways. In the
-default way, the framework object itself decides when frames will end,
-so the programmer directly alters the scene graph. This way is best
-when, like in the timetunnel or cubes sample applications, many alterations of roughly
-equal importance occur to the database at each frame. In the other way,
-the programmer explicitly declares when a frame ends. This is useful
-when a few large alterations occur per frame or, generally, when the
-programmer wants full control over the contents of successive frames.
-The methods to control this behavior follow:
-```
-void arDistSceneGraphFramework::setAutoBufferSwap(bool state)
-  Sets whether or not buffer swap is automatic. If "true", then buffer
-  swap occurs automatically. If "false", the buffer swap must be
-  manually triggered.
-void arDistSceneGraphFramework::swapBuffers()
-  Tells the framework to swap buffers.
-```
-
-After application-specific initialization is done, start the
-framework. This launches various services like the built-in sound and
-graphics servers and the connection to an input device. The application
-should quit if start() fails.
-```
-if (!framework.start())
-  return 1;
-```
-
-Now, you are free to conduct your application's business.  Since
-arDistSceneGraphFramework has no event loop, you must explicitly tell it
-when to sample and set head position information from the viewer, as is
-necessary for correct calculation of the viewing frustum and sound
-spatialization. Also, if you are using framework-mediated [navigation Navigation.html], you should call the relevant
-routines &nbsp;at this time:
-```
-void arDistSceneGraphFramework::navUpdate();
-  Polls the input device and updates the navigation matrix appropriately.
-
-void arDistSceneGraphFramework::loadNavMatrix();
-  Updates the navigation matrix in the graphics database.
-
-void arDistSceneGraphFramework::setViewer()
-  Polls the input device and sets the viewing transform accordingly.
-
-void arDistSceneGraphFramework::setPlayer()
-  Polls the input device and sets the play transform accordingly
-  (for spatialized sound).
-
-```
-
-A final note about navigation: if you're using framework-mediated
-navigation with this framework, then you must use the following routine
-to get the name of the navigation matrix node in the [scene graph SceneGraph.html] and attach any nodes (objects,
-matrices, whatever) that you create to it:
-
-```
-string arDistSceneGraphFramework::getNavNodeName();
-```
-
-
-=Advanced Input Event Handling=[AdvancedInput]
-
-```
-void arSZGAppFramework::setEventCallback(
-              bool (*event)( arSZGAppFramework& fw,
-                             arInputEvent& event, 
-                             arCallbackEventFilter& filter )
-              );
-
-NO EQUIVALENT METHOD.
-```
-This one is special, besides the fact that there's no framework method
-equivalent. It's actually called in a separate thread from the rest of
-the callbacks, so use it carefully (and if you don't know anything about
-multi-threaded programming, don't use it at all).
-
-Input events come in continuously and are continuously received and
-buffered by the framework's arInputNode object, then processed all at
-once by the application in either the pre-exchange or event-queue callback.
-However, if you need access to every single event right as it comes in,
-you can use this callback. It's actually called as the arInputNode
-receives each event.
-
 
