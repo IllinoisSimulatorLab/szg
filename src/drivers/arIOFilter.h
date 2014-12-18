@@ -30,12 +30,12 @@ class SZG_CALL arIOFilter {
     void setID( int id ) { _id = id; }
     int getID() const { return _id; }
 
-    virtual void onButtonEvent( arInputEvent& event, unsigned index ) {}
-    virtual void onAxisEvent( arInputEvent& event, unsigned index ) {}
-    virtual void onMatrixEvent( arInputEvent& event, unsigned index ) {}
+    virtual void onButtonEvent( arInputEvent&, unsigned /*index*/ ) {}
+    virtual void onAxisEvent( arInputEvent&, unsigned /*index*/ ) {}
+    virtual void onMatrixEvent( arInputEvent&, unsigned /*index*/ ) {}
 
   protected:
-    virtual bool _processEvent( arInputEvent& /*inputEvent*/ );
+    virtual bool _processEvent( arInputEvent& );
 
   private:
     int _id;
