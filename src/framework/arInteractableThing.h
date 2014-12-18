@@ -38,7 +38,7 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
     virtual void draw( arMasterSlaveFramework* =0 ) {}
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) {}
-  private:
+  protected:
     virtual bool _touch( arEffector& effector );
     virtual bool _processInteraction( arEffector& ) { return true; }
     virtual bool _untouch( arEffector& effector );

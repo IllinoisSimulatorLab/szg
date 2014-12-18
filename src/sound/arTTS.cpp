@@ -38,6 +38,8 @@ void arTTS::_initVoice() {
     ::CoUninitialize();
     return;
   }
+#else
+  cout << "No speech support.\n";  
 #endif  
 }
 
@@ -61,8 +63,11 @@ void arTTS::speak( const std::string& speechText ) {
   (void)speechText; // avoid compiler warning
 #else
   if (!_voice) {
+    cout << "arTTS:speak(): No voice initialized\n";
     return;
   }
+
+  cout << "speak( '" << speechText << "')\n";
 
   int numChars = speechText.size();
   if (numChars > 0) {

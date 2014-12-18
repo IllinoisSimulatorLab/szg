@@ -197,6 +197,48 @@ using namespace std;
 };
 
 
+// vector<float> is implemented as a Python list.
+%MappedType vector<float>
+{
+%TypeHeaderCode
+#include <vector>
+using namespace std;
+%End
+
+%ConvertFromTypeCode
+  // Create the vector.
+  PyObject *l;
+  if ((l = PyList_New(sipCpp->size())) == NULL)
+    return NULL;
+  // Set the vector elements.
+  vector<float>::iterator iter;
+  int i(0);
+  for (iter = sipCpp->begin(); iter != sipCpp->end(); ++iter) {
+    PyList_SET_ITEM(l, i++, PyFloat_FromDouble( static_cast<double>(*iter) ) );
+  }
+  return l;
+%End
+
+%ConvertToTypeCode
+  // Check the type if that is all that is required.
+  if (sipIsErr == NULL) {
+    if (!PyList_Check(sipPy))
+      return 0;
+    for (int i = 0; i < PyList_GET_SIZE(sipPy); ++i)
+      if (!PyInt_Check( PyList_GET_ITEM(sipPy, i) ))
+        return 0;
+    return 1;
+  }
+  vector<float> *qv = new vector<float>;
+  for (int i = 0; i < PyList_GET_SIZE(sipPy); ++i) {
+    qv->push_back( static_cast<float>( PyFloat_AsDouble(PyList_GET_ITEM(sipPy, i)) ) );
+  }
+  *sipCppPtr = qv;
+  return sipGetState(sipTransferObj);
+%End
+};
+
+
 // vector<unsigned> is implemented as a Python list.
 %MappedType vector<unsigned>
 {

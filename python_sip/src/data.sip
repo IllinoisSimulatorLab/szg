@@ -170,6 +170,42 @@ class arStructuredData {
       }
 %End
 
+   vector<long>* getDataLongList( int id ) /TransferBack/;
+%MethodCode
+      long* dataPtr = static_cast<long*>(sipCpp->getDataPtr( a0, AR_LONG ));
+      if (!dataPtr) {
+        PyErr_SetString( PyExc_RuntimeError, "arStructuredData::getDataPtr() failed." );
+        sipIsErr = true;
+      } else {
+        int size = sipCpp->getDataDimension( a0 );
+        sipRes = new vector<long>( dataPtr, dataPtr+size );
+      }
+%End
+
+   vector<float>* getDataFloatList( int id ) /TransferBack/;
+%MethodCode
+      float* dataPtr = static_cast<float*>(sipCpp->getDataPtr( a0, AR_FLOAT ));
+      if (!dataPtr) {
+        PyErr_SetString( PyExc_RuntimeError, "arStructuredData::getDataPtr() failed." );
+        sipIsErr = true;
+      } else {
+        int size = sipCpp->getDataDimension( a0 );
+        sipRes = new vector<float>( dataPtr, dataPtr+size );
+      }
+%End
+
+   vector<double>* getDataDoubleList( int id ) /TransferBack/;
+%MethodCode
+      double* dataPtr = static_cast<double*>(sipCpp->getDataPtr( a0, AR_DOUBLE ));
+      if (!dataPtr) {
+        PyErr_SetString( PyExc_RuntimeError, "arStructuredData::getDataPtr() failed." );
+        sipIsErr = true;
+      } else {
+        int size = sipCpp->getDataDimension( a0 );
+        sipRes = new vector<double>( dataPtr, dataPtr+size );
+      }
+%End
+
    const void* getConstDataPtr(int, arDataType) const;
    int getDataDimension(const int) const;      // called by xxxClient
    bool setDataDimension(int, int); // called by xxxServer

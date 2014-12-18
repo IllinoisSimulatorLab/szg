@@ -362,6 +362,53 @@ class arLight {
 };
 
 
+class arDrawable {
+%TypeHeaderCode
+#include "arDrawable.h"
+%End
+  public:
+    virtual ~arDrawable();
+    virtual void setTexture( arTexture* tex );
+    virtual arTexture* getTexture();
+    virtual void setColor( float r, float g, float b, float a=1. );
+    virtual void setColor( const arVector4& col );
+    virtual void setColor( const arVector3& col );
+    virtual void setAlpha( float a );
+    virtual float getAlpha();
+    virtual arVector4 getColor() const;
+    virtual void setVisible( bool vis );
+    virtual bool getVisible() const;
+    virtual void activateColor() const;
+    virtual bool activateTexture();
+    virtual void deactivateTexture();
+  private:
+  // To prevent SIP from generating a copy constructor...
+      arDrawable( const arDrawable& );
+};
+
+
+class arGluTessObject : arDrawable {
+%TypeHeaderCode
+#include "arGluTessObject.h"
+%End
+  public:
+    arGluTessObject( bool useDisplayList = false );
+    virtual ~arGluTessObject();
+    void setScaleFactors( const arVector3& scales );
+    void setScaleFactors( float x, float y, float z );
+    arVector3 getScaleFactors();
+    void setTextureScales( float sScale, float tScale );
+    void setTextureOffsets( float sOffset, float tOffset );
+    void useDisplayList( bool use );
+    bool buildDisplayList();
+    virtual void draw();
+    void addContour( vector< arVector3 >& newContour );
+  private:
+  // To prevent SIP from generating a copy constructor...
+  arGluTessObject( const arGluTessObject& );
+};
+
+
 void ar_useFramelock( bool yesno );
 void ar_findFramelock();
 void ar_activateFramelock();

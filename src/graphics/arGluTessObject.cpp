@@ -53,6 +53,7 @@ void CALLBACK combineCallback(GLdouble coords[3], GLdouble *data[4],
 
 
 arGluTessObject::arGluTessObject( bool useDisplayList ) :
+  arDrawable(),
   _displayListID(0),
   _useDisplayList(useDisplayList),
   _displayListDirty(true),
@@ -64,6 +65,7 @@ arGluTessObject::arGluTessObject( bool useDisplayList ) :
 }
 
 arGluTessObject::arGluTessObject( const arGluTessObject& x ) :
+  arDrawable(x),
   _displayListID(0),
   _useDisplayList(x._useDisplayList),
   _displayListDirty(true),
@@ -111,6 +113,9 @@ void arGluTessObject::setTextureOffsets( float sOffset, float tOffset ) {
 }
 
 void arGluTessObject::draw() {
+  if (!_visible) {
+      return;
+  }
   glPushMatrix();
   glMultMatrixf( ar_scaleMatrix(_scaleFactors).v );
   glPushMatrix();
