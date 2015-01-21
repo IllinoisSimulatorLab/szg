@@ -20,3 +20,6 @@
 # Python Byte-compiled / optimized / DLL files
 *.py[cod]
 
+# for projects that use SCons for building: http://http://www.scons.org/
+.sconsign.dblite
+
