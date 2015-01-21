@@ -1,0 +1,22 @@
+# Compiled Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+
+# Python Byte-compiled / optimized / DLL files
+*.py[cod]
+
