@@ -9,6 +9,7 @@
 *.so
 *.dylib
 *.dll
+*.def
 
 # Compiled Static libraries
 *.a
@@ -19,6 +20,9 @@
 
 # Python Byte-compiled / optimized / DLL files
 *.py[cod]
+
+# docs (outputs, inputs are .t2t)
+*.html
 
 # for projects that use SCons for building: http://http://www.scons.org/
 .sconsign.dblite
