@@ -16,15 +16,15 @@
 const float eraserRadius = 3. / 12.; // 3 inches
 
 class stroke {
- public:
+public:
   int iColor; // later, material instead of color
   list <arVector3> l;
 
-  void clear()
-    { iColor = -1; l.clear(); }
+  stroke() { clear(); }
+  void clear() { iColor = -1; l.clear(); }
   void append(const arVector3& v);
-  stroke()
-    { clear(); }
+  void save(ofstream& fp) const;
+  bool load(ifstream& fp);
 };
 
 void stroke::append(const arVector3& v)
@@ -58,7 +58,7 @@ void stroke::append(const arVector3& v)
 
 list<stroke> strokes;
 list<stroke> fragments;
-arLock lockDraw; // Guards strokes and fragments.
+arLock lockSculpture; // Guards strokes and fragments, when drawing or changing or loading or saving.
 stroke sCur;
 typedef list <arVector3>::const_iterator citer;
 typedef list <arVector3>::iterator iter;
@@ -272,22 +272,22 @@ bool init(arMasterSlaveFramework&, arSZGClient&){
 }
 
 void scaleLights(float scalar) {
-  if (scalar <= 0.)
+  if (scalar <= 0.0)
     return;
 
   const float slewClamp = 0.96;
-  if (scalar > 1./slewClamp)
-    scalar = 1./slewClamp;
+  if (scalar > 1.0/slewClamp)
+    scalar = 1.0/slewClamp;
   if (scalar < slewClamp)
     scalar = slewClamp;
 
-  static float x = .1;
+  static float x = 0.1;
   x *= scalar;
   if (x >= .99)
     x = .99;
   // printf("%.2f\n", x);
-  float mat_ambient[] = {x*.8, x*.9, x   , 1.0};
-  float mat_diffuse[] = {x   , x*.9, x*.8, 1.0};
+  const float mat_ambient[] = {x*.8, x*.9, x   , 1.0};
+  const float mat_diffuse[] = {x   , x*.9, x*.8, 1.0};
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
 }
@@ -354,6 +354,44 @@ void moveLights() {
   }
 #endif
 
+// Serialize to/from disk.  4-byte int color, then 4-byte int count of points, then the points.
+void stroke::save(ofstream& fp) const
+{
+  ar_log_debug() << "Writing a stroke with " << l.size() << " points.\n";
+  fp.write((const char*)&iColor, sizeof iColor);
+  if (!fp) ar_log_error() << "saved stroke is corrupt.\n";
+  const int c = l.size();
+  fp.write((const char*)&c, sizeof c);
+  if (!fp) ar_log_error() << "saved stroke is corrupt.\n";
+  for (list<arVector3>::const_iterator it = l.begin(); it != l.end(); ++it) {
+    fp.write((const char*)&it->v, sizeof it->v);
+    if (!fp) ar_log_error() << "saved stroke is corrupt.\n";
+  }
+}
+bool stroke::load(ifstream& fp)
+{
+  fp.read((char*)&iColor, sizeof iColor);
+  if (fp.eof()) { ar_log_debug() << "Reached EOF while loading strokes.\n"; return false; }
+  if (!fp) { ar_log_error() << "Error while loading strokes.\n"; return false; }
+  int c;
+  fp.read((char*)&c, sizeof c);
+  if (fp.eof()) { ar_log_debug() << "Reached EOF while loading strokes.\n"; return false; }
+  if (!fp) { ar_log_error() << "Error while loading strokes.\n"; return false; }
+  if (c <= 0)
+    return false;
+  // For sculptures with millions of points, one fread would be faster than this loop.
+  arVector3 v;
+  for (int i=0; i<c; ++i) {
+    assert(sizeof v.v == 3*4); // 3 * sizeof(float)
+    fp.read((char*)&v.v, sizeof v.v);
+    if (fp.eof()) { ar_log_debug() << "Unexpected EOF while loading strokes.\n"; return false; }
+    if (!fp) { ar_log_error() << "Error while loading strokes.\n"; return false; }
+    l.push_back(v);
+  }
+  ar_log_debug() << "Loaded a stroke with " << l.size() << " points.\n";
+  return true;
+}
+
 struct drawStroke : public unary_function<stroke, void>
 {
   void operator()(const stroke& s) { DrawRibbon(s.l, 0.42, 12); }
@@ -364,6 +402,13 @@ struct eraseStroke : public unary_function<stroke, void>
   const arVector3& _v;
   eraseStroke(const arVector3& v) : _v(v) {}
   void operator()(stroke& s) { EraseRibbon(&s, _v); }
+};
+
+struct saveStroke : public unary_function<stroke, void>
+{
+  ofstream& _fp;
+  saveStroke(ofstream& fp) : _fp(fp) {}
+  void operator()(stroke& s) { s.save(_fp); }
 };
 
 // Background, for more brightness and for greater 3Dishness.
@@ -397,62 +442,102 @@ void drawStars()
 void drawSculpture()
 {
   glPushMatrix();
-    // draw previously made strokes
-    // set different material here if you like
-    lockDraw.lock();
-    for_each(strokes.begin(), strokes.end(), drawStroke());
-    lockDraw.unlock();
+    // Draw previously made strokes
+    // Set different material here if you like.
+    lockSculpture.lock();
+      for_each(strokes.begin(), strokes.end(), drawStroke());
+    lockSculpture.unlock();
 
-    // draw stroke in progress (if any)
-    // set different material here if you like
+    // Draw stroke in progress, if any.
+    // Set different material here if you like.
     static drawStroke tmp; tmp(sCur);
-
   glPopMatrix();
 }
 
+const std::string filename =
+#ifdef AR_USE_WIN_32
+  "C:\\szg\\ribbons-sculpture.pickle";
+#else
+  "/tmp/ribbons-sculpture.pickle";
+#endif
+
+void LoadSculpture()
+{
+  ifstream fp("/tmp/ribbons-sculpture.pickle", ios::in | ios::binary);
+  if (!fp.is_open()) {
+    ar_log_remark() << "No sculpture file to load.  Starting with a blank canvas.\n";
+    return;
+  }
+  lockSculpture.lock();
+    // Read the file, one stroke at a time.
+    stroke s;
+    while (s.load(fp)) {
+      ar_log_debug() << "loaded a stroke.\n";
+      strokes.push_back(s);
+      s.clear();
+    }
+  lockSculpture.unlock();
+  fp.close();
+}
+
+void SaveSculpture()
+{
+  ofstream fp("/tmp/ribbons-sculpture.pickle", ios::out | ios::binary);
+  if (!fp.is_open()) {
+    ar_log_error() << "Corrupted sculpture file " + filename + ".\n";
+    return;
+  }
+  lockSculpture.lock();
+    for_each(strokes.begin(), strokes.end(), saveStroke(fp));
+  lockSculpture.unlock();
+  fp.close();
+}
+
+void cleanup(arMasterSlaveFramework&)
+{
+  SaveSculpture();
+}
+
+#if 0
 struct emptyStroke : public unary_function<stroke, void>
 {
   bool operator()(const stroke& s) { return s.l.size() <= 4; }
 };
-
+#endif
 void erase(const arVector3& v)
 {
-  lockDraw.lock();
-  for_each(strokes.begin(), strokes.end(), eraseStroke(v));
-  // Unpatched Visual C++ 6 does not like the following line... even though
-  // it is correct STL. Everything in szg should compile to unpatched
-  // Visual C++ 6, this is a gold standard of compatibility.
-  //strokes.remove_if(emptyStroke());
-  // Here is the equivalent code in long-hand...
-  list<stroke>::iterator strokeIter = strokes.begin();
-  while (strokeIter != strokes.end()){
-    if ( (*strokeIter).l.size() <= 4 ){
-      strokeIter = strokes.erase(strokeIter);
-    }
-    else{
-      strokeIter++;
-    }
-  }
-  // End equivalent code
+  lockSculpture.lock();
+    for_each(strokes.begin(), strokes.end(), eraseStroke(v));
+
 #if 0
-    {
-      printf("\t\tstrokes %d, FRAGMENTS %d\n", strokes.size(), fragments.size());
-
-      list<stroke>::const_iterator i = fragments.begin();
-      for (; i != fragments.end(); ++i) {
-        printf("\t\t\t\t\t\tfragsize %d\n", i->l.size());
-      }
-
-      i = strokes.begin();
-      printf("\t\t\t\t\t\t\tstrokesize ");
-      for (; i != strokes.end(); ++i) {
-        printf("%d ", i->l.size());
-      }
-      printf("\n");
+    // Unpatched Visual C++ 6 rejects this correct STL.
+    // Syzygy should compile to unpatched Visual C++ 6, a gold standard of compatibility.
+    strokes.remove_if(emptyStroke());
+#else
+    // The equivalent, in long-hand.
+    for (list<stroke>::iterator it = strokes.begin(); it != strokes.end(); ) {
+      if ( (*it).l.size() <= 4 )
+        it = strokes.erase(it);
+      else
+        ++it;
     }
 #endif
-  strokes.splice(strokes.begin(), fragments);
-  lockDraw.unlock();
+
+#ifdef VERBOSE
+      {
+        printf("\t\tstrokes %lu, fragments %lu\n", strokes.size(), fragments.size());
+        list<stroke>::const_iterator i;
+        for (i = fragments.begin(); i != strokes.end(); ++i)
+        for (; i != fragments.end(); ++i)
+          printf("\t\t\t\t\t\tfragsize %lu\n", i->l.size());
+        printf("\t\t\t\t\t\t\tstrokesize ");
+        for (i = strokes.begin(); i != strokes.end(); ++i)
+          printf("%lu ", i->l.size());
+        printf("\n");
+      }
+#endif
+    strokes.splice(strokes.begin(), fragments);
+  lockSculpture.unlock();
 }
 
 static enum { cursorDefault, cursorDraw, cursorErase } cursor;
@@ -527,9 +612,9 @@ void update(const int* fDown, const arVector3& wand)
   if (fDraw)
     sCur.append(wand);
   if (fDrawEnd) {
-    lockDraw.lock();
+    lockSculpture.lock();
       strokes.push_back(sCur);
-    lockDraw.unlock();
+    lockSculpture.unlock();
     sCur.clear();
     cursor = cursorDefault;
     fDraw = false;
@@ -556,7 +641,7 @@ void postExchange(arMasterSlaveFramework& fw) {
   update(wandButton, fw.getMatrix(1) * arVector3(0,0,-1));
 }
 
-// Count how many nonblack pixels of each brightness.
+// Count nonblack pixels of each brightness.
 const int bins = 90;
 int histogram[bins];
 int cNonblack = 0;
@@ -646,11 +731,10 @@ float parse(GLfloat* buf, GLint size) {
 #define USING_FEEDBACK
 #ifdef USING_FEEDBACK
 const int feedMax = 10000000; //;;overflow
-GLfloat* feedBuffer = NULL;
+GLfloat feedBuffer[feedMax];
 #endif
 
 void display(arMasterSlaveFramework& fw) {
-
   moveLights();
 
   // sculpture
@@ -661,8 +745,7 @@ void display(arMasterSlaveFramework& fw) {
   drawSculpture();
   const int size = glRenderMode(GL_RENDER);
   const float scalar = parse(feedBuffer, size);
-  if (scalar > 0.)
-    scaleLights(scalar);
+  scaleLights(scalar);
 #endif
   drawSculpture();
 
@@ -671,20 +754,15 @@ void display(arMasterSlaveFramework& fw) {
 
   // wand
   drawCursor(fw.getMatrix(1) * arVector3(0,0,-1));
-
-  // framework
-  // DEPRECATED in this use, re-purposed by arGUI
-  // fw.draw();
 }
 
 int main(int argc, char** argv){
-#ifdef USING_FEEDBACK
-  feedBuffer = new GLfloat[feedMax];
-#endif
   arMasterSlaveFramework fw;
   fw.setWindowStartGLCallback(initGL);
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);
+  fw.setExitCallback(cleanup);
+  LoadSculpture();
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
