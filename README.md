@@ -6,7 +6,7 @@ A Cross-Platform, Distributed Operating System for PC-Cluster-Based Virtual Real
 
 
 Syzygy is a programming toolkit for writing virtual reality or other
-graphical applications. It's been around for about 15 years and is
+graphical applications using OpenGL. It's been around for about 15 years and is
 currently in use at [ISL](http://www.isl.uiuc.edu/), although we are
 not adding new features at this point.
 
