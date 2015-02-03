@@ -32,5 +32,5 @@ string ar_versionInfo(bool fVerbose) {
   if (__git_revinfo == "REPLACE_THIS") {
     __git_revinfo = __default_revinfo;
   }
-  return fVerbose ? "Version info:\n" + __git_revinfo + "\n" : __git_revinfo;
+  return fVerbose ? "Most recent Git commit:\n" + __git_revinfo + "\n" : __git_revinfo;
 }
