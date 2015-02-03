@@ -23,7 +23,7 @@ def getGitVersion():
         versionString = versionString[0]
     return versionString
 
-START_MARKER = 'static string __bzr_revinfo("'
+START_MARKER = 'static string __git_revinfo("'
 END_MARKER = '");'
 
 def makeFile( srcDir, versionString ):
@@ -39,7 +39,7 @@ def makeFile( srcDir, versionString ):
                 i2 = s.find( END_MARKER, i1 )
                 stringThere = s[i1:i2]
                 if stringThere == versionString:
-                    print 'Current bzr version info already present, leaving arVersion.cpp unchanged'
+                    print 'Current git version info already present, leaving arVersion.cpp unchanged'
                     return
         tFile = file( templatePath, 'r' )
         outFile = file( outfilePath, 'w' )

@@ -26,11 +26,11 @@ string ar_versionString(bool fVerbose) {
 
 static const string __default_revinfo =
 "Please install Python <http://python.org/> and bazaar <http://bazaar-vcs.org> and rebuild Syzygy.\n";
-static string __bzr_revinfo("REPLACE_THIS");
+static string __git_revinfo("REPLACE_THIS");
 
 string ar_versionInfo(bool fVerbose) {
-  if (__bzr_revinfo == "REPLACE_THIS") {
-    __bzr_revinfo = __default_revinfo;
+  if (__git_revinfo == "REPLACE_THIS") {
+    __git_revinfo = __default_revinfo;
   }
-  return fVerbose ? "Version info:\n" + __bzr_revinfo + "\n" : __bzr_revinfo;
+  return fVerbose ? "Version info:\n" + __git_revinfo + "\n" : __git_revinfo;
 }
