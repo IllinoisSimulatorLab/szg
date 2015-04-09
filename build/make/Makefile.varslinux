@@ -54,7 +54,7 @@ LINK_FLAGS_SHARED = -shared -o
 LINK_FLAGS_PLUGIN = -shared -o
 GENERAL_LIBS = -ldl -lpthread -lm
 # GLUT appears in Makefile.libscan, to allow for alternatives.
-GRAPHICS_LIBS := -lGLU
+GRAPHICS_LIBS := -lGLU -lGL
 ifeq ($(strip $(HACK64)),FALSE)
   # On 64bit ubuntu 8.x, sudo ln -s /usr/lib/libGL.so.1 /usr/lib/libGL.so
   GRAPHICS_LIBS += -lGL
