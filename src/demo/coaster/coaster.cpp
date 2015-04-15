@@ -556,7 +556,6 @@ void SetCamera(void)
             dx[l], dy[l], dz[l]);
 }
 
-
 void myinit(void) {
   glShadeModel(GL_SMOOTH);
   glFrontFace(GL_CCW);
@@ -625,7 +624,8 @@ void parsekey(unsigned char key, int, int)
 bool start(arMasterSlaveFramework& fw, arSZGClient& cli){
   dataPath = cli.getAttribute("SZG_DATA","path");
   if (dataPath == "NULL"){
-    ar_log_warning() << "SZG_DATA/path undefined.\n";
+    // File coaster_rc.def won't be found, so abort.
+    ar_log_error() << "SZG_DATA/path undefined.\n"; // if start callback fails, it's an error not just a warning
     return false;
   }
 
@@ -647,14 +647,16 @@ bool start(arMasterSlaveFramework& fw, arSZGClient& cli){
   return true;
 }
 
-static int lastB0 = 0;
 void preExchange(arMasterSlaveFramework& fw){
   if (gUseNavigation)
     fw.navUpdate();
-  int b0 = fw.getButton(0);
-  if (b0 && !lastB0)
-    gUseNavigation = !gUseNavigation;
-  lastB0 = b0;
+  {
+    static int lastB0 = 0;
+    int b0 = fw.getButton(0);
+    if (b0 && !lastB0)
+      gUseNavigation = !gUseNavigation;
+    lastB0 = b0;
+  }
   int l1 = int(plaatje);
   speed += (y[l1] - y[l1+4])*0.25;
 
@@ -697,13 +699,13 @@ void draw(arMasterSlaveFramework& fw){
 }
 
 int main(int argc, char** argv){
-  arMasterSlaveFramework framework;
-  framework.setStartCallback(start);
-  framework.setWindowStartGLCallback(initGL);
-  framework.setPreExchangeCallback(preExchange);
-  framework.setPostExchangeCallback(postExchange);
-  framework.setDrawCallback(draw);
-  framework.setClipPlanes(nearClipDistance, farClipDistance);
-  framework.setUnitConversion(FEET_TO_COASTER_UNITS);
-  return framework.init(argc, argv) && framework.start() ? 0 : 1;
+  arMasterSlaveFramework fw;
+  fw.setStartCallback(start);
+  fw.setWindowStartGLCallback(initGL);
+  fw.setPreExchangeCallback(preExchange);
+  fw.setPostExchangeCallback(postExchange);
+  fw.setDrawCallback(draw);
+  fw.setClipPlanes(nearClipDistance, farClipDistance);
+  fw.setUnitConversion(FEET_TO_COASTER_UNITS);
+  return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
