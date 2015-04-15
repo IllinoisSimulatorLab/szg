@@ -749,6 +749,30 @@ int arGUIWindow::_windowCreation( void )
 
   if ( !glXQueryExtension( _windowHandle._dpy, NULL, NULL ) ) {
     ar_log_error() << "_windowCreation: OpenGL GLX extensions not supported.\n";
+    /*
+    If this happens in Ubuntu 14, /var/log/Xorg.0.log may report:
+        NVIDIA(0): Failed to initialize the GLX module; please check in your X
+        NVIDIA(0):     log file that the GLX module has been loaded in your X
+        NVIDIA(0):     server, and that the module is the NVIDIA GLX module.
+    The commands nvidia-settings or glxinfo may confirm that.
+    Possible fixes:
+
+    1. In /etc/X11/xorg.conf add something like
+	Section "Module"
+	  Load "/usr/lib/xorg/modules/extensions/libglx.so"
+	EndSection
+	Section "Extensions"
+	  Option "GLX" "Enable"
+	  Option "NV-GLX" "Disable"
+	EndSection
+
+    2. Replace /usr/lib/xorg/modules/extensions/libglx.so (Ubuntu's default GLX driver)
+    with Nvidia's driver:
+        cd /usr/lib/xorg/modules/extensions
+	mv libglx.so libglx-default-disabled.so
+	ln -s libglx.so.346.35 libglx.so
+	reboot
+    */
     return -1;
   }
 
