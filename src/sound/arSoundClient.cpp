@@ -472,7 +472,7 @@ bool arSoundClient::microphoneVolume(int volume) {
 
 bool arSoundClient::_initSound() {
 #ifndef EnableSound
-  ar_log_error() << "silent, compiled with stub FMOD.\n";
+  ar_log_error() << "silent, compiled without FMOD (e.g., $(SZGEXTERNAL)/*/fmod-4).\n";
   return false;
 
 #else

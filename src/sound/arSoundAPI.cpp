@@ -123,7 +123,7 @@ bool dsLoop(int ID, const string& name, int fLoop, float ampl,
       !data->dataIn(__lang.AR_FILEWAV_LOOP, &fLoop, AR_INT, 1) ||
       !data->dataIn(__lang.AR_FILEWAV_AMPL, &ampl, AR_FLOAT, 1) ||
       !data->dataIn(__lang.AR_FILEWAV_XYZ, xyz, AR_FLOAT, 3)) {
-    cerr << "syzygy arSoundAPI error: dsLoop dataIn failed.\n";
+    ar_log_error() << "arSoundAPI dsLoop dataIn failed.\n";
     return false;
   }
   return __database->alter(data);

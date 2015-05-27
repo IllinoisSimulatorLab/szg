@@ -50,12 +50,13 @@ void initDatabase() {
 }
 
 void changeDatabase() {
-  float xyz[3] = { drand48()-.5, drand48()-.5, drand48()-.5 };
+  const float xyz[3] = { float(drand48()-.5), float(drand48()-.5), float(drand48()-.5) };
   static int trigger = 0;
   ++trigger;
-  dsLoop(fooID, "parade.wav", (trigger%20)?0:-1, .8, xyz);
-  dsLoop(barID, "q33move.mp3", 1, 0.2, xyz);
-  dsLoop(zipID, "q33collision.wav", (trigger%6)?0:-1, .8, xyz);
+  ar_log_debug() << "SoundTest changing sounds.\n";
+  (void)dsLoop(fooID, "parade.wav", (trigger%20)?0:-1, .8, xyz);
+  (void)dsLoop(barID, "q33move.mp3", 1, 0.2, xyz);
+  (void)dsLoop(zipID, "q33collision.wav", (trigger%6)?0:-1, .8, xyz);
   dsSpeak(speechID, "I can talk." );
 }
 
@@ -78,11 +79,13 @@ int main(int argc, char** argv) {
   }
 
   arThread dummy(ar_messageTask, &szgClient);
+  ar_log_remark() << "SoundTest playing sounds.\n";
   initDatabase();
   while (szgClient.running()) {
     ar_usleep(5000000);
     changeDatabase();
   }
+  ar_log_remark() << "SoundTest exiting.\n";
   szgClient.messageTaskStop();
   return 0;
 }

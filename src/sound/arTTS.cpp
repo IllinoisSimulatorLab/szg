@@ -23,7 +23,9 @@ void arTTS::init() {
 }
 
 void arTTS::_initVoice() {
-#ifdef EnableSpeech
+#ifndef EnableSpeech
+  ar_log_warning() << "compiled without text-to-speech support (see $SZGEXTERNAL/win32/sapi-5.1).\n";
+#else
   _voice = NULL;
   if (FAILED(::CoInitialize(NULL))) {
     ar_log_error() << "arTTS failed to CoInitialize().\n";
@@ -32,14 +34,11 @@ void arTTS::_initVoice() {
   const HRESULT hr =
     CoCreateInstance( CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&_voice );
   if ( !SUCCEEDED( hr ) ) {
-    ar_log_error() <<
-      "arTTS failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
+    ar_log_error() << "arTTS failed to CoCreateInstance(). Is Microsoft Speech SDK installed?\n";
     _voice = NULL;
     ::CoUninitialize();
     return;
   }
-#else
-  cout << "No speech support.\n";  
 #endif  
 }
 
@@ -63,11 +62,11 @@ void arTTS::speak( const std::string& speechText ) {
   (void)speechText; // avoid compiler warning
 #else
   if (!_voice) {
-    cout << "arTTS:speak(): No voice initialized\n";
+    ar_log_error() << "arTTS:speak(): No voice initialized.\n";
     return;
   }
 
-  cout << "speak( '" << speechText << "')\n";
+  ar_log_remark() << "speak( '" << speechText << "')\n";
 
   int numChars = speechText.size();
   if (numChars > 0) {
