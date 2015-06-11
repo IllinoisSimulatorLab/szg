@@ -3,7 +3,7 @@ import sys
 
 Import('szgEnv','externalFlags')
 
-extPath = os.environ['SZGEXTERNAL'].replace('\\','/')+'/linux/'
+extPath = os.environ.get('SZGEXTERNAL','').replace('\\','/')+'/linux/'
 
 # parameters specific to this library
 name = 'jpeg'
