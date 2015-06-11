@@ -8,6 +8,10 @@
 # Source code built by make_arVersion.py
 src/language/arVersion.cpp
 
+# sip-generated files
+sip*.h
+sip*.cpp
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
