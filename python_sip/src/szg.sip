@@ -1,6 +1,6 @@
 %Module _szg 0
 
-%Feature EXPT
+//%Feature EXPT
 
 %ModuleHeaderCode
 //#include "Python.h"
@@ -34,6 +34,6 @@ typedef int Py_ssize_t;
 %Include interact.sip
 %Include frameworks.sip
 
-%If (EXPT)
-%Include szgexpt.sip
-%End
+//%If (EXPT)
+//%Include szgexpt.sip
+//%End

@@ -95,7 +95,7 @@ public:
       sipIsErr = 1;
     } else {
       // may be unnecessary.
-      int len = PyString_Size( a0 );
+      Py_ssize_t len = PyString_Size( a0 );
       char* bufPtr;
       if (PyString_AsStringAndSize( a0, &bufPtr, &len )==-1) {
         sipIsErr = 1;
@@ -194,7 +194,7 @@ public:
       sipIsErr = 1;
     } else {
       // may be unnecessary.
-      int len = PyString_Size( a1 );
+      Py_ssize_t len = PyString_Size( a1 );
       char* bufPtr;
       if (PyString_AsStringAndSize( a1, &bufPtr, &len )==-1) {
         sipIsErr = 1;
