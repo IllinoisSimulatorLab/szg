@@ -24,5 +24,8 @@ systems.
 The Syzygy libraries themselves are written in C++. Syzygy applications
 can be written in either C++ or Python.
 
+(As the world prepares for Git 2.0, ISL has adopted the new push.default behavior:
+"git config --global push.default simple".)
+
 For more information, see [the ISL software page](http://syzygy.isl.uiuc.edu/).
 
