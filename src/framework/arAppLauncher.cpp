@@ -248,7 +248,9 @@ bool arAppLauncher::setParameters() {
   const string soundLocation(_getAttribute("SZG_SOUND", "map", ""));
   if (soundLocation != "NULL") {
     _addService(soundLocation, "SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
-  }
+  } else {
+    ar_log_warning() << "SZG_SOUND/map not set for virtual computer '" << _vircomp << "'.\n:";
+  }      
 
   _vircompDefined = true;
   return true;
