@@ -414,6 +414,10 @@ bool arSoundClient::startDSP() {
   // (Mic comes from setRecordDriver and windows' audio control panel.)
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
     ar_log_error() << "failed to start recording.\n";
+    // If you get the error "fmod: A call to a standard soundcard driver failed,"
+    // you may need to actually plug in a microphone.
+    // Also ensure that your dbatch file enables sound.
+
     // Don't abort.  Let the DSP start.
   }
 #endif
