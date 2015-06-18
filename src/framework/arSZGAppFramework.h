@@ -90,6 +90,9 @@ class SZG_CALL arSZGAppFramework {
     arMatrix4 getMatrix( const unsigned, bool doUnitConversion=true ) const;
     bool getOnButton( const unsigned ) const;
     bool getOffButton( const unsigned ) const;
+    // getNumberXXXs() are currently meaningful only on the master, not on slaves.
+    // Todo: propagate signature from master to slaves, so e.g. utilities/vrtest.cpp
+    // needn't do so manually through preExchange and postExchange.
     unsigned getNumberButtons()  const;
     unsigned getNumberAxes()     const;
     unsigned getNumberMatrices() const;
