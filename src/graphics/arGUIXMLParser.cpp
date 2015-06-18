@@ -1,9 +1,3 @@
-//@+leo-ver=4-thin
-//@+node:jimc.20100409112755.216:@thin graphics\arGUIXMLParser.cpp
-//@@language c++
-//@@tabwidth -4
-//@+others
-//@+node:jimc.20100409112755.217:arGUIXMLParser declarations
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for detils
@@ -25,7 +19,6 @@
 #include "arViewport.h"
 #include "arSTLalgo.h"
 
-
 class arGUIXMLValidator {
   public:
     arGUIXMLValidator( const string& name ) : _nodeTypeName(name) {}
@@ -45,23 +38,17 @@ class arGUIXMLValidator {
     vector< string > _childrenVec;
 };
 
-//@-node:jimc.20100409112755.217:arGUIXMLParser declarations
-//@+node:jimc.20100409112755.218:arGUIXMLValidator::addAttributes
 void arGUIXMLValidator::addAttributes( const arSlashString& attribsStr ) {
   for (int i=0; i<attribsStr.size(); ++i) {
     _attribsVec.push_back( attribsStr[i] );
   }
 }
-//@-node:jimc.20100409112755.218:arGUIXMLValidator::addAttributes
-//@+node:jimc.20100409112755.219:arGUIXMLValidator::addChildren
 
 void arGUIXMLValidator::addChildren( const arSlashString& childrenStr ) {
   for (int i=0; i<childrenStr.size(); ++i) {
     _childrenVec.push_back( childrenStr[i] );
   }
 }
-//@-node:jimc.20100409112755.219:arGUIXMLValidator::addChildren
-//@+node:jimc.20100409112755.220:arGUIXMLValidator::operator
 
 bool arGUIXMLValidator::operator()( TiXmlNode* node ) {
   if (!node) {
@@ -71,8 +58,6 @@ bool arGUIXMLValidator::operator()( TiXmlNode* node ) {
   return _validateNodeAttributes( node ) && 
     _validateNodeChildren( node );
 }
-//@-node:jimc.20100409112755.220:arGUIXMLValidator::operator
-//@+node:jimc.20100409112755.221:arGUIXMLValidator::_validateNodeAttributes
 
 bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
   bool ok = true;
@@ -92,8 +77,6 @@ bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
   }
   return ok;
 }
-//@-node:jimc.20100409112755.221:arGUIXMLValidator::_validateNodeAttributes
-//@+node:jimc.20100409112755.222:arGUIXMLValidator::_validateNodeChildren
 
 bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
   bool ok = true;
@@ -113,8 +96,6 @@ bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
   }
   return ok;
 }
-//@-node:jimc.20100409112755.222:arGUIXMLValidator::_validateNodeChildren
-//@+node:jimc.20100409112755.223:arGUIXMLDisplayValidator::arGUIXMLDisplayValidator
 
 class arGUIXMLDisplayValidator: public arGUIXMLValidator {
   public:
@@ -125,9 +106,6 @@ arGUIXMLDisplayValidator::arGUIXMLDisplayValidator() :
   addAttributes( "threaded/framelock/extra_stereo_bufferswap" );
   addChildren( "szg_window" );
 }
-//@-node:jimc.20100409112755.223:arGUIXMLDisplayValidator::arGUIXMLDisplayValidator
-//@+node:jimc.20100409112755.224:arGUIXMLWindowValidator::arGUIXMLWindowValidator
-
 
 class arGUIXMLWindowValidator: public arGUIXMLValidator {
   public:
@@ -138,9 +116,6 @@ arGUIXMLWindowValidator::arGUIXMLWindowValidator() :
   addAttributes( "usenamed" );
   addChildren( "size/position/fullscreen/decorate/stereo/zorder/bpp/title/xdisplay/cursor/szg_viewport_list" );
 }
-//@-node:jimc.20100409112755.224:arGUIXMLWindowValidator::arGUIXMLWindowValidator
-//@+node:jimc.20100409112755.225:arGUIXMLViewportListValidator::arGUIXMLViewportListValidator
-
 
 class arGUIXMLViewportListValidator: public arGUIXMLValidator {
   public:
@@ -150,9 +125,6 @@ arGUIXMLViewportListValidator::arGUIXMLViewportListValidator() :
   arGUIXMLValidator("viewportlist") {
   addAttributes( "usenamed/viewmode" );
 }
-//@-node:jimc.20100409112755.225:arGUIXMLViewportListValidator::arGUIXMLViewportListValidator
-//@+node:jimc.20100409112755.226:arGUIXMLViewportValidator::arGUIXMLViewportValidator
-
 
 class arGUIXMLViewportValidator: public arGUIXMLValidator {
   public:
@@ -163,9 +135,6 @@ arGUIXMLViewportValidator::arGUIXMLViewportValidator() :
   addAttributes( "usenamed" );
   addChildren( "szg_camera/coords/depthclear/colormask/eyesign/ogldrawbuf/colorclear" );
 }
-//@-node:jimc.20100409112755.226:arGUIXMLViewportValidator::arGUIXMLViewportValidator
-//@+node:jimc.20100409112755.227:arGUIXMLScreenValidator::arGUIXMLScreenValidator
-
 
 class arGUIXMLScreenValidator: public arGUIXMLValidator {
   public:
@@ -176,9 +145,6 @@ arGUIXMLScreenValidator::arGUIXMLScreenValidator() :
   addAttributes( "usenamed" );
   addChildren( "center/normal/up/dim/headmounted/tile/usefixedhead/fixedheadpos/fixedheadupangle" );
 }
-//@-node:jimc.20100409112755.227:arGUIXMLScreenValidator::arGUIXMLScreenValidator
-//@+node:jimc.20100409112755.228:arGUIXMLCameraValidator::arGUIXMLCameraValidator
-
 
 class arGUIXMLCameraValidator: public arGUIXMLValidator {
   public:
@@ -189,9 +155,6 @@ arGUIXMLCameraValidator::arGUIXMLCameraValidator() :
   addAttributes( "usenamed/type" );
   addChildren( "szg_screen" );
 }
-//@-node:jimc.20100409112755.228:arGUIXMLCameraValidator::arGUIXMLCameraValidator
-//@+node:jimc.20100409112755.229:arGUIXMLFrustumCameraValidator::arGUIXMLFrustumCameraValidator
-
 
 class arGUIXMLFrustumCameraValidator: public arGUIXMLValidator {
   public:
@@ -201,9 +164,6 @@ arGUIXMLFrustumCameraValidator::arGUIXMLFrustumCameraValidator() :
   arGUIXMLValidator("frustum") {
   addAttributes( "left/right/bottom/top/near/far" );
 }
-//@-node:jimc.20100409112755.229:arGUIXMLFrustumCameraValidator::arGUIXMLFrustumCameraValidator
-//@+node:jimc.20100409112755.230:arGUIXMLLookatCameraValidator::arGUIXMLLookatCameraValidator
-
 
 class arGUIXMLLookatCameraValidator: public arGUIXMLValidator {
   public:
@@ -213,8 +173,6 @@ arGUIXMLLookatCameraValidator::arGUIXMLLookatCameraValidator() :
   arGUIXMLValidator("lookat") {
   addAttributes( "viewx/viewy/viewz/lookatx/lookaty/lookatz/upx/upy/upz" );
 }
-//@-node:jimc.20100409112755.230:arGUIXMLLookatCameraValidator::arGUIXMLLookatCameraValidator
-//@+node:jimc.20100409112755.231:arGUIXMLVector2Validator::arGUIXMLVector2Validator
 
 class arGUIXMLVector2Validator: public arGUIXMLValidator {
   public:
@@ -229,9 +187,6 @@ arGUIXMLVector2Validator::arGUIXMLVector2Validator(
   arGUIXMLValidator(name) {
   addAttributes( x+"/"+y );
 }
-//@-node:jimc.20100409112755.231:arGUIXMLVector2Validator::arGUIXMLVector2Validator
-//@+node:jimc.20100409112755.232:arGUIXMLVector3Validator::arGUIXMLVector3Validator
-
 
 class arGUIXMLVector3Validator: public arGUIXMLValidator {
   public:
@@ -248,9 +203,6 @@ arGUIXMLVector3Validator::arGUIXMLVector3Validator(
   arGUIXMLValidator(name) {
   addAttributes( x+"/"+y+"/"+z );
 }
-//@-node:jimc.20100409112755.232:arGUIXMLVector3Validator::arGUIXMLVector3Validator
-//@+node:jimc.20100409112755.233:arGUIXMLVector4Validator::arGUIXMLVector4Validator
-
 
 class arGUIXMLVector4Validator: public arGUIXMLValidator {
   public:
@@ -269,9 +221,6 @@ arGUIXMLVector4Validator::arGUIXMLVector4Validator(
   arGUIXMLValidator(name) {
   addAttributes( x+"/"+y+"/"+z+"/"+w );
 }
-//@-node:jimc.20100409112755.233:arGUIXMLVector4Validator::arGUIXMLVector4Validator
-//@+node:jimc.20100409112755.234:arGUIXMLValueValidator::arGUIXMLValueValidator
-
 
 class arGUIXMLValueValidator: public arGUIXMLValidator {
   public:
@@ -281,9 +230,6 @@ arGUIXMLValueValidator::arGUIXMLValueValidator( const string& name ) :
   arGUIXMLValidator(name) {
   addAttributes( "value" );
 }
-//@-node:jimc.20100409112755.234:arGUIXMLValueValidator::arGUIXMLValueValidator
-//@+node:jimc.20100409112755.235:arGUIXMLAttributeValueValidator::arGUIXMLAttributeValueValidator
-
 
 class arGUIXMLAttributeValueValidator {
   public:
@@ -300,15 +246,13 @@ arGUIXMLAttributeValueValidator::arGUIXMLAttributeValueValidator(
   _nodeName( nodeName ) {
     addValues( valuesStr );
   }
-//@-node:jimc.20100409112755.235:arGUIXMLAttributeValueValidator::arGUIXMLAttributeValueValidator
-//@+node:jimc.20100409112755.236:arGUIXMLAttributeValueValidator::addValues
+
 void arGUIXMLAttributeValueValidator::addValues( const arSlashString& valuesStr ) {
   for (int i=0; i<valuesStr.size(); ++i) {
     _valuesVec.push_back( valuesStr[i] );
   }
 }
-//@-node:jimc.20100409112755.236:arGUIXMLAttributeValueValidator::addValues
-//@+node:jimc.20100409112755.237:arGUIXMLAttributeValueValidator::operator
+
 bool arGUIXMLAttributeValueValidator::operator()( const string& valueStr ) {
   if (find( _valuesVec.begin(), _valuesVec.end(), valueStr ) != _valuesVec.end())
     return true;
@@ -323,8 +267,6 @@ bool arGUIXMLAttributeValueValidator::operator()( const string& valueStr ) {
   ar_log_error() << ar_endl;
   return false;
 }
-//@-node:jimc.20100409112755.237:arGUIXMLAttributeValueValidator::operator
-//@+node:jimc.20100409112755.238:arGUIXMLWindowConstruct::arGUIXMLWindowConstruct
 
 arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfig,
                                                   arGraphicsWindow* graphicsWindow,
@@ -334,8 +276,6 @@ arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfi
   _guiDrawCallback( guiDrawCallback )
 {
 }
-//@-node:jimc.20100409112755.238:arGUIXMLWindowConstruct::arGUIXMLWindowConstruct
-//@+node:jimc.20100409112755.239:arGUIXMLWindowConstruct
 
 arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
 {
@@ -344,8 +284,6 @@ arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
   delete _graphicsWindow;
   delete _windowConfig;
 }
-//@-node:jimc.20100409112755.239:arGUIXMLWindowConstruct
-//@+node:jimc.20100409112755.240:arGUIWindowingConstruct::arGUIWindowingConstruct
 
 arGUIWindowingConstruct::arGUIWindowingConstruct( int threaded, int useFramelock,
                                                   int useExtraBufSwap,
@@ -356,14 +294,10 @@ arGUIWindowingConstruct::arGUIWindowingConstruct( int threaded, int useFramelock
   _windowConstructs( windowConstructs )
 {
 }
-//@-node:jimc.20100409112755.240:arGUIWindowingConstruct::arGUIWindowingConstruct
-//@+node:jimc.20100409112755.241:arGUIWindowingConstruct
 
 arGUIWindowingConstruct::~arGUIWindowingConstruct( void )
 {
 }
-//@-node:jimc.20100409112755.241:arGUIWindowingConstruct
-//@+node:jimc.20100409112755.242:arGUIXMLParser::arGUIXMLParser
 
 arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
                                 const string& displayName ) :
@@ -373,15 +307,11 @@ arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
   setDisplayName( displayName );
   _windowingConstruct = new arGUIWindowingConstruct();
 }
-//@-node:jimc.20100409112755.242:arGUIXMLParser::arGUIXMLParser
-//@+node:jimc.20100409112755.243:arGUIXMLParser
 
 arGUIXMLParser::~arGUIXMLParser( void )
 {
   _doc.Clear();
 }
-//@-node:jimc.20100409112755.243:arGUIXMLParser
-//@+node:jimc.20100409112755.244:arGUIXMLParser::setDisplayName
 
 void arGUIXMLParser::setDisplayName( const string& displayName )
 {
@@ -406,8 +336,6 @@ void arGUIXMLParser::setDisplayName( const string& displayName )
   if (_doc.Error())
     _reportParseError( &_doc, _displayName );
 }
-//@-node:jimc.20100409112755.244:arGUIXMLParser::setDisplayName
-//@+node:jimc.20100409112755.245:arGUIXMLParser::_getNamedNode
 
 #if 0
 int arGUIXMLParser::numberOfWindows( void )
@@ -469,8 +397,6 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const string& nodeTy
 
   return nodeDoc->FirstChild();
 }
-//@-node:jimc.20100409112755.245:arGUIXMLParser::_getNamedNode
-//@+node:jimc.20100409112755.246:arGUIXMLParser::_reportParseError
 
 void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const string& nodeDesc ) {
   unsigned rowNum = nodeDoc->ErrorRow()-1;
@@ -497,8 +423,6 @@ void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const string& no
   ar_log_debug() << "Somewhere in the following XML:\n\t" << nodeDesc << ar_endl;
   // The parser poorly localizes errors.
 }
-//@-node:jimc.20100409112755.246:arGUIXMLParser::_reportParseError
-//@+node:jimc.20100409112755.247:arGUIXMLParser::_attributearVector3
 
 arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
                                                const string& name,
@@ -517,8 +441,6 @@ arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
   node->ToElement()->Attribute( z.c_str(), &vec[ 2 ] );
   return vec;
 }
-//@-node:jimc.20100409112755.247:arGUIXMLParser::_attributearVector3
-//@+node:jimc.20100409112755.248:arGUIXMLParser::_attributearVector4
 
 arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
                                                const string& name,
@@ -539,8 +461,6 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
   node->ToElement()->Attribute( w.c_str(), &vec[ 3 ] );
   return vec;
 }
-//@-node:jimc.20100409112755.248:arGUIXMLParser::_attributearVector4
-//@+node:jimc.20100409112755.249:arGUIXMLParser::_attributeBool
 
 bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
                                      const string& value )
@@ -568,8 +488,6 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
 
   return attrVal == "true" || attrVal == "yes";
 }
-//@-node:jimc.20100409112755.249:arGUIXMLParser::_attributeBool
-//@+node:jimc.20100409112755.250:arGUIXMLParser::_configureScreen
 
 int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
                                       TiXmlNode* screenNode )
@@ -680,8 +598,6 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
 
   return 0;
 }
-//@-node:jimc.20100409112755.250:arGUIXMLParser::_configureScreen
-//@+node:jimc.20100409112755.251:arGUIXMLParser::_configureCamera
 
 arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
                                             TiXmlNode* cameraNode )
@@ -822,8 +738,6 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   camera->setScreen( &screen );
   return camera;
 }
-//@-node:jimc.20100409112755.251:arGUIXMLParser::_configureCamera
-//@+node:jimc.20100409112755.252:arGUIXMLParser::parse
 
 bool arGUIXMLParser::parse( void )
 {
@@ -1244,7 +1158,3 @@ bool arGUIXMLParser::parse( void )
   _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
   return true;
 }
-//@-node:jimc.20100409112755.252:arGUIXMLParser::parse
-//@-others
-//@-node:jimc.20100409112755.216:@thin graphics\arGUIXMLParser.cpp
-//@-leo

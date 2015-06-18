@@ -1,9 +1,3 @@
-//@+leo-ver=4-thin
-//@+node:jimc.20100414105916.1:@thin graphics\arGraphicsClient.cpp
-//@@language c++
-//@@tabwidth -2
-//@+others
-//@+node:jimc.20100414105916.2:ar_graphicsClientConnectionCallback
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
@@ -17,8 +11,6 @@
 bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*) {
   return true;
 }
-//@-node:jimc.20100414105916.2:ar_graphicsClientConnectionCallback
-//@+node:jimc.20100414105916.3:ar_graphicsClientDisconnectCallback
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientDisconnectCallback(void* client) {
@@ -36,8 +28,6 @@ bool ar_graphicsClientDisconnectCallback(void* client) {
   // Call skipConsumption from the arSyncDataClient proper, not here.
   return true;
 }
-//@-node:jimc.20100414105916.3:ar_graphicsClientDisconnectCallback
-//@+node:jimc.20100414105916.4:ar_graphicsClientDraw
 
 // Draw a particular viewing frustum, not the whole arGraphicsWindow.
 // Called from the arGraphicsClientRenderCallback object.
@@ -68,8 +58,6 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win, arViewpo
     glEnd();
   }
 }
-//@-node:jimc.20100414105916.4:ar_graphicsClientDraw
-//@+node:jimc.20100414105916.5:ar_graphicsClientConsumptionCallback
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf) {
@@ -79,8 +67,6 @@ bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf) {
   }
   return true;
 }
-//@-node:jimc.20100414105916.5:ar_graphicsClientConsumptionCallback
-//@+node:jimc.20100414105916.6:ar_graphicsClientActionCallback
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientActionCallback(void* client) {
@@ -90,8 +76,6 @@ bool ar_graphicsClientActionCallback(void* client) {
   c->drawAllWindows();
   return true;
 }
-//@-node:jimc.20100414105916.6:ar_graphicsClientActionCallback
-//@+node:jimc.20100414105916.7:ar_graphicsClientNullCallback
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientNullCallback(void* client) {
@@ -114,16 +98,12 @@ bool ar_graphicsClientNullCallback(void* client) {
   ar_usleep(40000);
   return ar_graphicsClientPostSyncCallback(client);
 }
-//@-node:jimc.20100414105916.7:ar_graphicsClientNullCallback
-//@+node:jimc.20100414105916.8:ar_graphicsClientPostSyncCallback
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientPostSyncCallback(void* client) {
   ((arGraphicsClient*) client)->_windowManager->swapAllWindowBuffers(true);
   return true;
 }
-//@-node:jimc.20100414105916.8:ar_graphicsClientPostSyncCallback
-//@+node:jimc.20100414105916.9:arGraphicsClientWindowInitCallback::operator
 
 //***********************************************************************
 // arGraphicsWindow callback classes
@@ -139,8 +119,6 @@ void arGraphicsClientWindowInitCallback::operator()( arGraphicsWindow& ) {
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
-//@-node:jimc.20100414105916.9:arGraphicsClientWindowInitCallback::operator
-//@+node:jimc.20100414105916.10:arGraphicsClientRenderCallback::operator
 
 class arGraphicsClientRenderCallback : public arGUIRenderCallback {
   public:
@@ -160,8 +138,6 @@ void arGraphicsClientRenderCallback::operator()( arGraphicsWindow& w,
   if (_cliGraphics)
     ar_graphicsClientDraw(_cliGraphics, w, v);
 }
-//@-node:jimc.20100414105916.10:arGraphicsClientRenderCallback::operator
-//@+node:jimc.20100414105916.11:arGraphicsClientRenderCallback::operator
 
 // Callback for the arGUIWindow.
 void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* wI,
@@ -169,8 +145,6 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* wI,
   if (_cliGraphics && wI && w)
     _cliGraphics->render(*wI, *w);
 }
-//@-node:jimc.20100414105916.11:arGraphicsClientRenderCallback::operator
-//@+node:jimc.20100414105916.12:arGraphicsClient::render
 
 void arGraphicsClient::render(arGUIWindowInfo& wI, arGraphicsWindow& w) {
   // Window's contents.
@@ -203,8 +177,6 @@ void arGraphicsClient::render(arGUIWindowInfo& wI, arGraphicsWindow& w) {
   if ( fFirst && screenshotRequested() )
     takeScreenshot( wm->isStereo(wI.getWindowID()));
 }
-//@-node:jimc.20100414105916.12:arGraphicsClient::render
-//@+node:jimc.20100414105916.13:arGraphicsClient::arGraphicsClient
 
 arGraphicsClient::arGraphicsClient() :
   _windowManager(NULL),
@@ -229,8 +201,6 @@ arGraphicsClient::arGraphicsClient() :
   _cliSync.setPostSyncCallback(ar_graphicsClientPostSyncCallback);
   _cliSync.setBondedObject(this);
 }
-//@-node:jimc.20100414105916.13:arGraphicsClient::arGraphicsClient
-//@+node:jimc.20100414105916.14:arGraphicsClient::configure
 
 // Get configuration parameters from the Syzygy database.  Setup the object.
 bool arGraphicsClient::configure(arSZGClient* szgClient) {
@@ -252,8 +222,6 @@ bool arGraphicsClient::configure(arSZGClient* szgClient) {
   loadAlphabet(textPath.c_str());
   return true;
 }
-//@-node:jimc.20100414105916.14:arGraphicsClient::configure
-//@+node:jimc.20100414105916.15:arGraphicsClient::updateHead
 
 bool arGraphicsClient::updateHead() {
   arHead* head = _graphicsDatabase.getHead();
@@ -265,42 +233,30 @@ bool arGraphicsClient::updateHead() {
   _defaultHead = *head;
   return true;
 }
-//@-node:jimc.20100414105916.15:arGraphicsClient::updateHead
-//@+node:jimc.20100414105916.16:arGraphicsClient::loadAlphabet
 
 void arGraphicsClient::loadAlphabet(const char* thePath) {
   _graphicsDatabase.loadAlphabet(thePath);
 }
-//@-node:jimc.20100414105916.16:arGraphicsClient::loadAlphabet
-//@+node:jimc.20100414105916.17:arGraphicsClient::setTexturePath
 
 void arGraphicsClient::setTexturePath(const string& thePath) {
   _graphicsDatabase.setTexturePath(thePath);
 }
-//@-node:jimc.20100414105916.17:arGraphicsClient::setTexturePath
-//@+node:jimc.20100414105916.18:arGraphicsClient::setDataBundlePath
 
 void arGraphicsClient::setDataBundlePath(const string& bundlePathName,
                                     const string& bundleSubDirectory) {
   _graphicsDatabase.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
-//@-node:jimc.20100414105916.18:arGraphicsClient::setDataBundlePath
-//@+node:jimc.20100414105916.19:arGraphicsClient::addDataBundlePathMap
 
 void arGraphicsClient::addDataBundlePathMap(const string& bundlePathName,
                                     const string& bundlePath) {
   _graphicsDatabase.addDataBundlePathMap(bundlePathName, bundlePath);
 }
-//@-node:jimc.20100414105916.19:arGraphicsClient::addDataBundlePathMap
-//@+node:jimc.20100414105916.20:arGraphicsClient::setNetworks
 
 // Define on which networks this object will try to connect to a server,
 // in descending order of preference.
 void arGraphicsClient::setNetworks(string networks) {
   _cliSync.setNetworks(networks);
 }
-//@-node:jimc.20100414105916.20:arGraphicsClient::setNetworks
-//@+node:jimc.20100414105916.21:arGraphicsClient::start
 
 bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization) {
   // For standalone mode in arDistSceneGraphFramework,
@@ -335,14 +291,10 @@ bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization) {
   // Start the window threads.
   return _windowManager->createWindows(_guiParser->getWindowingConstruct()) >= 0;
 }
-//@-node:jimc.20100414105916.21:arGraphicsClient::start
-//@+node:jimc.20100414105916.22:arGraphicsClient::setOverrideColor
 
 void arGraphicsClient::setOverrideColor(arVector3 overrideColor) {
   _overrideColor = overrideColor;
 }
-//@-node:jimc.20100414105916.22:arGraphicsClient::setOverrideColor
-//@+node:jimc.20100414105916.23:arGraphicsClient::requestScreenshot
 
 void arGraphicsClient::requestScreenshot(const string& path,
                                          int x, int y, int width, int height) {
@@ -353,14 +305,10 @@ void arGraphicsClient::requestScreenshot(const string& path,
   _screenshotHeight = height;
   _doScreenshot = true;
 }
-//@-node:jimc.20100414105916.23:arGraphicsClient::requestScreenshot
-//@+node:jimc.20100414105916.24:arGraphicsClient::screenshotRequested
 
 bool arGraphicsClient::screenshotRequested() {
   return _doScreenshot;
 }
-//@-node:jimc.20100414105916.24:arGraphicsClient::screenshotRequested
-//@+node:jimc.20100414105916.25:arGraphicsClient::takeScreenshot
 
 // copypaste with arMasterSlaveFramework::_handleScreenshot
 void arGraphicsClient::takeScreenshot(bool stereo) {
@@ -377,7 +325,3 @@ void arGraphicsClient::takeScreenshot(bool stereo) {
   }
   _doScreenshot = false;
 }
-//@-node:jimc.20100414105916.25:arGraphicsClient::takeScreenshot
-//@-others
-//@-node:jimc.20100414105916.1:@thin graphics\arGraphicsClient.cpp
-//@-leo
