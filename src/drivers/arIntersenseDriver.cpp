@@ -675,7 +675,7 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   } else {
     ar_log_remark() << "arIntersenseDriver: SZG_INTERSENSE/sleep set to " 
          << " ( " << sig[0] << " ).\n";
-    _sleepTime = sig[0];
+    _sleepTime = sig[0]*1000;
   }
 
   DWORD comPortID = static_cast<DWORD>(client.getAttributeInt( "SZG_INTERSENSE", "com_port"));
