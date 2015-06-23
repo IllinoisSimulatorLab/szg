@@ -1,6 +1,9 @@
 " Vim syntax file for Syzygy.
+"
 " Copy this file to $VIMRUNTIME/syntax/syzygy.vim
 " (e.g., ~/.vim/syntax/syzygy.vim or /usr/share/vim/vim74/syntax/syzygy.vim).
+"
+" Ensure that "set modeline" is true, e.g. by adding that line to ~/.vimrc.
 "
 " To use this with a .xml file, in that file include a line:
 " // vim: filetype=syzygy
@@ -13,4 +16,5 @@
 
 " todo: within an <assign> ... </assign> block,
 " four colors for the four entries in each line.
-:syntax region szgAssign start=/<assign>/ end=/<\/assign>/
+" :syntax region szgAssign start=/<assign>/ end=/<\/assign>/
+" ...
