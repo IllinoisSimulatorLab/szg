@@ -237,7 +237,7 @@ protected:
         static const char*        SkipWhiteSpace( const char*, TiXmlEncoding encoding );
         inline static bool        IsWhiteSpace( char c )
         {
-                return ( isspace( (unsigned char) c ) || c == '\n' || c == '\r' );
+                return ( std::isspace( (unsigned char) c ) || c == '\n' || c == '\r' );
         }
 
         virtual void StreamOut (TIXML_OSTREAM *) const = 0;
@@ -329,12 +329,12 @@ protected:
         {
                 if ( encoding == TIXML_ENCODING_UTF8 )
                 {
-                        if ( v < 128 ) return tolower( v );
+                        if ( v < 128 ) return std::tolower( v );
                         return v;
                 }
                 else
                 {
-                        return tolower( v );
+                        return std::tolower( v );
                 }
         }
         static void ConvertUTF32ToUTF8( unsigned long input, char* output, int* length );
