@@ -5,7 +5,7 @@
 "
 " Ensure that "set modeline" is true, e.g. by adding that line to ~/.vimrc.
 "
-" To use this with a .xml file, in that file include a line:
+" To use this with a .xml file, in that file (but not at the top) include a line:
 " // vim: filetype=syzygy
 
 :so $VIMRUNTIME/syntax/xml.vim
