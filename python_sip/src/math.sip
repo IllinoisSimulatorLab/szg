@@ -716,8 +716,8 @@ arMatrix4 ar_rotationMatrix(char,float) /TransferBack/;
 arMatrix4 ar_rotationMatrix(const arVector3&,float) /TransferBack/;
 arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, 
                                   const arVector3& vec2 ) /TransferBack/;
-//arMatrix4 ar_transrotMatrix(const arVector3& position, 
-//                                     const arQuaternion& orientation);
+arMatrix4 ar_transrotMatrix(const arVector3& position, 
+                                     const arQuaternion& orientation);
 arMatrix4 ar_scaleMatrix(float) /TransferBack/;
 arMatrix4 ar_scaleMatrix(float,float,float) /TransferBack/;
 arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors) /TransferBack/;
