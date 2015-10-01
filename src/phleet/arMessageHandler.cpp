@@ -31,6 +31,10 @@ std::vector<arMessage> arMessageHandler::getMessages() {
     return msgsOut;
 }
 
+bool arMessageHandler::respondToMessage( arMessage* msg, string& response, bool partialResponse ) {
+    return getSzgClient()->messageResponse( msg->id, response, partialResponse );
+}
+
 void arMessageHandler::quitMessageTask() {
     _lock.lock();
     _continueMessageTask = false;

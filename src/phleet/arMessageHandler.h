@@ -42,6 +42,7 @@ class SZG_CALL arMessageHandler {
 
         void addMessage( arMessage msg );
         std::vector<arMessage> getMessages();
+        bool respondToMessage( arMessage* msg, string& msgBody, bool partialResponse=false );
 
         void quitMessageTask();
         bool continueMessageTask();
