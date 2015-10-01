@@ -246,6 +246,7 @@ class SZG_CALL arSZGClient{
   void messageTask();
   void messageTaskStop() { _dataParser->clearQueues(); }
   bool running() const { return _keepRunning; }
+  void stopRunning() { _keepRunning = false; }
 
  private:
   arPhleetConfig       _config;

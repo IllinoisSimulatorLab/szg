@@ -6,6 +6,7 @@ Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags
 
 libSrc = ( \
     'arSZGClient.cpp',
+    'arMessageHandler.cpp',
     'arPhleetConfigLanguage.cpp',
     'arPhleetConfig.cpp',
     'arPhleetConnectionBroker.cpp',

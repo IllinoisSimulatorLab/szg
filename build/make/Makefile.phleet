@@ -6,6 +6,7 @@ include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS = \
   arSZGClient$(OBJ_SUFFIX) \
+  arMessageHandler$(OBJ_SUFFIX) \
   arPhleetConfigLanguage$(OBJ_SUFFIX) \
   arPhleetConfig$(OBJ_SUFFIX) \
   arPhleetConnectionBroker$(OBJ_SUFFIX) \
