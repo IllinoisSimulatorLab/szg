@@ -6,6 +6,7 @@ Import('buildFunc','srcDirname','buildEnv','pathDict','priorLibs','externalFlags
 
 libSrc = ( \
     'arDeviceServerFramework.cpp',
+    'arDeviceClient.cpp',
     'arInputNodeConfig.cpp',
     'arInputFactory.cpp',
     'arEventUtilities.cpp',

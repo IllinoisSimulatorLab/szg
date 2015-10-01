@@ -6,6 +6,7 @@ include $(SZGHOME)/build/make/Makefile.vars
 
 OBJS := \
   arDeviceServerFramework$(OBJ_SUFFIX) \
+  arDeviceClient$(OBJ_SUFFIX) \
   arInputNodeConfig$(OBJ_SUFFIX) \
   arInputFactory$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
