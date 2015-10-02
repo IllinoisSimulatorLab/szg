@@ -23,7 +23,8 @@ class SZG_CALL arDeviceClient : public arMessageHandler {
         arDeviceClient( arSZGClient* szgClient );
         virtual ~arDeviceClient();
 
-        bool init( std::vector<arIOFilter*> filters, int slotNum=-1, std::string serviceName="" );
+        bool init( int slotNum, std::vector<arIOFilter*>* filterVecPtr=NULL );
+        bool init( std::string serviceName, std::vector<arIOFilter*>* filterVecPtr=NULL );
 
         arInputNode* getInputNode() { return &_inputNode; }
 
@@ -31,8 +32,11 @@ class SZG_CALL arDeviceClient : public arMessageHandler {
         bool stop();
 
     protected:
+        bool _inited;
         arNetInputSource _src;
         arInputNode _inputNode;
+
+        bool _init( std::vector<arIOFilter*>* filterVecPtr );
 };
 
 

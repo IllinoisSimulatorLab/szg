@@ -12,42 +12,50 @@ arDeviceClient::arDeviceClient( arSZGClient* szgClient ) :
     arMessageHandler( szgClient ) {}
 
 
-bool arDeviceClient::init( std::vector<arIOFilter*> filters, int slotNum, std::string serviceName ) {
+arDeviceClient::~arDeviceClient() {
+    stop();
+}
 
-    if ((slotNum < 0) && (serviceName == "")) {
-        ar_log_error() << "arDeviceClient::init(): Must pass either slotNum >= 0 or a valid serviceName.\n";
+
+bool arDeviceClient::init( int slotNum, std::vector<arIOFilter*>* filterVecPtr ) {
+
+    if (!_src.setSlot( slotNum )) {
+        ar_log_error() << "DeviceClient: invalid slot " << slotNum << ".\n";
+        if (!_szgClientPtr->sendInitResponse( false )) {
+            cerr << "arDeviceClient error: maybe szgserver died.\n";
+        }
         return false;
     }
-    if ((slotNum >= 0) && (serviceName != "")) {
-        ar_log_error() << "arDeviceClient::init(): Must pass _only one of_ slotNum >= 0 or a valid serviceName.\n";
+    ar_log_remark() << "arDeviceClient listening on slot " << slotNum << ".\n";
+
+    return _init( filterVecPtr );
+}
+
+
+bool arDeviceClient::init( std::string serviceName, std::vector<arIOFilter*>* filterVecPtr ) {
+
+    if (!_src.setServiceName( serviceName )) {
+        ar_log_error() << "DeviceClient: invalid service name " << serviceName << ".\n";
+        if (!_szgClientPtr->sendInitResponse( false )) {
+            cerr << "arDeviceClient error: maybe szgserver died.\n";
+        }
         return false;
     }
+    ar_log_remark() << "arDeviceClient listening to service" << serviceName << ".\n";
 
-    if (slotNum >= 0) {
-        if (!_src.setSlot( slotNum )) {
-            ar_log_error() << "DeviceClient: invalid slot " << slotNum << ".\n";
-            if (!_szgClientPtr->sendInitResponse( false )) {
-                cerr << "arDeviceClient error: maybe szgserver died.\n";
-            }
-            return false;
-        }
-        ar_log_remark() << "arDeviceClient listening on slot " << slotNum << ".\n";
-    } else {
-        if (!_src.setServiceName( serviceName )) {
-            ar_log_error() << "DeviceClient: invalid service name " << serviceName << ".\n";
-            if (!_szgClientPtr->sendInitResponse( false )) {
-                cerr << "arDeviceClient error: maybe szgserver died.\n";
-            }
-            return false;
-        }
-        ar_log_remark() << "arDeviceClient listening to service" << serviceName << ".\n";
-    }
+    return _init( filterVecPtr );
+}
+
+
+bool arDeviceClient::_init( std::vector<arIOFilter*>* filterVecPtr ) {
 
     _inputNode.addInputSource( &_src, false );
 
-    std::vector<arIOFilter*>::iterator iter;
-    for (iter = filters.begin(); iter != filters.end(); ++iter ) {
-        _inputNode.addFilter( *iter, false );
+    if (filterVecPtr) {
+        std::vector<arIOFilter*>::iterator iter;
+        for (iter = filterVecPtr->begin(); iter != filterVecPtr->end(); ++iter ) {
+            _inputNode.addFilter( *iter, false );
+        }
     }
 
     if (!_inputNode.init( *_szgClientPtr )) {
@@ -65,6 +73,7 @@ bool arDeviceClient::init( std::vector<arIOFilter*> filters, int slotNum, std::s
 
     return true;
 }
+
 
 
 bool arDeviceClient::start( void (*msgHandlerThreadFunc)( void* ) ) {
